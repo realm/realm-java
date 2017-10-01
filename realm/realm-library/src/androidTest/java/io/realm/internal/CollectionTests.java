@@ -32,6 +32,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
@@ -420,8 +422,9 @@ public class CollectionTests {
             super(collection);
         }
 
+        @Nullable
         @Override
-        protected Integer convertRowToObject(UncheckedRow row) {
+        protected Integer get(int pos) {
             return null;
         }
 

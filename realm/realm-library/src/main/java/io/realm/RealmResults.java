@@ -118,7 +118,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     @Override
     public boolean isLoaded() {
         realm.checkIfValid();
-        return collection.isLoaded();
+        return getCollection().isLoaded();
     }
 
     /**
@@ -134,7 +134,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         // only to keep the original behavior of those APIs. eg.: For a async RealmResults, before query returns, the
         // size() call should return 0 instead of running the query get the real size.
         realm.checkIfValid();
-        collection.load();
+        getCollection().load();
         return true;
     }
 
@@ -173,7 +173,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void addChangeListener(RealmChangeListener<RealmResults<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.addListener(this, listener);
+        getCollection().addListener(this, listener);
     }
 
     /**
@@ -211,7 +211,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmResults<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.addListener(this, listener);
+        getCollection().addListener(this, listener);
     }
 
     private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
@@ -230,7 +230,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void removeAllChangeListeners() {
         checkForAddRemoveListener(null, false);
-        collection.removeAllListeners();
+        getCollection().removeAllListeners();
     }
 
     /**
@@ -243,7 +243,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void removeChangeListener(RealmChangeListener<RealmResults<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.removeListener(this, listener);
+        getCollection().removeListener(this, listener);
     }
 
     /**
@@ -256,7 +256,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmResults<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        collection.removeListener(this, listener);
+        getCollection().removeListener(this, listener);
     }
 
     /**

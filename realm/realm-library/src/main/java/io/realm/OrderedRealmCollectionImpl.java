@@ -9,13 +9,11 @@ import java.util.Locale;
 
 import javax.annotation.Nullable;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Collection;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
-import io.realm.internal.UncheckedRow;
 
 
 /**
@@ -27,13 +25,12 @@ abstract class OrderedRealmCollectionImpl<E>
             " 'OrderedRealmCollectionSnapshot'.";
 
     final BaseRealm realm;
-    @Nullable final Class<E> classSpec;   // Return type
-    @Nullable final String className;     // Class name used by DynamicRealmObjects
-    // FIXME implement this
-    @SuppressFBWarnings("SS_SHOULD_BE_STATIC")
-    final boolean forValues = false;
+    @Nullable
+    final Class<E> classSpec;   // Return type
+    @Nullable
+    final String className;     // Class name used by DynamicRealmObjects
 
-    final Collection collection;
+    private final CollectionOperator<E> collectionOperator;
 
     OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, Class<E> clazz) {
         this(realm, collection, clazz, null);
@@ -45,17 +42,25 @@ abstract class OrderedRealmCollectionImpl<E>
 
     private OrderedRealmCollectionImpl(BaseRealm realm, Collection collection, @Nullable Class<E> clazz, @Nullable String className) {
         this.realm = realm;
-        this.collection = collection;
         this.classSpec = clazz;
         this.className = className;
+        this.collectionOperator = getOperator(realm, collection, clazz, className);
+    }
+
+    private static boolean isClassForRealmModel(Class<?> clazz) {
+        return RealmModel.class.isAssignableFrom(clazz);
     }
 
     Table getTable() {
-        return collection.getTable();
+        return collectionOperator.getCollection().getTable();
     }
 
     Collection getCollection() {
-        return collection;
+        return collectionOperator.getCollection();
+    }
+
+    boolean forModelClasses() {
+        return collectionOperator.forModelClasses();
     }
 
     /**
@@ -63,7 +68,7 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public boolean isValid() {
-        return collection.isValid();
+        return collectionOperator.isValid();
     }
 
     /**
@@ -115,13 +120,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Nullable
     public E get(int location) {
         realm.checkIfValid();
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
-        //noinspection unchecked
-        return (E) realm.get((Class<? extends RealmModel>) classSpec, className, collection.getUncheckedRow(location));
+        return collectionOperator.get(location);
     }
 
     /**
@@ -144,23 +143,15 @@ abstract class OrderedRealmCollectionImpl<E>
 
     @Nullable
     private E firstImpl(boolean shouldThrow, @Nullable E defaultValue) {
-        UncheckedRow row = collection.firstUncheckedRow();
-
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
-        if (row != null) {
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
-        } else {
+        if (collectionOperator.isEmpty()) {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");
             } else {
                 return defaultValue;
             }
         }
+
+        return collectionOperator.get(0);
     }
 
     /**
@@ -184,23 +175,16 @@ abstract class OrderedRealmCollectionImpl<E>
 
     @Nullable
     private E lastImpl(boolean shouldThrow, @Nullable E defaultValue) {
-        UncheckedRow row = collection.lastUncheckedRow();
-
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
-        if (row != null) {
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
-        } else {
+        final int size = collectionOperator.size();
+        if (size == 0) {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");
             } else {
                 return defaultValue;
             }
         }
+
+        return collectionOperator.get(size - 1);
     }
 
     /**
@@ -210,7 +194,7 @@ abstract class OrderedRealmCollectionImpl<E>
     public void deleteFromRealm(int location) {
         // TODO: Implement the delete in OS level and do check there!
         realm.checkIfValidAndInTransaction();
-        collection.delete(location);
+        collectionOperator.delete(location);
     }
 
     /**
@@ -219,8 +203,8 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public boolean deleteAllFromRealm() {
         realm.checkIfValid();
-        if (size() > 0) {
-            collection.clear();
+        if (!collectionOperator.isEmpty()) {
+            collectionOperator.clear();
             return true;
         }
         return false;
@@ -268,8 +252,8 @@ abstract class OrderedRealmCollectionImpl<E>
 
     // Sorting
 
-    // aux. method used by sort methods
-    private long getColumnIndexForSort(String fieldName) {
+    // aux. method used by aggregation methods
+    private long getColumnIndexForAggregation(String fieldName) {
         //noinspection ConstantConditions
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Non-empty field name required.");
@@ -277,7 +261,7 @@ abstract class OrderedRealmCollectionImpl<E>
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Aggregates on child object fields are not supported: " + fieldName);
         }
-        long columnIndex = collection.getTable().getColumnIndex(fieldName);
+        long columnIndex = collectionOperator.getTargetTable().getColumnIndex(fieldName);
         if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format(Locale.US, "Field '%s' does not exist.", fieldName));
         }
@@ -289,11 +273,7 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public RealmResults<E> sort(String fieldName) {
-        SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldName, Sort.ASCENDING);
-
-        Collection sortedCollection = collection.sort(sortDescriptor);
-        return createLoadedResults(sortedCollection);
+        return sort(fieldName, Sort.ASCENDING);
     }
 
     /**
@@ -302,9 +282,9 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
         SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldName, sortOrder);
+                SortDescriptor.getInstanceForSort(getSchemaConnector(), collectionOperator.getTargetTable(), fieldName, sortOrder);
 
-        Collection sortedCollection = collection.sort(sortDescriptor);
+        Collection sortedCollection = collectionOperator.getCollection().sort(sortDescriptor);
         return createLoadedResults(sortedCollection);
     }
 
@@ -314,9 +294,9 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
         SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), collection.getTable(), fieldNames, sortOrders);
+                SortDescriptor.getInstanceForSort(getSchemaConnector(), collectionOperator.getTargetTable(), fieldNames, sortOrders);
 
-        Collection sortedCollection = collection.sort(sortDescriptor);
+        Collection sortedCollection = collectionOperator.getCollection().sort(sortDescriptor);
         return createLoadedResults(sortedCollection);
     }
 
@@ -337,11 +317,10 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public int size() {
-        if (isLoaded()) {
-            long size = collection.size();
-            return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
+        if (!isLoaded()) {
+            return 0;
         }
-        return 0;
+        return collectionOperator.size();
     }
 
     /**
@@ -350,8 +329,11 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public Number min(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
-        return collection.aggregateNumber(io.realm.internal.Collection.Aggregate.MINIMUM, columnIndex);
+
+        // FIXME primitive list
+
+        long columnIndex = getColumnIndexForAggregation(fieldName);
+        return collectionOperator.getCollection().aggregateNumber(io.realm.internal.Collection.Aggregate.MINIMUM, columnIndex);
     }
 
     /**
@@ -360,8 +342,11 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public Date minDate(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
-        return collection.aggregateDate(Collection.Aggregate.MINIMUM, columnIndex);
+
+        // FIXME primitive list
+
+        long columnIndex = getColumnIndexForAggregation(fieldName);
+        return collectionOperator.getCollection().aggregateDate(Collection.Aggregate.MINIMUM, columnIndex);
     }
 
     /**
@@ -370,8 +355,11 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public Number max(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
-        return collection.aggregateNumber(Collection.Aggregate.MAXIMUM, columnIndex);
+
+        // FIXME primitive list
+
+        long columnIndex = getColumnIndexForAggregation(fieldName);
+        return collectionOperator.getCollection().aggregateNumber(Collection.Aggregate.MAXIMUM, columnIndex);
     }
 
     /**
@@ -388,8 +376,11 @@ abstract class OrderedRealmCollectionImpl<E>
     @Nullable
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
-        return collection.aggregateDate(Collection.Aggregate.MAXIMUM, columnIndex);
+
+        // FIXME primitive list
+
+        long columnIndex = getColumnIndexForAggregation(fieldName);
+        return collectionOperator.getCollection().aggregateDate(Collection.Aggregate.MAXIMUM, columnIndex);
     }
 
 
@@ -399,8 +390,8 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public Number sum(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
-        return collection.aggregateNumber(Collection.Aggregate.SUM, columnIndex);
+        long columnIndex = getColumnIndexForAggregation(fieldName);
+        return collectionOperator.getCollection().aggregateNumber(Collection.Aggregate.SUM, columnIndex);
     }
 
     /**
@@ -409,9 +400,12 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public double average(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
 
-        Number avg = collection.aggregateNumber(Collection.Aggregate.AVERAGE, columnIndex);
+        // FIXME primitive list
+
+        long columnIndex = getColumnIndexForAggregation(fieldName);
+
+        Number avg = collectionOperator.getCollection().aggregateNumber(Collection.Aggregate.AVERAGE, columnIndex);
         return avg.doubleValue();
     }
 
@@ -481,7 +475,7 @@ abstract class OrderedRealmCollectionImpl<E>
     public boolean deleteLastFromRealm() {
         // TODO: Implement the deleteLast in OS level and do check there!
         realm.checkIfValidAndInTransaction();
-        return collection.deleteLast();
+        return collectionOperator.deleteLast();
     }
 
     /**
@@ -493,7 +487,7 @@ abstract class OrderedRealmCollectionImpl<E>
     public boolean deleteFirstFromRealm() {
         // TODO: Implement the deleteLast in OS level and do check there!
         realm.checkIfValidAndInTransaction();
-        return collection.deleteFirst();
+        return collectionOperator.deleteFirst();
     }
 
     /**
@@ -555,45 +549,37 @@ abstract class OrderedRealmCollectionImpl<E>
     // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
     private class RealmCollectionIterator extends Collection.Iterator<E> {
         RealmCollectionIterator() {
-            super(OrderedRealmCollectionImpl.this.collection);
+            super(OrderedRealmCollectionImpl.this.collectionOperator.getCollection());
         }
 
+        @Nullable
         @Override
-        protected E convertRowToObject(UncheckedRow row) {
-            if (forValues) {
-                // TODO implement this
-                return null;
-            }
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmObject>) classSpec, className, row);
+        protected E get(int pos) {
+            return collectionOperator.get(pos);
         }
     }
 
     @Override
     public OrderedRealmCollectionSnapshot<E> createSnapshot() {
         if (className != null) {
-            return new OrderedRealmCollectionSnapshot<E>(realm, collection, className);
+            return new OrderedRealmCollectionSnapshot<E>(realm, collectionOperator.getCollection(), className);
         } else {
             // 'classSpec' is non-null when 'className' is null.
             //noinspection ConstantConditions
-            return new OrderedRealmCollectionSnapshot<E>(realm, collection, classSpec);
+            return new OrderedRealmCollectionSnapshot<E>(realm, collectionOperator.getCollection(), classSpec);
         }
     }
 
     // Custom RealmResults list iterator.
     private class RealmCollectionListIterator extends Collection.ListIterator<E> {
         RealmCollectionListIterator(int start) {
-            super(OrderedRealmCollectionImpl.this.collection, start);
+            super(OrderedRealmCollectionImpl.this.collectionOperator.getCollection(), start);
         }
 
+        @Nullable
         @Override
-        protected E convertRowToObject(UncheckedRow row) {
-            if (forValues) {
-                // TODO implement this
-                return null;
-            }
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmObject>) classSpec, className, row);
+        protected E get(int pos) {
+            return collectionOperator.get(pos);
         }
     }
 
@@ -612,5 +598,265 @@ abstract class OrderedRealmCollectionImpl<E>
 
     private SchemaConnector getSchemaConnector() {
         return new SchemaConnector(realm.getSchema());
+    }
+
+
+    private CollectionOperator<E> getOperator(BaseRealm realm, Collection collection, @Nullable Class<E> clazz, @Nullable String className) {
+        if (clazz == null || isClassForRealmModel(clazz)) {
+            return new RealmModelCollectionOperator<>(realm, collection, clazz, className);
+        }
+        if (clazz == String.class) {
+            //noinspection unchecked
+            return (CollectionOperator<E>) new StringCollectionOperator(realm, collection, (Class<String>) clazz);
+        }
+        if (clazz == Long.class || clazz == Integer.class || clazz == Short.class || clazz == Byte.class) {
+            return new LongCollectionOperator<>(realm, collection, clazz);
+        }
+        if (clazz == Boolean.class) {
+            //noinspection unchecked
+            return (CollectionOperator<E>) new BooleanCollectionOperator(realm, collection, (Class<Boolean>) clazz);
+        }
+        if (clazz == byte[].class) {
+            //noinspection unchecked
+            return (CollectionOperator<E>) new BinaryCollectionOperator(realm, collection, (Class<byte[]>) clazz);
+        }
+        if (clazz == Double.class) {
+            //noinspection unchecked
+            return (CollectionOperator<E>) new DoubleCollectionOperator(realm, collection, (Class<Double>) clazz);
+        }
+        if (clazz == Float.class) {
+            //noinspection unchecked
+            return (CollectionOperator<E>) new FloatCollectionOperator(realm, collection, (Class<Float>) clazz);
+        }
+        if (clazz == Date.class) {
+            //noinspection unchecked
+            return (CollectionOperator<E>) new DateCollectionOperator(realm, collection, (Class<Date>) clazz);
+        }
+        throw new IllegalArgumentException("Unexpected value class: " + clazz.getName());
+    }
+
+    private static abstract class CollectionOperator<T> {
+        final BaseRealm realm;
+        final Collection collection;
+        @Nullable
+        final Class<T> clazz;
+
+        CollectionOperator(BaseRealm realm, Collection collection, @Nullable Class<T> clazz) {
+            this.realm = realm;
+            this.collection = collection;
+            this.clazz = clazz;
+        }
+
+        final Collection getCollection() {
+            return collection;
+        }
+
+        abstract boolean forModelClasses();
+
+        final Table getTargetTable() {
+            return collection.getTable();
+        }
+
+        final boolean isValid() {
+            return collection.isValid();
+        }
+
+        final int size() {
+            final long actualSize = collection.size();
+            return actualSize < Integer.MAX_VALUE ? (int) actualSize : Integer.MAX_VALUE;
+        }
+
+        final boolean isEmpty() {
+            return collection.size() == 0;
+        }
+
+        @Nullable
+        abstract T get(int index);
+
+        final void delete(int index) {
+            collection.delete(index);
+        }
+
+        final boolean deleteFirst() {
+            return collection.deleteFirst();
+        }
+
+        final boolean deleteLast() {
+            return collection.deleteLast();
+        }
+
+        final void clear() {
+            collection.clear();
+        }
+    }
+
+    private static final class RealmModelCollectionOperator<T> extends CollectionOperator<T> {
+        @Nullable
+        private String className;
+
+        RealmModelCollectionOperator(BaseRealm realm, Collection collection, @Nullable Class<T> clazz, @Nullable String className) {
+            super(realm, collection, clazz);
+            this.className = className;
+        }
+
+        @Override
+        boolean forModelClasses() {
+            return true;
+        }
+
+        @Nullable
+        @Override
+        T get(int index) {
+            //noinspection unchecked
+            return (T) realm.get((Class<? extends RealmModel>) clazz, className, collection.getUncheckedRow(index));
+        }
+    }
+
+    private static final class StringCollectionOperator extends CollectionOperator<String> {
+
+        StringCollectionOperator(BaseRealm realm, Collection collection, @Nullable Class<String> clazz) {
+            super(realm, collection, clazz);
+        }
+
+        @Override
+        boolean forModelClasses() {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        String get(int index) {
+            return (String) collection.getValue(index);
+        }
+    }
+
+    private static final class LongCollectionOperator<T> extends CollectionOperator<T> {
+
+        LongCollectionOperator(BaseRealm realm, Collection collection, @Nullable Class<T> clazz) {
+            super(realm, collection, clazz);
+        }
+
+        @Override
+        boolean forModelClasses() {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        T get(int index) {
+            final Long value = (Long) collection.getValue(index);
+            if (value == null) {
+                return null;
+            }
+            if (clazz == Long.class) {
+                //noinspection unchecked
+                return (T) value;
+            }
+            if (clazz == Integer.class) {
+                //noinspection unchecked,UnnecessaryBoxing,ConstantConditions
+                return clazz.cast(Integer.valueOf(value.intValue()));
+            }
+            if (clazz == Short.class) {
+                //noinspection unchecked,UnnecessaryBoxing,ConstantConditions
+                return clazz.cast(Short.valueOf(value.shortValue()));
+            }
+            if (clazz == Byte.class) {
+                //noinspection unchecked,UnnecessaryBoxing,ConstantConditions
+                return clazz.cast(Byte.valueOf(value.byteValue()));
+            }
+            //noinspection ConstantConditions
+            throw new IllegalStateException("Unexpected element type: " + clazz.getName());
+        }
+    }
+
+
+    private static final class BooleanCollectionOperator extends CollectionOperator<Boolean> {
+
+        BooleanCollectionOperator(BaseRealm realm, Collection collection, @Nullable Class<Boolean> clazz) {
+            super(realm, collection, clazz);
+        }
+
+        @Override
+        boolean forModelClasses() {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        Boolean get(int index) {
+            return (Boolean) collection.getValue(index);
+        }
+    }
+
+    private static final class BinaryCollectionOperator extends CollectionOperator<byte[]> {
+
+        BinaryCollectionOperator(BaseRealm realm, Collection collection, @Nullable Class<byte[]> clazz) {
+            super(realm, collection, clazz);
+        }
+
+        @Override
+        boolean forModelClasses() {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        byte[] get(int index) {
+            return (byte[]) collection.getValue(index);
+        }
+    }
+
+    private static final class DoubleCollectionOperator extends CollectionOperator<Double> {
+
+        DoubleCollectionOperator(BaseRealm realm, Collection collection, @Nullable Class<Double> clazz) {
+            super(realm, collection, clazz);
+        }
+
+        @Override
+        boolean forModelClasses() {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        Double get(int index) {
+            return (Double) collection.getValue(index);
+        }
+    }
+
+    private static final class FloatCollectionOperator extends CollectionOperator<Float> {
+
+        FloatCollectionOperator(BaseRealm realm, Collection collection, @Nullable Class<Float> clazz) {
+            super(realm, collection, clazz);
+        }
+
+        @Override
+        boolean forModelClasses() {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        Float get(int index) {
+            return (Float) collection.getValue(index);
+        }
+    }
+
+    private static final class DateCollectionOperator extends CollectionOperator<Date> {
+
+        DateCollectionOperator(BaseRealm realm, Collection collection, @Nullable Class<Date> clazz) {
+            super(realm, collection, clazz);
+        }
+
+        @Override
+        boolean forModelClasses() {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        Date get(int index) {
+            return (Date) collection.getValue(index);
+        }
     }
 }

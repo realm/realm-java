@@ -114,13 +114,7 @@ public class Collection implements NativeObject, ObservableCollection {
         }
 
         @Nullable
-        T get(int pos) {
-            return convertRowToObject(iteratorCollection.getUncheckedRow(pos));
-        }
-
-        // Returns the RealmModel by given row in this list. This has to be implemented in the upper layer since
-        // we don't have information about the object types in the internal package.
-        protected abstract T convertRowToObject(UncheckedRow row);
+        protected abstract T get(int pos);
     }
 
     // Custom Realm collection list iterator.
@@ -352,6 +346,11 @@ public class Collection implements NativeObject, ObservableCollection {
         return nativeFinalizerPtr;
     }
 
+    @Nullable
+    public Object getValue(long pos) {
+        return nativeGetValue(nativePtr, pos);
+    }
+
     public UncheckedRow getUncheckedRow(int index) {
         return table.getUncheckedRowByPointer(nativeGetRow(nativePtr, index));
     }
@@ -546,4 +545,6 @@ public class Collection implements NativeObject, ObservableCollection {
     private static native byte nativeGetMode(long nativePtr);
 
     private static native long nativeCreateResultsFromBacklinks(long sharedRealmNativePtr, long rowNativePtr, long srcTableNativePtr, long srColIndex);
+
+    private static native Object nativeGetValue(long nativePtr, long pos);
 }

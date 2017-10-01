@@ -171,6 +171,12 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
     @Override
     public void deleteFromRealm(int location) {
         realm.checkIfValidAndInTransaction();
+        final Collection collection = getCollection();
+        if (forModelClasses()) {
+            collection.delete(location);
+            return;
+        }
+
         UncheckedRow row = collection.getUncheckedRow(location);
         if (row.isAttached()) {
             collection.delete(location);
@@ -185,7 +191,11 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public boolean deleteFirstFromRealm() {
+        if (forModelClasses()) {
+            return super.deleteFirstFromRealm();
+        }
         realm.checkIfValidAndInTransaction();
+        final Collection collection = getCollection();
         UncheckedRow row = collection.firstUncheckedRow();
         return row != null && row.isAttached() && collection.deleteFirst();
     }
@@ -198,7 +208,11 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public boolean deleteLastFromRealm() {
+        if (forModelClasses()) {
+            return super.deleteLastFromRealm();
+        }
         realm.checkIfValidAndInTransaction();
+        final Collection collection = getCollection();
         UncheckedRow row = collection.lastUncheckedRow();
         return row != null && row.isAttached() && collection.deleteLast();
     }
