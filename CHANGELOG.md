@@ -9,10 +9,14 @@
 * Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
 * `SyncUser.Callback` to becomes generic.
 * Removed `SyncUser.getAccessToken` method from public API, and rename it to `getRefreshToken`.
+* Removed `UNSUPPORTED_TABLE`, `UNSUPPORTED_MIXED` and `UNSUPPORTED_DATE` from `RealmFieldType`.
+* Relaxed upper bound of type parameter of `RealmList`, `RealmQuery`, `RealmResults`, `RealmCollection`, `OrderedRealmCollection` and `OrderedRealmCollectionSnapshot`.
 
 ## Deprecated
 
 ## Enhancements
+
+* Now users can use `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` as a type parameter of `RealmList`.
 
 ## Bug Fixes
 
@@ -29,6 +33,7 @@
 ### Breaking Changes
 
 * `RealmResults.distinct()`/`RealmResults.distinctAsync()` have been removed. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
+* `RealmQuery.createQuery(Realm, Class)`, `RealmQuery.createDynamicQuery(DynamicRealm, String)`, `RealmQuery.createQueryFromResult(RealmResults)` and `RealmQuery.createQueryFromList(RealmList)` have been removed. Use `Realm.where(Class)`, `DynamicRealm.where(String)`, RealmResults.where()` and `RealmList.where()` instead.
 
 ### Enhancements
 

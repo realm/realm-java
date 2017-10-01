@@ -51,6 +51,18 @@ public class AllTypes extends RealmObject {
 
     private RealmList<AllTypes> columnRealmList;
 
+    private RealmList<String> columnStringList;
+    private RealmList<byte[]> columnBinaryList;
+    private RealmList<Boolean> columnBooleanList;
+    private RealmList<Long> columnLongList;
+    private RealmList<Integer> columnIntegerList;
+    private RealmList<Short> columnShortList;
+    private RealmList<Byte> columnByteList;
+    private RealmList<Double> columnDoubleList;
+    private RealmList<Float> columnFloatList;
+    private RealmList<Date> columnDateList;
+
+
     @LinkingObjects(FIELD_PARENTS)
     private final RealmResults<AllTypes> parentObjects = null;
 
