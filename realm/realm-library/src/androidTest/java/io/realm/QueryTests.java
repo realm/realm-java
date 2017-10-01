@@ -62,9 +62,6 @@ public abstract class QueryTests {
 
         list = new ArrayList<>(Arrays.asList(RealmFieldType.values()));
         list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
-        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
-        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
-        list.remove(RealmFieldType.UNSUPPORTED_DATE);
 
         // FIXME zaki50 revisit once we implement query for Primitive List
         list.remove(RealmFieldType.STRING_LIST);

@@ -113,8 +113,6 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 return (E) getObject(fieldName);
             case LIST:
                 return (E) getList(fieldName);
-            case UNSUPPORTED_TABLE:
-            case UNSUPPORTED_MIXED:
             default:
                 throw new IllegalStateException("Field type not supported: " + type);
         }
@@ -444,9 +442,6 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DATE_LIST:
             case FLOAT_LIST:
             case DOUBLE_LIST:
-            case UNSUPPORTED_TABLE:
-            case UNSUPPORTED_MIXED:
-            case UNSUPPORTED_DATE:
                 // fall through
             default:
                 return false;

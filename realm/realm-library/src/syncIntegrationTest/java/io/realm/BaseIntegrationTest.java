@@ -32,7 +32,6 @@ import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 
 /**
