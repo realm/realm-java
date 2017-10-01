@@ -900,7 +900,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         list.size();
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = UnsupportedOperationException.class)
     public void where() {
         list.where();
     }

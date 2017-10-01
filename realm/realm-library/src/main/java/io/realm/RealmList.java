@@ -576,7 +576,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (isManaged()) {
             checkValidRealm();
             if (!osListOperator.forRealmModel()) {
-                throw new IllegalStateException(ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE);
+                throw new UnsupportedOperationException(ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE);
             }
             return RealmQuery.createQueryFromList(this);
         } else {
