@@ -51,14 +51,12 @@ import static io.realm.ManagedRealmListForValueTests.ListType.INTEGER_LIST;
 import static io.realm.ManagedRealmListForValueTests.ListType.LONG_LIST;
 import static io.realm.ManagedRealmListForValueTests.ListType.SHORT_LIST;
 import static io.realm.ManagedRealmListForValueTests.ListType.STRING_LIST;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -955,9 +953,12 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
     @Test
     public void deleteAllFromRealm_outsideTransaction() {
-            thrown.expect(IllegalStateException.class);
-            thrown.expectMessage("Must be in a write transaction ");
+        try {
             list.deleteAllFromRealm();
+            fail();
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().contains("Cannot modify managed objects outside of a write transaction"));
+        }
     }
 
     @Test
