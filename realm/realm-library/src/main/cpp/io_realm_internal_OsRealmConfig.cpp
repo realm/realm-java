@@ -299,7 +299,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSy
             if (access_token_string) {
                 // reusing cached valid token
                 JStringAccessor access_token(env, access_token_string);
-                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));
+                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url()));
             }
         };
 
