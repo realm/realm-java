@@ -97,8 +97,8 @@ public class ManagedRealmListForValueTests extends CollectionTests {
     public static Collection<Object[]> parameters() {
         final List<Object[]> paramsList = new ArrayList<>();
         for (ListType listType : ListType.values()) {
-            paramsList.add(new Object[] {listType, Boolean.TRUE});
-            paramsList.add(new Object[] {listType, Boolean.FALSE});
+            paramsList.add(new Object[]{listType, Boolean.TRUE});
+            paramsList.add(new Object[]{listType, Boolean.FALSE});
         }
         return paramsList;
     }
@@ -265,7 +265,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             case BOOLEAN_LIST:
                 return i % 2 == 0 ? Boolean.FALSE : Boolean.TRUE;
             case BINARY_LIST:
-                return new byte[] {(byte) i};
+                return new byte[]{(byte) i};
             case LONG_LIST:
                 return (long) i;
             case INTEGER_LIST:
@@ -767,7 +767,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         final int initialSize = list.size();
 
         final List<Object> unsupportedValues = Arrays.<Object>asList(
-                new int[] {0},
+                new int[]{0},
                 new StringBuilder("0")
         );
         realm.executeTransaction(new Realm.Transaction() {
@@ -820,7 +820,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         final int initialSize = list.size();
 
         final List<Object> unsupportedValues = Arrays.<Object>asList(
-                new int[] {0},
+                new int[]{0},
                 new StringBuilder("0")
         );
         realm.executeTransaction(new Realm.Transaction() {
@@ -1561,4 +1561,34 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         list.createSnapshot();
     }
 
+    @Test(expected = UnsupportedOperationException.class)
+    public void min() {
+        list.min(""); // See https://github.com/realm/realm-java/issues/5361
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void max() {
+        list.max(""); // See https://github.com/realm/realm-java/issues/5361
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void average() {
+        list.average(""); // See https://github.com/realm/realm-java/issues/5361
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void sum() {
+        list.sum(""); // See https://github.com/realm/realm-java/issues/5361
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void minDate() {
+        list.minDate(""); // See https://github.com/realm/realm-java/issues/5361
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void maxDate() {
+        list.maxDate(""); // See https://github.com/realm/realm-java/issues/5361
+    }
 }
+
