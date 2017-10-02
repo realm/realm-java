@@ -2,9 +2,9 @@
 
 ## Breaking Changes
 
-The internal fileformat has been upgraded. Opening an older Realm will upgrade the file automatically, but older versions of Realm will can no longer be able to read the file.  
+The internal file format has been upgraded to . Opening an older Realm will upgrade the file automatically, but older versions of Realm will no longer be able to read the file.
 
-* [ObjectServer] Updated protocol version to 22 which is only compatible with Realm Object Server > 2.0.0.
+* [ObjectServer] Updated protocol version to 22 which is only compatible with Realm Object Server >= 2.0.0.
 * [ObjectServer] Removed deprecated APIs `SyncUser.retrieveUser()` and `SyncUser.retrieveUserAsync()`. Use `SyncUser.retrieveInfoForUser()` and `retrieveInfoForUserAsync()` instead.
 * [ObjectServer] `SyncUser.Callback` now accepts an generic parameter indicating type of object return when `onSuccess` is called.
 * [ObjectServer] Renamed `SyncUser.getAccessToken` to `SyncUser.getRefreshToken`.
@@ -22,7 +22,6 @@ The internal fileformat has been upgraded. Opening an older Realm will upgrade t
 * Removed `UNSUPPORTED_TABLE`, `UNSUPPORTED_MIXED` and `UNSUPPORTED_DATE` from `RealmFieldType`.
 * Removed deprecated API `RealmResults.distinct()`/`RealmResults.distinctAsync()`. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
 * `RealmQuery.createQuery(Realm, Class)`, `RealmQuery.createDynamicQuery(DynamicRealm, String)`, `RealmQuery.createQueryFromResult(RealmResults)` and `RealmQuery.createQueryFromList(RealmList)` have been removed. Use `Realm.where(Class)`, `DynamicRealm.where(String)`, RealmResults.where()` and `RealmList.where()` instead.
-
 
 ## Enhancements
 
