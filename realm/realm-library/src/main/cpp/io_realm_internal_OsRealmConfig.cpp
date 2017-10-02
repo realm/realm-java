@@ -247,9 +247,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 }
 
 #if REALM_ENABLE_SYNC
-JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
+JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
     JNIEnv* env, jclass, jlong native_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
-    jstring j_reresh_token, jbyte j_session_stop_policy)
+    jstring j_refresh_token, jboolean j_is_partial, jbyte j_session_stop_policy)
 {
     TR_ENTER_PTR(native_ptr)
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
@@ -310,7 +310,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSy
         std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(sync_user_identifier);
         if (!user) {
             JStringAccessor realm_auth_url(env, j_auth_url);
-            JStringAccessor refresh_token(env, j_reresh_token);
+            JStringAccessor refresh_token(env, j_refresh_token);
             user = SyncManager::shared().get_user(sync_user_identifier, refresh_token);
         }
 
@@ -326,8 +326,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSy
         config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
             user, realm_url, session_stop_policy, std::move(bind_handler), std::move(error_handler),
             nullptr, sync_encryption_key});
+        config.sync_config->is_partial = (j_is_partial == JNI_TRUE);
+
+        return to_jstring(env, config.sync_config->realm_url().c_str());
+
     }
     CATCH_STD()
+    return nullptr;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigSslSettings(
