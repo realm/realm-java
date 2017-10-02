@@ -338,7 +338,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     /**
      * Returns the {@link RealmList} of {@link DynamicRealmObject}s being linked from the given field.
      * <p>
-     * If the list only contain primitive types, use {@link #getList(String, Class)} instead.
+     * If the list contains primitive types, use {@link #getList(String, Class)} instead.
      *
      * @param fieldName the name of the field.
      * @return the {@link RealmList} data for this field.
