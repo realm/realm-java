@@ -88,6 +88,7 @@ public class SyncConfiguration extends RealmConfiguration {
     @Nullable
     private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
+    private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
     private final boolean isPartial;
 
     private SyncConfiguration(File directory,
@@ -118,6 +119,7 @@ public class SyncConfiguration extends RealmConfiguration {
                                 @Nullable
                                 String serverCertificateFilePath,
                                 boolean waitForInitialData,
+                                OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
                                 boolean isPartial
     ) {
         super(directory,
@@ -145,6 +147,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.serverCertificateAssetName = serverCertificateAssetName;
         this.serverCertificateFilePath = serverCertificateFilePath;
         this.waitForInitialData = waitForInitialData;
+        this.sessionStopPolicy = sessionStopPolicy;
         this.isPartial = isPartial;
     }
 
@@ -349,6 +352,17 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
+     * NOTE: Only for internal usage. May change without warning.
+     *
+     * Returns the stop policy for the session for this Realm once the Realm has been closed.
+     *
+     * @return the stop policy used by the session once the Realm is closed.
+     */
+    public OsRealmConfig.SyncSessionStopPolicy getSessionStopPolicy() {
+        return sessionStopPolicy;
+    }
+
+    /**
      * Whether this configuration is for a partial synchronization Realm.
      * Partial synchronization allows a synchronized Realm to be opened in such a way that
      * only objects requested by the user are synchronized to the device. You can use it by setting
@@ -397,8 +411,8 @@ public class SyncConfiguration extends RealmConfiguration {
         private String serverCertificateAssetName;
         @Nullable
         private String serverCertificateFilePath;
+        private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         private boolean isPartial = false;
-
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
          * <p>
@@ -631,6 +645,18 @@ public class SyncConfiguration extends RealmConfiguration {
 
             return this;
         }
+
+        /**
+         * DEBUG method. This makes it possible to define different policies for when a session should be stopped when
+         * the Realm is closed.
+         *
+         * @param policy how a session for a Realm should behave when the Realm is closed.
+         */
+        SyncConfiguration.Builder sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy policy) {
+            sessionStopPolicy = policy;
+            return this;
+        }
+
 
         /**
          * Sets the schema version of the Realm.
@@ -966,6 +992,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     serverCertificateAssetName,
                     serverCertificateFilePath,
                     waitForServerChanges,
+                    sessionStopPolicy,
                     isPartial
             );
         }

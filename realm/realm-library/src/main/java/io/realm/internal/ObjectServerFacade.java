@@ -68,7 +68,7 @@ public class ObjectServerFacade {
     }
 
     public Object[] getUserAndServerUrl(RealmConfiguration config) {
-        return new Object[7];
+        return new Object[8];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {

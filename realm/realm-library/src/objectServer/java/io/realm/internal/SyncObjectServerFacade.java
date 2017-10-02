@@ -93,9 +93,10 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String rosUserIdentity = user.getIdentity();
             String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
             String rosSerializedUser = user.toJson();
-            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath(), syncConfig.isPartialSync()};
+            byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
+            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath(), sessionStopPolicy, syncConfig.isPartialSync()};
         } else {
-            return new Object[7];
+            return new Object[8];
         }
     }
 
