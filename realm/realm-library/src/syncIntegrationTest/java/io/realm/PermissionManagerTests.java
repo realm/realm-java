@@ -82,26 +82,26 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         });
     }
 
-//    @Test
-//    @RunTestInLooperThread(emulateMainThread = true)
-//    public void getPermissions_noLongerValidWhenPermissionManagerIsClosed() {
-//        final PermissionManager pm = user.getPermissionManager();
-//        pm.getPermissions(new PermissionManager.PermissionsCallback() {
-//            @Override
-//            public void onSuccess(RealmResults<Permission> permissions) {
-//                assertTrue(permissions.isValid());
-//                pm.close();
-//                assertFalse(permissions.isValid());
-//                looperThread.testComplete();
-//            }
-//
-//            @Override
-//            public void onError(ObjectServerError error) {
-//                pm.close();
-//                fail(error.toString());
-//            }
-//        });
-//    }
+    @Test
+    @RunTestInLooperThread(emulateMainThread = true)
+    public void getPermissions_noLongerValidWhenPermissionManagerIsClosed() {
+        final PermissionManager pm = user.getPermissionManager();
+        pm.getPermissions(new PermissionManager.PermissionsCallback() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                assertTrue(permissions.isValid());
+                pm.close();
+                assertFalse(permissions.isValid());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                pm.close();
+                fail(error.toString());
+            }
+        });
+    }
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
@@ -239,6 +239,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/432")
     public void getPermissions_addTaskAfterClientReset() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -423,6 +424,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/432")
     public void getDefaultPermissions_returnLoadedResults() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -443,6 +445,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/432")
     public void getDefaultPermissions_noLongerValidWhenPermissionManagerIsClosed() {
         final PermissionManager pm = user.getPermissionManager();
         pm.getDefaultPermissions(new PermissionManager.PermissionsCallback() {
@@ -822,31 +825,32 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         });
     }
 
-//    @Test
-//    @RunTestInLooperThread(emulateMainThread = true)
-//    public void makeOffer_noManageAccessThrows() {
-//        // User 2 creates a Realm
-//        SyncUser user2 = UserFactory.createUniqueUser();
-//        String url = createRemoteRealm(user2, "test");
-//
-//        // User 1 tries to create an offer for it.
-//        PermissionManager pm = user.getPermissionManager();
-//        looperThread.closeAfterTest(pm);
-//
-//        PermissionOffer offer = new PermissionOffer(url, AccessLevel.WRITE);
-//        pm.makeOffer(offer, new PermissionManager.MakeOfferCallback() {
-//            @Override
-//            public void onSuccess(String offerToken) {
-//                fail();
-//            }
-//
-//            @Override
-//            public void onError(ObjectServerError error) {
-//                assertEquals(ErrorCode.ACCESS_DENIED, error.getErrorCode());
-//                looperThread.testComplete();
-//            }
-//        });
-//    }
+    @Test
+    @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/430")
+    public void makeOffer_noManageAccessThrows() {
+        // User 2 creates a Realm
+        SyncUser user2 = UserFactory.createUniqueUser();
+        String url = createRemoteRealm(user2, "test");
+
+        // User 1 tries to create an offer for it.
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        PermissionOffer offer = new PermissionOffer(url, AccessLevel.WRITE);
+        pm.makeOffer(offer, new PermissionManager.MakeOfferCallback() {
+            @Override
+            public void onSuccess(String offerToken) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.ACCESS_DENIED, error.getErrorCode());
+                looperThread.testComplete();
+            }
+        });
+    }
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
@@ -896,6 +900,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore
     public void acceptOffer_expiredThrows() {
         // Trying to guess how long CI is to process this. The offer cannot be created if it
         // already expired.
@@ -992,37 +997,37 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         });
     }
 
-//    @Test
-//    @RunTestInLooperThread(emulateMainThread = true)
-//    public void revokeOffer() {
-//        // createOffer validates that the offer is actually in the __management Realm.
-//        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
-//        final PermissionManager pm = user.getPermissionManager();
-//        looperThread.closeAfterTest(pm);
-//
-//        pm.revokeOffer(offerToken, new PermissionManager.RevokeOfferCallback() {
-//            @Override
-//            public void onSuccess() {
-//                pm.getCreatedOffers(new PermissionManager.OffersCallback() {
-//                    @Override
-//                    public void onSuccess(RealmResults<PermissionOffer> offers) {
-//                        assertEquals(0, offers.size());
-//                        looperThread.testComplete();
-//                    }
-//
-//                    @Override
-//                    public void onError(ObjectServerError error) {
-//                        fail(error.toString());
-//                    }
-//                });
-//            }
-//
-//            @Override
-//            public void onError(ObjectServerError error) {
-//                fail(error.toString());
-//            }
-//        });
-//    }
+    @Test
+    @RunTestInLooperThread(emulateMainThread = true)
+    public void revokeOffer() {
+        // createOffer validates that the offer is actually in the __management Realm.
+        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
+        final PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        pm.revokeOffer(offerToken, new PermissionManager.RevokeOfferCallback() {
+            @Override
+            public void onSuccess() {
+                pm.getCreatedOffers(new PermissionManager.OffersCallback() {
+                    @Override
+                    public void onSuccess(RealmResults<PermissionOffer> offers) {
+                        assertEquals(0, offers.size());
+                        looperThread.testComplete();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        fail(error.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
