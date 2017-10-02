@@ -900,7 +900,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
         list.size();
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = UnsupportedOperationException.class)
     public void where() {
         list.where();
     }
@@ -1556,7 +1556,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
 
     @Test
     public void createSnapshot() {
-        thrown.expect(IllegalStateException.class);
+        thrown.expect(UnsupportedOperationException.class);
         thrown.expectMessage(is(RealmList.ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE));
         list.createSnapshot();
     }
