@@ -423,7 +423,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("FIMXE FInd out how default permissions work")
     public void getDefaultPermissions_returnLoadedResults() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -444,21 +443,23 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("FIMXE FInd out how default permissions work")
     public void getDefaultPermissions_noLongerValidWhenPermissionManagerIsClosed() {
         final PermissionManager pm = user.getPermissionManager();
-        looperThread.closeAfterTest(pm);
         pm.getDefaultPermissions(new PermissionManager.PermissionsCallback() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
-                assertTrue(permissions.isValid());
-                pm.close();
+                try {
+                    assertTrue(permissions.isValid());
+                } finally {
+                    pm.close();
+                }
                 assertFalse(permissions.isValid());
                 looperThread.testComplete();
             }
 
             @Override
             public void onError(ObjectServerError error) {
+                pm.close();
                 fail(error.toString());
             }
         });
@@ -641,6 +642,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/429")
     public void applyPermissions_wrongUrlFails() {
         String wrongUrl = createRemoteRealm(user, "test") + "-notexisting";
 
@@ -707,6 +709,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/426")
     public void applyPermissions_withUsername() {
         String user1Username = TestHelper.getRandomEmail();
         String user2Username = TestHelper.getRandomEmail();
@@ -893,7 +896,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("Figure out how the time differs between emulator and server")
     public void acceptOffer_expiredThrows() {
         // Trying to guess how long CI is to process this. The offer cannot be created if it
         // already expired.

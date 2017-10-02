@@ -35,7 +35,6 @@ import io.realm.SyncSessionTests;
         SyncedRealmTests.class,
         AuthTests.class,
         EncryptedSynchronizedRealmTests.class,
-        ManagementRealmTests.class,
         ProcessCommitTests.class,
         ProgressListenerTests.class,
         SyncSessionTests.class})
