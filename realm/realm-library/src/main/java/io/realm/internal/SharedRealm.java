@@ -174,11 +174,11 @@ public final class SharedRealm implements Closeable, NativeObject {
      */
     @Keep
     public abstract static class PartialSyncCallback {
-        private final SharedRealm sharedRealm;
+        private final WeakReference<SharedRealm> sharedRealm;
         private final String className;
 
         protected PartialSyncCallback(SharedRealm sharedRealm, String className) {
-            this.sharedRealm = sharedRealm;
+            this.sharedRealm = new WeakReference<SharedRealm>(sharedRealm);
             this.className = className;
         }
 
@@ -509,12 +509,16 @@ public final class SharedRealm implements Closeable, NativeObject {
     @SuppressWarnings("unused")
     private static void runPartialSyncRegistrationCallback(@Nullable String error, long nativeResultsPtr,
                                                            PartialSyncCallback callback) {
+        SharedRealm sharedRealm = callback.sharedRealm.get();
+        if (sharedRealm == null) {
+            return;
+        }
         if (error != null) {
             callback.onError(new RealmException(error));
         } else {
             @SuppressWarnings("ConstantConditions")
-            Table table = callback.sharedRealm.getTable(Table.getTableNameForClass(callback.className));
-            Collection results = new Collection(callback.sharedRealm, table, nativeResultsPtr, true);
+            Table table = sharedRealm.getTable(Table.getTableNameForClass(callback.className));
+            Collection results = new Collection(sharedRealm, table, nativeResultsPtr, true);
             callback.onSuccess(results);
         }
     }

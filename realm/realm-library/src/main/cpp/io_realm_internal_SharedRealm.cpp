@@ -523,7 +523,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterPartialS
         JStringAccessor class_name(env, j_class_name);               // throws
         JStringAccessor query(env, j_query);                         // throws
 
-        // The lambda will capture the copied reference and it will be unrefed when the lambda's life cycle is over.
+        // The lambda will capture the copied reference and it will be unreferenced when the lambda's life cycle is over.
         // That happens when the Realm is closed or the callback has been triggered once.
         JavaGlobalRef j_callback_ref(env, j_callback);
         static JavaClass shared_realm_class(env, "io/realm/internal/SharedRealm");
