@@ -808,22 +808,6 @@ public class RealmObjectSchemaTests {
         }
     }
 
-    @Test
-    public void binaryCopies() {
-        schema.addRealmListField("foo", byte[].class);
-        DynamicRealmObject obj = ((DynamicRealm) realm).createObject(schema.getClassName());
-        RealmList<byte[]> list = obj.getList("foo", byte[].class);
-        assertTrue(list.size() == 0);
-        list.add(null);
-        assertNull(list.get(0));
-        schema.setRequired("foo", true);
-        list = obj.getList("foo", byte[].class);
-        assertEquals(0, list.get(0).length);
-        schema.setRequired("foo", false);
-        list = obj.getList("foo", byte[].class);
-        assertEquals(0, list.get(0).length);
-    }
-
     // Checks that null values in a value list are correctly converted to default values
     // when field is set to required.
     private <E> void checkListValueConversionToDefaultValue(Class<E> type, Object defaultValue) {
