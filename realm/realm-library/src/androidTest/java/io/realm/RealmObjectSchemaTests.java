@@ -859,6 +859,9 @@ public class RealmObjectSchemaTests {
     // when moving between nullable and required states.
     @Test
     public void binaryData_nullabilityConversions() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
         schema.addRealmListField("foo", byte[].class);
 
         DynamicRealmObject obj = ((DynamicRealm) realm).createObject(schema.getClassName());
