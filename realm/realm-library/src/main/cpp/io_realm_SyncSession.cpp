@@ -63,7 +63,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JN
         if (session) {
             JStringAccessor access_token(env, j_access_token);
             JStringAccessor realm_url(env, j_sync_realm_url);
-            session->refresh_access_token(access_token, std::string(realm_url));
+
+            session->refresh_access_token(access_token, std::string(session->config().realm_url()));
             return JNI_TRUE;
         }
         else {
