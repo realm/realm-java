@@ -808,25 +808,82 @@ public class RealmObjectSchemaTests {
         }
     }
 
+    @Test
+    public void binaryCopies() {
+        schema.addRealmListField("foo", byte[].class);
+        DynamicRealmObject obj = ((DynamicRealm) realm).createObject(schema.getClassName());
+        RealmList<byte[]> list = obj.getList("foo", byte[].class);
+        assertTrue(list.size() == 0);
+        list.add(null);
+        assertNull(list.get(0));
+        schema.setRequired("foo", true);
+        list = obj.getList("foo", byte[].class);
+        assertEquals(0, list.get(0).length);
+        schema.setRequired("foo", false);
+        list = obj.getList("foo", byte[].class);
+        assertEquals(0, list.get(0).length);
+    }
+
     // Checks that null values in a value list are correctly converted to default values
     // when field is set to required.
     private <E> void checkListValueConversionToDefaultValue(Class<E> type, Object defaultValue) {
         schema.addRealmListField("foo", type);
-        schema.setRequired("foo", false);
         DynamicRealmObject obj = ((DynamicRealm) realm).createObject(schema.getClassName());
         RealmList<E> list = new RealmList<>();
         list.add(null);
         obj.setList("foo", list);
         assertNull(obj.getList("foo", type).first());
+
+        // Convert from nullable to required
         schema.setRequired("foo", true);
         if (defaultValue instanceof byte[]) {
             assertArrayEquals((byte[]) defaultValue, (byte[]) obj.getList("foo", type).first());
         } else {
             assertEquals(defaultValue, obj.getList("foo", type).first());
         }
+
+        // Convert back again
+        schema.setRequired("foo", false);
+        if (defaultValue instanceof byte[]) {
+            //noinspection ConstantConditions
+            assertArrayEquals((byte[]) defaultValue, (byte[]) obj.getList("foo", type).first());
+        } else {
+            assertEquals(defaultValue, obj.getList("foo", type).first());
+        }
+
+        // Cleanup
         schema.removeField("foo");
     }
 
+    // Special test for making sure that binary data in all forms are transformed correctly
+    // when moving between nullable and required states.
+    @Test
+    public void binaryData_nullabilityConversions() {
+        schema.addRealmListField("foo", byte[].class);
+
+        DynamicRealmObject obj = ((DynamicRealm) realm).createObject(schema.getClassName());
+        RealmList<byte[]> list = obj.getList("foo", byte[].class);
+        assertTrue(list.size() == 0);
+
+        // Initial content (nullable)
+        list.add(null);
+        list.add(new byte[] {1, 2, 3});
+        assertNull(list.get(0));
+        assertArrayEquals(new byte[] {1, 2, 3}, list.get(1));
+
+        // Transform to required
+        schema.setRequired("foo", true);
+        list = obj.getList("foo", byte[].class);
+        assertEquals(0, list.get(0).length);
+        assertArrayEquals(new byte[] {1, 2, 3}, list.get(1));
+
+        // Transform back to nullable
+        schema.setRequired("foo", false);
+        list = obj.getList("foo", byte[].class);
+        assertEquals(0, list.get(0).length);
+        assertArrayEquals(new byte[] {1, 2, 3}, list.get(1));
+    }
+    
     @Test
     public void setRequired_true_onPrimaryKeyField_containsNullValues_shouldThrow() {
         if (type == ObjectSchemaType.IMMUTABLE) {

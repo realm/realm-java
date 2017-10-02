@@ -197,7 +197,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
         return to_jbool(table->is_nullable(S(columnIndex))); // noexcept
     }
     // For primitive list
-    // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
     return to_jbool(table->get_descriptor()->get_subdescriptor(S(columnIndex))->is_nullable(S(0))); // noexcept
 }
 
@@ -239,10 +238,8 @@ static void convert_column_to_nullable(JNIEnv* env, Table* old_table, size_t old
                 break;
             }
             case type_Binary: {
-                // Payload copy is needed
                 BinaryData bd = old_table->get_binary(old_col_ndx, i);
-                std::vector<char> binary_copy(bd.data(), bd.data() + bd.size());
-                new_table->set_binary(new_col_ndx, i, BinaryData(binary_copy.data(), binary_copy.size()));
+                new_table->set_binary(new_col_ndx, i, BinaryData(bd.data(), bd.size()));
                 break;
             }
             case type_Int:
