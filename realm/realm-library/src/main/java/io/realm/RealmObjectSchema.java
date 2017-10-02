@@ -182,13 +182,13 @@ public abstract class RealmObjectSchema {
      * {@link #addRealmListField(String, RealmObjectSchema)} instead.
      *
      * @param fieldName name of the field to add.
-     * @param elementType simple type of elements in the array.
+     * @param primitiveType simple type of elements in the array.
      * @return the updated schema.
      * @throws IllegalArgumentException if the field name is illegal, a field with that name already exists or
      * the element type isn't supported.
      * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
-    public abstract RealmObjectSchema addRealmListField(String fieldName, Class<?> elementType);
+    public abstract RealmObjectSchema addRealmListField(String fieldName, Class<?> primitiveType);
 
     /**
      * Removes a field from the class.

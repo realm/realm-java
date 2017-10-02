@@ -132,18 +132,18 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    public RealmObjectSchema addRealmListField(String fieldName, Class<?> elementType) {
+    public RealmObjectSchema addRealmListField(String fieldName, Class<?> primitiveType) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
 
-        FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(elementType);
+        FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(primitiveType);
         if (metadata == null) {
-            if (elementType.equals(RealmObjectSchema.class)) {
+            if (primitiveType.equals(RealmObjectSchema.class)) {
                 throw new IllegalArgumentException("Use 'addRealmListField(String name, RealmObjectSchema schema)' instead to add lists that link to other RealmObjects: " + fieldName);
             } else {
                 throw new IllegalArgumentException(String.format(Locale.US,
                         "RealmList does not support lists with this type: %s(%s)",
-                        fieldName, elementType));
+                        fieldName, primitiveType));
             }
         }
         table.addColumn(metadata.listType, fieldName, metadata.defaultNullable);
