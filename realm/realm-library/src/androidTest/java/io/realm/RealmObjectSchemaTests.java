@@ -19,7 +19,6 @@ package io.realm;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -411,7 +410,7 @@ public class RealmObjectSchemaTests {
                 default:
                     // All simple list types
                     schema.addRealmListField(fieldName, fieldType.getType());
-                    if (fieldType.isNullable()) {
+                    if (!fieldType.isNullable()) {
                         schema.setRequired(fieldName, true);
                     }
                     assertTrue(schema.isRequired(fieldName));

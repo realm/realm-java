@@ -100,7 +100,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveListColum
         return table->get_subdescriptor(col)->add_column(data_type, ObjectStore::ArrayColumnName, nullptr, is_column_nullable);
     }
     CATCH_STD()
-    return 0;
+    reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink(JNIEnv* env, jobject, jlong nativeTablePtr,

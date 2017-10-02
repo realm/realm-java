@@ -181,7 +181,7 @@ public abstract class RealmObjectSchema {
      *     .setRequired("children", true)
      * }
      * </pre>
-     * If the list contains references to other Realm classes use
+     * If the list contains references to other Realm classes, use
      * {@link #addRealmListField(String, RealmObjectSchema)} instead.
      *
      * @param fieldName name of the field to add.
