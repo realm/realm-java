@@ -1707,10 +1707,10 @@ public class Realm extends BaseRealm {
         sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
 
         String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
-        SharedRealm.PartialSyncCallback internalCallback = new SharedRealm.PartialSyncCallback(sharedRealm, className) {
+        SharedRealm.PartialSyncCallback internalCallback = new SharedRealm.PartialSyncCallback(className) {
             @Override
             public void onSuccess(io.realm.internal.Collection osResults) {
-                RealmResults<E> results = new RealmResults<E>(Realm.this, osResults, clazz);
+                RealmResults<E> results = new RealmResults<>(Realm.this, osResults, clazz);
                 callback.onSuccess(results);
             }
 
