@@ -525,7 +525,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterPartialS
 
         // The lambda will capture the copied reference and it will be unreferenced when the lambda's life cycle is over.
         // That happens when the Realm is closed or the callback has been triggered once.
-        JavaGlobalWeakRef j_callback_ref(env, j_callback);
+        JavaGlobalRef j_callback_ref(env, j_callback);
         JavaGlobalWeakRef j_shared_realm_instance_ref(env, j_shared_realm_instance);
 
         static JavaClass shared_realm_class(env, "io/realm/internal/SharedRealm");
@@ -533,25 +533,22 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterPartialS
                                           "(Ljava/lang/String;JLio/realm/internal/SharedRealm$PartialSyncCallback;)V");
 
         auto cb = [j_callback_ref, j_shared_realm_instance_ref](Results results, std::exception_ptr err) {
-
             JNIEnv* env = JniUtils::get_env(true);
-            if (err) {
-                try {
-                    std::rethrow_exception(err);
-                }
-                catch (const std::exception& e) {
-                    j_shared_realm_instance_ref.call_with_local_ref(env, [&](JNIEnv*, jobject row_obj) {
-                        env->CallVoidMethod(row_obj, partial_sync_cb, to_jstring(env, e.what()),
-                                                  reinterpret_cast<jlong>(nullptr), j_callback_ref.global_ref().get());
-                    });
-                }
-                return;
-            }
-
-            auto wrapper = new ResultsWrapper(results);
             j_shared_realm_instance_ref.call_with_local_ref(env, [&](JNIEnv*, jobject row_obj) {
+                if (err) {
+                    try {
+                        std::rethrow_exception(err);
+                    }
+                    catch (const std::exception& e) {
+                        env->CallVoidMethod(row_obj, partial_sync_cb, to_jstring(env, e.what()),
+                                            reinterpret_cast<jlong>(nullptr), j_callback_ref.get());
+                    }
+                    return;
+                }
+
+                auto wrapper = new ResultsWrapper(results);
                 env->CallVoidMethod(row_obj, partial_sync_cb, nullptr, reinterpret_cast<jlong>(wrapper),
-                        j_callback_ref.global_ref().get());
+                                    j_callback_ref.get());
             });
         };
 
