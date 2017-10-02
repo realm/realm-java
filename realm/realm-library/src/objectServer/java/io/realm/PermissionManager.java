@@ -531,7 +531,11 @@ public class PermissionManager implements Closeable {
      * @return {@code true} if the PermissionManager is closed, {@code false} if it is still open.
      */
     public boolean isClosed() {
-        checkIfValid();
+        // Don't use `checkIfValid()` as it throws because closed might be false.
+        if (threadId != Thread.currentThread().getId()) {
+            throw new IllegalStateException("PermissionManager was accessed from the wrong thread. It can only be " +
+                    "accessed on the thread it was created on.");
+        }
         return closed;
     }
 
