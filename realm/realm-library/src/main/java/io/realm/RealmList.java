@@ -444,8 +444,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     private E firstImpl(boolean shouldThrow, @Nullable E defaultValue) {
         if (isManaged()) {
             checkValidRealm();
-            if (!osListOperator.isEmpty()) {
-                return get(0);
+            E firstValue = osListOperator.first();
+            if (firstValue != null) {
+                return firstValue;
             }
         } else if (unmanagedList != null && !unmanagedList.isEmpty()) {
             return unmanagedList.get(0);
@@ -480,8 +481,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     private E lastImpl(boolean shouldThrow, @Nullable E defaultValue) {
         if (isManaged()) {
             checkValidRealm();
-            if (!osListOperator.isEmpty()) {
-                return get(osListOperator.size() - 1);
+            E lastValue = osListOperator.last();
+            if(lastValue != null) {
+                return lastValue;
             }
         } else if (unmanagedList != null && !unmanagedList.isEmpty()) {
             return unmanagedList.get(unmanagedList.size() - 1);
@@ -1345,6 +1347,32 @@ abstract class ManagedListOperator<T> {
 
     @Nullable
     public abstract T get(int index);
+
+    @Nullable
+    public final T first() {
+        if(forRealmModel()) {
+            UncheckedRow row = collection.firstUncheckedRow();
+            if (row == null) {
+                return null;
+            }
+            //noinspection unchecked
+            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
+        }
+        return isEmpty() ? null : get(0);
+    }
+
+    @Nullable
+    public final T last() {
+        if(forRealmModel()) {
+            UncheckedRow row = collection.lastUncheckedRow();
+            if (row == null) {
+                return null;
+            }
+            //noinspection unchecked
+            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
+        }
+        return isEmpty() ? null : get(size() - 1);
+    }
 
     public final void append(@Nullable Object value) {
         checkValidValue(value);
