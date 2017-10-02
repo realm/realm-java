@@ -371,7 +371,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * object you're interested in, a string containing a query determining which objects you want
      * to subscribe to, and a callback which will report the results.
      *
-     * @return {@code true} is to open a partial synchronization Realm {@code false} otherwise.
+     * @return {@code true} to open a partial synchronization Realm {@code false} otherwise.
      */
     public boolean isPartialRealm() {
         return isPartial;

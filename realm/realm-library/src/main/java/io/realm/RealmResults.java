@@ -83,7 +83,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                 srcClassName);
     }
 
-    public RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
+    RealmResults(BaseRealm realm, Collection collection, Class<E> clazz) {
         super(realm, collection, clazz);
     }
 
