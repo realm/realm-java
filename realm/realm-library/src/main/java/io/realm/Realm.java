@@ -1698,7 +1698,7 @@ public class Realm extends BaseRealm {
      * @throws IllegalStateException if called from a non-synchronized (Realm Object Server) Realm.
      */
     @Beta
-    public <E extends RealmModel> void subscribeToObjects(Class<E> clazz, String query, PartialSyncCallback<E> callback) {
+    public <E extends RealmModel> void subscribeToObjects(final Class<E> clazz, String query, final PartialSyncCallback<E> callback) {
         checkIfValid();
         if (!configuration.isSyncConfiguration()) {
             throw new IllegalStateException("Partial sync is only available for synchronized Realm (Realm Object Server)");
@@ -1706,11 +1706,21 @@ public class Realm extends BaseRealm {
 
         sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
 
-        Table table = getTable(clazz);
-        String className = table.getClassName();
-        String tableName = table.getName();
+        String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
+        SharedRealm.PartialSyncCallback internalCallback = new SharedRealm.PartialSyncCallback(className) {
+            @Override
+            public void onSuccess(io.realm.internal.Collection osResults) {
+                RealmResults<E> results = new RealmResults<>(Realm.this, osResults, clazz);
+                callback.onSuccess(results);
+            }
 
-        sharedRealm.registerPartialSyncQuery(className, tableName, clazz, query, callback, this);
+            @Override
+            public void onError(RealmException error) {
+                callback.onError(error);
+            }
+        };
+
+        sharedRealm.registerPartialSyncQuery(query, internalCallback);
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {

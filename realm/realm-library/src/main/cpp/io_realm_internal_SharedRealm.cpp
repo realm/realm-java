@@ -511,9 +511,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterSchemaCh
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterPartialSyncQuery(
-    REALM_UNUSED JNIEnv* env, jclass, REALM_UNUSED jlong shared_realm_ptr, REALM_UNUSED jstring j_class_name,
-    REALM_UNUSED jstring j_table_name, REALM_UNUSED jclass j_clazz, REALM_UNUSED jstring j_query,
-    REALM_UNUSED jobject j_callback, REALM_UNUSED jobject j_realm)
+    REALM_UNUSED JNIEnv* env, REALM_UNUSED jobject j_shared_realm_instance, REALM_UNUSED jlong shared_realm_ptr, REALM_UNUSED jstring j_class_name,
+    REALM_UNUSED jstring j_query, REALM_UNUSED jobject j_callback)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
@@ -522,42 +521,39 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterPartialS
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
         JStringAccessor class_name(env, j_class_name);               // throws
-        std::string table_name = JStringAccessor(env, j_table_name); // throws
         JStringAccessor query(env, j_query);                         // throws
 
-        JavaGlobalWeakRef j_callback_weak(env, j_callback);
-        JavaGlobalWeakRef j_realm_weak(env, j_realm);
-        JavaGlobalWeakRef j_clazz_weak(env, j_clazz);
+        // The lambda will capture the copied reference and it will be unreferenced when the lambda's life cycle is over.
+        // That happens when the Realm is closed or the callback has been triggered once.
+        JavaGlobalRef j_callback_ref(env, j_callback);
+        JavaGlobalWeakRef j_shared_realm_instance_ref(env, j_shared_realm_instance);
+
         static JavaClass shared_realm_class(env, "io/realm/internal/SharedRealm");
         static JavaMethod partial_sync_cb(env, shared_realm_class, "runPartialSyncRegistrationCallback",
-                                          "(Ljava/lang/String;JLjava/lang/String;Ljava/lang/Class;Lio/realm/"
-                                          "Realm$PartialSyncCallback;Lio/realm/Realm;)V",
-                                          true);
+                                          "(Ljava/lang/String;JLio/realm/internal/SharedRealm$PartialSyncCallback;)V");
 
-        auto cb = [j_callback_weak, j_realm_weak, j_class_name, j_clazz_weak,
-                   table_name](REALM_UNUSED Results results, std::exception_ptr err) {
+        auto cb = [j_callback_ref, j_shared_realm_instance_ref](Results results, std::exception_ptr err) {
             JNIEnv* env = JniUtils::get_env(true);
-            if (err) {
-                try {
-                    std::rethrow_exception(err);
+            j_shared_realm_instance_ref.call_with_local_ref(env, [&](JNIEnv*, jobject row_obj) {
+                if (err) {
+                    try {
+                        std::rethrow_exception(err);
+                    }
+                    catch (const std::exception& e) {
+                        env->CallVoidMethod(row_obj, partial_sync_cb, to_jstring(env, e.what()),
+                                            reinterpret_cast<jlong>(nullptr), j_callback_ref.get());
+                    }
+                    return;
                 }
-                catch (const std::exception& e) {
-                    env->CallStaticVoidMethod(shared_realm_class, partial_sync_cb, to_jstring(env, e.what()),
-                                              reinterpret_cast<jlong>(nullptr), nullptr, nullptr,
-                                              j_callback_weak.global_ref(env).get(), j_realm_weak.global_ref(env).get());
-                }
-                return;
-            }
 
-            auto wrapper = new ResultsWrapper(results);
-            env->CallStaticVoidMethod(shared_realm_class, partial_sync_cb, nullptr, reinterpret_cast<jlong>(wrapper),
-                                      to_jstring(env, table_name), j_clazz_weak.global_ref(env).get(),
-                                      j_callback_weak.global_ref(env).get(), j_realm_weak.global_ref(env).get());
+                auto wrapper = new ResultsWrapper(results);
+                env->CallVoidMethod(row_obj, partial_sync_cb, nullptr, reinterpret_cast<jlong>(wrapper),
+                                    j_callback_ref.get());
+            });
         };
 
         partial_sync::register_query(shared_realm, class_name, query, std::move(cb));
     }
-
     CATCH_STD()
 #else
     REALM_TERMINATE("Unsupported operation. Only available when used with the Realm Object Server");
