@@ -23,7 +23,7 @@ import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.rule.TestSyncConfigurationFactory;
+import io.realm.TestSyncConfigurationFactory;
 
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
@@ -45,7 +45,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
         final SyncConfiguration partialSyncConfig = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .modules(new PartialSyncModule())
-                .withPartialSync()
+                .partialRealm()
                 .build();
         SyncConfiguration adminConfig = configFactory
                 .createSyncConfigurationBuilder(adminUser, partialSyncConfig.getServerUrl().toString())

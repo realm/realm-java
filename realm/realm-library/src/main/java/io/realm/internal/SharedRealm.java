@@ -223,7 +223,7 @@ public final class SharedRealm implements Closeable, NativeObject {
      */
     public static SharedRealm getInstance(OsRealmConfig.Builder configBuilder) {
         OsRealmConfig osRealmConfig = configBuilder.build();
-        ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osRealmConfig.getRealmConfiguration(), osRealmConfig.getResolvedRealmURI());
+        ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osRealmConfig);
 
         return new SharedRealm(osRealmConfig);
     }

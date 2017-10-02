@@ -87,7 +87,7 @@ public class ObjectServerFacade {
     }
 
     // If no session yet exists for this path. Wrap a new Java Session around an existing OS one.
-    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config, URI resolvedRealmURI) {
+    public void wrapObjectStoreSessionIfRequired(OsRealmConfig config) {
     }
 
     public String getSyncServerCertificateAssetName(RealmConfiguration config) {
