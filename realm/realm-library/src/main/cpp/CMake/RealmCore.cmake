@@ -33,6 +33,7 @@ function(build_existing_realm_core core_source_path)
                     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                     -DREALM_BUILD_LIB_ONLY=YES
                     -DREALM_ENABLE_ENCRYPTION=1
+                    -DANDROID_NDK=${ANDROID_NDK}
         INSTALL_COMMAND ""
         LOG_CONFIGURE 1
         LOG_BUILD 1
@@ -40,6 +41,8 @@ function(build_existing_realm_core core_source_path)
 
     ExternalProject_Get_Property(realm-core SOURCE_DIR)
     ExternalProject_Get_Property(realm-core BINARY_DIR)
+
+    set(core_binary_dir ${BINARY_DIR} PARENT_SCOPE)
 
     # Create directories that are included in INTERFACE_INCLUDE_DIRECTORIES, as CMake requires they exist at
     # configure time, when they'd otherwise not be created until we download and extract core.
@@ -57,6 +60,51 @@ function(build_existing_realm_core core_source_path)
         )
 
     add_dependencies(lib_realm_core realm-core)
+endfunction()
+
+function(build_existing_realm_sync core_binary_path sync_source_path)
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(debug_lib_suffix "-dbg")
+        add_compile_options(-DREALM_DEBUG)
+    else()
+        add_compile_options(-DNDEBUG)
+    endif()
+
+    ExternalProject_Add(realm-sync
+        SOURCE_DIR ${sync_source_path}
+        PREFIX ${sync_source_path}/build-android-${ANDROID_ABI}-${CMAKE_BUILD_TYPE}
+        CMAKE_ARGS  -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+                    -DANDROID_ABI=${ANDROID_ABI}
+                    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                    -DREALM_BUILD_TESTS=OFF
+                    -DREALM_BUILD_COMMANDLINE_TOOLS=OFF
+                    -DREALM_BUILD_REALM_SYNC_SERVER=OFF
+                    -DREALM_ENABLE_ENCRYPTION=1
+                    -DREALM_CORE_BUILDTREE=${core_binary_path}
+                    -DANDROID_NDK=${ANDROID_NDK}
+        INSTALL_COMMAND ""
+        BUILD_ALWAYS 1
+        )
+
+    ExternalProject_Get_Property(realm-sync SOURCE_DIR)
+    ExternalProject_Get_Property(realm-sync BINARY_DIR)
+
+    # Create directories that are included in INTERFACE_INCLUDE_DIRECTORIES, as CMake requires they exist at
+    # configure time, when they'd otherwise not be created until we download and extract core.
+    file(MAKE_DIRECTORY "${BINARY_DIR}/src")
+
+    set(sync_lib_file "${BINARY_DIR}/src/realm/sync/librealm-sync${debug_lib_suffix}.a")
+    add_library(lib_realm_sync STATIC IMPORTED)
+    set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_file}
+        IMPORTED_LINK_INTERFACE_LIBRARIES atomic
+        INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/src;${BINARY_DIR}/src")
+
+    ExternalProject_Add_Step(realm-sync ensure-libraries
+        DEPENDEES build
+        BYPRODUCTS ${sync_lib_file}
+        )
+
+    add_dependencies(lib_realm_sync realm-sync)
 endfunction()
 
 # Add the sync released as the library.
@@ -107,8 +155,7 @@ function(use_sync_release enable_sync sync_dist_path)
             endif()
         endif()
         add_library(lib_realm_sync STATIC IMPORTED)
-        set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_path}
-            IMPORTED_LINK_INTERFACE_LIBRARIES lib_realm_core)
+        set_target_properties(lib_realm_sync PROPERTIES IMPORTED_LOCATION ${sync_lib_path})
     endif()
 
     set(REALM_CORE_INCLUDE_DIR "${sync_dist_path}/include")
@@ -116,9 +163,17 @@ endfunction()
 
 # Add core/sync libraries. Set the core_source_path to build core from source.
 # FIXME: Build from sync source is not supported yet.
-function(use_realm_core enable_sync sync_dist_path core_source_path)
+function(use_realm_core enable_sync sync_dist_path core_source_path sync_source_path)
+    if (sync_source_path AND NOT core_source_path AND enable_sync)
+        message(FATAL_ERROR "realm-core source path is needed when build sync from source.")
+    else()
+
+    endif()
     if (core_source_path)
         build_existing_realm_core(${core_source_path})
+        if (enable_sync)
+            build_existing_realm_sync(${core_binary_dir} ${sync_source_path})
+        endif()
     else()
         use_sync_release(${enable_sync} ${sync_dist_path})
     endif()

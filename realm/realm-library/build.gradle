@@ -23,7 +23,8 @@ ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
 // core source code.
-ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
+ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : "/home/cc/repo/realm/realm-core"
+ext.syncSourcePath = project.hasProperty('syncSourcePath') ? project.getProperty('syncSourcePath') : "/home/cc/repo/realm/realm-sync"
 // The location of core archive.
 ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 if (!ext.coreArchiveDir) {
@@ -59,9 +60,12 @@ android {
                         // This file should be removed and use the one from Android SDK cmake package when it supports lto.
                         "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}",
                         "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
+                        "-DANDROID_NDK=/home/cc/.android-ndk/android-ndk-r10e"
+                        "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
                 if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=$project.coreSourcePath"
+                if (project.syncSourcePath) arguments "-DSYNC_SOURCE_PATH=$project.syncSourcePath"
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
@@ -147,8 +151,8 @@ android {
     variantFilter { variant ->
         def names = variant.flavors*.name
 
-        // Ignore the objectServer flavour when building from core source.
-        if (coreSourcePath && names.contains("objectServer")) {
+        // Ignore the objectServer flavour when building from core source only.
+        if ((coreSourcePath && !syncSourcePath)&& names.contains("objectServer")) {
             variant.ignore = true
         }
     }

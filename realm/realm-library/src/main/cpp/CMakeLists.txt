@@ -84,7 +84,7 @@ create_javah(TARGET jni_headers
 
 include(RealmCore)
 
-use_realm_core(${build_SYNC} "${REALM_CORE_DIST_DIR}" "${CORE_SOURCE_PATH}")
+use_realm_core(${build_SYNC} "${REALM_CORE_DIST_DIR}" "${CORE_SOURCE_PATH}" "${SYNC_SOURCE_PATH}")
 
 # Download openssl lib
 #string(TOLOWER "${CMAKE_BUILD_TYPE}" openssl_build_TYPE)
@@ -194,7 +194,7 @@ add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SR
 add_dependencies(realm-jni jni_headers)
 
 if (build_SYNC)
-    target_link_libraries(realm-jni log android lib_realm_sync crypto ssl)
+    target_link_libraries(realm-jni log android lib_realm_sync lib_realm_core crypto ssl)
 else()
     target_link_libraries(realm-jni log android lib_realm_core crypto)
 endif()
