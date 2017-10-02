@@ -410,10 +410,10 @@ public class RealmObjectSchemaTests {
                 default:
                     // All simple list types
                     schema.addRealmListField(fieldName, fieldType.getType());
-                    if (!fieldType.isNullable()) {
+                    if (fieldType.isNullable()) {
                         schema.setRequired(fieldName, true);
                     }
-                    assertTrue(schema.isRequired(fieldName));
+                    assertTrue(fieldName + " should be required", schema.isRequired(fieldName));
                     schema.removeField(fieldName);
             }
         }
