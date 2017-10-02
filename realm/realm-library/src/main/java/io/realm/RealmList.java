@@ -482,7 +482,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (isManaged()) {
             checkValidRealm();
             E lastValue = osListOperator.last();
-            if(lastValue != null) {
+            if (lastValue != null) {
                 return lastValue;
             }
         } else if (unmanagedList != null && !unmanagedList.isEmpty()) {
@@ -1350,26 +1350,26 @@ abstract class ManagedListOperator<T> {
 
     @Nullable
     public final T first() {
-        if(forRealmModel()) {
+        if (forRealmModel()) {
             UncheckedRow row = collection.firstUncheckedRow();
             if (row == null) {
                 return null;
             }
             //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
+            return (T) realm.get((Class<? extends RealmModel>) clazz, className, row);
         }
         return isEmpty() ? null : get(0);
     }
 
     @Nullable
     public final T last() {
-        if(forRealmModel()) {
+        if (forRealmModel()) {
             UncheckedRow row = collection.lastUncheckedRow();
             if (row == null) {
                 return null;
             }
             //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
+            return (T) realm.get((Class<? extends RealmModel>) clazz, className, row);
         }
         return isEmpty() ? null : get(size() - 1);
     }
