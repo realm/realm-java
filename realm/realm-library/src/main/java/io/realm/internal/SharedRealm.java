@@ -169,6 +169,23 @@ public final class SharedRealm implements Closeable, NativeObject {
         void onSchemaChanged();
     }
 
+    /**
+     * Callback function to be called from JNI by Object Store when the partial sync results returned.
+     */
+    @Keep
+    public abstract static class PartialSyncCallback {
+        private final SharedRealm sharedRealm;
+        private final String className;
+
+        protected PartialSyncCallback(SharedRealm sharedRealm, String className) {
+            this.sharedRealm = sharedRealm;
+            this.className = className;
+        }
+
+        public abstract void onSuccess(Collection results);
+        public abstract void onError(RealmException error);
+    }
+
     private final OsRealmConfig osRealmConfig;
     private final long nativePtr;
     final NativeContext context;
@@ -351,8 +368,8 @@ public final class SharedRealm implements Closeable, NativeObject {
         return nativeIsAutoRefresh(nativePtr);
     }
 
-    public void registerPartialSyncQuery(String className, String tableName, Class clazz, String query, Realm.PartialSyncCallback callback, Realm realm) {
-        nativeRegisterPartialSyncQuery(nativePtr, className, tableName, clazz, query, callback, realm);
+    public void registerPartialSyncQuery(String query, PartialSyncCallback callback) {
+        nativeRegisterPartialSyncQuery(nativePtr, callback.className, query, callback);
     }
 
     public RealmConfiguration getConfiguration() {
@@ -486,26 +503,22 @@ public final class SharedRealm implements Closeable, NativeObject {
     /**
      * Called from JNI when the partial sync callback is invoked from the ObjectStore.
      * @param error if the partial sync query failed to register.
-     * @param resultsNativePtr pointer to the {@code Results} of the partial sync query.
-     * @param tableName the table name for the {@code Results}.
-     * @param clazz the type used with the partial sync query to obtain the {@code Results}.
+     * @param nativeResultsPtr pointer to the {@code Results} of the partial sync query.
      * @param callback the callback registered from the user to notify the success/error of the partial sync query.
-     * @param realm the Realm instance to be used to create the {@link RealmResults} (in case of success).
      */
     @SuppressWarnings("unused")
-    private static void runPartialSyncRegistrationCallback(@Nullable String error, long resultsNativePtr, String tableName, Class clazz, Realm.PartialSyncCallback callback, Realm realm) {
-        // don't notify success or error if the callback/realm has been GC'ed
-        if (callback != null && realm != null) {
-            if (error != null) {
-                callback.onError(new RealmException(error));
-            } else {
-                Table table = realm.sharedRealm.getTable(tableName);
-                Collection collection = new Collection(realm.sharedRealm, table, resultsNativePtr, true);
-                RealmResults results = new RealmResults(realm, collection, clazz);
-                callback.onSuccess(results);
-            }
+    private static void runPartialSyncRegistrationCallback(@Nullable String error, long nativeResultsPtr,
+                                                           PartialSyncCallback callback) {
+        if (error != null) {
+            callback.onError(new RealmException(error));
+        } else {
+            @SuppressWarnings("ConstantConditions")
+            Table table = callback.sharedRealm.getTable(Table.getTableNameForClass(callback.className));
+            Collection results = new Collection(callback.sharedRealm, table, nativeResultsPtr, true);
+            callback.onSuccess(results);
         }
     }
+
 
     private static native void nativeInit(String temporaryDirectoryPath);
 
@@ -568,5 +581,6 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native void nativeRegisterSchemaChangedCallback(long nativePtr, SchemaChangedCallback callback);
 
-    private static native void nativeRegisterPartialSyncQuery(long nativeSharedRealmPtr, String className, String tableName, Class clazz, String query, Realm.PartialSyncCallback callback, Realm realm);
+    private static native void nativeRegisterPartialSyncQuery(
+            long nativeSharedRealmPtr, String className, String query, PartialSyncCallback callback);
 }
