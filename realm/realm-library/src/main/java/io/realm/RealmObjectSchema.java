@@ -153,7 +153,9 @@ public abstract class RealmObjectSchema {
     public abstract RealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema);
 
     /**
-     * Adds a new field that references a {@link RealmList}.
+     * Adds a new field that contains a {@link RealmList} with references to other Realm model classes.
+     * <p>
+     * If the list contains primitive types, use {@link #addRealmListField(String, Class)} instead.
      *
      * @param fieldName name of the field to add.
      * @param objectSchema schema for the Realm type being referenced.
@@ -164,10 +166,11 @@ public abstract class RealmObjectSchema {
     public abstract RealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema);
 
     /**
-     * Adds a new field that references a {@link RealmList} with primitive values supported by Realm.
-     * See {@link RealmObject} for the list of supported types. Nullability of elements are either defined
-     * by using the correct boxed or primitive type e.g., {@code Integer.class} instead of {@code int.class} or
-     * {@link #setRequired(String, boolean)}.
+     * Adds a new field that references a {@link RealmList} with primitive values. See {@link RealmObject} for the
+     * list of supported types.
+     * <p>
+     * Nullability of elements are defined by using the correct class e.g., {@code Integer.class} instead of
+     * {@code int.class}. Alternatively {@link #setRequired(String, boolean)} can be used.
      * <p>
      * Example:
      * <pre>
@@ -178,7 +181,7 @@ public abstract class RealmObjectSchema {
      *     .setRequired("children", true)
      * }
      * </pre>
-     * If the list contains references to other Realm classes, then use
+     * If the list contains references to other Realm classes use
      * {@link #addRealmListField(String, RealmObjectSchema)} instead.
      *
      * @param fieldName name of the field to add.
