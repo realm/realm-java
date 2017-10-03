@@ -212,7 +212,10 @@ push_release() {
 
     # Push branch & tag
     git checkout releases
-    git push origin releases
+    # Don't push to releases branch if we are doing a beta release.
+    if [[ ! "$VERSION" =~ [a-zA-Z] ]] ; then
+        git push origin releases
+    fi
     git push origin "v${VERSION}"
 }
 
