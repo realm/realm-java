@@ -70,7 +70,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     protected String className;
 
     // Always null if RealmList is unmanaged, always non-null if managed.
-    private final ManagedListOperator<E> osListOperator;
+    final ManagedListOperator<E> osListOperator;
     final protected BaseRealm realm;
     private List<E> unmanagedList;
     // Used for listeners on RealmList<RealmModel>

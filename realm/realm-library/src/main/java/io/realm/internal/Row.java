@@ -81,9 +81,6 @@ public interface Row {
 
     boolean isNullLink(long columnIndex);
 
-    // FIXME remove this in DynamicRealm PR
-    OsList getList(long columnIndex);
-
     OsList getModelList(long columnIndex);
 
     OsList getValueList(long columnIndex, RealmFieldType fieldType);
