@@ -16,6 +16,7 @@
 
 ## Enhancements
 
+* Added support for primitive lists in migrations using `RealmObjectSchema.addRealmListField(String name, Class<?> type)` (#5329).
 * Now users can use `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` as a type parameter of `RealmList`.
 
 ## Bug Fixes
