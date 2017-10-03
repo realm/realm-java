@@ -1,4 +1,17 @@
-## 4.0.0-RC1 (YYYY-MM-DD)
+## 4.0.0 (YYYY-MM-DD)
+
+## Breaking Changes
+
+## Enhancements
+
+## Bug Fixes
+
+## Internal
+
+## Credits
+
+
+## 4.0.0-RC1 (2017-10-03)
 
 ## Breaking Changes
 
@@ -28,7 +41,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 
 * [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
 * `RealmList` can now contain `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` values. [Queries](https://github.com/realm/realm-java/issues/5361) and [Importing primitive lists from JSON](https://github.com/realm/realm-java/issues/5361) are not supported yet.
-* Added support for lists of primitives in `RealmObjectSchema` with `setRealmListField(String fieldName, Class<?> primitiveType)`
+* Added support for lists of primitives in `RealmObjectSchema` with `addRealmListField(String fieldName, Class<?> primitiveType)`
 * Added support for lists of primitives in `DynamicRealmObject` with `setList(String fieldName, RealmList<?> list)` and `getList(String fieldName, Class<?> primitiveType)`.
 * Minor performance improvement when copy/insert objects into Realm.
 * Added `static RealmObject.getRealm(RealmModel)`, `RealmObject.getRealm()` and `DynamicRealmObject.getDynamicRealm()` (#4720).
