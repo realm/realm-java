@@ -446,4 +446,5 @@ public class SyncSessionTests extends StandardIntegrationTest {
         assertEquals(3, realm.where(StringOnly.class).count());
         realm.close();
     }
+
 }

@@ -102,6 +102,8 @@ public class SyncSession {
     private static final byte STATE_VALUE_INACTIVE = 3;
     private static final byte STATE_VALUE_ERROR = 4;
 
+    private URI resolvedRealmURI;
+
     public enum State {
         WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
         ACTIVE(STATE_VALUE_ACTIVE),
@@ -377,6 +379,10 @@ public class SyncSession {
         }
     }
 
+    public void setResolvedRealmURI(URI resolvedRealmURI) {
+        this.resolvedRealmURI = resolvedRealmURI;
+    }
+
     /**
      * This method should only be called when guarded by the {@link #waitForChangesMutex}.
      * It will block into all changes have been either uploaded or downloaded depending on the chosen direction.
@@ -553,7 +559,7 @@ public class SyncSession {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
                     return authServer.loginToRealm(
                             getUser().getRefreshToken(), //refresh token in fact
-                            configuration.getServerUrl(),
+                            resolvedRealmURI,
                             getUser().getAuthenticationUrl()
                     );
                 }
@@ -635,7 +641,7 @@ public class SyncSession {
             @Override
             protected AuthenticateResponse execute() {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
-                    return authServer.refreshUser(getUser().getRefreshToken(), configuration.getServerUrl(), getUser().getAuthenticationUrl());
+                    return authServer.refreshUser(getUser().getRefreshToken(), resolvedRealmURI, getUser().getAuthenticationUrl());
                 }
                 return null;
             }

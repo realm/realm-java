@@ -98,17 +98,6 @@ public class CheckedRow extends UncheckedRow {
     }
 
     @Override
-    public OsList getList(long columnIndex) {
-        RealmFieldType fieldType = getTable().getColumnType(columnIndex);
-        if (fieldType != RealmFieldType.LIST) {
-            throw new IllegalArgumentException(
-                    String.format(Locale.US, "Field '%s' is not a 'RealmList'.",
-                            getTable().getColumnName(columnIndex)));
-        }
-        return super.getList(columnIndex);
-    }
-
-    @Override
     public OsList getModelList(long columnIndex) {
         RealmFieldType fieldType = getTable().getColumnType(columnIndex);
         if (fieldType != RealmFieldType.LIST) {

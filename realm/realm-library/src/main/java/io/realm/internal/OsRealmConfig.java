@@ -16,10 +16,14 @@
 
 package io.realm.internal;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import javax.annotation.Nullable;
 
 import io.realm.CompactOnLaunchCallback;
 import io.realm.RealmConfiguration;
+import io.realm.log.RealmLog;
 
 /**
  * Java wrapper of Object Store's Realm::Config.
@@ -157,6 +161,7 @@ public class OsRealmConfig implements NativeObject {
     private final static long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     private final RealmConfiguration realmConfiguration;
+    private final URI resolvedRealmURI;
     private final long nativePtr;
     // Every SharedRealm instance has to be created from an OsRealmConfig instance. And the SharedRealm's NativeContext
     // object will be the same as the context here. This is because of we may create different SharedRealm instances
@@ -192,6 +197,7 @@ public class OsRealmConfig implements NativeObject {
         boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncConfigurationOptions[4]));
         String syncSslTrustCertificatePath = (String) syncConfigurationOptions[5];
         Byte sessionStopPolicy = (Byte) syncConfigurationOptions[6];
+        boolean isPartial = (Boolean.TRUE.equals(syncConfigurationOptions[7]));
 
         // Set encryption key
         byte[] key = config.getEncryptionKey();
@@ -232,12 +238,20 @@ public class OsRealmConfig implements NativeObject {
         if (initializationCallback != null) {
             nativeSetInitializationCallback(nativePtr, initializationCallback);
         }
+
+        URI resolvedRealmURI  = null;
         // Set sync config
         if (syncRealmUrl != null) {
-            nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
-                    syncRefreshToken, sessionStopPolicy);
+            String resolvedSyncRealmUrl = nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
+                    syncRefreshToken, isPartial, sessionStopPolicy);
+            try {
+                resolvedRealmURI = new URI(resolvedSyncRealmUrl);
+            } catch (URISyntaxException e) {
+                RealmLog.error(e, "Cannot create a URI from the Realm URL address");
+            }
             nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
         }
+        this.resolvedRealmURI = resolvedRealmURI;
     }
 
     @Override
@@ -252,6 +266,10 @@ public class OsRealmConfig implements NativeObject {
 
     public RealmConfiguration getRealmConfiguration() {
         return realmConfiguration;
+    }
+
+    public URI getResolvedRealmURI() {
+        return resolvedRealmURI;
     }
 
     NativeContext getContext() {
@@ -274,8 +292,8 @@ public class OsRealmConfig implements NativeObject {
 
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
-    private static native void nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl,
-                                                            String authUrl, String userId, String refreshToken, byte sessionStopPolicy);
+    private static native String nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl,
+                                                            String authUrl, String userId, String refreshToken, boolean isPartial, byte sessionStopPolicy);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);
