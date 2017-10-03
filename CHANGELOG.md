@@ -6,7 +6,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 
 * [ObjectServer] Updated protocol version to 22 which is only compatible with Realm Object Server >= 2.0.0.
 * [ObjectServer] Removed deprecated APIs `SyncUser.retrieveUser()` and `SyncUser.retrieveUserAsync()`. Use `SyncUser.retrieveInfoForUser()` and `retrieveInfoForUserAsync()` instead.
-* [ObjectServer] `SyncUser.Callback` now accepts an generic parameter indicating type of object returned when `onSuccess` is called.
+* [ObjectServer] `SyncUser.Callback` now accepts a generic parameter indicating type of object returned when `onSuccess` is called.
 * [ObjectServer] Renamed `SyncUser.getAccessToken` to `SyncUser.getRefreshToken`.
 * [ObjectServer] Removed deprecated API `SyncUser.getManagementRealm()`.
 * Calling `distinct()` on a sorted `RealmResults` no longer clears any sorting defined (#3503).
@@ -22,7 +22,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 * Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
 * Removed `UNSUPPORTED_TABLE`, `UNSUPPORTED_MIXED` and `UNSUPPORTED_DATE` from `RealmFieldType`.
 * Removed deprecated API `RealmResults.distinct()`/`RealmResults.distinctAsync()`. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
-* `RealmQuery.createQuery(Realm, Class)`, `RealmQuery.createDynamicQuery(DynamicRealm, String)`, `RealmQuery.createQueryFromResult(RealmResults)` and `RealmQuery.createQueryFromList(RealmList)` have been removed. Use `Realm.where(Class)`, `DynamicRealm.where(String)`, RealmResults.where()` and `RealmList.where()` instead.
+* `RealmQuery.createQuery(Realm, Class)`, `RealmQuery.createDynamicQuery(DynamicRealm, String)`, `RealmQuery.createQueryFromResult(RealmResults)` and `RealmQuery.createQueryFromList(RealmList)` have been removed. Use `Realm.where(Class)`, `DynamicRealm.where(String)`, `RealmResults.where()` and `RealmList.where()` instead.
 
 ## Enhancements
 
