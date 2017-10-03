@@ -2,12 +2,13 @@
 
 ## Breaking Changes
 
-The internal file format has been upgraded to . Opening an older Realm will upgrade the file automatically, but older versions of Realm will no longer be able to read the file.
+The internal file format has been upgraded. Opening an older Realm will upgrade the file automatically, but older versions of Realm will no longer be able to read the file.
 
 * [ObjectServer] Updated protocol version to 22 which is only compatible with Realm Object Server >= 2.0.0.
 * [ObjectServer] Removed deprecated APIs `SyncUser.retrieveUser()` and `SyncUser.retrieveUserAsync()`. Use `SyncUser.retrieveInfoForUser()` and `retrieveInfoForUserAsync()` instead.
-* [ObjectServer] `SyncUser.Callback` now accepts an generic parameter indicating type of object return when `onSuccess` is called.
+* [ObjectServer] `SyncUser.Callback` now accepts an generic parameter indicating type of object returned when `onSuccess` is called.
 * [ObjectServer] Renamed `SyncUser.getAccessToken` to `SyncUser.getRefreshToken`.
+* [ObjectServer] Removed deprecated API `SyncUser.getManagementRealm()`.
 * Calling `distinct()` on a sorted `RealmResults` no longer clears any sorting defined (#3503).
 * Relaxed upper bound of type parameter of `RealmList`, `RealmQuery`, `RealmResults`, `RealmCollection`, `OrderedRealmCollection` and `OrderedRealmCollectionSnapshot`.
 * Realm has upgraded its RxJava1 support to RxJava2 (#3497)
@@ -27,6 +28,8 @@ The internal file format has been upgraded to . Opening an older Realm will upgr
 
 * [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
 * `RealmList` can now contain `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` values. [Queries](https://github.com/realm/realm-java/issues/5361) and [Importing primitive lists from JSON](https://github.com/realm/realm-java/issues/5361) are not supported yet.
+* Added support for lists of primitives in `RealmObjectSchema` with `setRealmListField(String fieldName, Class<?> primitiveType)`
+* Added support for lists of primitives in `DynamicRealmObject` with `setList(String fieldName, RealmList<?> list)` and `getList(String fieldName, Class<?> primitiveType)`.
 * Minor performance improvement when copy/insert objects into Realm.
 * Added `static RealmObject.getRealm(RealmModel)`, `RealmObject.getRealm()` and `DynamicRealmObject.getDynamicRealm()` (#4720).
 * Added `RealmResults.asChangesetObservable()` that emits the pair `(results, changeset)` (#4277).
@@ -44,8 +47,8 @@ The internal file format has been upgraded to . Opening an older Realm will upgr
 
 ## Internal
 
-* Upgraded to Realm Sync 2.0.0-rc25.
-* Upgraded to Realm Core 4.0.0.
+* Upgraded to Realm Sync 2.0.0-rc27.
+* Upgraded to Realm Core 4.0.1.
 * Use Object Store to create the primary key table.
 
 ### Credits

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.internal.permissions;
+package io.realm.objectserver.model;
 
 import io.realm.annotations.RealmModule;
-import io.realm.permissions.PermissionOffer;
 
-@RealmModule(library = true, classes = { PermissionChange.class, PermissionOffer.class, PermissionOfferResponse.class })
-public class ManagementModule {
+@RealmModule(classes = {PartialSyncObjectA.class, PartialSyncObjectB.class})
+public class PartialSyncModule {
 }

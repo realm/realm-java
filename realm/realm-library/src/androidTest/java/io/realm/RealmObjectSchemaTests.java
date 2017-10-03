@@ -19,7 +19,6 @@ package io.realm;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,8 +36,10 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -107,6 +108,7 @@ public class RealmObjectSchemaTests {
         SIMPLE, OBJECT, LIST
     }
 
+    // Enumerate all standard field types
     public enum FieldType {
         STRING(String.class, true),
         SHORT(Short.class, true), PRIMITIVE_SHORT(short.class, false),
@@ -118,13 +120,43 @@ public class RealmObjectSchemaTests {
         DOUBLE(Double.class, true), PRIMITIVE_DOUBLE(double.class, false),
         BLOB(byte[].class, true),
         DATE(Date.class, true),
-        OBJECT(RealmObject.class, false),
-        LIST(RealmList.class, false);
+        OBJECT(RealmObject.class, false);
 
         final Class<?> clazz;
         final boolean defaultNullable;
 
         FieldType(Class<?> clazz, boolean defaultNullable) {
+            this.clazz = clazz;
+            this.defaultNullable = defaultNullable;
+        }
+
+        public Class<?> getType() {
+            return clazz;
+        }
+
+        public boolean isNullable() {
+            return defaultNullable;
+        }
+    }
+
+    // Enumerate all list types
+    public enum FieldListType {
+        STRING_LIST(String.class, true),
+        SHORT_LIST(Short.class, true), PRIMITIVE_SHORT_LIST(short.class, false),
+        INT_LIST(Integer.class, true), PRIMITIVE_INT_LIST(int.class, false),
+        LONG_LIST(Long.class, true), PRIMITIVE_LONG_LIST(long.class, false),
+        BYTE_LIST(Byte.class, true), PRIMITIVE_BYTE_LIST(byte.class, false),
+        BOOLEAN_LIST(Boolean.class, true), PRIMITIVE_BOOLEAN_LIST(boolean.class, false),
+        FLOAT_LIST(Float.class, true), PRIMITIVE_FLOAT_LIST(float.class, false),
+        DOUBLE_LIST(Double.class, true), PRIMITIVE_DOUBLE_LIST(double.class, false),
+        BLOB_LIST(byte[].class, true),
+        DATE_LIST(Date.class, true),
+        LIST(RealmList.class, false); // List of Realm Objects
+
+        final Class<?> clazz;
+        final boolean defaultNullable;
+
+        FieldListType(Class<?> clazz, boolean defaultNullable) {
             this.clazz = clazz;
             this.defaultNullable = defaultNullable;
         }
@@ -253,20 +285,28 @@ public class RealmObjectSchemaTests {
             }
             return;
         }
+        String fieldName = "foo";
         for (FieldType fieldType : FieldType.values()) {
-            String fieldName = "foo";
             switch (fieldType) {
                 case OBJECT:
                     schema.addRealmObjectField(fieldName, DOG_SCHEMA);
                     checkAddedAndRemovable(fieldName);
                     break;
+                default:
+                    // All simple fields
+                    schema.addField(fieldName, fieldType.getType());
+                    checkAddedAndRemovable(fieldName);
+            }
+        }
+        for (FieldListType fieldType : FieldListType.values()) {
+            switch (fieldType) {
                 case LIST:
                     schema.addRealmListField(fieldName, DOG_SCHEMA);
                     checkAddedAndRemovable(fieldName);
                     break;
                 default:
-                    // All simple fields
-                    schema.addField(fieldName, fieldType.getType());
+                    // All primitive lists
+                    schema.addRealmListField(fieldName, fieldType.getType());
                     checkAddedAndRemovable(fieldName);
             }
         }
@@ -354,15 +394,28 @@ public class RealmObjectSchemaTests {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
         }
+        String fieldName = "foo";
         for (FieldType fieldType : FieldType.values()) {
-            String fieldName = "foo";
             switch (fieldType) {
                 case OBJECT: continue; // Not possible.
-                case LIST: continue; // Not possible.
                 default:
                     // All simple types
                     schema.addField(fieldName, fieldType.getType(), FieldAttribute.REQUIRED);
                     assertTrue(schema.isRequired(fieldName));
+                    schema.removeField(fieldName);
+            }
+        }
+        for (FieldListType fieldType : FieldListType.values()) {
+            switch(fieldType) {
+                case LIST:
+                    continue; // Not possible.
+                default:
+                    // All simple list types
+                    schema.addRealmListField(fieldName, fieldType.getType());
+                    if (fieldType.isNullable()) {
+                        schema.setRequired(fieldName, true);
+                    }
+                    assertTrue(fieldName + " should be required", schema.isRequired(fieldName));
                     schema.removeField(fieldName);
             }
         }
@@ -396,6 +449,12 @@ public class RealmObjectSchemaTests {
                 fail(fieldType + " should not be allowed to be indexed");
             } catch (IllegalArgumentException ignored) {
             }
+        }
+
+        // Probe for all variants of primitive lists
+        try {
+            schema.addRealmListField("foo", String.class);
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -437,6 +496,17 @@ public class RealmObjectSchemaTests {
                 fail(fieldType + " should not be allowed to be a primary key");
             } catch (IllegalArgumentException ignored) {
             }
+        }
+
+        try {
+            schema.addRealmListField("foo", schema);
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Probe for all variants of primitive lists
+        try {
+            schema.addRealmListField("foo", String.class);
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -544,14 +614,14 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
-    public void setRemoveNullable() {
+    public void setNullable_trueAndFalse() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             thrown.expect(UnsupportedOperationException.class);
             schema.setNullable("test", true);
             return;
         }
+        String fieldName = "foo";
         for (FieldType fieldType : FieldType.values()) {
-            String fieldName = "foo";
             switch (fieldType) {
                 case OBJECT:
                     // Objects are always nullable and cannot be changed.
@@ -559,16 +629,6 @@ public class RealmObjectSchemaTests {
                     assertTrue(schema.isNullable(fieldName));
                     try {
                         schema.setNullable(fieldName, false);
-                        fail();
-                    } catch (IllegalArgumentException ignored) {
-                    }
-                    break;
-                case LIST:
-                    // Lists are not nullable and cannot be configured to be so.
-                    schema.addRealmListField(fieldName, schema);
-                    assertFalse(schema.isNullable(fieldName));
-                    try {
-                        schema.setNullable(fieldName, true);
                         fail();
                     } catch (IllegalArgumentException ignored) {
                     }
@@ -582,17 +642,38 @@ public class RealmObjectSchemaTests {
             }
             schema.removeField(fieldName);
         }
+        for (FieldListType fieldType : FieldListType.values()) {
+            switch (fieldType) {
+                case LIST:
+                    // Lists are not nullable and cannot be configured to be so.
+                    schema.addRealmListField(fieldName, schema);
+                    assertFalse(schema.isNullable(fieldName));
+                    try {
+                        schema.setNullable(fieldName, true);
+                        fail();
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                    break;
+                default:
+                    // All simple list types.
+                    schema.addRealmListField(fieldName, fieldType.getType());
+                    assertEquals("Type: " + fieldType, fieldType.isNullable(), schema.isNullable(fieldName));
+                    schema.setNullable(fieldName, !fieldType.isNullable());
+                    assertEquals("Type: " + fieldType, !fieldType.isNullable(), schema.isNullable(fieldName));
+            }
+            schema.removeField(fieldName);
+        }
     }
 
     @Test
-    public void setRemoveRequired() {
+    public void setRequired_trueAndFalse() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             thrown.expect(UnsupportedOperationException.class);
             schema.setRequired("test", true);
             return;
         }
+        String fieldName = "foo";
         for (FieldType fieldType : FieldType.values()) {
-            String fieldName = "foo";
             switch (fieldType) {
                 case OBJECT:
                     // Objects are always nullable and cannot be configured otherwise.
@@ -604,6 +685,17 @@ public class RealmObjectSchemaTests {
                     } catch (IllegalArgumentException ignored) {
                     }
                     break;
+                default:
+                    // All simple types.
+                    schema.addField(fieldName, fieldType.getType());
+                    assertEquals(!fieldType.isNullable(), schema.isRequired(fieldName));
+                    schema.setRequired(fieldName, fieldType.isNullable());
+                    assertEquals(fieldType.isNullable(), schema.isRequired(fieldName));
+            }
+            schema.removeField(fieldName);
+        }
+        for (FieldListType fieldType : FieldListType.values()) {
+            switch (fieldType) {
                 case LIST:
                     // Lists are always non-nullable and cannot be configured otherwise.
                     schema.addRealmListField(fieldName, schema);
@@ -615,8 +707,8 @@ public class RealmObjectSchemaTests {
                     }
                     break;
                 default:
-                    // All simple types.
-                    schema.addField(fieldName, fieldType.getType());
+                    // All simple list types.
+                    schema.addRealmListField(fieldName, fieldType.getType());
                     assertEquals(!fieldType.isNullable(), schema.isRequired(fieldName));
                     schema.setRequired(fieldName, fieldType.isNullable());
                     assertEquals(fieldType.isNullable(), schema.isRequired(fieldName));
@@ -636,8 +728,7 @@ public class RealmObjectSchemaTests {
             String fieldName = fieldType.name();
             switch (fieldType) {
                 case OBJECT:
-                case LIST:
-                    // Skip always nullable fields.
+                    // Skip always nullable fields
                     break;
                 default:
                     // Skip not-nullable fields .
@@ -667,8 +758,119 @@ public class RealmObjectSchemaTests {
                     break;
             }
         }
+        for (FieldListType fieldType : FieldListType.values()) {
+            switch(fieldType) {
+                case LIST:
+                    // Skip always non-nullable fields.
+                    break;
+                case STRING_LIST:
+                    checkListValueConversionToDefaultValue(String.class, "");
+                    break;
+                case SHORT_LIST:
+                    checkListValueConversionToDefaultValue(Short.class, (short) 0);
+                    break;
+                case INT_LIST:
+                    checkListValueConversionToDefaultValue(Integer.class, 0);
+                    break;
+                case LONG_LIST:
+                    checkListValueConversionToDefaultValue(Long.class, 0L);
+                    break;
+                case BYTE_LIST:
+                    checkListValueConversionToDefaultValue(Byte.class, (byte) 0);
+                    break;
+                case BOOLEAN_LIST:
+                    checkListValueConversionToDefaultValue(Boolean.class, false);
+                    break;
+                case FLOAT_LIST:
+                    checkListValueConversionToDefaultValue(Float.class, 0.0F);
+                    break;
+                case DOUBLE_LIST:
+                    checkListValueConversionToDefaultValue(Double.class, 0.0D);
+                    break;
+                case BLOB_LIST:
+                    checkListValueConversionToDefaultValue(byte[].class, new byte[0]);
+                    break;
+                case DATE_LIST:
+                    checkListValueConversionToDefaultValue(Date.class, new Date(0));
+                    break;
+                case PRIMITIVE_INT_LIST:
+                case PRIMITIVE_LONG_LIST:
+                case PRIMITIVE_BYTE_LIST:
+                case PRIMITIVE_BOOLEAN_LIST:
+                case PRIMITIVE_FLOAT_LIST:
+                case PRIMITIVE_DOUBLE_LIST:
+                case PRIMITIVE_SHORT_LIST:
+                    // Skip not-nullable fields
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown type: " + fieldType);
+            }
+        }
     }
 
+    // Checks that null values in a value list are correctly converted to default values
+    // when field is set to required.
+    private <E> void checkListValueConversionToDefaultValue(Class<E> type, Object defaultValue) {
+        schema.addRealmListField("foo", type);
+        DynamicRealmObject obj = ((DynamicRealm) realm).createObject(schema.getClassName());
+        RealmList<E> list = new RealmList<>();
+        list.add(null);
+        obj.setList("foo", list);
+        assertNull(obj.getList("foo", type).first());
+
+        // Convert from nullable to required
+        schema.setRequired("foo", true);
+        if (defaultValue instanceof byte[]) {
+            assertArrayEquals((byte[]) defaultValue, (byte[]) obj.getList("foo", type).first());
+        } else {
+            assertEquals(defaultValue, obj.getList("foo", type).first());
+        }
+
+        // Convert back again
+        schema.setRequired("foo", false);
+        if (defaultValue instanceof byte[]) {
+            //noinspection ConstantConditions
+            assertArrayEquals((byte[]) defaultValue, (byte[]) obj.getList("foo", type).first());
+        } else {
+            assertEquals(defaultValue, obj.getList("foo", type).first());
+        }
+
+        // Cleanup
+        schema.removeField("foo");
+    }
+
+    // Special test for making sure that binary data in all forms are transformed correctly
+    // when moving between nullable and required states.
+    @Test
+    public void binaryData_nullabilityConversions() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
+        schema.addRealmListField("foo", byte[].class);
+
+        DynamicRealmObject obj = ((DynamicRealm) realm).createObject(schema.getClassName());
+        RealmList<byte[]> list = obj.getList("foo", byte[].class);
+        assertTrue(list.size() == 0);
+
+        // Initial content (nullable)
+        list.add(null);
+        list.add(new byte[] {1, 2, 3});
+        assertNull(list.get(0));
+        assertArrayEquals(new byte[] {1, 2, 3}, list.get(1));
+
+        // Transform to required
+        schema.setRequired("foo", true);
+        list = obj.getList("foo", byte[].class);
+        assertEquals(0, list.get(0).length);
+        assertArrayEquals(new byte[] {1, 2, 3}, list.get(1));
+
+        // Transform back to nullable
+        schema.setRequired("foo", false);
+        list = obj.getList("foo", byte[].class);
+        assertEquals(0, list.get(0).length);
+        assertArrayEquals(new byte[] {1, 2, 3}, list.get(1));
+    }
+    
     @Test
     public void setRequired_true_onPrimaryKeyField_containsNullValues_shouldThrow() {
         if (type == ObjectSchemaType.IMMUTABLE) {
@@ -781,7 +983,7 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
-    public void setRemovePrimaryKey() {
+    public void setPrimaryKey_trueAndFalse() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             try {
                 schema.addPrimaryKey("test");
@@ -824,7 +1026,7 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
-    public void setRemoveIndex() {
+    public void setIndex_trueAndFalse() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             try {
                 schema.addIndex("test");
@@ -1114,6 +1316,21 @@ public class RealmObjectSchemaTests {
         RealmObjectSchema objSchema = realm.getSchema().get(NonLatinFieldNames.class.getSimpleName());
         assertEquals(RealmFieldType.INTEGER, objSchema.getFieldType(NonLatinFieldNames.FIELD_LONG_GREEK_CHAR));
     }
+
+    @Test
+    public void addList_modelClassThrowsWithProperError() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
+
+        try {
+            schema.addRealmListField("field", AllJavaTypes.class);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Use 'addRealmListField(String name, RealmObjectSchema schema)' instead"));
+        }
+    }
+
 
     private interface FieldRunnable {
         void run(String fieldName);

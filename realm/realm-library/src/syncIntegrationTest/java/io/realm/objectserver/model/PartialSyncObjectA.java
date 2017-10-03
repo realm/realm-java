@@ -14,11 +14,27 @@
  * limitations under the License.
  */
 
-package io.realm.internal.permissions;
+package io.realm.objectserver.model;
 
-import io.realm.annotations.RealmModule;
-import io.realm.permissions.PermissionOffer;
+import io.realm.RealmObject;
 
-@RealmModule(library = true, classes = { PermissionChange.class, PermissionOffer.class, PermissionOfferResponse.class })
-public class ManagementModule {
+public class PartialSyncObjectA extends RealmObject {
+    private int number;
+    private String string;
+
+    public int getNumber() {
+        return number;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
+    public String getString() {
+        return string;
+    }
+
+    public void setString(String string) {
+        this.string = string;
+    }
 }

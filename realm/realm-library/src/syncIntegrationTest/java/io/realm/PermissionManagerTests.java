@@ -36,7 +36,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.internal.Util;
+import io.realm.internal.OsRealmConfig;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
@@ -53,7 +54,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-@Ignore("Wait for https://github.com/realm/realm-object-server/issues/1671 to be fixed")
 public class PermissionManagerTests extends StandardIntegrationTest {
 
     private SyncUser user;
@@ -87,7 +87,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     @RunTestInLooperThread(emulateMainThread = true)
     public void getPermissions_noLongerValidWhenPermissionManagerIsClosed() {
         final PermissionManager pm = user.getPermissionManager();
-        looperThread.closeAfterTest(pm);
         pm.getPermissions(new PermissionManager.PermissionsCallback() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
@@ -99,6 +98,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
+                pm.close();
                 fail(error.toString());
             }
         });
@@ -106,6 +106,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/437")
     public void getPermissions_updatedWithNewRealms() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -149,9 +150,9 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         });
     }
 
-    @Ignore("Until https://github.com/realm/realm-object-server/issues/1671 has been solved")
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/437")
     public void getPermissions_updatedWithNewRealms_stressTest() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -172,6 +173,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults<Permission> permissions) {
+                        RealmLog.error(Arrays.toString(permissions.toArray()));  // FIXME Debug output for CI. Remove before release.
                         Permission p = permissions.where().endsWith("path", "test9").findFirst();
                         if (p != null) {
                             assertTrue(p.mayRead());
@@ -196,18 +198,14 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         PermissionManager pm = user.getPermissionManager();
         pm.close();
 
+        thrown.expect(IllegalStateException.class);
         pm.getPermissions(new PermissionManager.PermissionsCallback() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 fail();
             }
-
             @Override
-            public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
-                assertEquals(IllegalStateException.class, error.getException().getClass());
-                looperThread.testComplete();
-            }
+            public void onError(ObjectServerError error) { fail(); }
         });
     }
 
@@ -245,6 +243,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/432")
     public void getPermissions_addTaskAfterClientReset() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -429,6 +428,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/432")
     public void getDefaultPermissions_returnLoadedResults() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -449,20 +449,24 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/432")
     public void getDefaultPermissions_noLongerValidWhenPermissionManagerIsClosed() {
         final PermissionManager pm = user.getPermissionManager();
-        looperThread.closeAfterTest(pm);
         pm.getDefaultPermissions(new PermissionManager.PermissionsCallback() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
-                assertTrue(permissions.isValid());
-                pm.close();
+                try {
+                    assertTrue(permissions.isValid());
+                } finally {
+                    pm.close();
+                }
                 assertFalse(permissions.isValid());
                 looperThread.testComplete();
             }
 
             @Override
             public void onError(ObjectServerError error) {
+                pm.close();
                 fail(error.toString());
             }
         });
@@ -479,21 +483,16 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     @RunTestInLooperThread(emulateMainThread = true)
     public void getDefaultPermissions_closed() throws IOException {
         PermissionManager pm = user.getPermissionManager();
-        looperThread.closeAfterTest(pm);
         pm.close();
 
+        thrown.expect(IllegalStateException.class);
         pm.getDefaultPermissions(new PermissionManager.PermissionsCallback() {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 fail();
             }
-
             @Override
-            public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
-                assertEquals(IllegalStateException.class, error.getException().getClass());
-                looperThread.testComplete();
-            }
+            public void onError(ObjectServerError error) { fail(); }
         });
     }
 
@@ -650,6 +649,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/429")
     public void applyPermissions_wrongUrlFails() {
         String wrongUrl = createRemoteRealm(user, "test") + "-notexisting";
 
@@ -716,6 +716,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/426")
     public void applyPermissions_withUsername() {
         String user1Username = TestHelper.getRandomEmail();
         String user2Username = TestHelper.getRandomEmail();
@@ -830,6 +831,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/430")
     public void makeOffer_noManageAccessThrows() {
         // User 2 creates a Realm
         SyncUser user2 = UserFactory.createUniqueUser();
@@ -902,7 +904,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("Figure out how the time differs between emulator and server")
+    @Ignore
     public void acceptOffer_expiredThrows() {
         // Trying to guess how long CI is to process this. The offer cannot be created if it
         // already expired.
@@ -1181,7 +1183,9 @@ public class PermissionManagerTests extends StandardIntegrationTest {
      */
     private String createRemoteRealm(SyncUser user, String realmName) {
         String url = Constants.AUTH_SERVER_URL + "~/" + realmName;
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                .build();
 
         Realm realm = Realm.getInstance(config);
         SyncSession session = SyncManager.getSession(config);

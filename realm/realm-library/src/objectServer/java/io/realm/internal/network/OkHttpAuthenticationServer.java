@@ -66,7 +66,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     @Override
     public AuthenticateResponse loginToRealm(Token refreshToken, URI serverUrl, URL authenticationUrl) {
         try {
-            String requestBody = AuthenticateRequest.realmLogin(refreshToken, serverUrl).toJson();
+            String requestBody = AuthenticateRequest.realmLogin(refreshToken, serverUrl.getPath()).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
             return AuthenticateResponse.from(e);
@@ -76,7 +76,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     @Override
     public AuthenticateResponse refreshUser(Token userToken, URI serverUrl, URL authenticationUrl) {
         try {
-            String requestBody = AuthenticateRequest.userRefresh(userToken, serverUrl).toJson();
+            String requestBody = AuthenticateRequest.userRefresh(userToken, serverUrl.getPath()).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
             return AuthenticateResponse.from(e);
