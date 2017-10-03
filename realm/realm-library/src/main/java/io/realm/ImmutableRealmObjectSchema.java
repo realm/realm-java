@@ -56,6 +56,11 @@ class ImmutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
+    public RealmObjectSchema addRealmListField(String fieldName, Class<?> primitiveType) {
+        throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
+    }
+
+    @Override
     public RealmObjectSchema removeField(String fieldName) {
         throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
     }
