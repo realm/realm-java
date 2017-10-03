@@ -28,7 +28,6 @@ import org.junit.runner.RunWith;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.realm.BaseIntegrationTest;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
