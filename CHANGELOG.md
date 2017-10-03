@@ -1,4 +1,4 @@
-## 4.0.0-RC1 (YYYY-MM-DD)
+## 4.0.0-RC1 (2017-10-03)
 
 ## Breaking Changes
 
