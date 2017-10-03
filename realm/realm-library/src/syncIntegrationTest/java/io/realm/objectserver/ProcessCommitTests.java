@@ -104,6 +104,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     @RunTestWithRemoteService(remoteService = SimpleCommitRemoteService.class, onLooperThread = true)
+    @Ignore("See https://github.com/realm/realm-java/issues/5376")
     public void expectSimpleCommit() {
         looperThread.runAfterTest(remoteService.afterRunnable);
         remoteService.createHandler(Looper.myLooper());

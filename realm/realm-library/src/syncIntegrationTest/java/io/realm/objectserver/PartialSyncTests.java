@@ -38,6 +38,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
     public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
     @Test
+    @Ignore("See https://github.com/realm/realm-java/issues/5375")
     public void partialSync() throws InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
