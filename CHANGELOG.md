@@ -4,6 +4,7 @@
 
 * Calling `distinct()` on a sorted `RealmResults` no longer clears the sorting (#3503).
 * [ObjectServer] Removed deprecated APIs `SyncUser.retrieveUser()` and `SyncUser.retrieveUserAsync()`. Use `SyncUser.retrieveInfoForUser()` and `retrieveInfoForUserAsync()` instead.
+* [ObjectServer] Removed deprecated API `SyncUser.getManagementRealm()`.
 * Removed deprecated APIs `RealmSchema.close()` and `RealmObjectSchema.close()`. Those don't have to be called anymore.
 * Removed deprecated API `RealmResults.removeChangeListeners()`. Use `RealmResults.removeAllChangeListeners()` instead.
 * Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
@@ -23,8 +24,8 @@
 
 ## Internal
 
-* Upgraded to Realm Sync 2.0.0-rc25.
-* Upgraded to Realm Core 4.0.0.
+* Upgraded to Realm Sync 2.0.0-rc27.
+* Upgraded to Realm Core 4.0.1.
 
 ## Credits
 

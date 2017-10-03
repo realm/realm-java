@@ -24,7 +24,6 @@ import io.realm.SSLConfigurationTests;
 import io.realm.SyncedRealmTests;
 import io.realm.objectserver.AuthTests;
 import io.realm.objectserver.EncryptedSynchronizedRealmTests;
-import io.realm.objectserver.ManagementRealmTests;
 import io.realm.objectserver.ProcessCommitTests;
 import io.realm.objectserver.ProgressListenerTests;
 import io.realm.SyncSessionTests;
@@ -36,7 +35,6 @@ import io.realm.SyncSessionTests;
         SyncedRealmTests.class,
         AuthTests.class,
         EncryptedSynchronizedRealmTests.class,
-        ManagementRealmTests.class,
         ProcessCommitTests.class,
         ProgressListenerTests.class,
         SyncSessionTests.class})
