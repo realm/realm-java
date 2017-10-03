@@ -535,14 +535,28 @@ public class DynamicRealmObjectTests {
                         dObj.setObject(AllJavaTypes.FIELD_OBJECT, dObj);
                         assertEquals(dObj, dObj.getObject(AllJavaTypes.FIELD_OBJECT));
                         break;
-                    case LIST:
                     case LIST_INTEGER:
+                        checkSetGetValueList(dObj, AllJavaTypes.FIELD_INTEGER_LIST, Integer.class, new RealmList<>(null, 1));
+                        break;
                     case LIST_STRING:
+                        checkSetGetValueList(dObj, AllJavaTypes.FIELD_STRING_LIST, String.class, new RealmList<>(null, "foo"));
+                        break;
                     case LIST_BOOLEAN:
+                        checkSetGetValueList(dObj, AllJavaTypes.FIELD_BOOLEAN_LIST, Boolean.class, new RealmList<>(null, true));
+                        break;
                     case LIST_FLOAT:
+                        checkSetGetValueList(dObj, AllJavaTypes.FIELD_FLOAT_LIST, Float.class, new RealmList<>(null, 1.23F));
+                        break;
                     case LIST_DOUBLE:
+                        checkSetGetValueList(dObj, AllJavaTypes.FIELD_DOUBLE_LIST, Double.class, new RealmList<>(null, 1.234D));
+                        break;
                     case LIST_BINARY:
+                        checkSetGetValueList(dObj, AllJavaTypes.FIELD_BINARY_LIST, byte[].class, new RealmList<>(null, new byte[] {1, 2, 3}));
+                        break;
                     case LIST_DATE:
+                        checkSetGetValueList(dObj, AllJavaTypes.FIELD_DATE_LIST, Date.class, new RealmList<>(null, new Date(1000)));
+                        break;
+                    case LIST:
                         // Ignores. See testGetList/testSetList.
                         break;
                     default:
@@ -552,6 +566,11 @@ public class DynamicRealmObjectTests {
         } finally {
             realm.cancelTransaction();
         }
+    }
+
+    private <E> void checkSetGetValueList(DynamicRealmObject obj, String fieldName, Class<E> primitiveType, RealmList<E> list) {
+        obj.set(fieldName, list);
+        assertArrayEquals(list.toArray(), obj.getList(fieldName, primitiveType).toArray());
     }
 
     @Test
@@ -1024,6 +1043,17 @@ public class DynamicRealmObjectTests {
     }
 
     @Test
+    public void setList_javaModelClassesThrowProperErrorMessage() {
+        dynamicRealm.beginTransaction();
+        try {
+            dObjDynamic.setList(AllJavaTypes.FIELD_LIST, new RealmList<>(typedObj));
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("RealmList must contain `DynamicRealmObject's, not Java model classes."));
+        }
+    }
+
+    @Test
     public void setList_objectsOwnList() {
         dynamicRealm.beginTransaction();
 
@@ -1062,7 +1092,6 @@ public class DynamicRealmObjectTests {
     // List is not a simple getter, tests separately.
     @Test
     public void getList() {
-        // FIXME Also fix primitive lists
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
         Dog dog = realm.createObject(Dog.class);
@@ -1078,6 +1107,7 @@ public class DynamicRealmObjectTests {
         assertEquals(Dog.CLASS_NAME, listObject.getType());
         assertEquals("fido", listObject.getString(Dog.FIELD_NAME));
     }
+
 
     @Test
     public void untypedGetterSetter() {

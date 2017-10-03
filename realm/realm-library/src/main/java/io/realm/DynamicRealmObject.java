@@ -367,47 +367,47 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * If the list contains references to other Realm objects, use {@link #getList(String)} instead.
      *
      * @param fieldName the name of the field.
-     * @param elementType the type of elements in the list. Only primitive types are supported.
+     * @param primitiveType the type of elements in the list. Only primitive types are supported.
      * @return the {@link RealmList} data for this field.
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of primitive objects.
      */
-    public <E> RealmList<E> getList(String fieldName, Class<E> elementType) {
+    public <E> RealmList<E> getList(String fieldName, Class<E> primitiveType) {
         proxyState.getRealm$realm().checkIfValid();
 
-        if (elementType == null) {
-            throw new IllegalArgumentException("Non-null 'elementType' required.");
+        if (primitiveType == null) {
+            throw new IllegalArgumentException("Non-null 'primitiveType' required.");
         }
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        RealmFieldType realmType = classToRealmType(elementType);
+        RealmFieldType realmType = classToRealmType(primitiveType);
         try {
             OsList osList = proxyState.getRow$realm().getValueList(columnIndex, realmType);
-            return new RealmList<>(elementType, osList, proxyState.getRealm$realm());
+            return new RealmList<>(primitiveType, osList, proxyState.getRealm$realm());
         } catch (IllegalArgumentException e) {
             checkFieldType(fieldName, columnIndex, realmType);
             throw e;
         }
     }
 
-    private <E> RealmFieldType classToRealmType(Class<E> elementType) {
-        if (elementType.equals(Integer.class)
-                || elementType.equals(Long.class)
-                || elementType.equals(Short.class)
-                || elementType.equals(Byte.class)) {
+    private <E> RealmFieldType classToRealmType(Class<E> primitiveType) {
+        if (primitiveType.equals(Integer.class)
+                || primitiveType.equals(Long.class)
+                || primitiveType.equals(Short.class)
+                || primitiveType.equals(Byte.class)) {
             return RealmFieldType.INTEGER_LIST;
-        } else if (elementType.equals(Boolean.class)) {
+        } else if (primitiveType.equals(Boolean.class)) {
             return RealmFieldType.BOOLEAN_LIST;
-        } else if (elementType.equals(String.class)) {
+        } else if (primitiveType.equals(String.class)) {
             return RealmFieldType.STRING_LIST;
-        } else if (elementType.equals(byte[].class)) {
+        } else if (primitiveType.equals(byte[].class)) {
             return RealmFieldType.BINARY_LIST;
-        } else if (elementType.equals(Date.class)) {
+        } else if (primitiveType.equals(Date.class)) {
             return RealmFieldType.DATE_LIST;
-        } else if (elementType.equals(Float.class)) {
+        } else if (primitiveType.equals(Float.class)) {
             return RealmFieldType.FLOAT_LIST;
-        } else if (elementType.equals(Double.class)) {
+        } else if (primitiveType.equals(Double.class)) {
             return RealmFieldType.DOUBLE_LIST;
         } else {
-            throw new IllegalArgumentException("Unsupported element type. Only primitive types supported. Yours was: " + elementType);
+            throw new IllegalArgumentException("Unsupported element type. Only primitive types supported. Yours was: " + primitiveType);
         }
     }
 
@@ -757,7 +757,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the reference to a {@link RealmList} on the given field.
      *
      * @param fieldName field name.
-     * @param list list of objects. Must either be primitive types or Realm objects.
+     * @param list list of objects. Must either be primitive types or {@link DynamicRealmObject}s.
      * @throws IllegalArgumentException if field name doesn't exist, it is not a list field, the objects in the
      * list doesn't match the expected type or any Realm object in the list belongs to a different Realm.
      */
@@ -775,6 +775,16 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
         switch (columnType) {
             case LIST:
+                // Due to type erasure it is not possible to check the generic parameter,
+                // instead we try to see if the first element is of the wrong type in order
+                // to throw a better error message.
+                // Primitive types are checked inside `setModelList`
+                if (!list.isEmpty()) {
+                    E element = list.first();
+                    if (!(element instanceof DynamicRealmObject) && RealmModel.class.isAssignableFrom(element.getClass())) {
+                        throw new IllegalArgumentException("RealmList must contain `DynamicRealmObject's, not Java model classes.");
+                    }
+                }
                 //noinspection unchecked
                 setModelList(fieldName, (RealmList<DynamicRealmObject>) list);
                 break;
@@ -842,12 +852,12 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     @SuppressWarnings("unchecked")
-    private <E> void setValueList(String fieldName, RealmList<E> list, RealmFieldType elementType) {
+    private <E> void setValueList(String fieldName, RealmList<E> list, RealmFieldType primitiveType) {
         long columnIndex = proxyState.getRow$realm().getColumnIndex(fieldName);
-        OsList osList = proxyState.getRow$realm().getValueList(columnIndex, elementType);
+        OsList osList = proxyState.getRow$realm().getValueList(columnIndex, primitiveType);
 
         Class<E> elementClass;
-        switch(elementType) {
+        switch(primitiveType) {
             case INTEGER_LIST: elementClass = (Class<E>) Long.class; break;
             case BOOLEAN_LIST: elementClass = (Class<E>) Boolean.class; break;
             case STRING_LIST: elementClass = (Class<E>) String.class; break;
@@ -856,9 +866,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case FLOAT_LIST: elementClass = (Class<E>) Float.class; break;
             case DOUBLE_LIST: elementClass = (Class<E>) Double.class; break;
             default:
-                throw new IllegalArgumentException("Unsupported type: " + elementType);
+                throw new IllegalArgumentException("Unsupported type: " + primitiveType);
         }
-        final ManagedListOperator<?> operator = getOperator(proxyState.getRealm$realm(), osList, elementType, elementClass);
+        final ManagedListOperator<?> operator = getOperator(proxyState.getRealm$realm(), osList, primitiveType, elementClass);
 
         if (list.isManaged() && osList.size() == list.size()) {
             // There is a chance that the source list and the target list are the same list in the same object.

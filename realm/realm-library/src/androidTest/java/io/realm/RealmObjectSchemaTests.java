@@ -1317,6 +1317,21 @@ public class RealmObjectSchemaTests {
         assertEquals(RealmFieldType.INTEGER, objSchema.getFieldType(NonLatinFieldNames.FIELD_LONG_GREEK_CHAR));
     }
 
+    @Test
+    public void addList_modelClassThrowsWithProperError() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
+
+        try {
+            schema.addRealmListField("field", AllJavaTypes.class);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Use 'addRealmListField(String name, RealmObjectSchema schema)' instead"));
+        }
+    }
+
+
     private interface FieldRunnable {
         void run(String fieldName);
     }

@@ -138,7 +138,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
 
         FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(primitiveType);
         if (metadata == null) {
-            if (primitiveType.equals(RealmObjectSchema.class)) {
+            if (primitiveType.equals(RealmObjectSchema.class) || RealmModel.class.isAssignableFrom(primitiveType)) {
                 throw new IllegalArgumentException("Use 'addRealmListField(String name, RealmObjectSchema schema)' instead to add lists that link to other RealmObjects: " + fieldName);
             } else {
                 throw new IllegalArgumentException(String.format(Locale.US,
