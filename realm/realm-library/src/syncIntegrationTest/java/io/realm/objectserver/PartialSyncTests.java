@@ -4,7 +4,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,13 +17,13 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
+import io.realm.TestSyncConfigurationFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.objectserver.model.PartialSyncModule;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.TestSyncConfigurationFactory;
 
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
@@ -39,23 +38,22 @@ public class PartialSyncTests extends StandardIntegrationTest {
     public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
     @Test
-    @Ignore("See https://github.com/realm/realm-java/issues/5375")
     public void partialSync() throws InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+
+        final SyncConfiguration syncConfig = configFactory
+                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .waitForInitialRemoteData()
+                .modules(new PartialSyncModule())
+                .build();
 
         final SyncConfiguration partialSyncConfig = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .modules(new PartialSyncModule())
                 .partialRealm()
                 .build();
-        SyncConfiguration adminConfig = configFactory
-                .createSyncConfigurationBuilder(adminUser, partialSyncConfig.getServerUrl().toString())
-                .modules(new PartialSyncModule())
-                .build();
 
-        // Using Admin user, populate the Realm.
-        Realm realm = Realm.getInstance(adminConfig);
+        Realm realm = Realm.getInstance(syncConfig);
         realm.beginTransaction();
         PartialSyncObjectA objectA = realm.createObject(PartialSyncObjectA.class);
         objectA.setNumber(0);
@@ -93,8 +91,9 @@ public class PartialSyncTests extends StandardIntegrationTest {
         }
         realm.commitTransaction();
 
-        SyncManager.getSession(adminConfig).uploadAllLocalChanges();
+        SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
+        Realm.deleteRealm(syncConfig);
 
         final CountDownLatch latch = new CountDownLatch(2);
 
