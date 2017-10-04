@@ -157,6 +157,14 @@ project.afterEvaluate {
     tasks.withType(JavaCompile) {
         options.compilerArgs << '-Werror'
     }
+
+    tasks.all { task ->
+        android.productFlavors.all { flavor ->
+            if (task.name == "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal") {
+                task.dependsOn "assemble${flavor.name.capitalize()}"
+            }
+        }
+    }
 }
 
 // enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/08/kotlin-1-1-4-is-out/
