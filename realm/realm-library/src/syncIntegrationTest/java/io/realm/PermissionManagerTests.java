@@ -649,7 +649,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("See https://github.com/realm/ros/issues/429")
     public void applyPermissions_wrongUrlFails() {
         String wrongUrl = createRemoteRealm(user, "test") + "-notexisting";
 
