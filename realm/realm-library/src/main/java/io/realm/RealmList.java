@@ -444,8 +444,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     private E firstImpl(boolean shouldThrow, @Nullable E defaultValue) {
         if (isManaged()) {
             checkValidRealm();
-            if (!osListOperator.isEmpty()) {
-                return get(0);
+            E firstValue = osListOperator.first();
+            if (firstValue != null) {
+                return firstValue;
             }
         } else if (unmanagedList != null && !unmanagedList.isEmpty()) {
             return unmanagedList.get(0);
@@ -480,8 +481,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     private E lastImpl(boolean shouldThrow, @Nullable E defaultValue) {
         if (isManaged()) {
             checkValidRealm();
-            if (!osListOperator.isEmpty()) {
-                return get(osListOperator.size() - 1);
+            E lastValue = osListOperator.last();
+            if (lastValue != null) {
+                return lastValue;
             }
         } else if (unmanagedList != null && !unmanagedList.isEmpty()) {
             return unmanagedList.get(unmanagedList.size() - 1);
@@ -1346,6 +1348,12 @@ abstract class ManagedListOperator<T> {
     @Nullable
     public abstract T get(int index);
 
+    @Nullable
+    public abstract T first();
+    
+    @Nullable
+    public abstract T last();
+    
     public final void append(@Nullable Object value) {
         checkValidValue(value);
 
@@ -1447,6 +1455,28 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     public T get(int index) {
         //noinspection unchecked
         return (T) realm.get((Class<? extends RealmModel>) clazz, className, osList.getUncheckedRow(index));
+    }
+    
+    @Nullable
+    @Override
+    public final T first() {
+        UncheckedRow row = collection.firstUncheckedRow();
+        if (row == null) {
+            return null;
+        }
+        //noinspection unchecked
+        return (T) realm.get((Class<? extends RealmModel>) clazz, className, row);
+    }
+
+    @Nullable
+    @Override
+    public final T last() {
+        UncheckedRow row = collection.lastUncheckedRow();
+        if (row == null) {
+            return null;
+        }
+        //noinspection unchecked
+        return (T) realm.get((Class<? extends RealmModel>) clazz, className, row);
     }
 
     @Override
@@ -1551,9 +1581,33 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
 }
 
 /**
- * A subclass of {@link ManagedListOperator} that deal with {@link String} list field.
+ * An abstract subclass of {@link ManagedListOperator} that deals with value list field.
+ *
+ * It provides implementation for certain methods that are shared across all value types.
  */
-final class StringListOperator extends ManagedListOperator<String> {
+abstract class RealmValueListOperator<T> extends ManagedListOperator<T> {
+
+    RealmValueListOperator(BaseRealm realm, OsList osList, Class<T> clazz) {
+        super(realm, osList, clazz);
+    }
+
+    @Override
+    @Nullable
+    public final T first() {
+        return isEmpty() ? null : get(0);
+    }
+
+    @Override
+    @Nullable
+    public final T last() {
+        return isEmpty() ? null : get(size() - 1);
+    }
+}
+
+/**
+ * A subclass of {@link RealmValueListOperator} that deal with {@link String} list field.
+ */
+final class StringListOperator extends RealmValueListOperator<String> {
 
     StringListOperator(BaseRealm realm, OsList osList, Class<String> clazz) {
         super(realm, osList, clazz);
@@ -1601,9 +1655,9 @@ final class StringListOperator extends ManagedListOperator<String> {
 }
 
 /**
- * A subclass of {@link ManagedListOperator} that deal with {@code long} list field.
+ * A subclass of {@link RealmValueListOperator} that deal with {@code long} list field.
  */
-final class LongListOperator<T> extends ManagedListOperator<T> {
+final class LongListOperator<T> extends RealmValueListOperator<T> {
 
     LongListOperator(BaseRealm realm, OsList osList, Class<T> clazz) {
         super(realm, osList, clazz);
@@ -1672,9 +1726,9 @@ final class LongListOperator<T> extends ManagedListOperator<T> {
 }
 
 /**
- * A subclass of {@link ManagedListOperator} that deal with {@code boolean} list field.
+ * A subclass of {@link RealmValueListOperator} that deal with {@code boolean} list field.
  */
-final class BooleanListOperator extends ManagedListOperator<Boolean> {
+final class BooleanListOperator extends RealmValueListOperator<Boolean> {
 
     BooleanListOperator(BaseRealm realm, OsList osList, Class<Boolean> clazz) {
         super(realm, osList, clazz);
@@ -1722,9 +1776,9 @@ final class BooleanListOperator extends ManagedListOperator<Boolean> {
 }
 
 /**
- * A subclass of {@link ManagedListOperator} that deal with {@code byte[]} list field.
+ * A subclass of {@link RealmValueListOperator} that deal with {@code byte[]} list field.
  */
-final class BinaryListOperator extends ManagedListOperator<byte[]> {
+final class BinaryListOperator extends RealmValueListOperator<byte[]> {
 
     BinaryListOperator(BaseRealm realm, OsList osList, Class<byte[]> clazz) {
         super(realm, osList, clazz);
@@ -1772,9 +1826,9 @@ final class BinaryListOperator extends ManagedListOperator<byte[]> {
 }
 
 /**
- * A subclass of {@link ManagedListOperator} that deal with {@code double} list field.
+ * A subclass of {@link RealmValueListOperator} that deal with {@code double} list field.
  */
-final class DoubleListOperator extends ManagedListOperator<Double> {
+final class DoubleListOperator extends RealmValueListOperator<Double> {
 
     DoubleListOperator(BaseRealm realm, OsList osList, Class<Double> clazz) {
         super(realm, osList, clazz);
@@ -1822,9 +1876,9 @@ final class DoubleListOperator extends ManagedListOperator<Double> {
 }
 
 /**
- * A subclass of {@link ManagedListOperator} that deal with {@code float} list field.
+ * A subclass of {@link RealmValueListOperator} that deal with {@code float} list field.
  */
-final class FloatListOperator extends ManagedListOperator<Float> {
+final class FloatListOperator extends RealmValueListOperator<Float> {
 
     FloatListOperator(BaseRealm realm, OsList osList, Class<Float> clazz) {
         super(realm, osList, clazz);
@@ -1872,9 +1926,9 @@ final class FloatListOperator extends ManagedListOperator<Float> {
 }
 
 /**
- * A subclass of {@link ManagedListOperator} that deal with {@link Date} list field.
+ * A subclass of {@link RealmValueListOperator} that deal with {@link Date} list field.
  */
-final class DateListOperator extends ManagedListOperator<Date> {
+final class DateListOperator extends RealmValueListOperator<Date> {
 
     DateListOperator(BaseRealm realm, OsList osList, Class<Date> clazz) {
         super(realm, osList, clazz);
