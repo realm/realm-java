@@ -4,7 +4,7 @@
 
 ## Enhancements
 
-* All Realm annotations are now kept at runtime, allowing runtime tools to access them (#5344).
+* All Realm annotations are now kept at runtime, allowing runtime tools access to them (#5344).
 
 ## Bug Fixes
 
