@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Moreover, classes, constructors, and methods annotated as beta are not considered at production
  * quality, and should be used with care.
  */
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD})
 public @interface Beta {
 }
