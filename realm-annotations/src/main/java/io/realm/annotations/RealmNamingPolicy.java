@@ -111,7 +111,6 @@ public enum RealmNamingPolicy {
      * Only ASCII strings are supported. The conversion on non-ASCII characters are undefined.
      * TODO Add examples
      */
-     */
     CAMEL_CASE,
 
     /**

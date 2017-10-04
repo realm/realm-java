@@ -44,8 +44,9 @@ import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.RealmName;
-import io.realm.annotations.RealmNamePolicy;
+import io.realm.annotations.RealmClass;
+import io.realm.annotations.RealmField;
+import io.realm.annotations.RealmNamingPolicy;
 import io.realm.annotations.Required;
 import io.realm.processor.nameformatter.GuavaCaseFormatter;
 import io.realm.processor.nameformatter.IdentityFormatter;
@@ -281,12 +282,9 @@ public class ClassMetaData {
 
         // Determine naming rules for this class
         // TODO: Get initial defaultNameFormatter from the module
-        defaultNameFormatter = getNameFormatter(RealmNamePolicy.NO_POLICY);
-        RealmName nameAnnotation = classType.getAnnotation(RealmName.class);
+        defaultNameFormatter = getNameFormatter(RealmNamingPolicy.NO_POLICY);
+        RealmClass nameAnnotation = classType.getAnnotation(RealmClass.class);
         if (nameAnnotation != null) {
-            // Let the class policy override the module policy
-            defaultNameFormatter = getNameFormatter(nameAnnotation.policy());
-
             // If name has been specifically set. This should take precedence over everything else.
             // If not, apply the class policy
             if (!nameAnnotation.name().equals("")) {
@@ -297,7 +295,6 @@ public class ClassMetaData {
         } else {
             internalClassName = defaultNameFormatter.format(javaClassName); // Use inherited formatter
         }
-
 
         // Categorize and check the rest of the file
         if (!categorizeClassElements()) { return false; }
@@ -542,13 +539,14 @@ public class ClassMetaData {
     }
 
     private String getInternalFieldName(VariableElement field, CaseFormatter defaultFormatter) {
-        RealmName nameAnnotation = field.getAnnotation(RealmName.class);
+        RealmField nameAnnotation = field.getAnnotation(RealmField.class);
         if (nameAnnotation != null) {
             String declaredName = nameAnnotation.name();
             if (!declaredName.equals("")) {
                 return declaredName;
             } else {
-                return getNameFormatter(nameAnnotation.policy()).format(field.getSimpleName().toString());
+                // FIXME log error instead
+                return field.getSimpleName().toString();
             }
         } else {
             return defaultFormatter.format(field.getSimpleName().toString());
@@ -705,7 +703,7 @@ public class ClassMetaData {
         return classType;
     }
 
-    private CaseFormatter getNameFormatter(RealmNamePolicy policy) {
+    private CaseFormatter getNameFormatter(RealmNamingPolicy policy) {
         if (policy == null) {
             return new IdentityFormatter();
         }

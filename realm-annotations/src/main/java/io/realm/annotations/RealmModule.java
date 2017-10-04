@@ -106,7 +106,7 @@ public @interface RealmModule {
      *
      * @see {@link RealmNamingPolicy} for more information about what setting this policy means.
      */
-    RealmNamePolicy classNamingPolicy() default RealmNamePolicy.NO_POLICY;
+    RealmNamingPolicy classNamingPolicy() default RealmNamingPolicy.NO_POLICY;
 
     /**
      * The naming policy applied to all field names in all classes part of this module. The default policy is
@@ -117,5 +117,5 @@ public @interface RealmModule {
      *
      * @see {@link RealmNamingPolicy} for more information about what setting this policy means.
      */
-    RealmNamePolicy fieldNamingPolicy() default RealmNamePolicy.NO_POLICY;
+    RealmNamingPolicy fieldNamingPolicy() default RealmNamingPolicy.NO_POLICY;
 }

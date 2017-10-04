@@ -46,5 +46,5 @@ public @interface RealmClass {
      *
      * @see {@link RealmNamingPolicy} for more information about what setting this policy means.
      */
-    RealmNamePolicy fieldNamingPolicy() default RealmNamePolicy.NO_POLICY;
+    RealmNamingPolicy fieldNamingPolicy() default RealmNamingPolicy.NO_POLICY;
 }
