@@ -37,11 +37,11 @@ ext.coreDir = file(project.coreSourcePath ?
 ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
 // Set to true to enable linking with debug core.
-ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : true
+ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false //FIXME Use 'false' as default until https://github.com/realm/realm-java/issues/5354 is fixed
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '26.0.1'
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
         minSdkVersion 9
@@ -61,6 +61,7 @@ android {
                         "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
+                if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=$project.coreSourcePath"
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
@@ -120,7 +121,7 @@ android {
         abortOnError false
     }
 
-   flavorDimensions 'api'
+    flavorDimensions 'api'
 
     productFlavors {
         base {
@@ -162,7 +163,7 @@ project.afterEvaluate {
 // enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/08/kotlin-1-1-4-is-out/
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
-        freeCompilerArgs = ["-Xjsr305-annotations=enable"]
+        freeCompilerArgs = ["-Xjsr305=strict"]
     }
 }
 
@@ -179,7 +180,7 @@ repositories {
 
 dependencies {
 
-    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.0'
+    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.1'
     compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
     api "io.realm:realm-annotations:${version}"
@@ -191,9 +192,9 @@ dependencies {
 
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
-    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.0'
-    androidTestImplementation 'com.android.support.test:runner:1.0.0'
-    androidTestImplementation 'com.android.support.test:rules:1.0.0'
+    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test:rules:1.0.1'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
@@ -496,35 +497,9 @@ task downloadCore() {
     }
 }
 
-task compileCore(group: 'build setup', description: 'Compile the core library from source code') {
-    // Build the library from core source code
-    doFirst {
-        if (!coreSourcePath) {
-            throw new GradleException('The coreSourcePath is not set.')
-        }
-        exec {
-            workingDir = coreSourcePath
-            commandLine = [
-                    "bash",
-                    "build.sh",
-                    "build-android"
-            ]
-        }
-    }
-
-    // Copy the core tar ball
-    doLast {
-        copy {
-            from "${coreSourcePath}/realm-core-android-${coreVersion}.tar.gz"
-            into project.coreArchiveFile.parent
-            rename "realm-core-android-${coreVersion}.tar.gz", "realm-sync-android-${coreVersion}.tar.gz"
-        }
-    }
-}
-
 task deployCore(group: 'build setup', description: 'Deploy the latest version of Realm Core') {
     dependsOn {
-        coreSourcePath ? compileCore : downloadCore
+        downloadCore
     }
 
     // Build with the output from core source dir. No need to deploy anything.

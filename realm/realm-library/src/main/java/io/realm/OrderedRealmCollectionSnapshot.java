@@ -48,7 +48,7 @@ import io.realm.internal.UncheckedRow;
  * }
  * </pre>
  */
-public class OrderedRealmCollectionSnapshot<E extends RealmModel> extends OrderedRealmCollectionImpl<E> {
+public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImpl<E> {
 
     private int size = -1;
 

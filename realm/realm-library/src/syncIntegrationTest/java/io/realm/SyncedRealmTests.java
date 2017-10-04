@@ -44,7 +44,6 @@ import static org.junit.Assert.fail;
  * Catch all class for tests that not naturally fit anywhere else.
  */
 @RunWith(AndroidJUnit4.class)
-@Ignore("See https://github.com/realm/realm-java/issues/5177. All waitForInitialRemoteData tests seem to fail. Must be fixed")
 public class SyncedRealmTests extends StandardIntegrationTest {
 
     @Test
@@ -156,6 +155,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
     // needed to correctly test all error paths.
     @Test
     @RunTestInLooperThread
+    @Ignore("See https://github.com/realm/realm-java/issues/5373")
     public void waitForInitialData_resilientInCaseOfRetriesAsync() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -267,5 +267,4 @@ public class SyncedRealmTests extends StandardIntegrationTest {
             user.logout();
         }
     }
-
 }

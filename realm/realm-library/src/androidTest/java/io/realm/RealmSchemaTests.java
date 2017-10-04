@@ -26,14 +26,18 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.internal.Table;
@@ -85,7 +89,7 @@ public class RealmSchemaTests {
     public void setUp() {
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .schema(AllJavaTypes.class, Owner.class, PrimaryKeyAsString.class, Cat.class, Dog.class,
-                        DogPrimaryKey.class)
+                        DogPrimaryKey.class, NullTypes.class)
                 .build();
         Realm.getInstance(realmConfig).close(); // create Schema
         if (type == SchemaType.MUTABLE) {
@@ -99,23 +103,24 @@ public class RealmSchemaTests {
 
     @After
     public void tearDown() {
-        realm.cancelTransaction();
         realm.close();
     }
 
     @Test
     public void getAll() {
         Set<RealmObjectSchema> objectSchemas = realmSchema.getAll();
-        assertEquals(6, objectSchemas.size());
+        assertEquals(7, objectSchemas.size());
 
-        List<String> expectedTables = Arrays.asList(
-                AllJavaTypes.CLASS_NAME, "Owner", "Cat", "Dog", "DogPrimaryKey", "PrimaryKeyAsString");
+        List<String> expectedTables = new ArrayList<>(Arrays.asList(
+                AllJavaTypes.CLASS_NAME, "Owner", "Cat", "Dog", "DogPrimaryKey", "PrimaryKeyAsString", NullTypes.CLASS_NAME));
         for (RealmObjectSchema objectSchema : objectSchemas) {
             assertThat(objectSchema, CoreMatchers.instanceOf(type.objectSchemaClass));
-            if (!expectedTables.contains(objectSchema.getClassName())) {
-                fail(objectSchema.getClassName() + " was not found");
+            if (!expectedTables.remove(objectSchema.getClassName())) {
+                fail(objectSchema.getClassName() + " is not expected");
             }
         }
+        assertTrue("expected class is not contained in schema: " + (expectedTables.isEmpty() ? "" : expectedTables.get(0)),
+                expectedTables.isEmpty());
     }
 
     @Test
@@ -560,5 +565,89 @@ public class RealmSchemaTests {
 
         assertSame(foo, bar);
         assertEquals("bar", bar.getClassName());
+    }
+
+    @Test
+    public void schemaInformationOfPrimitiveLists() {
+        Map<String, RealmFieldType> fieldNameToType = new HashMap<>();
+        fieldNameToType.put(NullTypes.FIELD_STRING_LIST_NULL, RealmFieldType.STRING_LIST);
+        fieldNameToType.put(NullTypes.FIELD_STRING_LIST_NOT_NULL, RealmFieldType.STRING_LIST);
+        fieldNameToType.put(NullTypes.FIELD_BINARY_LIST_NULL, RealmFieldType.BINARY_LIST);
+        fieldNameToType.put(NullTypes.FIELD_BINARY_LIST_NOT_NULL, RealmFieldType.BINARY_LIST);
+        fieldNameToType.put(NullTypes.FIELD_BOOLEAN_LIST_NULL, RealmFieldType.BOOLEAN_LIST);
+        fieldNameToType.put(NullTypes.FIELD_BOOLEAN_LIST_NOT_NULL, RealmFieldType.BOOLEAN_LIST);
+        fieldNameToType.put(NullTypes.FIELD_DATE_LIST_NULL, RealmFieldType.DATE_LIST);
+        fieldNameToType.put(NullTypes.FIELD_DATE_LIST_NOT_NULL, RealmFieldType.DATE_LIST);
+        fieldNameToType.put(NullTypes.FIELD_DOUBLE_LIST_NULL, RealmFieldType.DOUBLE_LIST);
+        fieldNameToType.put(NullTypes.FIELD_DOUBLE_LIST_NOT_NULL, RealmFieldType.DOUBLE_LIST);
+        fieldNameToType.put(NullTypes.FIELD_FLOAT_LIST_NULL, RealmFieldType.FLOAT_LIST);
+        fieldNameToType.put(NullTypes.FIELD_FLOAT_LIST_NOT_NULL, RealmFieldType.FLOAT_LIST);
+        fieldNameToType.put(NullTypes.FIELD_LONG_LIST_NULL, RealmFieldType.INTEGER_LIST);
+        fieldNameToType.put(NullTypes.FIELD_LONG_LIST_NOT_NULL, RealmFieldType.INTEGER_LIST);
+        fieldNameToType.put(NullTypes.FIELD_INTEGER_LIST_NULL, RealmFieldType.INTEGER_LIST);
+        fieldNameToType.put(NullTypes.FIELD_INTEGER_LIST_NOT_NULL, RealmFieldType.INTEGER_LIST);
+        fieldNameToType.put(NullTypes.FIELD_SHORT_LIST_NULL, RealmFieldType.INTEGER_LIST);
+        fieldNameToType.put(NullTypes.FIELD_SHORT_LIST_NOT_NULL, RealmFieldType.INTEGER_LIST);
+        fieldNameToType.put(NullTypes.FIELD_BYTE_LIST_NULL, RealmFieldType.INTEGER_LIST);
+        fieldNameToType.put(NullTypes.FIELD_BYTE_LIST_NOT_NULL, RealmFieldType.INTEGER_LIST);
+
+        final RealmObjectSchema objectSchema = realmSchema.get(NullTypes.CLASS_NAME);
+        assertNotNull(objectSchema);
+
+        for (Map.Entry<String, RealmFieldType> entry : fieldNameToType.entrySet()) {
+            final String fieldName = entry.getKey();
+            final RealmFieldType expectedType = entry.getValue();
+
+            assertEquals(expectedType, objectSchema.getFieldType(fieldName));
+            assertEquals("isNullable('" + fieldName + "')",
+                    !fieldName.endsWith("NotNull"), objectSchema.isNullable(fieldName));
+            assertEquals("isRequired('" + fieldName + "')",
+                    fieldName.endsWith("NotNull"), objectSchema.isRequired(fieldName));
+            assertFalse(objectSchema.isPrimaryKey(fieldName));
+        }
+    }
+
+    @Test
+    public void rename_newNameExists() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage(
+                CoreMatchers.containsString("Cat cannot be renamed because the new class already exists"));
+        realmSchema.rename("Cat", "Dog");
+    }
+
+    @Test
+    public void mutableMethodsCalled_notInTransaction() {
+        if (type == SchemaType.IMMUTABLE) {
+            return;
+        }
+
+        realm.cancelTransaction();
+
+        try {
+            realmSchema.create("Foo");
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
+        }
+
+        try {
+            realmSchema.createWithPrimaryKeyField("Foo", "PK", String.class);
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
+        }
+
+        try {
+            realmSchema.remove("Cat");
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
+        }
+
+        try {
+            realmSchema.rename("Cat", "Foo1");
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
+        }
     }
 }

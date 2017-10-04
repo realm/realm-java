@@ -23,6 +23,7 @@ public class PrimaryKeyAsInteger extends RealmObject {
 
     public static final String CLASS_NAME = "PrimaryKeyAsInteger";
     public static final String FIELD_ID = "id";
+    public static final String FIELD_NAME= "name";
 
     @PrimaryKey
     private int id;

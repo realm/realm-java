@@ -20,6 +20,7 @@
 #include <realm/util/assert.hpp>
 #include <realm/util/file.hpp>
 #include <realm/unicode.hpp>
+#include <jni_util/java_method.hpp>
 #include "utf8.hpp"
 
 #include "util.hpp"
@@ -38,7 +39,7 @@ using namespace realm::util;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind);
+void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind, const std::string& path = "");
 
 void ConvertException(JNIEnv* env, const char* file, int line)
 {
@@ -67,7 +68,7 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     }
     catch (RealmFileException& e) {
         ss << e.what() << " (" << e.underlying() << ") (" << e.path() << ") in " << file << " line " << line;
-        ThrowRealmFileException(env, ss.str(), e.kind());
+        ThrowRealmFileException(env, ss.str(), e.kind(), e.path());
     }
     catch (File::AccessError& e) {
         ss << e.what() << " (" << e.get_path() << ") in " << file << " line " << line;
@@ -109,7 +110,15 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ThrowException(env, IllegalState, ss.str());
     }
     catch (realm::LogicError e) {
-        ThrowException(env, IllegalState, e.what());
+        ExceptionKind kind;
+        if (e.kind() == LogicError::string_too_big || e.kind() == LogicError::binary_too_big ||
+            e.kind() == LogicError::column_not_nullable) {
+            kind = IllegalArgument;
+        }
+        else {
+            kind = IllegalState;
+        }
+        ThrowException(env, kind, e.what());
     }
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
@@ -195,11 +204,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     env->DeleteLocalRef(jExceptionClass);
 }
 
-void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind)
+void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind, const std::string& path)
 {
-    jclass cls = env->FindClass("io/realm/exceptions/RealmFileException");
+    static JavaClass  jrealm_file_exception_cls(env, "io/realm/exceptions/RealmFileException");
+    static JavaMethod constructor(env, jrealm_file_exception_cls, "<init>", "(BLjava/lang/String;)V");
 
-    jmethodID constructor = env->GetMethodID(cls, "<init>", "(BLjava/lang/String;)V");
     // Initial value to suppress gcc warning.
     jbyte kind_code = -1; // To suppress compile warning.
     switch (kind) {
@@ -224,11 +233,25 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
         case realm::RealmFileException::Kind::FormatUpgradeRequired:
             kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
             break;
+        case realm::RealmFileException::Kind::IncompatibleSyncedRealm:
+#if REALM_ENABLE_SYNC
+            static JavaClass jincompatible_synced_file_cls(env,
+                                                           "io/realm/exceptions/IncompatibleSyncedFileException");
+            static JavaMethod jicompatible_synced_ctor(env, jincompatible_synced_file_cls, "<init>",
+                                                       "(Ljava/lang/String;Ljava/lang/String;)V");
+            jobject jexception = env->NewObject(jincompatible_synced_file_cls, jicompatible_synced_ctor,
+                                                to_jstring(env, message), to_jstring(env, path));
+            env->Throw(reinterpret_cast<jthrowable>(jexception));
+            env->DeleteLocalRef(jexception);
+            return;
+#else
+            REALM_ASSERT_RELEASE_EX(false, "'IncompatibleSyncedRealm' should not be thrown for non-sync realm.");
+#endif
     }
-    jstring jstr = env->NewStringUTF(message.c_str());
-    jobject exception = env->NewObject(cls, constructor, kind_code, jstr);
+    jstring jmessage = to_jstring(env, message);
+    jstring jpath = to_jstring(env, path);
+    jobject exception = env->NewObject(jrealm_file_exception_cls, constructor, kind_code, jmessage, jpath);
     env->Throw(reinterpret_cast<jthrowable>(exception));
-    env->DeleteLocalRef(cls);
     env->DeleteLocalRef(exception);
 }
 
@@ -239,23 +262,6 @@ void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx)
        << "' to null.";
     ThrowException(env, IllegalArgument, ss.str());
 }
-
-bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& bin)
-{
-    const char* data = static_cast<char*>(env->GetDirectBufferAddress(jByteBuffer));
-    if (!data) {
-        ThrowException(env, IllegalArgument, "ByteBuffer is invalid");
-        return false;
-    }
-    jlong size = env->GetDirectBufferCapacity(jByteBuffer);
-    if (size < 0) {
-        ThrowException(env, IllegalArgument, "Can't get BufferCapacity.");
-        return false;
-    }
-    bin = BinaryData(data, S(size));
-    return true;
-}
-
 
 //*********************************************************************
 // String handling
@@ -458,7 +464,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         buf_size = Xcode::find_utf8_buf_size(begin, end, error_code);
     }
     char* tmp_char_array = new char[buf_size]; // throws
-    m_data.reset(tmp_char_array);
+    m_data.reset(tmp_char_array, std::default_delete<char[]>());
     {
         const jchar* in_begin = chars.data();
         const jchar* in_end = in_begin + chars.size();

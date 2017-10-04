@@ -65,13 +65,6 @@ public abstract class RealmSchema {
     }
 
     /**
-     * @deprecated {@link RealmSchema} doesn't have to be released manually.
-     */
-    @Deprecated
-    public void close() {
-    }
-
-    /**
      * Returns the {@link RealmObjectSchema} for a given class. If this {@link RealmSchema} is immutable, an immutable
      * {@link RealmObjectSchema} will be returned. Otherwise, it returns an mutable {@link RealmObjectSchema}.
      *

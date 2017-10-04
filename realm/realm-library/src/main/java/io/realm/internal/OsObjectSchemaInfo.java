@@ -19,6 +19,8 @@ package io.realm.internal;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 
 /**
@@ -44,18 +46,32 @@ public class OsObjectSchemaInfo implements NativeObject {
         }
 
         /**
-         * Adds a persisted non-link property to this builder.
+         * Adds a persisted non-link, non value list property to this builder.
          *
          * @param name the name of the property.
          * @param type the type of the property.
          * @param isPrimaryKey set to true if this property is the primary key.
          * @param isIndexed set to true if this property needs an index.
-         * @param isRequired set to false if this property is not nullable.
+         * @param isRequired set to true if this property is not nullable.
          * @return this {@code OsObjectSchemaInfo}.
          */
         public Builder addPersistedProperty(String name, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
-                                   boolean isRequired) {
+                boolean isRequired) {
             final Property property = new Property(name, type, isPrimaryKey, isIndexed, isRequired);
+            persistedPropertyList.add(property);
+            return this;
+        }
+
+        /**
+         * Adds a persisted value list property to this builder.
+         *
+         * @param name the name of the property.
+         * @param type the type of the property. It must be one of value list type.
+         * @param isRequired set to true if this property is not nullable.
+         * @return this {@code OsObjectSchemaInfo}.
+         */
+        public Builder addPersistedValueListProperty(String name, RealmFieldType type, boolean isRequired) {
+            final Property property = new Property(name, type, !Property.PRIMARY_KEY, !Property.INDEXED, isRequired);
             persistedPropertyList.add(property);
             return this;
         }
@@ -145,6 +161,17 @@ public class OsObjectSchemaInfo implements NativeObject {
         return new Property(nativeGetProperty(nativePtr, propertyName));
     }
 
+    /**
+     * Returns the primary key property for this {@code ObjectSchema}.
+     *
+     * @return a {@link Property} object of the primary key property, {@code null} if this {@code ObjectSchema} doesn't
+     * contains a primary key.
+     */
+    public @Nullable Property getPrimaryKeyProperty() {
+        long propertyPtr = nativeGetPrimaryKeyProperty(nativePtr);
+        return propertyPtr == 0 ? null : new Property(nativeGetPrimaryKeyProperty(nativePtr));
+    }
+
     @Override
     public long getNativePtr() {
         return nativePtr;
@@ -165,4 +192,7 @@ public class OsObjectSchemaInfo implements NativeObject {
 
     // Throw ISE if the property doesn't exist.
     private static native long nativeGetProperty(long nativePtr, String propertyName);
+
+    // Return nullptr if it doesn't have a primary key.
+    private static native long nativeGetPrimaryKeyProperty(long nativePtr);
 }

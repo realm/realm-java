@@ -19,6 +19,7 @@ package io.realm;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InterruptedIOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -101,6 +102,8 @@ public class SyncSession {
     private static final byte STATE_VALUE_INACTIVE = 3;
     private static final byte STATE_VALUE_ERROR = 4;
 
+    private URI resolvedRealmURI;
+
     public enum State {
         WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
         ACTIVE(STATE_VALUE_ACTIVE),
@@ -167,9 +170,10 @@ public class SyncSession {
         ErrorCode errCode = ErrorCode.fromInt(errorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
+            RealmConfiguration backupRealmConfiguration = SyncConfiguration.forRecovery(errorMessage, configuration.getEncryptionKey(), configuration.getSchemaMediator());
             errorHandler.onError(this, new ClientResetRequiredError(errCode, "A Client Reset is required. " +
                     "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
-                    errorMessage, getConfiguration()));
+                    configuration, backupRealmConfiguration));
         } else {
             errorHandler.onError(this, new ObjectServerError(errCode, errorMessage));
         }
@@ -375,6 +379,10 @@ public class SyncSession {
         }
     }
 
+    public void setResolvedRealmURI(URI resolvedRealmURI) {
+        this.resolvedRealmURI = resolvedRealmURI;
+    }
+
     /**
      * This method should only be called when guarded by the {@link #waitForChangesMutex}.
      * It will block into all changes have been either uploaded or downloaded depending on the chosen direction.
@@ -503,7 +511,7 @@ public class SyncSession {
                 try {
                     JSONObject refreshTokenJSON = new JSONObject(refreshToken);
                     Token newRefreshToken = Token.from(refreshTokenJSON.getJSONObject("userToken"));
-                    if (newRefreshToken.hashCode() != getUser().getAccessToken().hashCode()) {
+                    if (newRefreshToken.hashCode() != getUser().getRefreshToken().hashCode()) {
                         RealmLog.debug("Session[%s]: Access token updated", configuration.getPath());
                         getUser().setRefreshToken(newRefreshToken);
                     }
@@ -550,8 +558,8 @@ public class SyncSession {
             protected AuthenticateResponse execute() {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
                     return authServer.loginToRealm(
-                            getUser().getAccessToken(), //refresh token in fact
-                            configuration.getServerUrl(),
+                            getUser().getRefreshToken(), //refresh token in fact
+                            resolvedRealmURI,
                             getUser().getAuthenticationUrl()
                     );
                 }
@@ -579,7 +587,12 @@ public class SyncSession {
                 onGoingAccessTokenQuery.set(false);
                 RealmLog.debug("Session[%s]: Failed to get access token (%s)", configuration.getPath(),
                         response.getError().getErrorCode());
-                if (!isClosed && !Thread.currentThread().isInterrupted()) {
+                if (!isClosed
+                        && !Thread.currentThread().isInterrupted()
+                        // We might be interrupted while negotiating an access token with the Realm Object Server
+                        // This will result in a InterruptedIOException from OkHttp. We should ignore this as
+                        // well.
+                        && !(response.getError().getException() instanceof InterruptedIOException)) {
                     errorHandler.onError(SyncSession.this, response.getError());
                 }
             }
@@ -628,7 +641,7 @@ public class SyncSession {
             @Override
             protected AuthenticateResponse execute() {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
-                    return authServer.refreshUser(getUser().getAccessToken(), configuration.getServerUrl(), getUser().getAuthenticationUrl());
+                    return authServer.refreshUser(getUser().getRefreshToken(), resolvedRealmURI, getUser().getAuthenticationUrl());
                 }
                 return null;
             }

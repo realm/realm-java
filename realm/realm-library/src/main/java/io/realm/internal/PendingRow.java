@@ -134,7 +134,12 @@ public class PendingRow implements Row {
     }
 
     @Override
-    public OsList getLinkList(long columnIndex) {
+    public OsList getModelList(long columnIndex) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsList getValueList(long columnIndex, RealmFieldType fieldType) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

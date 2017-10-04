@@ -92,9 +92,10 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String rosUserIdentity = user.getIdentity();
             String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
             String rosSerializedUser = user.toJson();
-            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
+            byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
+            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath(), sessionStopPolicy, syncConfig.isPartialRealm()};
         } else {
-            return new Object[6];
+            return new Object[8];
         }
     }
 
@@ -103,9 +104,10 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
-        if (config instanceof SyncConfiguration) {
-            SyncManager.getSession((SyncConfiguration) config);
+    public void wrapObjectStoreSessionIfRequired(OsRealmConfig config) {
+        if (config.getRealmConfiguration() instanceof SyncConfiguration) {
+            SyncSession session = SyncManager.getSession((SyncConfiguration) config.getRealmConfiguration());
+            session.setResolvedRealmURI(config.getResolvedRealmURI());
         }
     }
 

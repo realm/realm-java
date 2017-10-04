@@ -212,8 +212,14 @@ push_release() {
 
     # Push branch & tag
     git checkout releases
-    git push origin releases
-    git push origin "v${VERSION}"
+     
+     # Don't push to releases branch if we are doing a beta release.
+    if [[ ! "$VERSION" =~ [a-zA-Z] ]] ; then
+        git push origin releases
+        git push origin "v${VERSION}"
+    else
+        echo "Non-final release. Release was not pushed to Github. Remember to remove commits on `releases` branch manually."
+    fi
 }
 
 publish_javadoc() {

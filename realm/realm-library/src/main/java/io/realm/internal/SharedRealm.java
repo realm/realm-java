@@ -26,7 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
-import io.realm.RealmFieldType;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
@@ -41,15 +41,13 @@ public final class SharedRealm implements Closeable, NativeObject {
     public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 4;
     public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 5;
     public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 6;
+    public static final byte FILE_EXCEPTION_INCOMPATIBLE_SYNC_FILE = 7;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     public static void initialize(File tempDirectory) {
         if (SharedRealm.temporaryDirectory != null) {
             // already initialized
             return;
-        }
-        if (tempDirectory == null) {
-            throw new IllegalArgumentException("'tempDirectory' must not be null.");
         }
 
         String temporaryDirectoryPath = tempDirectory.getAbsolutePath();
@@ -169,6 +167,21 @@ public final class SharedRealm implements Closeable, NativeObject {
         void onSchemaChanged();
     }
 
+    /**
+     * Callback function to be called from JNI by Object Store when the partial sync results returned.
+     */
+    @Keep
+    public abstract static class PartialSyncCallback {
+        private final String className;
+
+        protected PartialSyncCallback(String className) {
+            this.className = className;
+        }
+
+        public abstract void onSuccess(Collection results);
+        public abstract void onError(RealmException error);
+    }
+
     private final OsRealmConfig osRealmConfig;
     private final long nativePtr;
     final NativeContext context;
@@ -223,7 +236,7 @@ public final class SharedRealm implements Closeable, NativeObject {
      */
     public static SharedRealm getInstance(OsRealmConfig.Builder configBuilder) {
         OsRealmConfig osRealmConfig = configBuilder.build();
-        ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osRealmConfig.getRealmConfiguration());
+        ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osRealmConfig);
 
         return new SharedRealm(osRealmConfig);
     }
@@ -244,19 +257,6 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public boolean isInTransaction() {
         return nativeIsInTransaction(nativePtr);
-    }
-
-    public void setSchemaVersion(long schemaVersion) {
-        nativeSetVersion(nativePtr, schemaVersion);
-    }
-
-    public long getSchemaVersion() {
-        return nativeGetVersion(nativePtr);
-    }
-
-    // FIXME: This should be removed, migratePrimaryKeyTableIfNeeded is using it which should be in Object Store instead?
-    long getGroupNative() {
-        return nativeReadGroup(nativePtr);
     }
 
     public boolean hasTable(String name) {
@@ -283,19 +283,7 @@ public final class SharedRealm implements Closeable, NativeObject {
      * @return a created {@link Table} object.
      */
     public Table createTable(String name) {
-        return new Table(this, nativeCreateTable(nativePtr, name, false));
-    }
-
-    /**
-     * Creates a primary key table with then given name. Native assertion will happen if the table with the same name
-     * exists. This function is different from {@link #createTable(String)} which will call {@code create_table()} from
-     * sync to do the creation. This will always call the core's {@code add_table()} to avoid creating the stable id
-     * column for pk table.
-     *
-     * @return a created {@link Table} object.
-     */
-    public Table createPkTable() {
-        return new Table(this, nativeCreateTable(nativePtr, Table.PRIMARY_KEY_TABLE_NAME, true));
+        return new Table(this, nativeCreateTable(nativePtr, name));
     }
 
     /**
@@ -317,10 +305,6 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public void renameTable(String oldName, String newName) {
         nativeRenameTable(nativePtr, oldName, newName);
-    }
-
-    public void removeTable(String name) {
-        nativeRemoveTable(nativePtr, name);
     }
 
     public String getTableName(int index) {
@@ -378,6 +362,10 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     public boolean isAutoRefresh() {
         return nativeIsAutoRefresh(nativePtr);
+    }
+
+    public void registerPartialSyncQuery(String query, PartialSyncCallback callback) {
+        nativeRegisterPartialSyncQuery(nativePtr, callback.className, query, callback);
     }
 
     public RealmConfiguration getConfiguration() {
@@ -508,6 +496,26 @@ public final class SharedRealm implements Closeable, NativeObject {
         callback.onInit(new SharedRealm(nativeSharedRealmPtr, osRealmConfig));
     }
 
+    /**
+     * Called from JNI when the partial sync callback is invoked from the ObjectStore.
+     * @param error if the partial sync query failed to register.
+     * @param nativeResultsPtr pointer to the {@code Results} of the partial sync query.
+     * @param callback the callback registered from the user to notify the success/error of the partial sync query.
+     */
+    @SuppressWarnings("unused")
+    private void runPartialSyncRegistrationCallback(@Nullable String error, long nativeResultsPtr,
+                                                           PartialSyncCallback callback) {
+        if (error != null) {
+            callback.onError(new RealmException(error));
+        } else {
+            @SuppressWarnings("ConstantConditions")
+            Table table = getTable(Table.getTableNameForClass(callback.className));
+            Collection results = new Collection(this, table, nativeResultsPtr, true);
+            callback.onSuccess(results);
+        }
+    }
+
+
     private static native void nativeInit(String temporaryDirectoryPath);
 
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
@@ -524,12 +532,6 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private static native boolean nativeIsInTransaction(long nativeSharedRealmPtr);
 
-    private static native long nativeGetVersion(long nativeSharedRealmPtr);
-
-    private static native void nativeSetVersion(long nativeSharedRealmPtr, long version);
-
-    private static native long nativeReadGroup(long nativeSharedRealmPtr);
-
     private static native boolean nativeIsEmpty(long nativeSharedRealmPtr);
 
     private static native void nativeRefresh(long nativeSharedRealmPtr);
@@ -540,9 +542,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
 
     // Throw IAE if the table exists already.
-    // FIXME: isPkTable should be removed after integration with OS schema. All the meta tables should be handled in
-    // the Object Store.
-    private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName, boolean isPkTable);
+    private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName);
 
     // Throw IAE if the table exists already.
     // If isStringType is false, the PK field will be created as an integer PK field.
@@ -555,8 +555,6 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native boolean nativeHasTable(long nativeSharedRealmPtr, String tableName);
 
     private static native void nativeRenameTable(long nativeSharedRealmPtr, String oldTableName, String newTableName);
-
-    private static native void nativeRemoveTable(long nativeSharedRealmPtr, String tableName);
 
     private static native long nativeSize(long nativeSharedRealmPtr);
 
@@ -578,4 +576,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static native long nativeGetSchemaInfo(long nativePtr);
 
     private static native void nativeRegisterSchemaChangedCallback(long nativePtr, SchemaChangedCallback callback);
+
+    private native void nativeRegisterPartialSyncQuery(
+            long nativeSharedRealmPtr, String className, String query, PartialSyncCallback callback);
 }

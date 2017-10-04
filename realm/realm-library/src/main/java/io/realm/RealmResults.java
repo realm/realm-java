@@ -60,7 +60,7 @@ import io.realm.rx.CollectionChange;
  * @see RealmQuery#findAll()
  * @see Realm#executeTransaction(Realm.Transaction)
  */
-public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionImpl<E> {
+public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
 
     // Called from Realm Proxy classes
     @SuppressLint("unused")
@@ -231,15 +231,6 @@ public class RealmResults<E extends RealmModel> extends OrderedRealmCollectionIm
     public void removeAllChangeListeners() {
         checkForAddRemoveListener(null, false);
         collection.removeAllListeners();
-    }
-
-    /**
-     * Use {@link #removeAllChangeListeners()} instead.
-     */
-    @SuppressWarnings("unused")
-    @Deprecated
-    public void removeChangeListeners() {
-        removeAllChangeListeners();
     }
 
     /**
