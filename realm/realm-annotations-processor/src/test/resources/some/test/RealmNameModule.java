@@ -18,7 +18,7 @@ import io.realm.annotations.RealmModule;
 import io.realm.annotations.RealmNamePolicy;
 import some.test.AllTypes;
 
-// It should be allowed to set a RealmNamePolicy on modules
+// It should be allowed to set a RealmNamingPolicy on modules
 @RealmModule(allClasses = true)
 @RealmName(policy = RealmNamePolicy.IDENTITY)
 public class InvalidAllTypesModuleMixedParameters {

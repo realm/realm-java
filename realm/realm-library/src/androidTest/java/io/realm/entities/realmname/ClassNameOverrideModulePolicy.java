@@ -24,7 +24,7 @@ import io.realm.RealmObject;
 import io.realm.annotations.RealmName;
 import io.realm.annotations.RealmNamePolicy;
 
-// Class will inherit RealmNamePolicy.LOWER_CASE_WITH_UNDERSCORES from the `module RealmNamePolicyModule`
+// Class will inherit RealmNamingPolicy.LOWER_CASE_WITH_UNDERSCORES from the `module RealmNamePolicyModule`
 @RealmName(name = "class-name-override")
 public class ClassNameOverrideModulePolicy extends RealmObject {
 

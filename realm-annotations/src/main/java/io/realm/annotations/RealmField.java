@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,27 +24,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Interface used to mark a class that can be persisted by Realm.
+ * Annotation used for meta data about a field persisted by Realm.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 @Inherited
-public @interface RealmClass {
+public @interface RealmField {
 
     /**
-     * Manually set the internal name used by Realm for this class. This will override any {@link RealmNamingPolicy}
+     * Manually set the internal name used by Realm for this field. This will override any {@link RealmNamingPolicy}
      * otherwise set.
      *
      * @see {@link RealmNamingPolicy} for more information about what setting the name means.
      */
     String name() default "";
-
-    /**
-     * The naming policy applied to all fields in this class. The default policy is {@link RealmNamePolicy#NO_POLICY}.
-     * <p>
-     * It is possible to override the naming policy for each field by using the {@link RealmField} annotation.
-     *
-     * @see {@link RealmNamingPolicy} for more information about what setting this policy means.
-     */
-    RealmNamePolicy fieldNamingPolicy() default RealmNamePolicy.NO_POLICY;
 }

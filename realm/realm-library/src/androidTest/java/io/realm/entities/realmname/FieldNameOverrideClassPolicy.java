@@ -19,7 +19,7 @@ import io.realm.RealmObject;
 import io.realm.annotations.RealmName;
 import io.realm.annotations.RealmNamePolicy;
 
-// Class will inherit RealmNamePolicy.IDENTITY
+// Class will inherit RealmNamingPolicy.IDENTITY
 @RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_DASHES)
 public class FieldNameOverrideClassPolicy extends RealmObject {
 
