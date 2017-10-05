@@ -173,7 +173,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults<Permission> permissions) {
-                        RealmLog.error(Arrays.toString(permissions.toArray()));  // FIXME Debug output for CI. Remove before release.
                         Permission p = permissions.where().endsWith("path", "test9").findFirst();
                         if (p != null) {
                             assertTrue(p.mayRead());

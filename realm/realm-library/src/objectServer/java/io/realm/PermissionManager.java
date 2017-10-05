@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -588,6 +589,8 @@ public class PermissionManager implements Closeable {
                 loadingPermissions.addChangeListener(new RealmChangeListener <RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults <Permission> loadedPermissions) {
+                        RealmLog.error(Arrays.toString(loadedPermissions.toArray()));  // FIXME Debug output for CI. Remove before release.
+
                         // FIXME Wait until both the __permission and __management Realm are available
                         if (loadedPermissions.size() > 0) {
                             loadingPermissions.removeChangeListener(this);
