@@ -17,6 +17,7 @@ package some.test;
 
 import io.realm.annotations.RealmClass;
 import io.realm.RealmObject;
+import io.realm.annotations.RealmField;
 import io.realm.annotations.RealmNamingPolicy;
 
 /**
@@ -25,5 +26,6 @@ import io.realm.annotations.RealmNamingPolicy;
 @RealmClass(fieldNamingPolicy = RealmNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
 public class NamingPolicyClass extends RealmObject {
     public String firstName;
+    @RealmField(name = "last-name")
     public String lastName;
 }

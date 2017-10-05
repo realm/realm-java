@@ -18,10 +18,19 @@ import io.realm.annotations.RealmModule;
 import io.realm.annotations.RealmNamingPolicy;
 import some.test.AllTypes;
 
-// It should be allowed to set a RealmNamingPolicy on modules
-@RealmModule(allClasses = true,
-        classNamingPolicy = RealmNamingPolicy.IDENTITY,
-        fieldNamingPolicy = RealmNamingPolicy.IDENTITY)
-public class NamingPolicyModule {
+public class NamingPolicyConflictingModules {
 
+    @RealmModule(allClasses = true,
+            classNamingPolicy = RealmNamingPolicy.IDENTITY,
+            fieldNamingPolicy = RealmNamingPolicy.IDENTITY)
+    public class MyModule1 {
+
+    }
+
+    @RealmModule(allClasses = true,
+            classNamingPolicy = RealmNamingPolicy.CAMEL_CASE,
+            fieldNamingPolicy = RealmNamingPolicy.CAMEL_CASE)
+    public class MyModule2 {
+
+    }
 }
