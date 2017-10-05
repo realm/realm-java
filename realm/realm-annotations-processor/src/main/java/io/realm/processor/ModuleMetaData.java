@@ -30,6 +30,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 
 import io.realm.annotations.RealmModule;
+import io.realm.annotations.RealmNamingPolicy;
 
 
 /**
@@ -38,9 +39,14 @@ import io.realm.annotations.RealmModule;
 public class ModuleMetaData {
 
     private final ClassCollection availableClasses;
+
+    // <FullyQualifiedClassName, X>
     private Map<String, Set<ClassMetaData>> modules = new HashMap<String, Set<ClassMetaData>>();
     private Map<String, Set<ClassMetaData>> libraryModules = new HashMap<String, Set<ClassMetaData>>();
-    private Map<String, ClassMetaData> classMetaData = new HashMap<String, ClassMetaData>(); // <FullyQualifiedClassName, ClassMetaData>
+    private Map<String, ClassMetaData> classMetaData = new HashMap<String, ClassMetaData>();
+    private Map<String, RealmNamingPolicy> classNamingPolicy = new HashMap<String, RealmNamingPolicy>();
+    private Map<String, RealmNamingPolicy> fieldNamingPolicy = new HashMap<String, RealmNamingPolicy>();
+
     private boolean shouldCreateDefaultModule;
 
     public ModuleMetaData(ClassCollection availableClasses) {
@@ -55,10 +61,10 @@ public class ModuleMetaData {
      *
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
-    public boolean generate(Set<? extends Element> clazzes) {
+    public boolean generate(Set<? extends Element> moduleClasses) {
 
         // Check that modules are setup correctly
-        for (Element classElement : clazzes) {
+        for (Element classElement : moduleClasses) {
             String classSimpleName = classElement.getSimpleName().toString();
 
             // Check that the annotation is only applied to a class
@@ -94,6 +100,9 @@ public class ModuleMetaData {
                 }
             }
 
+            classNamingPolicy.put(qualifiedName, module.classNamingPolicy());
+            fieldNamingPolicy.put(qualifiedName, module.fieldNamingPolicy());
+
             // Create either a Library or App module
             if (module.library()) {
                 libraryModules.put(qualifiedName, classes);
@@ -106,6 +115,14 @@ public class ModuleMetaData {
         if (modules.size() > 0 && libraryModules.size() > 0) {
             Utils.error("Normal modules and library modules cannot be mixed in the same project");
             return false;
+        }
+
+        // Check that policies have not been mixed for classes (ignoring the case where one of them
+        // is NO_POLICY
+        if (modules.size() > 1 || libraryModules.size() > 1) {
+            Map<String, Set<ClassMetaData>> testModules = (modules.size() > 1) ? modules : libraryModules;
+
+
         }
 
         // Create default Realm module if needed.

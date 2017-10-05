@@ -74,7 +74,10 @@ public enum RealmNamingPolicy {
      * No policy is applied. This policy will not override any policy set on a parent element, e.g.
      * if set in {@link RealmClass#fieldNamingPolicy}, the module policy will still apply to field
      * names.
-     *
+     * <p>
+     * If two modules disagree on the policy and one of them is {@code NO_POLICY}, the other one
+     * will be chosen without an error being thrown.
+     * <p>
      * This policy is the default one.
      */
     NO_POLICY,

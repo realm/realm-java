@@ -116,6 +116,7 @@ import io.realm.annotations.RealmModule;
  */
 @SupportedAnnotationTypes({
         "io.realm.annotations.RealmClass",
+        "io.realm.annotations.RealmField",
         "io.realm.annotations.Ignore",
         "io.realm.annotations.Index",
         "io.realm.annotations.PrimaryKey",
@@ -159,8 +160,8 @@ public class RealmProcessor extends AbstractProcessor {
             TypeMirrors typeMirrors = new TypeMirrors(processingEnv);
 
             // Build up internal metadata
-            if (!processClassAnnotations(roundEnv, typeMirrors)) { return ABORT; }
             if (!processModules(roundEnv)) { return ABORT; }
+            if (!processClassAnnotations(roundEnv, typeMirrors)) { return ABORT; }
             hasProcessedModules = true;
 
             // Create all files
