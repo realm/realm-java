@@ -11,7 +11,7 @@ import static org.truth0.Truth.ASSERT;
 
 public class RealmNameTest {
 
-    private final JavaFileObject classPolicyOverideModulePolicy = JavaFileObjects.forResource("some/test/RealmNameClassPolicy.java");
+    private final JavaFileObject classPolicyOverideModulePolicy = JavaFileObjects.forResource("some/test/NamingPolicyClass.java");
 
     @Test
     public void compileClassPolicyFile() {

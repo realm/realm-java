@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package some.test;
 
-import io.realm.RealmObject;
-import io.realm.annotations.RealmNamePolicy;
-import io.realm.annotations.RealmName;
+import io.realm.annotations.RealmModule;
+import io.realm.annotations.RealmNamingPolicy;
+import some.test.AllTypes;
 
-/**
- * Class with a specific policy
- */
-@RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_UNDERSCORES)
-public class RealmNameClassPolicy extends RealmObject {
-    public String firstName;
-    public String lastName;
+// It should be allowed to set a RealmNamingPolicy on modules
+@RealmModule(allClasses = true,
+        classNamingPolicy = RealmNamingPolicy.IDENTITY,
+        fieldNamingPolicy = RealmNamingPolicy.IDENTITY)
+public class NamingPolicyModule {
+
 }

@@ -16,16 +16,15 @@
 package io.realm.entities.realmname;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
-import io.realm.annotations.RealmName;
-import io.realm.annotations.RealmNamePolicy;
+import io.realm.annotations.RealmClass;
+import io.realm.annotations.RealmNamingPolicy;
 
-// Class will inherit RealmNamingPolicy.LOWER_CASE_WITH_UNDERSCORES from the `module RealmNamePolicyModule`
-@RealmName(name = "class-name-override")
+// Class will inherit RealmNamingPolicy.LOWER_CASE_WITH_UNDERSCORES from the module `CustomRealmNamesModule`
+@RealmClass(name = "class-name-override", fieldNamingPolicy = RealmNamingPolicy.LOWER_CASE_WITH_DASHES)
 public class ClassNameOverrideModulePolicy extends RealmObject {
 
     public static final String CLASS_NAME = "class-name-override";
@@ -46,25 +45,12 @@ public class ClassNameOverrideModulePolicy extends RealmObject {
             FIELD_WITH_SPECIAL_CHARS
     );
 
-    @RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_DASHES)
     public String camelCase;
-
-    @RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_DASHES)
     public int PascalCase;
-
-    @RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_DASHES)
     public boolean mHungarian;
-
-    @RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_DASHES)
     public boolean ALLCAPS;
-
-    @RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_DASHES)
     public boolean alllower;
-
-    @RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_DASHES)
     public boolean with_underscores;
-
-    @RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_DASHES)
     public RealmList<ClassWithPolicy> $_internalVar;
 }
 

@@ -35,16 +35,16 @@ public @interface RealmClass {
      * Manually set the internal name used by Realm for this class. This will override any {@link RealmNamingPolicy}
      * otherwise set.
      *
-     * @see {@link RealmNamingPolicy} for more information about what setting the name means.
+     * @see io.realm.annotations.RealmNamingPolicy for more information about what setting the name means.
      */
     String name() default "";
 
     /**
-     * The naming policy applied to all fields in this class. The default policy is {@link RealmNamePolicy#NO_POLICY}.
+     * The naming policy applied to all fields in this class. The default policy is {@link RealmNamingPolicy#NO_POLICY}.
      * <p>
      * It is possible to override the naming policy for each field by using the {@link RealmField} annotation.
      *
-     * @see {@link RealmNamingPolicy} for more information about what setting this policy means.
+     * @see io.realm.annotations.RealmNamingPolicy for more information about what setting this policy means.
      */
     RealmNamingPolicy fieldNamingPolicy() default RealmNamingPolicy.NO_POLICY;
 }

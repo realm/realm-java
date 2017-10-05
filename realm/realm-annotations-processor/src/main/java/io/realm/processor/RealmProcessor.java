@@ -65,14 +65,12 @@ import io.realm.annotations.RealmModule;
  * <li>A RealmObjectProxy object is created for each class annotated with {@link io.realm.annotations.RealmClass}. This
  * proxy extends the original RealmObject class and rewires all field access to point to the native Realm memory instead of
  * Java memory. It also adds some static helper methods to the class.</li>
- * <p>
  * <li>The annotation processor is either in "library" mode or in "app" mode. This is defined by having a class
  * annotated with @RealmModule(library = true). It is not allowed to have both a class with library = true and
  * library = false in the same IntelliJ module and it will cause the annotation processor to throw an exception. If no
  * library modules are defined, we will create a DefaultRealmModule containing all known RealmObjects and with the
  * {@code @RealmModule} annotation. Realm automatically knows about this module, but it is still possible for users to create
  * their own modules with a subset of model classes.</li>
- * <p>
  * <li>For each class annotated with @RealmModule a matching Mediator class is created (including the default one). This
  * class has an interface that matches the static helper methods for the proxy classes. All access to these static
  * helper methods should be done through this Mediator.</li>

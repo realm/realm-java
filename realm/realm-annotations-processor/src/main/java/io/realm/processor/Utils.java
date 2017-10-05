@@ -174,7 +174,7 @@ public class Utils {
     }
 
     /**
-     * @return {@code true} if a given field type is {@code RealmList} and its element type is {@Code RealmObject},
+     * @return {@code true} if a given field type is {@code RealmList} and its element type is {@code RealmObject},
      * {@code false} otherwise.
      */
     public static boolean isRealmModelList(VariableElement field) {

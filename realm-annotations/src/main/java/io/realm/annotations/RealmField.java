@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Annotation used for meta data about a field persisted by Realm.
  */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Inherited
 public @interface RealmField {
 
@@ -35,7 +35,7 @@ public @interface RealmField {
      * Manually set the internal name used by Realm for this field. This will override any {@link RealmNamingPolicy}
      * otherwise set.
      *
-     * @see {@link RealmNamingPolicy} for more information about what setting the name means.
+     * @see io.realm.annotations.RealmNamingPolicy for more information about what setting the name means.
      */
     String name() default "";
 }

@@ -18,11 +18,11 @@ package io.realm.processor.nameformatter;
 /**
  * Interface for formatters that can implement a given naming policy.
  *
- * @see io.realm.annotations.RealmNamePolicy
+ * @see io.realm.annotations.RealmNamingPolicy
  */
 public interface CaseFormatter {
     /**
-     * Formats the {@code name} so it matches the {@link io.realm.annotations.RealmNamePolicy}
+     * Formats the {@code name} so it matches the {@link io.realm.annotations.RealmNamingPolicy}
      *
      * @param name name to format.
      * @return formatted name.

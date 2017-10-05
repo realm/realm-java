@@ -18,7 +18,7 @@ package io.realm.processor.nameformatter;
 /**
  * Formatter that doesn't do any conversion when translating from Java to Realm.
  *
- * @see io.realm.annotations.RealmNamePolicy#IDENTITY
+ * @see io.realm.annotations.RealmNamingPolicy#IDENTITY
  */
 public class IdentityFormatter implements CaseFormatter {
 

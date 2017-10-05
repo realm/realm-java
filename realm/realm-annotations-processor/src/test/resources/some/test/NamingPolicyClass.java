@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package some.test;
 
-import io.realm.annotations.RealmModule;
-import io.realm.annotations.RealmNamePolicy;
-import some.test.AllTypes;
+import io.realm.annotations.RealmClass;
+import io.realm.RealmObject;
+import io.realm.annotations.RealmNamingPolicy;
 
 /**
- * Check that the class policy takes precedence from the module policy
+ * Class with naming policy
  */
-@RealmModule(allClasses = true)
-@RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_UNDERSCORES)
-public class RealmNamePolicyOverride
+@RealmClass(fieldNamingPolicy = RealmNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+public class NamingPolicyClass extends RealmObject {
     public String firstName;
     public String lastName;
 }

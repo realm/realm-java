@@ -77,7 +77,7 @@ public class ClassMetaData {
     private final List<TypeMirror> validListValueTypes;
     private final Types typeUtils;
     private final Elements elements;
-    private CaseFormatter defaultNameFormatter;
+    private CaseFormatter defaultFieldNameFormatter;
 
     public ClassMetaData(ProcessingEnvironment env, TypeMirrors typeMirrors, TypeElement clazz) {
         this.classType = clazz;
@@ -282,19 +282,26 @@ public class ClassMetaData {
 
         // Determine naming rules for this class
         // TODO: Get initial defaultNameFormatter from the module
-        defaultNameFormatter = getNameFormatter(RealmNamingPolicy.NO_POLICY);
-        RealmClass nameAnnotation = classType.getAnnotation(RealmClass.class);
-        if (nameAnnotation != null) {
+        CaseFormatter defaultClassNameFormatter = getNameFormatter(RealmNamingPolicy.NO_POLICY);
+        defaultFieldNameFormatter = getNameFormatter(RealmNamingPolicy.NO_POLICY);
+        RealmClass realmClassAnnotation = classType.getAnnotation(RealmClass.class);
+        if (realmClassAnnotation != null) {
             // If name has been specifically set. This should take precedence over everything else.
             // If not, apply the class policy
-            if (!nameAnnotation.name().equals("")) {
-                internalClassName = nameAnnotation.name();
+            if (!realmClassAnnotation.name().equals("")) {
+                internalClassName = realmClassAnnotation.name();
             } else {
-                internalClassName = defaultNameFormatter.format(javaClassName);
+                // FIXME: Use the policy from modules (if any)
+                internalClassName = defaultClassNameFormatter.format(javaClassName);
             }
+
+            // Figure out the naming policy for fields
+            defaultFieldNameFormatter = getNameFormatter(realmClassAnnotation.fieldNamingPolicy());
+
         } else {
-            internalClassName = defaultNameFormatter.format(javaClassName); // Use inherited formatter
+            internalClassName = defaultFieldNameFormatter.format(javaClassName); // Use inherited formatter
         }
+        Utils.note("Default field name formatter:" + defaultFieldNameFormatter.toString());
 
         // Categorize and check the rest of the file
         if (!categorizeClassElements()) { return false; }
@@ -489,7 +496,7 @@ public class ClassMetaData {
         }
 
         // Determine name for field
-        String internalFieldName = getInternalFieldName(fieldRef, defaultNameFormatter);
+        String internalFieldName = getInternalFieldName(fieldRef, defaultFieldNameFormatter);
         RealmFieldElement field = new RealmFieldElement(fieldRef, internalFieldName);
 
         if (field.getAnnotation(Index.class) != null) {

@@ -95,7 +95,7 @@ public @interface RealmModule {
     Class<?>[] classes() default {};
 
     /**
-     * The naming policy applied to all classes part of this module. The default policy is {@link RealmNamePolicy#NO_POLICY}.
+     * The naming policy applied to all classes part of this module. The default policy is {@link RealmNamingPolicy#NO_POLICY}.
      * To define a naming policy for all fields in those classes, use {@link #fieldNamingPolicy()}.
      * <p>
      * It is possible to override the naming policy specified in the module in each class using the {@link RealmClass}
@@ -104,18 +104,18 @@ public @interface RealmModule {
      * If a class is part of multiple modules, the same naming policy must be applied to both modules, otherwise
      * an error will be thrown.
      *
-     * @see {@link RealmNamingPolicy} for more information about what setting this policy means.
+     * @see io.realm.annotations.RealmNamingPolicy for more information about what setting this policy means.
      */
     RealmNamingPolicy classNamingPolicy() default RealmNamingPolicy.NO_POLICY;
 
     /**
      * The naming policy applied to all field names in all classes part of this module. The default policy is
-     * {@link RealmNamePolicy#NO_POLICY}. To define a naming policy for class names, use {@link ##classNamingPolicy()}.
+     * {@link RealmNamingPolicy#NO_POLICY}. To define a naming policy for class names, use {@link #classNamingPolicy()}.
      * <p>
-     * It is possible to override the naming policy for each field by either using {@link RealmClass#}in each class using
+     * It is possible to override the naming policy for each field by either using {@link RealmClass} in each class using
      * the {@link RealmField} annotation.
      *
-     * @see {@link RealmNamingPolicy} for more information about what setting this policy means.
+     * @see io.realm.annotations.RealmNamingPolicy for more information about what setting this policy means.
      */
     RealmNamingPolicy fieldNamingPolicy() default RealmNamingPolicy.NO_POLICY;
 }

@@ -21,13 +21,13 @@ import java.util.List;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
-import io.realm.annotations.RealmName;
-import io.realm.annotations.RealmNamePolicy;
+import io.realm.annotations.RealmClass;
+import io.realm.annotations.RealmNamingPolicy;
 
-@RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_DASHES)
+@RealmClass(fieldNamingPolicy = RealmNamingPolicy.LOWER_CASE_WITH_DASHES)
 public class ClassWithPolicy extends RealmObject {
 
-    public static final String CLASS_NAME = "class-with-policy";
+    public static final String CLASS_NAME = "ClassWithPolicy";
     public static final String FIELD_CAMEL_CASE = "camel-case";
     public static final String FIELD_PASCAL_CASE = "pascal-case";
     public static final String FIELD_M_HUNGARIAN = "m-hungarian";

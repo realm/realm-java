@@ -16,17 +16,17 @@
 package io.realm.entities.realmname;
 
 import io.realm.RealmObject;
-import io.realm.annotations.RealmName;
-import io.realm.annotations.RealmNamePolicy;
+import io.realm.annotations.RealmClass;
+import io.realm.annotations.RealmField;
+import io.realm.annotations.RealmNamingPolicy;
 
-// Class will inherit RealmNamingPolicy.IDENTITY
-@RealmName(policy = RealmNamePolicy.LOWER_CASE_WITH_DASHES)
+@RealmClass(fieldNamingPolicy = RealmNamingPolicy.LOWER_CASE_WITH_DASHES)
 public class FieldNameOverrideClassPolicy extends RealmObject {
 
-    public static final String CLASS_NAME = "field-name-override-class-policy";
+    public static final String CLASS_NAME = "FieldNameOverrideClassPolicy";
     public static final String FIELD_CAMEL_CASE = "camel_case";
 
-    @RealmName(name = "camel_case")
+    @RealmField(name = FIELD_CAMEL_CASE)
     public String camelCase;
 
 }
