@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * <p>
  * NOTICE: Only String, int, byte, short, long, boolean and Date fields can be indexed.
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Index {
 
