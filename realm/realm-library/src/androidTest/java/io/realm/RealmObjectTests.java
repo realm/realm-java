@@ -909,6 +909,27 @@ public class RealmObjectTests {
     }
 
     @Test
+    public void setter_list_ownList() {
+        // Create initial list
+        realm.beginTransaction();
+        RealmList<AllJavaTypes> allTypesRealmModels = new RealmList<>();
+        for (int i = 0; i < 2; i++) {
+            allTypesRealmModels.add(new AllJavaTypes(i));
+        }
+        AllJavaTypes model = new AllJavaTypes(2);
+        model.setFieldList(allTypesRealmModels);
+        model = realm.copyToRealm(model);
+        realm.commitTransaction();
+        assertEquals(2, model.getFieldList().size());
+
+        // Check that setting own list does not clear it by accident.
+        realm.beginTransaction();
+        model.setFieldList(model.getFieldList());
+        realm.commitTransaction();
+        assertEquals(2, model.getFieldList().size());
+    }
+
+    @Test
     public void classNameConflictsWithFrameworkClass() {
         // The model class' name (Thread) clashed with a common Java class.
         // The annotation process must be able to handle that.
