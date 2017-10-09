@@ -477,7 +477,7 @@ public class RealmProxyClassGenerator {
                         .emitStatement("row.nullifyLink(%s)", fieldIndexVariableReference(field))
                         .emitStatement("return")
                         .endControlFlow();
-                writer.emitStatement("proxyState.checkValidObject(value)");
+                writer.emitStatement("proxyState.checkValidObject(value, false)");
                 writer.emitStatement("row.getTable().setLink(%s, row.getIndex(), ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex(), true)",
                         fieldIndexVariableReference(field));
                 writer.emitStatement("return");
@@ -488,7 +488,7 @@ public class RealmProxyClassGenerator {
                 .emitStatement("proxyState.getRow$realm().nullifyLink(%s)", fieldIndexVariableReference(field))
                 .emitStatement("return")
                 .endControlFlow()
-                .emitStatement("proxyState.checkValidObject(value)")
+                .emitStatement("proxyState.checkValidObject(value, true)")
                 .emitStatement("proxyState.getRow$realm().setLink(%s, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex())", fieldIndexVariableReference(field))
                 .endMethod();
     }
@@ -585,7 +585,7 @@ public class RealmProxyClassGenerator {
                         .emitStatement("return")
                     .endControlFlow()
                     .beginControlFlow("for (RealmModel linkedObject : value)")
-                        .emitStatement("proxyState.checkValidObject(linkedObject)")
+                        .emitStatement("proxyState.checkValidObject(linkedObject, true)")
                         .emitStatement("osList.addRow(((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex())")
                     .endControlFlow()
                 .endControlFlow();
