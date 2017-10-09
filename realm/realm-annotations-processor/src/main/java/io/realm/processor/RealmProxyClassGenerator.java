@@ -1716,7 +1716,6 @@ public class RealmProxyClassGenerator {
                 writer
                     .emitStatement("RealmList<%s> %sList = realmObjectSource.%s()", genericType, fieldName, getter)
                     .emitStatement("RealmList<%s> %sRealmList = realmObjectTarget.%s()", genericType, fieldName, getter)
-                    .emitStatement("%sRealmList.clear()", fieldName)
                     .beginControlFlow("if (%1$sList != null && %1$sList.size() == %1$sRealmList.size())", fieldName)
                         .emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
                         .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
@@ -1729,6 +1728,7 @@ public class RealmProxyClassGenerator {
                             .endControlFlow()
                         .endControlFlow()
                     .nextControlFlow("else")
+                        .emitStatement("%sRealmList.clear()", fieldName)
                         .beginControlFlow("if (%sList != null)", fieldName)
                             .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
                                 .emitStatement("%1$s %2$sItem = %2$sList.get(i)", genericType, fieldName)
