@@ -1714,23 +1714,33 @@ public class RealmProxyClassGenerator {
             } else if (Utils.isRealmModelList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
                 writer
-                        .emitStatement("RealmList<%s> %sList = realmObjectSource.%s()", genericType, fieldName, getter)
-                        .emitStatement("RealmList<%s> %sRealmList = realmObjectTarget.%s()",
-                                genericType, fieldName, getter)
-                        .emitStatement("%sRealmList.clear()", fieldName)
-                        .beginControlFlow("if (%sList != null)", fieldName)
+                    .emitStatement("RealmList<%s> %sList = realmObjectSource.%s()", genericType, fieldName, getter)
+                    .emitStatement("RealmList<%s> %sRealmList = realmObjectTarget.%s()", genericType, fieldName, getter)
+                    .emitStatement("%sRealmList.clear()", fieldName)
+                    .beginControlFlow("if (%1$sList != null && %1$sList.size() == %1$sRealmList.size())", fieldName)
+                        .emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
                         .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
-                        .emitStatement("%1$s %2$sItem = %2$sList.get(i)", genericType, fieldName)
-                        .emitStatement("%1$s cache%2$s = (%1$s) cache.get(%2$sItem)", genericType, fieldName)
-                        .beginControlFlow("if (cache%s != null)", fieldName)
-                        .emitStatement("%1$sRealmList.add(cache%1$s)", fieldName)
-                        .nextControlFlow("else")
-                        .emitStatement("%1$sRealmList.add(%2$s.copyOrUpdate(realm, %1$sItem, true, cache))",
-                                fieldName, Utils.getProxyClassSimpleName(field))
+                            .emitStatement("%1$s %2$sItem = %2$sList.get(i)", genericType, fieldName)
+                            .emitStatement("%1$s cache%2$s = (%1$s) cache.get(%2$sItem)", genericType, fieldName)
+                            .beginControlFlow("if (cache%s != null)", fieldName)
+                                .emitStatement("%1$sRealmList.set(i, cache%1$s)", fieldName)
+                            .nextControlFlow("else")
+                                .emitStatement("%1$sRealmList.set(i, %2$s.copyOrUpdate(realm, %1$sItem, true, cache))", fieldName, Utils.getProxyClassSimpleName(field))
+                            .endControlFlow()
                         .endControlFlow()
+                    .nextControlFlow("else")
+                        .beginControlFlow("if (%sList != null)", fieldName)
+                            .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
+                                .emitStatement("%1$s %2$sItem = %2$sList.get(i)", genericType, fieldName)
+                                .emitStatement("%1$s cache%2$s = (%1$s) cache.get(%2$sItem)", genericType, fieldName)
+                                .beginControlFlow("if (cache%s != null)", fieldName)
+                                    .emitStatement("%1$sRealmList.add(cache%1$s)", fieldName)
+                                .nextControlFlow("else")
+                                    .emitStatement("%1$sRealmList.add(%2$s.copyOrUpdate(realm, %1$sItem, true, cache))", fieldName, Utils.getProxyClassSimpleName(field))
+                                .endControlFlow()
+                            .endControlFlow()
                         .endControlFlow()
-                        .endControlFlow();
-
+                    .endControlFlow();
             } else if (Utils.isRealmValueList(field)) {
                 writer.emitStatement("realmObjectTarget.%s(realmObjectSource.%s())", setter, getter);
             } else if (Utils.isMutableRealmInteger(field)) {

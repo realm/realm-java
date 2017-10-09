@@ -2187,15 +2187,28 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         }
         RealmList<some.test.AllTypes> columnRealmListList = realmObjectSource.realmGet$columnRealmList();
         RealmList<some.test.AllTypes> columnRealmListRealmList = realmObjectTarget.realmGet$columnRealmList();
-        columnRealmListRealmList.clear();
-        if (columnRealmListList != null) {
+        if (columnRealmListList != null && columnRealmListList.size() == columnRealmListRealmList.size()) {
+            // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
             for (int i = 0; i < columnRealmListList.size(); i++) {
                 some.test.AllTypes columnRealmListItem = columnRealmListList.get(i);
                 some.test.AllTypes cachecolumnRealmList = (some.test.AllTypes) cache.get(columnRealmListItem);
                 if (cachecolumnRealmList != null) {
-                    columnRealmListRealmList.add(cachecolumnRealmList);
+                    columnRealmListRealmList.set(i, cachecolumnRealmList);
                 } else {
-                    columnRealmListRealmList.add(AllTypesRealmProxy.copyOrUpdate(realm, columnRealmListItem, true, cache));
+                    columnRealmListRealmList.set(i, AllTypesRealmProxy.copyOrUpdate(realm, columnRealmListItem, true, cache));
+                }
+            }
+        } else {
+            columnRealmListRealmList.clear();
+            if (columnRealmListList != null) {
+                for (int i = 0; i < columnRealmListList.size(); i++) {
+                    some.test.AllTypes columnRealmListItem = columnRealmListList.get(i);
+                    some.test.AllTypes cachecolumnRealmList = (some.test.AllTypes) cache.get(columnRealmListItem);
+                    if (cachecolumnRealmList != null) {
+                        columnRealmListRealmList.add(cachecolumnRealmList);
+                    } else {
+                        columnRealmListRealmList.add(AllTypesRealmProxy.copyOrUpdate(realm, columnRealmListItem, true, cache));
+                    }
                 }
             }
         }
