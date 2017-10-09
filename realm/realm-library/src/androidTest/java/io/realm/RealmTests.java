@@ -1811,6 +1811,19 @@ public class RealmTests {
     }
 
     @Test
+    public void copyToRealmOrUpdate_overrideOwnList() {
+        realm.beginTransaction();
+        AllJavaTypes managedObj = realm.createObject(AllJavaTypes.class, 1);
+        managedObj.getFieldList().add(managedObj);
+        AllJavaTypes unmanagedObj = realm.copyFromRealm(managedObj);
+        unmanagedObj.setFieldList(managedObj.getFieldList());
+
+        managedObj = realm.copyToRealmOrUpdate(unmanagedObj);
+        assertEquals(1, managedObj.getFieldList().size());
+        assertEquals(1, managedObj.getFieldList().first().getFieldId());
+    }
+
+    @Test
     public void copyToRealmOrUpdate_cyclicObject() {
         CyclicTypePrimaryKey oneCyclicType = new CyclicTypePrimaryKey(1);
         oneCyclicType.setName("One");
