@@ -8,6 +8,8 @@
 
 ## Bug Fixes
 
+* Setting an objects own list would accidentally clear it (#5395).
+
 ## Internal
 
 ## Credits
