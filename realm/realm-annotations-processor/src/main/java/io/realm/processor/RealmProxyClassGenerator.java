@@ -477,12 +477,7 @@ public class RealmProxyClassGenerator {
                         .emitStatement("row.nullifyLink(%s)", fieldIndexVariableReference(field))
                         .emitStatement("return")
                         .endControlFlow();
-                writer.beginControlFlow("if (!RealmObject.isValid(value))")
-                        .emitStatement("throw new IllegalArgumentException(\"'value' is not a valid managed object.\")")
-                        .endControlFlow();
-                writer.beginControlFlow("if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())")
-                        .emitStatement("throw new IllegalArgumentException(\"'value' belongs to a different Realm.\")")
-                        .endControlFlow();
+                writer.emitStatement("proxyState.checkValidObject(value)");
                 writer.emitStatement("row.getTable().setLink(%s, row.getIndex(), ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex(), true)",
                         fieldIndexVariableReference(field));
                 writer.emitStatement("return");
@@ -493,12 +488,7 @@ public class RealmProxyClassGenerator {
                 .emitStatement("proxyState.getRow$realm().nullifyLink(%s)", fieldIndexVariableReference(field))
                 .emitStatement("return")
                 .endControlFlow()
-                .beginControlFlow("if (!(RealmObject.isManaged(value) && RealmObject.isValid(value)))")
-                .emitStatement("throw new IllegalArgumentException(\"'value' is not a valid managed object.\")")
-                .endControlFlow()
-                .beginControlFlow("if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())")
-                .emitStatement("throw new IllegalArgumentException(\"'value' belongs to a different Realm.\")")
-                .endControlFlow()
+                .emitStatement("proxyState.checkValidObject(value)")
                 .emitStatement("proxyState.getRow$realm().setLink(%s, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex())", fieldIndexVariableReference(field))
                 .endMethod();
     }
@@ -572,37 +562,47 @@ public class RealmProxyClassGenerator {
                 // LinkView currently does not support default value feature. Just fallback to normal code.
             }
         });
-        writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
-                if (Utils.isRealmModelList(field)) {
-                    writer.emitStatement("OsList osList = proxyState.getRow$realm().getModelList(%s)",
-                            fieldIndexVariableReference(field));
-                } else {
-                    writer.emitStatement("OsList osList = proxyState.getRow$realm().getValueList(%1$s, RealmFieldType.%2$s)",
-                            fieldIndexVariableReference(field), Utils.getValueListFieldType(field).name());
-                }
-                writer.emitStatement("osList.removeAll()")
-                .beginControlFlow("if (value == null)")
-                .emitStatement("return")
-                .endControlFlow();
 
-        if (forRealmModel) {
-            writer.beginControlFlow("for (RealmModel linkedObject : value)")
-                    .beginControlFlow("if (!(RealmObject.isManaged(linkedObject) && RealmObject.isValid(linkedObject)))")
-                    .emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must be a valid managed object.\")")
-                    .endControlFlow()
-                    .beginControlFlow("if (((RealmObjectProxy) linkedObject).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm())")
-                    .emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must belong to the same Realm.\")")
-                    .endControlFlow()
-                    .emitStatement("osList.addRow(((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex())")
-                    .endControlFlow();
+        writer.emitStatement("proxyState.getRealm$realm().checkIfValid()");
+        if (Utils.isRealmModelList(field)) {
+            writer.emitStatement("OsList osList = proxyState.getRow$realm().getModelList(%s)",
+                    fieldIndexVariableReference(field));
         } else {
-            writer.beginControlFlow("for (%1$s item : value)", genericType)
-                    .beginControlFlow("if (item == null)")
-                    .emitStatement(metadata.isElementNullable(field) ? "osList.addNull()" : "throw new IllegalArgumentException(\"Storing 'null' into " + fieldName + "' is not allowed by the schema.\")")
-                    .nextControlFlow("else")
-                    .emitStatement(getStatementForAppendingValueToOsList("osList", "item", elementTypeMirror))
+            writer.emitStatement("OsList osList = proxyState.getRow$realm().getValueList(%1$s, RealmFieldType.%2$s)",
+                    fieldIndexVariableReference(field), Utils.getValueListFieldType(field).name());
+        }
+        if (forRealmModel) {
+            // Model lists.
+            writer
+                .beginControlFlow("if (value != null && value.size() == osList.size())")
+                    .beginControlFlow("for (int i = 0; i < value.size(); i++)")
+                        .emitStatement("%s linkedObject = value.get(i)", genericType)
+                        .emitStatement("osList.setRow(i, ((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex())")
                     .endControlFlow()
-                    .endControlFlow();
+                .nextControlFlow("else")
+                    .emitStatement("osList.removeAll()")
+                    .beginControlFlow("if (value == null)")
+                        .emitStatement("return")
+                    .endControlFlow()
+                    .beginControlFlow("for (RealmModel linkedObject : value)")
+                        .emitStatement("proxyState.checkValidObject(linkedObject)")
+                        .emitStatement("osList.addRow(((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex())")
+                    .endControlFlow()
+                .endControlFlow();
+        } else {
+            // Value lists
+            writer
+                .emitStatement("osList.removeAll()")
+                .beginControlFlow("if (value == null)")
+                    .emitStatement("return")
+                .endControlFlow()
+                .beginControlFlow("for (%1$s item : value)", genericType)
+                    .beginControlFlow("if (item == null)")
+                        .emitStatement(metadata.isElementNullable(field) ? "osList.addNull()" : "throw new IllegalArgumentException(\"Storing 'null' into " + fieldName + "' is not allowed by the schema.\")")
+                    .nextControlFlow("else")
+                        .emitStatement(getStatementForAppendingValueToOsList("osList", "item", elementTypeMirror))
+                    .endControlFlow()
+                .endControlFlow();
         }
         writer.endMethod();
 
@@ -1298,7 +1298,7 @@ public class RealmProxyClassGenerator {
                             .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                                 .emitStatement("cacheItemIndex%1$s = %2$s.insertOrUpdate(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                             .endControlFlow()
-                            .emitStatement("%1$sOsList.insertRow(i, cacheItemIndex%1$s)", fieldName)
+                            .emitStatement("%1$sOsList.setRow(i, cacheItemIndex%1$s)", fieldName)
                     .endControlFlow()
                     .nextControlFlow("else")
                         .emitStatement("%1$sOsList.removeAll()", fieldName)
@@ -1412,7 +1412,7 @@ public class RealmProxyClassGenerator {
                             .beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                                 .emitStatement("cacheItemIndex%1$s = %2$s.insertOrUpdate(realm, %1$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                             .endControlFlow()
-                            .emitStatement("%1$sOsList.insertRow(i, cacheItemIndex%1$s)", fieldName)
+                            .emitStatement("%1$sOsList.setRow(i, cacheItemIndex%1$s)", fieldName)
                         .endControlFlow()
                     .nextControlFlow("else")
                         .emitStatement("%1$sOsList.removeAll()", fieldName)

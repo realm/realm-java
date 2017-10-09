@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.ObserverPairList;
 import io.realm.internal.PendingRow;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.OsObject;
 import io.realm.internal.UncheckedRow;
@@ -198,6 +199,21 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
         notifyQueryFinished();
         if (row.isAttached()) {
             registerToObjectNotifier();
+        }
+    }
+
+    /**
+     * Check that object is a valid and managed object by this Realm.
+     * Used by proxy classes to verify input.
+     *
+     * @param value model object
+     */
+    public void checkValidObject(RealmModel value) {
+        if (!RealmObject.isValid(value)) {
+            throw new IllegalArgumentException("'value' is not a valid managed object.");
+        }
+        if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != getRealm$realm()) {
+            throw new IllegalArgumentException("'value' belongs to a different Realm.");
         }
     }
 }

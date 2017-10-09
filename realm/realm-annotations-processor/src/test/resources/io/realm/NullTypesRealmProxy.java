@@ -902,12 +902,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                 row.nullifyLink(columnInfo.fieldObjectNullIndex);
                 return;
             }
-            if (!RealmObject.isValid(value)) {
-                throw new IllegalArgumentException("'value' is not a valid managed object.");
-            }
-            if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
-                throw new IllegalArgumentException("'value' belongs to a different Realm.");
-            }
+            proxyState.checkValidObject(value);
             row.getTable().setLink(columnInfo.fieldObjectNullIndex, row.getIndex(), ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex(), true);
             return;
         }
@@ -917,12 +912,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
             proxyState.getRow$realm().nullifyLink(columnInfo.fieldObjectNullIndex);
             return;
         }
-        if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
-            throw new IllegalArgumentException("'value' is not a valid managed object.");
-        }
-        if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
-            throw new IllegalArgumentException("'value' belongs to a different Realm.");
-        }
+        proxyState.checkValidObject(value);
         proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullIndex, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex());
     }
 
@@ -1996,26 +1986,26 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                 objProxy.realmSet$fieldObjectNull(fieldObjectNullObj);
             }
         }
-        // TODO implement logic for value listfieldStringListNotNull.
-        // TODO implement logic for value listfieldStringListNull.
-        // TODO implement logic for value listfieldBinaryListNotNull.
-        // TODO implement logic for value listfieldBinaryListNull.
-        // TODO implement logic for value listfieldBooleanListNotNull.
-        // TODO implement logic for value listfieldBooleanListNull.
-        // TODO implement logic for value listfieldLongListNotNull.
-        // TODO implement logic for value listfieldLongListNull.
-        // TODO implement logic for value listfieldIntegerListNotNull.
-        // TODO implement logic for value listfieldIntegerListNull.
-        // TODO implement logic for value listfieldShortListNotNull.
-        // TODO implement logic for value listfieldShortListNull.
-        // TODO implement logic for value listfieldByteListNotNull.
-        // TODO implement logic for value listfieldByteListNull.
-        // TODO implement logic for value listfieldDoubleListNotNull.
-        // TODO implement logic for value listfieldDoubleListNull.
-        // TODO implement logic for value listfieldFloatListNotNull.
-        // TODO implement logic for value listfieldFloatListNull.
-        // TODO implement logic for value listfieldDateListNotNull.
-        // TODO implement logic for value listfieldDateListNull.
+        // TODO implement logic for value list fieldStringListNotNull.
+        // TODO implement logic for value list fieldStringListNull.
+        // TODO implement logic for value list fieldBinaryListNotNull.
+        // TODO implement logic for value list fieldBinaryListNull.
+        // TODO implement logic for value list fieldBooleanListNotNull.
+        // TODO implement logic for value list fieldBooleanListNull.
+        // TODO implement logic for value list fieldLongListNotNull.
+        // TODO implement logic for value list fieldLongListNull.
+        // TODO implement logic for value list fieldIntegerListNotNull.
+        // TODO implement logic for value list fieldIntegerListNull.
+        // TODO implement logic for value list fieldShortListNotNull.
+        // TODO implement logic for value list fieldShortListNull.
+        // TODO implement logic for value list fieldByteListNotNull.
+        // TODO implement logic for value list fieldByteListNull.
+        // TODO implement logic for value list fieldDoubleListNotNull.
+        // TODO implement logic for value list fieldDoubleListNull.
+        // TODO implement logic for value list fieldFloatListNotNull.
+        // TODO implement logic for value list fieldFloatListNull.
+        // TODO implement logic for value list fieldDateListNotNull.
+        // TODO implement logic for value list fieldDateListNull.
         return obj;
     }
 

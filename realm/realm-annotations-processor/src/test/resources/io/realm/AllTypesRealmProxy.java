@@ -380,12 +380,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 row.nullifyLink(columnInfo.columnObjectIndex);
                 return;
             }
-            if (!RealmObject.isValid(value)) {
-                throw new IllegalArgumentException("'value' is not a valid managed object.");
-            }
-            if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
-                throw new IllegalArgumentException("'value' belongs to a different Realm.");
-            }
+            proxyState.checkValidObject(value);
             row.getTable().setLink(columnInfo.columnObjectIndex, row.getIndex(), ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex(), true);
             return;
         }
@@ -395,12 +390,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             proxyState.getRow$realm().nullifyLink(columnInfo.columnObjectIndex);
             return;
         }
-        if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
-            throw new IllegalArgumentException("'value' is not a valid managed object.");
-        }
-        if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
-            throw new IllegalArgumentException("'value' belongs to a different Realm.");
-        }
+        proxyState.checkValidObject(value);
         proxyState.getRow$realm().setLink(columnInfo.columnObjectIndex, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getIndex());
     }
 
@@ -443,18 +433,20 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getModelList(columnInfo.columnRealmListIndex);
-        osList.removeAll();
-        if (value == null) {
-            return;
-        }
-        for (RealmModel linkedObject : value) {
-            if (!(RealmObject.isManaged(linkedObject) && RealmObject.isValid(linkedObject))) {
-                throw new IllegalArgumentException("Each element of 'value' must be a valid managed object.");
+        if (value != null && value.size() == osList.size()) {
+            for (int i = 0; i < value.size(); i++) {
+                some.test.AllTypes linkedObject = value.get(i);
+                osList.setRow(i, ((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex());
             }
-            if (((RealmObjectProxy) linkedObject).realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
-                throw new IllegalArgumentException("Each element of 'value' must belong to the same Realm.");
+        } else {
+            osList.removeAll();
+            if (value == null) {
+                return;
             }
-            osList.addRow(((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex());
+            for (RealmModel linkedObject : value) {
+                proxyState.checkValidObject(linkedObject);
+                osList.addRow(((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex());
+            }
         }
     }
 
@@ -1723,7 +1715,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 if (cacheItemIndexcolumnRealmList == null) {
                     cacheItemIndexcolumnRealmList = AllTypesRealmProxy.insertOrUpdate(realm, columnRealmListItem, cache);
                 }
-                columnRealmListOsList.insertRow(i, cacheItemIndexcolumnRealmList);
+                columnRealmListOsList.setRow(i, cacheItemIndexcolumnRealmList);
             }
         } else {
             columnRealmListOsList.removeAll();
@@ -1951,7 +1943,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     if (cacheItemIndexcolumnRealmList == null) {
                         cacheItemIndexcolumnRealmList = AllTypesRealmProxy.insertOrUpdate(realm, columnRealmListItem, cache);
                     }
-                    columnRealmListOsList.insertRow(i, cacheItemIndexcolumnRealmList);
+                    columnRealmListOsList.setRow(i, cacheItemIndexcolumnRealmList);
                 }
             } else {
                 columnRealmListOsList.removeAll();
