@@ -920,7 +920,14 @@ public class BulkInsertTests {
         AllJavaTypes unmanagedObj = realm.copyFromRealm(managedObj);
         unmanagedObj.setFieldList(managedObj.getFieldList());
 
+        // Check single object insert
         realm.insertOrUpdate(unmanagedObj);
+        managedObj = realm.where(AllJavaTypes.class).findFirst();
+        assertEquals(1, managedObj.getFieldList().size());
+        assertEquals(1, managedObj.getFieldList().first().getFieldId());
+
+        // Check collection insert
+        realm.insertOrUpdate(Arrays.asList(unmanagedObj));
         managedObj = realm.where(AllJavaTypes.class).findFirst();
         assertEquals(1, managedObj.getFieldList().size());
         assertEquals(1, managedObj.getFieldList().first().getFieldId());
