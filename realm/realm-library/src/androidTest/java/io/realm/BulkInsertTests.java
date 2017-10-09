@@ -913,6 +913,20 @@ public class BulkInsertTests {
     }
 
     @Test
+    public void insertOrUpdate_ownList() {
+        realm.beginTransaction();
+        AllJavaTypes managedObj = realm.createObject(AllJavaTypes.class, 1);
+        managedObj.getFieldList().add(managedObj);
+        AllJavaTypes unmanagedObj = realm.copyFromRealm(managedObj);
+        unmanagedObj.setFieldList(managedObj.getFieldList());
+
+        realm.insertOrUpdate(unmanagedObj);
+        managedObj = realm.where(AllJavaTypes.class).findFirst();
+        assertEquals(1, managedObj.getFieldList().size());
+        assertEquals(1, managedObj.getFieldList().first().getFieldId());
+    }
+
+    @Test
     public void insert_collectionOfManagedObjects() {
         realm.beginTransaction();
         AllTypes allTypes = realm.createObject(AllTypes.class);
