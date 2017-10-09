@@ -208,8 +208,8 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
      *
      * @param value model object
      */
-    public void checkValidObject(RealmModel value, boolean checkManaged) {
-        if (!RealmObject.isValid(value) || (checkManaged && !RealmObject.isManaged(value))) {
+    public void checkValidObject(RealmModel value) {
+        if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
             throw new IllegalArgumentException("'value' is not a valid managed object.");
         }
         if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != getRealm$realm()) {
