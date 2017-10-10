@@ -80,7 +80,9 @@ function startRealmObjectServer(onSuccess, onError) {
             syncServerChildProcess = spawn('ros',
                     ['start',
                         '--data', path,
-                        '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
+                        '--loglevel', 'detail',
+                        // Temporary disable TTL to see if this is the root cause
+                        //'--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
                     ],
                     { env: env, cwd: path});
 
