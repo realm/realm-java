@@ -8,6 +8,8 @@
 
 ## Bug Fixes
 
+* Don't try to acquire `ApplicationContext` in `Realm.init(Context)` (#5389).
+
 ## Internal
 
 ## Credits

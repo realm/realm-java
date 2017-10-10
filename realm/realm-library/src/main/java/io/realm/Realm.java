@@ -246,7 +246,7 @@ public class Realm extends BaseRealm {
             RealmCore.loadLibrary(context);
             setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
-            BaseRealm.applicationContext = context.getApplicationContext();
+            BaseRealm.applicationContext = context;
             SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
         }
     }
