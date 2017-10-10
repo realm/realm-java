@@ -185,7 +185,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
-        List<String> fieldNames = new ArrayList<String>();
+        List<String> fieldNames = new ArrayList<String>(41);
         fieldNames.add("fieldStringNotNull");
         fieldNames.add("fieldStringNull");
         fieldNames.add("fieldBooleanNotNull");

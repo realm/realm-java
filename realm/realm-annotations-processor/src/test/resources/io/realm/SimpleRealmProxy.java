@@ -68,7 +68,7 @@ public class SimpleRealmProxy extends some.test.Simple
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
-        List<String> fieldNames = new ArrayList<String>();
+        List<String> fieldNames = new ArrayList<String>(2);
         fieldNames.add("name");
         fieldNames.add("age");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);

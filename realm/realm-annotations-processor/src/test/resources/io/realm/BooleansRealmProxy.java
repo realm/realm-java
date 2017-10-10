@@ -74,7 +74,7 @@ public class BooleansRealmProxy extends some.test.Booleans
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
-        List<String> fieldNames = new ArrayList<String>();
+        List<String> fieldNames = new ArrayList<String>(4;
         fieldNames.add("done");
         fieldNames.add("isReady");
         fieldNames.add("mCompleted");

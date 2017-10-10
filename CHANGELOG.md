@@ -5,8 +5,10 @@
 ## Enhancements
 
 * All Realm annotations are now kept at runtime, allowing runtime tools access to them (#5344).
+* Speedup schema initialization when a Realm file is first accessed (#5391).
 
 ## Bug Fixes
+
 
 ## Internal
 

@@ -124,7 +124,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
-        List<String> fieldNames = new ArrayList<String>();
+        List<String> fieldNames = new ArrayList<String>(20);
         fieldNames.add("columnString");
         fieldNames.add("columnLong");
         fieldNames.add("columnFloat");

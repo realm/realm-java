@@ -244,7 +244,7 @@ public class RealmProxyClassGenerator {
 
         writer.emitField("List<String>", "FIELD_NAMES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true)
-            .emitStatement("List<String> fieldNames = new ArrayList<String>()");
+            .emitStatement("List<String> fieldNames = new ArrayList<String>(%s)", metadata.getFields().size());
             for (VariableElement field : metadata.getFields()) {
                 writer.emitStatement("fieldNames.add(\"%s\")", field.getSimpleName().toString());
             }
