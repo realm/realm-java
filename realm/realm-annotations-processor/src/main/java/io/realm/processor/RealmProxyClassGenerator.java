@@ -723,8 +723,14 @@ public class RealmProxyClassGenerator {
                 "createExpectedObjectSchemaInfo", // Method name
                 EnumSet.of(Modifier.PRIVATE, Modifier.STATIC)); // Modifiers
 
+        // Guess capacity for Arrays used by OsObjectSchemaInfo.
+        // Used to prevent array resizing at runtime
+        int persistedFields = metadata.getFields().size();
+        int computedFields = metadata.getBacklinkFields().size();
+
         writer.emitStatement(
-                "OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(\"%s\")", this.simpleClassName);
+                "OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(\"%s\", %s, %s)",
+                this.simpleClassName, persistedFields, computedFields);
 
         // For each field generate corresponding table index constant
         for (VariableElement field : metadata.getFields()) {

@@ -32,8 +32,8 @@ public class OsObjectSchemaInfo implements NativeObject {
 
     public static class Builder {
         private String className;
-        private List<Property> persistedPropertyList = new ArrayList<Property>();
-        private List<Property> computedPropertyList = new ArrayList<Property>();
+        private List<Property> persistedPropertyList;
+        private List<Property> computedPropertyList;
 
         /**
          * Creates an empty builder for {@code OsObjectSchemaInfo}. This constructor is intended to be used by
@@ -41,8 +41,10 @@ public class OsObjectSchemaInfo implements NativeObject {
          *
          * @param className name of the class
          */
-        public Builder(String className) {
+        public Builder(String className, int persistedPropertyCapacity, int computedPropertyCapacity) {
             this.className = className;
+            this.persistedPropertyList = new ArrayList<>(persistedPropertyCapacity);
+            this.computedPropertyList = new ArrayList<>(computedPropertyCapacity);
         }
 
         /**

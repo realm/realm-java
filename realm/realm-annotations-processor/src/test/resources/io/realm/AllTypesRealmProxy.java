@@ -860,7 +860,7 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("AllTypes");
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("AllTypes", 20, 1);
         builder.addPersistedProperty("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
@@ -1045,16 +1045,16 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
-        // TODO implement logic for value listcolumnStringList.
-        // TODO implement logic for value listcolumnBinaryList.
-        // TODO implement logic for value listcolumnBooleanList.
-        // TODO implement logic for value listcolumnLongList.
-        // TODO implement logic for value listcolumnIntegerList.
-        // TODO implement logic for value listcolumnShortList.
-        // TODO implement logic for value listcolumnByteList.
-        // TODO implement logic for value listcolumnDoubleList.
-        // TODO implement logic for value listcolumnFloatList.
-        // TODO implement logic for value listcolumnDateList.
+        // TODO implement logic for value list columnStringList.
+        // TODO implement logic for value list columnBinaryList.
+        // TODO implement logic for value list columnBooleanList.
+        // TODO implement logic for value list columnLongList.
+        // TODO implement logic for value list columnIntegerList.
+        // TODO implement logic for value list columnShortList.
+        // TODO implement logic for value list columnByteList.
+        // TODO implement logic for value list columnDoubleList.
+        // TODO implement logic for value list columnFloatList.
+        // TODO implement logic for value list columnDateList.
         return obj;
     }
 

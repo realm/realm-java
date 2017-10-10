@@ -192,7 +192,7 @@ public class BooleansRealmProxy extends some.test.Booleans
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("Booleans");
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("Booleans", 4, 0);
         builder.addPersistedProperty("done", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("isReady", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("mCompleted", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
@@ -221,6 +221,7 @@ public class BooleansRealmProxy extends some.test.Booleans
             throws JSONException {
         final List<String> excludeFields = Collections.<String> emptyList();
         some.test.Booleans obj = realm.createObjectInternal(some.test.Booleans.class, true, excludeFields);
+
         final BooleansRealmProxyInterface objProxy = (BooleansRealmProxyInterface) obj;
         if (json.has("done")) {
             if (json.isNull("done")) {
@@ -439,6 +440,7 @@ public class BooleansRealmProxy extends some.test.Booleans
         unmanagedCopy.realmSet$isReady(realmSource.realmGet$isReady());
         unmanagedCopy.realmSet$mCompleted(realmSource.realmGet$mCompleted());
         unmanagedCopy.realmSet$anotherBoolean(realmSource.realmGet$anotherBoolean());
+
         return unmanagedObject;
     }
 
@@ -504,5 +506,4 @@ public class BooleansRealmProxy extends some.test.Booleans
 
         return true;
     }
-
 }
