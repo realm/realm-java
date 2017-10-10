@@ -8,7 +8,7 @@
 
 ## Bug Fixes
 
-* Setting an objects own list would accidentally clear it (#5395).
+* Assigning a managed object's own list to itself would accidentally clear it (#5395).
 
 ## Internal
 
