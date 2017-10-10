@@ -199,6 +199,7 @@ public class PermissionManager implements Closeable {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
+                        RealmLog.error("Error in __permission:\n" + error.toString());
                         synchronized (errorLock) {
                             permissionRealmError = error;
                         }
@@ -590,7 +591,7 @@ public class PermissionManager implements Closeable {
                     @Override
                     public void onChange(RealmResults <Permission> loadedPermissions) {
                         RealmLog.error(Arrays.toString(loadedPermissions.toArray()));  // FIXME Debug output for CI. Remove before release.
-
+                        RealmLog.error("Session state: " + SyncManager.getSession(permissionRealmConfig).getState());
                         // FIXME Wait until both the __permission and __management Realm are available
                         if (loadedPermissions.size() > 0) {
                             loadingPermissions.removeChangeListener(this);
