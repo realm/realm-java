@@ -70,7 +70,7 @@ function startRealmObjectServer(onSuccess, onError) {
             var globalNotifierDir = path + '/realm-object-server';
             winston.info('Cleaning state in: ' + globalNotifierDir);
             fs.removeSync(globalNotifierDir)
-            if (!fs.existsSync(globalNotifierDir))) {
+            if (fs.existsSync(globalNotifierDir)) {
                 onError("Could not delete the global notifier directory: " + globalNotifierDir);
                 return;
             }
