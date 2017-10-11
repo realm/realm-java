@@ -154,6 +154,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     @RunTestInLooperThread(emulateMainThread = true)
 //    @Ignore("See https://github.com/realm/ros/issues/437")
     public void getPermissions_updatedWithNewRealms_stressTest() {
+        final int TEST_SIZE = 10;
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
         pm.getPermissions(new PermissionManager.PermissionsCallback() {
@@ -162,7 +163,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 assertTrue(permissions.isLoaded());
                 assertInitialPermissions(permissions);
 
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < TEST_SIZE; i++) {
                     SyncConfiguration configNew = new SyncConfiguration.Builder(user, "realm://127.0.0.1:9080/~/test" + i).build();
                     Realm newRealm = Realm.getInstance(configNew);
                     looperThread.closeAfterTest(newRealm);
@@ -173,7 +174,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults<Permission> permissions) {
-                        Permission p = permissions.where().endsWith("path", "test9").findFirst();
+                        Permission p = permissions.where().endsWith("path", "test" + (TEST_SIZE - 1)).findFirst();
                         if (p != null) {
                             assertTrue(p.mayRead());
                             assertTrue(p.mayWrite());
