@@ -67,24 +67,12 @@ public class Property implements NativeObject {
     private long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    Property(String name, RealmFieldType type, boolean isPrimary, boolean isIndexed, boolean isRequired) {
-        this(nativeCreatePersistedProperty(name, convertFromRealmFieldType(type, isRequired), isPrimary, isIndexed));
-    }
-
-    Property(String name, RealmFieldType type, String linkedClassName) {
-        this(nativeCreatePersistedLinkProperty(name, convertFromRealmFieldType(type, false), linkedClassName));
-    }
-
-    Property(String name, String sourceClassName, String sourceFieldName) {
-        this(nativeCreateComputedLinkProperty(name, sourceClassName, sourceFieldName));
-    }
-
     Property(long nativePtr) {
         this.nativePtr = nativePtr;
         NativeContext.dummyContext.addReference(this);
     }
 
-    private static int convertFromRealmFieldType(RealmFieldType fieldType, boolean isRequired) {
+    static int convertFromRealmFieldType(RealmFieldType fieldType, boolean isRequired) {
         int type;
         switch (fieldType) {
             case OBJECT:
@@ -217,12 +205,14 @@ public class Property implements NativeObject {
 
     private static native long nativeGetFinalizerPtr();
 
-    private static native long nativeCreatePersistedProperty(
+    // nativeCreateXxxProperty will be called by OsObjectSchemaInfo directly to avoid creating temporary Property
+    // objects.
+    static native long nativeCreatePersistedProperty(
             String name, int type, boolean isPrimary, boolean isIndexed);
 
-    private static native long nativeCreatePersistedLinkProperty(String name, int type, String linkedToName);
+    static native long nativeCreatePersistedLinkProperty(String name, int type, String linkedToName);
 
-    private static native long nativeCreateComputedLinkProperty(
+    static native long nativeCreateComputedLinkProperty(
             String name, String sourceClassName, String sourceFieldName);
 
     private static native int nativeGetType(long nativePtr);
