@@ -590,8 +590,7 @@ public class PermissionManager implements Closeable {
                 loadingPermissions.addChangeListener(new RealmChangeListener <RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults <Permission> loadedPermissions) {
-                        RealmLog.error(Arrays.toString(loadedPermissions.toArray()));  // FIXME Debug output for CI. Remove before release.
-                        RealmLog.error("Session state: " + SyncManager.getSession(permissionRealmConfig).getState());
+                        RealmLog.error("Size: %s, State: %s", loadedPermissions.size(), SyncManager.getSession(permissionRealmConfig).getState());  // FIXME Debug output for CI. Remove before release.
                         // FIXME Wait until both the __permission and __management Realm are available
                         if (loadedPermissions.size() > 0) {
                             loadingPermissions.removeChangeListener(this);

@@ -108,7 +108,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     @RunTestInLooperThread(emulateMainThread = true)
 //    @Ignore("See https://github.com/realm/ros/issues/437")
     public void getPermissions_updatedWithNewRealms() {
-        PermissionManager pm = user.getPermissionManager();
+        final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
         pm.getPermissions(new PermissionManager.PermissionsCallback() {
             @Override
@@ -132,15 +132,28 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults<Permission> permissions) {
+                        RealmLog.error("Testlistener: " + permissions.size());
+                        looperThread.testComplete();
                         Permission p = permissions.where().endsWith("path", "tests2").findFirst();
                         if (p != null) {
                             assertTrue(p.mayRead());
                             assertTrue(p.mayWrite());
                             assertTrue(p.mayManage());
-                            looperThread.testComplete();
                         }
                     }
                 });
+
+                final AtomicInteger i = new AtomicInteger(15);
+                looperThread.postRunnableDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Realm realm = Realm.getInstance(pm.permissionRealmConfig);
+                        RealmLog.error("Real size: " + realm.where(Permission.class).count());
+                        if (i.decrementAndGet() > 0) {
+                            looperThread.postRunnableDelayed(this, 1000);
+                        }
+                    }
+                }, 1000);
             }
 
             @Override
