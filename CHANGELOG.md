@@ -8,7 +8,8 @@
 
 ## Bug Fixes
 
-* Don't try to acquire `ApplicationContext` in `Realm.init(Context)` (#5389).
+* Assigning a managed object's own list to itself would accidentally clear it (#5395).
+* Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
 
 ## Internal
 
