@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
@@ -21,6 +22,7 @@ import io.realm.internal.OsRealmConfig;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
@@ -443,6 +445,56 @@ public class SyncSessionTests extends StandardIntegrationTest {
         realm.refresh();//FIXME not calling refresh will still point to the previous version of the Realm count == 1
         assertEquals(3, realm.where(StringOnly.class).count());
         realm.close();
+    }
+
+    // Check that if we manually trigger a Client Reset, then it should be possible to start
+    // downloading the Realm immediately after.
+    @Test
+    @RunTestInLooperThread
+    public void clientReset_manualTriggerAllowSessionToRestart() {
+        final String uniqueName = UUID.randomUUID().toString();
+        SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
+        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+
+        final AtomicReference<SyncConfiguration> configRef = new AtomicReference<>(null);
+        final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM).directory(looperThread.getRoot())
+
+                .errorHandler(new SyncSession.ErrorHandler() {
+                    @Override
+                    public void onError(SyncSession session, ObjectServerError error) {
+                        final ClientResetRequiredError handler = (ClientResetRequiredError) error;
+                        // Execute Client Reset
+                        looperThread.closeTestRealms();
+                        handler.executeClientReset();
+
+                        // Try to re-open Realm and download it again
+                        looperThread.postRunnable(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Validate that files have been moved
+                                assertFalse(handler.getOriginalFile().exists());
+                                assertTrue(handler.getBackupFile().exists());
+
+                                SyncConfiguration config = configRef.get();
+                                Realm instance = Realm.getInstance(config);
+                                looperThread.addTestRealm(instance);
+                                try {
+                                    SyncManager.getSession(config).downloadAllServerChanges();
+                                    looperThread.testComplete();
+                                } catch (InterruptedException e) {
+                                    fail(e.toString());
+                                }
+                            }
+                        });
+                    }
+                })
+                .build();
+        configRef.set(config);
+
+        Realm realm = Realm.getInstance(config);
+        looperThread.addTestRealm(realm);
+        // Trigger error
+        SyncManager.simulateClientReset(SyncManager.getSession(config));
     }
 
 }
