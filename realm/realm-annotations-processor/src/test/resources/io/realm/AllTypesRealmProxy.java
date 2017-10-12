@@ -1942,7 +1942,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             RealmList<some.test.AllTypes> columnRealmListList = ((AllTypesRealmProxyInterface) object).realmGet$columnRealmList();
             if (columnRealmListList != null && columnRealmListList.size() == columnRealmListOsList.size()) {
                 // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
-                for (int i = 0; i < columnRealmListList.size(); i++) {
+                int objectCount = columnRealmListList.size();
+                for (int i = 0; i < objectCount; i++) {
                     some.test.AllTypes columnRealmListItem = columnRealmListList.get(i);
                     Long cacheItemIndexcolumnRealmList = cache.get(columnRealmListItem);
                     if (cacheItemIndexcolumnRealmList == null) {
