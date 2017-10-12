@@ -433,9 +433,12 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getModelList(columnInfo.columnRealmListIndex);
+        // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
         if (value != null && value.size() == osList.size()) {
-            for (int i = 0; i < value.size(); i++) {
+            int objects = value.size();
+            for (int i = 0; i < objects; i++) {
                 some.test.AllTypes linkedObject = value.get(i);
+                proxyState.checkValidObject(linkedObject);
                 osList.setRow(i, ((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex());
             }
         } else {
@@ -443,7 +446,9 @@ public class AllTypesRealmProxy extends some.test.AllTypes
             if (value == null) {
                 return;
             }
-            for (RealmModel linkedObject : value) {
+            int objects = value.size();
+            for (int i = 0; i < objects; i++) {
+                some.test.AllTypes linkedObject = value.get(i);
                 proxyState.checkValidObject(linkedObject);
                 osList.addRow(((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex());
             }

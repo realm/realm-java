@@ -927,6 +927,16 @@ public class RealmObjectTests {
         model.setFieldList(model.getFieldList());
         realm.commitTransaction();
         assertEquals(2, model.getFieldList().size());
+
+        // Check that a unmanaged list throws the correct exception
+        realm.beginTransaction();
+        RealmList<AllJavaTypes> unmanagedList = new RealmList<>();
+        unmanagedList.addAll(realm.copyFromRealm(model.getFieldList()));
+        try {
+            model.setFieldList(unmanagedList);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     @Test

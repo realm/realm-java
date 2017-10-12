@@ -574,9 +574,12 @@ public class RealmProxyClassGenerator {
         if (forRealmModel) {
             // Model lists.
             writer
+                .emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
                 .beginControlFlow("if (value != null && value.size() == osList.size())")
-                    .beginControlFlow("for (int i = 0; i < value.size(); i++)")
+                    .emitStatement("int objects = value.size()")
+                    .beginControlFlow("for (int i = 0; i < objects; i++)")
                         .emitStatement("%s linkedObject = value.get(i)", genericType)
+                        .emitStatement("proxyState.checkValidObject(linkedObject)")
                         .emitStatement("osList.setRow(i, ((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex())")
                     .endControlFlow()
                 .nextControlFlow("else")
@@ -584,7 +587,9 @@ public class RealmProxyClassGenerator {
                     .beginControlFlow("if (value == null)")
                         .emitStatement("return")
                     .endControlFlow()
-                    .beginControlFlow("for (RealmModel linkedObject : value)")
+                    .emitStatement("int objects = value.size()")
+                    .beginControlFlow("for (int i = 0; i < objects; i++)")
+                        .emitStatement("%s linkedObject = value.get(i)", genericType)
                         .emitStatement("proxyState.checkValidObject(linkedObject)")
                         .emitStatement("osList.addRow(((RealmObjectProxy) linkedObject).realmGet$proxyState().getRow$realm().getIndex())")
                     .endControlFlow()
