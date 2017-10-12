@@ -158,6 +158,14 @@ project.afterEvaluate {
     tasks.withType(JavaCompile) {
         options.compilerArgs << '-Werror'
     }
+
+    tasks.all { task ->
+        android.productFlavors.all { flavor ->
+            if (task.name == "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal") {
+                task.dependsOn "assemble${flavor.name.capitalize()}"
+            }
+        }
+    }
 }
 
 // enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/08/kotlin-1-1-4-is-out/
@@ -557,6 +565,17 @@ project.afterEvaluate {
         variant.externalNativeBuildTasks[0].dependsOn(checkNdk)
         if (project.hasProperty('buildTargetABIs') && project.getProperty('buildTargetABIs').trim().isEmpty()) {
             variant.externalNativeBuildTasks[0].enabled = false
+        }
+
+        // all Java files must be compiled before native build
+        android.libraryVariants.all { anotherVariant ->
+            if (variant.flavorName == anotherVariant.flavorName) {
+                variant.externalNativeBuildTasks[0].dependsOn("compile${anotherVariant.name.capitalize()}JavaWithJavac")
+            }
+        }
+        // as of android gradle plugin 3.0.0-alpha5, generateJsonModel* triggers native build. Java files must be compiled before them.
+        android.buildTypes.all { buildType ->
+            tasks["generateJsonModel${variant.name.capitalize()}"].dependsOn "compile${variant.flavorName.capitalize()}${buildType.name.capitalize()}JavaWithJavac"
         }
     }
 }
