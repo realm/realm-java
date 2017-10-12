@@ -51,7 +51,7 @@ public class OsListTests {
 
     @Before
     public void setUp() {
-        OsObjectSchemaInfo objectSchemaInfo = new OsObjectSchemaInfo.Builder("TestModel")
+        OsObjectSchemaInfo objectSchemaInfo = new OsObjectSchemaInfo.Builder("TestModel",14, 0)
                 .addPersistedValueListProperty("longList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED)
                 .addPersistedValueListProperty("doubleList", RealmFieldType.DOUBLE_LIST,  !Property.REQUIRED)
                 .addPersistedValueListProperty("floatList", RealmFieldType.FLOAT_LIST, !Property.REQUIRED)

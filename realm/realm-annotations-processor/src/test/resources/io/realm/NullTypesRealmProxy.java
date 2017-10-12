@@ -185,7 +185,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
-        List<String> fieldNames = new ArrayList<String>();
+        List<String> fieldNames = new ArrayList<String>(41);
         fieldNames.add("fieldStringNotNull");
         fieldNames.add("fieldStringNull");
         fieldNames.add("fieldBooleanNotNull");
@@ -1697,7 +1697,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("NullTypes");
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("NullTypes", 41, 0);
         builder.addPersistedProperty("fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty("fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
