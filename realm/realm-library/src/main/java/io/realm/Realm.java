@@ -67,6 +67,7 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
+import io.realm.permissions.Permission;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
@@ -246,7 +247,11 @@ public class Realm extends BaseRealm {
             RealmCore.loadLibrary(context);
             setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
-            BaseRealm.applicationContext = context;
+            if (context.getApplicationContext() != null) {
+                BaseRealm.applicationContext = context.getApplicationContext();
+            } else {
+                BaseRealm.applicationContext = context;
+            }
             SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
         }
     }
