@@ -16,9 +16,6 @@
 package io.realm.internal;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.annotation.Nullable;
 
 import io.realm.RealmFieldType;
@@ -31,9 +28,11 @@ import io.realm.RealmFieldType;
 public class OsObjectSchemaInfo implements NativeObject {
 
     public static class Builder {
-        private String className;
-        private List<Property> persistedPropertyList = new ArrayList<Property>();
-        private List<Property> computedPropertyList = new ArrayList<Property>();
+        private final String className;
+        private final long[] persistedPropertyPtrArray;
+        private int persistedPropertyPtrCurPos = 0;
+        private final long[] computedPropertyPtrArray;
+        private int computedPropertyPtrCurPos = 0;
 
         /**
          * Creates an empty builder for {@code OsObjectSchemaInfo}. This constructor is intended to be used by
@@ -41,8 +40,10 @@ public class OsObjectSchemaInfo implements NativeObject {
          *
          * @param className name of the class
          */
-        public Builder(String className) {
+        public Builder(String className, int persistedPropertyCapacity, int computedPropertyCapacity) {
             this.className = className;
+            this.persistedPropertyPtrArray = new long[persistedPropertyCapacity];
+            this.computedPropertyPtrArray = new long[computedPropertyCapacity];
         }
 
         /**
@@ -57,8 +58,10 @@ public class OsObjectSchemaInfo implements NativeObject {
          */
         public Builder addPersistedProperty(String name, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
                 boolean isRequired) {
-            final Property property = new Property(name, type, isPrimaryKey, isIndexed, isRequired);
-            persistedPropertyList.add(property);
+            long propertyPtr = Property.nativeCreatePersistedProperty(name,
+                    Property.convertFromRealmFieldType(type, isRequired), isPrimaryKey, isIndexed);
+            persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
+            persistedPropertyPtrCurPos++;
             return this;
         }
 
@@ -71,8 +74,10 @@ public class OsObjectSchemaInfo implements NativeObject {
          * @return this {@code OsObjectSchemaInfo}.
          */
         public Builder addPersistedValueListProperty(String name, RealmFieldType type, boolean isRequired) {
-            final Property property = new Property(name, type, !Property.PRIMARY_KEY, !Property.INDEXED, isRequired);
-            persistedPropertyList.add(property);
+            long propertyPtr = Property.nativeCreatePersistedProperty(name,
+                    Property.convertFromRealmFieldType(type, isRequired), !Property.PRIMARY_KEY, !Property.INDEXED);
+            persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
+            persistedPropertyPtrCurPos++;
             return this;
         }
 
@@ -86,8 +91,10 @@ public class OsObjectSchemaInfo implements NativeObject {
          * @return this {@code OsObjectSchemaInfo.Builder}.
          */
         public Builder addPersistedLinkProperty(String name, RealmFieldType type, String linkedClassName) {
-            final Property property = new Property(name, type, linkedClassName);
-            persistedPropertyList.add(property);
+            long propertyPtr = Property.nativeCreatePersistedLinkProperty(name,
+                    Property.convertFromRealmFieldType(type, false), linkedClassName);
+            persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
+            persistedPropertyPtrCurPos++;
             return this;
         }
 
@@ -102,20 +109,26 @@ public class OsObjectSchemaInfo implements NativeObject {
          * @return this {@code OsObjectSchemaInfo.Builder}.
          */
         public Builder addComputedLinkProperty(String name, String targetClassname, String targetFieldName) {
-            final Property property = new Property(name, targetClassname, targetFieldName);
-            computedPropertyList.add(property);
+            long propertyPtr = Property.nativeCreateComputedLinkProperty(name, targetClassname, targetFieldName);
+            computedPropertyPtrArray[computedPropertyPtrCurPos] = propertyPtr;
+            computedPropertyPtrCurPos++;
             return this;
         }
 
+        /**
+         * Creates {@link OsObjectSchemaInfo} object from this builder. After calling, this {@code Builder} becomes
+         * invalid. All the property pointers will be freed.
+         *
+         * @return a newly created {@link OsObjectSchemaInfo}.
+         */
         public OsObjectSchemaInfo build() {
+            if (persistedPropertyPtrCurPos == -1 || computedPropertyPtrCurPos == -1) {
+                throw new IllegalStateException("'OsObjectSchemaInfo.build()' has been called before on this object.");
+            }
             OsObjectSchemaInfo info = new OsObjectSchemaInfo(className);
-            for (Property property : persistedPropertyList) {
-                nativeAddProperty(info.nativePtr, property.getNativePtr(), false);
-            }
-            for (Property property : computedPropertyList) {
-                nativeAddProperty(info.nativePtr, property.getNativePtr(), true);
-            }
-
+            nativeAddProperties(info.nativePtr, persistedPropertyPtrArray, computedPropertyPtrArray);
+            persistedPropertyPtrCurPos = -1;
+            computedPropertyPtrCurPos = -1;
             return info;
         }
     }
@@ -186,7 +199,8 @@ public class OsObjectSchemaInfo implements NativeObject {
 
     private static native long nativeGetFinalizerPtr();
 
-    private static native void nativeAddProperty(long nativePtr, long nativePropertyPtr, boolean isComputed);
+    // Add properties to the ObjectSchema and delete property pointers.
+    private static native void nativeAddProperties(long nativePtr, long[] persistedPropPtrs, long[] computedPropPtrs);
 
     private static native String nativeGetClassName(long nativePtr);
 
