@@ -67,7 +67,6 @@ import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
-import io.realm.permissions.Permission;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
