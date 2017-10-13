@@ -102,7 +102,7 @@ public class Util {
      * To delete Realm and related temporary files. This must be called in
      * {@link OsObjectStore#callWithLock(RealmConfiguration, Runnable)}'s callback.
      *
-     * @return {@code true} if the realm file is deleted. Temporary file deletion failure will not impact on return
+     * @return {@code true} if the realm file is deleted. Temporary file deletion failure will not impact the return
      * value, instead, a warning will be logged.
      */
     public static boolean deleteRealm(String canonicalPath, File realmFolder, String realmFileName) {
@@ -117,13 +117,13 @@ public class Util {
             for (File file : files) {
                 boolean deleteResult = file.delete();
                 if (!deleteResult) {
-                    RealmLog.warn( String.format(Locale.ENGLISH,"Realm temporary file at %s cannot deleted",
+                    RealmLog.warn( String.format(Locale.ENGLISH,"Realm temporary file at %s cannot be deleted",
                             file.getAbsolutePath()));
                 }
             }
         }
         if (managementFolder.exists() && !managementFolder.delete()) {
-            RealmLog.warn( String.format(Locale.ENGLISH,"Realm temporary folder at %s cannot deleted",
+            RealmLog.warn( String.format(Locale.ENGLISH,"Realm temporary folder at %s cannot be deleted",
                     managementFolder.getAbsolutePath()));
         }
 
@@ -131,8 +131,8 @@ public class Util {
         if (realmFile.exists()) {
             realmDeleted = realmFile.delete();
             if (!realmDeleted) {
-                RealmLog.warn(
-                        String.format(Locale.ENGLISH,"Realm file at %s cannot deleted", realmFile.getAbsolutePath()));
+                RealmLog.warn(String.format(Locale.ENGLISH,"Realm file at %s cannot be deleted",
+                        realmFile.getAbsolutePath()));
             }
         } else {
             realmDeleted = true;

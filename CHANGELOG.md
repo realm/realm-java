@@ -2,7 +2,7 @@
 
 ## Breaking Changes
 
-* `Realm.deleteRealm()` doesn't support synced Realm for now. See issue #5416.
+* `Realm.deleteRealm()` doesn't support synced Realms for now. See issue #5416.
 
 ## Enhancements
 
@@ -14,7 +14,7 @@
 
 * Assigning a managed object's own list to itself would accidentally clear it (#5395).
 * Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
-* Fix some potential database corruption caused by deleting realm file while a Realm instance are still opened in another process or the sync client thread.
+* Fix some potential database corruption caused by deleting the Realm file while a Realm instance are still opened in another process or the sync client thread.
 
 ## Internal
 

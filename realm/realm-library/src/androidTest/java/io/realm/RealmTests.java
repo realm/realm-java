@@ -2301,7 +2301,6 @@ public class RealmTests {
 
         assertTrue(Realm.deleteRealm(configuration));
 
-        // Directory should be empty now.
         assertEquals(1, tempDir.listFiles().length);
 
         // Lock file should never be deleted

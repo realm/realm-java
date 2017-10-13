@@ -500,8 +500,9 @@ final class RealmCache {
                 : null;
         final String syncServerCertificateAssetName = ObjectServerFacade.getFacade(
                 configuration.isSyncConfiguration()).getSyncServerCertificateAssetName(configuration);
+        final boolean certFileExists = !Util.isEmptyString(syncServerCertificateAssetName);
 
-        if (realmFileFromAsset!= null || !Util.isEmptyString(syncServerCertificateAssetName)) {
+        if (realmFileFromAsset!= null || certFileExists) {
             OsObjectStore.callWithLock(configuration, new Runnable() {
                 @Override
                 public void run() {
@@ -510,7 +511,7 @@ final class RealmCache {
                     }
 
                     // Copy Sync Server certificate path if available
-                    if (!Util.isEmptyString(syncServerCertificateAssetName)) {
+                    if (certFileExists) {
                         String syncServerCertificateFilePath = ObjectServerFacade.getFacade(
                                 configuration.isSyncConfiguration()).getSyncServerCertificateFilePath(configuration);
 

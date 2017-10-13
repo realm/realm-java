@@ -1665,15 +1665,15 @@ public class Realm extends BaseRealm {
      * This doesn't support deleting synced Realm for now.
      *
      * @param configuration a {@link RealmConfiguration}.
-     * @return {@code false} if the realm file could not be deleted. Temporary files deletion failure won't impact on
-     * the return value. All of the failing file will be logged.
+     * @return {@code false} if the Realm file could not be deleted. Temporary files deletion failure won't impact
+     * the return value. All of the failing file deletions will be logged.
      * @throws IllegalStateException if not all realm instances are closed.
      * @throws IllegalStateException if the {@code configuration} is a {@link SyncConfiguration}.
      */
     public static boolean deleteRealm(RealmConfiguration configuration) {
         // FIXME: We don't know when the Realm instance on the sync client thread will be closed. Disable it for now.
         if (configuration.isSyncConfiguration()) {
-            throw new IllegalStateException("'deleteRealm() is not supported for sync for now.");
+            throw new IllegalStateException("'deleteRealm()' is not supported for synchronized Realms for now.");
         }
         return BaseRealm.deleteRealm(configuration);
     }

@@ -74,13 +74,13 @@ public class OsObjectStore {
     }
 
     /**
-     * Try to grab a exclusive lock on the given Realm file. If the lock can be acquired, the {@code runnable} will
-     * executed while the lock is hold. The lock will ensure no one else can read or write the Realm file at the same
-     * time.
+     * Try to grab an exclusive lock on the given Realm file. If the lock can be acquired, the {@code runnable} will be
+     * executed while the lock is held. The lock will ensure no one else can read from or write to the Realm file at the
+     * same time.
      *
      * @param configuration to specify the realm path.
      * @param runnable to run with lock.
-     * @return true if the lock can be acquired and the {@code runnable} has been executed.
+     * @return {@code true} if the lock can be acquired and the {@code runnable} has been executed.
      */
     public static boolean callWithLock(RealmConfiguration configuration, Runnable runnable) {
         return nativeCallWithLock(configuration.getPath(), runnable);

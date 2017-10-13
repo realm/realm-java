@@ -75,7 +75,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
     public final Capabilities capabilities;
-    private final boolean isPhantomRef;
+    private final boolean isManagedByPhantomRef;
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -197,7 +197,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
         this.context = osRealmConfig.getContext();
         this.context.addReference(this);
-        this.isPhantomRef = true;
+        this.isManagedByPhantomRef = true;
 
         this.capabilities = capabilities;
         this.realmNotifier = realmNotifier;
@@ -219,7 +219,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         this.osRealmConfig = osRealmConfig;
         this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
         this.context = osRealmConfig.getContext();
-        this.isPhantomRef = false;
+        this.isManagedByPhantomRef = false;
 
         this.capabilities = new AndroidCapabilities();
         // This instance should never need notifications.
@@ -394,7 +394,7 @@ public final class SharedRealm implements Closeable, NativeObject {
      * {@link java.lang.ref.PhantomReference}.
      */
     private void delete() {
-        if (isPhantomRef) {
+        if (isManagedByPhantomRef) {
             throw new IllegalStateException("This 'SharedRealm' pointer is managed by PhantomReference." +
                     " It should not be manually deleted");
         }

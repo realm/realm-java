@@ -72,14 +72,12 @@ public class CollectionTests {
     }
 
     private SharedRealm getSharedRealm() {
-        RealmConfiguration config;
-        config = configFactory.createConfiguration();
+        RealmConfiguration config = configFactory.createConfiguration();
         return getSharedRealm(config);
     }
 
     private SharedRealm getSharedRealmForLooper() {
-        RealmConfiguration config;
-        config = looperThread.createConfiguration();
+        RealmConfiguration config = looperThread.createConfiguration();
         return getSharedRealm(config);
     }
 
