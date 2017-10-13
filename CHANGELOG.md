@@ -14,7 +14,7 @@
 
 * Assigning a managed object's own list to itself would accidentally clear it (#5395).
 * Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
-* Fix some potential database corruption caused by deleting realm file while a Realm instance are still opened on the other process or sync client thread.
+* Fix some potential database corruption caused by deleting realm file while a Realm instance are still opened in another process or the sync client thread.
 
 ## Internal
 
