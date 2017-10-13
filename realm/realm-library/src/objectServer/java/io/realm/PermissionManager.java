@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -198,6 +199,7 @@ public class PermissionManager implements Closeable {
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
+                        RealmLog.error("Error in __permission:\n" + error.toString());
                         synchronized (errorLock) {
                             permissionRealmError = error;
                         }
@@ -588,9 +590,11 @@ public class PermissionManager implements Closeable {
                 loadingPermissions.addChangeListener(new RealmChangeListener <RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults <Permission> loadedPermissions) {
-                        // FIXME Wait until both the __permission and __management Realm are available
-                        if (loadedPermissions.size() > 0) {
+                        RealmLog.error(String.format("1stCallback: Size: %s, Permissions: %s", loadedPermissions.size(), Arrays.toString(loadedPermissions.toArray())));
+                        // Don't report ready until both __permission and __management Realm are there
+                        if (loadedPermissions.size() > 1) {
                             loadingPermissions.removeChangeListener(this);
+                            loadingPermissions = null;
                             if (checkAndReportInvalidState()) { return; }
                             if (userPermissions == null) {
                                 userPermissions = loadedPermissions;
