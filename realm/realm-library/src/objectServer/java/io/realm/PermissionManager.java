@@ -220,7 +220,9 @@ public class PermissionManager implements Closeable {
                 })
                 .modules(new PermissionModule())
                 .waitForInitialRemoteData()
-                .readOnly()
+                // FIXME: Something is seriously wrong with the Permission Realm. It doesn't seem to
+                // exist on the server. Making it impossible to mark it read only
+                //.readOnly()
                 .build();
     }
 
