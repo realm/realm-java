@@ -3,6 +3,7 @@
 ### Bug Fixes
 
 * Added support for ISO8601 2-digit time zone designators (#5309).
+* [ObjectServer] Fixed "Cannot open the read only Realm" issue when get`PermissionManager` (#5414).
 
 ### Credits
 
