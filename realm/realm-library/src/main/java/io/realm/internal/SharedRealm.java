@@ -211,8 +211,10 @@ public final class SharedRealm implements Closeable, NativeObject {
      * are different {@code shared_ptr}, they point to the same {@code SharedGroup} instance. The {@code context} has
      * to be the same one to ensure core's destructor thread safety.
      * <p>
-     * WARNING: The {@code SharedRealm} pointer holds by this instance is not managed by the
-     * {@link java.lang.ref.PhantomReference}. {@link #delete()} needs to be called to free the memory.
+     * WARNING: Java doesn't own the {@code SharedRealm} pointer holds by this instance, thus it is not managed by the
+     * {@link java.lang.ref.PhantomReference}. For public APIs which creates {@code Realm} or {@code DynamicRealm}, it
+     * is very important to set the {@code SharedRealm} member to {@code null} at the end of the callback. Expose this
+     * after the callback returns may cause a invalid pointer native crash.
      */
     private SharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
         this.nativePtr = nativeSharedRealmPtr;
@@ -389,18 +391,6 @@ public final class SharedRealm implements Closeable, NativeObject {
         }
     }
 
-    /**
-     * To delete {@code SharedRealm} pointer only if this instance is not managed by
-     * {@link java.lang.ref.PhantomReference}.
-     */
-    private void delete() {
-        if (isManagedByPhantomRef) {
-            throw new IllegalStateException("This 'SharedRealm' pointer is managed by PhantomReference." +
-                    " It should not be manually deleted");
-        }
-        NativeObjectReference.nativeCleanUp(nativeFinalizerPtr, nativePtr);
-    }
-
     @Override
     public long getNativePtr() {
         return nativePtr;
@@ -500,12 +490,8 @@ public final class SharedRealm implements Closeable, NativeObject {
     private static void runMigrationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, MigrationCallback callback,
                                              long oldVersion) {
         SharedRealm sharedRealm = new SharedRealm(nativeSharedRealmPtr, osRealmConfig);
-        try {
-            callback.onMigrationNeeded(sharedRealm, oldVersion,
-                    osRealmConfig.getRealmConfiguration().getSchemaVersion());
-        } finally {
-            sharedRealm.delete();
-        }
+        callback.onMigrationNeeded(sharedRealm, oldVersion,
+                osRealmConfig.getRealmConfiguration().getSchemaVersion());
     }
 
     /**
@@ -516,11 +502,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     @SuppressWarnings("unused")
     private static void runInitializationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, InitializationCallback callback) {
         SharedRealm sharedRealm = new SharedRealm(nativeSharedRealmPtr, osRealmConfig);
-        try {
-            callback.onInit(sharedRealm);
-        } finally {
-            sharedRealm.delete();
-        }
+        callback.onInit(sharedRealm);
     }
 
     /**

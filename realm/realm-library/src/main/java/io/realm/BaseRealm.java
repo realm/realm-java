@@ -35,7 +35,6 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
@@ -112,7 +111,10 @@ abstract class BaseRealm implements Closeable {
             initializationCallback = new SharedRealm.InitializationCallback() {
                 @Override
                 public void onInit(SharedRealm sharedRealm) {
-                    initialDataTransaction.execute(Realm.createInstance(sharedRealm));
+                    Realm realm = Realm.createInstance(sharedRealm);
+                    initialDataTransaction.execute(realm);
+                    // The sharedRealm here doesn't own the pointer! Set this.sharedRealm to null.
+                    realm.doClose();
                 }
             };
         }
@@ -712,7 +714,10 @@ abstract class BaseRealm implements Closeable {
         return new SharedRealm.MigrationCallback() {
             @Override
             public void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion) {
-                migration.migrate(DynamicRealm.createInstance(sharedRealm), oldVersion, newVersion);
+                DynamicRealm dynamicRealm = DynamicRealm.createInstance(sharedRealm);
+                migration.migrate(dynamicRealm, oldVersion, newVersion);
+                // The sharedRealm here doesn't own the pointer! Set this.sharedRealm to null.
+                dynamicRealm.doClose();
             }
         };
     }

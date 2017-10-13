@@ -142,16 +142,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
             config.migration_function = [j_migration_cb_weak, j_config_weak](SharedRealm old_realm,
                                                                                  SharedRealm realm, Schema&) {
                 JNIEnv* env = JniUtils::get_env(false);
-                // Java needs a new pointer for the SharedRealm life control.
-                SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
                 JavaGlobalRef config_global = j_config_weak.global_ref(env);
                 if (!config_global) {
                     return;
                 }
 
                 j_migration_cb_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                    // Java doesn't own the &realm pointer!
                     env->CallStaticVoidMethod(get_shared_realm_class(env), run_migration_callback_method,
-                                              reinterpret_cast<jlong>(new_shared_realm_ptr), config_global.get(), obj,
+                                              reinterpret_cast<jlong>(&realm), config_global.get(), obj,
                                               old_realm->schema_version());
                 });
                 TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env);
@@ -215,15 +214,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
             JavaGlobalWeakRef j_config_weak(env, j_config);
             config.initialization_function = [j_init_cb_weak, j_config_weak](SharedRealm realm) {
                 JNIEnv* env = JniUtils::get_env(false);
-                // Java needs a new pointer for the SharedRealm life control.
-                SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
                 JavaGlobalRef config_global_ref = j_config_weak.global_ref(env);
                 if (!config_global_ref) {
                     return;
                 }
                 j_init_cb_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                    // Java doesn't own the &realm pointer!!
                     env->CallStaticVoidMethod(get_shared_realm_class(env), run_initialization_callback_method,
-                                              reinterpret_cast<jlong>(new_shared_realm_ptr), config_global_ref.get(),
+                                              reinterpret_cast<jlong>(&realm), config_global_ref.get(),
                                               obj);
                 });
                 TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env);
