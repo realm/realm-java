@@ -119,7 +119,7 @@ public class RealmProxyMediatorGenerator {
     private void emitFields(JavaWriter writer) throws IOException {
         writer.emitField("Set<Class<? extends RealmModel>>", "MODEL_CLASSES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true);
-        writer.emitStatement("Set<Class<? extends RealmModel>> modelClasses = new HashSet<Class<? extends RealmModel>>()");
+        writer.emitStatement("Set<Class<? extends RealmModel>> modelClasses = new HashSet<Class<? extends RealmModel>>(%s)", qualifiedModelClasses.size());
         for (String clazz : qualifiedModelClasses) {
             writer.emitStatement("modelClasses.add(%s.class)", clazz);
         }
@@ -137,7 +137,7 @@ public class RealmProxyMediatorGenerator {
 
         writer.emitStatement(
                 "Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap = " +
-                        "new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>()");
+                        "new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>(%s)", qualifiedProxyClasses.size());
         for (int i = 0; i < qualifiedProxyClasses.size(); i++) {
             writer.emitStatement("infoMap.put(%s.class, %s.getExpectedObjectSchemaInfo())",
                     qualifiedModelClasses.get(i), qualifiedProxyClasses.get(i));

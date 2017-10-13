@@ -18,7 +18,6 @@ package io.realm;
 
 import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
-import android.text.style.TabStopSpan;
 
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -34,7 +33,6 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

@@ -64,12 +64,12 @@ class MutableRealmSchema extends RealmSchema {
         String internalTableName = checkAndGetTableNameFromClassName(className);
 
         RealmObjectSchema.FieldMetaData metadata = RealmObjectSchema.getSupportedSimpleFields().get(fieldType);
-        if (metadata == null || (metadata.realmType != RealmFieldType.STRING &&
-                metadata.realmType != RealmFieldType.INTEGER)) {
+        if (metadata == null || (metadata.fieldType != RealmFieldType.STRING &&
+                metadata.fieldType != RealmFieldType.INTEGER)) {
             throw new IllegalArgumentException(String.format("Realm doesn't support primary key field type '%s'.",
                     fieldType));
         }
-        boolean isStringField = (metadata.realmType == RealmFieldType.STRING);
+        boolean isStringField = (metadata.fieldType == RealmFieldType.STRING);
 
         boolean nullable = metadata.defaultNullable;
         if (MutableRealmObjectSchema.containsAttribute(attributes, FieldAttribute.REQUIRED)) {

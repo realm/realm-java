@@ -81,7 +81,9 @@ public interface Row {
 
     boolean isNullLink(long columnIndex);
 
-    OsList getLinkList(long columnIndex);
+    OsList getModelList(long columnIndex);
+
+    OsList getValueList(long columnIndex, RealmFieldType fieldType);
 
     void setLong(long columnIndex, long value);
 

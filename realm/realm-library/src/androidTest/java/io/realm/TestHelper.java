@@ -92,21 +92,29 @@ public class TestHelper {
     }
 
     public static RealmFieldType getColumnType(Object o) {
-        if (o instanceof Boolean)
+        if (o instanceof Boolean) {
             return RealmFieldType.BOOLEAN;
-        if (o instanceof String)
+        }
+        if (o instanceof String) {
             return RealmFieldType.STRING;
-        if (o instanceof Long)
+        }
+        if (o instanceof Long) {
             return RealmFieldType.INTEGER;
-        if (o instanceof Float)
+        }
+        if (o instanceof Float) {
             return RealmFieldType.FLOAT;
-        if (o instanceof Double)
+        }
+        if (o instanceof Double) {
             return RealmFieldType.DOUBLE;
-        if (o instanceof Date)
+        }
+        if (o instanceof Date) {
             return RealmFieldType.DATE;
-        if (o instanceof byte[])
+        }
+        if (o instanceof byte[]) {
             return RealmFieldType.BINARY;
-        return RealmFieldType.UNSUPPORTED_MIXED;
+        }
+
+        throw new IllegalArgumentException("Unsupported type");
     }
 
     /**
@@ -203,8 +211,6 @@ public class TestHelper {
                         table.setBinaryByteArray(columnIndex, rowIndex, (byte[]) value, false);
                     }
                     break;
-                case UNSUPPORTED_MIXED:
-                case UNSUPPORTED_TABLE:
                 default:
                     throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int) columnIndex]));
             }

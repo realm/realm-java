@@ -141,9 +141,11 @@ public class RealmListTests extends CollectionTests {
         assertEquals(object, list.get(0));
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void add_nullInUnmanagedMode() {
-        new RealmList<AllTypes>().add(null);
+        final RealmList<AllTypes> list = new RealmList<>();
+        assertTrue(list.add(null));
+        assertEquals(1, list.size());
     }
 
     @Test
@@ -189,9 +191,25 @@ public class RealmListTests extends CollectionTests {
         assertEquals("Dog 42", collection.get(0).getName());
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
+    public void add_objectAtInvalidIndexInManagedModeThrows() {
+        final int initialDogCount = realm.where(Dog.class).findAll().size();
+
+        realm.beginTransaction();
+        try {
+            final int invalidIndex = collection.size() + 1;
+            collection.add(invalidIndex, new Dog("Dog 42"));
+            fail();
+        } catch (IndexOutOfBoundsException e) {
+            assertEquals(initialDogCount, realm.where(Dog.class).findAll().size());
+        }
+    }
+
+    @Test
     public void add_nullAtIndexInUnmanagedMode() {
-        new RealmList<AllTypes>().add(0, null);
+        final RealmList<AllTypes> list = new RealmList<>();
+        list.add(0, null);
+        assertEquals(1, list.size());
     }
 
     @Test
@@ -223,11 +241,9 @@ public class RealmListTests extends CollectionTests {
 
     @Test
     public void set_nullInUnmanagedMode() {
-        @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        RealmList<AllTypes> list = new RealmList<>();
         list.add(new AllTypes());
-        thrown.expect(IllegalArgumentException.class);
-        list.set(0, null);
+        assertNotNull(list.set(0, null));
     }
 
     @Test
@@ -684,12 +700,12 @@ public class RealmListTests extends CollectionTests {
     @Test
     public void toString_AfterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
-        assertEquals("Dog@[invalid]", dogs.toString());
+        assertEquals("RealmList<Dog>@[invalid]", dogs.toString());
     }
 
     @Test
     public void toString_managedMode() {
-        StringBuilder sb = new StringBuilder("Dog@[");
+        StringBuilder sb = new StringBuilder("RealmList<Dog>@[");
         for (int i = 0; i < collection.size() - 1; i++) {
             sb.append(((RealmObjectProxy) (collection.get(i))).realmGet$proxyState().getRow$realm().getIndex());
             sb.append(",");
@@ -894,6 +910,7 @@ public class RealmListTests extends CollectionTests {
         dynamicRealm.beginTransaction();
         RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
                 .getList(Owner.FIELD_DOGS);
+        list.add(dynamicRealm.createObject(Dog.CLASS_NAME));
         DynamicRealmObject dynCat = dynamicRealm.createObject(Cat.CLASS_NAME);
 
         try {
@@ -934,6 +951,7 @@ public class RealmListTests extends CollectionTests {
         dynamicRealm.beginTransaction();
         RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
                 .getList(Owner.FIELD_DOGS);
+        list.add(dynamicRealm.createObject(Dog.CLASS_NAME));
 
         try {
             list.add(dynDog);
@@ -1084,7 +1102,7 @@ public class RealmListTests extends CollectionTests {
         realm.commitTransaction();
         assertEquals(sizeBefore - 1, collection.size());
 
-        assertNotNull(collection.osList);
-        assertEquals(collection.osList.getTargetTable().getName(), snapshot.getTable().getName());
+        assertNotNull(collection.getOsList());
+        assertEquals(collection.getOsList().getTargetTable().getName(), snapshot.getTable().getName());
     }
 }

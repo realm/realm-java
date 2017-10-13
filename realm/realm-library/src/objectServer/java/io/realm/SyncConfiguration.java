@@ -88,6 +88,8 @@ public class SyncConfiguration extends RealmConfiguration {
     @Nullable
     private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
+    private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
+    private final boolean isPartial;
 
     private SyncConfiguration(File directory,
                                 String filename,
@@ -116,7 +118,9 @@ public class SyncConfiguration extends RealmConfiguration {
                                 String serverCertificateAssetName,
                                 @Nullable
                                 String serverCertificateFilePath,
-                                boolean waitForInitialData
+                                boolean waitForInitialData,
+                                OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
+                                boolean isPartial
     ) {
         super(directory,
                 filename,
@@ -143,6 +147,8 @@ public class SyncConfiguration extends RealmConfiguration {
         this.serverCertificateAssetName = serverCertificateAssetName;
         this.serverCertificateFilePath = serverCertificateFilePath;
         this.waitForInitialData = waitForInitialData;
+        this.sessionStopPolicy = sessionStopPolicy;
+        this.isPartial = isPartial;
     }
 
     /**
@@ -346,6 +352,32 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
+     * NOTE: Only for internal usage. May change without warning.
+     *
+     * Returns the stop policy for the session for this Realm once the Realm has been closed.
+     *
+     * @return the stop policy used by the session once the Realm is closed.
+     */
+    public OsRealmConfig.SyncSessionStopPolicy getSessionStopPolicy() {
+        return sessionStopPolicy;
+    }
+
+    /**
+     * Whether this configuration is for a partial synchronization Realm.
+     * Partial synchronization allows a synchronized Realm to be opened in such a way that
+     * only objects requested by the user are synchronized to the device. You can use it by setting
+     * the {@link Builder#partialRealm()}, opening the Realm, and then calling
+     * {@link Realm#subscribeToObjects(Class, String, Realm.PartialSyncCallback)} with the type of
+     * object you're interested in, a string containing a query determining which objects you want
+     * to subscribe to, and a callback which will report the results.
+     *
+     * @return {@code true} to open a partial synchronization Realm {@code false} otherwise.
+     */
+    public boolean isPartialRealm() {
+        return isPartial;
+    }
+
+    /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */
     public static final class Builder  {
@@ -379,7 +411,8 @@ public class SyncConfiguration extends RealmConfiguration {
         private String serverCertificateAssetName;
         @Nullable
         private String serverCertificateFilePath;
-
+        private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
+        private boolean isPartial = false;
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
          * <p>
@@ -614,6 +647,18 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * DEBUG method. This makes it possible to define different policies for when a session should be stopped when
+         * the Realm is closed.
+         *
+         * @param policy how a session for a Realm should behave when the Realm is closed.
+         */
+        SyncConfiguration.Builder sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy policy) {
+            sessionStopPolicy = policy;
+            return this;
+        }
+
+
+        /**
          * Sets the schema version of the Realm.
          * <p>
          * Synced Realms only support additive schema changes which can be applied without requiring a manual
@@ -793,6 +838,15 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
+        /**
+         * Setting this will open a partially synchronized Realm.
+         * @see #isPartialRealm()
+         */
+        public SyncConfiguration.Builder partialRealm() {
+            this.isPartial = true;
+            return this;
+        }
+
         private String MD5(String in) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -937,7 +991,9 @@ public class SyncConfiguration extends RealmConfiguration {
                     syncClientValidateSsl,
                     serverCertificateAssetName,
                     serverCertificateFilePath,
-                    waitForServerChanges
+                    waitForServerChanges,
+                    sessionStopPolicy,
+                    isPartial
             );
         }
 

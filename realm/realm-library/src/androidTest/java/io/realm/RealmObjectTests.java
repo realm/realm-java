@@ -22,6 +22,7 @@ import android.support.test.runner.AndroidJUnit4;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -48,6 +49,7 @@ import io.realm.entities.ConflictingFieldName;
 import io.realm.entities.CustomMethods;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringAndInt;
 import io.realm.entities.pojo.AllTypesRealmModel;
@@ -119,7 +121,7 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals(10, row.getColumnCount());
+        assertEquals(17, row.getColumnCount());
     }
 
     @Test
@@ -904,6 +906,37 @@ public class RealmObjectTests {
 
         // Waits for finishing the thread.
         thread.join();
+    }
+
+    @Test
+    public void setter_list_ownList() {
+        // Create initial list
+        realm.beginTransaction();
+        RealmList<AllJavaTypes> allTypesRealmModels = new RealmList<>();
+        for (int i = 0; i < 2; i++) {
+            allTypesRealmModels.add(new AllJavaTypes(i));
+        }
+        AllJavaTypes model = new AllJavaTypes(2);
+        model.setFieldList(allTypesRealmModels);
+        model = realm.copyToRealm(model);
+        realm.commitTransaction();
+        assertEquals(2, model.getFieldList().size());
+
+        // Check that setting own list does not clear it by accident.
+        realm.beginTransaction();
+        model.setFieldList(model.getFieldList());
+        realm.commitTransaction();
+        assertEquals(2, model.getFieldList().size());
+
+        // Check that a unmanaged list throws the correct exception
+        realm.beginTransaction();
+        RealmList<AllJavaTypes> unmanagedList = new RealmList<>();
+        unmanagedList.addAll(realm.copyFromRealm(model.getFieldList()));
+        try {
+            model.setFieldList(unmanagedList);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     @Test
@@ -2119,5 +2152,14 @@ public class RealmObjectTests {
         } catch (IllegalArgumentException expected) {
             assertThat(expected.getMessage(), CoreMatchers.containsString("which exceeds the max string length"));
         }
+    }
+
+    @Test
+    public void setter_nonLatinFieldName() {
+        // Reproduces https://github.com/realm/realm-java/pull/5346
+        realm.beginTransaction();
+        NonLatinFieldNames obj = realm.createObject(NonLatinFieldNames.class);
+        obj.setΔέλτα(42);
+        realm.commitTransaction();
     }
 }

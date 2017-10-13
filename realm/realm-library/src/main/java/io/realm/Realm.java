@@ -46,9 +46,10 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.reactivex.Flowable;
 import javax.annotation.Nullable;
 
+import io.reactivex.Flowable;
+import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -245,7 +246,11 @@ public class Realm extends BaseRealm {
             RealmCore.loadLibrary(context);
             setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
-            BaseRealm.applicationContext = context.getApplicationContext();
+            if (context.getApplicationContext() != null) {
+                BaseRealm.applicationContext = context.getApplicationContext();
+            } else {
+                BaseRealm.applicationContext = context;
+            }
             SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
         }
     }
@@ -432,6 +437,9 @@ public class Realm extends BaseRealm {
      * JSON properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the
      * JSON object the {@link RealmObject} field will be set to the default value for that type.
      *
+     * <p>
+     * This method currently does not support value list field.
+     *
      * @param clazz type of Realm objects to create.
      * @param json an array where each JSONObject must map to the specified class.
      * @throws RealmException if mapping from JSON fails.
@@ -460,6 +468,9 @@ public class Realm extends BaseRealm {
      * If updating a {@link RealmObject} and a field is not found in the JSON object, that field will not be updated. If
      * a new {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned the
      * default value for the field type.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json array with object data.
@@ -490,6 +501,9 @@ public class Realm extends BaseRealm {
      * JSON properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the
      * JSON object the {@link RealmObject} field will be set to the default value for that type.
      *
+     * <p>
+     * This method currently does not support value list field.
+     *
      * @param clazz type of Realm objects to create.
      * @param json the JSON array as a String where each object can map to the specified class.
      * @throws RealmException if mapping from JSON fails.
@@ -518,6 +532,9 @@ public class Realm extends BaseRealm {
      * If updating a {@link RealmObject} and a field is not found in the JSON object, that field will not be updated.
      * If a new {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned
      * the default value for the field type.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json string with an array of JSON objects.
@@ -551,6 +568,9 @@ public class Realm extends BaseRealm {
      * JSON object the {@link RealmObject} field will be set to the default value for that type.
      * <p>
      * This API is only available in API level 11 or later.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of Realm objects created.
      * @param inputStream the JSON array as a InputStream. All objects in the array must be of the specified class.
@@ -587,6 +607,9 @@ public class Realm extends BaseRealm {
      * the default value for the field type.
      * <p>
      * This API is only available in API level 11 or later.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the InputStream with a list of object data in JSON format.
@@ -628,6 +651,9 @@ public class Realm extends BaseRealm {
      * properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the JSON
      * object the {@link RealmObject} field will be set to the default value for that type.
      *
+     * <p>
+     * This method currently does not support value list field.
+     *
      * @param clazz type of Realm object to create.
      * @param json the JSONObject with object data.
      * @return created object or {@code null} if no JSON data was provided.
@@ -657,6 +683,9 @@ public class Realm extends BaseRealm {
      * and a field is not found in the JSON object, that field will not be updated. If a new {@link RealmObject} is
      * created and a field is not found in the JSON object, that field will be assigned the default value for the field type.
      *
+     * <p>
+     * This method currently does not support value list field.
+     *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json {@link org.json.JSONObject} with object data.
      * @return created or updated {@link io.realm.RealmObject}.
@@ -684,6 +713,9 @@ public class Realm extends BaseRealm {
      * Creates a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
      * properties with unknown properties will be ignored. If a {@link RealmObject} field is not present in the JSON
      * object the {@link RealmObject} field will be set to the default value for that type.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of Realm object to create.
      * @param json the JSON string with object data.
@@ -715,6 +747,9 @@ public class Realm extends BaseRealm {
      * {@link RealmObject} and a field is not found in the JSON object, that field will not be updated. If a new
      * {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned the
      * default value for the field type.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json string with object data in JSON format.
@@ -749,6 +784,9 @@ public class Realm extends BaseRealm {
      * object the {@link RealmObject} field will be set to the default value for that type.
      * <p>
      * This API is only available in API level 11 or later.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of Realm object to create.
      * @param inputStream the JSON object data as a InputStream.
@@ -804,6 +842,9 @@ public class Realm extends BaseRealm {
      * default value for the field type.
      * <p>
      * This API is only available in API level 11 or later.
+     *
+     * <p>
+     * This method currently does not support value list field.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the {@link InputStream} with object data in JSON format.
@@ -1648,6 +1689,44 @@ public class Realm extends BaseRealm {
         return BaseRealm.compactRealm(configuration);
     }
 
+    /**
+     * If the Realm is a partially synchronized Realm, fetch and synchronize the objects of a given
+     * object type that match the given query (in string format).
+     *
+     * The results will be returned asynchronously in the callback.
+     *
+     * @param clazz the class to query.
+     * @param query string query.
+     * @param callback A callback used to vend the results of a partial sync fetch.
+     * @throws IllegalStateException if it is called from a non-Looper or {@link IntentService} thread.
+     * @throws IllegalStateException if called from a non-synchronized (Realm Object Server) Realm.
+     */
+    @Beta
+    public <E extends RealmModel> void subscribeToObjects(final Class<E> clazz, String query, final PartialSyncCallback<E> callback) {
+        checkIfValid();
+        if (!configuration.isSyncConfiguration()) {
+            throw new IllegalStateException("Partial sync is only available for synchronized Realm (Realm Object Server)");
+        }
+
+        sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+
+        String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
+        SharedRealm.PartialSyncCallback internalCallback = new SharedRealm.PartialSyncCallback(className) {
+            @Override
+            public void onSuccess(io.realm.internal.Collection osResults) {
+                RealmResults<E> results = new RealmResults<>(Realm.this, osResults, clazz);
+                callback.onSuccess(results);
+            }
+
+            @Override
+            public void onError(RealmException error) {
+                callback.onError(error);
+            }
+        };
+
+        sharedRealm.registerPartialSyncQuery(query, internalCallback);
+    }
+
     Table getTable(Class<? extends RealmModel> clazz) {
         return schema.getTable(clazz);
     }
@@ -1763,5 +1842,10 @@ public class Realm extends BaseRealm {
         public void onError(Throwable exception) {
             super.onError(exception);
         }
+    }
+
+    public static abstract class PartialSyncCallback<T extends RealmModel> {
+        public abstract void onSuccess(RealmResults<T> results);
+        public abstract void onError(RealmException error);
     }
 }

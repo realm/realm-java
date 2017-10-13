@@ -37,7 +37,7 @@ ext.coreDir = file(project.coreSourcePath ?
 ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
 // Set to true to enable linking with debug core.
-ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : true
+ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false //FIXME Use 'false' as default until https://github.com/realm/realm-java/issues/5354 is fixed
 
 android {
     compileSdkVersion 26
@@ -61,6 +61,7 @@ android {
                         "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
+                if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=$project.coreSourcePath"
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
@@ -120,7 +121,7 @@ android {
         abortOnError false
     }
 
-   flavorDimensions 'api'
+    flavorDimensions 'api'
 
     productFlavors {
         base {
@@ -156,6 +157,14 @@ android {
 project.afterEvaluate {
     tasks.withType(JavaCompile) {
         options.compilerArgs << '-Werror'
+    }
+
+    tasks.all { task ->
+        android.productFlavors.all { flavor ->
+            if (task.name == "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal") {
+                task.dependsOn "assemble${flavor.name.capitalize()}"
+            }
+        }
     }
 }
 
@@ -496,35 +505,9 @@ task downloadCore() {
     }
 }
 
-task compileCore(group: 'build setup', description: 'Compile the core library from source code') {
-    // Build the library from core source code
-    doFirst {
-        if (!coreSourcePath) {
-            throw new GradleException('The coreSourcePath is not set.')
-        }
-        exec {
-            workingDir = coreSourcePath
-            commandLine = [
-                    "bash",
-                    "build.sh",
-                    "build-android"
-            ]
-        }
-    }
-
-    // Copy the core tar ball
-    doLast {
-        copy {
-            from "${coreSourcePath}/realm-core-android-${coreVersion}.tar.gz"
-            into project.coreArchiveFile.parent
-            rename "realm-core-android-${coreVersion}.tar.gz", "realm-sync-android-${coreVersion}.tar.gz"
-        }
-    }
-}
-
 task deployCore(group: 'build setup', description: 'Deploy the latest version of Realm Core') {
     dependsOn {
-        coreSourcePath ? compileCore : downloadCore
+        downloadCore
     }
 
     // Build with the output from core source dir. No need to deploy anything.
@@ -582,6 +565,17 @@ project.afterEvaluate {
         variant.externalNativeBuildTasks[0].dependsOn(checkNdk)
         if (project.hasProperty('buildTargetABIs') && project.getProperty('buildTargetABIs').trim().isEmpty()) {
             variant.externalNativeBuildTasks[0].enabled = false
+        }
+
+        // all Java files must be compiled before native build
+        android.libraryVariants.all { anotherVariant ->
+            if (variant.flavorName == anotherVariant.flavorName) {
+                variant.externalNativeBuildTasks[0].dependsOn("compile${anotherVariant.name.capitalize()}JavaWithJavac")
+            }
+        }
+        // as of android gradle plugin 3.0.0-alpha5, generateJsonModel* triggers native build. Java files must be compiled before them.
+        android.buildTypes.all { buildType ->
+            tasks["generateJsonModel${variant.name.capitalize()}"].dependsOn "compile${variant.flavorName.capitalize()}${buildType.name.capitalize()}JavaWithJavac"
         }
     }
 }

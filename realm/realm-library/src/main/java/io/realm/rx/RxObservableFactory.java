@@ -67,7 +67,7 @@ public interface RxObservableFactory {
      * @param <E> type of RealmObject
      * @return Rx observable that emit all updates to the RealmObject.
      */
-    <E extends RealmModel> Flowable<RealmResults<E>> from(Realm realm, RealmResults<E> results);
+    <E> Flowable<RealmResults<E>> from(Realm realm, RealmResults<E> results);
 
     /**
      * Creates an Observable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
@@ -82,7 +82,7 @@ public interface RxObservableFactory {
      * @param <E> type of RealmObject
      * @return Rx observable that emit all updates + their changeset.
      */
-    <E extends RealmModel> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(Realm realm, RealmResults<E> results);
+    <E> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(Realm realm, RealmResults<E> results);
 
     /**
      * Creates a Flowable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
@@ -94,7 +94,7 @@ public interface RxObservableFactory {
      * @param realm {@link DynamicRealm} instance results are coming from.
      * @return Rx observable that emit all updates to the RealmResults.
      */
-    Flowable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results);
+    <E> Flowable<RealmResults<E>> from(DynamicRealm realm, RealmResults<E> results);
 
     /**
      * Creates an Observable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
@@ -108,7 +108,7 @@ public interface RxObservableFactory {
      * @param realm {@link Realm} instance results are coming from.
      * @return Rx observable that emit all updates + their changeset.
      */
-    Observable<CollectionChange<RealmResults<DynamicRealmObject>>> changesetsFrom(DynamicRealm realm, RealmResults<DynamicRealmObject> results);
+    <E> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(DynamicRealm realm, RealmResults<E> results);
 
     /**
      * Creates an Observable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
@@ -120,9 +120,9 @@ public interface RxObservableFactory {
      *
      * @param list RealmObject to listen to changes for.
      * @param realm {@link Realm} instance list is coming from.
-     * @param <E> type of RealmObject
+     * @param <E> type of query target
      */
-    <E extends RealmModel> Flowable<RealmList<E>> from(Realm realm, RealmList<E> list);
+    <E> Flowable<RealmList<E>> from(Realm realm, RealmList<E> list);
 
     /**
      * Creates an Observable for a {@link RealmList}. It should emit the initial RealmList when subscribed to and
@@ -137,7 +137,7 @@ public interface RxObservableFactory {
      * @param <E> type of RealmObject
      * @return Rx observable that emit all updates + their changeset.
      */
-    <E extends RealmModel> Observable<CollectionChange<RealmList<E>>> changesetsFrom(Realm realm, RealmList<E> list);
+    <E> Observable<CollectionChange<RealmList<E>>> changesetsFrom(Realm realm, RealmList<E> list);
 
     /**
      * Creates a Flowable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
@@ -150,7 +150,7 @@ public interface RxObservableFactory {
      * @param list RealmList to listen to changes for.
      * @param realm {@link DynamicRealm} instance list is coming from.
      */
-    Flowable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list);
+    <E> Flowable<RealmList<E>> from(DynamicRealm realm, RealmList<E> list);
 
     /**
      * Creates an Observable for a {@link RealmList}. It should emit the initial RealmList when subscribed to and
@@ -164,7 +164,7 @@ public interface RxObservableFactory {
      * @param realm {@link Realm} instance list is coming from.
      * @return Rx observable that emit all updates + their changeset.
      */
-    Observable<CollectionChange<RealmList<DynamicRealmObject>>> changesetsFrom(DynamicRealm realm, RealmList<DynamicRealmObject> list);
+    <E> Observable<CollectionChange<RealmList<E>>> changesetsFrom(DynamicRealm realm, RealmList<E> list);
 
     /**
      * Creates a Flowable for a {@link RealmObject}. It should emit the initial object when subscribed to and on each
@@ -174,7 +174,7 @@ public interface RxObservableFactory {
      *
      * @param object RealmObject to listen to changes for.
      * @param realm {@link Realm} instance object is coming from.
-     * @param <E> type of RealmObject
+     * @param <E> type of query target
      */
     <E extends RealmModel> Flowable<E> from(Realm realm, E object);
 
@@ -223,9 +223,9 @@ public interface RxObservableFactory {
      *
      * @param query RealmQuery to emit.
      * @param realm {@link Realm} instance query is coming from.
-     * @param <E> type of RealmObject
+     * @param <E> type of query target
      */
-    <E extends RealmModel> Single<RealmQuery<E>> from(Realm realm, RealmQuery<E> query);
+    <E> Single<RealmQuery<E>> from(Realm realm, RealmQuery<E> query);
 
     /**
      * Creates a Single from a {@link RealmQuery}. It should emit the query and then complete.
@@ -235,5 +235,5 @@ public interface RxObservableFactory {
      * @param query RealmObject to listen to changes for.
      * @param realm {@link DynamicRealm} instance query is coming from.
      */
-    Single<RealmQuery<DynamicRealmObject>> from(DynamicRealm realm, RealmQuery<DynamicRealmObject> query);
+    <E> Single<RealmQuery<E>> from(DynamicRealm realm, RealmQuery<E> query);
 }

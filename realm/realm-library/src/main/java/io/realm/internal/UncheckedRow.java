@@ -173,7 +173,12 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public OsList getLinkList(long columnIndex) {
+    public OsList getModelList(long columnIndex) {
+        return new OsList(this, columnIndex);
+    }
+
+    @Override
+    public OsList getValueList(long columnIndex, RealmFieldType fieldType) {
         return new OsList(this, columnIndex);
     }
 
