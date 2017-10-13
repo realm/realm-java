@@ -6,6 +6,7 @@ const spawn = require('child_process').spawn;
 const exec = require('child_process').exec;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
+var fs = require('fs-extra');
 
 // Automatically track and cleanup files at exit
 temp.track();
@@ -63,9 +64,23 @@ function startRealmObjectServer(onSuccess, onError) {
             var env = Object.create( process.env );
             winston.info(env.NODE_ENV);
             env.NODE_ENV = 'development';
+
+            // Manually cleanup Global Notifier State
+            // See https://github.com/realm/ros/issues/437#issuecomment-335380095
+            var globalNotifierDir = path + '/realm-object-server';
+            winston.info('Cleaning state in: ' + globalNotifierDir);
+            fs.removeSync(globalNotifierDir)
+            if (fs.existsSync(globalNotifierDir)) {
+                onError("Could not delete the global notifier directory: " + globalNotifierDir);
+                return;
+            }
+            fs.mkdirsSync(path + '/realm-object-server/io.realm.object-server-utility/metadata/')
+
+            // Start ROS
             syncServerChildProcess = spawn('ros',
                     ['start',
                         '--data', path,
+                        // '--loglevel', 'detail', // Enable when debugging
                         '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
                     ],
                     { env: env, cwd: path});

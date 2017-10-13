@@ -497,7 +497,6 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
-    @Ignore("See https://github.com/realm/ros/issues/360")
     public void revokedRefreshTokenIsNotSameAfterLogin() throws InterruptedException {
         final CountDownLatch userLoggedInAgain = new CountDownLatch(1);
         final String uniqueName = UUID.randomUUID().toString();
@@ -536,7 +535,6 @@ public class AuthTests extends StandardIntegrationTest {
     // WARNING: this test can fail if there's a difference between the server's and device's clock, causing the
     // refresh access token to be too far in time.
     @Test(timeout = 30000)
-    @Ignore("Resolve https://github.com/realm/ros/issues/277")
     public void preemptiveTokenRefresh() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
 

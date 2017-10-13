@@ -5,4 +5,5 @@ REALM_SYNC_SHA256=2d3661cdb94d6509b4a43d6daab17c9223fbb1e6608e317205bd61b4ef1b95
 
 # Object Server Release used by Integration tests. Installed using NPM.
 # Use `npm view realm-object-server versions` to get a list of available versions.
-REALM_OBJECT_SERVER_DE_VERSION=2.0.0-rc.4
+REALM_OBJECT_SERVER_DE_VERSION=2.0.0-rc.5
+
