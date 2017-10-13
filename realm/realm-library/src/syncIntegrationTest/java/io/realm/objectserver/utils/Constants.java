@@ -18,7 +18,7 @@ package io.realm.objectserver.utils;
 
 public class Constants {
 
-    private static String HOST = "192.168.87.111";
+    private static String HOST = "127.0.0.1";
     public static final String USER_REALM = "realm://" + HOST + ":9080/~/tests";
     public static final String USER_REALM_2 = "realm://" + HOST + ":9080/~/tests2";
     public static final String USER_REALM_SECURE = "realms://" + HOST + ":9443/~/tests";
@@ -27,6 +27,4 @@ public class Constants {
 
     public static final String AUTH_SERVER_URL = "http://" + HOST + ":9080/";
     public static final String AUTH_URL = AUTH_SERVER_URL + "auth";
-
-    public static final long TEST_TIMEOUT_SECS = 300;
 }
