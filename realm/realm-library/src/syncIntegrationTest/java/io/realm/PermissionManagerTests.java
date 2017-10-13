@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.OsRealmConfig;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
@@ -161,7 +162,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 assertInitialPermissions(permissions);
 
                 for (int i = 0; i < TEST_SIZE; i++) {
-                    SyncConfiguration configNew = new SyncConfiguration.Builder(user, "realm://127.0.0.1:9080/~/test" + i).build();
+                    SyncConfiguration configNew = new SyncConfiguration.Builder(user, "realm://" + Constants.HOST + "/~/test" + i).build();
                     Realm newRealm = Realm.getInstance(configNew);
                     looperThread.closeAfterTest(newRealm);
                 }
@@ -171,6 +172,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults<Permission> permissions) {
+                        RealmLog.error(String.format("Size: %s, Permissions: %s", permissions.size(), Arrays.toString(permissions.toArray())));
                         Permission p = permissions.where().endsWith("path", "test" + (TEST_SIZE - 1)).findFirst();
                         if (p != null) {
                             assertTrue(p.mayRead());
