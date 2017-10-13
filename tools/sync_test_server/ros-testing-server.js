@@ -81,8 +81,7 @@ function startRealmObjectServer(onSuccess, onError) {
                     ['start',
                         '--data', path,
                         '--loglevel', 'detail',
-                        // Temporary disable TTL to see if this is the root cause
-                        //'--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
+                        '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
                     ],
                     { env: env, cwd: path});
 
