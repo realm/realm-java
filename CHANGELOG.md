@@ -5,10 +5,17 @@
 ## Enhancements
 
 * All Realm annotations are now kept at runtime, allowing runtime tools access to them (#5344).
+* Speedup schema initialization when a Realm file is first accessed (#5391).
 
 ## Bug Fixes
 
+* Assigning a managed object's own list to itself would accidentally clear it (#5395).
+* Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
+
 ## Internal
+
+* Upgraded to Realm Sync 2.0.0.
+* Upgraded to Realm Core 4.0.2.
 
 ## Credits
 

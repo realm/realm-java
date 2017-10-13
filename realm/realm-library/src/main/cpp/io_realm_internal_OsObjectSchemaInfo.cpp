@@ -16,11 +16,14 @@
 
 #include "io_realm_internal_OsObjectSchemaInfo.h"
 
+#include <realm/util/assert.hpp>
+
 #include <object_schema.hpp>
 #include <property.hpp>
 
-#include "jni_util/java_exception_thrower.hpp"
+#include "java_accessor.hpp"
 #include "java_exception_def.hpp"
+#include "jni_util/java_exception_thrower.hpp"
 #include "util.hpp"
 
 using namespace realm;
@@ -53,24 +56,33 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetFinal
     return reinterpret_cast<jlong>(&finalize_object_schema);
 }
 
-
-JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeAddProperty(JNIEnv* env, jclass,
-                                                                                   jlong native_ptr,
-                                                                                   jlong property_ptr,
-                                                                                   jboolean is_computed)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeAddProperties(JNIEnv* env, jclass,
+                                                                                     jlong native_ptr,
+                                                                                     jlongArray j_persisted_properties,
+                                                                                     jlongArray j_computed_properties)
 {
     TR_ENTER_PTR(native_ptr)
     try {
-        ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(native_ptr);
-        Property* property = reinterpret_cast<Property*>(property_ptr);
-        if (is_computed) {
-            object_schema->computed_properties.push_back(*property);
-        }
-        else {
-            object_schema->persisted_properties.push_back(*property);
-            if (property->is_primary) {
-                object_schema->primary_key = property->name;
+        ObjectSchema& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
+        JLongArrayAccessor persisted_properties(env, j_persisted_properties);
+        for (jsize i = 0; i < persisted_properties.size(); ++i)
+        {
+            Property* prop = reinterpret_cast<Property*>(persisted_properties[i]);
+            REALM_ASSERT_DEBUG(prop != nullptr);
+            if (prop->is_primary) {
+                object_schema.primary_key = prop->name;
             }
+            object_schema.persisted_properties.emplace_back(std::move(*prop));
+            delete prop;
+        }
+
+        JLongArrayAccessor computed_properties(env, j_computed_properties);
+        for (jsize i = 0; i < computed_properties.size(); ++i)
+        {
+            Property* prop = reinterpret_cast<Property*>(computed_properties[i]);
+            REALM_ASSERT_DEBUG(prop != nullptr);
+            object_schema.computed_properties.emplace_back(std::move(*prop));
+            delete prop;
         }
     }
     CATCH_STD()
