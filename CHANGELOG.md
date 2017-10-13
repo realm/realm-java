@@ -2,15 +2,19 @@
 
 ## Breaking Changes
 
+* `Realm.deleteRealm()` doesn't support synced Realm for now. See issue #5416.
+
 ## Enhancements
 
 * All Realm annotations are now kept at runtime, allowing runtime tools access to them (#5344).
 * Speedup schema initialization when a Realm file is first accessed (#5391).
+* `Realm.deleteRealm()` and `RealmConfiguration.assetFile()` are multi-processes safe now.
 
 ## Bug Fixes
 
 * Assigning a managed object's own list to itself would accidentally clear it (#5395).
 * Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
+* Fix some potential database corruption caused by deleting realm file while a Realm instance are still opened on the other process or sync client thread.
 
 ## Internal
 

@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import javax.annotation.Nullable;
 
+import io.realm.RealmConfiguration;
+
 /**
  * Java wrapper for methods in object_store.hpp.
  */
@@ -71,6 +73,19 @@ public class OsObjectStore {
         return nativeDeleteTableForObject(sharedRealm.getNativePtr(), className);
     }
 
+    /**
+     * Try to grab a exclusive lock on the given Realm file. If the lock can be acquired, the {@code runnable} will
+     * executed while the lock is hold. The lock will ensure no one else can read or write the Realm file at the same
+     * time.
+     *
+     * @param configuration to specify the realm path.
+     * @param runnable to run with lock.
+     * @return true if the lock can be acquired and the {@code runnable} has been executed.
+     */
+    public static boolean callWithLock(RealmConfiguration configuration, Runnable runnable) {
+        return nativeCallWithLock(configuration.getPath(), runnable);
+    }
+
     private native static void nativeSetPrimaryKeyForObject(long sharedRealmPtr, String className,
                                                              @Nullable String primaryKeyFieldName);
 
@@ -81,4 +96,6 @@ public class OsObjectStore {
     private native static long nativeGetSchemaVersion(long sharedRealmPtr);
 
     private native static boolean nativeDeleteTableForObject(long sharedRealmPtr, String className);
+
+    private native static boolean nativeCallWithLock(String realmPath, Runnable runnable);
 }

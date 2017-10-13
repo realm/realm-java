@@ -28,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -163,8 +164,9 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     }
 
     public void copyRealmFromAssets(Context context, String realmPath, RealmConfiguration config) throws IOException {
-        // Deletes the existing file before copy
-        Realm.deleteRealm(config);
+        if (new File(config.getPath()).exists()) {
+            throw new IllegalStateException(String.format(Locale.ENGLISH, "%s exists!", config.getPath()));
+        }
 
         File outFile = new File(config.getRealmDirectory(), config.getRealmFileName());
 

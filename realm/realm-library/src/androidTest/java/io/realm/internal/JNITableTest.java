@@ -19,6 +19,7 @@ package io.realm.internal;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Pair;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,6 +59,13 @@ public class JNITableTest {
     public void setUp() {
         config = configFactory.createConfiguration();
         sharedRealm = SharedRealm.getInstance(config);
+    }
+
+    @After
+    public void tearDown() {
+        if (sharedRealm != null)  {
+            sharedRealm.close();
+        }
     }
 
     @Test
@@ -307,10 +315,6 @@ public class JNITableTest {
     @Test
     public void getName() {
         String TABLE_NAME = "tableName";
-        RealmConfiguration configuration = configFactory.createConfiguration();
-        Realm.deleteRealm(configuration);
-
-        SharedRealm sharedRealm = SharedRealm.getInstance(configuration);
         //noinspection TryFinallyCanBeTryWithResources
         try {
 

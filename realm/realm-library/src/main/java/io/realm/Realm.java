@@ -1657,14 +1657,24 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Deletes the Realm file specified by the given {@link RealmConfiguration} from the filesystem.
+     * Deletes the Realm file along with the related temporary files specified by the given {@link RealmConfiguration}
+     * from the filesystem. Temporary file with ".lock" extension won't be deleted.
+     * <p>
      * All Realm instances must be closed before calling this method.
+     * <p>
+     * This doesn't support deleting synced Realm for now.
      *
      * @param configuration a {@link RealmConfiguration}.
-     * @return {@code false} if a file could not be deleted. The failing file will be logged.
+     * @return {@code false} if the realm file could not be deleted. Temporary files deletion failure won't impact on
+     * the return value. All of the failing file will be logged.
      * @throws IllegalStateException if not all realm instances are closed.
+     * @throws IllegalStateException if the {@code configuration} is a {@link SyncConfiguration}.
      */
     public static boolean deleteRealm(RealmConfiguration configuration) {
+        // FIXME: We don't know when the Realm instance on the sync client thread will be closed. Disable it for now.
+        if (configuration.isSyncConfiguration()) {
+            throw new IllegalStateException("'deleteRealm() is not supported for sync for now.");
+        }
         return BaseRealm.deleteRealm(configuration);
     }
 

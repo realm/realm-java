@@ -23,10 +23,12 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
+import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.log.RealmLog;
@@ -96,46 +98,45 @@ public class Util {
         return str == null || str.length() == 0;
     }
 
+    /**
+     * To delete Realm and related temporary files. This must be called in
+     * {@link OsObjectStore#callWithLock(RealmConfiguration, Runnable)}'s callback.
+     *
+     * @return {@code true} if the realm file is deleted. Temporary file deletion failure will not impact on return
+     * value, instead, a warning will be logged.
+     */
     public static boolean deleteRealm(String canonicalPath, File realmFolder, String realmFileName) {
-        boolean realmDeleted = true;
         final String management = ".management";
         File managementFolder = new File(realmFolder, realmFileName + management);
+        File realmFile = new File(canonicalPath);
 
         // Deletes files in management directory and the directory.
         // There is no subfolders in the management directory.
         File[] files = managementFolder.listFiles();
         if (files != null) {
             for (File file : files) {
-                realmDeleted = realmDeleted && file.delete();
-            }
-        }
-        realmDeleted = realmDeleted && managementFolder.delete();
-
-        // Deletes specific files in root directory.
-        return realmDeleted && deletes(canonicalPath, realmFolder, realmFileName);
-    }
-
-    private static boolean deletes(String canonicalPath, File rootFolder, String realmFileName) {
-        final AtomicBoolean realmDeleted = new AtomicBoolean(true);
-
-        List<File> filesToDelete = Arrays.asList(
-                new File(rootFolder, realmFileName),
-                new File(rootFolder, realmFileName + ".lock"),
-                // Old core log file naming styles
-                new File(rootFolder, realmFileName + ".log_a"),
-                new File(rootFolder, realmFileName + ".log_b"),
-                new File(rootFolder, realmFileName + ".log"),
-                new File(canonicalPath));
-        for (File fileToDelete : filesToDelete) {
-            if (fileToDelete.exists()) {
-                boolean deleteResult = fileToDelete.delete();
+                boolean deleteResult = file.delete();
                 if (!deleteResult) {
-                    realmDeleted.set(false);
-                    RealmLog.warn("Could not delete the file %s", fileToDelete);
+                    RealmLog.warn( String.format(Locale.ENGLISH,"Realm temporary file at %s cannot deleted",
+                            file.getAbsolutePath()));
                 }
             }
         }
-        return realmDeleted.get();
-    }
+        if (managementFolder.exists() && !managementFolder.delete()) {
+            RealmLog.warn( String.format(Locale.ENGLISH,"Realm temporary folder at %s cannot deleted",
+                    managementFolder.getAbsolutePath()));
+        }
 
+        boolean realmDeleted;
+        if (realmFile.exists()) {
+            realmDeleted = realmFile.delete();
+            if (!realmDeleted) {
+                RealmLog.warn(
+                        String.format(Locale.ENGLISH,"Realm file at %s cannot deleted", realmFile.getAbsolutePath()));
+            }
+        } else {
+            realmDeleted = true;
+        }
+        return realmDeleted;
+    }
 }

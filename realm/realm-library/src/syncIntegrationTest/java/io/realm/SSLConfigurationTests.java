@@ -65,12 +65,12 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
         user.logout();
-        Realm.deleteRealm(configOld);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .name("newRealm")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .trustedRootCA("trusted_ca.pem")
@@ -106,12 +106,12 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
         user.logout();
-        Realm.deleteRealm(configOld);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .name("newRealm")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .disableSSLVerification()
@@ -147,12 +147,12 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
         user.logout();
-        Realm.deleteRealm(configOld);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .name("newRealm")
                 .schema(StringOnly.class)
                 .build();
         realm = Realm.getInstance(config);

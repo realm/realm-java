@@ -57,15 +57,13 @@ public class CollectionTests {
 
     private final long[] oneNullTable = new long[] {NativeObject.NULLPTR};
 
-    private RealmConfiguration config;
     private SharedRealm sharedRealm;
     private Table table;
 
     @Before
     public void setUp() {
-        config = configFactory.createConfiguration();
         sharedRealm = getSharedRealm();
-        populateData();
+        populateData(sharedRealm);
     }
 
     @After
@@ -74,6 +72,18 @@ public class CollectionTests {
     }
 
     private SharedRealm getSharedRealm() {
+        RealmConfiguration config;
+        config = configFactory.createConfiguration();
+        return getSharedRealm(config);
+    }
+
+    private SharedRealm getSharedRealmForLooper() {
+        RealmConfiguration config;
+        config = looperThread.createConfiguration();
+        return getSharedRealm(config);
+    }
+
+    private SharedRealm getSharedRealm(RealmConfiguration config) {
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config)
                 .autoUpdateNotification(true);
         SharedRealm sharedRealm = SharedRealm.getInstance(configBuilder);
@@ -87,7 +97,7 @@ public class CollectionTests {
         return sharedRealm.getTable(Table.getTableNameForClass("test_table"));
     }
 
-    private void populateData() {
+    private void populateData(SharedRealm sharedRealm) {
         sharedRealm.beginTransaction();
         table = sharedRealm.createTable(Table.getTableNameForClass("test_table"));
         // Specify the column types and names
@@ -119,12 +129,13 @@ public class CollectionTests {
         sharedRealm.commitTransaction();
     }
 
-    private void addRowAsync() {
+    private void addRowAsync(final SharedRealm sharedRealm) {
         final CountDownLatch latch = new CountDownLatch(1);
+        final RealmConfiguration configuration = sharedRealm.getConfiguration();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                SharedRealm sharedRealm = getSharedRealm();
+                SharedRealm sharedRealm = getSharedRealm(configuration);
                 addRow(sharedRealm);
                 sharedRealm.close();
                 latch.countDown();
@@ -253,7 +264,8 @@ public class CollectionTests {
     @Test
     @RunTestInLooperThread
     public void addListener_shouldBeCalledToReturnTheQueryResults() {
-        final SharedRealm sharedRealm = getSharedRealm();
+        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        populateData(sharedRealm);
         Table table = getTable(sharedRealm);
 
         final Collection collection = new Collection(sharedRealm, table.where());
@@ -332,7 +344,7 @@ public class CollectionTests {
             }
         });
 
-        addRowAsync();
+        addRowAsync(sharedRealm);
 
         sharedRealm.waitForChange();
         sharedRealm.refresh();
@@ -342,7 +354,8 @@ public class CollectionTests {
     @Test
     @RunTestInLooperThread
     public void addListener_queryNotReturned() {
-        final SharedRealm sharedRealm = getSharedRealm();
+        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        populateData(sharedRealm);
         Table table = getTable(sharedRealm);
 
         final Collection collection = new Collection(sharedRealm, table.where());
@@ -357,13 +370,14 @@ public class CollectionTests {
             }
         });
 
-        addRowAsync();
+        addRowAsync(sharedRealm);
     }
 
     @Test
     @RunTestInLooperThread
     public void addListener_queryReturned() {
-        final SharedRealm sharedRealm = getSharedRealm();
+        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        populateData(sharedRealm);
         Table table = getTable(sharedRealm);
 
         final Collection collection = new Collection(sharedRealm, table.where());
@@ -379,7 +393,7 @@ public class CollectionTests {
             }
         });
 
-        addRowAsync();
+        addRowAsync(sharedRealm);
     }
 
     // Local commit will trigger the listener first when beginTransaction gets called then again when transaction
@@ -387,7 +401,8 @@ public class CollectionTests {
     @Test
     @RunTestInLooperThread
     public void addListener_triggeredByLocalCommit() {
-        final SharedRealm sharedRealm = getSharedRealm();
+        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        populateData(sharedRealm);
         Table table = getTable(sharedRealm);
         final AtomicInteger listenerCounter = new AtomicInteger(0);
 
@@ -468,7 +483,8 @@ public class CollectionTests {
     @Test
     @RunTestInLooperThread
     public void collectionIterator_invalid_looperThread_byRemoteTransaction() {
-        final SharedRealm sharedRealm = getSharedRealm();
+        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        populateData(sharedRealm);
         Table table = getTable(sharedRealm);
         final Collection collection = new Collection(sharedRealm, table.where());
         final TestIterator iterator = new TestIterator(collection);
@@ -487,7 +503,7 @@ public class CollectionTests {
             }
         });
 
-        addRowAsync();
+        addRowAsync(sharedRealm);
     }
 
     @Test
@@ -522,6 +538,9 @@ public class CollectionTests {
     @Test
     @RunTestInLooperThread
     public void load() {
+        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        looperThread.closeAfterTest(sharedRealm);
+        populateData(sharedRealm);
         final Collection collection = new Collection(sharedRealm, table.where());
         collection.addListener(collection, new RealmChangeListener<Collection>() {
             @Override

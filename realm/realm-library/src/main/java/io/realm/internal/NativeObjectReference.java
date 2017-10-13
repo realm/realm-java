@@ -93,5 +93,5 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
     /**
      * Calls the native finalizer function to free the given native pointer.
      */
-    private static native void nativeCleanUp(long nativeFinalizer, long nativePointer);
+    static native void nativeCleanUp(long nativeFinalizer, long nativePointer);
 }

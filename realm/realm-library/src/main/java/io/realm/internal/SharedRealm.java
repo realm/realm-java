@@ -75,6 +75,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
     public final Capabilities capabilities;
+    private final boolean isPhantomRef;
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -196,6 +197,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
         this.context = osRealmConfig.getContext();
         this.context.addReference(this);
+        this.isPhantomRef = true;
 
         this.capabilities = capabilities;
         this.realmNotifier = realmNotifier;
@@ -208,13 +210,16 @@ public final class SharedRealm implements Closeable, NativeObject {
      * {@code SharedRealm} instance with the same {@link OsRealmConfig} which has been created before. Although they
      * are different {@code shared_ptr}, they point to the same {@code SharedGroup} instance. The {@code context} has
      * to be the same one to ensure core's destructor thread safety.
+     * <p>
+     * WARNING: The {@code SharedRealm} pointer holds by this instance is not managed by the
+     * {@link java.lang.ref.PhantomReference}. {@link #delete()} needs to be called to free the memory.
      */
     private SharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
         this.nativePtr = nativeSharedRealmPtr;
         this.osRealmConfig = osRealmConfig;
         this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
         this.context = osRealmConfig.getContext();
-        this.context.addReference(this);
+        this.isPhantomRef = false;
 
         this.capabilities = new AndroidCapabilities();
         // This instance should never need notifications.
@@ -384,6 +389,18 @@ public final class SharedRealm implements Closeable, NativeObject {
         }
     }
 
+    /**
+     * To delete {@code SharedRealm} pointer only if this instance is not managed by
+     * {@link java.lang.ref.PhantomReference}.
+     */
+    private void delete() {
+        if (isPhantomRef) {
+            throw new IllegalStateException("This 'SharedRealm' pointer is managed by PhantomReference." +
+                    " It should not be manually deleted");
+        }
+        NativeObjectReference.nativeCleanUp(nativeFinalizerPtr, nativePtr);
+    }
+
     @Override
     public long getNativePtr() {
         return nativePtr;
@@ -482,8 +499,13 @@ public final class SharedRealm implements Closeable, NativeObject {
     @SuppressWarnings("unused")
     private static void runMigrationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, MigrationCallback callback,
                                              long oldVersion) {
-        callback.onMigrationNeeded(new SharedRealm(nativeSharedRealmPtr, osRealmConfig), oldVersion,
-                osRealmConfig.getRealmConfiguration().getSchemaVersion());
+        SharedRealm sharedRealm = new SharedRealm(nativeSharedRealmPtr, osRealmConfig);
+        try {
+            callback.onMigrationNeeded(sharedRealm, oldVersion,
+                    osRealmConfig.getRealmConfiguration().getSchemaVersion());
+        } finally {
+            sharedRealm.delete();
+        }
     }
 
     /**
@@ -493,7 +515,12 @@ public final class SharedRealm implements Closeable, NativeObject {
      */
     @SuppressWarnings("unused")
     private static void runInitializationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, InitializationCallback callback) {
-        callback.onInit(new SharedRealm(nativeSharedRealmPtr, osRealmConfig));
+        SharedRealm sharedRealm = new SharedRealm(nativeSharedRealmPtr, osRealmConfig);
+        try {
+            callback.onInit(sharedRealm);
+        } finally {
+            sharedRealm.delete();
+        }
     }
 
     /**
