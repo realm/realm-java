@@ -131,6 +131,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 permissions.addChangeListener(new RealmChangeListener<RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults<Permission> permissions) {
+                        RealmLog.error(String.format("2ndCallback: Size: %s, Permissions: %s", permissions.size(), Arrays.toString(permissions.toArray())));
                         Permission p = permissions.where().endsWith("path", "tests2").findFirst();
                         if (p != null) {
                             assertTrue(p.mayRead());
