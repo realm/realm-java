@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.OsRealmConfig;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
@@ -106,7 +105,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-//    @Ignore("See https://github.com/realm/ros/issues/437")
     public void getPermissions_updatedWithNewRealms() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -152,7 +150,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-//    @Ignore("See https://github.com/realm/ros/issues/437")
     public void getPermissions_updatedWithNewRealms_stressTest() {
         final int TEST_SIZE = 10;
         final PermissionManager pm = user.getPermissionManager();
@@ -243,7 +240,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("See https://github.com/realm/ros/issues/432")
+    @Ignore("Wait for default permission Realm support")
     public void getPermissions_addTaskAfterClientReset() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -428,7 +425,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("See https://github.com/realm/ros/issues/432")
+    @Ignore("See https://github.com/realm/ros/issues/520")
     public void getDefaultPermissions_returnLoadedResults() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -449,7 +446,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("See https://github.com/realm/ros/issues/432")
+    @Ignore("See https://github.com/realm/ros/issues/520")
     public void getDefaultPermissions_noLongerValidWhenPermissionManagerIsClosed() {
         final PermissionManager pm = user.getPermissionManager();
         pm.getDefaultPermissions(new PermissionManager.PermissionsCallback() {
@@ -481,6 +478,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore("See https://github.com/realm/ros/issues/520")
     public void getDefaultPermissions_closed() throws IOException {
         PermissionManager pm = user.getPermissionManager();
         pm.close();
@@ -716,7 +714,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("See https://github.com/realm/ros/issues/426")
     public void applyPermissions_withUsername() {
         String user1Username = TestHelper.getRandomEmail();
         String user2Username = TestHelper.getRandomEmail();
@@ -831,7 +828,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("See https://github.com/realm/ros/issues/430")
     public void makeOffer_noManageAccessThrows() {
         // User 2 creates a Realm
         SyncUser user2 = UserFactory.createUniqueUser();
@@ -1208,19 +1204,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
      * states and fail if neither of these can be verified.
      */
     private void assertInitialPermissions(RealmResults<Permission> permissions) {
-        // For a new user, the PermissionManager should contain 1 entry for the __permission Realm, but we are
-        // creating the __management Realm at the same time, so this might be here as well.
-        permissions = permissions.sort("path");
-        if (permissions.size() == 1) {
-            // FIXME It is very unpredictable which Permission is returned. This needs to be fixed.
-            Permission permission = permissions.first();
-            assertTrue(permission.getPath().endsWith("__permission") || permission.getPath().endsWith("__management"));
-        } else if (permissions.size() == 2) {
-            assertTrue("Failed: " + permissions.get(0).toString(), permissions.get(0).getPath().endsWith("__management"));
-            assertTrue("Failed: " + permissions.get(1).toString(), permissions.get(1).getPath().endsWith("__permission"));
-        } else {
-            fail("Permission Realm contains unknown permissions: " + Arrays.toString(permissions.toArray()));
-        }
+        assertEquals("Could not find __permissions Realm", 1, permissions.where().endsWith("path", "__permission").count());
+        assertEquals("Could not find __management Realm", 1, permissions.where().endsWith("path", "__management").count());
     }
-
 }

@@ -590,8 +590,8 @@ public class PermissionManager implements Closeable {
                 loadingPermissions.addChangeListener(new RealmChangeListener <RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults <Permission> loadedPermissions) {
-                        // FIXME Wait until both the __permission and __management Realm are available
-                        if (loadedPermissions.size() > 0) {
+                        // Don't report ready until both __permission and __management Realm is there
+                        if (loadedPermissions.size() > 1) {
                             loadingPermissions.removeChangeListener(this);
                             if (checkAndReportInvalidState()) { return; }
                             if (userPermissions == null) {
