@@ -96,7 +96,6 @@ try {
                       archiveLog = false;
                     } finally {
                       stopLogCatCollector(backgroundPid, archiveLog)
-                      archiveRosLog()
                       storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
                     }
                   }
@@ -117,6 +116,7 @@ try {
                 }
               }
         } finally {
+              archiveRosLog()
               sh "docker logs ${rosContainer.id}"
               rosContainer.stop()
         }
@@ -175,7 +175,7 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
 }
 
 def archiveRosLog() {
-  sh 'docker cp \$(docker ps -alq):/tmp/ros-testing-server.log ./ros.log'
+  sh 'docker cp \$(docker ps -aqf "name=sync-test-server"):/tmp/ros-testing-server.log ./ros.log'
   zip([
       'zipFile': 'roslog.zip',
       'archive': true,
