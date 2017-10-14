@@ -87,12 +87,11 @@ function startRealmObjectServer(onSuccess, onError) {
 
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
-                winston.info(`stdout: ${data}`);
-
+                winston.info(data);
             });
 
             syncServerChildProcess.stderr.on('data', (data) => {
-                winston.info(`stderr: ${data}`);
+                winston.info(data);
             });
 
             waitForRosToInitialize(20, onSuccess, onError);
