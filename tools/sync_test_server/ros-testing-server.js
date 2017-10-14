@@ -80,7 +80,7 @@ function startRealmObjectServer(onSuccess, onError) {
             syncServerChildProcess = spawn('ros',
                     ['start',
                         '--data', path,
-                        // '--loglevel', 'detail', // Enable when debugging
+                        '--loglevel', 'detail', // Enable when debugging
                         '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
                     ],
                     { env: env, cwd: path});
@@ -88,6 +88,7 @@ function startRealmObjectServer(onSuccess, onError) {
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
                 winston.info(`stdout: ${data}`);
+
             });
 
             syncServerChildProcess.stderr.on('data', (data) => {

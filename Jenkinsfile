@@ -96,6 +96,7 @@ try {
                       archiveLog = false;
                     } finally {
                       stopLogCatCollector(backgroundPid, archiveLog)
+                      archiveRosLog()
                       storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
                     }
                   }
@@ -171,6 +172,16 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
 	])
   }
   sh 'rm logcat.txt'
+}
+
+def archiveRosLog() {
+  sh 'docker cp \$(docker ps -alq):/tmp/ros-testing-server.log ./ros.log'
+  zip([
+      'zipFile': 'roslog.zip',
+      'archive': true,
+      'glob' : 'ros.log'
+  ])
+  sh 'rm ros.log'
 }
 
 def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {
