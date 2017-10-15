@@ -116,7 +116,7 @@ try {
                 }
               }
         } finally {
-              archiveRosLog()
+              archiveRosLog(${rosContainer.id})
               sh "docker logs ${rosContainer.id}"
               rosContainer.stop()
         }
@@ -174,8 +174,8 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
   sh 'rm logcat.txt'
 }
 
-def archiveRosLog() {
-  sh 'docker cp \$(docker ps -aqf "name=sync-test-server"):/tmp/ros-testing-server.log ./ros.log'
+def archiveRosLog(String id) {
+  sh "docker cp ${id}:/tmp/ros-testing-server.log ./ros.log"
   zip([
       'zipFile': 'roslog.zip',
       'archive': true,
