@@ -116,7 +116,7 @@ try {
                 }
               }
         } finally {
-              archiveRosLog(${rosContainer.id})
+              archiveRosLog(rosContainer.id)
               sh "docker logs ${rosContainer.id}"
               rosContainer.stop()
         }
