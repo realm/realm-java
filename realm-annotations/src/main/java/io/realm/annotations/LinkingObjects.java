@@ -97,7 +97,7 @@ import java.lang.annotation.Target;
  * equivalent to link queries. Please read <a href="https://realm.io/docs/java/latest/#link-queries">for more
  * information</a>.
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface LinkingObjects {
     /**

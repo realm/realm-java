@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nonnull;
 
-import io.realm.BaseIntegrationTest;
 import io.realm.Progress;
 import io.realm.ProgressListener;
 import io.realm.ProgressMode;
@@ -44,7 +43,7 @@ import io.realm.entities.AllTypes;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.rule.TestSyncConfigurationFactory;
+import io.realm.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -126,8 +125,6 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         });
         TestHelper.awaitOrFail(allChangesDownloaded);
         realm.close();
-        userWithData.logout();
-        adminUser.logout();
     }
 
     @Test
@@ -191,6 +188,9 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         userRealm.close();
         userWithData.logout();
         adminUser.logout();
+        // FIXME sometimes the worker thread doesn't terminate
+        // causing the test thread to wait  indefinitely until it times out
+        // https://github.com/realm/realm-java/issues/5245
         worker.join();
     }
 
@@ -228,7 +228,6 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         TestHelper.awaitOrFail(testDone);
         realm.close();
     }
-
 
     @Test
     public void uploadProgressListener_changesOnly() {

@@ -174,7 +174,7 @@ class KotlinExampleActivity : Activity() {
 
             // Sorting
             val sortedPersons = realm.where(Person::class.java).findAllSorted("age", Sort.DESCENDING)
-            status += "\nSorting ${sortedPersons.last().name} == ${realm.where(Person::class.java).findAll().first().name}"
+            status += "\nSorting ${sortedPersons.last()?.name} == ${realm.where(Person::class.java).findAll().first()?.name}"
 
         } finally {
             realm.close()

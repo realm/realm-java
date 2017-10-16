@@ -53,7 +53,7 @@ import io.realm.internal.fields.FieldDescriptor;
  * @see Realm#where(Class)
  * @see RealmResults#where()
  */
-public class RealmQuery<E extends RealmModel> {
+public class RealmQuery<E> {
 
     private final Table table;
     private final BaseRealm realm;
@@ -61,7 +61,9 @@ public class RealmQuery<E extends RealmModel> {
     private final RealmObjectSchema schema;
     private Class<E> clazz;
     private String className;
+    private final boolean forValues;
     private final OsList osList;
+
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
     private static final String ASYNC_QUERY_WRONG_THREAD_MESSAGE = "Async query cannot be created on current thread.";
@@ -74,7 +76,7 @@ public class RealmQuery<E extends RealmModel> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
-    public static <E extends RealmModel> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
+    static <E extends RealmModel> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
         return new RealmQuery<>(realm, clazz);
     }
 
@@ -86,7 +88,7 @@ public class RealmQuery<E extends RealmModel> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
-    public static <E extends RealmModel> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
+    static <E extends RealmModel> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
         return new RealmQuery<>(realm, className);
     }
 
@@ -98,7 +100,7 @@ public class RealmQuery<E extends RealmModel> {
      * to run it.
      */
     @SuppressWarnings("unchecked")
-    public static <E extends RealmModel> RealmQuery<E> createQueryFromResult(RealmResults<E> queryResults) {
+    static <E> RealmQuery<E> createQueryFromResult(RealmResults<E> queryResults) {
         //noinspection ConstantConditions
         return (queryResults.classSpec == null)
                 ? new RealmQuery(queryResults, queryResults.className)
@@ -113,43 +115,78 @@ public class RealmQuery<E extends RealmModel> {
      * to run it.
      */
     @SuppressWarnings("unchecked")
-    public static <E extends RealmModel> RealmQuery<E> createQueryFromList(RealmList<E> list) {
+    static <E> RealmQuery<E> createQueryFromList(RealmList<E> list) {
         //noinspection ConstantConditions
         return (list.clazz == null)
-                ? new RealmQuery(list.realm, list.osList, list.className)
-                : new RealmQuery(list.realm, list.osList, list.clazz);
+                ? new RealmQuery(list.realm, list.getOsList(), list.className)
+                : new RealmQuery(list.realm, list.getOsList(), list.clazz);
+    }
+
+    private static boolean isClassForRealmModel(Class<?> clazz) {
+        return RealmModel.class.isAssignableFrom(clazz);
     }
 
     private RealmQuery(Realm realm, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.schema = realm.getSchema().getSchemaForClass(clazz);
-        this.table = schema.getTable();
-        this.osList = null;
-        this.query = table.where();
+        this.forValues = !isClassForRealmModel(clazz);
+        if (forValues) {
+            // TODO implement this
+            this.schema = null;
+            this.table = null;
+            this.osList = null;
+            this.query = null;
+        } else {
+            //noinspection unchecked
+            this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
+            this.table = schema.getTable();
+            this.osList = null;
+            this.query = table.where();
+        }
     }
 
     private RealmQuery(RealmResults<E> queryResults, Class<E> clazz) {
         this.realm = queryResults.realm;
         this.clazz = clazz;
-        this.schema = realm.getSchema().getSchemaForClass(clazz);
-        this.table = queryResults.getTable();
-        this.osList = null;
-        this.query = queryResults.getCollection().where();
+        this.forValues = !isClassForRealmModel(clazz);
+        if (forValues) {
+            // TODO implement this
+            this.schema = null;
+            this.table = null;
+            this.osList = null;
+            this.query = null;
+        } else {
+            //noinspection unchecked
+            this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
+            this.table = queryResults.getTable();
+            this.osList = null;
+            this.query = queryResults.getCollection().where();
+        }
     }
 
     private RealmQuery(BaseRealm realm, OsList osList, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.schema = realm.getSchema().getSchemaForClass(clazz);
-        this.table = schema.getTable();
-        this.osList = osList;
-        this.query = osList.getQuery();
+        this.forValues = !isClassForRealmModel(clazz);
+        if (forValues) {
+            // TODO implement this
+            this.schema = null;
+            this.table = null;
+            this.osList = null;
+            this.query = null;
+        } else {
+            //noinspection unchecked
+            this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
+            this.table = schema.getTable();
+            this.osList = osList;
+            this.query = osList.getQuery();
+        }
     }
 
     private RealmQuery(BaseRealm realm, String className) {
         this.realm = realm;
         this.className = className;
+        this.forValues = false;
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = table.where();
@@ -159,6 +196,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(RealmResults<DynamicRealmObject> queryResults, String className) {
         this.realm = queryResults.realm;
         this.className = className;
+        this.forValues = false;
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = queryResults.getCollection().where();
@@ -168,6 +206,7 @@ public class RealmQuery<E extends RealmModel> {
     private RealmQuery(BaseRealm realm, OsList osList, String className) {
         this.realm = realm;
         this.className = className;
+        this.forValues = false;
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = osList.getQuery();
@@ -1931,8 +1970,14 @@ public class RealmQuery<E extends RealmModel> {
     public E findFirst() {
         realm.checkIfValid();
 
+        if (forValues) {
+            // TODO implement this;
+            return null;
+        }
+
         long tableRowIndex = getSourceRowIndexForFirstObject();
-        return (tableRowIndex < 0) ? null : realm.get(clazz, className, tableRowIndex);
+        //noinspection unchecked
+        return (tableRowIndex < 0) ? null : (E) realm.get((Class<? extends RealmModel>) clazz, className, tableRowIndex);
     }
 
     /**
@@ -1947,6 +1992,10 @@ public class RealmQuery<E extends RealmModel> {
      */
     public E findFirstAsync() {
         realm.checkIfValid();
+
+        if (forValues) {
+            throw new UnsupportedOperationException("findFirstAsync() available only when type parameter 'E' is implementing RealmModel.");
+        }
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         Row row;
@@ -1968,8 +2017,11 @@ public class RealmQuery<E extends RealmModel> {
             //noinspection unchecked
             result = (E) new DynamicRealmObject(realm, row);
         } else {
-            result = realm.getConfiguration().getSchemaMediator().newInstance(
-                    clazz, realm, row, realm.getSchema().getColumnInfo(clazz),
+            //noinspection unchecked
+            final Class<? extends RealmModel> modelClass = (Class<? extends RealmModel>) clazz;
+            //noinspection unchecked
+            result = (E) realm.getConfiguration().getSchemaMediator().newInstance(
+                    modelClass, realm, row, realm.getSchema().getColumnInfo(modelClass),
                     false, Collections.<String>emptyList());
         }
 

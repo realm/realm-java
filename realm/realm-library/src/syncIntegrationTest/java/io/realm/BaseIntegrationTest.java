@@ -32,7 +32,6 @@ import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 
 /**
@@ -95,7 +94,7 @@ public abstract class BaseIntegrationTest {
         try {
             HttpUtils.stopSyncServer();
         } catch (Exception e) {
-            Log.e(HttpUtils.TAG, "Failed to stop Sync Server" + Util.getStackTrace(e));
+            Log.e(HttpUtils.TAG, "Failed to stop Sync Server: " + Util.getStackTrace(e));
         }
     }
 
