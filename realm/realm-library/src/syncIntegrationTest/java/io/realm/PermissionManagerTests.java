@@ -107,7 +107,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
     public void getPermissions_updatedWithNewRealms() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -154,7 +153,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
     public void getPermissions_updatedWithNewRealms_stressTest() {
         final int TEST_SIZE = 10;
         final PermissionManager pm = user.getPermissionManager();
@@ -902,7 +900,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
     public void acceptOffer_expiredThrows() {
         // Trying to guess how long CI is to process this. The offer cannot be created if it
         // already expired.
