@@ -188,7 +188,7 @@ repositories {
 
 dependencies {
 
-    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.1'
+    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.4'
     compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
     api "io.realm:realm-annotations:${version}"
@@ -196,11 +196,11 @@ dependencies {
     implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
 
     kaptObjectServer project(':realm-annotations-processor')
-    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.7.0'
+    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
 
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
-    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.1'
+    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.4'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test:rules:1.0.1'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'

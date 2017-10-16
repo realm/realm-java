@@ -14,12 +14,15 @@
 
 * Assigning a managed object's own list to itself would accidentally clear it (#5395).
 * Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
+* Removing and re-adding a changelistener from inside a changelistener sometimes caused notifications to be missed (#5411).
 * Fix some potential database corruption caused by deleting the Realm file while a Realm instance are still opened in another process or the sync client thread.
 
 ## Internal
 
-* Upgraded to Realm Sync 2.0.0.
+* Upgraded to Realm Sync 2.0.2.
 * Upgraded to Realm Core 4.0.2.
+* Upgraded to OkHttp 3.9.0 .
+* Upgraded to RxJava 2.1.4 .
 
 ## Credits
 
