@@ -17,7 +17,7 @@ if (process. argv. length <= 2) {
 }
 const logFile = process.argv[2];
 winston.level = 'debug';
-winston.add(winston.transports.File, { filename: logFile });
+winston.add(winston.transports.File, { filename: logFile, json: false });
 
 const PORT = 8888;
 
@@ -64,6 +64,7 @@ function startRealmObjectServer(onSuccess, onError) {
             var env = Object.create( process.env );
             winston.info(env.NODE_ENV);
             env.NODE_ENV = 'development';
+            env.JENKINS = 1; // Skip email check in ROS
 
             // Manually cleanup Global Notifier State
             // See https://github.com/realm/ros/issues/437#issuecomment-335380095
@@ -80,7 +81,7 @@ function startRealmObjectServer(onSuccess, onError) {
             syncServerChildProcess = spawn('ros',
                     ['start',
                         '--data', path,
-                        '--loglevel', 'detail', // Enable when debugging
+                        '--loglevel', 'detail'
                         '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
                     ],
                     { env: env, cwd: path});
