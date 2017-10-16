@@ -106,6 +106,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore
     public void getPermissions_updatedWithNewRealms() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -152,6 +153,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore
     public void getPermissions_updatedWithNewRealms_stressTest() {
         final int TEST_SIZE = 10;
         final PermissionManager pm = user.getPermissionManager();
@@ -243,7 +245,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("Wait for default permission Realm support")
     public void getPermissions_addTaskAfterClientReset() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -428,7 +429,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("See https://github.com/realm/ros/issues/520")
     public void getDefaultPermissions_returnLoadedResults() {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -436,7 +436,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
             @Override
             public void onSuccess(RealmResults<Permission> permissions) {
                 assertTrue(permissions.isLoaded());
-                assertInitialPermissions(permissions);
+                assertInitialDefaultPermissions(permissions);
                 looperThread.testComplete();
             }
 
@@ -449,7 +449,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("See https://github.com/realm/ros/issues/520")
     public void getDefaultPermissions_noLongerValidWhenPermissionManagerIsClosed() {
         final PermissionManager pm = user.getPermissionManager();
         pm.getDefaultPermissions(new PermissionManager.PermissionsCallback() {
@@ -481,7 +480,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("See https://github.com/realm/ros/issues/520")
     public void getDefaultPermissions_closed() throws IOException {
         PermissionManager pm = user.getPermissionManager();
         pm.close();
@@ -1209,5 +1207,9 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     private void assertInitialPermissions(RealmResults<Permission> permissions) {
         assertEquals("Could not find __permissions Realm", 1, permissions.where().endsWith("path", "__permission").count());
         assertEquals("Could not find __management Realm", 1, permissions.where().endsWith("path", "__management").count());
+    }
+
+    private void assertInitialDefaultPermissions(RealmResults<Permission> permissions) {
+        assertEquals("Could not find __wildcardpermissions Realm", 1, permissions.where().endsWith("path", "__wildcardpermissions").count());
     }
 }

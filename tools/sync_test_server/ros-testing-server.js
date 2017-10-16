@@ -7,6 +7,7 @@ const exec = require('child_process').exec;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 var fs = require('fs-extra');
+var moment = require('moment')
 
 // Automatically track and cleanup files at exit
 temp.track();
@@ -15,9 +16,16 @@ if (process. argv. length <= 2) {
     console.log("Usage: " + __filename + " somefile.log");
     process.exit(-1);
 }
+
 const logFile = process.argv[2];
 winston.level = 'debug';
-winston.add(winston.transports.File, { filename: logFile });
+winston.add(winston.transports.File, {
+    filename: logFile,
+    json: false,
+    formatter: function(options) {
+        return moment().format('YYYY-MM-DD HH:mm:ss.SSSS') + ' ' + (undefined !== options.message ? options.message : '');
+    }
+});
 
 const PORT = 8888;
 
@@ -64,6 +72,7 @@ function startRealmObjectServer(onSuccess, onError) {
             var env = Object.create( process.env );
             winston.info(env.NODE_ENV);
             env.NODE_ENV = 'development';
+            env.JENKINS = 1; // Skip email check in ROS
 
             // Manually cleanup Global Notifier State
             // See https://github.com/realm/ros/issues/437#issuecomment-335380095
@@ -80,18 +89,18 @@ function startRealmObjectServer(onSuccess, onError) {
             syncServerChildProcess = spawn('ros',
                     ['start',
                         '--data', path,
-                        // '--loglevel', 'detail', // Enable when debugging
+                        '--loglevel', 'detail',
                         '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
                     ],
                     { env: env, cwd: path});
 
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
-                winston.info(`stdout: ${data}`);
+                winston.info(`${data}`);
             });
 
             syncServerChildProcess.stderr.on('data', (data) => {
-                winston.info(`stderr: ${data}`);
+                winston.info(`${data}`);
             });
 
             waitForRosToInitialize(20, onSuccess, onError);

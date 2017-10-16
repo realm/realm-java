@@ -15,7 +15,7 @@
 
 ## Internal
 
-* Upgraded to Realm Sync 2.0.0.
+* Upgraded to Realm Sync 2.0.2.
 * Upgraded to Realm Core 4.0.2.
 * Upgraded to OkHttp 3.9.0 .
 * Upgraded to RxJava 2.1.4 .
