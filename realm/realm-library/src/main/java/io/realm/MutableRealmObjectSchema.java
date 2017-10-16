@@ -18,8 +18,9 @@ package io.realm;
 
 import java.util.Locale;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
 
 /**
@@ -52,18 +53,17 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
         // in case this table has a primary key, we need to transfer it after renaming the table.
-        String oldTableName = null;
-        String pkField = null;
-        if (table.hasPrimaryKey()) {
-            oldTableName = table.getName();
-            pkField = getPrimaryKey();
-            table.setPrimaryKey(null);
-        }
         //noinspection ConstantConditions
-        realm.sharedRealm.renameTable(table.getName(), internalTableName);
-        if (pkField != null && !pkField.isEmpty()) {
+        @Nonnull String oldTableName = table.getName();
+        @Nonnull String oldClassName = table.getClassName();
+        String pkField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, oldClassName);
+        if (pkField != null) {
+            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, oldClassName, null);
+        }
+        realm.sharedRealm.renameTable(oldTableName, internalTableName);
+        if (pkField != null) {
             try {
-                table.setPrimaryKey(pkField);
+                OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, className, pkField);
             } catch (Exception e) {
                 // revert the table name back when something goes wrong
                 //noinspection ConstantConditions
@@ -94,13 +94,17 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             }
         }
 
+        if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
+            checkAddPrimaryKeyForSync();
+        }
+
         checkNewFieldName(fieldName);
         boolean nullable = metadata.defaultNullable;
         if (containsAttribute(attributes, FieldAttribute.REQUIRED)) {
             nullable = false;
         }
 
-        long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
+        long columnIndex = table.addColumn(metadata.fieldType, fieldName, nullable);
         try {
             addModifiers(fieldName, attributes);
         } catch (Exception e) {
@@ -128,6 +132,25 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
+    public RealmObjectSchema addRealmListField(String fieldName, Class<?> primitiveType) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+
+        FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(primitiveType);
+        if (metadata == null) {
+            if (primitiveType.equals(RealmObjectSchema.class) || RealmModel.class.isAssignableFrom(primitiveType)) {
+                throw new IllegalArgumentException("Use 'addRealmListField(String name, RealmObjectSchema schema)' instead to add lists that link to other RealmObjects: " + fieldName);
+            } else {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "RealmList does not support lists with this type: %s(%s)",
+                        fieldName, primitiveType));
+            }
+        }
+        table.addColumn(metadata.listType, fieldName, metadata.defaultNullable);
+        return this;
+    }
+
+    @Override
     public RealmObjectSchema removeField(String fieldName) {
         realm.checkNotInSync(); // destructive modification of a schema is not permitted
         checkLegalName(fieldName);
@@ -135,8 +158,9 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             throw new IllegalStateException(fieldName + " does not exist.");
         }
         long columnIndex = getColumnIndex(fieldName);
-        if (table.getPrimaryKey() == columnIndex) {
-            table.setPrimaryKey(null);
+        String className = getClassName();
+        if (fieldName.equals(OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, className))) {
+            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, className, fieldName);
         }
         table.removeColumn(columnIndex);
         return this;
@@ -184,31 +208,36 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     public RealmObjectSchema addPrimaryKey(String fieldName) {
+        checkAddPrimaryKeyForSync();
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
-        if (table.hasPrimaryKey()) {
-            throw new IllegalStateException("A primary key is already defined");
+        String currentPKField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, getClassName());
+        if (currentPKField != null) {
+            throw new IllegalStateException(
+                    String.format(Locale.ENGLISH, "Field '%s' has been already defined as primary key.",
+                            currentPKField));
         }
-        table.setPrimaryKey(fieldName);
         long columnIndex = getColumnIndex(fieldName);
         if (!table.hasSearchIndex(columnIndex)) {
             // No exception will be thrown since adding PrimaryKey implies the column has an index.
             table.addSearchIndex(columnIndex);
         }
+        OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, getClassName(), fieldName);
         return this;
     }
 
     @Override
     public RealmObjectSchema removePrimaryKey() {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
-        if (!table.hasPrimaryKey()) {
+        String pkField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, getClassName());
+        if (pkField == null) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
         }
-        long columnIndex = table.getPrimaryKey();
+        long columnIndex = table.getColumnIndex(pkField);
         if (table.hasSearchIndex(columnIndex)) {
             table.removeSearchIndex(columnIndex);
         }
-        table.setPrimaryKey("");
+        OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, getClassName(), null);
         return this;
     }
 
@@ -287,7 +316,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         }
     }
 
-    private boolean containsAttribute(FieldAttribute[] attributeList, FieldAttribute attribute) {
+    static boolean containsAttribute(FieldAttribute[] attributeList, FieldAttribute attribute) {
         //noinspection ConstantConditions
         if (attributeList == null || attributeList.length == 0) {
             return false;
@@ -308,6 +337,12 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     private void checkFieldNameIsAvailable(String fieldName) {
         if (table.getColumnIndex(fieldName) != Table.NO_MATCH) {
             throw new IllegalArgumentException("Field already exists in '" + getClassName() + "': " + fieldName);
+        }
+    }
+
+    private void checkAddPrimaryKeyForSync() {
+        if (realm.configuration.isSyncConfiguration()) {
+            throw new UnsupportedOperationException("'addPrimaryKey' is not supported by synced Realms.");
         }
     }
 }

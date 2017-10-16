@@ -30,11 +30,13 @@ import io.realm.entities.AnnotationTypes;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -99,76 +101,6 @@ public class RealmAnnotationTests {
         assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexDate")));
     }
 
-    // Tests migrating primary key from string to long with existing data.
-    @Test
-    public void primaryKey_migration_long() {
-        realm.beginTransaction();
-        for (int i = 1; i <= 2; i++) {
-            PrimaryKeyAsString obj = realm.createObject(PrimaryKeyAsString.class, "String" + i);
-            obj.setId(i);
-        }
-
-        Table table = realm.getTable(PrimaryKeyAsString.class);
-        table.setPrimaryKey("id");
-        assertEquals(1, table.getPrimaryKey());
-        realm.cancelTransaction();
-    }
-
-    // Tests migrating primary key from string to long with existing data.
-    @Test
-    public void primaryKey_migration_longDuplicateValues() {
-        realm.beginTransaction();
-        for (int i = 1; i <= 2; i++) {
-            PrimaryKeyAsString obj = realm.createObject(PrimaryKeyAsString.class, "String" + i);
-            obj.setId(1); // Creates duplicate values.
-        }
-
-        Table table = realm.getTable(PrimaryKeyAsString.class);
-        try {
-            table.setPrimaryKey("id");
-            fail("It should not be possible to set a primary key column which already contains duplicate values.");
-        } catch (IllegalArgumentException ignored) {
-            assertEquals(0, table.getPrimaryKey());
-        } finally {
-            realm.cancelTransaction();
-        }
-    }
-
-    // Tests migrating primary key from long to str with existing data.
-    @Test
-    public void primaryKey_migration_string() {
-        realm.beginTransaction();
-        for (int i = 1; i <= 2; i++) {
-            PrimaryKeyAsLong obj = realm.createObject(PrimaryKeyAsLong.class, i);
-            obj.setName("String" + i);
-        }
-
-        Table table = realm.getTable(PrimaryKeyAsLong.class);
-        table.setPrimaryKey("name");
-        assertEquals(1, table.getPrimaryKey());
-        realm.cancelTransaction();
-    }
-
-    // Tests migrating primary key from long to str with existing data.
-    @Test
-    public void primaryKey_migration_stringDuplicateValues() {
-        realm.beginTransaction();
-        for (int i = 1; i <= 2; i++) {
-            PrimaryKeyAsLong obj = realm.createObject(PrimaryKeyAsLong.class, i);
-            obj.setName("String"); // Creates duplicate values.
-        }
-
-        Table table = realm.getTable(PrimaryKeyAsLong.class);
-        try {
-            table.setPrimaryKey("name");
-            fail("It should not be possible to set a primary key column which already contains duplicate values.");
-        } catch (IllegalArgumentException ignored) {
-            assertEquals(0, table.getPrimaryKey());
-        } finally {
-            realm.cancelTransaction();
-        }
-    }
-
     @Test
     public void primaryKey_checkPrimaryKeyOnCreate() {
         realm.beginTransaction();
@@ -197,11 +129,11 @@ public class RealmAnnotationTests {
     @Test
     public void primaryKey_isIndexed() {
         Table table = realm.getTable(PrimaryKeyAsString.class);
-        assertTrue(table.hasPrimaryKey());
+        assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsString.CLASS_NAME));
         assertTrue(table.hasSearchIndex(table.getColumnIndex("name")));
 
         table = realm.getTable(PrimaryKeyAsLong.class);
-        assertTrue(table.hasPrimaryKey());
+        assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsLong.CLASS_NAME));
         assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
     }
 

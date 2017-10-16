@@ -58,26 +58,16 @@ public class MainActivity extends AppCompatActivity {
         // Setup initial views
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         //noinspection ConstantConditions
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         adapter = null;
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                presenter.listItemSelected(position);
-            }
-        });
+        listView.setOnItemClickListener((parent, view, position, id) -> presenter.listItemSelected(position));
         listView.setEmptyView(getLayoutInflater().inflate(R.layout.common_emptylist, listView, false));
 
-        refreshView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                presenter.refreshList();
-            }
-        });
+        refreshView.setOnRefreshListener(() -> presenter.refreshList());
         progressBar.setVisibility(View.INVISIBLE);
 
         // After setup, notify presenter

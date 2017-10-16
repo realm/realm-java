@@ -173,7 +173,12 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public OsList getLinkList(long columnIndex) {
+    public OsList getModelList(long columnIndex) {
+        return new OsList(this, columnIndex);
+    }
+
+    @Override
+    public OsList getValueList(long columnIndex, RealmFieldType fieldType) {
         return new OsList(this, columnIndex);
     }
 
@@ -182,7 +187,6 @@ public class UncheckedRow implements NativeObject, Row {
     @Override
     public void setLong(long columnIndex, long value) {
         parent.checkImmutable();
-        getTable().checkIntValueIsLegal(columnIndex, getIndex(), value);
         nativeSetLong(nativePtr, columnIndex, value);
     }
 
@@ -225,10 +229,8 @@ public class UncheckedRow implements NativeObject, Row {
     public void setString(long columnIndex, @Nullable String value) {
         parent.checkImmutable();
         if (value == null) {
-            getTable().checkDuplicatedNullForPrimaryKeyValue(columnIndex, getIndex());
             nativeSetNull(nativePtr, columnIndex);
         } else {
-            getTable().checkStringValueIsLegal(columnIndex, getIndex(), value);
             nativeSetString(nativePtr, columnIndex, value);
         }
     }
@@ -264,7 +266,6 @@ public class UncheckedRow implements NativeObject, Row {
     @Override
     public void setNull(long columnIndex) {
         parent.checkImmutable();
-        getTable().checkDuplicatedNullForPrimaryKeyValue(columnIndex, getIndex());
         nativeSetNull(nativePtr, columnIndex);
     }
 

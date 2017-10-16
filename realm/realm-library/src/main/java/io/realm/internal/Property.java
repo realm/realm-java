@@ -21,6 +21,14 @@ import java.util.Locale;
 
 import io.realm.RealmFieldType;
 
+import static io.realm.RealmFieldType.BINARY_LIST;
+import static io.realm.RealmFieldType.BOOLEAN_LIST;
+import static io.realm.RealmFieldType.DATE_LIST;
+import static io.realm.RealmFieldType.DOUBLE_LIST;
+import static io.realm.RealmFieldType.FLOAT_LIST;
+import static io.realm.RealmFieldType.INTEGER_LIST;
+import static io.realm.RealmFieldType.STRING_LIST;
+
 
 /**
  * Class for handling properties/fields.
@@ -59,25 +67,12 @@ public class Property implements NativeObject {
     private long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    Property(String name, RealmFieldType type, boolean isPrimary, boolean isIndexed, boolean isRequired) {
-        this(nativeCreatePersistedProperty(name, convertFromRealmFieldType(type, isRequired), isPrimary, isIndexed));
-    }
-
-    Property(String name, RealmFieldType type, String linkedClassName) {
-        // Ignore the isRequired when creating the linking property.
-        this(nativeCreatePersistedLinkProperty(name, convertFromRealmFieldType(type, false), linkedClassName));
-    }
-
-    Property(String name, String sourceClassName, String sourceFieldName) {
-        this(nativeCreateComputedLinkProperty(name, sourceClassName, sourceFieldName));
-    }
-
     Property(long nativePtr) {
         this.nativePtr = nativePtr;
         NativeContext.dummyContext.addReference(this);
     }
 
-    private static int convertFromRealmFieldType(RealmFieldType fieldType, boolean isRequired) {
+    static int convertFromRealmFieldType(RealmFieldType fieldType, boolean isRequired) {
         int type;
         switch (fieldType) {
             case OBJECT:
@@ -109,6 +104,28 @@ public class Property implements NativeObject {
                 break;
             case DOUBLE:
                 type = TYPE_DOUBLE;
+                break;
+            case INTEGER_LIST:
+                //noinspection PointlessBitwiseExpression
+                type = TYPE_INT | TYPE_ARRAY;
+                break;
+            case BOOLEAN_LIST:
+                type = TYPE_BOOL | TYPE_ARRAY;
+                break;
+            case STRING_LIST:
+                type = TYPE_STRING | TYPE_ARRAY;
+                break;
+            case BINARY_LIST:
+                type = TYPE_DATA | TYPE_ARRAY;
+                break;
+            case DATE_LIST:
+                type = TYPE_DATE | TYPE_ARRAY;
+                break;
+            case FLOAT_LIST:
+                type = TYPE_FLOAT | TYPE_ARRAY;
+                break;
+            case DOUBLE_LIST:
+                type = TYPE_DOUBLE | TYPE_ARRAY;
                 break;
             default:
                 throw new IllegalArgumentException(
@@ -142,6 +159,21 @@ public class Property implements NativeObject {
                 return RealmFieldType.FLOAT;
             case TYPE_DOUBLE:
                 return RealmFieldType.DOUBLE;
+            //noinspection PointlessBitwiseExpression
+            case TYPE_INT | TYPE_ARRAY:
+                return INTEGER_LIST;
+            case TYPE_BOOL | TYPE_ARRAY:
+                return BOOLEAN_LIST;
+            case TYPE_STRING | TYPE_ARRAY:
+                return STRING_LIST;
+            case TYPE_DATA | TYPE_ARRAY:
+                return BINARY_LIST;
+            case TYPE_DATE | TYPE_ARRAY:
+                return DATE_LIST;
+            case TYPE_FLOAT | TYPE_ARRAY:
+                return FLOAT_LIST;
+            case TYPE_DOUBLE | TYPE_ARRAY:
+                return DOUBLE_LIST;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));
@@ -173,12 +205,14 @@ public class Property implements NativeObject {
 
     private static native long nativeGetFinalizerPtr();
 
-    private static native long nativeCreatePersistedProperty(
+    // nativeCreateXxxProperty will be called by OsObjectSchemaInfo directly to avoid creating temporary Property
+    // objects.
+    static native long nativeCreatePersistedProperty(
             String name, int type, boolean isPrimary, boolean isIndexed);
 
-    private static native long nativeCreatePersistedLinkProperty(String name, int type, String linkedToName);
+    static native long nativeCreatePersistedLinkProperty(String name, int type, String linkedToName);
 
-    private static native long nativeCreateComputedLinkProperty(
+    static native long nativeCreateComputedLinkProperty(
             String name, String sourceClassName, String sourceFieldName);
 
     private static native int nativeGetType(long nativePtr);

@@ -36,8 +36,6 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -50,8 +48,8 @@ import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.utils.UserFactory;
 import io.realm.objectserver.utils.StringOnlyModule;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
@@ -281,31 +279,6 @@ public class SyncUserTests {
     }
 
     @Test
-    public void getManagementRealm() {
-        SyncUser user = SyncTestUtils.createTestUser();
-        Realm managementRealm = user.getManagementRealm();
-        assertNotNull(managementRealm);
-        managementRealm.close();
-    }
-
-    @Test
-    public void getManagementRealm_enforceTLS() throws URISyntaxException {
-        // Non TLS
-        SyncUser user = SyncTestUtils.createTestUser("http://objectserver.realm.io/auth");
-        Realm managementRealm = user.getManagementRealm();
-        SyncConfiguration config = (SyncConfiguration) managementRealm.getConfiguration();
-        assertEquals(new URI("realm://objectserver.realm.io/" + user.getIdentity() + "/__management"), config.getServerUrl());
-        managementRealm.close();
-
-        // TLS
-        user = SyncTestUtils.createTestUser("https://objectserver.realm.io/auth");
-        managementRealm = user.getManagementRealm();
-        config = (SyncConfiguration) managementRealm.getConfiguration();
-        assertEquals(new URI("realms://objectserver.realm.io/" + user.getIdentity() + "/__management"), config.getServerUrl());
-        managementRealm.close();
-    }
-
-    @Test
     public void toString_returnDescription() {
         SyncUser user = SyncTestUtils.createTestUser("http://objectserver.realm.io/auth");
         String str = user.toString();
@@ -382,7 +355,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
-        user.changePasswordAsync("password", new SyncUser.Callback() {
+        user.changePasswordAsync("password", new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -400,7 +373,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
-        user.changePasswordAsync("user-id", "new", new SyncUser.Callback() {
+        user.changePasswordAsync("user-id", "new", new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -543,11 +516,11 @@ public class SyncUserTests {
         //       since the user is not persisted in the UserStore
         //       isValid() requires SyncManager.getUserStore().isActive(identity)
         //       to return true as well.
-        Token accessToken = syncUser.getAccessToken();
-        assertNotNull(accessToken);
+        Token refreshToken = syncUser.getRefreshToken();
+        assertNotNull(refreshToken);
         // refresh token should expire in 10 years (July 23, 2027)
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(accessToken.expiresMs());
+        calendar.setTimeInMillis(refreshToken.expiresMs());
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         int month = calendar.get(Calendar.MONTH);
         int year = calendar.get(Calendar.YEAR);

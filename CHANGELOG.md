@@ -1,13 +1,86 @@
-## 3.7.3 (YYYY-MM-DD)
+## 4.0.0 (YYYY-MM-DD)
 
-### Bug Fixes
+## Breaking Changes
 
-* Added support for ISO8601 2-digit time zone designators (#5309).
+## Enhancements
+
+* All Realm annotations are now kept at runtime, allowing runtime tools access to them (#5344).
+* Speedup schema initialization when a Realm file is first accessed (#5391).
+
+## Bug Fixes
+
+* Assigning a managed object's own list to itself would accidentally clear it (#5395).
+* Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
+* Removing and re-adding a changelistener from inside a changelistener sometimes caused notifications to be missed (#5411).
 * [ObjectServer] Fixed "Cannot open the read only Realm" issue when get`PermissionManager` (#5414).
+
+## Internal
+
+* Upgraded to Realm Sync 2.0.0.
+* Upgraded to Realm Core 4.0.2.
+* Upgraded to OkHttp 3.9.0 .
+* Upgraded to RxJava 2.1.4 .
+
+## Credits
+
+
+## 4.0.0-RC1 (2017-10-03)
+
+## Breaking Changes
+
+The internal file format has been upgraded. Opening an older Realm will upgrade the file automatically, but older versions of Realm will no longer be able to read the file.
+
+* [ObjectServer] Updated protocol version to 22 which is only compatible with Realm Object Server >= 2.0.0.
+* [ObjectServer] Removed deprecated APIs `SyncUser.retrieveUser()` and `SyncUser.retrieveUserAsync()`. Use `SyncUser.retrieveInfoForUser()` and `retrieveInfoForUserAsync()` instead.
+* [ObjectServer] `SyncUser.Callback` now accepts a generic parameter indicating type of object returned when `onSuccess` is called.
+* [ObjectServer] Renamed `SyncUser.getAccessToken` to `SyncUser.getRefreshToken`.
+* [ObjectServer] Removed deprecated API `SyncUser.getManagementRealm()`.
+* Calling `distinct()` on a sorted `RealmResults` no longer clears any sorting defined (#3503).
+* Relaxed upper bound of type parameter of `RealmList`, `RealmQuery`, `RealmResults`, `RealmCollection`, `OrderedRealmCollection` and `OrderedRealmCollectionSnapshot`.
+* Realm has upgraded its RxJava1 support to RxJava2 (#3497)
+  * `Realm.asObservable()` has been renamed to `Realm.asFlowable()`.
+  * `RealmList.asObservable()` has been renamed to `RealmList.asFlowable()`.
+  * `RealmResults.asObservable()` has been renamed to `RealmResults.asFlowable()`.
+  * `RealmObject.asObservable()` has been renamed to `RealmObject.asFlowable()`.
+  * `RxObservableFactory` now return RxJava2 types instead of RxJava1 types.
+* Removed deprecated APIs `RealmSchema.close()` and `RealmObjectSchema.close()`. Those don't have to be called anymore.
+* Removed deprecated API `RealmResults.removeChangeListeners()`. Use `RealmResults.removeAllChangeListeners()` instead.
+* Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
+* Removed `UNSUPPORTED_TABLE`, `UNSUPPORTED_MIXED` and `UNSUPPORTED_DATE` from `RealmFieldType`.
+* Removed deprecated API `RealmResults.distinct()`/`RealmResults.distinctAsync()`. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
+* `RealmQuery.createQuery(Realm, Class)`, `RealmQuery.createDynamicQuery(DynamicRealm, String)`, `RealmQuery.createQueryFromResult(RealmResults)` and `RealmQuery.createQueryFromList(RealmList)` have been removed. Use `Realm.where(Class)`, `DynamicRealm.where(String)`, `RealmResults.where()` and `RealmList.where()` instead.
+
+## Enhancements
+
+* [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
+* `RealmList` can now contain `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` values. [Queries](https://github.com/realm/realm-java/issues/5361) and [Importing primitive lists from JSON](https://github.com/realm/realm-java/issues/5361) are not supported yet.
+* Added support for lists of primitives in `RealmObjectSchema` with `addRealmListField(String fieldName, Class<?> primitiveType)`
+* Added support for lists of primitives in `DynamicRealmObject` with `setList(String fieldName, RealmList<?> list)` and `getList(String fieldName, Class<?> primitiveType)`.
+* Minor performance improvement when copy/insert objects into Realm.
+* Added `static RealmObject.getRealm(RealmModel)`, `RealmObject.getRealm()` and `DynamicRealmObject.getDynamicRealm()` (#4720).
+* Added `RealmResults.asChangesetObservable()` that emits the pair `(results, changeset)` (#4277).
+* Added `RealmList.asChangesetObservable()` that emits the pair `(list, changeset)` (#4277).
+* Added `RealmObject.asChangesetObservable()` that emits the pair `(object, changeset)` (#4277).
+
+## Bug Fixes
+
+* [ObjectServer] Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759/#5223).
+* [ObjectServer] Realm no longer throws a native “unsupported instruction” exception in some cases when opening a synced Realm asynchronously (https://github.com/realm/realm-object-store/issues/502).
+* Throw `IllegalArgumentException` instead of `IllegalStateException` when calling string/binary data setters if the data length exceeds the limit.
+* Added support for ISO8601 2-digit time zone designators (#5309).
+* "Bad File Header" caused by the device running out of space while compacting the Realm (#5011).
+* `RealmQuery.equalTo()` failed to find null values on an indexed field if using Case.INSENSITIVE (#5299).
+
+## Internal
+
+* Upgraded to Realm Sync 2.0.0-rc27.
+* Upgraded to Realm Core 4.0.1.
+* Use Object Store to create the primary key table.
 
 ### Credits
 
 Thanks to @JussiPekonen for adding support for 2-digit time zone designators when importing JSON (#5309).
+
 
 ## 3.7.2 (2017-09-12)
 
@@ -16,6 +89,7 @@ Thanks to @JussiPekonen for adding support for 2-digit time zone designators whe
 * Fixed a JNI memory issue when doing queries which might potentially cause various native crashes.
 * Fixed a bug that `RealmList.deleteFromRealm(int)`, `RealmList.deleteFirstFromRealm()` and `RealmList.deleteLastFromRealm()` did not remove target objects from Realm. This bug was introduced in `3.7.1` (#5233).
 * Crash with "'xxx' doesn't exist in current schema." when ProGuard is enabled (#5211).
+
 
 ## 3.7.1 (2017-09-07)
 
@@ -29,6 +103,7 @@ Thanks to @JussiPekonen for adding support for 2-digit time zone designators whe
 
 * Replaced LinkView with Object Store's List.
 * Renaming `io.realm.internal.CollectionChangeSet` to `io.realm.internal.OsCollectionChangeSet`.
+
 
 ## 3.7.0 (2017-09-01)
 

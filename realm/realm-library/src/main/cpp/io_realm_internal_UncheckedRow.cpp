@@ -15,6 +15,7 @@
  */
 
 #include "io_realm_internal_UncheckedRow.h"
+#include "io_realm_internal_Property.h"
 
 #include "java_accessor.hpp"
 #include "util.hpp"
@@ -71,7 +72,13 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
                                                                                jlong columnIndex)
 {
     TR_ENTER_PTR(nativeRowPtr)
-    return static_cast<jint>(ROW(nativeRowPtr)->get_column_type(S(columnIndex))); // noexcept
+    auto column_type = ROW(nativeRowPtr)->get_column_type(S(columnIndex)); // noexcept
+    if (column_type != type_Table) {
+        return static_cast<jint>(column_type);
+    }
+    // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
+    return static_cast<jint>(ROW(nativeRowPtr)->get_table()->get_descriptor()->get_subdescriptor(S(columnIndex))->get_column_type(S(0))
+                             + io_realm_internal_Property_TYPE_ARRAY); // noexcept
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetIndex(JNIEnv* env, jobject, jlong nativeRowPtr)
@@ -164,22 +171,12 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetByteAr
         return nullptr;
     }
 
-    BinaryData bin = ROW(nativeRowPtr)->get_binary(S(columnIndex));
-    if (bin.is_null()) {
-        return nullptr;
+    try {
+        BinaryData bin = ROW(nativeRowPtr)->get_binary(S(columnIndex));
+        return JavaClassGlobalDef::new_byte_array(env, bin);
     }
-    else if (bin.size() <= MAX_JSIZE) {
-        jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
-        if (jresult) {
-            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()),
-                                    reinterpret_cast<const jbyte*>(bin.data())); // throws
-        }
-        return jresult;
-    }
-    else {
-        ThrowException(env, IllegalArgument, "Length of ByteArray is larger than an Int.");
-        return nullptr;
-    }
+    CATCH_STD()
+    return nullptr;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLink(JNIEnv* env, jobject, jlong nativeRowPtr,

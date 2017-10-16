@@ -31,6 +31,8 @@ import io.realm.exceptions.RealmException;
 @Keep
 public class OsObject implements NativeObject {
 
+    private static final String OBJECT_ID_COLUMN_NAME = nativeGetObjectIdColumName();
+
     private static class OsObjectChangeSet implements ObjectChangeSet {
         final String[] changedFields;
         final boolean deleted;
@@ -172,11 +174,11 @@ public class OsObject implements NativeObject {
     }
 
     private static long getAndVerifyPrimaryKeyColumnIndex(Table table) {
-        long primaryKeyColumnIndex = table.getPrimaryKey();
-        if (primaryKeyColumnIndex == Table.NO_PRIMARY_KEY) {
+        String pkField = OsObjectStore.getPrimaryKeyForObject(table.getSharedRealm(), table.getClassName());
+        if (pkField == null) {
             throw new IllegalStateException(table.getName() + " has no primary key defined.");
         }
-        return primaryKeyColumnIndex;
+        return table.getColumnIndex(pkField);
     }
 
     // TODO: consider to return a OsObject instead when integrating with Object Store's object accessor.
@@ -216,10 +218,12 @@ public class OsObject implements NativeObject {
      * This is used for the fast bulk insertion.
      *
      * @param table the table where the object is created.
+     * @param primaryKeyColumnIndex the column index of primary key field.
+     * @param primaryKeyValue the primary key value.
      * @return a newly created {@code UncheckedRow}.
      */
-    public static long createRowWithPrimaryKey(Table table, Object primaryKeyValue) {
-        long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
+    // FIXME: Proxy could just pass the pk index here which is much faster.
+    public static long createRowWithPrimaryKey(Table table, long primaryKeyColumnIndex, Object primaryKeyValue) {
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
         final SharedRealm sharedRealm = table.getSharedRealm();
 
@@ -237,6 +241,10 @@ public class OsObject implements NativeObject {
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
         }
+    }
+
+    public static boolean isObjectIdColumn(String columnName) {
+        return OBJECT_ID_COLUMN_NAME.equals(columnName);
     }
 
     // Called by JNI
@@ -277,4 +285,7 @@ public class OsObject implements NativeObject {
     private static native long nativeCreateRowWithStringPrimaryKey(long sharedRealmPtr,
                                                                    long tablePtr, long pk_column_index,
                                                                    String primaryKeyValue);
+
+    // Return sync::object_id_column_name
+    private static native String nativeGetObjectIdColumName();
 }

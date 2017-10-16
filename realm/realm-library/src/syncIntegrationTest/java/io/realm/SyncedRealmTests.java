@@ -20,6 +20,7 @@ import android.os.SystemClock;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -117,6 +118,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
     // We cannot do much better since we cannot control the order of events internally in Realm which would be
     // needed to correctly test all error paths.
     @Test
+    @Ignore("See https://github.com/realm/realm-java/issues/5177")
     public void waitForInitialData_resilientInCaseOfRetries() throws InterruptedException {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -153,6 +155,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
     // needed to correctly test all error paths.
     @Test
     @RunTestInLooperThread
+    @Ignore("See https://github.com/realm/realm-java/issues/5373")
     public void waitForInitialData_resilientInCaseOfRetriesAsync() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -264,5 +267,4 @@ public class SyncedRealmTests extends StandardIntegrationTest {
             user.logout();
         }
     }
-
 }

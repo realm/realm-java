@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
  * String, Byte, Short, Integer, and Long are also allowed, and further permitted to have {@code null}
  * as a primary key value.
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface PrimaryKey {
 

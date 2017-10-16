@@ -19,6 +19,10 @@
 #include "object-store/src/sync/sync_manager.hpp"
 #include "object-store/src/sync/sync_config.hpp"
 #include "object-store/src/sync/sync_session.hpp"
+#include "object-store/src/results.hpp"
+#include "object-store/src/sync/partial_sync.hpp"
+
+#include "observable_collection_wrapper.hpp"
 #endif
 
 #include <realm/util/assert.hpp>
@@ -38,6 +42,12 @@
 using namespace realm;
 using namespace realm::_impl;
 using namespace realm::jni_util;
+
+static const char* c_table_name_exists_exception_msg = "Class already exists: '%1'.";
+
+#if REALM_ENABLE_SYNC // used only for partial sync now
+typedef ObservableCollectionWrapper<Results> ResultsWrapper;
+#endif
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeInit(JNIEnv* env, jclass,
                                                                      jstring temporary_directory_path)
@@ -156,52 +166,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeIsInTransact
     return static_cast<jboolean>(shared_realm->is_in_transaction());
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeReadGroup(JNIEnv* env, jclass,
-                                                                           jlong shared_realm_ptr)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        return reinterpret_cast<jlong>(&shared_realm->read_group());
-    }
-    CATCH_STD()
-
-    return static_cast<jlong>(NULL);
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetVersion(JNIEnv* env, jclass,
-                                                                            jlong shared_realm_ptr)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        return static_cast<jlong>(ObjectStore::get_schema_version(shared_realm->read_group()));
-    }
-    CATCH_STD()
-    return static_cast<jlong>(ObjectStore::NotVersioned);
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeSetVersion(JNIEnv* env, jclass,
-                                                                           jlong shared_realm_ptr, jlong version)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        if (!shared_realm->is_in_transaction()) {
-            std::ostringstream ss;
-            ss << "Cannot set schema version when the realm is not in transaction.";
-            ThrowException(env, IllegalState, ss.str());
-            return;
-        }
-
-        ObjectStore::set_schema_version(shared_realm->read_group(), static_cast<uint64_t>(version));
-    }
-    CATCH_STD()
-}
-
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedRealm_nativeIsEmpty(JNIEnv* env, jclass,
                                                                             jlong shared_realm_ptr)
 {
@@ -289,22 +253,76 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeGetTable(JNIEnv
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTable(JNIEnv* env, jclass,
                                                                              jlong shared_realm_ptr,
-                                                                             jstring table_name)
+                                                                             jstring j_table_name)
 {
     TR_ENTER_PTR(shared_realm_ptr)
 
-    std::string name_str;
+    std::string table_name;
     try {
-        JStringAccessor name(env, table_name); // throws
-        name_str = name;
+        table_name = JStringAccessor(env, j_table_name); // throws
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         shared_realm->verify_in_write(); // throws
-        Table* table = LangBindHelper::add_table(shared_realm->read_group(), name); // throws
+        Table* table;
+        auto& group = shared_realm->read_group();
+#if REALM_ENABLE_SYNC
+        // Sync doesn't throw when table exists.
+        if (group.has_table(table_name)) {
+            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
+                                 format(c_table_name_exists_exception_msg, table_name.substr(TABLE_PREFIX.length())));
+        }
+        auto table_ref = sync::create_table(group, table_name); // throws
+        table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
+#else
+        table = LangBindHelper::add_table(group, table_name); // throws
+#endif
         return reinterpret_cast<jlong>(table);
     }
     catch (TableNameInUse& e) {
         // We need to print the table name, so catch the exception here.
-        ThrowException(env, IllegalArgument, format("Class already exists: '%1'.", name_str));
+        std::string class_name_str(table_name.substr(TABLE_PREFIX.length()));
+        ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
+    }
+    CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedRealm_nativeCreateTableWithPrimaryKeyField(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring j_table_name, jstring j_field_name, jboolean is_string_type,
+    jboolean is_nullable)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+
+    std::string class_name_str;
+    try {
+        std::string table_name(JStringAccessor(env, j_table_name));
+        class_name_str = std::string(table_name.substr(TABLE_PREFIX.length()));
+        JStringAccessor field_name(env, j_field_name); // throws
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        shared_realm->verify_in_write(); // throws
+        DataType pkType = is_string_type ? DataType::type_String : DataType::type_Int;
+        Table* table;
+        auto& group = shared_realm->read_group();
+#if REALM_ENABLE_SYNC
+        // Sync doesn't throw when table exists.
+        if (group.has_table(table_name)) {
+            THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
+                                 format(c_table_name_exists_exception_msg, class_name_str));
+        }
+        auto table_ref =
+            sync::create_table_with_primary_key(group, table_name, pkType, field_name, is_nullable);
+        table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
+#else
+        table = LangBindHelper::add_table(group, table_name);
+        size_t column_idx = table->add_column(pkType, field_name, is_nullable);
+        table->add_search_index(column_idx);
+#endif
+        ObjectStore::set_primary_key_for_object(group, class_name_str, field_name);
+        return reinterpret_cast<jlong>(table);
+    }
+    catch (TableNameInUse& e) {
+        // We need to print the table name, so catch the exception here.
+        ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
     }
     CATCH_STD()
 
@@ -358,26 +376,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRenameTable(JNIE
         }
         JStringAccessor new_name(env, new_table_name);
         shared_realm->read_group().rename_table(old_name, new_name);
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRemoveTable(JNIEnv* env, jclass,
-                                                                            jlong shared_realm_ptr,
-                                                                            jstring table_name)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        JStringAccessor name(env, table_name);
-        if (!shared_realm->is_in_transaction()) {
-            std::ostringstream ss;
-            ss << "Class " << name << " cannot be removed when the realm is not in transaction.";
-            ThrowException(env, IllegalState, ss.str());
-            return;
-        }
-        shared_realm->read_group().remove_table(name);
     }
     CATCH_STD()
 }
@@ -510,4 +508,54 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterSchemaCh
             *(static_cast<JavaBindingContext*>(shared_realm->m_binding_context.get()));
         java_binding_context.set_schema_changed_callback(env, j_schema_changed_callback);
     }
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedRealm_nativeRegisterPartialSyncQuery(
+    REALM_UNUSED JNIEnv* env, REALM_UNUSED jobject j_shared_realm_instance, REALM_UNUSED jlong shared_realm_ptr, REALM_UNUSED jstring j_class_name,
+    REALM_UNUSED jstring j_query, REALM_UNUSED jobject j_callback)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+
+#if REALM_ENABLE_SYNC
+
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        JStringAccessor class_name(env, j_class_name);               // throws
+        JStringAccessor query(env, j_query);                         // throws
+
+        // The lambda will capture the copied reference and it will be unreferenced when the lambda's life cycle is over.
+        // That happens when the Realm is closed or the callback has been triggered once.
+        JavaGlobalRef j_callback_ref(env, j_callback);
+        JavaGlobalWeakRef j_shared_realm_instance_ref(env, j_shared_realm_instance);
+
+        static JavaClass shared_realm_class(env, "io/realm/internal/SharedRealm");
+        static JavaMethod partial_sync_cb(env, shared_realm_class, "runPartialSyncRegistrationCallback",
+                                          "(Ljava/lang/String;JLio/realm/internal/SharedRealm$PartialSyncCallback;)V");
+
+        auto cb = [j_callback_ref, j_shared_realm_instance_ref](Results results, std::exception_ptr err) {
+            JNIEnv* env = JniUtils::get_env(true);
+            j_shared_realm_instance_ref.call_with_local_ref(env, [&](JNIEnv*, jobject row_obj) {
+                if (err) {
+                    try {
+                        std::rethrow_exception(err);
+                    }
+                    catch (const std::exception& e) {
+                        env->CallVoidMethod(row_obj, partial_sync_cb, to_jstring(env, e.what()),
+                                            reinterpret_cast<jlong>(nullptr), j_callback_ref.get());
+                    }
+                    return;
+                }
+
+                auto wrapper = new ResultsWrapper(results);
+                env->CallVoidMethod(row_obj, partial_sync_cb, nullptr, reinterpret_cast<jlong>(wrapper),
+                                    j_callback_ref.get());
+            });
+        };
+
+        partial_sync::register_query(shared_realm, class_name, query, std::move(cb));
+    }
+    CATCH_STD()
+#else
+    REALM_TERMINATE("Unsupported operation. Only available when used with the Realm Object Server");
+#endif
 }

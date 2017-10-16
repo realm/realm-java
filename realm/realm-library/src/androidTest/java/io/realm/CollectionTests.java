@@ -84,7 +84,7 @@ public abstract class CollectionTests {
     protected void populateRealm(Realm realm, int objects) {
         realm.beginTransaction();
         realm.delete(AllJavaTypes.class);
-        realm.delete(NonLatinFieldNames.class);
+         realm.delete(NonLatinFieldNames.class);
         if (objects > 0) {
             for (int i = 0; i < objects; i++) {
                 AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i);

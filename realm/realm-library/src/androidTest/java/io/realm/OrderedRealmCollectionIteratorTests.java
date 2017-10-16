@@ -642,16 +642,21 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             fail();
         } catch (UnsupportedOperationException e) {
             assertResultsOrSnapshot();
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException e) { // since next() was never called.
             assertRealmList();
         }
 
         try {
             it.add(null);
-            fail();
+            if (collectionClass != CollectionClass.UNMANAGED_REALMLIST) {
+                fail();
+            }
         } catch (UnsupportedOperationException e) {
             assertResultsOrSnapshot();
         } catch (IllegalArgumentException e) {
+            if (collectionClass == CollectionClass.UNMANAGED_REALMLIST) {
+                fail();
+            }
             assertRealmList();
         }
 
@@ -660,7 +665,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             fail();
         } catch (UnsupportedOperationException e) {
             assertResultsOrSnapshot();
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException e) { // since the collection is empty
             assertRealmList();
         }
     }
