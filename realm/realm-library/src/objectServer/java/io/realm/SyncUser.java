@@ -172,7 +172,7 @@ public class SyncUser {
                 error = result.getError();
             }
         } catch (Throwable e) {
-            throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+            throw new ObjectServerError(ErrorCode.UNKNOWN, "Failed logging in user: " + credentials.getUserIdentifier(), e);
         }
         throw error;
     }

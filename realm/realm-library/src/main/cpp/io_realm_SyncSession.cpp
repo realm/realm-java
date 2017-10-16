@@ -68,7 +68,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JN
             return JNI_TRUE;
         }
         else {
-            Log::d("no active/inactive session found");
+            Log::d("No active/inactive session found");
         }
     }
     CATCH_STD()

@@ -102,6 +102,7 @@ public abstract class BaseIntegrationTest {
      * Tries to restore the environment as best as possible after a test.
      */
     protected void restoreEnvironmentAfterTest() {
+        RealmLog.info("Stopping integration test");
         // Block until all users are logged out
         UserFactory.logoutAllUsers();
 
