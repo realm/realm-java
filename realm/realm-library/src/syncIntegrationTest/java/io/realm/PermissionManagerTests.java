@@ -1203,11 +1203,11 @@ public class PermissionManagerTests extends StandardIntegrationTest {
      * states and fail if neither of these can be verified.
      */
     private void assertInitialPermissions(RealmResults<Permission> permissions) {
-        assertEquals("Could not find __permissions Realm", 1, permissions.where().endsWith("path", "__permission").count());
-        assertEquals("Could not find __management Realm", 1, permissions.where().endsWith("path", "__management").count());
+        assertEquals("Unexpected count() for __permission Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__permission").count());
+        assertEquals("Unexpected count() for __management Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__management").count());
     }
 
     private void assertInitialDefaultPermissions(RealmResults<Permission> permissions) {
-        assertEquals("Could not find __wildcardpermissions Realm", 1, permissions.where().endsWith("path", "__wildcardpermissions").count());
+        assertEquals("Unexpected count() for __wildcardpermissions Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__wildcardpermissions").count());
     }
 }
