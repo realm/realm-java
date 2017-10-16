@@ -13,7 +13,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -24,6 +23,7 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.util.RandomGenerator;
 import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
@@ -178,7 +178,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     // affect all associated sessions.
     @Test(timeout=5000)
     public void logout_sameSyncUserMultipleSessions() {
-        String uniqueName = UUID.randomUUID().toString();
+        String uniqueName = RandomGenerator.newRandomUUID();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
         SyncUser user =  SyncUser.login(credentials, Constants.AUTH_URL);
 
@@ -227,7 +227,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     // A Realm that was opened before a user logged out should be able to resume uploading if the user logs back in.
     @Test
     public void logBackResumeUpload() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
-        final String uniqueName = UUID.randomUUID().toString();
+        final String uniqueName = RandomGenerator.newRandomUUID();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
 
@@ -311,7 +311,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     @Test
     @Ignore()
     public void uploadChangesWhenRealmOutOfScope() throws InterruptedException {
-        final String uniqueName = UUID.randomUUID().toString();
+        final String uniqueName = RandomGenerator.newRandomUUID();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
 
@@ -379,7 +379,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     // A Realm that was opened before a user logged out should be able to resume downloading if the user logs back in.
     @Test
     public void downloadChangesWhenRealmOutOfScope() throws InterruptedException {
-        final String uniqueName = UUID.randomUUID().toString();
+        final String uniqueName = RandomGenerator.newRandomUUID();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
 
@@ -455,7 +455,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void clientReset_manualTriggerAllowSessionToRestart() {
-        final String uniqueName = UUID.randomUUID().toString();
+        final String uniqueName = RandomGenerator.newRandomUUID();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
 

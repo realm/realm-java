@@ -33,7 +33,7 @@ import io.realm.internal.objectserver.Token;
 
 public class SyncTestUtils {
 
-    public static final String USER_TOKEN = UUID.randomUUID().toString();
+    public static final String USER_TOKEN = RandomGenerator.newRandomUUID();
     public static final String DEFAULT_AUTH_URL = "http://objectserver.realm.io/auth";
 
     private final static Method SYNC_MANAGER_GET_USER_STORE_METHOD;
@@ -50,19 +50,19 @@ public class SyncTestUtils {
     }
 
     public static SyncUser createTestAdminUser() {
-        return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, Long.MAX_VALUE, true);
+        return createTestUser(USER_TOKEN, RandomGenerator.newRandomUUID(), DEFAULT_AUTH_URL, Long.MAX_VALUE, true);
     }
 
     public static SyncUser createTestUser() {
-        return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
+        return createTestUser(USER_TOKEN, RandomGenerator.newRandomUUID(), DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
     }
 
     public static SyncUser createTestUser(long expires) {
-        return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, expires, false);
+        return createTestUser(USER_TOKEN, RandomGenerator.newRandomUUID(), DEFAULT_AUTH_URL, expires, false);
     }
 
     public static SyncUser createTestUser(String authUrl) {
-        return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), authUrl, Long.MAX_VALUE, false);
+        return createTestUser(USER_TOKEN, RandomGenerator.newRandomUUID(), authUrl, Long.MAX_VALUE, false);
     }
 
     public static SyncUser createNamedTestUser(String userIdentifier) {

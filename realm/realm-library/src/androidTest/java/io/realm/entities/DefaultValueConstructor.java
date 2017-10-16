@@ -23,6 +23,7 @@ import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
+import io.realm.util.RandomGenerator;
 
 public class DefaultValueConstructor extends RealmObject {
 
@@ -86,7 +87,7 @@ public class DefaultValueConstructor extends RealmObject {
     public DefaultValueConstructor() {
         fieldIgnored = FIELD_IGNORED_DEFAULT_VALUE;
         fieldString = FIELD_STRING_DEFAULT_VALUE;
-        fieldRandomString = lastRandomStringValue = UUID.randomUUID().toString();
+        fieldRandomString = lastRandomStringValue = RandomGenerator.newRandomUUID();
         fieldShort = FIELD_SHORT_DEFAULT_VALUE;
         fieldInt = FIELD_INT_DEFAULT_VALUE;
         fieldLongPrimaryKey = FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE;

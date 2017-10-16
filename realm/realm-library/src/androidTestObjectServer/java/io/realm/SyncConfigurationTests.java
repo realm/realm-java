@@ -34,6 +34,7 @@ import java.util.Map;
 
 import io.realm.entities.StringOnly;
 import io.realm.rule.RunInLooperThread;
+import io.realm.util.RandomGenerator;
 
 import static io.realm.util.SyncTestUtils.createNamedTestUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
@@ -317,7 +318,7 @@ public class SyncConfigurationTests {
        SyncUser user = createTestUser();
        String url = "realm://objectserver.realm.io/default";
        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
-               .encryptionKey(TestHelper.getRandomKey())
+               .encryptionKey(RandomGenerator.getRandomKey())
                .build();
        assertNotNull(config.getEncryptionKey());
     }

@@ -18,25 +18,17 @@ package io.realm.objectserver.utils;
 
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.SystemClock;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import io.realm.AuthenticationListener;
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.SyncCredentials;
-import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.log.RealmLog;
-
-import static org.junit.Assert.fail;
+import io.realm.util.RandomGenerator;
 
 
 // Helper class to retrieve users with same IDs even in multi-processes.
@@ -73,7 +65,7 @@ public class UserFactory {
     }
 
     public static SyncUser createUniqueUser(String authUrl) {
-        String uniqueName = UUID.randomUUID().toString();
+        String uniqueName = RandomGenerator.newRandomUUID();
         return createUser(uniqueName);
     }
 
@@ -105,7 +97,7 @@ public class UserFactory {
         if (store == null) {
             store = realm.createObject(UserFactoryStore.class);
         }
-        store.setUserName(UUID.randomUUID().toString());
+        store.setUserName(RandomGenerator.newRandomUUID());
         realm.commitTransaction();
         realm.close();
     }
@@ -156,4 +148,5 @@ public class UserFactory {
         TestHelper.awaitOrFail(allUsersLoggedOut);
         ht.quit();
     }
+
 }

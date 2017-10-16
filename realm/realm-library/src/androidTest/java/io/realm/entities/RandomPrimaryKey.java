@@ -16,10 +16,9 @@
 
 package io.realm.entities;
 
-import java.util.UUID;
-
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import io.realm.util.RandomGenerator;
 
 public class RandomPrimaryKey extends RealmObject {
 
@@ -30,7 +29,7 @@ public class RandomPrimaryKey extends RealmObject {
 
     public static int FIELD_INT_DEFAULT_VALUE = 1357924;
 
-    @PrimaryKey private String fieldRandomPrimaryKey = UUID.randomUUID().toString();
+    @PrimaryKey private String fieldRandomPrimaryKey = RandomGenerator.newRandomUUID();
     private int fieldInt = FIELD_INT_DEFAULT_VALUE;
 
     public RandomPrimaryKey() {

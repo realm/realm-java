@@ -56,6 +56,7 @@ import io.realm.rx.CollectionChange;
 import io.realm.rx.ObjectChange;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
+import io.realm.util.RandomGenerator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -329,7 +330,7 @@ public class RealmConfigurationTests {
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
                 .name("foo.realm")
-                .encryptionKey(TestHelper.getRandomKey())
+                .encryptionKey(RandomGenerator.getRandomKey())
                 .schemaVersion(42)
                 .migration(new RealmMigration() {
                     @Override
@@ -515,11 +516,11 @@ public class RealmConfigurationTests {
     public void encryptionKey_differentEncryptionKeysThrows() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .encryptionKey(TestHelper.getRandomKey())
+                .encryptionKey(RandomGenerator.getRandomKey())
                 .build();
         RealmConfiguration config2 = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
-                .encryptionKey(TestHelper.getRandomKey())
+                .encryptionKey(RandomGenerator.getRandomKey())
                 .build();
 
         Realm realm1 = Realm.getInstance(config1);
@@ -601,7 +602,7 @@ public class RealmConfigurationTests {
     @Test
     public void encryptionKey_keyStorage() throws Exception {
         // Generates a key and uses it in a RealmConfiguration.
-        byte[] oldKey = TestHelper.getRandomKey(12345);
+        byte[] oldKey = RandomGenerator.getRandomKey(12345);
         byte[] key = oldKey;
         RealmConfiguration config = new RealmConfiguration.Builder(context)
                 .directory(configFactory.getRoot())
@@ -609,7 +610,7 @@ public class RealmConfigurationTests {
                 .build();
 
         // Generates a different key and assigns it to the same variable.
-        byte[] newKey = TestHelper.getRandomKey(67890);
+        byte[] newKey = RandomGenerator.getRandomKey(67890);
         MoreAsserts.assertNotEqual(key, newKey);
         key = newKey;
         MoreAsserts.assertEquals(key, newKey);

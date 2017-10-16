@@ -24,6 +24,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.util.RandomGenerator;
 import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
@@ -41,11 +42,11 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
     public void setEncryptionKey_canReOpenRealmWithoutKey() {
 
         // STEP 1: open a synced Realm using a local encryption key
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
-        final byte[] randomKey = TestHelper.getRandomKey();
+        final byte[] randomKey = RandomGenerator.getRandomKey();
 
         SyncConfiguration configWithEncryption = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .modules(new StringOnlyModule())
@@ -98,11 +99,11 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
     @Test
     public void setEncryptionKey_shouldCrashIfKeyNotProvided() throws InterruptedException {
         // STEP 1: open a synced Realm using a local encryption key
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
-        final byte[] randomKey = TestHelper.getRandomKey();
+        final byte[] randomKey = RandomGenerator.getRandomKey();
 
         SyncConfiguration configWithEncryption = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .modules(new StringOnlyModule())
@@ -157,11 +158,11 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
     @Test
     public void setEncryptionKey_differentClientsWithDifferentKeys() throws InterruptedException {
         // STEP 1: prepare a synced Realm for client A
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
-        final byte[] randomKey = TestHelper.getRandomKey();
+        final byte[] randomKey = RandomGenerator.getRandomKey();
 
         SyncConfiguration configWithEncryption = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .modules(new StringOnlyModule())
@@ -191,7 +192,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         SyncCredentials credentials = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
         SyncUser adminUser = SyncUser.login(credentials, Constants.AUTH_URL);
 
-        final byte[] adminRandomKey = TestHelper.getRandomKey();
+        final byte[] adminRandomKey = RandomGenerator.getRandomKey();
 
         SyncConfiguration adminConfigWithEncryption = configurationFactory.createSyncConfigurationBuilder(adminUser, configWithEncryption.getServerUrl().toString())
                 .modules(new StringOnlyModule())
