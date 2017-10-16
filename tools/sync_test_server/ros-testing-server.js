@@ -7,6 +7,7 @@ const exec = require('child_process').exec;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 var fs = require('fs-extra');
+var moment = require('moment')
 
 // Automatically track and cleanup files at exit
 temp.track();
@@ -15,9 +16,16 @@ if (process. argv. length <= 2) {
     console.log("Usage: " + __filename + " somefile.log");
     process.exit(-1);
 }
+
 const logFile = process.argv[2];
 winston.level = 'debug';
-winston.add(winston.transports.File, { filename: logFile, json: false });
+winston.add(winston.transports.File, {
+    filename: logFile,
+    json: false,
+    formatter: function(options) {
+        return moment().format('YYYY-MM-DD HH:mm:ss.SSSS') + ' ' + (undefined !== options.message ? options.message : '');
+    }
+});
 
 const PORT = 8888;
 
@@ -88,11 +96,11 @@ function startRealmObjectServer(onSuccess, onError) {
 
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
-                winston.info(data);
+                winston.info(`${data}`);
             });
 
             syncServerChildProcess.stderr.on('data', (data) => {
-                winston.info(data);
+                winston.info(`${data}`);
             });
 
             waitForRosToInitialize(20, onSuccess, onError);
