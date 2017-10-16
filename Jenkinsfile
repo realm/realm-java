@@ -45,7 +45,7 @@ try {
           rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_DE_VERSION=${rosDeVersion} tools/sync_test_server"
         }
 
-	    rosContainer = rosEnv.run('-v /tmp=/tmp/.ros')
+	    rosContainer = rosEnv.run()
 
         try {
               buildEnv.inside("-e HOME=/tmp " +
