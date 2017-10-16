@@ -7,6 +7,7 @@ import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -115,6 +116,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore()
     public void interruptWaits() throws InterruptedException {
         final SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
@@ -307,6 +309,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     // A Realm that was opened before a user logged out should be able to resume uploading if the user logs back in.
     // this test validate the behaviour of SyncSessionStopPolicy::AfterChangesUploaded
     @Test
+    @Ignore()
     public void uploadChangesWhenRealmOutOfScope() throws InterruptedException {
         final String uniqueName = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
