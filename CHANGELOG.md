@@ -1,29 +1,4 @@
-## 4.0.0 (YYYY-MM-DD)
-
-## Breaking Changes
-
-## Enhancements
-
-* All Realm annotations are now kept at runtime, allowing runtime tools access to them (#5344).
-* Speedup schema initialization when a Realm file is first accessed (#5391).
-
-## Bug Fixes
-
-* Assigning a managed object's own list to itself would accidentally clear it (#5395).
-* Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
-* Removing and re-adding a changelistener from inside a changelistener sometimes caused notifications to be missed (#5411).
-
-## Internal
-
-* Upgraded to Realm Sync 2.0.2.
-* Upgraded to Realm Core 4.0.2.
-* Upgraded to OkHttp 3.9.0 .
-* Upgraded to RxJava 2.1.4 .
-
-## Credits
-
-
-## 4.0.0-RC1 (2017-10-03)
+## 4.0.0 (2016-10-16)
 
 ## Breaking Changes
 
@@ -60,6 +35,8 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 * Added `RealmResults.asChangesetObservable()` that emits the pair `(results, changeset)` (#4277).
 * Added `RealmList.asChangesetObservable()` that emits the pair `(list, changeset)` (#4277).
 * Added `RealmObject.asChangesetObservable()` that emits the pair `(object, changeset)` (#4277).
+* All Realm annotations are now kept at runtime, allowing runtime tools access to them (#5344).
+* Speedup schema initialization when a Realm file is first accessed (#5391).
 
 ## Bug Fixes
 
@@ -70,11 +47,16 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 * Added support for ISO8601 2-digit time zone designators (#5309).
 * "Bad File Header" caused by the device running out of space while compacting the Realm (#5011).
 * `RealmQuery.equalTo()` failed to find null values on an indexed field if using Case.INSENSITIVE (#5299).
+* Assigning a managed object's own list to itself would accidentally clear it (#5395).
+* Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
+* Removing and re-adding a changelistener from inside a changelistener sometimes caused notifications to be missed (#5411).
 
 ## Internal
 
-* Upgraded to Realm Sync 2.0.0-rc27.
-* Upgraded to Realm Core 4.0.1.
+* Upgraded to Realm Sync 2.0.2.
+* Upgraded to Realm Core 4.0.2.
+* Upgraded to OkHttp 3.9.0.
+* Upgraded to RxJava 2.1.4.
 * Use Object Store to create the primary key table.
 
 ### Credits
