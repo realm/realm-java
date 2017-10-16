@@ -64,7 +64,7 @@ function startRealmObjectServer(onSuccess, onError) {
             var env = Object.create( process.env );
             winston.info(env.NODE_ENV);
             env.NODE_ENV = 'development';
-            env.JENKINS = 1; // Skip email check in ROS
+//            env.JENKINS = 1; // Skip email check in ROS
 
             // Manually cleanup Global Notifier State
             // See https://github.com/realm/ros/issues/437#issuecomment-335380095
