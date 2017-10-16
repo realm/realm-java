@@ -49,12 +49,15 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     private final Set<RealmConfiguration> configurations = Collections.newSetFromMap(map);
 
     private boolean unitTestFailed = false;
+    private String testName = "";
+    private File tempFolder = null;
 
     @Override
-    public Statement apply(final Statement base, Description description) {
+    public Statement apply(final Statement base, final Description description) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
+                testName = description.getDisplayName();
                 before();
                 try {
                     base.evaluate();
@@ -89,6 +92,23 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
             // This will delete the temp directory.
             super.after();
         }
+    }
+
+    @Override
+    public void create() throws IOException {
+        super.create();
+        tempFolder = new File(super.getRoot(), testName);
+        tempFolder.delete();
+        tempFolder.mkdir();
+    }
+
+    @Override
+    public File getRoot() {
+        if (tempFolder == null) {
+            throw new IllegalStateException(
+                    "the temporary folder has not yet been created");
+        }
+        return tempFolder;
     }
 
     public synchronized void setUnitTestFailed() {
