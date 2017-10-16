@@ -152,6 +152,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore
     public void getPermissions_updatedWithNewRealms_stressTest() {
         final int TEST_SIZE = 10;
         final PermissionManager pm = user.getPermissionManager();
