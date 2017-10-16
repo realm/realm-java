@@ -12,6 +12,7 @@
 * Assigning a managed object's own list to itself would accidentally clear it (#5395).
 * Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
 * Removing and re-adding a changelistener from inside a changelistener sometimes caused notifications to be missed (#5411).
+* [ObjectServer] Fixed "Cannot open the read only Realm" issue when get`PermissionManager` (#5414).
 
 ## Internal
 
