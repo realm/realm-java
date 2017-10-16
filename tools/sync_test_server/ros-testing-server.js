@@ -17,7 +17,7 @@ if (process. argv. length <= 2) {
 }
 const logFile = process.argv[2];
 winston.level = 'debug';
-winston.add(winston.transports.File, { filename: logFile, json: false });
+winston.add(winston.transports.File, { filename: logFile });
 
 const PORT = 8888;
 
