@@ -65,6 +65,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 
 * [ObjectServer] Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759/#5223).
 * [ObjectServer] Realm no longer throws a native “unsupported instruction” exception in some cases when opening a synced Realm asynchronously (https://github.com/realm/realm-object-store/issues/502).
+* [ObjectServer] Fixed "Cannot open the read only Realm" issue when get`PermissionManager` (#5414).
 * Throw `IllegalArgumentException` instead of `IllegalStateException` when calling string/binary data setters if the data length exceeds the limit.
 * Added support for ISO8601 2-digit time zone designators (#5309).
 * "Bad File Header" caused by the device running out of space while compacting the Realm (#5011).
