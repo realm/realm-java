@@ -111,10 +111,7 @@ abstract class BaseRealm implements Closeable {
             initializationCallback = new SharedRealm.InitializationCallback() {
                 @Override
                 public void onInit(SharedRealm sharedRealm) {
-                    Realm realm = Realm.createInstance(sharedRealm);
-                    initialDataTransaction.execute(realm);
-                    // The sharedRealm here doesn't own the pointer! Set this.sharedRealm to null.
-                    realm.doClose();
+                    initialDataTransaction.execute(Realm.createInstance(sharedRealm));
                 }
             };
         }
@@ -714,10 +711,7 @@ abstract class BaseRealm implements Closeable {
         return new SharedRealm.MigrationCallback() {
             @Override
             public void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion) {
-                DynamicRealm dynamicRealm = DynamicRealm.createInstance(sharedRealm);
-                migration.migrate(dynamicRealm, oldVersion, newVersion);
-                // The sharedRealm here doesn't own the pointer! Set this.sharedRealm to null.
-                dynamicRealm.doClose();
+                migration.migrate(DynamicRealm.createInstance(sharedRealm), oldVersion, newVersion);
             }
         };
     }

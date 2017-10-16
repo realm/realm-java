@@ -75,7 +75,6 @@ public final class SharedRealm implements Closeable, NativeObject {
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
     public final Capabilities capabilities;
-    private final boolean isManagedByPhantomRef;
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -197,7 +196,6 @@ public final class SharedRealm implements Closeable, NativeObject {
         this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
         this.context = osRealmConfig.getContext();
         this.context.addReference(this);
-        this.isManagedByPhantomRef = true;
 
         this.capabilities = capabilities;
         this.realmNotifier = realmNotifier;
@@ -210,18 +208,13 @@ public final class SharedRealm implements Closeable, NativeObject {
      * {@code SharedRealm} instance with the same {@link OsRealmConfig} which has been created before. Although they
      * are different {@code shared_ptr}, they point to the same {@code SharedGroup} instance. The {@code context} has
      * to be the same one to ensure core's destructor thread safety.
-     * <p>
-     * WARNING: Java doesn't own the {@code SharedRealm} pointer holds by this instance, thus it is not managed by the
-     * {@link java.lang.ref.PhantomReference}. For public APIs which creates {@code Realm} or {@code DynamicRealm}, it
-     * is very important to set the {@code SharedRealm} member to {@code null} at the end of the callback. Expose this
-     * after the callback returns may cause a invalid pointer native crash.
      */
     private SharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
         this.nativePtr = nativeSharedRealmPtr;
         this.osRealmConfig = osRealmConfig;
         this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
         this.context = osRealmConfig.getContext();
-        this.isManagedByPhantomRef = false;
+        this.context.addReference(this);
 
         this.capabilities = new AndroidCapabilities();
         // This instance should never need notifications.
@@ -489,8 +482,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     @SuppressWarnings("unused")
     private static void runMigrationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, MigrationCallback callback,
                                              long oldVersion) {
-        SharedRealm sharedRealm = new SharedRealm(nativeSharedRealmPtr, osRealmConfig);
-        callback.onMigrationNeeded(sharedRealm, oldVersion,
+        callback.onMigrationNeeded(new SharedRealm(nativeSharedRealmPtr, osRealmConfig), oldVersion,
                 osRealmConfig.getRealmConfiguration().getSchemaVersion());
     }
 
@@ -501,8 +493,7 @@ public final class SharedRealm implements Closeable, NativeObject {
      */
     @SuppressWarnings("unused")
     private static void runInitializationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, InitializationCallback callback) {
-        SharedRealm sharedRealm = new SharedRealm(nativeSharedRealmPtr, osRealmConfig);
-        callback.onInit(sharedRealm);
+        callback.onInit(new SharedRealm(nativeSharedRealmPtr, osRealmConfig));
     }
 
     /**
