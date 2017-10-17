@@ -152,13 +152,12 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsObjectStore_nativeCallWithLo
         std::string realm_path(path_accessor);
         static JavaClass runnable_class(env, "java/lang/Runnable");
         static JavaMethod run_method(env, runnable_class, "run", "()V");
-        bool exception_thrown = false;
         bool result = SharedGroup::call_with_lock(realm_path, [&](std::string path) {
             REALM_ASSERT_RELEASE_EX(realm_path.compare(path) == 0, realm_path.c_str(), path.c_str());
             env->CallVoidMethod(j_runnable, run_method);
-            exception_thrown = env->ExceptionCheck();
+            TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
         });
-        return exception_thrown ? false : result;
+        return result;
     }
     CATCH_STD()
     return false;
