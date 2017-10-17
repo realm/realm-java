@@ -19,6 +19,7 @@ package io.realm.internal.network;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.ErrorCode;
+import io.realm.log.RealmLog;
 
 /**
  * Abstracts the concept of running an network task with incremental backoff. It will run forever until interrupted.
@@ -57,6 +58,7 @@ public abstract class ExponentialBackoffTask<T extends AuthServerResponse> imple
             attempt++;
             long sleep = calculateExponentialDelay(attempt - 1, TimeUnit.MINUTES.toMillis(5));
             if (sleep > 0) {
+                RealmLog.debug("Retrying %s in %d seconds", this.getClass().toString(), sleep);
                 try {
                     Thread.sleep(sleep);
                 } catch (InterruptedException e) {
