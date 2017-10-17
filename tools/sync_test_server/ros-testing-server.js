@@ -96,6 +96,10 @@ function startRealmObjectServer(onSuccess, onError) {
                     ['start',
                         '--data', path,
                         '--loglevel', 'detail',
+                        '--https',
+                        '--https-key', '/127_0_0_1-server.key.pem',
+                        '--https-cert', '/127_0_0_1-chain.crt.pem',
+                        '--https-port', '9443',
                         '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
                     ],
                     { env: env, cwd: path});
