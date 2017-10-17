@@ -1,9 +1,5 @@
 ## 4.1.0 (YYYY-MM-DD)
 
-## Breaking Changes
-
-* [ObjectServer] `Realm.deleteRealm()` doesn't support synced Realms for now. See issue #5416.
-
 ## Enhancements
 
 * `Realm.deleteRealm()` and `RealmConfiguration.assetFile()` are multi-processes safe now.

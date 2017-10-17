@@ -1662,19 +1662,16 @@ public class Realm extends BaseRealm {
      * <p>
      * All Realm instances must be closed before calling this method.
      * <p>
-     * This doesn't support deleting synced Realm for now.
+     * WARNING: For synchronized Realm, there is a chance that an internal Realm instance on the background thread is
+     * not closed even all the user controlled Realm instances are closed. This will result an
+     * {@code IllegalStateException}. See issue https://github.com/realm/realm-java/issues/5416 .
      *
      * @param configuration a {@link RealmConfiguration}.
      * @return {@code false} if the Realm file could not be deleted. Temporary files deletion failure won't impact
      * the return value. All of the failing file deletions will be logged.
      * @throws IllegalStateException if not all realm instances are closed.
-     * @throws IllegalStateException if the {@code configuration} is a {@link SyncConfiguration}.
      */
     public static boolean deleteRealm(RealmConfiguration configuration) {
-        // FIXME: We don't know when the Realm instance on the sync client thread will be closed. Disable it for now.
-        if (configuration.isSyncConfiguration()) {
-            throw new IllegalStateException("'deleteRealm()' is not supported for synchronized Realms for now.");
-        }
         return BaseRealm.deleteRealm(configuration);
     }
 
