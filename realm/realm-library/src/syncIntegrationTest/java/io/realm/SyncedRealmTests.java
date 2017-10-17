@@ -20,6 +20,7 @@ import android.os.SystemClock;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +31,7 @@ import java.util.Random;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.OsRealmConfig;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.RandomGenerator;
@@ -37,6 +39,7 @@ import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 
@@ -58,7 +61,9 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         try {
             realm = Realm.getInstance(config);
             fail();
-        } catch (IllegalStateException ignored) {
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString(
+                    "downloadAllServerChanges() cannot be called from the main thread."));
         } finally {
             if (realm != null) {
                 realm.close();
@@ -75,6 +80,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
         final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .schema(StringOnly.class)
+                .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
         Realm realm = Realm.getInstance(configOld);
         realm.executeTransaction(new Realm.Transaction() {
@@ -88,12 +94,12 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         SyncManager.getSession(configOld).uploadAllLocalChanges();
         realm.close();
         user.logout();
-        Realm.deleteRealm(configOld);
 
-        // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
-        // download the uploaded changes (pray it managed to do so within the time frame).
+        // 2. Local state should now be completely reset. Open the same sync Realm but different local name again with
+        // a new configuration which should download the uploaded changes (pray it managed to do so within the time frame).
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+                .name("newRealm")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .build();
@@ -204,12 +210,12 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         SyncManager.getSession(configOld).uploadAllLocalChanges();
         realm.close();
         user.logout();
-        Realm.deleteRealm(configOld);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes (pray it managed to do so within the time frame).
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         final SyncConfiguration configNew = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .name("newRealm")
                 .waitForInitialRemoteData()
                 .readOnly()
                 .schema(StringOnly.class)

@@ -2302,8 +2302,11 @@ public class RealmTests {
 
         assertTrue(Realm.deleteRealm(configuration));
 
-        // Directory should be empty now.
-        assertEquals(0, tempDir.listFiles().length);
+        assertEquals(1, tempDir.listFiles().length);
+
+        // Lock file should never be deleted
+        File lockFile = new File(configuration.getPath() + ".lock");
+        assertTrue(lockFile.exists());
     }
 
     // Tests that all methods that require a transaction. (ie. any function that mutates Realm data)
