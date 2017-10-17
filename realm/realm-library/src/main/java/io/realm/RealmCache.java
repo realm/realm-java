@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Capabilities;
 import io.realm.internal.ObjectServerFacade;
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
@@ -303,11 +304,12 @@ final class RealmCache {
                         } catch (Throwable t) {
                             // If an error happened while downloading initial data, we need to reset the file so we can
                             // download it again on the next attempt.
-                            // Realm.deleteRealm() is under the same lock as this method and globalCount is still 0, so
-                            // this should be safe.
                             sharedRealm.close();
                             sharedRealm = null;
-                            Realm.deleteRealm(configuration);
+                            // FIXME: We don't have a way to ensure that the Realm instance on client thread has been
+                            //        closed for now.
+                            // https://github.com/realm/realm-java/issues/5416
+                            BaseRealm.deleteRealm(configuration);
                             throw t;
                         }
                     }
@@ -492,20 +494,32 @@ final class RealmCache {
      * @param configuration configuration object for Realm instance.
      * @throws RealmFileException if copying the file fails.
      */
-    private static void copyAssetFileIfNeeded(RealmConfiguration configuration) {
-        if (configuration.hasAssetFile()) {
-            File realmFile = new File(configuration.getRealmDirectory(), configuration.getRealmFileName());
+    private static void copyAssetFileIfNeeded(final RealmConfiguration configuration) {
+        final File realmFileFromAsset = configuration.hasAssetFile() ?
+                new File(configuration.getRealmDirectory(), configuration.getRealmFileName())
+                : null;
+        final String syncServerCertificateAssetName = ObjectServerFacade.getFacade(
+                configuration.isSyncConfiguration()).getSyncServerCertificateAssetName(configuration);
+        final boolean certFileExists = !Util.isEmptyString(syncServerCertificateAssetName);
 
-            copyFileIfNeeded(configuration.getAssetFilePath(), realmFile);
-        }
+        if (realmFileFromAsset!= null || certFileExists) {
+            OsObjectStore.callWithLock(configuration, new Runnable() {
+                @Override
+                public void run() {
+                    if (realmFileFromAsset != null) {
+                        copyFileIfNeeded(configuration.getAssetFilePath(), realmFileFromAsset);
+                    }
 
-        // Copy Sync Server certificate path if available
-        String syncServerCertificateAssetName = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateAssetName(configuration);
-        if (!Util.isEmptyString(syncServerCertificateAssetName)) {
-            String syncServerCertificateFilePath = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateFilePath(configuration);
+                    // Copy Sync Server certificate path if available
+                    if (certFileExists) {
+                        String syncServerCertificateFilePath = ObjectServerFacade.getFacade(
+                                configuration.isSyncConfiguration()).getSyncServerCertificateFilePath(configuration);
 
-            File certificateFile = new File(syncServerCertificateFilePath);
-            copyFileIfNeeded(syncServerCertificateAssetName, certificateFile);
+                        File certificateFile = new File(syncServerCertificateFilePath);
+                        copyFileIfNeeded(syncServerCertificateAssetName, certificateFile);
+                    }
+                }
+            });
         }
     }
 

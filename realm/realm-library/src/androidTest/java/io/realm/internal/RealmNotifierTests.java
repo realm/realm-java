@@ -110,15 +110,11 @@ public class RealmNotifierTests {
     }
 
     private void makeRemoteChanges(final RealmConfiguration config) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SharedRealm sharedRealm = getSharedRealm(config);
-                sharedRealm.beginTransaction();
-                sharedRealm.commitTransaction();
-                sharedRealm.close();
-            }
-        }).start();
+        // We don't use cache from RealmCoordinator
+        SharedRealm sharedRealm = getSharedRealm(config);
+        sharedRealm.beginTransaction();
+        sharedRealm.commitTransaction();
+        sharedRealm.close();
     }
 
     @Test

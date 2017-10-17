@@ -1657,11 +1657,18 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Deletes the Realm file specified by the given {@link RealmConfiguration} from the filesystem.
+     * Deletes the Realm file along with the related temporary files specified by the given {@link RealmConfiguration}
+     * from the filesystem. Temporary file with ".lock" extension won't be deleted.
+     * <p>
      * All Realm instances must be closed before calling this method.
+     * <p>
+     * WARNING: For synchronized Realm, there is a chance that an internal Realm instance on the background thread is
+     * not closed even all the user controlled Realm instances are closed. This will result an
+     * {@code IllegalStateException}. See issue https://github.com/realm/realm-java/issues/5416 .
      *
      * @param configuration a {@link RealmConfiguration}.
-     * @return {@code false} if a file could not be deleted. The failing file will be logged.
+     * @return {@code false} if the Realm file could not be deleted. Temporary files deletion failure won't impact
+     * the return value. All of the failing file deletions will be logged.
      * @throws IllegalStateException if not all realm instances are closed.
      */
     public static boolean deleteRealm(RealmConfiguration configuration) {
