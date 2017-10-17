@@ -267,7 +267,7 @@ public class SyncUser {
                     if (response.getError().getException() instanceof SocketTimeoutException) {
                         retries--;
                         if (retries > 0) {
-                            RealmLog.debug(String.format("Failed to log user %s out due to a SocketTimeoutException. Retrying."));
+                            RealmLog.debug(String.format("Failed to log user %s out due to a SocketTimeoutException. Retrying.", identity));
                             networkPoolExecutor.submit(this);
                         }
                     }
