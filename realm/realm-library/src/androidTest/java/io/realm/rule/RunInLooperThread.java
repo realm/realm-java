@@ -297,6 +297,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     @Override
     public Statement apply(Statement base, Description description) {
+        setTestName(description);
         final RunTestInLooperThread annotation = description.getAnnotation(RunTestInLooperThread.class);
         if (annotation == null) {
             return base;

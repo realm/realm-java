@@ -57,7 +57,6 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                testName = description.getDisplayName();
                 before();
                 try {
                     base.evaluate();
@@ -109,6 +108,13 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
                     "the temporary folder has not yet been created");
         }
         return tempFolder;
+    }
+
+    /**
+     * To be called in the {@link #apply(Statement, Description)}.
+     */
+    protected void setTestName(Description description) {
+        testName = description.getDisplayName();
     }
 
     public synchronized void setUnitTestFailed() {
