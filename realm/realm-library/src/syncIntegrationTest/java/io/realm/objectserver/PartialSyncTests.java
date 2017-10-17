@@ -49,6 +49,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
         final SyncConfiguration partialSyncConfig = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .name("partialSync")
                 .modules(new PartialSyncModule())
                 .partialRealm()
                 .build();
@@ -93,7 +94,6 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
-        Realm.deleteRealm(syncConfig);
 
         final CountDownLatch latch = new CountDownLatch(2);
 

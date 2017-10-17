@@ -20,6 +20,7 @@
 #include <shared_realm.hpp>
 
 #include "util.hpp"
+#include "jni_util/java_method.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 
@@ -139,4 +140,25 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsObjectStore_nativeDeleteTabl
     }
     CATCH_STD()
     return JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsObjectStore_nativeCallWithLock(JNIEnv* env, jclass,
+                                                                                   jstring j_realm_path,
+                                                                                   jobject j_runnable)
+{
+    TR_ENTER();
+    try {
+        JStringAccessor path_accessor(env, j_realm_path);
+        std::string realm_path(path_accessor);
+        static JavaClass runnable_class(env, "java/lang/Runnable");
+        static JavaMethod run_method(env, runnable_class, "run", "()V");
+        bool result = SharedGroup::call_with_lock(realm_path, [&](std::string path) {
+            REALM_ASSERT_RELEASE_EX(realm_path.compare(path) == 0, realm_path.c_str(), path.c_str());
+            env->CallVoidMethod(j_runnable, run_method);
+            TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
+        });
+        return result;
+    }
+    CATCH_STD()
+    return false;
 }
