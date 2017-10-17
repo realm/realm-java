@@ -91,7 +91,8 @@ use_realm_core(${build_SYNC} "${REALM_CORE_DIST_DIR}" "${CORE_SOURCE_PATH}")
 set(openssl_build_TYPE "release")
 # FIXME Read the openssl version from core when the core/sync release has that information.
 set(openssl_VERSION "1.0.2k")
-set(openssl_FILENAME "openssl-${openssl_build_TYPE}-${openssl_VERSION}-Android-${ANDROID_ABI}")
+set(openssl_BUILD_NUMBER "1")
+set(openssl_FILENAME "openssl-${openssl_build_TYPE}-${openssl_VERSION}-${openssl_BUILD_NUMBER}-Android-${ANDROID_ABI}")
 set(openssl_URL "http://static.realm.io/downloads/openssl/${openssl_VERSION}/Android/${ANDROID_ABI}/${openssl_FILENAME}.tar.gz")
 
 message(STATUS "Downloading OpenSSL...")
