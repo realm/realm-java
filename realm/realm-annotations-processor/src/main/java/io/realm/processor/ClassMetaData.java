@@ -51,6 +51,8 @@ import io.realm.annotations.Required;
  * Utility class for holding metadata for RealmProxy classes.
  */
 public class ClassMetaData {
+    private static final String OPTION_IGNORE_KOTLIN_NULLABILITY = "realm.ignoreKotlinNullability";
+
     private final TypeElement classType; // Reference to model class.
     private final String className; // Model class simple name.
     private final List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
@@ -70,6 +72,8 @@ public class ClassMetaData {
     private final List<TypeMirror> validListValueTypes;
     private final Types typeUtils;
     private final Elements elements;
+
+    private final boolean ignoreKotlinNullability;
 
     public ClassMetaData(ProcessingEnvironment env, TypeMirrors typeMirrors, TypeElement clazz) {
         this.classType = clazz;
@@ -111,6 +115,9 @@ public class ClassMetaData {
                 }
             }
         }
+
+        ignoreKotlinNullability = Boolean.valueOf(
+                env.getOptions().getOrDefault(OPTION_IGNORE_KOTLIN_NULLABILITY, "false"));
     }
 
     @Override
@@ -522,6 +529,10 @@ public class ClassMetaData {
     private boolean isRequiredField(VariableElement field) {
         if (hasRequiredAnnotation(field)) {
             return true;
+        }
+
+        if (ignoreKotlinNullability) {
+            return false;
         }
 
         // Kotlin uses the `org.jetbrains.annotations.NotNull` annotation to mark non-null fields.

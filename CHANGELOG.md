@@ -13,6 +13,13 @@
 ### Credits
 
 
+## 4.0.1 (YYYY-MM-DD)
+
+## Bug Fixes
+
+* Added `realm.ignoreKotlinNullability` as a kapt argument to disable treating kotlin non-null types as `@Required` (#5412) (introduced in `v3.6.0`).
+
+
 ## 4.0.0 (2016-10-16)
 
 ## Breaking Changes
