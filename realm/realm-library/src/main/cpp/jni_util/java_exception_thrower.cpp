@@ -52,10 +52,14 @@ void JavaExceptionThrower::throw_java_exception(JNIEnv* env)
     env->ThrowNew(m_exception_class, message.c_str());
 }
 
-void JavaExceptionThrower::terminate_jni_if_java_exception_occurred(JNIEnv* env, const char* file_path, int line_num)
+void JavaExceptionThrower::terminate_jni_if_java_exception_occurred(JNIEnv* env, CleanUpFunction clean_up_func,
+                                                                    const char* file_path, int line_num)
 {
     if (!env->ExceptionCheck()) {
         return;
+    }
+    if (clean_up_func) {
+        clean_up_func();
     }
     throw JavaExceptionThrower(file_path, line_num);
 }

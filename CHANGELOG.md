@@ -1,3 +1,18 @@
+## 4.1.0 (YYYY-MM-DD)
+
+## Enhancements
+
+* `Realm.deleteRealm()` and `RealmConfiguration.assetFile()` are multi-processes safe now.
+
+## Bug Fixes
+
+* Fix some potential database corruption caused by deleting the Realm file while a Realm instance are still opened in another process or the sync client thread.
+
+## Internal
+
+### Credits
+
+
 ## 4.0.1 (YYYY-MM-DD)
 
 ## Bug Fixes

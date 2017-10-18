@@ -19,6 +19,7 @@ package io.realm.internal;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,16 +40,13 @@ public class JNIColumnInfoTest {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private RealmConfiguration config;
-    @SuppressWarnings("FieldCanBeLocal")
     private SharedRealm sharedRealm;
     private Table table;
 
     @Before
     public void setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
-        config = configFactory.createConfiguration();
+        RealmConfiguration config = configFactory.createConfiguration();
         sharedRealm = SharedRealm.getInstance(config);
 
         table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
@@ -58,6 +56,13 @@ public class JNIColumnInfoTest {
                 table.addColumn(RealmFieldType.STRING, "lastName");
             }
         });
+    }
+
+    @After
+    public void tearDown() {
+        if (sharedRealm != null) {
+            sharedRealm.close();
+        }
     }
 
     @Test

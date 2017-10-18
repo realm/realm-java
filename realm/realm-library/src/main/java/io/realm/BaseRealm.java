@@ -609,20 +609,20 @@ abstract class BaseRealm implements Closeable {
      */
     static boolean deleteRealm(final RealmConfiguration configuration) {
         final AtomicBoolean realmDeleted = new AtomicBoolean(true);
-        RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
+        boolean callbackExecuted = OsObjectStore.callWithLock(configuration, new Runnable() {
             @Override
-            public void onResult(int count) {
-                if (count != 0) {
-                    throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
-                            "Remember to close() all the instances of the Realm before deleting its file: " + configuration.getPath());
-                }
-
+            public void run() {
                 String canonicalPath = configuration.getPath();
                 File realmFolder = configuration.getRealmDirectory();
                 String realmFileName = configuration.getRealmFileName();
                 realmDeleted.set(Util.deleteRealm(canonicalPath, realmFolder, realmFileName));
             }
         });
+        if (!callbackExecuted) {
+            throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
+                    "Remember to close() all the instances of the Realm before deleting its file: "
+                    + configuration.getPath());
+        }
         return realmDeleted.get();
     }
 
