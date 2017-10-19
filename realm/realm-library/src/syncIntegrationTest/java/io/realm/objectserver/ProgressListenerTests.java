@@ -18,6 +18,7 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -144,6 +145,7 @@ public class ProgressListenerTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore("https://github.com/realm/realm-sync/issues/1770")
     public void downloadProgressListener_indefinitely() throws InterruptedException {
         final AtomicInteger transferCompleted = new AtomicInteger(0);
         final CountDownLatch allChangesDownloaded = new CountDownLatch(1);
