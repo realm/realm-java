@@ -7,21 +7,11 @@
 ## Bug Fixes
 
 * Fix some potential database corruption caused by deleting the Realm file while a Realm instance are still opened in another process or the sync client thread.
-
-## Internal
-
-### Credits
-
-
-## 4.0.1 (YYYY-MM-DD)
-
-## Bug Fixes
-
 * Added `realm.ignoreKotlinNullability` as a kapt argument to disable treating kotlin non-null types as `@Required` (#5412) (introduced in `v3.6.0`).
 * Increased http connect/write timeout for low bandwidth network.
 
 
-## 4.0.0 (2016-10-16)
+## 4.0.0 (2017-10-16)
 
 ## Breaking Changes
 
