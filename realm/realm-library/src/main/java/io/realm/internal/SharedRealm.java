@@ -33,49 +33,6 @@ import io.realm.internal.android.AndroidRealmNotifier;
 @Keep
 public final class SharedRealm implements Closeable, NativeObject {
 
-    // Const value for RealmFileException conversion
-    public static final byte FILE_EXCEPTION_KIND_ACCESS_ERROR = 0;
-    public static final byte FILE_EXCEPTION_KIND_BAD_HISTORY = 1;
-    public static final byte FILE_EXCEPTION_KIND_PERMISSION_DENIED = 2;
-    public static final byte FILE_EXCEPTION_KIND_EXISTS = 3;
-    public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 4;
-    public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 5;
-    public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 6;
-    public static final byte FILE_EXCEPTION_INCOMPATIBLE_SYNC_FILE = 7;
-    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
-
-    public static void initialize(File tempDirectory) {
-        if (SharedRealm.temporaryDirectory != null) {
-            // already initialized
-            return;
-        }
-
-        String temporaryDirectoryPath = tempDirectory.getAbsolutePath();
-        if (!tempDirectory.isDirectory() && !tempDirectory.mkdirs() && !tempDirectory.isDirectory()) {
-            throw new IOException("failed to create temporary directory: " + temporaryDirectoryPath);
-        }
-
-        if (!temporaryDirectoryPath.endsWith("/")) {
-            temporaryDirectoryPath += "/";
-        }
-        nativeInit(temporaryDirectoryPath);
-        SharedRealm.temporaryDirectory = tempDirectory;
-    }
-
-    public static File getTemporaryDirectory() {
-        return temporaryDirectory;
-    }
-
-    private static volatile File temporaryDirectory;
-
-    private final List<WeakReference<PendingRow>> pendingRows = new CopyOnWriteArrayList<>();
-    public final List<WeakReference<Collection>> collections = new CopyOnWriteArrayList<>();
-    public final List<WeakReference<Collection.Iterator>> iterators = new ArrayList<>();
-
-    // JNI will only hold a weak global ref to this.
-    public final RealmNotifier realmNotifier;
-    public final Capabilities capabilities;
-
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
         public final long index;
@@ -140,9 +97,9 @@ public final class SharedRealm implements Closeable, NativeObject {
          * Callback function.
          *
          * @param sharedRealm the same {@link SharedRealm} instance which has been created from the same
-         * {@link OsRealmConfig} instance.
-         * @param oldVersion the schema version of the existing Realm file.
-         * @param newVersion the expected schema version after migration.
+         *                    {@link OsRealmConfig} instance.
+         * @param oldVersion  the schema version of the existing Realm file.
+         * @param newVersion  the expected schema version after migration.
          */
         void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion);
     }
@@ -161,9 +118,10 @@ public final class SharedRealm implements Closeable, NativeObject {
     /**
      * Callback function to be called from JNI by Object Store when the schema is changed.
      */
-    @SuppressWarnings("unused")
     @Keep
     public interface SchemaChangedCallback {
+        // Called from JNI
+        @SuppressWarnings("unused")
         void onSchemaChanged();
     }
 
@@ -179,13 +137,33 @@ public final class SharedRealm implements Closeable, NativeObject {
         }
 
         public abstract void onSuccess(Collection results);
+
         public abstract void onError(RealmException error);
     }
 
-    private final OsRealmConfig osRealmConfig;
+    // Const value for RealmFileException conversion
+    public static final byte FILE_EXCEPTION_KIND_ACCESS_ERROR = 0;
+    public static final byte FILE_EXCEPTION_KIND_BAD_HISTORY = 1;
+    public static final byte FILE_EXCEPTION_KIND_PERMISSION_DENIED = 2;
+    public static final byte FILE_EXCEPTION_KIND_EXISTS = 3;
+    public static final byte FILE_EXCEPTION_KIND_NOT_FOUND = 4;
+    public static final byte FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE = 5;
+    public static final byte FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED = 6;
+    public static final byte FILE_EXCEPTION_INCOMPATIBLE_SYNC_FILE = 7;
+
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final long nativePtr;
+    private final OsRealmConfig osRealmConfig;
     final NativeContext context;
     private final OsSchemaInfo schemaInfo;
+    private static volatile File temporaryDirectory;
+    // JNI will only hold a weak global ref to this.
+    public final RealmNotifier realmNotifier;
+    public final Capabilities capabilities;
+
+    private final List<WeakReference<PendingRow>> pendingRows = new CopyOnWriteArrayList<>();
+    // Package protected for testing
+    final List<WeakReference<Collection.Iterator>> iterators = new ArrayList<>();
 
     private SharedRealm(OsRealmConfig osRealmConfig) {
         Capabilities capabilities = new AndroidCapabilities();
@@ -241,6 +219,28 @@ public final class SharedRealm implements Closeable, NativeObject {
         return new SharedRealm(osRealmConfig);
     }
 
+    public static void initialize(File tempDirectory) {
+        if (SharedRealm.temporaryDirectory != null) {
+            // already initialized
+            return;
+        }
+
+        String temporaryDirectoryPath = tempDirectory.getAbsolutePath();
+        if (!tempDirectory.isDirectory() && !tempDirectory.mkdirs() && !tempDirectory.isDirectory()) {
+            throw new IOException("failed to create temporary directory: " + temporaryDirectoryPath);
+        }
+
+        if (!temporaryDirectoryPath.endsWith("/")) {
+            temporaryDirectoryPath += "/";
+        }
+        nativeInit(temporaryDirectoryPath);
+        SharedRealm.temporaryDirectory = tempDirectory;
+    }
+
+    public static File getTemporaryDirectory() {
+        return temporaryDirectory;
+    }
+
     public void beginTransaction() {
         detachIterators();
         executePendingRowQueries();
@@ -290,12 +290,12 @@ public final class SharedRealm implements Closeable, NativeObject {
      * Creates a {@link Table} and adds a primary key field to it. Native assertion will happen if the table with the
      * same name exists.
      *
-     * @param tableName the name of table.
+     * @param tableName           the name of table.
      * @param primaryKeyFieldName the name of primary key field.
-     * @param isStringType if this is true, the primary key field will be create as a string field. Otherwise it will
-     *                     be created as an integer field.
-     * @param isNullable if the primary key field is nullable or not.
-     * @return a creatd {@link Table} object.
+     * @param isStringType        if this is true, the primary key field will be create as a string field. Otherwise it will
+     *                            be created as an integer field.
+     * @param isNullable          if the primary key field is nullable or not.
+     * @return a newly created {@link Table} object.
      */
     public Table createTableWithPrimaryKey(String tableName, String primaryKeyFieldName, boolean isStringType,
                                            boolean isNullable) {
@@ -420,7 +420,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     // The detaching should happen before transaction begins.
-    void detachIterators() {
+    private void detachIterators() {
         for (WeakReference<Collection.Iterator> iteratorRef : iterators) {
             Collection.Iterator iterator = iteratorRef.get();
             if (iterator != null) {
@@ -476,7 +476,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     /**
      * Called from JNI when the expected schema doesn't match the existing one.
      *
-     * @param callback the {@link MigrationCallback} in the {@link RealmConfiguration}.
+     * @param callback   the {@link MigrationCallback} in the {@link RealmConfiguration}.
      * @param oldVersion the schema version of the existing Realm file.
      */
     @SuppressWarnings("unused")
@@ -498,13 +498,14 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     /**
      * Called from JNI when the partial sync callback is invoked from the ObjectStore.
-     * @param error if the partial sync query failed to register.
+     *
+     * @param error            if the partial sync query failed to register.
      * @param nativeResultsPtr pointer to the {@code Results} of the partial sync query.
-     * @param callback the callback registered from the user to notify the success/error of the partial sync query.
+     * @param callback         the callback registered from the user to notify the success/error of the partial sync query.
      */
     @SuppressWarnings("unused")
     private void runPartialSyncRegistrationCallback(@Nullable String error, long nativeResultsPtr,
-                                                           PartialSyncCallback callback) {
+                                                    PartialSyncCallback callback) {
         if (error != null) {
             callback.onError(new RealmException(error));
         } else {
