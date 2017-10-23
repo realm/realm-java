@@ -58,6 +58,7 @@ import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
@@ -1720,7 +1721,7 @@ public class Realm extends BaseRealm {
         String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
         SharedRealm.PartialSyncCallback internalCallback = new SharedRealm.PartialSyncCallback(className) {
             @Override
-            public void onSuccess(io.realm.internal.Collection osResults) {
+            public void onSuccess(OsResults osResults) {
                 RealmResults<E> results = new RealmResults<>(Realm.this, osResults, clazz);
                 callback.onSuccess(results);
             }
