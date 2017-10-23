@@ -16,10 +16,8 @@
 
 package io.realm;
 
-import java.net.ConnectException;
-import java.net.SocketTimeoutException;
 
-import io.realm.internal.IOException;
+import java.io.IOException;
 
 /**
  * This class enumerate all potential errors related to using the Object Server or synchronizing data.
