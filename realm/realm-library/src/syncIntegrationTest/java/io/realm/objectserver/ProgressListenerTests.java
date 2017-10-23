@@ -18,11 +18,13 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.net.URI;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -82,17 +84,32 @@ public class ProgressListenerTests extends StandardIntegrationTest {
 
     // Create remote data for a given user.
     private URI createRemoteData(SyncUser user) {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM).build();
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .name("remote")
+                .build();
         final Realm realm = Realm.getInstance(config);
-        writeSampleData(realm);
         final CountDownLatch changesUploaded = new CountDownLatch(1);
         final SyncSession session = SyncManager.getSession(config);
-        session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+        final long beforeAdd = realm.where(AllTypes.class).count();
+        writeSampleData(realm);
+
+        session.addUploadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
             @Override
             public void onChange(Progress progress) {
                 if (progress.isTransferComplete()) {
-                    session.removeProgressListener(this);
-                    changesUploaded.countDown();
+                    Realm realm = Realm.getInstance(config);
+                    final long afterAdd = realm.where(AllTypes.class).count();
+                    realm.close();
+
+                    RealmLog.warn(String.format(Locale.ENGLISH,"createRemoteData upload %d/%d objects count:%d",
+                            progress.getTransferredBytes(), progress.getTransferableBytes(), afterAdd));
+                    // FIXME: Remove this after https://github.com/realm/realm-object-store/issues/581
+                    if (afterAdd == TEST_SIZE + beforeAdd) {
+                        session.removeProgressListener(this);
+                        changesUploaded.countDown();
+                    } else if (afterAdd < TEST_SIZE + beforeAdd) {
+                        fail("The added objects are more than expected.");
+                    }
                 }
             }
         });
@@ -128,6 +145,7 @@ public class ProgressListenerTests extends StandardIntegrationTest {
     }
 
     @Test
+    @Ignore("https://github.com/realm/realm-sync/issues/1770")
     public void downloadProgressListener_indefinitely() throws InterruptedException {
         final AtomicInteger transferCompleted = new AtomicInteger(0);
         final CountDownLatch allChangesDownloaded = new CountDownLatch(1);
@@ -148,50 +166,51 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         worker.start();
 
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
-        final SyncConfiguration adminConfig = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString()).build();
+        final SyncConfiguration adminConfig = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString())
+                .name("local")
+                .build();
         Realm adminRealm = Realm.getInstance(adminConfig);
         Realm userRealm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(userWithData, Constants.USER_REALM).build()); // Keep session alive
         SyncSession session = SyncManager.getSession(adminConfig);
         session.addDownloadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
             @Override
             public void onChange(Progress progress) {
-                if (progress.isTransferComplete()) {
+                Realm adminRealm = Realm.getInstance(adminConfig);
+                long objectCounts = adminRealm.where(AllTypes.class).count();
+                adminRealm.close();
+                // The downloading progress listener could be triggered at the db version where only contains the meta
+                // data. So we start checking from when the first 10 objects downloaded.
+                if (objectCounts != 0 && progress.isTransferComplete()) {
+
                     switch (transferCompleted.incrementAndGet()) {
-                        case 1:
-                            // Initial trigger when registering
-                            assertTransferComplete(progress, false);
-                            break;
-                        case 2: {
+                        case 1: {
+                            assertEquals(TEST_SIZE, objectCounts);
                             assertTransferComplete(progress, true);
-                            Realm adminRealm = Realm.getInstance(adminConfig);
-                            assertEquals(TEST_SIZE, adminRealm.where(AllTypes.class).count());
-                            adminRealm.close();
                             startWorker.countDown();
                             break;
                         }
-                        case 3: {
+                        case 2: {
                             assertTransferComplete(progress, true);
-                            Realm adminRealm = Realm.getInstance(adminConfig);
-                            assertEquals(TEST_SIZE * 2, adminRealm.where(AllTypes.class).count());
-                            adminRealm.close();
+                            assertEquals(TEST_SIZE * 2, objectCounts);
                             allChangesDownloaded.countDown();
                             break;
                         }
                         default:
                             fail("Transfer complete called too many times:" + transferCompleted.get());
                     }
+                    RealmLog.warn(String.format(
+                            Locale.ENGLISH,"downloadProgressListener_indefinitely download %d/%d objects count:%d",
+                            progress.getTransferredBytes(), progress.getTransferableBytes(), objectCounts));
                 }
             }
         });
         TestHelper.awaitOrFail(allChangesDownloaded);
         adminRealm.close();
         userRealm.close();
+        // worker thread will hang if logout happens before listener triggered.
+        worker.join();
         userWithData.logout();
         adminUser.logout();
-        // FIXME sometimes the worker thread doesn't terminate
-        // causing the test thread to wait  indefinitely until it times out
-        // https://github.com/realm/realm-java/issues/5245
-        worker.join();
     }
 
     // Make sure that a ProgressListener continues to report the correct thing, even if it crashed
@@ -263,7 +282,12 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         session.addUploadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
             @Override
             public void onChange(Progress progress) {
-                if (progress.isTransferComplete()) {
+                Realm tempRealm = Realm.getInstance(config);
+                long objectsCount = tempRealm.where(AllTypes.class).count();
+                tempRealm.close();
+                // FIXME: Remove the objectsCount checking when
+                // https://github.com/realm/realm-object-store/issues/581 gets fixed
+                if (objectsCount != 0 && progress.isTransferComplete()) {
                     switch(transferCompleted.incrementAndGet()) {
                         case 1:
                             Realm realm = Realm.getInstance(config);

@@ -124,7 +124,7 @@ import io.realm.annotations.RealmModule;
         "io.realm.annotations.RealmModule",
         "io.realm.annotations.Required"
 })
-@SupportedOptions(value = {"realm.suppressWarnings"})
+@SupportedOptions(value = {"realm.suppressWarnings", "realm.ignoreKotlinNullability"})
 public class RealmProcessor extends AbstractProcessor {
 
     // Don't consume annotations. This allows 3rd party annotation processors to run.

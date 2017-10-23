@@ -57,6 +57,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
+                setTestName(description);
                 before();
                 try {
                     base.evaluate();
