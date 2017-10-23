@@ -483,6 +483,7 @@ task downloadCore() {
 
     doLast {
         if (shouldDownloadCore()) {
+            println "Downloading: http://static.realm.io/downloads/sync/realm-sync-android-${project.coreVersion}.tar.gz"
             download {
                 src "http://static.realm.io/downloads/sync/realm-sync-android-${project.coreVersion}.tar.gz"
                 dest project.coreArchiveFile
