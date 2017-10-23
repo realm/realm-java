@@ -136,7 +136,7 @@ public final class SharedRealm implements Closeable, NativeObject {
             this.className = className;
         }
 
-        public abstract void onSuccess(Collection results);
+        public abstract void onSuccess(OsResults results);
 
         public abstract void onError(RealmException error);
     }
@@ -163,7 +163,7 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     private final List<WeakReference<PendingRow>> pendingRows = new CopyOnWriteArrayList<>();
     // Package protected for testing
-    final List<WeakReference<Collection.Iterator>> iterators = new ArrayList<>();
+    final List<WeakReference<OsResults.Iterator>> iterators = new ArrayList<>();
 
     private SharedRealm(OsRealmConfig osRealmConfig) {
         Capabilities capabilities = new AndroidCapabilities();
@@ -415,14 +415,14 @@ public final class SharedRealm implements Closeable, NativeObject {
     // The iterator will iterate on a snapshot Results if it is accessed inside a transaction.
     // See https://github.com/realm/realm-java/issues/3883 for more information.
     // Should only be called by Iterator's constructor.
-    void addIterator(Collection.Iterator iterator) {
+    void addIterator(OsResults.Iterator iterator) {
         iterators.add(new WeakReference<>(iterator));
     }
 
     // The detaching should happen before transaction begins.
     private void detachIterators() {
-        for (WeakReference<Collection.Iterator> iteratorRef : iterators) {
-            Collection.Iterator iterator = iteratorRef.get();
+        for (WeakReference<OsResults.Iterator> iteratorRef : iterators) {
+            OsResults.Iterator iterator = iteratorRef.get();
             if (iterator != null) {
                 iterator.detach();
             }
@@ -432,8 +432,8 @@ public final class SharedRealm implements Closeable, NativeObject {
 
     // Invalidates all iterators when a remote change notification is received.
     void invalidateIterators() {
-        for (WeakReference<Collection.Iterator> iteratorRef : iterators) {
-            Collection.Iterator iterator = iteratorRef.get();
+        for (WeakReference<OsResults.Iterator> iteratorRef : iterators) {
+            OsResults.Iterator iterator = iteratorRef.get();
             if (iterator != null) {
                 iterator.invalidate();
             }
@@ -511,7 +511,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         } else {
             @SuppressWarnings("ConstantConditions")
             Table table = getTable(Table.getTableNameForClass(callback.className));
-            Collection results = new Collection(this, table, nativeResultsPtr, true);
+            OsResults results = new OsResults(this, table, nativeResultsPtr, true);
             callback.onSuccess(results);
         }
     }
