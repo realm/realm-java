@@ -17,6 +17,9 @@
 package io.realm;
 
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+
+import io.realm.internal.IOException;
 
 /**
  * This class enumerate all potential errors related to using the Object Server or synchronizing data.
@@ -201,7 +204,11 @@ public enum ErrorCode {
      */
     public static ErrorCode fromException(Exception exception) {
         // ConnectException is recoverable (with exponential backoff)
-        return (exception instanceof ConnectException) ? ErrorCode.IO_EXCEPTION : ErrorCode.UNKNOWN;
+        if (exception instanceof IOException) {
+            return ErrorCode.IO_EXCEPTION;
+        } else {
+            return ErrorCode.UNKNOWN;
+        }
     }
 
     public enum Category {
