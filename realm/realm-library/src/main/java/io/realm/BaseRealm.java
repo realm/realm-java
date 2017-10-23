@@ -543,7 +543,7 @@ abstract class BaseRealm implements Closeable {
      */
     public abstract RealmSchema getSchema();
 
-    // Used by RealmList/RealmResults, to create RealmObject from a Collection.
+    // Used by RealmList/RealmResults, to create RealmObject from a OsResults.
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
     <E extends RealmModel> E get(@Nullable Class<E> clazz, @Nullable String dynamicClassName, UncheckedRow row) {
         final boolean isDynamicRealmObject = dynamicClassName != null;
