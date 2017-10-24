@@ -98,7 +98,7 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public String getSimpleClassName(Class<? extends RealmModel> clazz) {
+    protected String getSimpleClassNameImpl(Class<? extends RealmModel> clazz) {
         checkSchemaHasClass(clazz);
         return originalMediator.getSimpleClassName(clazz);
     }

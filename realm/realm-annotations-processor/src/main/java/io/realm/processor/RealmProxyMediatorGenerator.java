@@ -190,7 +190,7 @@ public class RealmProxyMediatorGenerator {
         writer.emitAnnotation("Override");
         writer.beginMethod(
                 "String",
-                "getSimpleClassName",
+                "getSimpleClassNameImpl",
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmModel>", "clazz"
         );

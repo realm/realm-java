@@ -60,7 +60,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public String getSimpleClassName(Class<? extends RealmModel> clazz) {
+    public String getSimpleClassNameImpl(Class<? extends RealmModel> clazz) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
