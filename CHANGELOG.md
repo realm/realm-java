@@ -1,3 +1,18 @@
+## 4.1.1 (YYYY-MM-DD)
+
+### Breaking Changes
+
+### Enhancements
+
+### Bug Fixes
+
+### Interal
+
+* Updated Realm Sync to 2.1.0
+
+### Credits
+
+
 ## 4.1.0 (2017-10-20)
 
 ## Enhancements
