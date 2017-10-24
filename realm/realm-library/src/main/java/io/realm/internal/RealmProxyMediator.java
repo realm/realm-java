@@ -72,7 +72,7 @@ public abstract class RealmProxyMediator {
      * Returns the name that Realm should use for all its internal tables. This is the un-obfuscated simple name of the
      * class.
      *
-     * @param clazz the {@link RealmObject} or the Realm object proxy class reference.
+     * @param clazz the {@link RealmModel} or the Realm object proxy class reference.
      * @return the simple name of an RealmObject class (before it has been obfuscated).
      */
     public final String getSimpleClassName(Class<? extends RealmModel> clazz) {
@@ -83,7 +83,7 @@ public abstract class RealmProxyMediator {
      * Returns the name that Realm should use for all its internal tables. This is the un-obfuscated simple name of the
      * class.
      *
-     * @param clazz the {@link RealmObject} class reference.
+     * @param clazz the {@link RealmModel} class reference.
      * @return the simple name of an RealmObject class (before it has been obfuscated).
      */
     protected abstract String getSimpleClassNameImpl(Class<? extends RealmModel> clazz);
