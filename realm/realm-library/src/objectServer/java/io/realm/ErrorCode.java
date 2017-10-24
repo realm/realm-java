@@ -201,7 +201,7 @@ public enum ErrorCode {
      * @return mapped {@link ErrorCode}.
      */
     public static ErrorCode fromException(Exception exception) {
-        // ConnectException is recoverable (with exponential backoff)
+        // IOException are recoverable (with exponential backoff)
         if (exception instanceof IOException) {
             return ErrorCode.IO_EXCEPTION;
         } else {
