@@ -162,8 +162,8 @@ public class SimpleRealmProxy extends some.test.Simple
         return new SimpleColumnInfo(schemaInfo);
     }
 
-    public static String getTableName() {
-        return "class_Simple";
+    public static String getSimpleClassName() {
+        return "Simple";
     }
 
     public static List<String> getFieldNames() {

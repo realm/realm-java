@@ -208,8 +208,8 @@ public class BooleansRealmProxy extends some.test.Booleans
         return new BooleansColumnInfo(schemaInfo);
     }
 
-    public static String getTableName() {
-        return "class_Booleans";
+    public static String getSimpleClassName() {
+        return "Booleans";
     }
 
     public static List<String> getFieldNames() {
