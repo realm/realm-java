@@ -1750,8 +1750,8 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         return new NullTypesColumnInfo(schemaInfo);
     }
 
-    public static String getTableName() {
-        return "class_NullTypes";
+    public static String getSimpleClassName() {
+        return "NullTypes";
     }
 
     public static List<String> getFieldNames() {
