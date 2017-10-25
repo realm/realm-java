@@ -29,6 +29,7 @@
 * Added `realm.ignoreKotlinNullability` as a kapt argument to disable treating kotlin non-null types as `@Required` (#5412) (introduced in `v3.6.0`).
 * Increased http connect/write timeout for low bandwidth network.
 
+
 ## 4.0.0 (2017-10-16)
 
 ## Breaking Changes
