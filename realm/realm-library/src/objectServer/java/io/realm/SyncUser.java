@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -172,7 +173,7 @@ public class SyncUser {
                 error = result.getError();
             }
         } catch (Throwable e) {
-            throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+            throw new ObjectServerError(ErrorCode.UNKNOWN, "Failed logging in user: " + credentials.getUserIdentifier(), e);
         }
         throw error;
     }
@@ -248,9 +249,9 @@ public class SyncUser {
             // as it may revoke the newly acquired refresh_token
             final Token refreshTokenToBeRevoked = refreshToken;
 
-            ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
+            final ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
             networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
-
+                private  int retries = 3;
                 @Override
                 protected LogoutResponse execute() {
                     return server.logout(refreshTokenToBeRevoked, getAuthenticationUrl());
@@ -263,6 +264,13 @@ public class SyncUser {
 
                 @Override
                 protected void onError(LogoutResponse response) {
+                    if (response.getError().getException() instanceof SocketTimeoutException) {
+                        retries--;
+                        if (retries > 0) {
+                            RealmLog.debug(String.format("Failed to log user %s out due to a SocketTimeoutException. Retrying.", identity));
+                            networkPoolExecutor.submit(this);
+                        }
+                    }
                     RealmLog.error("Failed to log user out.\n" + response.getError().toString());
                 }
             });

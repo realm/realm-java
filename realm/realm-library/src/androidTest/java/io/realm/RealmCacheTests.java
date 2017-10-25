@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
@@ -37,6 +35,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.util.RandomGenerator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -55,12 +54,10 @@ public class RealmCacheTests {
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
     private RealmConfiguration defaultConfig;
-    private Context context;
 
     @Before
     public void setUp() {
         defaultConfig = configFactory.createConfiguration();
-        context = InstrumentationRegistry.getInstrumentation().getContext();
     }
 
     // Tests that the closed Realm isn't kept in the Realm instance cache.
@@ -104,10 +101,8 @@ public class RealmCacheTests {
     @Test
     public void getInstanceClearsCacheWhenFailed() {
         String REALM_NAME = "invalid_cache.realm";
-        RealmConfiguration configA = configFactory.createConfiguration(REALM_NAME,
-                TestHelper.getRandomKey(42));
-        RealmConfiguration configB = configFactory.createConfiguration(REALM_NAME,
-                TestHelper.getRandomKey(43));
+        RealmConfiguration configA = configFactory.createConfiguration(REALM_NAME, RandomGenerator.getRandomKey(42));
+        RealmConfiguration configB = configFactory.createConfiguration(REALM_NAME, RandomGenerator.getRandomKey(43));
 
         Realm realm = Realm.getInstance(configA); // Creates starting Realm with key 1.
         realm.close();

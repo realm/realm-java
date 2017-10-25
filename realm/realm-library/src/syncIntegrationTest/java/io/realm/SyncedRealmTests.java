@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Random;
-import java.util.UUID;
 
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
@@ -35,6 +34,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.util.RandomGenerator;
 import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
@@ -73,7 +73,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
 
     @Test
     public void waitForInitialRemoteData() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
@@ -126,7 +126,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
     @Test
     @Ignore("See https://github.com/realm/realm-java/issues/5177")
     public void waitForInitialData_resilientInCaseOfRetries() throws InterruptedException {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
+        SyncCredentials credentials = SyncCredentials.usernamePassword(RandomGenerator.newRandomUUID(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .waitForInitialRemoteData()
@@ -163,7 +163,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     @Ignore("See https://github.com/realm/realm-java/issues/5373")
     public void waitForInitialData_resilientInCaseOfRetriesAsync() {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
+        SyncCredentials credentials = SyncCredentials.usernamePassword(RandomGenerator.newRandomUUID(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .waitForInitialRemoteData()
@@ -190,7 +190,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
 
     @Test
     public void waitForInitialRemoteData_readOnlyTrue() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
@@ -230,7 +230,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
     
     @Test
     public void waitForInitialRemoteData_readOnlyTrue_throwsIfWrongServerSchema() {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
+        SyncCredentials credentials = SyncCredentials.usernamePassword(RandomGenerator.newRandomUUID(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration configNew = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .waitForInitialRemoteData()
@@ -256,7 +256,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
 
     @Test
     public void waitForInitialRemoteData_readOnlyFalse_upgradeSchema() {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
+        SyncCredentials credentials = SyncCredentials.usernamePassword(RandomGenerator.newRandomUUID(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .waitForInitialRemoteData() // Not readonly so Client should be allowed to write schema

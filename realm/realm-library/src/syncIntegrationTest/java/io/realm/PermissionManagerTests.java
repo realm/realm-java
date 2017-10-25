@@ -46,6 +46,7 @@ import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionRequest;
 import io.realm.permissions.UserCondition;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.util.RandomGenerator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -106,7 +107,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
     public void getPermissions_updatedWithNewRealms() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -153,7 +153,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
     public void getPermissions_updatedWithNewRealms_stressTest() {
         final int TEST_SIZE = 10;
         final PermissionManager pm = user.getPermissionManager();
@@ -716,8 +715,8 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
     public void applyPermissions_withUsername() {
-        String user1Username = TestHelper.getRandomEmail();
-        String user2Username = TestHelper.getRandomEmail();
+        String user1Username = RandomGenerator.newRandomEmail();
+        String user2Username = RandomGenerator.newRandomEmail();
         final SyncUser user1 = UserFactory.createUser(user1Username);
         final SyncUser user2 = UserFactory.createUser(user2Username);
         PermissionManager pm1 = user1.getPermissionManager();
@@ -901,7 +900,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
     public void acceptOffer_expiredThrows() {
         // Trying to guess how long CI is to process this. The offer cannot be created if it
         // already expired.

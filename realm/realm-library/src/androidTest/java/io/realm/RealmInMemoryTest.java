@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import io.realm.entities.Dog;
 import io.realm.exceptions.RealmFileException;
 import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.util.RandomGenerator;
 
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
@@ -139,7 +140,7 @@ public class RealmInMemoryTest {
     // Tests if an in-memory Realm can be written to disk with/without encryption.
     @Test
     public void writeCopyTo() {
-        byte[] key = TestHelper.getRandomKey();
+        byte[] key = RandomGenerator.getRandomKey();
         String fileName = IDENTIFIER + ".realm";
         String encFileName = IDENTIFIER + ".enc.realm";
         RealmConfiguration conf = configFactory.createConfigurationBuilder()
@@ -173,7 +174,7 @@ public class RealmInMemoryTest {
         try {
             RealmConfiguration wrongKeyConf = configFactory.createConfigurationBuilder()
                     .name(encFileName)
-                    .encryptionKey(TestHelper.getRandomKey(42))
+                    .encryptionKey(RandomGenerator.getRandomKey(42))
                     .build();
             Realm.getInstance(wrongKeyConf);
             fail("Realm.getInstance should fail with RealmFileException");

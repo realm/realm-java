@@ -111,6 +111,7 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.util.ExceptionHolder;
+import io.realm.util.RandomGenerator;
 import io.realm.util.RealmThread;
 
 import static io.realm.TestHelper.testNoObjectFound;
@@ -992,7 +993,7 @@ public class RealmTests {
 
     @Test
     public void compactRealm_encryptedEmptyRealm() {
-        RealmConfiguration realmConfig = configFactory.createConfiguration("enc.realm", TestHelper.getRandomKey());
+        RealmConfiguration realmConfig = configFactory.createConfiguration("enc.realm", RandomGenerator.getRandomKey());
         Realm realm = Realm.getInstance(realmConfig);
         realm.close();
         assertTrue(Realm.compactRealm(realmConfig));
@@ -1005,7 +1006,7 @@ public class RealmTests {
     @Test
     public void compactRealm_encryptedPopulatedRealm() {
         final int DATA_SIZE = 100;
-        RealmConfiguration realmConfig = configFactory.createConfiguration("enc.realm", TestHelper.getRandomKey());
+        RealmConfiguration realmConfig = configFactory.createConfiguration("enc.realm", RandomGenerator.getRandomKey());
         Realm realm = Realm.getInstance(realmConfig);
 
         populateTestRealm(realm, DATA_SIZE);
@@ -2085,8 +2086,8 @@ public class RealmTests {
 
     @Test
     public void getInstance_differentEncryptionKeys() {
-        byte[] key1 = TestHelper.getRandomKey(42);
-        byte[] key2 = TestHelper.getRandomKey(42);
+        byte[] key1 = RandomGenerator.getRandomKey(42);
+        byte[] key2 = RandomGenerator.getRandomKey(42);
 
         // Makes sure the key is the same, but in two different instances.
         assertArrayEquals(key1, key2);
@@ -2125,10 +2126,10 @@ public class RealmTests {
         final String DECRYPTED_REALM_FILE_NAME = "decryptedTestRealm.realm";
 
         RealmConfiguration encryptedRealmConfig = configFactory.createConfiguration(ENCRYPTED_REALM_FILE_NAME,
-                TestHelper.getRandomKey());
+                RandomGenerator.getRandomKey());
 
         RealmConfiguration reEncryptedRealmConfig = configFactory.createConfiguration(RE_ENCRYPTED_REALM_FILE_NAME,
-                TestHelper.getRandomKey());
+                RandomGenerator.getRandomKey());
 
         RealmConfiguration decryptedRealmConfig = configFactory.createConfiguration(DECRYPTED_REALM_FILE_NAME);
 

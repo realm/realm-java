@@ -52,6 +52,7 @@ import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.util.RandomGenerator;
 import io.realm.util.SyncTestUtils;
 
 import static io.realm.util.SyncTestUtils.createNamedTestUser;
@@ -206,8 +207,8 @@ public class SyncUserTests {
     }
 
     private AuthenticateResponse getNewRandomUser() {
-        String identity = UUID.randomUUID().toString();
-        String userTokenValue = UUID.randomUUID().toString();
+        String identity = RandomGenerator.newRandomUUID();
+        String userTokenValue = RandomGenerator.newRandomUUID();
         return SyncTestUtils.createLoginResponse(userTokenValue, identity, Long.MAX_VALUE, false);
     }
 
@@ -322,7 +323,7 @@ public class SyncUserTests {
                 RealmLog.error(url[0]);
                 String input = url[0];
                 String normalizedInput = url[1];
-                SyncCredentials credentials = SyncCredentials.accessToken("token", UUID.randomUUID().toString());
+                SyncCredentials credentials = SyncCredentials.accessToken("token", RandomGenerator.newRandomUUID());
                 SyncUser user = SyncUser.login(credentials, input);
                 assertEquals(normalizedInput, user.getAuthenticationUrl().toString());
                 user.logout();

@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.StringOnly;
@@ -33,6 +32,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
+import io.realm.util.RandomGenerator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -46,7 +46,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
 
     @Test
     public void trustedRootCA() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
@@ -87,7 +87,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
 
     @Test
     public void withoutSSLVerification() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
@@ -128,7 +128,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
 
     @Test
     public void trustedRootCA_syncShouldFailWithoutTrustedCA() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
@@ -164,7 +164,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
 
     @Test
     public void combining_trustedRootCA_and_withoutSSLVerification_willThrow() {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
@@ -187,7 +187,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
 
     @Test
     public void trustedRootCA_notExisting_certificate_willThrow() {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
         SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)

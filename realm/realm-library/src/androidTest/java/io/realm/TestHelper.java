@@ -39,7 +39,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -63,6 +62,7 @@ import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLogger;
 import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.util.RandomGenerator;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
@@ -73,7 +73,6 @@ public class TestHelper {
     public static final int STANDARD_WAIT_SECS = 100;
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
-    private static final Random RANDOM = new Random();
 
     public static class ExpectedCountCallback implements RealmCache.Callback {
 
@@ -315,27 +314,6 @@ public class TestHelper {
 
     public static InputStream stringToStream(String str) {
         return new ByteArrayInputStream(str.getBytes(UTF_8));
-    }
-
-    // Returns a random key used by encrypted Realms.
-    public static byte[] getRandomKey() {
-        byte[] key = new byte[64];
-        RANDOM.nextBytes(key);
-        return key;
-    }
-
-    public static String getRandomEmail() {
-        StringBuilder sb = new StringBuilder(UUID.randomUUID().toString().toLowerCase());
-        sb.append('@');
-        sb.append("androidtest.realm.io");
-        return sb.toString();
-    }
-
-    // Returns a random key from the given seed. Used by encrypted Realms.
-    public static byte[] getRandomKey(long seed) {
-        byte[] key = new byte[64];
-        new Random(seed).nextBytes(key);
-        return key;
     }
 
     /**

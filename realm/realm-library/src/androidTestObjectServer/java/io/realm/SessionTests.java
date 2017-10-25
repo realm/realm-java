@@ -31,6 +31,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.util.RandomGenerator;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
@@ -344,7 +345,7 @@ public class SessionTests {
     public void errorHandler_useClientResetEncrypted() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        final byte[] randomKey = TestHelper.getRandomKey();
+        final byte[] randomKey = RandomGenerator.getRandomKey();
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
                 .encryptionKey(randomKey)
                 .errorHandler(new SyncSession.ErrorHandler() {
@@ -380,7 +381,7 @@ public class SessionTests {
 
                         // using wrong key throw
                         try {
-                            Realm.getInstance(SyncConfiguration.forRecovery(backupFile, TestHelper.getRandomKey(), new StringOnlyModule()));
+                            Realm.getInstance(SyncConfiguration.forRecovery(backupFile, RandomGenerator.getRandomKey(), new StringOnlyModule()));
                             fail("Expected to throw when using wrong encryption key");
                         } catch (RealmFileException expected) {
                         }

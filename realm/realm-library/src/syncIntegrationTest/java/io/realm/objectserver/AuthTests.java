@@ -6,7 +6,6 @@ import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -14,7 +13,6 @@ import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +38,7 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.util.RandomGenerator;
 import io.realm.util.SyncTestUtils;
 
 import static junit.framework.Assert.assertEquals;
@@ -92,7 +91,7 @@ public class AuthTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void login_newUser() {
-        String userId = UUID.randomUUID().toString();
+        String userId = RandomGenerator.newRandomUUID();
         SyncCredentials credentials = SyncCredentials.usernamePassword(userId, "password", true);
         SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
@@ -187,7 +186,7 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     public void changePassword() {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String originalPassword = "password";
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
         SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -215,7 +214,7 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     public void changePassword_using_admin() {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String originalPassword = "password";
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
         SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -242,7 +241,7 @@ public class AuthTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void changePassword_using_admin_async() {
-        final String username = UUID.randomUUID().toString();
+        final String username = RandomGenerator.newRandomUUID();
         final String originalPassword = "password";
         final SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
         final SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -281,7 +280,7 @@ public class AuthTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void changePassword_throwWhenUserIsLoggedOut() {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -319,7 +318,7 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     public void cachedInstanceShouldNotThrowIfRefreshTokenExpires() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
@@ -358,7 +357,7 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     public void buildingSyncConfigurationShouldThrowIfInvalidUser() {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
@@ -388,7 +387,7 @@ public class AuthTests extends StandardIntegrationTest {
     // using a logout user should not throw
     @Test
     public void usingConfigurationWithInvalidUserShouldThrow() {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
@@ -411,7 +410,7 @@ public class AuthTests extends StandardIntegrationTest {
     // logging out 'user' should have the same impact on other instance(s) of the same user
     @Test
     public void loggingOutUserShouldImpactOtherInstances() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
@@ -430,7 +429,7 @@ public class AuthTests extends StandardIntegrationTest {
     // logging out 'currentUser' should have the same impact on other instance(s) of the user
     @Test
     public void loggingOutCurrentUserShouldImpactOtherInstances() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
+        String username = RandomGenerator.newRandomUUID();
         String password = "password";
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
@@ -454,7 +453,7 @@ public class AuthTests extends StandardIntegrationTest {
         final SyncUser[] users = new SyncUser[3];
 
         for (int i = 0; i < users.length; i++) {
-            SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), password,
+            SyncCredentials credentials = SyncCredentials.usernamePassword(RandomGenerator.newRandomUUID(), password,
                     true);
             users[i] = SyncUser.login(credentials, Constants.AUTH_URL);
         }
@@ -475,7 +474,7 @@ public class AuthTests extends StandardIntegrationTest {
     // verify that a single user can be logged out and back in.
     @Test
     public void singleUserCanBeLoggedInAndOutRepeatedly() {
-        final String username = UUID.randomUUID().toString();
+        final String username = RandomGenerator.newRandomUUID();
         final String password = "password";
 
         // register the user the first time
@@ -499,7 +498,7 @@ public class AuthTests extends StandardIntegrationTest {
     @Test
     public void revokedRefreshTokenIsNotSameAfterLogin() throws InterruptedException {
         final CountDownLatch userLoggedInAgain = new CountDownLatch(1);
-        final String uniqueName = UUID.randomUUID().toString();
+        final String uniqueName = RandomGenerator.newRandomUUID();
 
         final SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -606,7 +605,7 @@ public class AuthTests extends StandardIntegrationTest {
     public void retrieve() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
 
-        final String username = UUID.randomUUID().toString();
+        final String username = RandomGenerator.newRandomUUID();
         final String password = "password";
         final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
         final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -630,7 +629,7 @@ public class AuthTests extends StandardIntegrationTest {
     public void retrieve_logout() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
 
-        final String username = UUID.randomUUID().toString();
+        final String username = RandomGenerator.newRandomUUID();
         final String password = "password";
         final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
         final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -684,7 +683,7 @@ public class AuthTests extends StandardIntegrationTest {
     @Test
     public void retrieve_invalidProvider() {
         final SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
-        final String username = UUID.randomUUID().toString();
+        final String username = RandomGenerator.newRandomUUID();
         final String password = "password";
         final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
         final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -696,13 +695,13 @@ public class AuthTests extends StandardIntegrationTest {
 
     @Test
     public void retrieve_notAdmin() {
-        final String username1 = UUID.randomUUID().toString();
+        final String username1 = RandomGenerator.newRandomUUID();
         final String password1 = "password";
         final SyncCredentials credentials1 = SyncCredentials.usernamePassword(username1, password1, true);
         final SyncUser user1 = SyncUser.login(credentials1, Constants.AUTH_URL);
         assertTrue(user1.isValid());
 
-        final String username2 = UUID.randomUUID().toString();
+        final String username2 = RandomGenerator.newRandomUUID();
         final String password2 = "password";
         final SyncCredentials credentials2 = SyncCredentials.usernamePassword(username2, password2, true);
         final SyncUser user2 = SyncUser.login(credentials2, Constants.AUTH_URL);
@@ -719,7 +718,7 @@ public class AuthTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void retrieve_async() {
-        final String username = UUID.randomUUID().toString();
+        final String username = RandomGenerator.newRandomUUID();
         final String password = "password";
         final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
         final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);

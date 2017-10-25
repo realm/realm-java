@@ -43,6 +43,7 @@ import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.RunTestWithRemoteService;
 import io.realm.rule.RunWithRemoteService;
 import io.realm.services.RemoteTestService;
+import io.realm.util.RandomGenerator;
 
 import static org.junit.Assert.assertEquals;
 
@@ -145,7 +146,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
 
                 final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
                         .directory(getService().getRoot())
-                        .name(UUID.randomUUID().toString() + ".realm")
+                        .name(RandomGenerator.newRandomUUID() + ".realm")
                         .build();
                 getService().setRealm(Realm.getInstance(syncConfig));
             }

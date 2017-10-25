@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,6 +40,7 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
 import io.realm.internal.android.AndroidCapabilities;
+import io.realm.util.RandomGenerator;
 
 
 /**
@@ -265,7 +265,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     protected void before() throws Throwable {
         super.before();
 
-        RealmConfiguration config = createConfiguration(UUID.randomUUID().toString());
+        RealmConfiguration config = createConfiguration(RandomGenerator.newRandomUUID());
         LinkedList<Object> refs = new LinkedList<>();
         List<Realm> realms = new LinkedList<>();
         LinkedList<Closeable> closeables = new LinkedList<>();

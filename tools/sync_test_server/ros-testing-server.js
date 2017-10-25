@@ -77,12 +77,18 @@ function startRealmObjectServer(onSuccess, onError) {
             // See https://github.com/realm/ros/issues/437#issuecomment-335380095
             var globalNotifierDir = path + '/realm-object-server';
             winston.info('Cleaning state in: ' + globalNotifierDir);
-            fs.removeSync(globalNotifierDir)
+            fs.removeSync(globalNotifierDir);
             if (fs.existsSync(globalNotifierDir)) {
                 onError("Could not delete the global notifier directory: " + globalNotifierDir);
                 return;
             }
-            fs.mkdirsSync(path + '/realm-object-server/io.realm.object-server-utility/metadata/')
+            fs.mkdirsSync(path + '/realm-object-server/io.realm.object-server-utility/metadata/');
+
+            var dataDir = path + '/data';
+            if (fs.existsSync(dataDir)) {
+                winston.error("/data dir for ros already existed . This should not happen. Deleting " + dataDir);
+                fs.removeSync(dataDir);
+            }
 
             // Start ROS
             syncServerChildProcess = spawn('ros',

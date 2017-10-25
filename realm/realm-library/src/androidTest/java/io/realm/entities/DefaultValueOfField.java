@@ -17,12 +17,12 @@
 package io.realm.entities;
 
 import java.util.Date;
-import java.util.UUID;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
+import io.realm.util.RandomGenerator;
 
 public class DefaultValueOfField extends RealmObject {
 
@@ -90,7 +90,7 @@ public class DefaultValueOfField extends RealmObject {
 
     @Ignore private String fieldIgnored = FIELD_IGNORED_DEFAULT_VALUE;
     private String fieldString = FIELD_STRING_DEFAULT_VALUE;
-    private String fieldRandomString = lastRandomStringValue = UUID.randomUUID().toString();
+    private String fieldRandomString = lastRandomStringValue = RandomGenerator.newRandomUUID();
     private short fieldShort = FIELD_SHORT_DEFAULT_VALUE;
     private int fieldInt = FIELD_INT_DEFAULT_VALUE;
     @PrimaryKey private long fieldLongPrimaryKey = FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE;
