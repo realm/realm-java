@@ -37,7 +37,6 @@ public abstract class StandardIntegrationTest extends BaseIntegrationTest {
 
     @AfterClass
     public static void tearDownTestClass() throws Exception {
-        stopSyncServer();
     }
 
     @Before
