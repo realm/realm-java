@@ -144,7 +144,7 @@ public class RealmProxyClassGenerator {
         emitCreateExpectedObjectSchemaInfo(writer);
         emitGetExpectedObjectSchemaInfo(writer);
         emitCreateColumnInfoMethod(writer);
-        emitGetTableNameMethod(writer);
+        emitGetSimpleClassNameMethod(writer);
         emitGetFieldNamesMethod(writer);
         emitCreateOrUpdateUsingJsonObject(writer);
         emitCreateUsingJsonStream(writer);
@@ -833,9 +833,9 @@ public class RealmProxyClassGenerator {
     }
 
     //@formatter:off
-    private void emitGetTableNameMethod(JavaWriter writer) throws IOException {
-        writer.beginMethod("String", "getTableName", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC))
-                .emitStatement("return \"%s%s\"", Constants.TABLE_PREFIX, simpleClassName)
+    private void emitGetSimpleClassNameMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod("String", "getSimpleClassName", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC))
+                .emitStatement("return \"%s\"", simpleClassName)
                 .endMethod()
                 .emitEmptyLine();
     }
