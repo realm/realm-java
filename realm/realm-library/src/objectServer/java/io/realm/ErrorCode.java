@@ -25,6 +25,7 @@ public enum ErrorCode {
 
     // See Client::Error in https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp
     // See https://github.com/realm/realm-object-server/blob/master/object-server/doc/problems.md
+    // See https://github.com/realm/realm-sync/blob/develop/src/realm/sync/protocol.hpp
 
     // Realm Java errors (0-49)
     UNKNOWN(-1),                                // Catch-all
@@ -73,6 +74,7 @@ public enum ErrorCode {
     DIVERGING_HISTORIES(211),                       // Diverging histories (IDENT)
     BAD_CHANGESET(212),                             // Bad changeset (UPLOAD)
     DISABLED_SESSION(213),                          // Disabled session
+    PARTIAL_SYNC_DISABLED(214),                     // Partial sync disabled (BIND)
 
     // 300 - 599 Reserved for Standard HTTP error codes
     MULTIPLE_CHOICES(300),

@@ -1,4 +1,4 @@
-FROM node:6.11.2 
+FROM node:6.11.4
 
 ARG ROS_DE_VERSION
 
