@@ -24,6 +24,15 @@ import io.realm.ErrorCode;
  * Abstracts the concept of running an network task with incremental backoff. It will run forever until interrupted.
  */
 public abstract class ExponentialBackoffTask<T extends AuthServerResponse> implements Runnable {
+    private final int maxRetries;
+
+    public ExponentialBackoffTask(int maxRetries) {
+        this.maxRetries = maxRetries;
+    }
+
+    public ExponentialBackoffTask() {
+        this(Integer.MAX_VALUE - 1);
+    }
 
     // Task to perform
     protected abstract T execute();
@@ -69,7 +78,7 @@ public abstract class ExponentialBackoffTask<T extends AuthServerResponse> imple
                 onSuccess(response);
                 break;
             } else {
-                if (shouldAbortTask(response)) {
+                if (shouldAbortTask(response) || attempt == maxRetries + 1) {
                     onError(response);
                     break;
                 }

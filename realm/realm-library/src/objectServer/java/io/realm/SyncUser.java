@@ -249,7 +249,7 @@ public class SyncUser {
             final Token refreshTokenToBeRevoked = refreshToken;
 
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
-            networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
+            networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>(3) {
 
                 @Override
                 protected LogoutResponse execute() {
