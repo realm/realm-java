@@ -182,7 +182,9 @@ public abstract class RealmSchema {
             table = classToTable.get(originalClass);
         }
         if (table == null) {
-            table = realm.getSharedRealm().getTable(realm.getConfiguration().getSchemaMediator().getTableName(originalClass));
+            String tableName = Table.getTableNameForClass(
+                    realm.getConfiguration().getSchemaMediator().getSimpleClassName(originalClass));
+            table = realm.getSharedRealm().getTable(tableName);
             classToTable.put(originalClass, table);
         }
         if (isProxyClass(originalClass, clazz)) {

@@ -161,7 +161,7 @@ public class Realm extends BaseRealm {
             RealmProxyMediator mediator = configuration.getSchemaMediator();
             Set<Class<? extends RealmModel>> classes = mediator.getModelClasses();
             for (Class<? extends RealmModel> clazz  : classes) {
-                String tableName = mediator.getTableName(clazz);
+                String tableName = Table.getTableNameForClass(mediator.getSimpleClassName(clazz));
                 if (!sharedRealm.hasTable(tableName)) {
                     sharedRealm.close();
                     throw new RealmMigrationNeededException(configuration.getPath(),

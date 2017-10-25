@@ -1,3 +1,10 @@
+## 4.1.1 (YYYY-MM-DD)
+
+## Bug Fixes
+
+# Fixed the compile warnings of using deprecated method `RealmProxyMediator.getTableName()` in generated mediator classes (#5455).
+
+
 ## 4.1.0 (2017-10-20)
 
 ## Enhancements

@@ -9,7 +9,6 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.SharedRealm;
-import io.realm.internal.Table;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -61,11 +60,11 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public String getTableName(Class<? extends RealmModel> clazz) {
+    public String getSimpleClassNameImpl(Class<? extends RealmModel> clazz) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.getTableName();
+            return io.realm.AllTypesRealmProxy.getSimpleClassName();
         }
         throw getMissingProxyClassException(clazz);
     }
