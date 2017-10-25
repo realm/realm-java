@@ -699,9 +699,6 @@ public class Table implements NativeObject {
     public static String getTableNameForClass(String name) {
         //noinspection ConstantConditions
         if (name == null) { return null; }
-        if (name.startsWith(TABLE_PREFIX)) {
-            return name;
-        }
         return TABLE_PREFIX + name;
     }
 

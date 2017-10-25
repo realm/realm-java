@@ -69,28 +69,24 @@ public abstract class RealmProxyMediator {
     public abstract List<String> getFieldNames(Class<? extends RealmModel> clazz);
 
     /**
-     * Returns the name that Realm should use for all its internal tables. This is the un-obfuscated name of the
-     * class with the Realm table prefix.
+     * Returns the name that Realm should use for all its internal tables. This is the un-obfuscated simple name of the
+     * class.
      *
-     * @param clazz the {@link RealmObject} class reference.
-     * @return the simple name of an RealmObject class (before it has been obfuscated) with Realm table prefix.
-     * @throws java.lang.NullPointerException if null is given as argument.
-     * @deprecated use {{@link #getSimpleClassName(Class)}} instead.
+     * @param clazz the {@link RealmModel} or the Realm object proxy class reference.
+     * @return the simple name of an RealmObject class (before it has been obfuscated).
      */
-    @Deprecated
-    public abstract String getTableName(Class<? extends RealmModel> clazz);
+    public final String getSimpleClassName(Class<? extends RealmModel> clazz) {
+        return getSimpleClassNameImpl(Util.getOriginalModelClass(clazz));
+    }
 
     /**
      * Returns the name that Realm should use for all its internal tables. This is the un-obfuscated simple name of the
      * class.
      *
-     * @param clazz the {@link RealmObject} class reference.
+     * @param clazz the {@link RealmModel} class reference.
      * @return the simple name of an RealmObject class (before it has been obfuscated).
      */
-    public String getSimpleClassName(Class<? extends RealmModel> clazz) {
-        Class<? extends RealmModel> originalClass = Util.getOriginalModelClass(clazz);
-        return Table.getClassNameForTable(getTableName(originalClass));
-    }
+    protected abstract String getSimpleClassNameImpl(Class<? extends RealmModel> clazz);
 
     /**
      * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.

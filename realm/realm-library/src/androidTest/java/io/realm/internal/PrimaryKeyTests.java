@@ -85,7 +85,7 @@ public class PrimaryKeyTests {
         sharedRealm = SharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
         OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
-        Table t = sharedRealm.createTable(Table.getTableNameForClass("class_TestTable"));
+        Table t = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
         long column = t.addColumn(RealmFieldType.INTEGER, "colName");
         t.addSearchIndex(column);
         OsObjectStore.setPrimaryKeyForObject(sharedRealm, "TestTable", "colName");

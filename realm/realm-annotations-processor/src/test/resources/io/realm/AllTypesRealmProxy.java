@@ -890,8 +890,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return new AllTypesColumnInfo(schemaInfo);
     }
 
-    public static String getTableName() {
-        return "class_AllTypes";
+    public static String getSimpleClassName() {
+        return "AllTypes";
     }
 
     public static List<String> getFieldNames() {
