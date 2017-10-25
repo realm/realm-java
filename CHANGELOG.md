@@ -1,8 +1,18 @@
 ## 4.1.1 (YYYY-MM-DD)
 
-## Bug Fixes
+### Breaking Changes
 
-# Fixed the compile warnings of using deprecated method `RealmProxyMediator.getTableName()` in generated mediator classes (#5455).
+### Enhancements
+
+### Bug Fixes
+
+* Fixed the compile warnings of using deprecated method `RealmProxyMediator.getTableName()` in generated mediator classes (#5455).
+
+### Interal
+
+* Updated Realm Sync to 2.1.0
+
+### Credits
 
 
 ## 4.1.0 (2017-10-20)
