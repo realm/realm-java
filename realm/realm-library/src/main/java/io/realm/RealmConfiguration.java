@@ -762,7 +762,6 @@ public class RealmConfiguration {
          * create a module. These classes must be available in the default module. Calling this will remove any
          * previously configured modules.
          */
-        @SafeVarargs
         final Builder schema(Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
             //noinspection ConstantConditions
             if (firstClass == null) {
