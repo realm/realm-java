@@ -105,15 +105,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache) {
+    public long insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        return mediator.copyOrUpdate(realm, object, update, cache);
-    }
-
-    @Override
-    public void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
-        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        mediator.insert(realm, object, cache);
+        return mediator.insert(realm, object, cache);
     }
 
     @Override
@@ -123,9 +117,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+    public long insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        mediator.insertOrUpdate(realm, object, cache);
+        return mediator.insertOrUpdate(realm, object, cache);
     }
 
     @Override

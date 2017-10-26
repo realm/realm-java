@@ -894,6 +894,8 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         return "class_AllTypes";
     }
 
+
+
     public static List<String> getFieldNames() {
         return FIELD_NAMES;
     }

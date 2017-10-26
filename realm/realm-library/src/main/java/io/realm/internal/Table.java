@@ -17,6 +17,7 @@
 package io.realm.internal;
 
 import java.util.Date;
+import java.util.Locale;
 
 import javax.annotation.Nullable;
 
@@ -339,7 +340,8 @@ public class Table implements NativeObject {
      * @param value the primary key value.
      */
     public static void throwDuplicatePrimaryKeyException(Object value) {
-        throw new RealmPrimaryKeyConstraintException("Value already exists: " + value);
+        throw new RealmPrimaryKeyConstraintException(String.format(Locale.ENGLISH,
+                "Primary key value already exists: '%s'.", value));
     }
 
     //

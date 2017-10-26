@@ -990,8 +990,13 @@ public class Realm extends BaseRealm {
      * in a different thread.
      */
     public <E extends RealmModel> E copyToRealm(E object) {
+        checkIfValidAndInTransaction();
         checkNotNullObject(object);
-        return copyOrUpdate(object, false, new HashMap<RealmModel, RealmObjectProxy>());
+        if (checkIfObjectValidAndManagedByTheSameRealm(object)) {
+            return object;
+        }
+        long rowIndex = configuration.getSchemaMediator().insert(this, object, new HashMap<RealmModel, Long>());
+        return createManagedObjectFromRowIndex(object, rowIndex);
     }
 
     /**
@@ -1009,9 +1014,15 @@ public class Realm extends BaseRealm {
      * @see #copyToRealm(RealmModel)
      */
     public <E extends RealmModel> E copyToRealmOrUpdate(E object) {
+        checkIfValidAndInTransaction();
         checkNotNullObject(object);
         checkHasPrimaryKey(object.getClass());
-        return copyOrUpdate(object, true, new HashMap<RealmModel, RealmObjectProxy>());
+        if (checkIfObjectValidAndManagedByTheSameRealm(object)) {
+            return object;
+        }
+        long rowIndex =
+                configuration.getSchemaMediator().insertOrUpdate(this, object, new HashMap<RealmModel, Long>());
+        return createManagedObjectFromRowIndex(object, rowIndex);
     }
 
     /**
@@ -1032,11 +1043,13 @@ public class Realm extends BaseRealm {
         if (objects == null) {
             return new ArrayList<>();
         }
-        Map<RealmModel, RealmObjectProxy> cache = new HashMap<>();
+        Map<RealmModel, Long> cache = new HashMap<>();
         ArrayList<E> realmObjects = new ArrayList<>();
+        RealmProxyMediator mediator = configuration.getSchemaMediator();
         for (E object : objects) {
             checkNotNullObject(object);
-            realmObjects.add(copyOrUpdate(object, false, cache));
+            long rowIndex = mediator.insert(this, object, cache);
+            realmObjects.add(createManagedObjectFromRowIndex(object, rowIndex));
         }
 
         return realmObjects;
@@ -1104,9 +1117,9 @@ public class Realm extends BaseRealm {
      */
     public void insert(RealmModel object) {
         checkIfValidAndInTransaction();
-        //noinspection ConstantConditions
-        if (object == null) {
-            throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
+        checkNotNullObject(object);
+        if (checkIfObjectValidAndManagedByTheSameRealm(object)) {
+            return;
         }
         Map<RealmModel, Long> cache = new HashMap<>();
         configuration.getSchemaMediator().insert(this, object, cache);
@@ -1176,10 +1189,7 @@ public class Realm extends BaseRealm {
      */
     public void insertOrUpdate(RealmModel object) {
         checkIfValidAndInTransaction();
-        //noinspection ConstantConditions
-        if (object == null) {
-            throw new IllegalArgumentException("Null object cannot be inserted into Realm.");
-        }
+        checkNotNullObject(object);
         Map<RealmModel, Long> cache = new HashMap<>();
         configuration.getSchemaMediator().insertOrUpdate(this, object, cache);
     }
@@ -1203,11 +1213,14 @@ public class Realm extends BaseRealm {
             return new ArrayList<>(0);
         }
 
-        Map<RealmModel, RealmObjectProxy> cache = new HashMap<>();
+        Map<RealmModel, Long> cache = new HashMap<>();
         ArrayList<E> realmObjects = new ArrayList<>();
+        RealmProxyMediator mediator = configuration.getSchemaMediator();
+
         for (E object : objects) {
             checkNotNullObject(object);
-            realmObjects.add(copyOrUpdate(object, true, cache));
+            long rowIndex = mediator.insertOrUpdate(this, object, cache);
+            realmObjects.add(createManagedObjectFromRowIndex(object, rowIndex));
         }
 
         return realmObjects;
@@ -1586,13 +1599,6 @@ public class Realm extends BaseRealm {
         schema.getTable(clazz).clear();
     }
 
-
-    @SuppressWarnings("unchecked")
-    private <E extends RealmModel> E copyOrUpdate(E object, boolean update, Map<RealmModel, RealmObjectProxy> cache) {
-        checkIfValid();
-        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, cache);
-    }
-
     private <E extends RealmModel> E createDetachedCopy(E object, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
         checkIfValid();
         return configuration.getSchemaMediator().createDetachedCopy(object, maxDepth, cache);
@@ -1601,7 +1607,7 @@ public class Realm extends BaseRealm {
     private <E extends RealmModel> void checkNotNullObject(E object) {
         //noinspection ConstantConditions
         if (object == null) {
-            throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
+            throw new IllegalArgumentException("Null objects cannot be stored into Realm.");
         }
     }
 
@@ -1631,6 +1637,26 @@ public class Realm extends BaseRealm {
         if (realmObject instanceof DynamicRealmObject) {
             throw new IllegalArgumentException("DynamicRealmObject cannot be copied from Realm.");
         }
+    }
+
+    boolean checkIfObjectValidAndManagedByTheSameRealm(RealmModel object) {
+        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
+            final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
+            if (otherRealm.threadId != threadId) {
+                throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
+            }
+            if (otherRealm.sharedRealm == sharedRealm) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private <E extends RealmModel> E createManagedObjectFromRowIndex(E sourceObject, long rowIndex) {
+        @SuppressWarnings("unchecked")
+        Class<E> clazz = (Class<E>) ((sourceObject instanceof RealmObjectProxy) ?
+                sourceObject.getClass().getSuperclass() : sourceObject.getClass());
+        return get(clazz, rowIndex, false, null);
     }
 
     /**
