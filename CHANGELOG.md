@@ -6,7 +6,7 @@
 
 ### Bug Fixes
 
-### Interal
+### Internal
 
 ### Credits
 
@@ -21,7 +21,7 @@
 
 * Fixed the compile warnings of using deprecated method `RealmProxyMediator.getTableName()` in generated mediator classes (#5455).
 
-### Interal
+### Internal
 
 * Updated Realm Sync to 2.1.0
 
