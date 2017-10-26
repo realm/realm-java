@@ -54,7 +54,7 @@ RUN yes y | sdkmanager --licenses
 RUN sdkmanager 'platform-tools'
 RUN sdkmanager 'build-tools;27.0.0'
 RUN sdkmanager 'extras;android;m2repository'
-RUN sdkmanager 'platforms;android-2'
+RUN sdkmanager 'platforms;android-26'
 RUN sdkmanager 'cmake;3.6.4111459'
 
 # Install the NDK
