@@ -1,4 +1,4 @@
-## 4.1.1 (YYYY-MM-DD)
+## 4.1.1 (2017-10-26)
 
 ### Breaking Changes
 
