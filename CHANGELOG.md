@@ -7,8 +7,10 @@
 ### Bug Fixes
 
 * Fixed the compile warnings of using deprecated method `RealmProxyMediator.getTableName()` in generated mediator classes (#5455).
+* [ObjectServer] now retrying network query when encountering any `IOException` (#5453).
+* Fixed a `NoClassDefFoundError` due to using `@SafeVarargs` below API 19 (#5463).
 
-### Interal
+### Internal
 
 * Updated Realm Sync to 2.1.0
 
@@ -26,7 +28,7 @@
 * Fix some potential database corruption caused by deleting the Realm file while a Realm instance are still opened in another process or the sync client thread.
 * Added `realm.ignoreKotlinNullability` as a kapt argument to disable treating kotlin non-null types as `@Required` (#5412) (introduced in `v3.6.0`).
 * Increased http connect/write timeout for low bandwidth network.
-* [ObjectServer] now retrying network query when encountering any `IOException` (#5453).
+
 
 ## 4.0.0 (2017-10-16)
 
