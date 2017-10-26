@@ -29,9 +29,8 @@ using namespace realm::jni_util;
 using namespace realm::util;
 using namespace realm::_impl;
 
-// FIXME: Enable after https://github.com/realm/realm-object-store/pull/550 merged
-//static_assert(io_realm_internal_OsObjectStore_SCHEMA_NOT_VERSIONED == static_cast<jlong>(ObjectStore::NotVersioned),
-//              "");
+static_assert(io_realm_internal_OsObjectStore_SCHEMA_NOT_VERSIONED == static_cast<jlong>(ObjectStore::NotVersioned),
+              "");
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetPrimaryKeyForObject(JNIEnv* env, jclass,
                                                                                           jlong shared_realm_ptr,
