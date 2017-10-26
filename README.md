@@ -154,7 +154,7 @@ Generating the Javadoc using the command above may generate warnings. The Javado
 
 ### Upgrading Gradle Wrappers
 
- All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer `gradleVersion` propertiy defined in `/realm.properties` in order to determine Geadle Version of generating wrappers. After generating Gradle Wrappers, we need to modify `gradle/wrapper/gradle-wrapper.properties` to use `*-all.zip` distribution instead of `*-bin.zip` distribution.
+ All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer `gradleVersion` property defined in `/realm.properties` in order to determine Gradle Version of generating wrappers. After generating Gradle Wrappers, we need to modify `gradle/wrapper/gradle-wrapper.properties` to use `*-all.zip` distribution instead of `*-bin.zip` distribution.
 
 We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. When you update Gradle Wrappers, please obey the following steps.
 
