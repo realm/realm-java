@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private void buildSyncConf() {
         // the rest of Sync logic ...
         SyncCredentials credentials = SyncCredentials.usernamePassword("username", "password");
-        final String urlAuth = "realm://objectserver.realm.io/default";
+        final String urlAuth = "http://objectserver.realm.io:9080/auth";
         final String url = "realm://objectserver.realm.io/default";
 
         SyncUser.loginAsync(credentials, urlAuth, new SyncUser.Callback<SyncUser>() {
