@@ -23,11 +23,7 @@ allprojects {
             maven { url 'https://jitpack.io' }
         }
         dependencies {
-<<<<<<< HEAD
-            classpath 'com.android.tools.build:gradle:3.0.0-rc2'
-=======
-            classpath 'com.android.tools.build:gradle:3.0.0-beta4'
->>>>>>> d9108f12f655d47a4cf06998ac0514e05c4c57a2
+            classpath 'com.android.tools.build:gradle:3.0.0'
             classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
             classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
             classpath "io.realm:realm-gradle-plugin:${currentVersion}"
