@@ -31,8 +31,8 @@ properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
 
 def syncVersion = properties.getProperty('REALM_SYNC_VERSION')
 
-sourceCompatibility = '1.6'
-targetCompatibility = '1.6'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 repositories {
     mavenLocal()
