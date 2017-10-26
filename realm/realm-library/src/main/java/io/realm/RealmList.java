@@ -99,7 +99,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      *
      * @param objects initial objects in the list.
      */
-    @SafeVarargs
     public RealmList(E... objects) {
         //noinspection ConstantConditions
         if (objects == null) {
