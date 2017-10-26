@@ -25,7 +25,7 @@ android {
         applicationId 'io.realm.examples.kotlin'
         //noinspection GroovyAssignabilityCheck
         targetSdkVersion rootProject.sdkVersion
-        minSdkVersion 15
+        minSdkVersion rootProject.minSdkVersion
         versionCode 1
         versionName "1.0"
     }

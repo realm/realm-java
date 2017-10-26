@@ -9,7 +9,7 @@ android {
     defaultConfig {
         applicationId 'examples.realm.io.encryptionExample'
         targetSdkVersion rootProject.sdkVersion
-        minSdkVersion 14
+        minSdkVersion rootProject.minSdkVersion
         versionCode 1
         versionName '1.0'
     }

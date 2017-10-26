@@ -40,12 +40,12 @@ ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE
 ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false //FIXME Use 'false' as default until https://github.com/realm/realm-java/issues/5354 is fixed
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '27.0.0'
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 25
+        targetSdkVersion 27
         versionName version
         project.archivesBaseName = "realm-android-library"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -106,7 +106,7 @@ android {
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_
     }
 
     packagingOptions {
