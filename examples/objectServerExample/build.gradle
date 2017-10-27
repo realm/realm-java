@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 // Credit: http://jeremie-martinez.com/2015/05/05/inject-host-gradle/
@@ -50,10 +49,6 @@ android {
             minifyEnabled true
             signingConfig signingConfigs.debug
         }
-    }
-
-    command {
-        monkey.events 2000
     }
 }
 

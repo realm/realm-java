@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 android {
@@ -24,9 +23,5 @@ android {
         }
     }
     productFlavors {
-    }
-
-    command {
-        monkey.events 2000
     }
 }
