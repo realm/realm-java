@@ -165,7 +165,7 @@ build() {
     check_adb_device
 
     # Verify examples
-    (cd examples && ./gradlew uninstallAll && ./gradlew monkeyDebug)
+    (cd examples && ./gradlew clean uninstallAll && ./gradlew monkeyDebug)
 }
 
 upload_to_bintray() {
@@ -200,7 +200,7 @@ publish_distribution() {
     # Test
     check_adb_device
     pushd examples/
-    ./gradlew uninstallAll
+    ./gradlew clean uninstallAll
     ./gradlew monkeyRelease
     popd
     popd
