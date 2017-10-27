@@ -9,7 +9,7 @@ android {
     defaultConfig {
         applicationId "io.realm.examples.realmmultiprocessexample"
         targetSdkVersion rootProject.sdkVersion
-        minSdkVersion 9
+        minSdkVersion 15
         versionCode 1
         versionName "1.0"
     }
@@ -23,16 +23,9 @@ android {
             minifyEnabled true
         }
     }
-
-    productFlavors {
-    }
-
-    command {
-        monkey.events 2000
-    }
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:23.1.1'
+    implementation 'com.android.support:appcompat-v7:26.0.1'
 }
 
