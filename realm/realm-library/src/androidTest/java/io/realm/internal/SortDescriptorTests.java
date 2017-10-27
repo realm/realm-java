@@ -47,13 +47,13 @@ public class SortDescriptorTests {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
     private Table table;
 
     @Before
     public void setUp() {
         RealmConfiguration config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
         table = sharedRealm.createTable("test_table");
     }

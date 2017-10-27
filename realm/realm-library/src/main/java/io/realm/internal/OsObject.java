@@ -98,7 +98,7 @@ public class OsObject implements NativeObject {
 
     private ObserverPairList<ObjectObserverPair> observerPairs = new ObserverPairList<ObjectObserverPair>();
 
-    public OsObject(SharedRealm sharedRealm, UncheckedRow row) {
+    public OsObject(OsSharedRealm sharedRealm, UncheckedRow row) {
         nativePtr = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr());
         sharedRealm.context.addReference(this);
     }
@@ -152,11 +152,11 @@ public class OsObject implements NativeObject {
     /**
      * Create an object in the given table which doesn't have a primary key column defined.
      *
-     * @param table the table where the object is created. This table must be atached to {@link SharedRealm}.
+     * @param table the table where the object is created. This table must be atached to {@link OsSharedRealm}.
      * @return a newly created {@code UncheckedRow}.
      */
     public static UncheckedRow create(Table table) {
-        final SharedRealm sharedRealm = table.getSharedRealm();
+        final OsSharedRealm sharedRealm = table.getSharedRealm();
         return new UncheckedRow(sharedRealm.context, table,
                 nativeCreateNewObject(sharedRealm.getNativePtr(), table.getNativePtr()));
     }
@@ -169,7 +169,7 @@ public class OsObject implements NativeObject {
      * @return a newly created row's index.
      */
     public static long createRow(Table table) {
-        final SharedRealm sharedRealm = table.getSharedRealm();
+        final OsSharedRealm sharedRealm = table.getSharedRealm();
         return nativeCreateRow(sharedRealm.getNativePtr(), table.getNativePtr());
     }
 
@@ -186,13 +186,13 @@ public class OsObject implements NativeObject {
      * Create an object in the given table which has a primary key column defined, and set the primary key with given
      * value.
      *
-     * @param table the table where the object is created. This table must be atached to {@link SharedRealm}.
+     * @param table the table where the object is created. This table must be atached to {@link OsSharedRealm}.
      * @return a newly created {@code UncheckedRow}.
      */
     public static UncheckedRow createWithPrimaryKey(Table table, @Nullable Object primaryKeyValue) {
         long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
-        final SharedRealm sharedRealm = table.getSharedRealm();
+        final OsSharedRealm sharedRealm = table.getSharedRealm();
 
         if (type == RealmFieldType.STRING) {
             if (primaryKeyValue != null && !(primaryKeyValue instanceof String)) {
@@ -225,7 +225,7 @@ public class OsObject implements NativeObject {
     // FIXME: Proxy could just pass the pk index here which is much faster.
     public static long createRowWithPrimaryKey(Table table, long primaryKeyColumnIndex, Object primaryKeyValue) {
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
-        final SharedRealm sharedRealm = table.getSharedRealm();
+        final OsSharedRealm sharedRealm = table.getSharedRealm();
 
         if (type == RealmFieldType.STRING) {
             if (primaryKeyValue != null && !(primaryKeyValue instanceof String)) {

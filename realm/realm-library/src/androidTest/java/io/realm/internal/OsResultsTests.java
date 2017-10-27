@@ -57,7 +57,7 @@ public class OsResultsTests {
 
     private final long[] oneNullTable = new long[] {NativeObject.NULLPTR};
 
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
     private Table table;
 
     @Before
@@ -71,31 +71,31 @@ public class OsResultsTests {
         sharedRealm.close();
     }
 
-    private SharedRealm getSharedRealm() {
+    private OsSharedRealm getSharedRealm() {
         RealmConfiguration config = configFactory.createConfiguration();
         return getSharedRealm(config);
     }
 
-    private SharedRealm getSharedRealmForLooper() {
+    private OsSharedRealm getSharedRealmForLooper() {
         RealmConfiguration config = looperThread.createConfiguration();
         return getSharedRealm(config);
     }
 
-    private SharedRealm getSharedRealm(RealmConfiguration config) {
+    private OsSharedRealm getSharedRealm(RealmConfiguration config) {
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config)
                 .autoUpdateNotification(true);
-        SharedRealm sharedRealm = SharedRealm.getInstance(configBuilder);
+        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configBuilder);
         sharedRealm.beginTransaction();
         OsObjectStore.setSchemaVersion(sharedRealm, OsObjectStore.SCHEMA_NOT_VERSIONED);
         sharedRealm.commitTransaction();
         return sharedRealm;
     }
 
-    private Table getTable(SharedRealm sharedRealm) {
+    private Table getTable(OsSharedRealm sharedRealm) {
         return sharedRealm.getTable(Table.getTableNameForClass("test_table"));
     }
 
-    private void populateData(SharedRealm sharedRealm) {
+    private void populateData(OsSharedRealm sharedRealm) {
         sharedRealm.beginTransaction();
         table = sharedRealm.createTable(Table.getTableNameForClass("test_table"));
         // Specify the column types and names
@@ -127,13 +127,13 @@ public class OsResultsTests {
         sharedRealm.commitTransaction();
     }
 
-    private void addRowAsync(final SharedRealm sharedRealm) {
+    private void addRowAsync(final OsSharedRealm sharedRealm) {
         final CountDownLatch latch = new CountDownLatch(1);
         final RealmConfiguration configuration = sharedRealm.getConfiguration();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                SharedRealm sharedRealm = getSharedRealm(configuration);
+                OsSharedRealm sharedRealm = getSharedRealm(configuration);
                 addRow(sharedRealm);
                 sharedRealm.close();
                 latch.countDown();
@@ -142,7 +142,7 @@ public class OsResultsTests {
         TestHelper.awaitOrFail(latch);
     }
 
-    private void addRow(SharedRealm sharedRealm) {
+    private void addRow(OsSharedRealm sharedRealm) {
         sharedRealm.beginTransaction();
         Table table = getTable(sharedRealm);
         OsObject.createRow(table);
@@ -262,7 +262,7 @@ public class OsResultsTests {
     @Test
     @RunTestInLooperThread
     public void addListener_shouldBeCalledToReturnTheQueryResults() {
-        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        final OsSharedRealm sharedRealm = getSharedRealmForLooper();
         populateData(sharedRealm);
         Table table = getTable(sharedRealm);
 
@@ -284,7 +284,7 @@ public class OsResultsTests {
     @Test
     public void addListener_shouldBeCalledWhenRefreshToReturnTheQueryResults() {
         final AtomicBoolean onChangeCalled = new AtomicBoolean(false);
-        final SharedRealm sharedRealm = getSharedRealm();
+        final OsSharedRealm sharedRealm = getSharedRealm();
         Table table = getTable(sharedRealm);
 
         final OsResults osResults = new OsResults(sharedRealm, table.where());
@@ -352,7 +352,7 @@ public class OsResultsTests {
     @Test
     @RunTestInLooperThread
     public void addListener_queryNotReturned() {
-        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        final OsSharedRealm sharedRealm = getSharedRealmForLooper();
         populateData(sharedRealm);
         Table table = getTable(sharedRealm);
 
@@ -374,7 +374,7 @@ public class OsResultsTests {
     @Test
     @RunTestInLooperThread
     public void addListener_queryReturned() {
-        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        final OsSharedRealm sharedRealm = getSharedRealmForLooper();
         populateData(sharedRealm);
         Table table = getTable(sharedRealm);
 
@@ -399,7 +399,7 @@ public class OsResultsTests {
     @Test
     @RunTestInLooperThread
     public void addListener_triggeredByLocalCommit() {
-        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        final OsSharedRealm sharedRealm = getSharedRealmForLooper();
         populateData(sharedRealm);
         Table table = getTable(sharedRealm);
         final AtomicInteger listenerCounter = new AtomicInteger(0);
@@ -438,7 +438,7 @@ public class OsResultsTests {
             return null;
         }
 
-        boolean isDetached(SharedRealm sharedRealm) {
+        boolean isDetached(OsSharedRealm sharedRealm) {
             for (WeakReference<OsResults.Iterator> iteratorRef : sharedRealm.iterators) {
                 OsResults.Iterator iterator = iteratorRef.get();
                 if (iterator == this) {
@@ -481,7 +481,7 @@ public class OsResultsTests {
     @Test
     @RunTestInLooperThread
     public void collectionIterator_invalid_looperThread_byRemoteTransaction() {
-        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        final OsSharedRealm sharedRealm = getSharedRealmForLooper();
         populateData(sharedRealm);
         Table table = getTable(sharedRealm);
         final OsResults osResults = new OsResults(sharedRealm, table.where());
@@ -536,7 +536,7 @@ public class OsResultsTests {
     @Test
     @RunTestInLooperThread
     public void load() {
-        final SharedRealm sharedRealm = getSharedRealmForLooper();
+        final OsSharedRealm sharedRealm = getSharedRealmForLooper();
         looperThread.closeAfterTest(sharedRealm);
         populateData(sharedRealm);
         final OsResults osResults = new OsResults(sharedRealm, table.where());

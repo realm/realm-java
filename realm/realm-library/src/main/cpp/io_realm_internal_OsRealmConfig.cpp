@@ -61,7 +61,7 @@ static void finalize_realm_config(jlong ptr)
 
 static JavaClass& get_shared_realm_class(JNIEnv* env)
 {
-    static JavaClass shared_realm_class(env, "io/realm/internal/SharedRealm");
+    static JavaClass shared_realm_class(env, "io/realm/internal/OsSharedRealm");
     return shared_realm_class;
 }
 
@@ -133,7 +133,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
         if (j_migration_callback) {
             static JavaMethod run_migration_callback_method(
                 env, get_shared_realm_class(env), "runMigrationCallback",
-                "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/SharedRealm$MigrationCallback;J)V", true);
+                "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/OsSharedRealm$MigrationCallback;J)V", true);
             // weak ref to avoid leaks caused by circular refs.
             JavaGlobalWeakRef j_config_weak(env, j_config);
             JavaGlobalWeakRef j_migration_cb_weak(env, j_migration_callback);
@@ -142,7 +142,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
             config.migration_function = [j_migration_cb_weak, j_config_weak](SharedRealm old_realm,
                                                                                  SharedRealm realm, Schema&) {
                 JNIEnv* env = JniUtils::get_env(false);
-                // Java needs a new pointer for the SharedRealm life control.
+                // Java needs a new pointer for the OsSharedRealm life control.
                 SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
                 JavaGlobalRef config_global = j_config_weak.global_ref(env);
                 if (!config_global) {
@@ -154,7 +154,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
                                               reinterpret_cast<jlong>(new_shared_realm_ptr), config_global.get(), obj,
                                               old_realm->schema_version());
                 });
-                // Close the SharedRealm. Otherwise it will only be closed when the Java OsSharedRealm gets GCed. And
+                // Close the OsSharedRealm. Otherwise it will only be closed when the Java OsSharedRealm gets GCed. And
                 // that will be too late.
                 TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(
                     env, [&new_shared_realm_ptr]() { (*new_shared_realm_ptr)->close(); });
@@ -212,13 +212,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
         if (j_init_callback) {
             static JavaMethod run_initialization_callback_method(
                 env, get_shared_realm_class(env), "runInitializationCallback",
-                "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/SharedRealm$InitializationCallback;)V", true);
+                "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/OsSharedRealm$InitializationCallback;)V", true);
             // weak ref to avoid leaks caused by circular refs.
             JavaGlobalWeakRef j_init_cb_weak(env, j_init_callback);
             JavaGlobalWeakRef j_config_weak(env, j_config);
             config.initialization_function = [j_init_cb_weak, j_config_weak](SharedRealm realm) {
                 JNIEnv* env = JniUtils::get_env(false);
-                // Java needs a new pointer for the SharedRealm life control.
+                // Java needs a new pointer for the OsSharedRealm life control.
                 SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
                 JavaGlobalRef config_global_ref = j_config_weak.global_ref(env);
                 if (!config_global_ref) {
@@ -229,7 +229,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
                                               reinterpret_cast<jlong>(new_shared_realm_ptr), config_global_ref.get(),
                                               obj);
                 });
-                // Close the SharedRealm. Otherwise it will only be closed when the Java OsSharedRealm gets GCed. And
+                // Close the OsSharedRealm. Otherwise it will only be closed when the Java OsSharedRealm gets GCed. And
                 // that will be too late.
                 TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(
                     env, [&new_shared_realm_ptr]() { (*new_shared_realm_ptr)->close(); });

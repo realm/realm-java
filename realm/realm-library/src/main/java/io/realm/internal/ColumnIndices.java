@@ -55,7 +55,7 @@ public final class ColumnIndices {
             new HashMap<String, ColumnInfo>();
 
     private final RealmProxyMediator mediator;
-    // Due to the nature of Object Store's Realm::m_schema, SharedRealm's OsObjectSchemaInfo object is fixed after set.
+    // Due to the nature of Object Store's Realm::m_schema, OsSharedRealm's OsObjectSchemaInfo object is fixed after set.
     private final OsSchemaInfo osSchemaInfo;
 
 

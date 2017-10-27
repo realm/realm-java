@@ -25,7 +25,7 @@
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
-#include "io_realm_internal_SharedRealm.h"
+#include "io_realm_internal_OsSharedRealm.h"
 #include "shared_realm.hpp"
 #include "results.hpp"
 #include "list.hpp"
@@ -213,25 +213,25 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
     jbyte kind_code = -1; // To suppress compile warning.
     switch (kind) {
         case realm::RealmFileException::Kind::AccessError:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_ACCESS_ERROR;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_ACCESS_ERROR;
             break;
         case realm::RealmFileException::Kind::BadHistoryError:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_BAD_HISTORY;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_BAD_HISTORY;
             break;
         case realm::RealmFileException::Kind::PermissionDenied:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_PERMISSION_DENIED;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_PERMISSION_DENIED;
             break;
         case realm::RealmFileException::Kind::Exists:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_EXISTS;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_EXISTS;
             break;
         case realm::RealmFileException::Kind::NotFound:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_NOT_FOUND;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_NOT_FOUND;
             break;
         case realm::RealmFileException::Kind::IncompatibleLockFile:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE;
             break;
         case realm::RealmFileException::Kind::FormatUpgradeRequired:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
             break;
         case realm::RealmFileException::Kind::IncompatibleSyncedRealm:
 #if REALM_ENABLE_SYNC
