@@ -50,21 +50,23 @@ allprojects {
     if (!project.name.startsWith("realm-examples")
             && !project.name.startsWith("library")
             && !project.name.startsWith("moduleExample")) { // exclude root and library project
-        task runMonkey(dependsOn: 'installDebug') {
-            doLast {
-                def numberOfEvents = 2000
-                def appId = getAppId("${project.projectDir}/build.gradle")
-                def process = "adb shell monkey -p ${appId} ${numberOfEvents}".execute([], project.rootDir)
+        ["Debug", "Release"].each {
+            task "monkey${it}"(dependsOn: "install${it}") {
+                doLast {
+                    def numberOfEvents = 2000
+                    def appId = getAppId("${project.projectDir}/build.gradle")
+                    def process = "adb shell monkey -p ${appId} ${numberOfEvents}".execute([], project.rootDir)
 
-                def sout = new StringBuilder(), serr = new StringBuilder()
-                process.consumeProcessOutput(sout, serr)
-                process.waitFor()
+                    def sout = new StringBuilder(), serr = new StringBuilder()
+                    process.consumeProcessOutput(sout, serr)
+                    process.waitFor()
 
-                if (process.exitValue() != 0
-                        || serr?.toString()?.trim()?.size() > 0
-                        || !sout?.toString()?.trim()?.contains("Events injected: ${numberOfEvents}")) {
-                    // fail Gradle build
-                    throw new GradleException("monkey failed for AppID: ${appId} \nStd out:  ${sout}\nStd err:  ${serr}")
+                    if (process.exitValue() != 0
+                            || serr?.toString()?.trim()?.size() > 0
+                            || !sout?.toString()?.trim()?.contains("Events injected: ${numberOfEvents}")) {
+                        // fail Gradle build
+                        throw new GradleException("monkey failed for AppID: ${appId} \nStd out:  ${sout}\nStd err:  ${serr}")
+                    }
                 }
             }
         }
