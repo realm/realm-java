@@ -528,9 +528,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeRegisterPartia
         JavaGlobalRef j_callback_ref(env, j_callback);
         JavaGlobalWeakRef j_shared_realm_instance_ref(env, j_shared_realm_instance);
 
-        static JavaClass shared_realm_class(env, "io/realm/internal/SharedRealm");
+        static JavaClass shared_realm_class(env, "io/realm/internal/OsSharedRealm");
         static JavaMethod partial_sync_cb(env, shared_realm_class, "runPartialSyncRegistrationCallback",
-                                          "(Ljava/lang/String;JLio/realm/internal/SharedRealm$PartialSyncCallback;)V");
+                                          "(Ljava/lang/String;JLio/realm/internal/OsSharedRealm$PartialSyncCallback;)V");
 
         auto cb = [j_callback_ref, j_shared_realm_instance_ref](Results results, std::exception_ptr err) {
             JNIEnv* env = JniUtils::get_env(true);
