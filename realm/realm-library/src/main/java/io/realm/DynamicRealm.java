@@ -24,7 +24,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
 
@@ -77,7 +77,7 @@ public class DynamicRealm extends BaseRealm {
         this.schema = new MutableRealmSchema(this);
     }
 
-    private DynamicRealm(SharedRealm sharedRealm) {
+    private DynamicRealm(OsSharedRealm sharedRealm) {
         super(sharedRealm);
         this.schema = new MutableRealmSchema(this);
     }
@@ -268,13 +268,13 @@ public class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * Creates a {@link DynamicRealm} instance with a given {@link SharedRealm} instance without owning it.
+     * Creates a {@link DynamicRealm} instance with a given {@link OsSharedRealm} instance without owning it.
      * This is designed to be used in the migration block when opening a typed Realm instance.
      *
-     * @param sharedRealm the existing {@link SharedRealm} instance.
+     * @param sharedRealm the existing {@link OsSharedRealm} instance.
      * @return a {@link DynamicRealm} instance.
      */
-    static DynamicRealm createInstance(SharedRealm sharedRealm) {
+    static DynamicRealm createInstance(OsSharedRealm sharedRealm) {
         return new DynamicRealm(sharedRealm);
     }
 

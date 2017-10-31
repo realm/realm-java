@@ -60,11 +60,11 @@ import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.OsSchemaInfo;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
@@ -172,7 +172,7 @@ public class Realm extends BaseRealm {
         }
     }
 
-    private Realm(SharedRealm sharedRealm) {
+    private Realm(OsSharedRealm sharedRealm) {
         super(sharedRealm);
         schema = new ImmutableRealmSchema(this,
                 new ColumnIndices(configuration.getSchemaMediator(), sharedRealm.getSchemaInfo()));
@@ -252,7 +252,7 @@ public class Realm extends BaseRealm {
             } else {
                 BaseRealm.applicationContext = context;
             }
-            SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
+            OsSharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
         }
     }
 
@@ -425,10 +425,10 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Creates a {@code Realm} instance directly from a {@link SharedRealm}. This {@code Realm} doesn't need to be
+     * Creates a {@code Realm} instance directly from a {@link OsSharedRealm}. This {@code Realm} doesn't need to be
      * closed.
      */
-    static Realm createInstance(SharedRealm sharedRealm) {
+    static Realm createInstance(OsSharedRealm sharedRealm) {
         return new Realm(sharedRealm);
     }
 
@@ -1480,7 +1480,7 @@ public class Realm extends BaseRealm {
             sharedRealm.capabilities.checkCanDeliverNotification("Callback cannot be delivered on current thread.");
         }
 
-        // We need to use the same configuration to open a background SharedRealm (i.e Realm)
+        // We need to use the same configuration to open a background OsSharedRealm (i.e Realm)
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
         // We need to deliver the callback even if the Realm is closed. So acquire a reference to the notifier here.
@@ -1493,7 +1493,7 @@ public class Realm extends BaseRealm {
                     return;
                 }
 
-                SharedRealm.VersionID versionID = null;
+                OsSharedRealm.VersionID versionID = null;
                 Throwable exception = null;
 
                 final Realm bgRealm = Realm.getInstance(realmConfiguration);
@@ -1522,7 +1522,7 @@ public class Realm extends BaseRealm {
                 }
 
                 final Throwable backgroundException = exception;
-                final SharedRealm.VersionID backgroundVersionID = versionID;
+                final OsSharedRealm.VersionID backgroundVersionID = versionID;
                 // Cannot be interrupted anymore.
                 if (canDeliverNotification) {
                     if (backgroundVersionID != null && onSuccess != null) {
@@ -1719,7 +1719,7 @@ public class Realm extends BaseRealm {
         sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
 
         String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
-        SharedRealm.PartialSyncCallback internalCallback = new SharedRealm.PartialSyncCallback(className) {
+        OsSharedRealm.PartialSyncCallback internalCallback = new OsSharedRealm.PartialSyncCallback(className) {
             @Override
             public void onSuccess(OsResults osResults) {
                 RealmResults<E> results = new RealmResults<>(Realm.this, osResults, clazz);

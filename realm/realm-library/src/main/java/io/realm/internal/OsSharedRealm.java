@@ -31,7 +31,7 @@ import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 
 @Keep
-public final class SharedRealm implements Closeable, NativeObject {
+public final class OsSharedRealm implements Closeable, NativeObject {
 
     public static class VersionID implements Comparable<VersionID> {
         public final long version;
@@ -96,12 +96,12 @@ public final class SharedRealm implements Closeable, NativeObject {
         /**
          * Callback function.
          *
-         * @param sharedRealm the same {@link SharedRealm} instance which has been created from the same
+         * @param sharedRealm the same {@link OsSharedRealm} instance which has been created from the same
          *                    {@link OsRealmConfig} instance.
          * @param oldVersion  the schema version of the existing Realm file.
          * @param newVersion  the expected schema version after migration.
          */
-        void onMigrationNeeded(SharedRealm sharedRealm, long oldVersion, long newVersion);
+        void onMigrationNeeded(OsSharedRealm sharedRealm, long oldVersion, long newVersion);
     }
 
     /**
@@ -110,9 +110,9 @@ public final class SharedRealm implements Closeable, NativeObject {
     @Keep
     public interface InitializationCallback {
         /**
-         * @param sharedRealm a {@link SharedRealm} instance which is in transaction state.
+         * @param sharedRealm a {@link OsSharedRealm} instance which is in transaction state.
          */
-        void onInit(SharedRealm sharedRealm);
+        void onInit(OsSharedRealm sharedRealm);
     }
 
     /**
@@ -165,7 +165,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     // Package protected for testing
     final List<WeakReference<OsResults.Iterator>> iterators = new ArrayList<>();
 
-    private SharedRealm(OsRealmConfig osRealmConfig) {
+    private OsSharedRealm(OsRealmConfig osRealmConfig) {
         Capabilities capabilities = new AndroidCapabilities();
         RealmNotifier realmNotifier = new AndroidRealmNotifier(this, capabilities);
 
@@ -181,13 +181,13 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     /**
-     * Creates a {@code SharedRealm} instance from a given Object Store's {@code SharedRealm} pointer. This is used to
-     * create {@code SharedRealm} from the callback functions. When this is called, there is another
-     * {@code SharedRealm} instance with the same {@link OsRealmConfig} which has been created before. Although they
+     * Creates a {@code OsSharedRealm} instance from a given Object Store's {@code OsSharedRealm} pointer. This is used to
+     * create {@code OsSharedRealm} from the callback functions. When this is called, there is another
+     * {@code OsSharedRealm} instance with the same {@link OsRealmConfig} which has been created before. Although they
      * are different {@code shared_ptr}, they point to the same {@code SharedGroup} instance. The {@code context} has
      * to be the same one to ensure core's destructor thread safety.
      */
-    private SharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
+    private OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
         this.nativePtr = nativeSharedRealmPtr;
         this.osRealmConfig = osRealmConfig;
         this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
@@ -202,9 +202,9 @@ public final class SharedRealm implements Closeable, NativeObject {
 
 
     /**
-     * Creates a {@code SharedRealm} instance in dynamic schema mode.
+     * Creates a {@code OsSharedRealm} instance in dynamic schema mode.
      */
-    public static SharedRealm getInstance(RealmConfiguration config) {
+    public static OsSharedRealm getInstance(RealmConfiguration config) {
         OsRealmConfig.Builder builder = new OsRealmConfig.Builder(config);
         return getInstance(builder);
     }
@@ -212,15 +212,15 @@ public final class SharedRealm implements Closeable, NativeObject {
     /**
      * Creates a {@code ShareRealm} instance from the given {@link OsRealmConfig.Builder}.
      */
-    public static SharedRealm getInstance(OsRealmConfig.Builder configBuilder) {
+    public static OsSharedRealm getInstance(OsRealmConfig.Builder configBuilder) {
         OsRealmConfig osRealmConfig = configBuilder.build();
         ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osRealmConfig);
 
-        return new SharedRealm(osRealmConfig);
+        return new OsSharedRealm(osRealmConfig);
     }
 
     public static void initialize(File tempDirectory) {
-        if (SharedRealm.temporaryDirectory != null) {
+        if (OsSharedRealm.temporaryDirectory != null) {
             // already initialized
             return;
         }
@@ -234,7 +234,7 @@ public final class SharedRealm implements Closeable, NativeObject {
             temporaryDirectoryPath += "/";
         }
         nativeInit(temporaryDirectoryPath);
-        SharedRealm.temporaryDirectory = tempDirectory;
+        OsSharedRealm.temporaryDirectory = tempDirectory;
     }
 
     public static File getTemporaryDirectory() {
@@ -327,9 +327,9 @@ public final class SharedRealm implements Closeable, NativeObject {
         nativeRefresh(nativePtr);
     }
 
-    public SharedRealm.VersionID getVersionID() {
+    public OsSharedRealm.VersionID getVersionID() {
         long[] versionId = nativeGetVersionID(nativePtr);
-        return new SharedRealm.VersionID(versionId[0], versionId[1]);
+        return new OsSharedRealm.VersionID(versionId[0], versionId[1]);
     }
 
     public boolean isClosed() {
@@ -379,7 +379,7 @@ public final class SharedRealm implements Closeable, NativeObject {
         }
         synchronized (context) {
             nativeCloseSharedRealm(nativePtr);
-            // Don't reset the nativePtr since we still rely on Object Store to check if the given SharedRealm ptr
+            // Don't reset the nativePtr since we still rely on Object Store to check if the given OsSharedRealm ptr
             // is closed or not.
         }
     }
@@ -395,7 +395,7 @@ public final class SharedRealm implements Closeable, NativeObject {
     }
 
     /**
-     * @return the {@link OsSchemaInfo} of this {@code SharedRealm}.
+     * @return the {@link OsSchemaInfo} of this {@code OsSharedRealm}.
      */
     public OsSchemaInfo getSchemaInfo() {
         return schemaInfo;
@@ -482,18 +482,18 @@ public final class SharedRealm implements Closeable, NativeObject {
     @SuppressWarnings("unused")
     private static void runMigrationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, MigrationCallback callback,
                                              long oldVersion) {
-        callback.onMigrationNeeded(new SharedRealm(nativeSharedRealmPtr, osRealmConfig), oldVersion,
+        callback.onMigrationNeeded(new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig), oldVersion,
                 osRealmConfig.getRealmConfiguration().getSchemaVersion());
     }
 
     /**
      * Called from JNI when the schema is created the first time.
      *
-     * @param callback to be executed with a given in-transact {@link SharedRealm}.
+     * @param callback to be executed with a given in-transact {@link OsSharedRealm}.
      */
     @SuppressWarnings("unused")
     private static void runInitializationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, InitializationCallback callback) {
-        callback.onInit(new SharedRealm(nativeSharedRealmPtr, osRealmConfig));
+        callback.onInit(new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig));
     }
 
     /**

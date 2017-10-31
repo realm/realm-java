@@ -45,7 +45,7 @@ public class OsListTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
     private UncheckedRow row;
     private OsObjectSchemaInfo testObjectSchemaInfo;
 
@@ -78,7 +78,7 @@ public class OsListTests {
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config)
                 .autoUpdateNotification(true)
                 .schemaInfo(schemaInfo);
-        sharedRealm = SharedRealm.getInstance(configBuilder);
+        sharedRealm = OsSharedRealm.getInstance(configBuilder);
         sharedRealm.beginTransaction();
         Table table = sharedRealm.getTable(Table.getTableNameForClass("TestModel"));
         row = table.getUncheckedRow(OsObject.createRow(table));

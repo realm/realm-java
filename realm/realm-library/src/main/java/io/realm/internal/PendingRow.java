@@ -31,14 +31,14 @@ public class PendingRow implements Row {
     private static final String QUERY_EXECUTED_MESSAGE =
             "The query has been executed. This 'PendingRow' is not valid anymore.";
 
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
     private OsResults pendingOsResults;
     private RealmChangeListener<PendingRow> listener;
     private WeakReference<FrontEnd> frontEndRef;
     private boolean returnCheckedRow;
 
-    public PendingRow(SharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor,
-            final boolean returnCheckedRow) {
+    public PendingRow(OsSharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor,
+                      final boolean returnCheckedRow) {
         this.sharedRealm = sharedRealm;
         pendingOsResults = new OsResults(sharedRealm, query, sortDescriptor, null);
 

@@ -38,7 +38,7 @@ import io.realm.entities.StringOnly;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 import io.realm.exceptions.IncompatibleSyncedFileException;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.util.SyncTestUtils;
@@ -157,7 +157,7 @@ public class SyncedRealmMigrationTests {
         list.add(expectedObjectSchema);
         OsSchemaInfo schemaInfo = new OsSchemaInfo(list);
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config).schemaInfo(schemaInfo);
-        SharedRealm.getInstance(configBuilder).close();
+        OsSharedRealm.getInstance(configBuilder).close();
 
         thrown.expectMessage(
                 CoreMatchers.containsString("The following changes cannot be made in additive-only schema mode:"));
