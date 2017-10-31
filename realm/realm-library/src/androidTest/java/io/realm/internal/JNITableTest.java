@@ -32,7 +32,6 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
 
-import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
@@ -53,12 +52,12 @@ public class JNITableTest {
 
     @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
 
     @Before
     public void setUp() {
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
     }
 
     @After
@@ -649,7 +648,7 @@ public class JNITableTest {
 
     @Test
     public void defaultValue_setAndGet() {
-        final SharedRealm sharedRealm = SharedRealm.getInstance(configFactory.createConfiguration());
+        final OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration());
         //noinspection TryFinallyCanBeTryWithResources
         try {
             sharedRealm.beginTransaction();
@@ -770,7 +769,7 @@ public class JNITableTest {
 
     @Test
     public void defaultValue_setMultipleTimes() {
-        final SharedRealm sharedRealm = SharedRealm.getInstance(configFactory.createConfiguration());
+        final OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration());
         //noinspection TryFinallyCanBeTryWithResources
         try {
             sharedRealm.beginTransaction();
@@ -900,7 +899,7 @@ public class JNITableTest {
 
     @Test
     public void defaultValue_overwrittenByNonDefault() {
-        final SharedRealm sharedRealm = SharedRealm.getInstance(configFactory.createConfiguration());
+        final OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration());
         //noinspection TryFinallyCanBeTryWithResources
         try {
             sharedRealm.beginTransaction();

@@ -57,7 +57,7 @@ import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.internal.OsResults;
 import io.realm.internal.OsObject;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
@@ -219,22 +219,22 @@ public class TestHelper {
     /**
      * Creates an empty table whose name is "temp" with 1 column of all our supported column types, currently 7 columns.
      *
-     * @param sharedRealm A {@link SharedRealm} where the table is created.
+     * @param sharedRealm A {@link OsSharedRealm} where the table is created.
      * @return created table.
      */
-    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm) {
+    public static Table createTableWithAllColumnTypes(OsSharedRealm sharedRealm) {
         return createTableWithAllColumnTypes(sharedRealm, "temp");
     }
 
     /**
      * Creates an empty table with 1 column of all our supported column types, currently 7 columns.
      *
-     * @param sharedRealm A {@link SharedRealm} where the table is created.
+     * @param sharedRealm A {@link OsSharedRealm} where the table is created.
      * @param name name of the table.
      * @return created table.
      */
     @SuppressWarnings("WeakerAccess")
-    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm,
+    public static Table createTableWithAllColumnTypes(OsSharedRealm sharedRealm,
             @SuppressWarnings("SameParameterValue") String name) {
         boolean wasInTransaction = sharedRealm.isInTransaction();
         if (!wasInTransaction) {
@@ -264,7 +264,7 @@ public class TestHelper {
         }
     }
 
-    public static Table createTable(SharedRealm sharedRealm, String name) {
+    public static Table createTable(OsSharedRealm sharedRealm, String name) {
         return createTable(sharedRealm, name, null);
     }
 
@@ -272,7 +272,7 @@ public class TestHelper {
         void execute(Table table);
     }
 
-    public static Table createTable(SharedRealm sharedRealm, String name, AdditionalTableSetup additionalSetup) {
+    public static Table createTable(OsSharedRealm sharedRealm, String name, AdditionalTableSetup additionalSetup) {
         boolean wasInTransaction = sharedRealm.isInTransaction();
         if (!wasInTransaction) {
             sharedRealm.beginTransaction();

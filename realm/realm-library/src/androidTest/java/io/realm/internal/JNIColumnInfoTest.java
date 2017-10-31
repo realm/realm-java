@@ -40,14 +40,14 @@ public class JNIColumnInfoTest {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
     private Table table;
 
     @Before
     public void setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         RealmConfiguration config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
 
         table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override

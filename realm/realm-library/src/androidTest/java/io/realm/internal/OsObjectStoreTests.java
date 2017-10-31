@@ -44,8 +44,8 @@ public class OsObjectStoreTests {
     public void callWithLock() {
         RealmConfiguration config = configFactory.createConfiguration();
 
-        // Return false if there are opened SharedRealm instance
-        SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        // Return false if there are opened OsSharedRealm instance
+        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(config);
         assertFalse(OsObjectStore.callWithLock(config, new Runnable() {
             @Override
             public void run() {
