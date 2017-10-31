@@ -58,7 +58,6 @@ public class RealmProxyClassGenerator {
             "io.realm.internal.ProxyUtils",
             "io.realm.internal.RealmObjectProxy",
             "io.realm.internal.Row",
-            "io.realm.internal.SharedRealm",
             "io.realm.internal.Table",
             "io.realm.internal.android.JsonUtils",
             "io.realm.log.RealmLog",

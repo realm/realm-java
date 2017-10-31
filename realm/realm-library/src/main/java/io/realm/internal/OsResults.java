@@ -205,7 +205,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
-    private final SharedRealm sharedRealm;
+    private final OsSharedRealm sharedRealm;
     private final NativeContext context;
     private final Table table;
     private boolean loaded;
@@ -276,7 +276,7 @@ public class OsResults implements NativeObject, ObservableCollection {
         }
     }
 
-    public static OsResults createBacklinksCollection(SharedRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
+    public static OsResults createBacklinksCollection(OsSharedRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
         long backlinksPtr = nativeCreateResultsFromBacklinks(
                 realm.getNativePtr(),
                 row.getNativePtr(),
@@ -285,7 +285,7 @@ public class OsResults implements NativeObject, ObservableCollection {
         return new OsResults(realm, srcTable, backlinksPtr, true);
     }
 
-    public OsResults(SharedRealm sharedRealm, TableQuery query,
+    public OsResults(OsSharedRealm sharedRealm, TableQuery query,
                      @Nullable SortDescriptor sortDescriptor, @Nullable SortDescriptor distinctDescriptor) {
         query.validateQuery();
 
@@ -300,15 +300,15 @@ public class OsResults implements NativeObject, ObservableCollection {
         this.loaded = false;
     }
 
-    public OsResults(SharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor) {
+    public OsResults(OsSharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor) {
         this(sharedRealm, query, sortDescriptor, null);
     }
 
-    public OsResults(SharedRealm sharedRealm, TableQuery query) {
+    public OsResults(OsSharedRealm sharedRealm, TableQuery query) {
         this(sharedRealm, query, null, null);
     }
 
-    public OsResults(SharedRealm sharedRealm, OsList osList, @Nullable SortDescriptor sortDescriptor) {
+    public OsResults(OsSharedRealm sharedRealm, OsList osList, @Nullable SortDescriptor sortDescriptor) {
         this.nativePtr = nativeCreateResultsFromList(sharedRealm.getNativePtr(), osList.getNativePtr(), sortDescriptor);
 
         this.sharedRealm = sharedRealm;
@@ -320,11 +320,11 @@ public class OsResults implements NativeObject, ObservableCollection {
         this.loaded = true;
     }
 
-    private OsResults(SharedRealm sharedRealm, Table table, long nativePtr) {
+    private OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
         this(sharedRealm, table, nativePtr, false);
     }
 
-    OsResults(SharedRealm sharedRealm, Table table, long nativePtr, boolean loaded) {
+    OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr, boolean loaded) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.table = table;

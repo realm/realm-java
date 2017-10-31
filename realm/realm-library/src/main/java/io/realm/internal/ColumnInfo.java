@@ -42,7 +42,7 @@ import io.realm.RealmFieldType;
  * and the column index field is the index of the backlink source field, in the source table</li>
  * </ul>
  * <p>
- * The instance of this class is dedicated to a single {@link SharedRealm} instance. Thus this is not supposed to be
+ * The instance of this class is dedicated to a single {@link OsSharedRealm} instance. Thus this is not supposed to be
  * used across threads.
  * An instance can be mutated, after construction, in four ways:
  * <ul>

@@ -21,7 +21,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,13 +32,10 @@ import java.util.List;
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
 import io.realm.FieldAttribute;
-import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
-import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertFalse;
@@ -55,7 +51,7 @@ public class PrimaryKeyTests {
 
     private android.content.Context context;
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
 
     @Before
     public void setUp() throws Exception {
@@ -71,7 +67,7 @@ public class PrimaryKeyTests {
     }
 
     private Table getTableWithStringPrimaryKey() {
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
         OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
         Table t = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
@@ -82,7 +78,7 @@ public class PrimaryKeyTests {
     }
 
     private Table getTableWithIntegerPrimaryKey() {
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
         OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
         Table t = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
@@ -178,7 +174,7 @@ public class PrimaryKeyTests {
     @Test
     public void migratePrimaryKeyTableIfNeeded_first() throws IOException {
         configFactory.copyRealmFromAssets(context, "080_annotationtypes.realm", "default.realm");
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
         Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
         Table t = sharedRealm.getTable("class_AnnotationTypes");
         assertEquals("id", OsObjectStore.getPrimaryKeyForObject(sharedRealm, "AnnotationTypes"));
@@ -188,7 +184,7 @@ public class PrimaryKeyTests {
     @Test
     public void migratePrimaryKeyTableIfNeeded_second() throws IOException {
         configFactory.copyRealmFromAssets(context, "0841_annotationtypes.realm", "default.realm");
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
         Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
         Table t = sharedRealm.getTable("class_AnnotationTypes");
         assertEquals("id", OsObjectStore.getPrimaryKeyForObject(sharedRealm, "AnnotationTypes"));
@@ -208,7 +204,7 @@ public class PrimaryKeyTests {
                 "Post", "Tags", "Threads", "User");
 
         configFactory.copyRealmFromAssets(context, "0841_pk_migration.realm", "default.realm");
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
         Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
 
         Table table = sharedRealm.getTable("pk");
@@ -223,7 +219,7 @@ public class PrimaryKeyTests {
     // See https://github.com/realm/realm-java/pull/3488
     @Test
     public void migratePrimaryKeyTableIfNeeded_primaryKeyTableNeedSearchIndex() {
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
         OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
         Table table = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
