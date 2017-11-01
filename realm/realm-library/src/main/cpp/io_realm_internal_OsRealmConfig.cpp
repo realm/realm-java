@@ -320,19 +320,20 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             user = SyncManager::shared().get_user(sync_user_identifier, refresh_token);
         }
 
-        util::Optional<std::array<char, 64>> sync_encryption_key(util::none);
-        if (!config.encryption_key.empty()) {
-            sync_encryption_key = std::array<char, 64>();
-            std::copy_n(config.encryption_key.begin(), 64, sync_encryption_key->begin());
-        }
+
 
         SyncSessionStopPolicy session_stop_policy = static_cast<SyncSessionStopPolicy>(j_session_stop_policy);
 
         JStringAccessor realm_url(env, j_sync_realm_url);
-        config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
-            user, realm_url, session_stop_policy, std::move(bind_handler), std::move(error_handler),
-            nullptr, sync_encryption_key});
+        config.sync_config = std::make_shared<SyncConfig>(SyncConfig{user, realm_url});
+        config.sync_config->stop_policy = session_stop_policy;
+        config.sync_config->bind_session_handler = std::move(bind_handler);
+        config.sync_config->error_handler = std::move(error_handler);
         config.sync_config->is_partial = (j_is_partial == JNI_TRUE);
+        if (!config.encryption_key.empty()) {
+            config.sync_config->realm_encryption_key = std::array<char, 64>();
+            std::copy_n(config.encryption_key.begin(), 64, config.sync_config->realm_encryption_key->begin());
+        }
 
         return to_jstring(env, config.sync_config->realm_url().c_str());
 
