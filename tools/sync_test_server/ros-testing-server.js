@@ -66,6 +66,12 @@ function waitForRosToInitialize(attempts, onSuccess, onError) {
 }
 
 function startRealmObjectServer(onSuccess, onError) {
+    stopRealmObjectServer(() => {
+        doStartRealmObjectServer(onSuccess, onError)
+    }, onError)
+}
+
+function doStartRealmObjectServer(onSuccess, onError) {
     temp.mkdir('ros', function(err, path) {
         if (!err) {
             winston.info("Starting sync server in ", path);
@@ -112,8 +118,8 @@ function startRealmObjectServer(onSuccess, onError) {
 }
 
 function stopRealmObjectServer(onSuccess, onError) {
-    if(syncServerChildProcess == null) {
-        onError("No ROS process found to stop");
+    if(syncServerChildProcess == null || syncServerChildProcess.killed) {
+        onSuccess("No ROS process found or the process has been killed before");
     }
 
     syncServerChildProcess.on('exit', function(code) {

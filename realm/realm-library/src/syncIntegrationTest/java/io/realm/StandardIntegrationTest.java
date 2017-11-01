@@ -35,11 +35,6 @@ public abstract class StandardIntegrationTest extends BaseIntegrationTest {
         startSyncServer();
     }
 
-    @AfterClass
-    public static void tearDownTestClass() throws Exception {
-        stopSyncServer();
-    }
-
     @Before
     public void setupTest() throws IOException {
         prepareEnvironmentForTest();
