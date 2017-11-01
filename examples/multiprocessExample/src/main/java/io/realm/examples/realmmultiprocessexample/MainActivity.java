@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView;
     private Realm realm;
     private RealmResults<ProcessInfo> processInfoResults;
+    private DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.ENGLISH);
 
     private RealmChangeListener<RealmResults<ProcessInfo>> listener =
             new RealmChangeListener<RealmResults<ProcessInfo>>() {
@@ -47,8 +48,7 @@ public class MainActivity extends AppCompatActivity {
                 stringBuilder.append("\npid: ");
                 stringBuilder.append(processInfo.getPid());
                 stringBuilder.append("\nlast response time: ");
-                DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.ENGLISH);
-                stringBuilder.append(df.format(processInfo.getLastResponseDate()));
+                stringBuilder.append(dateFormat.format(processInfo.getLastResponseDate()));
                 stringBuilder.append("\n------\n");
             }
             textView.setText(stringBuilder.toString());
