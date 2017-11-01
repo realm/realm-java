@@ -4,6 +4,8 @@
 
 ### Enhancements
 
+* Added support for using non-encrypted Realms in multiple processes. Some caveats apply. Read [doc](https://realm.io/docs/java/latest/#multiprocess) for more info (#1091).
+
 ### Bug Fixes
 
 ### Interal

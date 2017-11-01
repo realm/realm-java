@@ -1670,7 +1670,7 @@ public class Realm extends BaseRealm {
      * @param configuration a {@link RealmConfiguration}.
      * @return {@code false} if the Realm file could not be deleted. Temporary files deletion failure won't impact
      * the return value. All of the failing file deletions will be logged.
-     * @throws IllegalStateException if not all realm instances are closed.
+     * @throws IllegalStateException if there are Realm instances opened on other threads or other processes.
      */
     public static boolean deleteRealm(RealmConfiguration configuration) {
         return BaseRealm.deleteRealm(configuration);
@@ -1769,8 +1769,8 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Returns the current number of open Realm instances across all threads that are using this configuration.
-     * This includes both dynamic and normal Realms.
+     * Returns the current number of open Realm instances across all threads in current process that are using this
+     * configuration. This includes both dynamic and normal Realms.
      *
      * @param configuration the {@link io.realm.RealmConfiguration} for the Realm.
      * @return number of open Realm instances across all threads.
