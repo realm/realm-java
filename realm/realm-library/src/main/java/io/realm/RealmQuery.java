@@ -24,7 +24,7 @@ import java.util.Locale;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Required;
-import io.realm.internal.Collection;
+import io.realm.internal.OsResults;
 import io.realm.internal.OsList;
 import io.realm.internal.PendingRow;
 import io.realm.internal.RealmObjectProxy;
@@ -160,7 +160,7 @@ public class RealmQuery<E> {
             this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
             this.table = queryResults.getTable();
             this.osList = null;
-            this.query = queryResults.getCollection().where();
+            this.query = queryResults.getOsResults().where();
         }
     }
 
@@ -199,7 +199,7 @@ public class RealmQuery<E> {
         this.forValues = false;
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
-        this.query = queryResults.getCollection().where();
+        this.query = queryResults.getOsResults().where();
         this.osList = null;
     }
 
@@ -1802,8 +1802,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field name.
-     * This method is only available from a Looper thread.
+     * Finds all objects that fulfill the query conditions. This method is only available from a Looper thread.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
@@ -2003,7 +2002,7 @@ public class RealmQuery<E> {
         if (realm.isInTransaction()) {
             // It is not possible to create async query inside a transaction. So immediately query the first object.
             // See OS Results::prepare_async()
-            row = new Collection(realm.sharedRealm, query).firstUncheckedRow();
+            row = new OsResults(realm.sharedRealm, query).firstUncheckedRow();
         } else {
             // prepares an empty reference of the RealmObject which is backed by a pending query,
             // then update it once the query complete in the background.
@@ -2039,11 +2038,11 @@ public class RealmQuery<E> {
             @Nullable SortDescriptor distinctDescriptor,
             boolean loadResults) {
         RealmResults<E> results;
-        Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
+        OsResults osResults = new OsResults(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
         if (isDynamicQuery()) {
-            results = new RealmResults<>(realm, collection, className);
+            results = new RealmResults<>(realm, osResults, className);
         } else {
-            results = new RealmResults<>(realm, collection, clazz);
+            results = new RealmResults<>(realm, osResults, clazz);
         }
         if (loadResults) {
             results.load();

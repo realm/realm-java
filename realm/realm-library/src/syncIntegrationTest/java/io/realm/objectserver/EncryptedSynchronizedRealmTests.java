@@ -70,11 +70,12 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
         user.logout();
-        Realm.deleteRealm(configWithEncryption);
 
-        // STEP 3: try to open again the Realm without the encryption key should not fail
+        // STEP 3: try to open again the same sync Realm but different local name without the encryption key should not
+        // fail
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         SyncConfiguration configWithoutEncryption = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .name("newName")
                 .modules(new StringOnlyModule())
                 .waitForInitialRemoteData()
                 .errorHandler(new SyncSession.ErrorHandler() {

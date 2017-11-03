@@ -58,9 +58,9 @@ set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/${REAL
 set(classes_LIST
     io.realm.internal.Table io.realm.internal.CheckedRow
     io.realm.internal.Util io.realm.internal.UncheckedRow
-    io.realm.internal.TableQuery io.realm.internal.SharedRealm io.realm.internal.TestUtil
+    io.realm.internal.TableQuery io.realm.internal.OsSharedRealm io.realm.internal.TestUtil
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.internal.Property io.realm.internal.OsSchemaInfo
-    io.realm.internal.OsObjectSchemaInfo io.realm.internal.Collection
+    io.realm.internal.OsObjectSchemaInfo io.realm.internal.OsResults
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
     io.realm.internal.OsObjectStore
@@ -91,7 +91,8 @@ use_realm_core(${build_SYNC} "${REALM_CORE_DIST_DIR}" "${CORE_SOURCE_PATH}")
 set(openssl_build_TYPE "release")
 # FIXME Read the openssl version from core when the core/sync release has that information.
 set(openssl_VERSION "1.0.2k")
-set(openssl_FILENAME "openssl-${openssl_build_TYPE}-${openssl_VERSION}-Android-${ANDROID_ABI}")
+set(openssl_BUILD_NUMBER "1")
+set(openssl_FILENAME "openssl-${openssl_build_TYPE}-${openssl_VERSION}-${openssl_BUILD_NUMBER}-Android-${ANDROID_ABI}")
 set(openssl_URL "http://static.realm.io/downloads/openssl/${openssl_VERSION}/Android/${ANDROID_ABI}/${openssl_FILENAME}.tar.gz")
 
 message(STATUS "Downloading OpenSSL...")

@@ -6,6 +6,8 @@ const spawn = require('child_process').spawn;
 const exec = require('child_process').exec;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
+var fs = require('fs-extra');
+var moment = require('moment')
 
 // Automatically track and cleanup files at exit
 temp.track();
@@ -14,9 +16,16 @@ if (process. argv. length <= 2) {
     console.log("Usage: " + __filename + " somefile.log");
     process.exit(-1);
 }
+
 const logFile = process.argv[2];
 winston.level = 'debug';
-winston.add(winston.transports.File, { filename: logFile });
+winston.add(winston.transports.File, {
+    filename: logFile,
+    json: false,
+    formatter: function(options) {
+        return moment().format('YYYY-MM-DD HH:mm:ss.SSSS') + ' ' + (undefined !== options.message ? options.message : '');
+    }
+});
 
 const PORT = 8888;
 
@@ -57,26 +66,50 @@ function waitForRosToInitialize(attempts, onSuccess, onError) {
 }
 
 function startRealmObjectServer(onSuccess, onError) {
+    stopRealmObjectServer(() => {
+        doStartRealmObjectServer(onSuccess, onError)
+    }, onError)
+}
+
+function doStartRealmObjectServer(onSuccess, onError) {
     temp.mkdir('ros', function(err, path) {
         if (!err) {
             winston.info("Starting sync server in ", path);
             var env = Object.create( process.env );
             winston.info(env.NODE_ENV);
             env.NODE_ENV = 'development';
+
+            // Manually cleanup Global Notifier State
+            // See https://github.com/realm/ros/issues/437#issuecomment-335380095
+            var globalNotifierDir = path + '/realm-object-server';
+            winston.info('Cleaning state in: ' + globalNotifierDir);
+            fs.removeSync(globalNotifierDir)
+            if (fs.existsSync(globalNotifierDir)) {
+                onError("Could not delete the global notifier directory: " + globalNotifierDir);
+                return;
+            }
+            fs.mkdirsSync(path + '/realm-object-server/io.realm.object-server-utility/metadata/')
+
+            // Start ROS
             syncServerChildProcess = spawn('ros',
                     ['start',
                         '--data', path,
+                        '--loglevel', 'detail',
+                        '--https',
+                        '--https-key', '/127_0_0_1-server.key.pem',
+                        '--https-cert', '/127_0_0_1-chain.crt.pem',
+                        '--https-port', '9443',
                         '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
                     ],
                     { env: env, cwd: path});
 
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
-                winston.info(`stdout: ${data}`);
+                winston.info(`${data}`);
             });
 
             syncServerChildProcess.stderr.on('data', (data) => {
-                winston.info(`stderr: ${data}`);
+                winston.info(`${data}`);
             });
 
             waitForRosToInitialize(20, onSuccess, onError);
@@ -85,8 +118,8 @@ function startRealmObjectServer(onSuccess, onError) {
 }
 
 function stopRealmObjectServer(onSuccess, onError) {
-    if(syncServerChildProcess == null) {
-        onError("No ROS process found to stop");
+    if(syncServerChildProcess == null || syncServerChildProcess.killed) {
+        onSuccess("No ROS process found or the process has been killed before");
     }
 
     syncServerChildProcess.on('exit', function(code) {

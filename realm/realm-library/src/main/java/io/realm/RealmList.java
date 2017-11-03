@@ -36,6 +36,7 @@ import io.reactivex.Observable;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.rx.CollectionChange;
 
@@ -74,7 +75,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     final protected BaseRealm realm;
     private List<E> unmanagedList;
     // Used for listeners on RealmList<RealmModel>
-    private io.realm.internal.Collection osResults;
+    private OsResults osResults;
 
     /**
      * Creates a RealmList in unmanaged mode, where the elements are not controlled by a Realm.
@@ -98,7 +99,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      *
      * @param objects initial objects in the list.
      */
-    @SafeVarargs
     public RealmList(E... objects) {
         //noinspection ConstantConditions
         if (objects == null) {
@@ -760,14 +760,14 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new io.realm.internal.Collection(realm.sharedRealm, osListOperator.getOsList(), null),
+                    new OsResults(realm.sharedRealm, osListOperator.getOsList(), null),
                     className);
         } else {
             // 'clazz' is non-null when 'dynamicClassName' is null.
             //noinspection ConstantConditions
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new io.realm.internal.Collection(realm.sharedRealm, osListOperator.getOsList(), null),
+                    new OsResults(realm.sharedRealm, osListOperator.getOsList(), null),
                     clazz);
         }
     }
@@ -1289,9 +1289,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     // new element. By right results it means the change set only include one insertion. But if the listener is on the
     // OS List, the change set will include all ranges of th list. So we keep the old behaviour for
     // RealmList<RealmModel> for now. See https://github.com/realm/realm-object-store/issues/541
-    private io.realm.internal.Collection getOrCreateOsResultsForListener() {
+    private OsResults getOrCreateOsResultsForListener() {
         if (osResults == null) {
-            this.osResults = new io.realm.internal.Collection(realm.sharedRealm, osListOperator.getOsList(), null);
+            this.osResults = new OsResults(realm.sharedRealm, osListOperator.getOsList(), null);
         }
         return osResults;
     }

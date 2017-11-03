@@ -26,7 +26,6 @@ public class Constants {
     public static final String PROXY_SUFFIX = "RealmProxy";
     public static final String INTERFACE_SUFFIX = "RealmProxyInterface";
     public static final String INDENT = "    ";
-    public static final String TABLE_PREFIX = "class_";
     public static final String DEFAULT_MODULE_CLASS_NAME = "DefaultRealmModule";
     static final String STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE =
             "throw new IllegalArgumentException(\"Trying to set non-nullable field '%s' to null.\")";

@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import javax.annotation.Nullable;
 
+import io.realm.RealmConfiguration;
+
 /**
  * Java wrapper for methods in object_store.hpp.
  */
@@ -36,28 +38,28 @@ public class OsObjectStore {
      * @throws IllegalStateException if the given field is not a valid type for primary key.
      * @throws IllegalStateException if there are duplicated values for the given field.
      */
-    public static void setPrimaryKeyForObject(SharedRealm sharedRealm, String className,
+    public static void setPrimaryKeyForObject(OsSharedRealm sharedRealm, String className,
                                               @Nullable String primaryKeyFieldName) {
         nativeSetPrimaryKeyForObject(sharedRealm.getNativePtr(), className, primaryKeyFieldName);
     }
 
-    public static @Nullable String getPrimaryKeyForObject(SharedRealm sharedRealm, String className) {
+    public static @Nullable String getPrimaryKeyForObject(OsSharedRealm sharedRealm, String className) {
         return nativeGetPrimaryKeyForObject(sharedRealm.getNativePtr(), className);
     }
 
     /**
-     * Sets the schema version to the given {@link SharedRealm}. This method will create meta tables if they don't exist.
+     * Sets the schema version to the given {@link OsSharedRealm}. This method will create meta tables if they don't exist.
      * @throws IllegalStateException if it is not in a transaction.
      */
-    public static void setSchemaVersion(SharedRealm sharedRealm, long schemaVersion) {
+    public static void setSchemaVersion(OsSharedRealm sharedRealm, long schemaVersion) {
         nativeSetSchemaVersion(sharedRealm.getNativePtr(), schemaVersion);
     }
 
     /**
-     * Returns the schema version of the given {@link SharedRealm}. If meta tables don't exist, this will return
+     * Returns the schema version of the given {@link OsSharedRealm}. If meta tables don't exist, this will return
      * {@link #SCHEMA_NOT_VERSIONED}.
      */
-    public static long getSchemaVersion(SharedRealm sharedRealm) {
+    public static long getSchemaVersion(OsSharedRealm sharedRealm) {
         return nativeGetSchemaVersion(sharedRealm.getNativePtr());
     }
 
@@ -67,8 +69,21 @@ public class OsObjectStore {
      * @return {@code true} if the table has been deleted. {@code false} if the table doesn't exist.
      * @throws IllegalStateException if it is not in a transaction.
      */
-    public static boolean deleteTableForObject(SharedRealm sharedRealm, String className) {
+    public static boolean deleteTableForObject(OsSharedRealm sharedRealm, String className) {
         return nativeDeleteTableForObject(sharedRealm.getNativePtr(), className);
+    }
+
+    /**
+     * Try to grab an exclusive lock on the given Realm file. If the lock can be acquired, the {@code runnable} will be
+     * executed while the lock is held. The lock will ensure no one else can read from or write to the Realm file at the
+     * same time.
+     *
+     * @param configuration to specify the realm path.
+     * @param runnable to run with lock.
+     * @return {@code true} if the lock can be acquired and the {@code runnable} has been executed.
+     */
+    public static boolean callWithLock(RealmConfiguration configuration, Runnable runnable) {
+        return nativeCallWithLock(configuration.getPath(), runnable);
     }
 
     private native static void nativeSetPrimaryKeyForObject(long sharedRealmPtr, String className,
@@ -81,4 +96,6 @@ public class OsObjectStore {
     private native static long nativeGetSchemaVersion(long sharedRealmPtr);
 
     private native static boolean nativeDeleteTableForObject(long sharedRealmPtr, String className);
+
+    private native static boolean nativeCallWithLock(String realmPath, Runnable runnable);
 }

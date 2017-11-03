@@ -26,8 +26,8 @@ namespace realm {
 namespace _impl {
 
 // Wrapper of Object Store List & Results.
-// We need to control the life cycle of Results/List, weak ref of Java Collection object and the NotificationToken.
-// Wrap all three together, so when the Java Collection object gets GCed, all three of them will be invalidated.
+// We need to control the life cycle of Results/List, weak ref of Java OsResults/OsList object and the NotificationToken.
+// Wrap all three together, so when the Java OsResults/OsList object gets GCed, all three of them will be invalidated.
 template <typename T>
 class ObservableCollectionWrapper {
 public:

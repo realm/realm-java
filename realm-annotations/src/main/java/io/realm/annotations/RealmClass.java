@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 /**
  * Interface used to mark a class that can be persisted by Realm.
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
 public @interface RealmClass {

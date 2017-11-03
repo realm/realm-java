@@ -45,7 +45,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.BacklinksSource;
@@ -56,10 +55,9 @@ import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
-import io.realm.internal.Collection;
+import io.realm.internal.OsResults;
 import io.realm.internal.OsObject;
-import io.realm.internal.OsObjectStore;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
@@ -221,22 +219,22 @@ public class TestHelper {
     /**
      * Creates an empty table whose name is "temp" with 1 column of all our supported column types, currently 7 columns.
      *
-     * @param sharedRealm A {@link SharedRealm} where the table is created.
+     * @param sharedRealm A {@link OsSharedRealm} where the table is created.
      * @return created table.
      */
-    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm) {
+    public static Table createTableWithAllColumnTypes(OsSharedRealm sharedRealm) {
         return createTableWithAllColumnTypes(sharedRealm, "temp");
     }
 
     /**
      * Creates an empty table with 1 column of all our supported column types, currently 7 columns.
      *
-     * @param sharedRealm A {@link SharedRealm} where the table is created.
+     * @param sharedRealm A {@link OsSharedRealm} where the table is created.
      * @param name name of the table.
      * @return created table.
      */
     @SuppressWarnings("WeakerAccess")
-    public static Table createTableWithAllColumnTypes(SharedRealm sharedRealm,
+    public static Table createTableWithAllColumnTypes(OsSharedRealm sharedRealm,
             @SuppressWarnings("SameParameterValue") String name) {
         boolean wasInTransaction = sharedRealm.isInTransaction();
         if (!wasInTransaction) {
@@ -266,7 +264,7 @@ public class TestHelper {
         }
     }
 
-    public static Table createTable(SharedRealm sharedRealm, String name) {
+    public static Table createTable(OsSharedRealm sharedRealm, String name) {
         return createTable(sharedRealm, name, null);
     }
 
@@ -274,7 +272,7 @@ public class TestHelper {
         void execute(Table table);
     }
 
-    public static Table createTable(SharedRealm sharedRealm, String name, AdditionalTableSetup additionalSetup) {
+    public static Table createTable(OsSharedRealm sharedRealm, String name, AdditionalTableSetup additionalSetup) {
         boolean wasInTransaction = sharedRealm.isInTransaction();
         if (!wasInTransaction) {
             sharedRealm.beginTransaction();
@@ -999,19 +997,19 @@ public class TestHelper {
      * This helper method is useful to create a mocked {@link RealmResults}.
      *
      * @param realm a {@link Realm} or a {@link DynamicRealm} instance.
-     * @param collection a {@link Collection} instance.
+     * @param osResults a {@link OsResults} instance.
      * @param tableClass a Class of Table.
      * @return a created {@link RealmResults} instance.
      */
     public static <T extends RealmObject> RealmResults<T> newRealmResults(
-            BaseRealm realm, Collection collection, Class<T> tableClass) {
+            BaseRealm realm, OsResults osResults, Class<T> tableClass) {
         //noinspection TryWithIdenticalCatches
         try {
             final Constructor<RealmResults> c = RealmResults.class.getDeclaredConstructor(
-                    BaseRealm.class, Collection.class, Class.class);
+                    BaseRealm.class, OsResults.class, Class.class);
             c.setAccessible(true);
             //noinspection unchecked
-            return c.newInstance(realm, collection, tableClass);
+            return c.newInstance(realm, osResults, tableClass);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (InstantiationException e) {

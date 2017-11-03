@@ -45,13 +45,13 @@ public class OsListTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
     private UncheckedRow row;
     private OsObjectSchemaInfo testObjectSchemaInfo;
 
     @Before
     public void setUp() {
-        OsObjectSchemaInfo objectSchemaInfo = new OsObjectSchemaInfo.Builder("TestModel")
+        OsObjectSchemaInfo objectSchemaInfo = new OsObjectSchemaInfo.Builder("TestModel",14, 0)
                 .addPersistedValueListProperty("longList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED)
                 .addPersistedValueListProperty("doubleList", RealmFieldType.DOUBLE_LIST,  !Property.REQUIRED)
                 .addPersistedValueListProperty("floatList", RealmFieldType.FLOAT_LIST, !Property.REQUIRED)
@@ -78,7 +78,7 @@ public class OsListTests {
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config)
                 .autoUpdateNotification(true)
                 .schemaInfo(schemaInfo);
-        sharedRealm = SharedRealm.getInstance(configBuilder);
+        sharedRealm = OsSharedRealm.getInstance(configBuilder);
         sharedRealm.beginTransaction();
         Table table = sharedRealm.getTable(Table.getTableNameForClass("TestModel"));
         row = table.getUncheckedRow(OsObject.createRow(table));

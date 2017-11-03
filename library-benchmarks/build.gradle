@@ -5,7 +5,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-alpha4'
+        classpath 'com.android.tools.build:gradle:3.0.0-rc2'
         classpath "io.realm:realm-gradle-plugin:${file("${rootDir}/../version.txt").text.trim()}"
     }
 }
@@ -20,6 +20,7 @@ allprojects {
 
 task wrapper(type: Wrapper) {
     gradleVersion = project.gradleVersion
+    distributionType = 'all'
 }
 
 apply plugin: 'com.android.library'

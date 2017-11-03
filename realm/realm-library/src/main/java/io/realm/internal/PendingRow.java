@@ -31,16 +31,16 @@ public class PendingRow implements Row {
     private static final String QUERY_EXECUTED_MESSAGE =
             "The query has been executed. This 'PendingRow' is not valid anymore.";
 
-    private SharedRealm sharedRealm;
-    private Collection pendingCollection;
+    private OsSharedRealm sharedRealm;
+    private OsResults pendingOsResults;
     private RealmChangeListener<PendingRow> listener;
     private WeakReference<FrontEnd> frontEndRef;
     private boolean returnCheckedRow;
 
-    public PendingRow(SharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor,
-            final boolean returnCheckedRow) {
+    public PendingRow(OsSharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor,
+                      final boolean returnCheckedRow) {
         this.sharedRealm = sharedRealm;
-        pendingCollection = new Collection(sharedRealm, query, sortDescriptor, null);
+        pendingOsResults = new OsResults(sharedRealm, query, sortDescriptor, null);
 
         listener = new RealmChangeListener<PendingRow>() {
             @Override
@@ -48,7 +48,7 @@ public class PendingRow implements Row {
                 notifyFrontEnd();
             }
         };
-        pendingCollection.addListener(this, listener);
+        pendingOsResults.addListener(this, listener);
         this.returnCheckedRow = returnCheckedRow;
         sharedRealm.addPendingRow(this);
     }
@@ -214,8 +214,8 @@ public class PendingRow implements Row {
     }
 
     private void clearPendingCollection() {
-        pendingCollection.removeListener(this, listener);
-        pendingCollection = null;
+        pendingOsResults.removeListener(this, listener);
+        pendingOsResults = null;
         listener = null;
         sharedRealm.removePendingRow(this);
     }
@@ -231,9 +231,9 @@ public class PendingRow implements Row {
             return;
         }
 
-        if (pendingCollection.isValid()) {
+        if (pendingOsResults.isValid()) {
             // PendingRow will always get the first Row of the query since we only support findFirst.
-            UncheckedRow uncheckedRow = pendingCollection.firstUncheckedRow();
+            UncheckedRow uncheckedRow = pendingOsResults.firstUncheckedRow();
             // Clear the pending collection immediately in case beginTransaction is called in the listener which will
             // execute the query again.
             clearPendingCollection();
@@ -254,7 +254,7 @@ public class PendingRow implements Row {
 
     // Execute the query immediately and call frontend's onQueryFinished().
     public void executeQuery() {
-        if (pendingCollection == null) {
+        if (pendingOsResults == null) {
             throw new IllegalStateException(QUERY_EXECUTED_MESSAGE);
         }
 

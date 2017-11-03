@@ -34,19 +34,19 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
-public class SharedRealmTests {
+public class OsSharedRealmTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
 
     @Before
     public void setUp() {
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
     }
 
     @After
@@ -58,10 +58,10 @@ public class SharedRealmTests {
 
     @Test
     public void getVersionID() {
-        SharedRealm.VersionID versionID1 = sharedRealm.getVersionID();
+        OsSharedRealm.VersionID versionID1 = sharedRealm.getVersionID();
         sharedRealm.beginTransaction();
         sharedRealm.commitTransaction();
-        SharedRealm.VersionID versionID2 = sharedRealm.getVersionID();
+        OsSharedRealm.VersionID versionID2 = sharedRealm.getVersionID();
         assertFalse(versionID1.equals(versionID2));
     }
 
@@ -138,7 +138,7 @@ public class SharedRealmTests {
 
 
     private void changeSchemaByAnotherRealm() {
-        SharedRealm sharedRealm = SharedRealm.getInstance(config);
+        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
         sharedRealm.createTable("NewTable");
         sharedRealm.commitTransaction();
@@ -151,7 +151,7 @@ public class SharedRealmTests {
 
         assertFalse(sharedRealm.hasTable("NewTable"));
 
-        sharedRealm.registerSchemaChangedCallback(new SharedRealm.SchemaChangedCallback() {
+        sharedRealm.registerSchemaChangedCallback(new OsSharedRealm.SchemaChangedCallback() {
             @Override
             public void onSchemaChanged() {
                 assertTrue(sharedRealm.hasTable("NewTable"));
@@ -169,7 +169,7 @@ public class SharedRealmTests {
 
         assertFalse(sharedRealm.hasTable("NewTable"));
 
-        sharedRealm.registerSchemaChangedCallback(new SharedRealm.SchemaChangedCallback() {
+        sharedRealm.registerSchemaChangedCallback(new OsSharedRealm.SchemaChangedCallback() {
             @Override
             public void onSchemaChanged() {
                 assertTrue(sharedRealm.hasTable("NewTable"));

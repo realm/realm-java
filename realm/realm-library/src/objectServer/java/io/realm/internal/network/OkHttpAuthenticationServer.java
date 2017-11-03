@@ -41,8 +41,8 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     private static final String ACTION_LOOKUP_USER_ID = "users/:provider:/:providerId:"; // Auth end point for looking up user id
 
     private final OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             // using custom Connection Pool to evict idle connection after 5 seconds rather than 5 minutes (which is the default)
             // keeping idle connection on the pool will prevent the ROS to be stopped, since the HttpUtils#stopSyncServer query

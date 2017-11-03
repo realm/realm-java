@@ -58,12 +58,13 @@ import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
 import io.realm.internal.OsSchemaInfo;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
@@ -160,7 +161,7 @@ public class Realm extends BaseRealm {
             RealmProxyMediator mediator = configuration.getSchemaMediator();
             Set<Class<? extends RealmModel>> classes = mediator.getModelClasses();
             for (Class<? extends RealmModel> clazz  : classes) {
-                String tableName = mediator.getTableName(clazz);
+                String tableName = Table.getTableNameForClass(mediator.getSimpleClassName(clazz));
                 if (!sharedRealm.hasTable(tableName)) {
                     sharedRealm.close();
                     throw new RealmMigrationNeededException(configuration.getPath(),
@@ -171,7 +172,7 @@ public class Realm extends BaseRealm {
         }
     }
 
-    private Realm(SharedRealm sharedRealm) {
+    private Realm(OsSharedRealm sharedRealm) {
         super(sharedRealm);
         schema = new ImmutableRealmSchema(this,
                 new ColumnIndices(configuration.getSchemaMediator(), sharedRealm.getSchemaInfo()));
@@ -246,8 +247,12 @@ public class Realm extends BaseRealm {
             RealmCore.loadLibrary(context);
             setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
-            BaseRealm.applicationContext = context.getApplicationContext();
-            SharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
+            if (context.getApplicationContext() != null) {
+                BaseRealm.applicationContext = context.getApplicationContext();
+            } else {
+                BaseRealm.applicationContext = context;
+            }
+            OsSharedRealm.initialize(new File(context.getFilesDir(), ".realm.temp"));
         }
     }
 
@@ -420,10 +425,10 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Creates a {@code Realm} instance directly from a {@link SharedRealm}. This {@code Realm} doesn't need to be
+     * Creates a {@code Realm} instance directly from a {@link OsSharedRealm}. This {@code Realm} doesn't need to be
      * closed.
      */
-    static Realm createInstance(SharedRealm sharedRealm) {
+    static Realm createInstance(OsSharedRealm sharedRealm) {
         return new Realm(sharedRealm);
     }
 
@@ -1475,7 +1480,7 @@ public class Realm extends BaseRealm {
             sharedRealm.capabilities.checkCanDeliverNotification("Callback cannot be delivered on current thread.");
         }
 
-        // We need to use the same configuration to open a background SharedRealm (i.e Realm)
+        // We need to use the same configuration to open a background OsSharedRealm (i.e Realm)
         // to perform the transaction
         final RealmConfiguration realmConfiguration = getConfiguration();
         // We need to deliver the callback even if the Realm is closed. So acquire a reference to the notifier here.
@@ -1488,7 +1493,7 @@ public class Realm extends BaseRealm {
                     return;
                 }
 
-                SharedRealm.VersionID versionID = null;
+                OsSharedRealm.VersionID versionID = null;
                 Throwable exception = null;
 
                 final Realm bgRealm = Realm.getInstance(realmConfiguration);
@@ -1517,7 +1522,7 @@ public class Realm extends BaseRealm {
                 }
 
                 final Throwable backgroundException = exception;
-                final SharedRealm.VersionID backgroundVersionID = versionID;
+                final OsSharedRealm.VersionID backgroundVersionID = versionID;
                 // Cannot be interrupted anymore.
                 if (canDeliverNotification) {
                     if (backgroundVersionID != null && onSuccess != null) {
@@ -1653,12 +1658,19 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Deletes the Realm file specified by the given {@link RealmConfiguration} from the filesystem.
+     * Deletes the Realm file along with the related temporary files specified by the given {@link RealmConfiguration}
+     * from the filesystem. Temporary file with ".lock" extension won't be deleted.
+     * <p>
      * All Realm instances must be closed before calling this method.
+     * <p>
+     * WARNING: For synchronized Realm, there is a chance that an internal Realm instance on the background thread is
+     * not closed even all the user controlled Realm instances are closed. This will result an
+     * {@code IllegalStateException}. See issue https://github.com/realm/realm-java/issues/5416 .
      *
      * @param configuration a {@link RealmConfiguration}.
-     * @return {@code false} if a file could not be deleted. The failing file will be logged.
-     * @throws IllegalStateException if not all realm instances are closed.
+     * @return {@code false} if the Realm file could not be deleted. Temporary files deletion failure won't impact
+     * the return value. All of the failing file deletions will be logged.
+     * @throws IllegalStateException if there are Realm instances opened on other threads or other processes.
      */
     public static boolean deleteRealm(RealmConfiguration configuration) {
         return BaseRealm.deleteRealm(configuration);
@@ -1707,9 +1719,9 @@ public class Realm extends BaseRealm {
         sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
 
         String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
-        SharedRealm.PartialSyncCallback internalCallback = new SharedRealm.PartialSyncCallback(className) {
+        OsSharedRealm.PartialSyncCallback internalCallback = new OsSharedRealm.PartialSyncCallback(className) {
             @Override
-            public void onSuccess(io.realm.internal.Collection osResults) {
+            public void onSuccess(OsResults osResults) {
                 RealmResults<E> results = new RealmResults<>(Realm.this, osResults, clazz);
                 callback.onSuccess(results);
             }
@@ -1757,8 +1769,8 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Returns the current number of open Realm instances across all threads that are using this configuration.
-     * This includes both dynamic and normal Realms.
+     * Returns the current number of open Realm instances across all threads in current process that are using this
+     * configuration. This includes both dynamic and normal Realms.
      *
      * @param configuration the {@link io.realm.RealmConfiguration} for the Realm.
      * @return number of open Realm instances across all threads.

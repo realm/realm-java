@@ -102,7 +102,7 @@ import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
@@ -649,13 +649,13 @@ public class RealmTests {
 
     @Test
     public void executeTransaction_null() {
-        SharedRealm.VersionID oldVersion = realm.sharedRealm.getVersionID();
+        OsSharedRealm.VersionID oldVersion = realm.sharedRealm.getVersionID();
         try {
             realm.executeTransaction(null);
             fail("null transaction should throw");
         } catch (IllegalArgumentException ignored) {
         }
-        SharedRealm.VersionID newVersion = realm.sharedRealm.getVersionID();
+        OsSharedRealm.VersionID newVersion = realm.sharedRealm.getVersionID();
         assertEquals(oldVersion, newVersion);
     }
 
@@ -1811,6 +1811,19 @@ public class RealmTests {
     }
 
     @Test
+    public void copyToRealmOrUpdate_overrideOwnList() {
+        realm.beginTransaction();
+        AllJavaTypes managedObj = realm.createObject(AllJavaTypes.class, 1);
+        managedObj.getFieldList().add(managedObj);
+        AllJavaTypes unmanagedObj = realm.copyFromRealm(managedObj);
+        unmanagedObj.setFieldList(managedObj.getFieldList());
+
+        managedObj = realm.copyToRealmOrUpdate(unmanagedObj);
+        assertEquals(1, managedObj.getFieldList().size());
+        assertEquals(1, managedObj.getFieldList().first().getFieldId());
+    }
+
+    @Test
     public void copyToRealmOrUpdate_cyclicObject() {
         CyclicTypePrimaryKey oneCyclicType = new CyclicTypePrimaryKey(1);
         oneCyclicType.setName("One");
@@ -2288,8 +2301,11 @@ public class RealmTests {
 
         assertTrue(Realm.deleteRealm(configuration));
 
-        // Directory should be empty now.
-        assertEquals(0, tempDir.listFiles().length);
+        assertEquals(1, tempDir.listFiles().length);
+
+        // Lock file should never be deleted
+        File lockFile = new File(configuration.getPath() + ".lock");
+        assertTrue(lockFile.exists());
     }
 
     // Tests that all methods that require a transaction. (ie. any function that mutates Realm data)
@@ -4216,7 +4232,7 @@ public class RealmTests {
         realm.close();
         realm = null;
 
-        final File namedPipeDir = SharedRealm.getTemporaryDirectory();
+        final File namedPipeDir = OsSharedRealm.getTemporaryDirectory();
         assertTrue(namedPipeDir.isDirectory());
         TestHelper.deleteRecursively(namedPipeDir);
         //noinspection ResultOfMethodCallIgnored
