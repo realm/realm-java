@@ -76,6 +76,7 @@ compileJava.dependsOn generateVersionClass
 
 task wrapper(type: Wrapper) {
     gradleVersion = project.gradleVersion
+    distributionType = 'all'
 }
 
 def commonPom = {
