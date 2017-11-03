@@ -36,8 +36,8 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Capabilities;
 import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmNotifier;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
@@ -291,14 +291,14 @@ final class RealmCache {
             copyAssetFileIfNeeded(configuration);
             boolean fileExists = configuration.realmExists();
 
-            SharedRealm sharedRealm = null;
+            OsSharedRealm sharedRealm = null;
             try {
                 if (configuration.isSyncConfiguration()) {
                     // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
                     // before proceeding. We need to open the Realm instance first to start any potential underlying
                     // SyncSession so this will work. TODO: This needs to be decoupled.
                     if (!fileExists) {
-                        sharedRealm = SharedRealm.getInstance(configuration);
+                        sharedRealm = OsSharedRealm.getInstance(configuration);
                         try {
                             ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
                         } catch (Throwable t) {
@@ -316,7 +316,7 @@ final class RealmCache {
                 } else {
                     if (fileExists) {
                         // Primary key problem only exists before we release sync.
-                        sharedRealm = SharedRealm.getInstance(configuration);
+                        sharedRealm = OsSharedRealm.getInstance(configuration);
                         Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
                     }
                 }

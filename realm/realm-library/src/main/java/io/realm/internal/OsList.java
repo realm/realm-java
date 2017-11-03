@@ -20,7 +20,7 @@ public class OsList implements NativeObject, ObservableCollection {
             new ObserverPairList<CollectionObserverPair>();
 
     public OsList(UncheckedRow row, long columnIndex) {
-        SharedRealm sharedRealm = row.getTable().getSharedRealm();
+        OsSharedRealm sharedRealm = row.getTable().getSharedRealm();
         long[] ptrs = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnIndex);
 
         this.nativePtr = ptrs[0];

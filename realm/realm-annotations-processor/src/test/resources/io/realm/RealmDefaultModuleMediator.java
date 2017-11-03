@@ -8,7 +8,6 @@ import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;

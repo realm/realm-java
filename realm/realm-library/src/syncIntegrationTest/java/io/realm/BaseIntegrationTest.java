@@ -88,7 +88,8 @@ public abstract class BaseIntegrationTest {
     }
 
     /**
-     * Stops the ROS instance used for the test.
+     * Stops the ROS instance used for the test. The {@link #startSyncServer()} will stop the sync server if needed, so
+     * normally there is no need to call this.
      */
     protected static void stopSyncServer() {
         try {

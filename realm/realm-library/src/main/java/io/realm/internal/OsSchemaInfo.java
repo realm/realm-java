@@ -22,15 +22,15 @@ package io.realm.internal;
  * When it is created from java binding, it is used for initializing/validating the schemas through Object Store. It
  * won't contain the column indices information.
  * <p>
- * When this is get from the Object Store {@code SharedRealm} instance, this represents the real schema of the Realm
+ * When this is get from the Object Store {@code OsSharedRealm} instance, this represents the real schema of the Realm
  * file. It will contain all the schema information as well as the information about the column indices.
  */
 public class OsSchemaInfo implements NativeObject {
     private long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
-    // Hold the ref to the SharedRealm to ensure the SharedRealm won't be freed before this gets GCed.
+    // Hold the ref to the OsSharedRealm to ensure the OsSharedRealm won't be freed before this gets GCed.
     @SuppressWarnings("unused")
-    private final SharedRealm sharedRealm;
+    private final OsSharedRealm sharedRealm;
 
     /**
      * Constructs a {@code OsSchemaInfo} object from a given {@code OsObjectSchemaInfo} list.
@@ -46,14 +46,14 @@ public class OsSchemaInfo implements NativeObject {
     /**
      * Constructs a {@code OsSchemaInfo} and bind its life cycle with the given {@code ShareRealm}. The native pointer
      * held by this instance points to the reference of ObjectStore's {@code Realm::m_schema}. It will be valid
-     * as long as the {@code SharedRealm} instance is not GCed.
+     * as long as the {@code OsSharedRealm} instance is not GCed.
      * <p>
-     * This should only be called by {@link SharedRealm}.
+     * This should only be called by {@link OsSharedRealm}.
      *
      * @param nativePtr the pointer to the Object Store's {@code Realm::m_schema}.
-     * @param sharedRealm the {@code SharedRealm} instance which is owning the schema object.
+     * @param sharedRealm the {@code OsSharedRealm} instance which is owning the schema object.
      */
-    OsSchemaInfo(long nativePtr, SharedRealm sharedRealm) {
+    OsSchemaInfo(long nativePtr, OsSharedRealm sharedRealm) {
         this.nativePtr = nativePtr;
         this.sharedRealm = sharedRealm;
     }

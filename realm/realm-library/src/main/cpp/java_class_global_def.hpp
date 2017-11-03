@@ -50,7 +50,7 @@ private:
         , m_java_util_date(env, "java/util/Date", false)
         , m_java_lang_string(env, "java/lang/String", false)
         , m_java_lang_boolean(env, "java/lang/Boolean", false)
-        , m_shared_realm_schema_change_callback(env, "io/realm/internal/SharedRealm$SchemaChangedCallback", false)
+        , m_shared_realm_schema_change_callback(env, "io/realm/internal/OsSharedRealm$SchemaChangedCallback", false)
         , m_realm_notifier(env, "io/realm/internal/RealmNotifier", false)
     {
     }
@@ -154,7 +154,7 @@ public:
     // return nullptr if binary_data is null
     static jbyteArray new_byte_array(JNIEnv* env, const BinaryData& binary_data);
 
-    // io.realm.internal.SharedRealm.SchemaChangedCallback
+    // io.realm.internal.OsSharedRealm.SchemaChangedCallback
     inline static const jni_util::JavaClass& shared_realm_schema_change_callback()
     {
         return instance()->m_shared_realm_schema_change_callback;
