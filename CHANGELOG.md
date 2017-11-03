@@ -1,16 +1,3 @@
-## 4.2.0 (YYYY-MM-DD)
-
-### Breaking Changes
-
-### Enhancements
-
-### Bug Fixes
-
-### Internal
-
-### Credits
-
-
 ## 4.1.1 (2017-10-27)
 
 ### Breaking Changes
