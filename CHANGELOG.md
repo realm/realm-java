@@ -16,6 +16,8 @@
 
 ### Credits
 
+* Thanks to @vivekkiran for updating gralde and plugins to support Android Studio `3.0.0` (#5472).
+
 
 ## 4.1.0 (2017-10-20)
 
