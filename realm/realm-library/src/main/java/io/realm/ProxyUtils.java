@@ -53,10 +53,11 @@ class ProxyUtils {
         OsList osList = realmList.getOsList();
         if (jsonObject.isNull(fieldName)) {
             osList.removeAll();
+            return;
         }
 
         JSONArray jsonArray = jsonObject.getJSONArray(fieldName);
-        realmList.getOsList().removeAll();
+        osList.removeAll();
         int arraySize = jsonArray.length();
 
         if (realmList.clazz == Boolean.class) {
