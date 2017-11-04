@@ -138,6 +138,7 @@ dispatcher.onGet("/start", function(req, res) {
     startRealmObjectServer(() => {
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.end('ROS started');
+        console.log(">>>>>>>>>>>>>>>>>>>>>>>> ROS TIME " + getDateTime());
     }, function (err) {
         res.writeHead(500, {'Content-Type': 'text/plain'});
         res.end('Starting ROS failed: ' + err);
@@ -161,3 +162,28 @@ var server = http.createServer(handleRequest);
 server.listen(PORT, function() {
     winston.info("Integration test server listening on: 127.0.0.1:%s", PORT);
 });
+
+function getDateTime() {
+
+    var date = new Date();
+
+    var hour = date.getHours();
+    hour = (hour < 10 ? "0" : "") + hour;
+
+    var min  = date.getMinutes();
+    min = (min < 10 ? "0" : "") + min;
+
+    var sec  = date.getSeconds();
+    sec = (sec < 10 ? "0" : "") + sec;
+
+    var year = date.getFullYear();
+
+    var month = date.getMonth() + 1;
+    month = (month < 10 ? "0" : "") + month;
+
+    var day  = date.getDate();
+    day = (day < 10 ? "0" : "") + day;
+
+    return year + ":" + month + ":" + day + ":" + hour + ":" + min + ":" + sec;
+
+}

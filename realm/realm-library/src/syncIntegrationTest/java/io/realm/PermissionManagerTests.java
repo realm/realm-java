@@ -904,6 +904,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         // already expired.
         long delayMillis = TimeUnit.SECONDS.toMillis(10);
         Date expiresAt = new Date(new Date().getTime() + delayMillis);
+        RealmLog.info(">>>>>>>>>>>>>>>>> OFFER EXPIRES AT> " + expiresAt + " in ms " + expiresAt.getTime());
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, expiresAt);
         SystemClock.sleep(delayMillis); // Make sure that the offer expires.
         final SyncUser user2 = UserFactory.createUniqueUser();
