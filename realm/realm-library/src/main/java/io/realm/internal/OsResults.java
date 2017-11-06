@@ -199,7 +199,7 @@ public class OsResults implements NativeObject, ObservableCollection {
         @Override
         @Deprecated
         public void set(@Nullable T object) {
-            throw new UnsupportedOperationException("Replacing and element is not supported.");
+            throw new UnsupportedOperationException("Replacing an element is not supported.");
         }
     }
 
