@@ -51,6 +51,8 @@ public enum ErrorCode {
     BAD_ERROR_CODE(114),             // Bad error code (ERROR)
     BAD_COMPRESSION(115),            // Bad compression (DOWNLOAD)
     BAD_CLIENT_VERSION_DOWNLOAD(116),// Bad last integrated client version in changeset header (DOWNLOAD)
+    SSL_SERVER_CERT_REJECTED(117),//  SSL server certificate rejected
+    PONG_TIMEOUT(118),//  SSL server certificate rejected
 
     // Session level errors (200 - 299)
     SESSION_CLOSED(200, Category.RECOVERABLE),      // Session closed (no error)

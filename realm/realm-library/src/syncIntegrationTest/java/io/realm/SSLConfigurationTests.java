@@ -41,7 +41,7 @@ import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class SSLConfigurationTests extends BaseIntegrationTest {
-
+//todo check we're using websovkte for secure realm
 //    @Rule
 //    public Timeout globalTimeout = Timeout.seconds(10);
 
@@ -269,7 +269,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         Realm.deleteRealm(configOld);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
-        // not download the uploaded changes. since it uses the verifyCallback which returns false
+        // not download the uploaded changes. since it uses the verifyCallback which returns false (cert is not installed on Android)
         // TODO add test that make sure the callback is called, use mockito to verify number of calls
         // plus override the behaviour ti return false/true as desired
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
@@ -352,6 +352,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
     }
 
     // make sure SSLValidate Callback is called
+    //FIXME test passed make sure the certificate is installed
     @Test
     public void sslVerifyCallback_isUsed() throws InterruptedException {
         String username = UUID.randomUUID().toString();
@@ -361,6 +362,12 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         // 1. Copy a valid Realm to the server using ssl_verify_path option
         final SyncConfiguration configUnsecure = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .schema(StringOnly.class)
+                .errorHandler(new SyncSession.ErrorHandler() {
+                    @Override
+                    public void onError(SyncSession session, ObjectServerError error) {
+                        System.out.println(">>>>>>>>>>>>>>>> UN-S E C  E R R O R HANDLER");
+                    }
+                })
                 .build();
         Realm realm = Realm.getInstance(configUnsecure);
 
@@ -380,6 +387,12 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         SyncConfiguration configSecure = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
+                .errorHandler(new SyncSession.ErrorHandler() {
+                    @Override
+                    public void onError(SyncSession session, ObjectServerError error) {
+                        System.out.println(">>>>>>>>>>>>>>>> S E C  E R R O R HANDLER");
+                    }
+                })
                 .build();
         realm = Realm.getInstance(configSecure);
 
