@@ -20,6 +20,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -35,8 +36,6 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -50,10 +49,12 @@ import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.StringOnlyModule;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
 
+import static io.realm.util.SyncTestUtils.createNamedTestUser;
 import static io.realm.util.SyncTestUtils.createTestAdminUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
@@ -102,6 +103,20 @@ public class SyncUserTests {
     @Before
     public void setUp() {
         SyncManager.reset();
+    }
+
+    @After
+    public void after() {
+        if (!looperThread.isRuleUsed() || looperThread.isTestComplete()) {
+            UserFactory.logoutAllUsers();
+        } else {
+            looperThread.runAfterTest(new Runnable() {
+                @Override
+                public void run() {
+                    UserFactory.logoutAllUsers();
+                }
+            });
+        }
     }
 
     private static SyncUser createFakeUser(String id) {
@@ -264,31 +279,6 @@ public class SyncUserTests {
     }
 
     @Test
-    public void getManagementRealm() {
-        SyncUser user = SyncTestUtils.createTestUser();
-        Realm managementRealm = user.getManagementRealm();
-        assertNotNull(managementRealm);
-        managementRealm.close();
-    }
-
-    @Test
-    public void getManagementRealm_enforceTLS() throws URISyntaxException {
-        // Non TLS
-        SyncUser user = SyncTestUtils.createTestUser("http://objectserver.realm.io/auth");
-        Realm managementRealm = user.getManagementRealm();
-        SyncConfiguration config = (SyncConfiguration) managementRealm.getConfiguration();
-        assertEquals(new URI("realm://objectserver.realm.io/" + user.getIdentity() + "/__management"), config.getServerUrl());
-        managementRealm.close();
-
-        // TLS
-        user = SyncTestUtils.createTestUser("https://objectserver.realm.io/auth");
-        managementRealm = user.getManagementRealm();
-        config = (SyncConfiguration) managementRealm.getConfiguration();
-        assertEquals(new URI("realms://objectserver.realm.io/" + user.getIdentity() + "/__management"), config.getServerUrl());
-        managementRealm.close();
-    }
-
-    @Test
     public void toString_returnDescription() {
         SyncUser user = SyncTestUtils.createTestUser("http://objectserver.realm.io/auth");
         String str = user.toString();
@@ -365,7 +355,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
-        user.changePasswordAsync("password", new SyncUser.Callback() {
+        user.changePasswordAsync("password", new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -383,7 +373,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
-        user.changePasswordAsync("user-id", "new", new SyncUser.Callback() {
+        user.changePasswordAsync("user-id", "new", new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -423,6 +413,51 @@ public class SyncUserTests {
 
         thrown.expect(IllegalStateException.class);
         user.changePassword("user-id", "new-password");
+    }
+
+    @Test
+    @RunTestInLooperThread(emulateMainThread = true)
+    public void getPermissionManager_isReferenceCounted() {
+        SyncUser user = createTestUser();
+        PermissionManager pm1 = user.getPermissionManager();
+        PermissionManager pm2 = user.getPermissionManager();
+        assertTrue(pm1 == pm2);
+        assertFalse(pm1.isClosed());
+        pm1.close();
+        assertFalse(pm1.isClosed());
+        pm1.close();
+        assertTrue(pm1.isClosed());
+        looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread(emulateMainThread = true)
+    public void getPermissionManger_instanceUniqueToUser() {
+        SyncUser user1 = createNamedTestUser("user1");
+        SyncUser user2 = createNamedTestUser("user2");
+        PermissionManager pm1 = user1.getPermissionManager();
+        PermissionManager pm2 = user2.getPermissionManager();
+
+        try {
+            assertFalse(pm1 == pm2);
+            assertFalse(pm1.equals(pm2));
+            looperThread.testComplete();
+        } finally {
+            pm1.close();
+            pm2.close();
+            user1.logout();
+            user2.logout();
+        }
+    }
+
+    @Test
+    public void getPermissionManager_throwOnNonLooperThread() {
+        SyncUser user = createTestUser();
+        try {
+            user.getPermissionManager();
+            fail();
+        } catch (IllegalStateException e) {
+        }
     }
 
     @Test
@@ -481,11 +516,11 @@ public class SyncUserTests {
         //       since the user is not persisted in the UserStore
         //       isValid() requires SyncManager.getUserStore().isActive(identity)
         //       to return true as well.
-        Token accessToken = syncUser.getAccessToken();
-        assertNotNull(accessToken);
+        Token refreshToken = syncUser.getRefreshToken();
+        assertNotNull(refreshToken);
         // refresh token should expire in 10 years (July 23, 2027)
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(accessToken.expiresMs());
+        calendar.setTimeInMillis(refreshToken.expiresMs());
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         int month = calendar.get(Calendar.MONTH);
         int year = calendar.get(Calendar.YEAR);

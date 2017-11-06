@@ -7,7 +7,7 @@ import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.LinkView;
+import io.realm.internal.OsList;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsSchemaInfo;
@@ -15,7 +15,6 @@ import io.realm.internal.Property;
 import io.realm.internal.ProxyUtils;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
@@ -68,7 +67,7 @@ public class SimpleRealmProxy extends some.test.Simple
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private static final List<String> FIELD_NAMES;
     static {
-        List<String> fieldNames = new ArrayList<String>();
+        List<String> fieldNames = new ArrayList<String>(2);
         fieldNames.add("name");
         fieldNames.add("age");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
@@ -148,7 +147,7 @@ public class SimpleRealmProxy extends some.test.Simple
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("Simple");
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("Simple", 2, 0);
         builder.addPersistedProperty("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty("age", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         return builder.build();
@@ -162,8 +161,8 @@ public class SimpleRealmProxy extends some.test.Simple
         return new SimpleColumnInfo(schemaInfo);
     }
 
-    public static String getTableName() {
-        return "class_Simple";
+    public static String getSimpleClassName() {
+        return "Simple";
     }
 
     public static List<String> getFieldNames() {
@@ -175,6 +174,7 @@ public class SimpleRealmProxy extends some.test.Simple
             throws JSONException {
         final List<String> excludeFields = Collections.<String> emptyList();
         some.test.Simple obj = realm.createObjectInternal(some.test.Simple.class, true, excludeFields);
+
         final SimpleRealmProxyInterface objProxy = (SimpleRealmProxyInterface) obj;
         if (json.has("name")) {
             if (json.isNull("name")) {
@@ -369,6 +369,7 @@ public class SimpleRealmProxy extends some.test.Simple
         SimpleRealmProxyInterface realmSource = (SimpleRealmProxyInterface) realmObject;
         unmanagedCopy.realmSet$name(realmSource.realmGet$name());
         unmanagedCopy.realmSet$age(realmSource.realmGet$age());
+
         return unmanagedObject;
     }
 

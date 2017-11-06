@@ -78,7 +78,7 @@ public class SyncConfiguration extends RealmConfiguration {
     static final int MAX_FULL_PATH_LENGTH = 256;
     static final int MAX_FILE_NAME_LENGTH = 255;
     private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
-private final URI serverUrl;
+    private final URI serverUrl;
     private final SyncUser user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
@@ -88,6 +88,8 @@ private final URI serverUrl;
     @Nullable
     private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
+    private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
+    private final boolean isPartial;
 
     private SyncConfiguration(File directory,
                                 String filename,
@@ -116,7 +118,9 @@ private final URI serverUrl;
                                 String serverCertificateAssetName,
                                 @Nullable
                                 String serverCertificateFilePath,
-                                boolean waitForInitialData
+                                boolean waitForInitialData,
+                                OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
+                                boolean isPartial
     ) {
         super(directory,
                 filename,
@@ -131,7 +135,8 @@ private final URI serverUrl;
                 rxFactory,
                 initialDataTransaction,
                 readOnly,
-                null
+                null,
+                false
         );
 
         this.user = user;
@@ -142,6 +147,55 @@ private final URI serverUrl;
         this.serverCertificateAssetName = serverCertificateAssetName;
         this.serverCertificateFilePath = serverCertificateFilePath;
         this.waitForInitialData = waitForInitialData;
+        this.sessionStopPolicy = sessionStopPolicy;
+        this.isPartial = isPartial;
+    }
+
+    /**
+     * Returns a {@link RealmConfiguration} appropriate to open a read-only, non-synced Realm to recover any pending changes.
+     * This is useful when trying to open a backup/recovery Realm (after a client reset).
+     *
+     * @param canonicalPath the absolute path to the Realm file defined by this configuration.
+     * @param encryptionKey the key used to encrypt/decrypt the Realm file.
+     * @param modules if specified it will restricts Realm schema to the provided module.
+     * @return RealmConfiguration that can be used offline
+     */
+    public static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, @Nullable Object... modules) {
+        HashSet<Object> validatedModules = new HashSet<>();
+        if (modules != null && modules.length > 0) {
+            for (Object module : modules) {
+                if (!module.getClass().isAnnotationPresent(RealmModule.class)) {
+                    throw new IllegalArgumentException(module.getClass().getCanonicalName() + " is not a RealmModule. " +
+                            "Add @RealmModule to the class definition.");
+                }
+                validatedModules.add(module);
+            }
+        } else {
+            if (Realm.getDefaultModule() != null) {
+                validatedModules.add(Realm.getDefaultModule());
+            }
+        }
+
+        RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
+        return forRecovery(canonicalPath, encryptionKey, schemaMediator);
+    }
+
+    /**
+     * Returns a {@link RealmConfiguration} appropriate to open a read-only, non-synced Realm to recover any pending changes.
+     * This is useful when trying to open a backup/recovery Realm (after a client reset).
+     *
+     * Note: This will use the default Realm module (composed of all {@link RealmModel}), and
+     * assume no encryption should be used as well.
+     *
+     * @param canonicalPath the absolute path to the Realm file defined by this configuration.
+     * @return RealmConfiguration that can be used offline
+     */
+    public static RealmConfiguration forRecovery(String canonicalPath) {
+        return forRecovery(canonicalPath, null);
+    }
+
+    static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
+        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true);
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -298,6 +352,32 @@ private final URI serverUrl;
     }
 
     /**
+     * NOTE: Only for internal usage. May change without warning.
+     *
+     * Returns the stop policy for the session for this Realm once the Realm has been closed.
+     *
+     * @return the stop policy used by the session once the Realm is closed.
+     */
+    public OsRealmConfig.SyncSessionStopPolicy getSessionStopPolicy() {
+        return sessionStopPolicy;
+    }
+
+    /**
+     * Whether this configuration is for a partial synchronization Realm.
+     * Partial synchronization allows a synchronized Realm to be opened in such a way that
+     * only objects requested by the user are synchronized to the device. You can use it by setting
+     * the {@link Builder#partialRealm()}, opening the Realm, and then calling
+     * {@link Realm#subscribeToObjects(Class, String, Realm.PartialSyncCallback)} with the type of
+     * object you're interested in, a string containing a query determining which objects you want
+     * to subscribe to, and a callback which will report the results.
+     *
+     * @return {@code true} to open a partial synchronization Realm {@code false} otherwise.
+     */
+    public boolean isPartialRealm() {
+        return isPartial;
+    }
+
+    /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */
     public static final class Builder  {
@@ -331,7 +411,8 @@ private final URI serverUrl;
         private String serverCertificateAssetName;
         @Nullable
         private String serverCertificateFilePath;
-
+        private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
+        private boolean isPartial = false;
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
          * <p>
@@ -566,6 +647,18 @@ private final URI serverUrl;
         }
 
         /**
+         * DEBUG method. This makes it possible to define different policies for when a session should be stopped when
+         * the Realm is closed.
+         *
+         * @param policy how a session for a Realm should behave when the Realm is closed.
+         */
+        SyncConfiguration.Builder sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy policy) {
+            sessionStopPolicy = policy;
+            return this;
+        }
+
+
+        /**
          * Sets the schema version of the Realm.
          * <p>
          * Synced Realms only support additive schema changes which can be applied without requiring a manual
@@ -745,6 +838,15 @@ private final URI serverUrl;
             return this;
         }
 
+        /**
+         * Setting this will open a partially synchronized Realm.
+         * @see #isPartialRealm()
+         */
+        public SyncConfiguration.Builder partialRealm() {
+            this.isPartial = true;
+            return this;
+        }
+
         private String MD5(String in) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -889,7 +991,9 @@ private final URI serverUrl;
                     syncClientValidateSsl,
                     serverCertificateAssetName,
                     serverCertificateFilePath,
-                    waitForServerChanges
+                    waitForServerChanges,
+                    sessionStopPolicy,
+                    isPartial
             );
         }
 

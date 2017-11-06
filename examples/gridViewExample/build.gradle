@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 android {
@@ -15,14 +14,16 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.debug
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     productFlavors {
-    }
-
-    command {
-        monkey.events 2000
     }
 
     splits {

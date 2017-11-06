@@ -24,16 +24,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import javax.annotation.Nonnull;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.SyncCredentials;
 import io.realm.ObjectServerError;
 import io.realm.SyncUser;
-import io.realm.UserStore;
 
-import static io.realm.ErrorCode.UNKNOWN_ACCOUNT;
 
 public class LoginActivity extends AppCompatActivity {
+    private static final String REALM_AUTH_URL = "http://" + BuildConfig.OBJECT_SERVER_IP + ":9080/auth";
 
     @BindView(R.id.input_username) EditText username;
     @BindView(R.id.input_password) EditText password;
@@ -77,16 +78,15 @@ public class LoginActivity extends AppCompatActivity {
         String password = this.password.getText().toString();
 
         SyncCredentials creds = SyncCredentials.usernamePassword(username, password, createUser);
-        String authUrl = "http://" + BuildConfig.OBJECT_SERVER_IP + ":9080/auth";
-        SyncUser.Callback callback = new SyncUser.Callback() {
+        SyncUser.Callback<SyncUser> callback = new SyncUser.Callback<SyncUser>() {
             @Override
-            public void onSuccess(SyncUser user) {
+            public void onSuccess(@Nonnull SyncUser user) {
                 progressDialog.dismiss();
                 onLoginSuccess();
             }
 
             @Override
-            public void onError(ObjectServerError error) {
+            public void onError(@Nonnull ObjectServerError error) {
                 progressDialog.dismiss();
                 String errorMsg;
                 switch (error.getErrorCode()) {
@@ -103,7 +103,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
 
-        SyncUser.loginAsync(creds, authUrl, callback);
+        SyncUser.loginAsync(creds, REALM_AUTH_URL, callback);
     }
 
     @Override

@@ -49,10 +49,13 @@ RUN cd /opt && \
 RUN mkdir "${ANDROID_HOME}/licenses" && \
     echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "${ANDROID_HOME}/licenses/android-sdk-license"
 RUN sdkmanager --update
+# Accept all licenses
+RUN yes y | sdkmanager --licenses
 RUN sdkmanager 'platform-tools'
-RUN sdkmanager 'build-tools;26.0.1'
+RUN sdkmanager 'build-tools;26.0.2'
 RUN sdkmanager 'extras;android;m2repository'
 RUN sdkmanager 'platforms;android-26'
+RUN sdkmanager 'cmake;3.6.4111459'
 
 # Install the NDK
 RUN mkdir /opt/android-ndk-tmp && \
@@ -63,14 +66,6 @@ RUN mkdir /opt/android-ndk-tmp && \
     mv android-ndk-r10e /opt/android-ndk && \
     rm -rf /opt/android-ndk-tmp && \
     chmod -R a+rX /opt/android-ndk
-
-# Install cmake
-RUN mkdir /opt/cmake-tmp && \
-    cd /opt/cmake-tmp && \
-    wget -q https://dl.google.com/android/repository/cmake-3.6.3155560-linux-x86_64.zip -O cmake-linux.zip && \
-    mkdir -p ${ANDROID_HOME}/cmake/3.6.3155560 && \
-    unzip cmake-linux.zip -d ${ANDROID_HOME}/cmake/3.6.3155560 && \
-    rm -rf /opt/cmake-tmp
 
 # Make the SDK universally writable
 RUN chmod -R a+rwX ${ANDROID_HOME}

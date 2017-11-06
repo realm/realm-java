@@ -35,6 +35,14 @@ public class AllTypesPrimaryKey extends RealmObject {
     private RealmList<DogPrimaryKey> columnRealmList;
     private Boolean columnBoxedBoolean;
 
+    private RealmList<String> columnStringList;
+    private RealmList<byte[]> columnBinaryList;
+    private RealmList<Boolean> columnBooleanList;
+    private RealmList<Long> columnLongList;
+    private RealmList<Double> columnDoubleList;
+    private RealmList<Float> columnFloatList;
+    private RealmList<Date> columnDateList;
+
     public String getColumnString() {
         return columnString;
     }
@@ -113,5 +121,61 @@ public class AllTypesPrimaryKey extends RealmObject {
 
     public void setColumnBoxedBoolean(Boolean columnBoxedBoolean) {
         this.columnBoxedBoolean = columnBoxedBoolean;
+    }
+
+    public RealmList<String> getColumnStringList() {
+        return columnStringList;
+    }
+
+    public void setColumnStringList(RealmList<String> columnStringList) {
+        this.columnStringList = columnStringList;
+    }
+
+    public RealmList<byte[]> getColumnBinaryList() {
+        return columnBinaryList;
+    }
+
+    public void setColumnBinaryList(RealmList<byte[]> columnBinaryList) {
+        this.columnBinaryList = columnBinaryList;
+    }
+
+    public RealmList<Boolean> getColumnBooleanList() {
+        return columnBooleanList;
+    }
+
+    public void setColumnBooleanList(RealmList<Boolean> columnBooleanList) {
+        this.columnBooleanList = columnBooleanList;
+    }
+
+    public RealmList<Long> getColumnLongList() {
+        return columnLongList;
+    }
+
+    public void setColumnLongList(RealmList<Long> columnLongList) {
+        this.columnLongList = columnLongList;
+    }
+
+    public RealmList<Double> getColumnDoubleList() {
+        return columnDoubleList;
+    }
+
+    public void setColumnDoubleList(RealmList<Double> columnDoubleList) {
+        this.columnDoubleList = columnDoubleList;
+    }
+
+    public RealmList<Float> getColumnFloatList() {
+        return columnFloatList;
+    }
+
+    public void setColumnFloatList(RealmList<Float> columnFloatList) {
+        this.columnFloatList = columnFloatList;
+    }
+
+    public RealmList<Date> getColumnDateList() {
+        return columnDateList;
+    }
+
+    public void setColumnDateList(RealmList<Date> columnDateList) {
+        this.columnDateList = columnDateList;
     }
 }

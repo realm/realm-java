@@ -19,6 +19,7 @@ package io.realm;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InterruptedIOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -31,6 +32,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -74,6 +76,10 @@ public class SyncSession {
     private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
     private volatile boolean isClosed = false;
     private final AtomicReference<WaitForSessionWrapper> waitingForServerChanges = new AtomicReference<>(null);
+
+    // Keeps track of how many times `uploadAllLocalChanges()` or `downloadAllServerChanges()` have
+    // been called. This is needed so we can correctly ignore canceled requests.
+    private final AtomicInteger waitCounter = new AtomicInteger(0);
     private final Object waitForChangesMutex = new Object();
 
     // We need JavaId -> Listener so C++ can trigger callbacks without keeping a reference to the
@@ -95,6 +101,8 @@ public class SyncSession {
     private static final byte STATE_VALUE_DYING = 2;
     private static final byte STATE_VALUE_INACTIVE = 3;
     private static final byte STATE_VALUE_ERROR = 4;
+
+    private URI resolvedRealmURI;
 
     public enum State {
         WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
@@ -162,9 +170,10 @@ public class SyncSession {
         ErrorCode errCode = ErrorCode.fromInt(errorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
+            RealmConfiguration backupRealmConfiguration = SyncConfiguration.forRecovery(errorMessage, configuration.getEncryptionKey(), configuration.getSchemaMediator());
             errorHandler.onError(this, new ClientResetRequiredError(errCode, "A Client Reset is required. " +
                     "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
-                    errorMessage, getConfiguration()));
+                    configuration, backupRealmConfiguration));
         } else {
             errorHandler.onError(this, new ObjectServerError(errCode, errorMessage));
         }
@@ -305,10 +314,18 @@ public class SyncSession {
     // If the native listener was successfully registered, Object Store guarantees that this method will be called at
     // least once, even if the session is closed.
     @SuppressWarnings("unused")
-    private void notifyAllChangesSent(Long errorcode, String errorMessage) {
+    private void notifyAllChangesSent(int callbackId, Long errorcode, String errorMessage) {
         WaitForSessionWrapper wrapper = waitingForServerChanges.get();
         if (wrapper != null) {
-            wrapper.handleResult(errorcode, errorMessage);
+            // Only react to callback if the callback is "active"
+            // A callback can only become inactive if the thread was interrupted:
+            // 1. Call `downloadAllServerChanges()` (callback = 1)
+            // 2. Interrupt it
+            // 3. Call `uploadAllLocalChanges()` ( callback = 2)
+            // 4. Sync notifies session that callback:1 is done. It should be ignored.
+            if (waitCounter.get() == callbackId) {
+                wrapper.handleResult(errorcode, errorMessage);
+            }
         }
     }
 
@@ -362,6 +379,10 @@ public class SyncSession {
         }
     }
 
+    public void setResolvedRealmURI(URI resolvedRealmURI) {
+        this.resolvedRealmURI = resolvedRealmURI;
+    }
+
     /**
      * This method should only be called when guarded by the {@link #waitForChangesMutex}.
      * It will block into all changes have been either uploaded or downloaded depending on the chosen direction.
@@ -373,11 +394,13 @@ public class SyncSession {
             throw new IllegalArgumentException("Unknown direction: " + direction);
         }
         if (!isClosed) {
+            String realmPath = configuration.getPath();
             WaitForSessionWrapper wrapper = new WaitForSessionWrapper();
             waitingForServerChanges.set(wrapper);
+            int callbackId = waitCounter.incrementAndGet();
             boolean listenerRegistered = (direction == DIRECTION_DOWNLOAD)
-                    ? nativeWaitForDownloadCompletion(configuration.getPath())
-                    : nativeWaitForUploadCompletion(configuration.getPath());
+                    ? nativeWaitForDownloadCompletion(callbackId, realmPath)
+                    : nativeWaitForUploadCompletion(callbackId, realmPath);
             if (!listenerRegistered) {
                 waitingForServerChanges.set(null);
                 String errorMsg = "";
@@ -390,7 +413,12 @@ public class SyncSession {
 
                 throw new ObjectServerError(ErrorCode.UNKNOWN, errorMsg + " Has the SyncClient been started?");
             }
-            wrapper.waitForServerChanges();
+            try {
+                wrapper.waitForServerChanges();
+            } catch(InterruptedException e) {
+                waitingForServerChanges.set(null); // Ignore any results being sent if the wait was interrupted.
+                throw e;
+            }
 
             // This might return after the session was closed. In that case, just ignore any result
             try {
@@ -483,7 +511,7 @@ public class SyncSession {
                 try {
                     JSONObject refreshTokenJSON = new JSONObject(refreshToken);
                     Token newRefreshToken = Token.from(refreshTokenJSON.getJSONObject("userToken"));
-                    if (newRefreshToken.hashCode() != getUser().getAccessToken().hashCode()) {
+                    if (newRefreshToken.hashCode() != getUser().getRefreshToken().hashCode()) {
                         RealmLog.debug("Session[%s]: Access token updated", configuration.getPath());
                         getUser().setRefreshToken(newRefreshToken);
                     }
@@ -530,8 +558,8 @@ public class SyncSession {
             protected AuthenticateResponse execute() {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
                     return authServer.loginToRealm(
-                            getUser().getAccessToken(), //refresh token in fact
-                            configuration.getServerUrl(),
+                            getUser().getRefreshToken(), //refresh token in fact
+                            resolvedRealmURI,
                             getUser().getAuthenticationUrl()
                     );
                 }
@@ -559,7 +587,12 @@ public class SyncSession {
                 onGoingAccessTokenQuery.set(false);
                 RealmLog.debug("Session[%s]: Failed to get access token (%s)", configuration.getPath(),
                         response.getError().getErrorCode());
-                if (!isClosed && !Thread.currentThread().isInterrupted()) {
+                if (!isClosed
+                        && !Thread.currentThread().isInterrupted()
+                        // We might be interrupted while negotiating an access token with the Realm Object Server
+                        // This will result in a InterruptedIOException from OkHttp. We should ignore this as
+                        // well.
+                        && !(response.getError().getException() instanceof InterruptedIOException)) {
                     errorHandler.onError(SyncSession.this, response.getError());
                 }
             }
@@ -608,7 +641,7 @@ public class SyncSession {
             @Override
             protected AuthenticateResponse execute() {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
-                    return authServer.refreshUser(getUser().getAccessToken(), configuration.getServerUrl(), getUser().getAuthenticationUrl());
+                    return authServer.refreshUser(getUser().getRefreshToken(), resolvedRealmURI, getUser().getAuthenticationUrl());
                 }
                 return null;
             }
@@ -700,7 +733,7 @@ public class SyncSession {
     private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
     private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
-    private native boolean nativeWaitForDownloadCompletion(String localRealmPath);
-    private native boolean nativeWaitForUploadCompletion(String localRealmPath);
+    private native boolean nativeWaitForDownloadCompletion(int callbackId, String localRealmPath);
+    private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
     private static native byte nativeGetState(String localRealmPath);
 }

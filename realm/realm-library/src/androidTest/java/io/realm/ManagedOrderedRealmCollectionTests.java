@@ -34,6 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
@@ -613,15 +614,25 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     public void deleteFromRealm() {
         OrderedRealmCollection<Dog> collection = createNonCyclicCollection(realm, collectionClass);
         assertEquals(1, collection.get(1).getAge());
-        realm.beginTransaction();
-        collection.deleteFromRealm(0);
-        realm.commitTransaction();
-        if (isSnapshot(collectionClass)) {
-            assertEquals(TEST_SIZE, collection.size());
-            assertFalse(collection.get(0).isValid());
-        } else {
-            assertEquals(TEST_SIZE - 1, collection.size());
-            assertEquals(2, collection.get(1).getAge());
+
+        int[] indexToDelete = {TEST_SIZE/2, TEST_SIZE - 2, 0};
+        int currentSize = TEST_SIZE;
+
+        for (int i = 0; i < indexToDelete.length; i++) {
+            int index = indexToDelete[i];
+            realm.beginTransaction();
+            Dog dog = collection.get(index);
+            collection.deleteFromRealm(index);
+            realm.commitTransaction();
+            if (isSnapshot(collectionClass)) {
+                assertEquals(TEST_SIZE, collection.size());
+                assertFalse(collection.get(index).isValid());
+            } else {
+                assertEquals(currentSize- 1, collection.size());
+            }
+            assertFalse(dog.isValid());
+            assertEquals(currentSize- 1, realm.where(Dog.class).count());
+            currentSize -= 1;
         }
     }
 
@@ -646,6 +657,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         assertEquals(0, collection.get(0).getAge());
 
         realm.beginTransaction();
+        Dog dog = collection.first();
         assertTrue(collection.deleteFirstFromRealm());
         realm.commitTransaction();
         if (isSnapshot(collectionClass)) {
@@ -655,6 +667,8 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
             assertEquals(TEST_SIZE - 1, collection.size());
             assertEquals(1, collection.get(0).getAge());
         }
+        assertFalse(dog.isValid());
+        assertEquals(TEST_SIZE - 1, realm.where(Dog.class).count());
     }
 
     private OrderedRealmCollection<Dog> createNonCyclicCollection(Realm realm, ManagedCollection collectionClass) {
@@ -709,6 +723,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     public void deleteLastFromRealm() {
         assertEquals(TEST_SIZE - 1, collection.last().getFieldLong());
         realm.beginTransaction();
+        AllJavaTypes allJavaTypes = collection.last();
         assertTrue(collection.deleteLastFromRealm());
         realm.commitTransaction();
         if (isSnapshot(collectionClass)) {
@@ -718,6 +733,8 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
             assertEquals(TEST_SIZE - 1, collection.size());
             assertEquals(TEST_SIZE - 2, collection.last().getFieldLong());
         }
+        assertFalse(allJavaTypes.isValid());
+        assertEquals(TEST_SIZE - 1, realm.where(AllJavaTypes.class).count());
     }
 
     @Test

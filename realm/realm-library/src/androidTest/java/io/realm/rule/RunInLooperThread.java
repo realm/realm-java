@@ -62,6 +62,9 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     // Thread safe
     private final CountDownLatch signalTestCompleted = new CountDownLatch(1);
 
+    // Thread safe
+    private boolean ruleBeingUsed = false;
+
     // Access guarded by 'lock'
     private RealmConfiguration realmConfiguration;
 
@@ -294,9 +297,13 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     @Override
     public Statement apply(Statement base, Description description) {
+        setTestName(description);
         final RunTestInLooperThread annotation = description.getAnnotation(RunTestInLooperThread.class);
         if (annotation == null) {
             return base;
+        }
+        synchronized (lock) {
+            ruleBeingUsed = true;
         }
         return new RunInLooperThreadStatement(annotation, base);
     }
@@ -346,6 +353,13 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         synchronized (lock) {
             return signalTestCompleted.getCount() == 0;
         }
+    }
+
+    /**
+     * Returns true if the current test being run is using this rule.
+     */
+    public boolean isRuleUsed() {
+        return ruleBeingUsed;
     }
 
     /**

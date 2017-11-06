@@ -47,7 +47,7 @@ public class JNIQueryTest {
 
     @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
     private Table table;
     private final long[] oneNullTable = new long[]{NativeObject.NULLPTR};
 
@@ -56,7 +56,7 @@ public class JNIQueryTest {
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
     }
 
     @After

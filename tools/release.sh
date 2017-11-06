@@ -98,6 +98,7 @@ prepare_branch() {
     # Merge the branch to the releases branch and check the CHANGELOG.md
     if [[ "$BRANCH_TO_RELEASE" != "releases" ]] ; then
         git merge "origin/$BRANCH_TO_RELEASE"
+        git submodule update --init --recursive
 
         while true
         do
@@ -144,7 +145,7 @@ prepare_branch() {
 
     # Update date in change log
     cur_date=$(date "+%F")
-    sed -i .bak "1 s/YYYY-MM-DD/${cur_date}/" CHANGELOG.md
+    sed "1 s/YYYY-MM-DD/${cur_date}/" CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
     git add CHANGELOG.md
     git commit -m "Update changelog date"
 
@@ -164,7 +165,7 @@ build() {
     check_adb_device
 
     # Verify examples
-    (cd examples && ./gradlew uninstallAll && ./gradlew monkeyDebug)
+    (cd examples && ./gradlew clean uninstallAll && ./gradlew monkeyDebug)
 }
 
 upload_to_bintray() {
@@ -199,7 +200,7 @@ publish_distribution() {
     # Test
     check_adb_device
     pushd examples/
-    ./gradlew uninstallAll
+    ./gradlew clean uninstallAll
     ./gradlew monkeyRelease
     popd
     popd
@@ -211,8 +212,14 @@ push_release() {
 
     # Push branch & tag
     git checkout releases
-    git push origin releases
-    git push origin "v${VERSION}"
+     
+     # Don't push to releases branch if we are doing a beta release.
+    if [[ ! "$VERSION" =~ [a-zA-Z] ]] ; then
+        git push origin releases
+        git push origin "v${VERSION}"
+    else
+        echo "Non-final release. Release was not pushed to Github. Remember to remove commits on `releases` branch manually."
+    fi
 }
 
 publish_javadoc() {

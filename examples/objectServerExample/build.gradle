@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 // Credit: http://jeremie-martinez.com/2015/05/05/inject-host-gradle/
@@ -29,7 +28,7 @@ android {
     defaultConfig {
         applicationId 'io.realm.examples.objectserver'
         targetSdkVersion rootProject.sdkVersion
-        minSdkVersion 15
+        minSdkVersion 16
         versionCode 1
         versionName "1.0"
     }
@@ -43,15 +42,13 @@ android {
         def host = getIP()
         debug {
             buildConfigField "String", "OBJECT_SERVER_IP", "\"${host}\""
+            minifyEnabled true
         }
         release {
-            minifyEnabled false
             buildConfigField "String", "OBJECT_SERVER_IP", "\"${host}\""
+            minifyEnabled true
+            signingConfig signingConfigs.debug
         }
-    }
-
-    command {
-        monkey.events 2000
     }
 }
 

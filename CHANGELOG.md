@@ -1,4 +1,151 @@
-## 3.6.0 (YYYY-MM-DD)
+## 4.2.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+### Enhancements
+
+* Added support for using non-encrypted Realms in multiple processes. Some caveats apply. Read [doc](https://realm.io/docs/java/latest/#multiprocess) for more info (#1091).
+
+### Bug Fixes
+
+### Interal
+
+### Credits
+
+
+## 4.1.1 (2017-10-27)
+
+### Bug Fixes
+
+* Fixed the compile warnings of using deprecated method `RealmProxyMediator.getTableName()` in generated mediator classes (#5455).
+* [ObjectServer] now retrying network query when encountering any `IOException` (#5453).
+* Fixed a `NoClassDefFoundError` due to using `@SafeVarargs` below API 19 (#5463).
+
+### Internal
+
+* Updated Realm Sync to 2.1.0
+
+### Credits
+
+
+## 4.1.0 (2017-10-20)
+
+### Enhancements
+
+* `Realm.deleteRealm()` and `RealmConfiguration.assetFile()` are multi-processes safe now.
+
+### Bug Fixes
+
+* Fix some potential database corruption caused by deleting the Realm file while a Realm instance are still opened in another process or the sync client thread.
+* Added `realm.ignoreKotlinNullability` as a kapt argument to disable treating kotlin non-null types as `@Required` (#5412) (introduced in `v3.6.0`).
+* Increased http connect/write timeout for low bandwidth network.
+
+
+## 4.0.0 (2017-10-16)
+
+### Breaking Changes
+
+The internal file format has been upgraded. Opening an older Realm will upgrade the file automatically, but older versions of Realm will no longer be able to read the file.
+
+* [ObjectServer] Updated protocol version to 22 which is only compatible with Realm Object Server >= 2.0.0.
+* [ObjectServer] Removed deprecated APIs `SyncUser.retrieveUser()` and `SyncUser.retrieveUserAsync()`. Use `SyncUser.retrieveInfoForUser()` and `retrieveInfoForUserAsync()` instead.
+* [ObjectServer] `SyncUser.Callback` now accepts a generic parameter indicating type of object returned when `onSuccess` is called.
+* [ObjectServer] Renamed `SyncUser.getAccessToken` to `SyncUser.getRefreshToken`.
+* [ObjectServer] Removed deprecated API `SyncUser.getManagementRealm()`.
+* Calling `distinct()` on a sorted `RealmResults` no longer clears any sorting defined (#3503).
+* Relaxed upper bound of type parameter of `RealmList`, `RealmQuery`, `RealmResults`, `RealmCollection`, `OrderedRealmCollection` and `OrderedRealmCollectionSnapshot`.
+* Realm has upgraded its RxJava1 support to RxJava2 (#3497)
+  * `Realm.asObservable()` has been renamed to `Realm.asFlowable()`.
+  * `RealmList.asObservable()` has been renamed to `RealmList.asFlowable()`.
+  * `RealmResults.asObservable()` has been renamed to `RealmResults.asFlowable()`.
+  * `RealmObject.asObservable()` has been renamed to `RealmObject.asFlowable()`.
+  * `RxObservableFactory` now return RxJava2 types instead of RxJava1 types.
+* Removed deprecated APIs `RealmSchema.close()` and `RealmObjectSchema.close()`. Those don't have to be called anymore.
+* Removed deprecated API `RealmResults.removeChangeListeners()`. Use `RealmResults.removeAllChangeListeners()` instead.
+* Removed deprecated API `RealmObject.removeChangeListeners()`. Use `RealmObject.removeAllChangeListeners()` instead.
+* Removed `UNSUPPORTED_TABLE`, `UNSUPPORTED_MIXED` and `UNSUPPORTED_DATE` from `RealmFieldType`.
+* Removed deprecated API `RealmResults.distinct()`/`RealmResults.distinctAsync()`. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
+* `RealmQuery.createQuery(Realm, Class)`, `RealmQuery.createDynamicQuery(DynamicRealm, String)`, `RealmQuery.createQueryFromResult(RealmResults)` and `RealmQuery.createQueryFromList(RealmList)` have been removed. Use `Realm.where(Class)`, `DynamicRealm.where(String)`, `RealmResults.where()` and `RealmList.where()` instead.
+
+### Enhancements
+
+* [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
+* `RealmList` can now contain `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` values. [Queries](https://github.com/realm/realm-java/issues/5361) and [Importing primitive lists from JSON](https://github.com/realm/realm-java/issues/5361) are not supported yet.
+* Added support for lists of primitives in `RealmObjectSchema` with `addRealmListField(String fieldName, Class<?> primitiveType)`
+* Added support for lists of primitives in `DynamicRealmObject` with `setList(String fieldName, RealmList<?> list)` and `getList(String fieldName, Class<?> primitiveType)`.
+* Minor performance improvement when copy/insert objects into Realm.
+* Added `static RealmObject.getRealm(RealmModel)`, `RealmObject.getRealm()` and `DynamicRealmObject.getDynamicRealm()` (#4720).
+* Added `RealmResults.asChangesetObservable()` that emits the pair `(results, changeset)` (#4277).
+* Added `RealmList.asChangesetObservable()` that emits the pair `(list, changeset)` (#4277).
+* Added `RealmObject.asChangesetObservable()` that emits the pair `(object, changeset)` (#4277).
+* All Realm annotations are now kept at runtime, allowing runtime tools access to them (#5344).
+* Speedup schema initialization when a Realm file is first accessed (#5391).
+
+### Bug Fixes
+
+* [ObjectServer] Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759/#5223).
+* [ObjectServer] Realm no longer throws a native “unsupported instruction” exception in some cases when opening a synced Realm asynchronously (https://github.com/realm/realm-object-store/issues/502).
+* [ObjectServer] Fixed "Cannot open the read only Realm" issue when get`PermissionManager` (#5414).
+* Throw `IllegalArgumentException` instead of `IllegalStateException` when calling string/binary data setters if the data length exceeds the limit.
+* Added support for ISO8601 2-digit time zone designators (#5309).
+* "Bad File Header" caused by the device running out of space while compacting the Realm (#5011).
+* `RealmQuery.equalTo()` failed to find null values on an indexed field if using Case.INSENSITIVE (#5299).
+* Assigning a managed object's own list to itself would accidentally clear it (#5395).
+* Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
+* Removing and re-adding a changelistener from inside a changelistener sometimes caused notifications to be missed (#5411).
+
+### Internal
+
+* Upgraded to Realm Sync 2.0.2.
+* Upgraded to Realm Core 4.0.2.
+* Upgraded to OkHttp 3.9.0.
+* Upgraded to RxJava 2.1.4.
+* Use Object Store to create the primary key table.
+
+### Credits
+
+Thanks to @JussiPekonen for adding support for 2-digit time zone designators when importing JSON (#5309).
+
+
+## 3.7.2 (2017-09-12)
+
+### Bug Fixes
+
+* Fixed a JNI memory issue when doing queries which might potentially cause various native crashes.
+* Fixed a bug that `RealmList.deleteFromRealm(int)`, `RealmList.deleteFirstFromRealm()` and `RealmList.deleteLastFromRealm()` did not remove target objects from Realm. This bug was introduced in `3.7.1` (#5233).
+* Crash with "'xxx' doesn't exist in current schema." when ProGuard is enabled (#5211).
+
+
+## 3.7.1 (2017-09-07)
+
+### Bug Fixes
+
+* Fixed potential memory leaks of `LinkView` when calling bulk insertions APIs.
+* Fixed possible assertion when using `PermissionManager` at the beginning (#5195).
+* Crash caused by JNI couldn't find `SharedRealm`'s inner classes when ProGuard is enabled (#5211).
+
+### Internal
+
+* Replaced LinkView with Object Store's List.
+* Renaming `io.realm.internal.CollectionChangeSet` to `io.realm.internal.OsCollectionChangeSet`.
+
+
+## 3.7.0 (2017-09-01)
+
+### Deprecated
+
+* [ObjectServer] `SyncUser.getManagementRealm()`. Use `SyncUser.getPermissionManager()` instead.
+
+### Enhancements
+
+* [ObjectServer] `SyncUser.getPermissionManager` added as a helper API for working with permissions and permission offers.
+
+### Internal
+
+* [ObjectServer] Upgraded OkHttp to 3.7.0.
+
+
+## 3.6.0 (2017-09-01)
 
 ### Breaking Changes
 
@@ -24,24 +171,19 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 
 ### Bug Fixes
 
+* Potential crash after using `Realm.getSchema()` to change the schema of a typed Realm. `Realm.getSchema()` now returns an immutable `RealmSchema` instance.
+* `Realm.copyToRealmOrUpdate()` could cause a `RealmList` field to contain duplicated elements (#4957).
+* `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
+* Workaround for an Android JVM crash when using `compactOnLaunch()` (#4964).
+* Class name in exception message from link query is wrong (#5096).
+* The `compactOnLaunch` callback is no longer invoked if the Realm at that path is already open on other threads.
+
 ### Internal
 
 * [ObjectServer] removed `ObjectServerUser` and its inner classes, in a step to reduce `SyncUser` complexity (#3741).
 * [ObjectServer] changed the `SyncSessionStopPolicy` to `AfterChangesUploaded` to align with other binding and to prevent use cases where the Realm might be deleted before the last changes get synchronized (#5028).
 * Upgraded Realm Sync to 1.10.8
 * Let Object Store handle migration.
-
-## 3.5.1 (YYYY-MM-DD)
-
-### Bug Fixes
-
-* Potential crash after using `Realm.getSchema()` to change the schema of a typed Realm. `Realm.getSchema()` now returns an immutable `RealmSchema` instance.
-* `Realm.copyToRealmOrUpdate()` might cause a `RealmList` field to contain duplicated elements (#4957).
-* `RealmSchema.create(String)` and `RealmObjectSchema.setClassName(String)` did not accept class name whose length was 51 to 57.
-* Workaround for an Android JVM crash when using `compactOnLaunch()` (#4964).
-* Class name in exception message from link query is wrong (#5096).
-
-### Internal
 
 
 ## 3.5.0 (2017-07-11)
@@ -159,6 +301,7 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 ### Enhancements
 
 * [ObjectServer] Added support for `SyncUser.isAdmin()` (#4353).
+* [ObjectServer] New set of Permission API's have been added to `SyncUser` through `SyncUser.getPermissionManager()` (#4296).
 * [ObjectServer] Added support for changing passwords through `SyncUser.changePassword()` (#4423).
 * [ObjectServer] Added support for `SyncConfiguration.Builder.waitForInitialRemoteData()` (#4270).
 * Transient fields are now allowed in model classes, but are implicitly treated as having the `@Ignore` annotation (#4279).

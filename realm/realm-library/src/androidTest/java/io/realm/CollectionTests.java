@@ -84,7 +84,7 @@ public abstract class CollectionTests {
     protected void populateRealm(Realm realm, int objects) {
         realm.beginTransaction();
         realm.delete(AllJavaTypes.class);
-        realm.delete(NonLatinFieldNames.class);
+         realm.delete(NonLatinFieldNames.class);
         if (objects > 0) {
             for (int i = 0; i < objects; i++) {
                 AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i);
@@ -238,5 +238,9 @@ public abstract class CollectionTests {
     boolean isSnapshot(CollectionClass collectionClass) {
         return collectionClass == CollectionClass.REALMRESULTS_SNAPSHOT_LIST_BASE ||
                 collectionClass == CollectionClass.REALMRESULTS_SNAPSHOT_RESULTS_BASE;
+    }
+
+    boolean isRealmList(ManagedCollection collectionClass) {
+        return collectionClass == ManagedCollection.MANAGED_REALMLIST;
     }
 }

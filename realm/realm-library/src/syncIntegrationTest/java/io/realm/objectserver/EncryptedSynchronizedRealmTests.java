@@ -7,14 +7,12 @@ import org.junit.Test;
 import org.junit.rules.Timeout;
 
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.realm.BaseIntegrationTest;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmResults;
+import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncManager;
@@ -22,17 +20,17 @@ import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmFileException;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
+public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
 
     @Rule
     public Timeout globalTimeout = Timeout.seconds(10);
@@ -72,11 +70,12 @@ public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
         user.logout();
-        Realm.deleteRealm(configWithEncryption);
 
-        // STEP 3: try to open again the Realm without the encryption key should not fail
+        // STEP 3: try to open again the same sync Realm but different local name without the encryption key should not
+        // fail
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         SyncConfiguration configWithoutEncryption = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .name("newName")
                 .modules(new StringOnlyModule())
                 .waitForInitialRemoteData()
                 .errorHandler(new SyncSession.ErrorHandler() {
@@ -128,19 +127,6 @@ public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
         // STEP 2: make sure the changes gets to the server
         SyncManager.getSession(configWithEncryption).uploadAllLocalChanges();
 
-        final CountDownLatch backgroundException = new CountDownLatch(1);
-        final AtomicBoolean exceptionThrown = new AtomicBoolean(false);
-
-        Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(Thread t, Throwable e) {
-                if (e instanceof RealmError && e.getMessage().contains("An exception has been thrown on the sync client thread")) {
-                    exceptionThrown.set(true);
-                }
-                backgroundException.countDown();
-            }
-        });
         realm.close();
         user.logout();
 
@@ -161,12 +147,11 @@ public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
             realm = Realm.getInstance(configWithoutEncryption);
             fail("It should not be possible to open the Realm without the encryption key set previously.");
         } catch (RealmFileException ignored) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
         }
-
-        TestHelper.awaitOrFail(backgroundException);
-        // restore default handler
-        Thread.setDefaultUncaughtExceptionHandler(defaultUncaughtExceptionHandler);
-        assertTrue("Sync Client Thread should throw an exception", exceptionThrown.get());
     }
 
     // If client B encrypts its synced Realm, client A should be able to access that Realm with a different encryption key.
@@ -204,7 +189,7 @@ public class EncryptedSynchronizedRealmTests extends BaseIntegrationTest {
 
         // STEP 3: prepare a synced Realm for client B (admin user)
         SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
-        SyncCredentials credentials = SyncCredentials.accessToken(admin.getAccessToken().value(), "custom-admin-user");
+        SyncCredentials credentials = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
         SyncUser adminUser = SyncUser.login(credentials, Constants.AUTH_URL);
 
         final byte[] adminRandomKey = TestHelper.getRandomKey();

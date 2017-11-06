@@ -16,13 +16,28 @@
 
 package io.realm.objectserver.utils;
 
-import java.util.UUID;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.SystemClock;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import io.realm.AuthenticationListener;
+import io.realm.ErrorCode;
+import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.SyncCredentials;
+import io.realm.SyncManager;
 import io.realm.SyncUser;
+import io.realm.TestHelper;
 import io.realm.log.RealmLog;
+
+import static org.junit.Assert.fail;
+
 
 // Helper class to retrieve users with same IDs even in multi-processes.
 // Must be in `io.realm.objectserver` to work around package protected methods.
@@ -46,11 +61,27 @@ public class UserFactory {
         return SyncUser.login(credentials, authUrl);
     }
 
+    /**
+     * Create a unique user, using the standard authentification URL used by the test server.
+     */
+    public static SyncUser createUniqueUser() {
+        return createUniqueUser(Constants.AUTH_URL);
+    }
+
+    public static SyncUser createUser(String username) {
+        return createUser(username, Constants.AUTH_URL);
+    }
+
     public static SyncUser createUniqueUser(String authUrl) {
         String uniqueName = UUID.randomUUID().toString();
-        SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, PASSWORD, true);
+        return createUser(uniqueName);
+    }
+
+    private static SyncUser createUser(String username, String authUrl) {
+        SyncCredentials credentials = SyncCredentials.usernamePassword(username, PASSWORD, true);
         return SyncUser.login(credentials, authUrl);
     }
+
 
     public SyncUser createDefaultUser(String authUrl) {
         SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, true);
@@ -59,7 +90,8 @@ public class UserFactory {
 
     public static SyncUser createAdminUser(String authUrl) {
         // `admin` required as user identifier to be granted admin rights.
-        SyncCredentials credentials = SyncCredentials.custom("admin", "debug", null);
+        // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
+        SyncCredentials credentials = SyncCredentials.usernamePassword("realm-admin", "", false);
         return SyncUser.login(credentials, authUrl);
     }
 
@@ -100,5 +132,28 @@ public class UserFactory {
         }
         RealmLog.debug("UserFactory.getInstance, the default user is " + instance.userName + " .");
         return instance;
+    }
+
+    /**
+     * Blocking call that logs out all users
+     */
+    public static void logoutAllUsers() {
+        final CountDownLatch allUsersLoggedOut = new CountDownLatch(1);
+        final HandlerThread ht = new HandlerThread("LoggingOutUsersThread");
+        ht.start();
+        Handler handler = new Handler(ht.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Map<String, SyncUser> users = SyncUser.all();
+                for (SyncUser user : users.values()) {
+                    user.logout();
+                }
+                allUsersLoggedOut.countDown();
+
+            }
+        });
+        TestHelper.awaitOrFail(allUsersLoggedOut);
+        ht.quit();
     }
 }

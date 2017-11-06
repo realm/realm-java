@@ -16,6 +16,11 @@
 
 package io.realm;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
+import android.test.MoreAsserts;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -24,15 +29,13 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.MoreAsserts;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnimalModule;
 import io.realm.entities.AssetFileModule;
@@ -49,9 +52,10 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
 import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.rx.CollectionChange;
+import io.realm.rx.ObjectChange;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
-import rx.Observable;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -701,52 +705,82 @@ public class RealmConfigurationTests {
     public void rxFactory() {
         final RxObservableFactory dummyFactory = new RxObservableFactory() {
             @Override
-            public Observable<Realm> from(Realm realm) {
+            public Flowable<Realm> from(Realm realm) {
                 return null;
             }
 
             @Override
-            public Observable<DynamicRealm> from(DynamicRealm realm) {
+            public Flowable<DynamicRealm> from(DynamicRealm realm) {
                 return null;
             }
 
             @Override
-            public <E extends RealmModel> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
+            public <E> Flowable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
                 return null;
             }
 
             @Override
-            public Observable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
+            public <E> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(Realm realm, RealmResults<E> results) {
                 return null;
             }
 
             @Override
-            public <E extends RealmModel> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
+            public <E> Flowable<RealmResults<E>> from(DynamicRealm realm, RealmResults<E> results) {
                 return null;
             }
 
             @Override
-            public Observable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
+            public <E> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(DynamicRealm realm, RealmResults<E> results) {
                 return null;
             }
 
             @Override
-            public <E extends RealmModel> Observable<E> from(Realm realm, E object) {
+            public <E> Flowable<RealmList<E>> from(Realm realm, RealmList<E> list) {
                 return null;
             }
 
             @Override
-            public Observable<DynamicRealmObject> from(DynamicRealm realm, DynamicRealmObject object) {
+            public <E> Observable<CollectionChange<RealmList<E>>> changesetsFrom(Realm realm, RealmList<E> list) {
                 return null;
             }
 
             @Override
-            public <E extends RealmModel> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
+            public <E> Flowable<RealmList<E>> from(DynamicRealm realm, RealmList<E> list) {
                 return null;
             }
 
             @Override
-            public Observable<RealmQuery<DynamicRealmObject>> from(DynamicRealm realm, RealmQuery<DynamicRealmObject> query) {
+            public <E> Observable<CollectionChange<RealmList<E>>> changesetsFrom(DynamicRealm realm, RealmList<E> list) {
+                return null;
+            }
+
+            @Override
+            public <E extends RealmModel> Flowable<E> from(Realm realm, E object) {
+                return null;
+            }
+
+            @Override
+            public <E extends RealmModel> Observable<ObjectChange<E>> changesetsFrom(Realm realm, E object) {
+                return null;
+            }
+
+            @Override
+            public Flowable<DynamicRealmObject> from(DynamicRealm realm, DynamicRealmObject object) {
+                return null;
+            }
+
+            @Override
+            public Observable<ObjectChange<DynamicRealmObject>> changesetsFrom(DynamicRealm realm, DynamicRealmObject object) {
+                return null;
+            }
+
+            @Override
+            public <E> Single<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
+                return null;
+            }
+
+            @Override
+            public <E> Single<RealmQuery<E>> from(DynamicRealm realm, RealmQuery<E> query) {
                 return null;
             }
         };

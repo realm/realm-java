@@ -16,7 +16,8 @@
 
 package io.realm;
 
-import java.net.ConnectException;
+
+import java.io.IOException;
 
 /**
  * This class enumerate all potential errors related to using the Object Server or synchronizing data.
@@ -25,12 +26,13 @@ public enum ErrorCode {
 
     // See Client::Error in https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp
     // See https://github.com/realm/realm-object-server/blob/master/object-server/doc/problems.md
+    // See https://github.com/realm/realm-sync/blob/develop/src/realm/sync/protocol.hpp
 
     // Realm Java errors (0-49)
     UNKNOWN(-1),                                // Catch-all
     IO_EXCEPTION(0, Category.RECOVERABLE),      // Some IO error while either contacting the server or reading the response
     JSON_EXCEPTION(1),                          // JSON input could not be parsed correctly
-    CLIENT_RESET(7),                            // Client Reset required. Don't change this value without modifying io_realm_internal_SharedRealm.cpp
+    CLIENT_RESET(7),                            // Client Reset required. Don't change this value without modifying io_realm_internal_OsSharedRealm.cpp
 
     // Realm Object Server errors (100 - 199)
     // Connection level and protocol errors.
@@ -51,8 +53,8 @@ public enum ErrorCode {
     BAD_ERROR_CODE(114),             // Bad error code (ERROR)
     BAD_COMPRESSION(115),            // Bad compression (DOWNLOAD)
     BAD_CLIENT_VERSION_DOWNLOAD(116),// Bad last integrated client version in changeset header (DOWNLOAD)
-    SSL_SERVER_CERT_REJECTED(117),//  SSL server certificate rejected
-    PONG_TIMEOUT(118),//  SSL server certificate rejected
+    SSL_SERVER_CERT_REJECTED(117),   // SSL server certificate rejected
+    PONG_TIMEOUT(118),               // Timeout on reception of PONG response messsage
 
     // Session level errors (200 - 299)
     SESSION_CLOSED(200, Category.RECOVERABLE),      // Session closed (no error)
@@ -73,6 +75,7 @@ public enum ErrorCode {
     DIVERGING_HISTORIES(211),                       // Diverging histories (IDENT)
     BAD_CHANGESET(212),                             // Bad changeset (UPLOAD)
     DISABLED_SESSION(213),                          // Disabled session
+    PARTIAL_SYNC_DISABLED(214),                     // Partial sync disabled (BIND)
 
     // 300 - 599 Reserved for Standard HTTP error codes
     MULTIPLE_CHOICES(300),
@@ -198,8 +201,12 @@ public enum ErrorCode {
      * @return mapped {@link ErrorCode}.
      */
     public static ErrorCode fromException(Exception exception) {
-        // ConnectException is recoverable (with exponential backoff)
-        return (exception instanceof ConnectException) ? ErrorCode.IO_EXCEPTION : ErrorCode.UNKNOWN;
+        // IOException are recoverable (with exponential backoff)
+        if (exception instanceof IOException) {
+            return ErrorCode.IO_EXCEPTION;
+        } else {
+            return ErrorCode.UNKNOWN;
+        }
     }
 
     public enum Category {

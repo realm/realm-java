@@ -24,8 +24,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import io.realm.annotations.Required;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObject;
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -45,23 +49,23 @@ public abstract class RealmObjectSchema {
 
     static {
         Map<Class<?>, FieldMetaData> m = new HashMap<>();
-        m.put(String.class, new FieldMetaData(RealmFieldType.STRING, true));
-        m.put(short.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        m.put(Short.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        m.put(int.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        m.put(Integer.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        m.put(long.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        m.put(Long.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        m.put(float.class, new FieldMetaData(RealmFieldType.FLOAT, false));
-        m.put(Float.class, new FieldMetaData(RealmFieldType.FLOAT, true));
-        m.put(double.class, new FieldMetaData(RealmFieldType.DOUBLE, false));
-        m.put(Double.class, new FieldMetaData(RealmFieldType.DOUBLE, true));
-        m.put(boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, false));
-        m.put(Boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, true));
-        m.put(byte.class, new FieldMetaData(RealmFieldType.INTEGER, false));
-        m.put(Byte.class, new FieldMetaData(RealmFieldType.INTEGER, true));
-        m.put(byte[].class, new FieldMetaData(RealmFieldType.BINARY, true));
-        m.put(Date.class, new FieldMetaData(RealmFieldType.DATE, true));
+        m.put(String.class, new FieldMetaData(RealmFieldType.STRING, RealmFieldType.STRING_LIST, true));
+        m.put(short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        m.put(Short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        m.put(int.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        m.put(Integer.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        m.put(long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        m.put(Long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        m.put(float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.FLOAT_LIST, false));
+        m.put(Float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.FLOAT_LIST, true));
+        m.put(double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE_LIST, false));
+        m.put(Double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE_LIST, true));
+        m.put(boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN_LIST, false));
+        m.put(Boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN_LIST, true));
+        m.put(byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        m.put(Byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        m.put(byte[].class, new FieldMetaData(RealmFieldType.BINARY, RealmFieldType.BINARY_LIST, true));
+        m.put(Date.class, new FieldMetaData(RealmFieldType.DATE, RealmFieldType.DATE_LIST, true));
         SUPPORTED_SIMPLE_FIELDS = Collections.unmodifiableMap(m);
     }
 
@@ -69,8 +73,8 @@ public abstract class RealmObjectSchema {
 
     static {
         Map<Class<?>, FieldMetaData> m = new HashMap<>();
-        m.put(RealmObject.class, new FieldMetaData(RealmFieldType.OBJECT, false));
-        m.put(RealmList.class, new FieldMetaData(RealmFieldType.LIST, false));
+        m.put(RealmObject.class, new FieldMetaData(RealmFieldType.OBJECT, null, false));
+        m.put(RealmList.class, new FieldMetaData(RealmFieldType.LIST, null, false));
         SUPPORTED_LINKED_FIELDS = Collections.unmodifiableMap(m);
     }
 
@@ -91,13 +95,6 @@ public abstract class RealmObjectSchema {
         this.realm = realm;
         this.table = table;
         this.columnInfo = columnInfo;
-    }
-
-    /**
-     * @deprecated {@link RealmObjectSchema} doesn't have to be released manually.
-     */
-    @Deprecated
-    public void close() {
     }
 
     /**
@@ -156,7 +153,9 @@ public abstract class RealmObjectSchema {
     public abstract RealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema);
 
     /**
-     * Adds a new field that references a {@link RealmList}.
+     * Adds a new field that contains a {@link RealmList} with references to other Realm model classes.
+     * <p>
+     * If the list contains primitive types, use {@link #addRealmListField(String, Class)} instead.
      *
      * @param fieldName name of the field to add.
      * @param objectSchema schema for the Realm type being referenced.
@@ -165,6 +164,34 @@ public abstract class RealmObjectSchema {
      * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
     public abstract RealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema);
+
+    /**
+     * Adds a new field that references a {@link RealmList} with primitive values. See {@link RealmObject} for the
+     * list of supported types.
+     * <p>
+     * Nullability of elements are defined by using the correct class e.g., {@code Integer.class} instead of
+     * {@code int.class}. Alternatively {@link #setRequired(String, boolean)} can be used.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     * // Defines the list of Strings as being non null.
+     * RealmObjectSchema schema = schema.create("Person")
+     *     .addRealmListField("children", String.class)
+     *     .setRequired("children", true)
+     * }
+     * </pre>
+     * If the list contains references to other Realm classes, use
+     * {@link #addRealmListField(String, RealmObjectSchema)} instead.
+     *
+     * @param fieldName name of the field to add.
+     * @param primitiveType simple type of elements in the array.
+     * @return the updated schema.
+     * @throws IllegalArgumentException if the field name is illegal, a field with that name already exists or
+     * the element type isn't supported.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     */
+    public abstract RealmObjectSchema addRealmListField(String fieldName, Class<?> primitiveType);
 
     /**
      * Removes a field from the class.
@@ -242,7 +269,7 @@ public abstract class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or this method is called on a synced Realm.
      */
     public abstract RealmObjectSchema addPrimaryKey(String fieldName);
 
@@ -260,6 +287,9 @@ public abstract class RealmObjectSchema {
     /**
      * Sets a field to be required i.e., it is not allowed to hold {@code null} values. This is equivalent to switching
      * between boxed types and their primitive variant e.g., {@code Integer} to {@code int}.
+     * <p>
+     * If the type of designated field is a list of values (not {@link RealmObject}s , specified nullability
+     * only affects its elements, not the field itself. Value list itself is always non-nullable.
      *
      * @param fieldName name of field in the class.
      * @param required {@code true} if field should be required, {@code false} otherwise.
@@ -274,6 +304,9 @@ public abstract class RealmObjectSchema {
     /**
      * Sets a field to be nullable i.e., it should be able to hold {@code null} values. This is equivalent to switching
      * between primitive types and their boxed variant e.g., {@code int} to {@code Integer}.
+     * <p>
+     * If the type of designated field is a list of values (not {@link RealmObject}s , specified nullability
+     * only affects its elements, not the field itself. Value list itself is always non-nullable.
      *
      * @param fieldName name of field in the class.
      * @param nullable {@code true} if field should be nullable, {@code false} otherwise.
@@ -318,8 +351,8 @@ public abstract class RealmObjectSchema {
      * @see #addPrimaryKey(String)
      */
     public boolean isPrimaryKey(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        return columnIndex == table.getPrimaryKey();
+        checkFieldExists(fieldName);
+        return fieldName.equals(OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, getClassName()));
     }
 
     /**
@@ -329,7 +362,7 @@ public abstract class RealmObjectSchema {
      * @see io.realm.annotations.PrimaryKey
      */
     public boolean hasPrimaryKey() {
-        return table.hasPrimaryKey();
+        return OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, getClassName()) != null;
     }
 
     /**
@@ -339,10 +372,11 @@ public abstract class RealmObjectSchema {
      * @throws IllegalStateException if the class doesn't have a primary key defined.
      */
     public String getPrimaryKey() {
-        if (!table.hasPrimaryKey()) {
+        String pkField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, getClassName());
+        if (pkField == null) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
         }
-        return table.getColumnName(table.getPrimaryKey());
+        return pkField;
     }
 
     /**
@@ -354,7 +388,10 @@ public abstract class RealmObjectSchema {
         int columnCount = (int) table.getColumnCount();
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
         for (int i = 0; i < columnCount; i++) {
-            columnNames.add(table.getColumnName(i));
+            String name = table.getColumnName(i);
+            if (!OsObject.isObjectIdColumn(name)) {
+                columnNames.add(name);
+            }
         }
         return columnNames;
     }
@@ -396,7 +433,9 @@ public abstract class RealmObjectSchema {
 
         if (indexed) { table.addSearchIndex(columnIndex); }
 
-        if (primary) { table.setPrimaryKey(name); }
+        if (primary) {
+            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, getClassName(), name);
+        }
 
         return this;
     }
@@ -419,6 +458,10 @@ public abstract class RealmObjectSchema {
 
     Table getTable() {
         return table;
+    }
+
+    static final Map<Class<?>, FieldMetaData> getSupportedSimpleFields() {
+        return SUPPORTED_SIMPLE_FIELDS;
     }
 
     private SchemaConnector getSchemaConnector() {
@@ -446,13 +489,16 @@ public abstract class RealmObjectSchema {
         return columnInfo.getColumnIndex(fieldName);
     }
 
-    void checkLegalName(String fieldName) {
+    static void checkLegalName(String fieldName) {
         //noinspection ConstantConditions
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Field name can not be null or empty");
         }
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Field name can not contain '.'");
+        }
+        if (fieldName.length() > 63) {
+            throw new IllegalArgumentException("Field name is currently limited to max 63 characters.");
         }
     }
 
@@ -511,11 +557,13 @@ public abstract class RealmObjectSchema {
 
     // Tuple containing data about each supported Java type.
     static final class FieldMetaData {
-        final RealmFieldType realmType;
+        final RealmFieldType fieldType; // Underlying Realm type for fields with this type
+        final RealmFieldType listType; // Underlying Realm type for RealmLists containing this type
         final boolean defaultNullable;
 
-        FieldMetaData(RealmFieldType realmType, boolean defaultNullable) {
-            this.realmType = realmType;
+        FieldMetaData(RealmFieldType fieldType, @Nullable RealmFieldType listType, boolean defaultNullable) {
+            this.fieldType = fieldType;
+            this.listType = listType;
             this.defaultNullable = defaultNullable;
         }
     }
