@@ -1,5 +1,9 @@
 FROM node:6.11.4
 
+# set timezone to Copenhagen (by default it's using UTC) to match Android's device time.
+RUN cp /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
+RUN echo "Europe/Copenhagen" >  /etc/timezone
+
 ARG ROS_DE_VERSION
 
 # Install realm object server
