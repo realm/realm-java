@@ -44,8 +44,8 @@ android {
     buildToolsVersion rootProject.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 9
-        targetSdkVersion 25
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.compileSdkVersion
         versionName version
         project.archivesBaseName = "realm-android-library"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
