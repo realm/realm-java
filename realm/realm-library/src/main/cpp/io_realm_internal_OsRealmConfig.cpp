@@ -61,7 +61,7 @@ static void finalize_realm_config(jlong ptr)
 
 static JavaClass& get_shared_realm_class(JNIEnv* env)
 {
-    static JavaClass shared_realm_class(env, "io/realm/internal/SharedRealm");
+    static JavaClass shared_realm_class(env, "io/realm/internal/OsSharedRealm");
     return shared_realm_class;
 }
 
@@ -133,7 +133,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
         if (j_migration_callback) {
             static JavaMethod run_migration_callback_method(
                 env, get_shared_realm_class(env), "runMigrationCallback",
-                "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/SharedRealm$MigrationCallback;J)V", true);
+                "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/OsSharedRealm$MigrationCallback;J)V", true);
             // weak ref to avoid leaks caused by circular refs.
             JavaGlobalWeakRef j_config_weak(env, j_config);
             JavaGlobalWeakRef j_migration_cb_weak(env, j_migration_callback);
@@ -142,7 +142,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
             config.migration_function = [j_migration_cb_weak, j_config_weak](SharedRealm old_realm,
                                                                                  SharedRealm realm, Schema&) {
                 JNIEnv* env = JniUtils::get_env(false);
-                // Java needs a new pointer for the SharedRealm life control.
+                // Java needs a new pointer for the OsSharedRealm life control.
                 SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
                 JavaGlobalRef config_global = j_config_weak.global_ref(env);
                 if (!config_global) {
@@ -154,7 +154,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
                                               reinterpret_cast<jlong>(new_shared_realm_ptr), config_global.get(), obj,
                                               old_realm->schema_version());
                 });
-                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env);
+                // Close the OsSharedRealm. Otherwise it will only be closed when the Java OsSharedRealm gets GCed. And
+                // that will be too late.
+                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(
+                    env, [&new_shared_realm_ptr]() { (*new_shared_realm_ptr)->close(); });
             };
         }
         else {
@@ -185,7 +188,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetCompactOnLa
                     result = env->CallBooleanMethod(obj, should_compact, static_cast<jlong>(totalBytes),
                                                     static_cast<jlong>(usedBytes));
                 });
-                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env);
+                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
                 return result;
             };
         }
@@ -209,13 +212,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
         if (j_init_callback) {
             static JavaMethod run_initialization_callback_method(
                 env, get_shared_realm_class(env), "runInitializationCallback",
-                "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/SharedRealm$InitializationCallback;)V", true);
+                "(JLio/realm/internal/OsRealmConfig;Lio/realm/internal/OsSharedRealm$InitializationCallback;)V", true);
             // weak ref to avoid leaks caused by circular refs.
             JavaGlobalWeakRef j_init_cb_weak(env, j_init_callback);
             JavaGlobalWeakRef j_config_weak(env, j_config);
             config.initialization_function = [j_init_cb_weak, j_config_weak](SharedRealm realm) {
                 JNIEnv* env = JniUtils::get_env(false);
-                // Java needs a new pointer for the SharedRealm life control.
+                // Java needs a new pointer for the OsSharedRealm life control.
                 SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
                 JavaGlobalRef config_global_ref = j_config_weak.global_ref(env);
                 if (!config_global_ref) {
@@ -226,7 +229,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
                                               reinterpret_cast<jlong>(new_shared_realm_ptr), config_global_ref.get(),
                                               obj);
                 });
-                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env);
+                // Close the OsSharedRealm. Otherwise it will only be closed when the Java OsSharedRealm gets GCed. And
+                // that will be too late.
+                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(
+                    env, [&new_shared_realm_ptr]() { (*new_shared_realm_ptr)->close(); });
             };
         }
         else {
@@ -247,9 +253,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 }
 
 #if REALM_ENABLE_SYNC
-JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
+JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
     JNIEnv* env, jclass, jlong native_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
-    jstring j_reresh_token)
+    jstring j_refresh_token, jboolean j_is_partial, jbyte j_session_stop_policy)
 {
     TR_ENTER_PTR(native_ptr)
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
@@ -299,7 +305,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSy
             if (access_token_string) {
                 // reusing cached valid token
                 JStringAccessor access_token(env, access_token_string);
-                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));
+                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url()));
             }
         };
 
@@ -310,22 +316,30 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSy
         std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(sync_user_identifier);
         if (!user) {
             JStringAccessor realm_auth_url(env, j_auth_url);
-            JStringAccessor refresh_token(env, j_reresh_token);
+            JStringAccessor refresh_token(env, j_refresh_token);
             user = SyncManager::shared().get_user(sync_user_identifier, refresh_token);
         }
 
-        util::Optional<std::array<char, 64>> sync_encryption_key(util::none);
-        if (!config.encryption_key.empty()) {
-            sync_encryption_key = std::array<char, 64>();
-            std::copy_n(config.encryption_key.begin(), 64, sync_encryption_key->begin());
-        }
+
+
+        SyncSessionStopPolicy session_stop_policy = static_cast<SyncSessionStopPolicy>(j_session_stop_policy);
 
         JStringAccessor realm_url(env, j_sync_realm_url);
-        config.sync_config = std::make_shared<SyncConfig>(SyncConfig{
-            user, realm_url, SyncSessionStopPolicy::AfterChangesUploaded, std::move(bind_handler), std::move(error_handler),
-            nullptr, sync_encryption_key});
+        config.sync_config = std::make_shared<SyncConfig>(SyncConfig{user, realm_url});
+        config.sync_config->stop_policy = session_stop_policy;
+        config.sync_config->bind_session_handler = std::move(bind_handler);
+        config.sync_config->error_handler = std::move(error_handler);
+        config.sync_config->is_partial = (j_is_partial == JNI_TRUE);
+        if (!config.encryption_key.empty()) {
+            config.sync_config->realm_encryption_key = std::array<char, 64>();
+            std::copy_n(config.encryption_key.begin(), 64, config.sync_config->realm_encryption_key->begin());
+        }
+
+        return to_jstring(env, config.sync_config->realm_url().c_str());
+
     }
     CATCH_STD()
+    return nullptr;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigSslSettings(

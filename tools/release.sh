@@ -165,7 +165,7 @@ build() {
     check_adb_device
 
     # Verify examples
-    (cd examples && ./gradlew uninstallAll && ./gradlew monkeyDebug)
+    (cd examples && ./gradlew clean uninstallAll && ./gradlew monkeyDebug)
 }
 
 upload_to_bintray() {
@@ -200,7 +200,7 @@ publish_distribution() {
     # Test
     check_adb_device
     pushd examples/
-    ./gradlew uninstallAll
+    ./gradlew clean uninstallAll
     ./gradlew monkeyRelease
     popd
     popd
@@ -212,8 +212,14 @@ push_release() {
 
     # Push branch & tag
     git checkout releases
-    git push origin releases
-    git push origin "v${VERSION}"
+     
+     # Don't push to releases branch if we are doing a beta release.
+    if [[ ! "$VERSION" =~ [a-zA-Z] ]] ; then
+        git push origin releases
+        git push origin "v${VERSION}"
+    else
+        echo "Non-final release. Release was not pushed to Github. Remember to remove commits on `releases` branch manually."
+    fi
 }
 
 publish_javadoc() {

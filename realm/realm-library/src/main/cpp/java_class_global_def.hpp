@@ -26,6 +26,9 @@
 #include <realm/util/assert.hpp>
 
 namespace realm {
+
+class BinaryData;
+
 namespace _impl {
 
 // Manage a global static jclass pool which will be initialized when JNI_OnLoad() called.
@@ -46,7 +49,8 @@ private:
         , m_java_lang_double(env, "java/lang/Double", false)
         , m_java_util_date(env, "java/util/Date", false)
         , m_java_lang_string(env, "java/lang/String", false)
-        , m_shared_realm_schema_change_callback(env, "io/realm/internal/SharedRealm$SchemaChangedCallback", false)
+        , m_java_lang_boolean(env, "java/lang/Boolean", false)
+        , m_shared_realm_schema_change_callback(env, "io/realm/internal/OsSharedRealm$SchemaChangedCallback", false)
         , m_realm_notifier(env, "io/realm/internal/RealmNotifier", false)
     {
     }
@@ -56,6 +60,7 @@ private:
     jni_util::JavaClass m_java_lang_double;
     jni_util::JavaClass m_java_util_date;
     jni_util::JavaClass m_java_lang_string;
+    jni_util::JavaClass m_java_lang_boolean;
 
     jni_util::JavaClass m_shared_realm_schema_change_callback;
     jni_util::JavaClass m_realm_notifier;
@@ -113,9 +118,24 @@ public:
         return instance()->m_java_lang_double;
     }
 
+    // java.lang.Boolean
+    inline static jobject new_boolean(JNIEnv* env, bool value)
+    {
+        static jni_util::JavaMethod init(env, instance()->m_java_lang_boolean, "<init>", "(Z)V");
+        return env->NewObject(instance()->m_java_lang_boolean, init, value ? JNI_TRUE : JNI_FALSE);
+    }
+    inline static const jni_util::JavaClass& java_lang_boolean()
+    {
+        return instance()->m_java_lang_boolean;
+    }
+
     // java.util.Date
+    // return nullptr if ts is null
     inline static jobject new_date(JNIEnv* env, const realm::Timestamp& ts)
     {
+        if (ts.is_null()) {
+            return nullptr;
+        }
         static jni_util::JavaMethod init(env, instance()->m_java_util_date, "<init>", "(J)V");
         return env->NewObject(instance()->m_java_util_date, init, to_milliseconds(ts));
     }
@@ -130,7 +150,11 @@ public:
         return instance()->m_java_lang_string;
     }
 
-    // io.realm.internal.SharedRealm.SchemaChangedCallback
+    // byte[]
+    // return nullptr if binary_data is null
+    static jbyteArray new_byte_array(JNIEnv* env, const BinaryData& binary_data);
+
+    // io.realm.internal.OsSharedRealm.SchemaChangedCallback
     inline static const jni_util::JavaClass& shared_realm_schema_change_callback()
     {
         return instance()->m_shared_realm_schema_change_callback;

@@ -25,7 +25,7 @@
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
-#include "io_realm_internal_SharedRealm.h"
+#include "io_realm_internal_OsSharedRealm.h"
 #include "shared_realm.hpp"
 #include "results.hpp"
 #include "list.hpp"
@@ -110,7 +110,15 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ThrowException(env, IllegalState, ss.str());
     }
     catch (realm::LogicError e) {
-        ThrowException(env, IllegalState, e.what());
+        ExceptionKind kind;
+        if (e.kind() == LogicError::string_too_big || e.kind() == LogicError::binary_too_big ||
+            e.kind() == LogicError::column_not_nullable) {
+            kind = IllegalArgument;
+        }
+        else {
+            kind = IllegalState;
+        }
+        ThrowException(env, kind, e.what());
     }
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
@@ -205,25 +213,25 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
     jbyte kind_code = -1; // To suppress compile warning.
     switch (kind) {
         case realm::RealmFileException::Kind::AccessError:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_ACCESS_ERROR;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_ACCESS_ERROR;
             break;
         case realm::RealmFileException::Kind::BadHistoryError:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_BAD_HISTORY;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_BAD_HISTORY;
             break;
         case realm::RealmFileException::Kind::PermissionDenied:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_PERMISSION_DENIED;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_PERMISSION_DENIED;
             break;
         case realm::RealmFileException::Kind::Exists:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_EXISTS;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_EXISTS;
             break;
         case realm::RealmFileException::Kind::NotFound:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_NOT_FOUND;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_NOT_FOUND;
             break;
         case realm::RealmFileException::Kind::IncompatibleLockFile:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE;
             break;
         case realm::RealmFileException::Kind::FormatUpgradeRequired:
-            kind_code = io_realm_internal_SharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
+            kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
             break;
         case realm::RealmFileException::Kind::IncompatibleSyncedRealm:
 #if REALM_ENABLE_SYNC
@@ -254,23 +262,6 @@ void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx)
        << "' to null.";
     ThrowException(env, IllegalArgument, ss.str());
 }
-
-bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& bin)
-{
-    const char* data = static_cast<char*>(env->GetDirectBufferAddress(jByteBuffer));
-    if (!data) {
-        ThrowException(env, IllegalArgument, "ByteBuffer is invalid");
-        return false;
-    }
-    jlong size = env->GetDirectBufferCapacity(jByteBuffer);
-    if (size < 0) {
-        ThrowException(env, IllegalArgument, "Can't get BufferCapacity.");
-        return false;
-    }
-    bin = BinaryData(data, S(size));
-    return true;
-}
-
 
 //*********************************************************************
 // String handling
@@ -473,7 +464,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         buf_size = Xcode::find_utf8_buf_size(begin, end, error_code);
     }
     char* tmp_char_array = new char[buf_size]; // throws
-    m_data.reset(tmp_char_array);
+    m_data.reset(tmp_char_array, std::default_delete<char[]>());
     {
         const jchar* in_begin = chars.data();
         const jchar* in_end = in_begin + chars.size();

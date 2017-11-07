@@ -8,8 +8,6 @@ import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
-import io.realm.internal.Table;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,7 +25,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
     private static final Set<Class<? extends RealmModel>> MODEL_CLASSES;
     static {
-        Set<Class<? extends RealmModel>> modelClasses = new HashSet<Class<? extends RealmModel>>();
+        Set<Class<? extends RealmModel>> modelClasses = new HashSet<Class<? extends RealmModel>>(1);
         modelClasses.add(some.test.AllTypes.class);
         MODEL_CLASSES = Collections.unmodifiableSet(modelClasses);
     }
@@ -35,7 +33,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     @Override
     public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
         Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
-                    new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
+                    new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>(1);
         infoMap.put(some.test.AllTypes.class, io.realm.AllTypesRealmProxy.getExpectedObjectSchemaInfo());
         return infoMap;
     }
@@ -61,11 +59,11 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public String getTableName(Class<? extends RealmModel> clazz) {
+    public String getSimpleClassNameImpl(Class<? extends RealmModel> clazz) {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.getTableName();
+            return io.realm.AllTypesRealmProxy.getSimpleClassName();
         }
         throw getMissingProxyClassException(clazz);
     }

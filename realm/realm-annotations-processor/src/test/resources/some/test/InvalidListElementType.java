@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package io.realm.rule;
+package some.test;
 
-import io.realm.SyncConfiguration;
-import io.realm.SyncUser;
+import java.math.BigInteger;
 
-/**
- * Test rule used for creating SyncConfigurations. Will ensure that any Realm files are deleted when the
- * test ends.
- */
-public class TestSyncConfigurationFactory extends TestRealmConfigurationFactory {
+import io.realm.RealmList;
+import io.realm.RealmObject;
+import io.realm.RealmResults;
+import io.realm.annotations.LinkingObjects;
 
-    public SyncConfiguration.Builder createSyncConfigurationBuilder(SyncUser user, String url) {
-        return new SyncConfiguration.Builder(user, url).directory(getRoot());
-    }
+public class InvalidListElementType extends RealmObject {
+    public RealmList<BigInteger> bigIntegerList;
 }

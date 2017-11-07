@@ -24,10 +24,9 @@ import io.realm.SSLConfigurationTests;
 import io.realm.SyncedRealmTests;
 import io.realm.objectserver.AuthTests;
 import io.realm.objectserver.EncryptedSynchronizedRealmTests;
-import io.realm.objectserver.ManagementRealmTests;
 import io.realm.objectserver.ProcessCommitTests;
 import io.realm.objectserver.ProgressListenerTests;
-import io.realm.objectserver.SyncSessionTests;
+import io.realm.SyncSessionTests;
 
 // Test suite includes all integration tests. Makes it easy to run all integration tests in the Android Studio.
 @RunWith(Suite.class)
@@ -36,7 +35,6 @@ import io.realm.objectserver.SyncSessionTests;
         SyncedRealmTests.class,
         AuthTests.class,
         EncryptedSynchronizedRealmTests.class,
-        ManagementRealmTests.class,
         ProcessCommitTests.class,
         ProgressListenerTests.class,
         SyncSessionTests.class})

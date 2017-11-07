@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -46,7 +45,6 @@ import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.network.LookupUserIdResponse;
 import io.realm.internal.objectserver.Token;
-import io.realm.internal.permissions.ManagementModule;
 import io.realm.log.RealmLog;
 
 /**
@@ -66,36 +64,6 @@ public class SyncUser {
     private final URL authenticationUrl;
     // maps all RealmConfiguration and accessToken, using this SyncUser.
     private final Map<SyncConfiguration, Token> realms = new HashMap<SyncConfiguration, Token>();
-
-    private static class ManagementConfig {
-        private SyncConfiguration managementRealmConfig;
-
-        synchronized SyncConfiguration initAndGetManagementRealmConfig(final SyncUser user) {
-            if (managementRealmConfig == null) {
-                managementRealmConfig = new SyncConfiguration.Builder(
-                        user, getManagementRealmUrl(user.getAuthenticationUrl()))
-                        .errorHandler(new SyncSession.ErrorHandler() {
-                            @Override
-                            public void onError(SyncSession session, ObjectServerError error) {
-                                if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
-                                    RealmLog.error("Client Reset required for user's management Realm: " + user.toString());
-                                } else {
-                                    RealmLog.error(String.format(Locale.US,
-                                            "Unexpected error with %s's management Realm: %s",
-                                            user.getIdentity(),
-                                            error.toString()));
-                                }
-                            }
-                        })
-                        .modules(new ManagementModule())
-                        .build();
-            }
-
-            return managementRealmConfig;
-        }
-    }
-
-    private final ManagementConfig managementConfig = new ManagementConfig();
 
     SyncUser(Token refreshToken, URL authenticationUrl) {
         this.identity = refreshToken.identity();
@@ -281,7 +249,7 @@ public class SyncUser {
             final Token refreshTokenToBeRevoked = refreshToken;
 
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
-            networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>() {
+            networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>(3) {
 
                 @Override
                 protected LogoutResponse execute() {
@@ -560,20 +528,6 @@ public class SyncUser {
 
     void setRefreshToken(Token refreshToken) {
         this.refreshToken = refreshToken;
-    }
-
-    /**
-     * Returns an instance of the Management Realm owned by the user.
-     * <p>
-     * This Realm can be used to control access and permissions for Realms owned by the user. This includes
-     * giving other users access to Realms.
-     *
-     * @see <a href="https://realm.io/docs/realm-object-server/#permissions">How to control permissions</a>
-     * @deprecated use {@link #getPermissionManager()} instead.
-     */
-    @Deprecated
-    public Realm getManagementRealm() {
-        return Realm.getInstance(managementConfig.initAndGetManagementRealmConfig(this));
     }
 
     /**

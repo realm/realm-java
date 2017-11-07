@@ -22,7 +22,6 @@ import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
-import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
 
@@ -31,89 +30,32 @@ import io.realm.RealmChangeListener;
  * Java wrapper of Object Store Results class.
  * It is the backend of binding's query results and back links.
  */
-@Keep
-public class Collection implements NativeObject {
+public class OsResults implements NativeObject, ObservableCollection {
 
     private static final String CLOSED_REALM_MESSAGE =
             "This Realm instance has already been closed, making it unusable.";
 
-    private static class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
-        public CollectionObserverPair(T observer, Object listener) {
-            super(observer, listener);
-        }
-
-        public void onChange(T observer, OrderedCollectionChangeSet changes) {
-            if (listener instanceof OrderedRealmCollectionChangeListener) {
-                //noinspection unchecked
-                ((OrderedRealmCollectionChangeListener<T>) listener).onChange(observer, changes);
-            } else if (listener instanceof RealmChangeListener) {
-                //noinspection unchecked
-                ((RealmChangeListener<T>) listener).onChange(observer);
-            } else {
-                throw new RuntimeException("Unsupported listener type: " + listener);
-            }
-        }
-    }
-
-    private static class RealmChangeListenerWrapper<T> implements OrderedRealmCollectionChangeListener<T> {
-        private final RealmChangeListener<T> listener;
-
-        RealmChangeListenerWrapper(RealmChangeListener<T> listener) {
-            this.listener = listener;
-        }
-
-        @Override
-        public void onChange(T collection, OrderedCollectionChangeSet changes) {
-            listener.onChange(collection);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof RealmChangeListenerWrapper &&
-                    listener == ((RealmChangeListenerWrapper) obj).listener;
-        }
-
-        @Override
-        public int hashCode() {
-            return listener.hashCode();
-        }
-    }
-
-    private static class Callback implements ObserverPairList.Callback<CollectionObserverPair> {
-        private final OrderedCollectionChangeSet changeSet;
-
-        Callback(OrderedCollectionChangeSet changeSet) {
-            this.changeSet = changeSet;
-        }
-
-        @Override
-        public void onCalled(CollectionObserverPair pair, Object observer) {
-            //noinspection unchecked
-            pair.onChange(observer, changeSet);
-        }
-    }
-
-    // Custom Collection iterator. It ensures that we only iterate on a Realm collection that hasn't changed.
+    // Custom OsResults iterator. It ensures that we only iterate on a Realm OsResults that hasn't changed.
     public static abstract class Iterator<T> implements java.util.Iterator<T> {
-        Collection iteratorCollection;
+        OsResults iteratorOsResults;
         protected int pos = -1;
 
-        public Iterator(Collection collection) {
-            if (collection.sharedRealm.isClosed()) {
+        public Iterator(OsResults osResults) {
+            if (osResults.sharedRealm.isClosed()) {
                 throw new IllegalStateException(CLOSED_REALM_MESSAGE);
             }
 
-            this.iteratorCollection = collection;
+            this.iteratorOsResults = osResults;
 
-            if (collection.isSnapshot) {
+            if (osResults.isSnapshot) {
                 // No need to detach a snapshot.
                 return;
             }
 
-            if (collection.sharedRealm.isInTransaction()) {
+            if (osResults.sharedRealm.isInTransaction()) {
                 detach();
             } else {
-                iteratorCollection.sharedRealm.addIterator(this);
+                iteratorOsResults.sharedRealm.addIterator(this);
             }
         }
 
@@ -123,18 +65,19 @@ public class Collection implements NativeObject {
         @Override
         public boolean hasNext() {
             checkValid();
-            return pos + 1 < iteratorCollection.size();
+            return pos + 1 < iteratorOsResults.size();
         }
 
         /**
          * {@inheritDoc}
          */
         @Override
+        @Nullable
         public T next() {
             checkValid();
             pos++;
-            if (pos >= iteratorCollection.size()) {
-                throw new NoSuchElementException("Cannot access index " + pos + " when size is " + iteratorCollection.size() +
+            if (pos >= iteratorOsResults.size()) {
+                throw new NoSuchElementException("Cannot access index " + pos + " when size is " + iteratorOsResults.size() +
                         ". Remember to check hasNext() before using next().");
             }
             return get(pos);
@@ -152,7 +95,7 @@ public class Collection implements NativeObject {
         }
 
         void detach() {
-            iteratorCollection = iteratorCollection.createSnapshot();
+            iteratorOsResults = iteratorOsResults.createSnapshot();
         }
 
         // The iterator becomes invalid after receiving a remote change notification. In Java, the destruction of
@@ -160,18 +103,19 @@ public class Collection implements NativeObject {
         // like what realm-cocoa does, we will have a massive overhead since all the iterators created in the previous
         // event loop need to be detached.
         void invalidate() {
-            iteratorCollection = null;
+            iteratorOsResults = null;
         }
 
         void checkValid() {
-            if (iteratorCollection == null) {
+            if (iteratorOsResults == null) {
                 throw new ConcurrentModificationException(
                         "No outside changes to a Realm is allowed while iterating a living Realm collection.");
             }
         }
 
+        @Nullable
         T get(int pos) {
-            return convertRowToObject(iteratorCollection.getUncheckedRow(pos));
+            return convertRowToObject(iteratorOsResults.getUncheckedRow(pos));
         }
 
         // Returns the RealmModel by given row in this list. This has to be implemented in the upper layer since
@@ -182,13 +126,13 @@ public class Collection implements NativeObject {
     // Custom Realm collection list iterator.
     public static abstract class ListIterator<T> extends Iterator<T> implements java.util.ListIterator<T> {
 
-        public ListIterator(Collection collection, int start) {
-            super(collection);
-            if (start >= 0 && start <= iteratorCollection.size()) {
+        public ListIterator(OsResults osResults, int start) {
+            super(osResults);
+            if (start >= 0 && start <= iteratorOsResults.size()) {
                 pos = start - 1;
             } else {
                 throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, "
-                        + (iteratorCollection.size() - 1) + "]. Yours was " + start);
+                        + (iteratorOsResults.size() - 1) + "]. Yours was " + start);
             }
         }
 
@@ -199,7 +143,7 @@ public class Collection implements NativeObject {
          */
         @Override
         @Deprecated
-        public void add(T object) {
+        public void add(@Nullable T object) {
             throw new UnsupportedOperationException("Adding an element is not supported. Use Realm.createObject() instead.");
         }
 
@@ -225,6 +169,7 @@ public class Collection implements NativeObject {
          * {@inheritDoc}
          */
         @Override
+        @Nullable
         public T previous() {
             checkValid();
             try {
@@ -253,14 +198,14 @@ public class Collection implements NativeObject {
          */
         @Override
         @Deprecated
-        public void set(T object) {
-            throw new UnsupportedOperationException("Replacing and element is not supported.");
+        public void set(@Nullable T object) {
+            throw new UnsupportedOperationException("Replacing an element is not supported.");
         }
     }
 
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
-    private final SharedRealm sharedRealm;
+    private final OsSharedRealm sharedRealm;
     private final NativeContext context;
     private final Table table;
     private boolean loaded;
@@ -331,17 +276,17 @@ public class Collection implements NativeObject {
         }
     }
 
-    public static Collection createBacklinksCollection(SharedRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
+    public static OsResults createBacklinksCollection(OsSharedRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
         long backlinksPtr = nativeCreateResultsFromBacklinks(
                 realm.getNativePtr(),
                 row.getNativePtr(),
                 srcTable.getNativePtr(),
                 srcTable.getColumnIndex(srcFieldName));
-        return new Collection(realm, srcTable, backlinksPtr, true);
+        return new OsResults(realm, srcTable, backlinksPtr, true);
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query,
-            @Nullable SortDescriptor sortDescriptor, @Nullable SortDescriptor distinctDescriptor) {
+    public OsResults(OsSharedRealm sharedRealm, TableQuery query,
+                     @Nullable SortDescriptor sortDescriptor, @Nullable SortDescriptor distinctDescriptor) {
         query.validateQuery();
 
         this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
@@ -355,31 +300,31 @@ public class Collection implements NativeObject {
         this.loaded = false;
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor) {
+    public OsResults(OsSharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor) {
         this(sharedRealm, query, sortDescriptor, null);
     }
 
-    public Collection(SharedRealm sharedRealm, TableQuery query) {
+    public OsResults(OsSharedRealm sharedRealm, TableQuery query) {
         this(sharedRealm, query, null, null);
     }
 
-    public Collection(SharedRealm sharedRealm, OsList osList, @Nullable SortDescriptor sortDescriptor) {
+    public OsResults(OsSharedRealm sharedRealm, OsList osList, @Nullable SortDescriptor sortDescriptor) {
         this.nativePtr = nativeCreateResultsFromList(sharedRealm.getNativePtr(), osList.getNativePtr(), sortDescriptor);
 
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.table = osList.getTargetTable();
         this.context.addReference(this);
-        // Collection created from OsList is loaded by default. So that the listener won't be triggered with empty
+        // OsResults created from OsList is loaded by default. So that the listener won't be triggered with empty
         // change set.
         this.loaded = true;
     }
 
-    private Collection(SharedRealm sharedRealm, Table table, long nativePtr) {
+    private OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
         this(sharedRealm, table, nativePtr, false);
     }
 
-    Collection(SharedRealm sharedRealm, Table table, long nativePtr, boolean loaded) {
+    OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr, boolean loaded) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.table = table;
@@ -388,13 +333,13 @@ public class Collection implements NativeObject {
         this.loaded = loaded;
     }
 
-    public Collection createSnapshot() {
+    public OsResults createSnapshot() {
         if (isSnapshot) {
             return this;
         }
-        Collection collection = new Collection(sharedRealm, table, nativeCreateSnapshot(nativePtr));
-        collection.isSnapshot = true;
-        return collection;
+        OsResults osResults = new OsResults(sharedRealm, table, nativeCreateSnapshot(nativePtr));
+        osResults.isSnapshot = true;
+        return osResults;
     }
 
     @Override
@@ -452,12 +397,12 @@ public class Collection implements NativeObject {
         nativeClear(nativePtr);
     }
 
-    public Collection sort(SortDescriptor sortDescriptor) {
-        return new Collection(sharedRealm, table, nativeSort(nativePtr, sortDescriptor));
+    public OsResults sort(SortDescriptor sortDescriptor) {
+        return new OsResults(sharedRealm, table, nativeSort(nativePtr, sortDescriptor));
     }
 
-    public Collection distinct(SortDescriptor distinctDescriptor) {
-        return new Collection(sharedRealm, table, nativeDistinct(nativePtr, distinctDescriptor));
+    public OsResults distinct(SortDescriptor distinctDescriptor) {
+        return new OsResults(sharedRealm, table, nativeDistinct(nativePtr, distinctDescriptor));
     }
 
     public boolean contains(UncheckedRow row) {
@@ -514,8 +459,8 @@ public class Collection implements NativeObject {
     }
 
     // Called by JNI
-    @SuppressWarnings("unused")
-    private void notifyChangeListeners(long nativeChangeSetPtr) {
+    @Override
+    public void notifyChangeListeners(long nativeChangeSetPtr) {
         if (nativeChangeSetPtr == 0 && isLoaded()) {
             return;
         }
@@ -587,7 +532,7 @@ public class Collection implements NativeObject {
 
     private static native void nativeDelete(long nativePtr, long index);
 
-    // Non-static, we need this Collection object in JNI.
+    // Non-static, we need this OsResults object in JNI.
     private native void nativeStartListening(long nativePtr);
 
     private native void nativeStopListening(long nativePtr);

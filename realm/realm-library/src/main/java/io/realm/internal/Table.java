@@ -47,13 +47,13 @@ public class Table implements NativeObject {
     private final long nativePtr;
     private final NativeContext context;
 
-    private final SharedRealm sharedRealm;
+    private final OsSharedRealm sharedRealm;
 
     Table(Table parent, long nativePointer) {
         this(parent.sharedRealm, nativePointer);
     }
 
-    Table(SharedRealm sharedRealm, long nativePointer) {
+    Table(OsSharedRealm sharedRealm, long nativePointer) {
         this.context = sharedRealm.context;
         this.sharedRealm = sharedRealm;
         this.nativePtr = nativePointer;
@@ -100,7 +100,28 @@ public class Table implements NativeObject {
      */
     public long addColumn(RealmFieldType type, String name, boolean isNullable) {
         verifyColumnName(name);
-        return nativeAddColumn(nativePtr, type.getNativeValue(), name, isNullable);
+        switch (type) {
+            case INTEGER:
+            case BOOLEAN:
+            case STRING:
+            case BINARY:
+            case DATE:
+            case FLOAT:
+            case DOUBLE:
+                return nativeAddColumn(nativePtr, type.getNativeValue(), name, isNullable);
+
+            case INTEGER_LIST:
+            case BOOLEAN_LIST:
+            case STRING_LIST:
+            case BINARY_LIST:
+            case DATE_LIST:
+            case FLOAT_LIST:
+            case DOUBLE_LIST:
+                return nativeAddPrimitiveListColumn(nativePtr, type.getNativeValue() - 128, name, isNullable);
+
+            default:
+                throw new IllegalArgumentException("Unsupported type: " + type);
+        }
     }
 
     /**
@@ -325,7 +346,7 @@ public class Table implements NativeObject {
     // Getters
     //
 
-    SharedRealm getSharedRealm() {
+    OsSharedRealm getSharedRealm() {
         return sharedRealm;
     }
 
@@ -502,7 +523,7 @@ public class Table implements NativeObject {
      * The native method will begin a transaction and make the migration if needed.
      * This function should not be called in a transaction.
      */
-    public static void migratePrimaryKeyTableIfNeeded(SharedRealm sharedRealm) {
+    public static void migratePrimaryKeyTableIfNeeded(OsSharedRealm sharedRealm) {
         nativeMigratePrimaryKeyTableIfNeeded(sharedRealm.getNativePtr());
     }
 
@@ -522,7 +543,7 @@ public class Table implements NativeObject {
         return sharedRealm != null && !sharedRealm.isInTransaction();
     }
 
-    // This checking should be moved to SharedRealm level.
+    // This checking should be moved to OsSharedRealm level.
     void checkImmutable() {
         if (isImmutable()) {
             throwImmutable();
@@ -678,15 +699,14 @@ public class Table implements NativeObject {
     public static String getTableNameForClass(String name) {
         //noinspection ConstantConditions
         if (name == null) { return null; }
-        if (name.startsWith(TABLE_PREFIX)) {
-            return name;
-        }
         return TABLE_PREFIX + name;
     }
 
     private native boolean nativeIsValid(long nativeTablePtr);
 
     private native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
+
+    private native long nativeAddPrimitiveListColumn(long nativeTablePtr, int type, String name, boolean isNullable);
 
     private native long nativeAddColumnLink(long nativeTablePtr, int type, String name, long targetTablePtr);
 

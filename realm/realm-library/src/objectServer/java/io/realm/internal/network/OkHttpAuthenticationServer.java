@@ -41,8 +41,8 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     private static final String ACTION_LOOKUP_USER_ID = "users/:provider:/:providerId:"; // Auth end point for looking up user id
 
     private final OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             // using custom Connection Pool to evict idle connection after 5 seconds rather than 5 minutes (which is the default)
             // keeping idle connection on the pool will prevent the ROS to be stopped, since the HttpUtils#stopSyncServer query
@@ -66,7 +66,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     @Override
     public AuthenticateResponse loginToRealm(Token refreshToken, URI serverUrl, URL authenticationUrl) {
         try {
-            String requestBody = AuthenticateRequest.realmLogin(refreshToken, serverUrl).toJson();
+            String requestBody = AuthenticateRequest.realmLogin(refreshToken, serverUrl.getPath()).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
             return AuthenticateResponse.from(e);
@@ -76,7 +76,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     @Override
     public AuthenticateResponse refreshUser(Token userToken, URI serverUrl, URL authenticationUrl) {
         try {
-            String requestBody = AuthenticateRequest.userRefresh(userToken, serverUrl).toJson();
+            String requestBody = AuthenticateRequest.userRefresh(userToken, serverUrl.getPath()).toJson();
             return authenticate(authenticationUrl, requestBody);
         } catch (Exception e) {
             return AuthenticateResponse.from(e);

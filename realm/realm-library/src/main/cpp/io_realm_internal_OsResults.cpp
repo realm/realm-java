@@ -14,49 +14,22 @@
  * limitations under the License.
  */
 
-#include <jni.h>
-#include "io_realm_internal_Collection.h"
+#include "io_realm_internal_OsResults.h"
 
 #include <shared_realm.hpp>
 #include <results.hpp>
 #include <list.hpp>
 
-#include "java_sort_descriptor.hpp"
-#include "util.hpp"
 #include "java_class_global_def.hpp"
-
-#include "jni_util/java_class.hpp"
-#include "jni_util/java_global_weak_ref.hpp"
-#include "jni_util/java_method.hpp"
+#include "java_sort_descriptor.hpp"
+#include "observable_collection_wrapper.hpp"
+#include "util.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-// We need to control the life cycle of Results, weak ref of Java Collection object and the NotificationToken.
-// Wrap all three together, so when the Java Collection object gets GCed, all three of them will be invalidated.
-struct ResultsWrapper {
-    JavaGlobalWeakRef m_collection_weak_ref;
-    NotificationToken m_notification_token;
-    Results m_results;
-
-    ResultsWrapper(Results& results)
-        : m_collection_weak_ref()
-        , m_notification_token()
-        , m_results(std::move(results))
-    {
-    }
-
-    ResultsWrapper(ResultsWrapper&&) = delete;
-    ResultsWrapper& operator=(ResultsWrapper&&) = delete;
-
-    ResultsWrapper(ResultsWrapper const&) = delete;
-    ResultsWrapper& operator=(ResultsWrapper const&) = delete;
-
-    ~ResultsWrapper()
-    {
-    }
-};
+typedef ObservableCollectionWrapper<Results> ResultsWrapper;
 
 static void finalize_results(jlong ptr);
 
@@ -66,7 +39,7 @@ static void finalize_results(jlong ptr)
     delete reinterpret_cast<ResultsWrapper*>(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResults(JNIEnv* env, jclass,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNIEnv* env, jclass,
                                                                               jlong shared_realm_ptr, jlong query_ptr,
                                                                               jobject j_sort_desc,
                                                                               jobject j_distinct_desc)
@@ -97,14 +70,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResults(JN
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResultsFromList(JNIEnv* env, jclass,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFromList(JNIEnv* env, jclass,
                                                                                           jlong shared_realm_ptr,
                                                                                           jlong list_ptr,
                                                                                           jobject j_sort_desc)
 {
     TR_ENTER()
     try {
-        auto& list = *reinterpret_cast<List*>(list_ptr);
+        auto& list_wrapper = *reinterpret_cast<ObservableCollectionWrapper<List>*>(list_ptr);
+        auto& list = list_wrapper.collection();
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         Results results = j_sort_desc ?
             list.sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor()) :
@@ -117,12 +91,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResultsFro
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateSnapshot(JNIEnv* env, jclass, jlong native_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateSnapshot(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr);
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto snapshot_results = wrapper->m_results.snapshot();
+        auto snapshot_results = wrapper->collection().snapshot();
         auto snapshot_wrapper = new ResultsWrapper(snapshot_results);
         return reinterpret_cast<jlong>(snapshot_wrapper);
     }
@@ -130,39 +104,39 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateSnapshot(J
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Collection_nativeContains(JNIEnv* env, jclass, jlong native_ptr,
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeContains(JNIEnv* env, jclass, jlong native_ptr,
                                                                             jlong native_row_ptr)
 {
     TR_ENTER_PTR(native_ptr);
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto row = reinterpret_cast<Row*>(native_row_ptr);
-        size_t index = wrapper->m_results.index_of(RowExpr(*row));
+        size_t index = wrapper->collection().index_of(RowExpr(*row));
         return to_jbool(index != not_found);
     }
     CATCH_STD();
     return JNI_FALSE;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeGetRow(JNIEnv* env, jclass, jlong native_ptr,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetRow(JNIEnv* env, jclass, jlong native_ptr,
                                                                        jint index)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto row = wrapper->m_results.get(static_cast<size_t>(index));
+        auto row = wrapper->collection().get(static_cast<size_t>(index));
         return reinterpret_cast<jlong>(new Row(std::move(row)));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeFirstRow(JNIEnv* env, jclass, jlong native_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeFirstRow(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto optional_row = wrapper->m_results.first();
+        auto optional_row = wrapper->collection().first();
         if (optional_row) {
             return reinterpret_cast<jlong>(new Row(std::move(optional_row.value())));
         }
@@ -171,12 +145,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeFirstRow(JNIEnv*
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeLastRow(JNIEnv* env, jclass, jlong native_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeLastRow(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto optional_row = wrapper->m_results.last();
+        auto optional_row = wrapper->collection().last();
         if (optional_row) {
             return reinterpret_cast<jlong>(new Row(std::move(optional_row.value())));
         }
@@ -185,28 +159,28 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeLastRow(JNIEnv* 
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeClear(JNIEnv* env, jclass, jlong native_ptr)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeClear(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        wrapper->m_results.clear();
+        wrapper->collection().clear();
     }
     CATCH_STD()
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeSize(JNIEnv* env, jclass, jlong native_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeSize(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        return static_cast<jlong>(wrapper->m_results.size());
+        return static_cast<jlong>(wrapper->collection().size());
     }
     CATCH_STD()
     return 0;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeAggregate(JNIEnv* env, jclass, jlong native_ptr,
+JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEnv* env, jclass, jlong native_ptr,
                                                                             jlong column_index, jbyte agg_func)
 {
     TR_ENTER_PTR(native_ptr)
@@ -216,14 +190,14 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeAggregate(JNIE
         size_t index = S(column_index);
         Optional<Mixed> value;
         switch (agg_func) {
-            case io_realm_internal_Collection_AGGREGATE_FUNCTION_MINIMUM:
-                value = wrapper->m_results.min(index);
+            case io_realm_internal_OsResults_AGGREGATE_FUNCTION_MINIMUM:
+                value = wrapper->collection().min(index);
                 break;
-            case io_realm_internal_Collection_AGGREGATE_FUNCTION_MAXIMUM:
-                value = wrapper->m_results.max(index);
+            case io_realm_internal_OsResults_AGGREGATE_FUNCTION_MAXIMUM:
+                value = wrapper->collection().max(index);
                 break;
-            case io_realm_internal_Collection_AGGREGATE_FUNCTION_AVERAGE: {
-                Optional<double> value_count(wrapper->m_results.average(index));
+            case io_realm_internal_OsResults_AGGREGATE_FUNCTION_AVERAGE: {
+                Optional<double> value_count(wrapper->collection().average(index));
                 if (value_count) {
                     value = Optional<Mixed>(Mixed(value_count.value()));
                 }
@@ -232,8 +206,8 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeAggregate(JNIE
                 }
                 break;
             }
-            case io_realm_internal_Collection_AGGREGATE_FUNCTION_SUM:
-                value = wrapper->m_results.sum(index);
+            case io_realm_internal_OsResults_AGGREGATE_FUNCTION_SUM:
+                value = wrapper->collection().sum(index);
                 break;
             default:
                 REALM_UNREACHABLE();
@@ -261,98 +235,69 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Collection_nativeAggregate(JNIE
     return static_cast<jobject>(nullptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeSort(JNIEnv* env, jclass, jlong native_ptr,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeSort(JNIEnv* env, jclass, jlong native_ptr,
                                                                      jobject j_sort_desc)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto sorted_result = wrapper->m_results.sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor());
+        auto sorted_result = wrapper->collection().sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor());
         return reinterpret_cast<jlong>(new ResultsWrapper(sorted_result));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeDistinct(JNIEnv* env, jclass, jlong native_ptr,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeDistinct(JNIEnv* env, jclass, jlong native_ptr,
                                                                          jobject j_distinct_desc)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto distinct_result =
-            wrapper->m_results.distinct(JavaSortDescriptor(env, j_distinct_desc).distinct_descriptor());
+            wrapper->collection().distinct(JavaSortDescriptor(env, j_distinct_desc).distinct_descriptor());
         return reinterpret_cast<jlong>(new ResultsWrapper(distinct_result));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeStartListening(JNIEnv* env, jobject instance,
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeStartListening(JNIEnv* env, jobject instance,
                                                                               jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
 
-    static JavaClass os_results_class(env, "io/realm/internal/Collection");
-    static JavaMethod notify_change_listeners(env, os_results_class, "notifyChangeListeners", "(J)V");
-
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        if (!wrapper->m_collection_weak_ref) {
-            wrapper->m_collection_weak_ref = JavaGlobalWeakRef(env, instance);
-        }
-
-        auto cb = [=](CollectionChangeSet const& changes, std::exception_ptr err) {
-            // OS will call all notifiers' callback in one run, so check the Java exception first!!
-            if (env->ExceptionCheck())
-                return;
-
-            if (err) {
-                try {
-                    std::rethrow_exception(err);
-                }
-                catch (const std::exception& e) {
-                    realm::jni_util::Log::e("Caught exception in collection change callback %1", e.what());
-                    return;
-                }
-            }
-
-            wrapper->m_collection_weak_ref.call_with_local_ref(env, [&](JNIEnv* local_env, jobject collection_obj) {
-                local_env->CallVoidMethod(
-                    collection_obj, notify_change_listeners,
-                    reinterpret_cast<jlong>(changes.empty() ? 0 : new CollectionChangeSet(changes)));
-            });
-        };
-
-        wrapper->m_notification_token = wrapper->m_results.add_notification_callback(cb);
+        wrapper->start_listening(env, instance);
     }
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeStopListening(JNIEnv* env, jobject, jlong native_ptr)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeStopListening(JNIEnv* env, jobject, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        wrapper->m_notification_token = {};
+        wrapper->stop_listening();
     }
     CATCH_STD()
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeGetFinalizerPtr(JNIEnv*, jclass)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
     TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_results);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeWhere(JNIEnv* env, jclass, jlong native_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeWhere(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
 
-        auto table_view = wrapper->m_results.get_tableview();
+        auto table_view = wrapper->collection().get_tableview();
         Query* query =
             new Query(table_view.get_parent(), std::unique_ptr<TableViewBase>(new TableView(std::move(table_view))));
         return reinterpret_cast<jlong>(query);
@@ -361,7 +306,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeWhere(JNIEnv* en
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeIndexOf(JNIEnv* env, jclass, jlong native_ptr,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeIndexOf(JNIEnv* env, jclass, jlong native_ptr,
                                                                         jlong row_native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
@@ -369,18 +314,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeIndexOf(JNIEnv* 
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto row = reinterpret_cast<Row*>(row_native_ptr);
 
-        return static_cast<jlong>(wrapper->m_results.index_of(RowExpr(*row)));
+        return static_cast<jlong>(wrapper->collection().index_of(RowExpr(*row)));
     }
     CATCH_STD()
     return npos;
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Collection_nativeDeleteLast(JNIEnv* env, jclass, jlong native_ptr)
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeDeleteLast(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto row = wrapper->m_results.last();
+        auto row = wrapper->collection().last();
         if (row && row->is_attached()) {
             row->move_last_over();
             return JNI_TRUE;
@@ -390,13 +335,13 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Collection_nativeDeleteLast(JN
     return JNI_FALSE;
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Collection_nativeDeleteFirst(JNIEnv* env, jclass, jlong native_ptr)
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeDeleteFirst(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto row = wrapper->m_results.first();
+        auto row = wrapper->collection().first();
         if (row && row->is_attached()) {
             row->move_last_over();
             return JNI_TRUE;
@@ -406,14 +351,14 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Collection_nativeDeleteFirst(J
     return JNI_FALSE;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeDelete(JNIEnv* env, jclass, jlong native_ptr,
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeDelete(JNIEnv* env, jclass, jlong native_ptr,
                                                                       jlong index)
 {
     TR_ENTER_PTR(native_ptr)
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto row = wrapper->m_results.get(index);
+        auto row = wrapper->collection().get(index);
         if (row.is_attached()) {
             row.move_last_over();
         }
@@ -421,40 +366,40 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Collection_nativeDelete(JNIEnv* en
     CATCH_STD()
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Collection_nativeIsValid(JNIEnv* env, jclass, jlong native_ptr)
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeIsValid(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        return wrapper->m_results.is_valid();
+        return wrapper->collection().is_valid();
     }
     CATCH_STD()
     return JNI_FALSE;
 }
 
-JNIEXPORT jbyte JNICALL Java_io_realm_internal_Collection_nativeGetMode(JNIEnv* env, jclass, jlong native_ptr)
+JNIEXPORT jbyte JNICALL Java_io_realm_internal_OsResults_nativeGetMode(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        switch (wrapper->m_results.get_mode()) {
+        switch (wrapper->collection().get_mode()) {
             case Results::Mode::Empty:
-                return io_realm_internal_Collection_MODE_EMPTY;
+                return io_realm_internal_OsResults_MODE_EMPTY;
             case Results::Mode::Table:
-                return io_realm_internal_Collection_MODE_TABLE;
+                return io_realm_internal_OsResults_MODE_TABLE;
             case Results::Mode::Query:
-                return io_realm_internal_Collection_MODE_QUERY;
+                return io_realm_internal_OsResults_MODE_QUERY;
             case Results::Mode::LinkView:
-                return io_realm_internal_Collection_MODE_LINKVIEW;
+                return io_realm_internal_OsResults_MODE_LINKVIEW;
             case Results::Mode::TableView:
-                return io_realm_internal_Collection_MODE_TABLEVIEW;
+                return io_realm_internal_OsResults_MODE_TABLEVIEW;
         }
     }
     CATCH_STD()
     return -1; // Invalid mode value
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Collection_nativeCreateResultsFromBacklinks(JNIEnv *env, jclass,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFromBacklinks(JNIEnv *env, jclass,
                                                                                            jlong shared_realm_ptr,
                                                                                            jlong row_ptr,
                                                                                            jlong src_table_ptr,

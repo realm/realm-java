@@ -22,7 +22,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 
 public class ProxyUtils {
 
-    public static void verifyField(SharedRealm sharedRealm, Map<String, RealmFieldType> columnTypes, String fieldName, RealmFieldType fieldType, String fieldSimpleType) {
+    public static void verifyField(OsSharedRealm sharedRealm, Map<String, RealmFieldType> columnTypes, String fieldName, RealmFieldType fieldType, String fieldSimpleType) {
         if (!columnTypes.containsKey(fieldName)) {
             throw new RealmMigrationNeededException(
                     sharedRealm.getPath(),

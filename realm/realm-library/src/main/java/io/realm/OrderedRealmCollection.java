@@ -100,7 +100,7 @@ import javax.annotation.Nullable;
  * As you can see, after deletion, the size and elements order of snapshot stay the same as before. But the element at
  * the position becomes invalid.
  */
-public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, RealmCollection<E> {
+public interface OrderedRealmCollection<E> extends List<E>, RealmCollection<E> {
 
     /**
      * Gets the first object from the collection.
@@ -108,6 +108,7 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
      * @return the first object.
      * @throws IndexOutOfBoundsException if the collection is empty.
      */
+    @Nullable
     E first();
 
     /**
@@ -124,6 +125,7 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
      * @return the last object.
      * @throws IndexOutOfBoundsException if the collection is empty.
      */
+    @Nullable
     E last();
 
     /**

@@ -16,10 +16,14 @@
 
 package io.realm.internal;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import javax.annotation.Nullable;
 
 import io.realm.CompactOnLaunchCallback;
 import io.realm.RealmConfiguration;
+import io.realm.log.RealmLog;
 
 /**
  * Java wrapper of Object Store's Realm::Config.
@@ -56,15 +60,31 @@ public class OsRealmConfig implements NativeObject {
         }
     }
 
+    public enum SyncSessionStopPolicy {
+        IMMEDIATELY(SYNCSESSION_STOP_POLICY_VALUE_IMMEDIATELY), // Immediately stop the session as soon as all Realms/Sessions go out of scope.
+        LIVE_INDEFINITELY(SYNCSESSION_STOP_POLICY_VALUE_LIVE_INDEFINETELY),   // Never stop the session.
+        AFTER_CHANGES_UPLOADED(SYNCSESSION_STOP_POLICY_VALUE_AFTER_CHANGES_UPLOADED); // Once all Realms/Sessions go out of scope, wait for uploads to complete and stop.
+
+        final byte value;
+
+        SyncSessionStopPolicy(byte value) {
+            this.value = value;
+        }
+
+        public byte getNativeValue() {
+            return value;
+        }
+    }
+
     /**
      * Builder class for creating {@code OsRealmConfig}. The {@code OsRealmConfig} instance should only be created by
-     * {@link SharedRealm}.
+     * {@link OsSharedRealm}.
      */
     public static class Builder {
         private RealmConfiguration configuration;
         private OsSchemaInfo schemaInfo = null;
-        private SharedRealm.MigrationCallback migrationCallback = null;
-        private SharedRealm.InitializationCallback initializationCallback = null;
+        private OsSharedRealm.MigrationCallback migrationCallback = null;
+        private OsSharedRealm.InitializationCallback initializationCallback = null;
         private boolean autoUpdateNotification = false;
 
         /**
@@ -92,7 +112,7 @@ public class OsRealmConfig implements NativeObject {
          * @param migrationCallback callback to be set.
          * @return this {@link OsRealmConfig.Builder}.
          */
-        public Builder migrationCallback(@Nullable SharedRealm.MigrationCallback migrationCallback) {
+        public Builder migrationCallback(@Nullable OsSharedRealm.MigrationCallback migrationCallback) {
             this.migrationCallback = migrationCallback;
             return this;
         }
@@ -103,7 +123,7 @@ public class OsRealmConfig implements NativeObject {
          * @param initializationCallback the callback to be set.
          * @return this {@link OsRealmConfig.Builder}.
          */
-        public Builder initializationCallback(@Nullable SharedRealm.InitializationCallback initializationCallback) {
+        public Builder initializationCallback(@Nullable OsSharedRealm.InitializationCallback initializationCallback) {
             this.initializationCallback = initializationCallback;
             return this;
         }
@@ -121,7 +141,7 @@ public class OsRealmConfig implements NativeObject {
         }
 
         // Package private because of the OsRealmConfig needs to carry the NativeContext. This should only be called
-        // by the SharedRealm.
+        // by the OsSharedRealm.
         OsRealmConfig build() {
             return new OsRealmConfig(configuration, autoUpdateNotification, schemaInfo,
                     migrationCallback, initializationCallback);
@@ -134,15 +154,19 @@ public class OsRealmConfig implements NativeObject {
     private static final byte SCHEMA_MODE_VALUE_RESET_FILE = 3;
     private static final byte SCHEMA_MODE_VALUE_ADDITIVE = 4;
     private static final byte SCHEMA_MODE_VALUE_MANUAL = 5;
+    private static final byte SYNCSESSION_STOP_POLICY_VALUE_IMMEDIATELY = 0;
+    private static final byte SYNCSESSION_STOP_POLICY_VALUE_LIVE_INDEFINETELY = 1;
+    private static final byte SYNCSESSION_STOP_POLICY_VALUE_AFTER_CHANGES_UPLOADED = 2;
 
     private final static long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     private final RealmConfiguration realmConfiguration;
+    private final URI resolvedRealmURI;
     private final long nativePtr;
-    // Every SharedRealm instance has to be created from an OsRealmConfig instance. And the SharedRealm's NativeContext
-    // object will be the same as the context here. This is because of we may create different SharedRealm instances
+    // Every OsSharedRealm instance has to be created from an OsRealmConfig instance. And the OsSharedRealm's NativeContext
+    // object will be the same as the context here. This is because of we may create different OsSharedRealm instances
     // with different shared_ptrs which are point to the same SharedGroup object. It could happen when we create
-    // SharedRealm for migration/initialization callback. The context has to be the same object for those cases for
+    // OsSharedRealm for migration/initialization callback. The context has to be the same object for those cases for
     // core destructor's thread safety.
     private final NativeContext context = new NativeContext();
 
@@ -151,27 +175,29 @@ public class OsRealmConfig implements NativeObject {
     @SuppressWarnings({"FieldCanBeLocal", "unused"})
     private final CompactOnLaunchCallback compactOnLaunchCallback;
     @SuppressWarnings({"FieldCanBeLocal", "unused"})
-    private final SharedRealm.MigrationCallback migrationCallback;
+    private final OsSharedRealm.MigrationCallback migrationCallback;
     @SuppressWarnings({"FieldCanBeLocal", "unused"})
-    private final SharedRealm.InitializationCallback initializationCallback;
+    private final OsSharedRealm.InitializationCallback initializationCallback;
 
     private OsRealmConfig(final RealmConfiguration config,
                           boolean autoUpdateNotification,
                           @Nullable OsSchemaInfo schemaInfo,
-                          @Nullable SharedRealm.MigrationCallback migrationCallback,
-                          @Nullable SharedRealm.InitializationCallback initializationCallback) {
+                          @Nullable OsSharedRealm.MigrationCallback migrationCallback,
+                          @Nullable OsSharedRealm.InitializationCallback initializationCallback) {
         this.realmConfiguration = config;
         this.nativePtr = nativeCreate(config.getPath(), false, true);
         NativeContext.dummyContext.addReference(this);
 
         // Retrieve Sync settings first. We need syncRealmUrl to identify if this is a SyncConfig
-        Object[] syncUserConf = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(realmConfiguration);
-        String syncUserIdentifier = (String) syncUserConf[0];
-        String syncRealmUrl = (String) syncUserConf[1];
-        String syncRealmAuthUrl = (String) syncUserConf[2];
-        String syncRefreshToken = (String) syncUserConf[3];
-        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncUserConf[4]));
-        String syncSslTrustCertificatePath = (String) syncUserConf[5];
+        Object[] syncConfigurationOptions = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(realmConfiguration);
+        String syncUserIdentifier = (String) syncConfigurationOptions[0];
+        String syncRealmUrl = (String) syncConfigurationOptions[1];
+        String syncRealmAuthUrl = (String) syncConfigurationOptions[2];
+        String syncRefreshToken = (String) syncConfigurationOptions[3];
+        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncConfigurationOptions[4]));
+        String syncSslTrustCertificatePath = (String) syncConfigurationOptions[5];
+        Byte sessionStopPolicy = (Byte) syncConfigurationOptions[6];
+        boolean isPartial = (Boolean.TRUE.equals(syncConfigurationOptions[7]));
 
         // Set encryption key
         byte[] key = config.getEncryptionKey();
@@ -212,12 +238,20 @@ public class OsRealmConfig implements NativeObject {
         if (initializationCallback != null) {
             nativeSetInitializationCallback(nativePtr, initializationCallback);
         }
+
+        URI resolvedRealmURI  = null;
         // Set sync config
         if (syncRealmUrl != null) {
-            nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
-                    syncRefreshToken);
+            String resolvedSyncRealmUrl = nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
+                    syncRefreshToken, isPartial, sessionStopPolicy);
+            try {
+                resolvedRealmURI = new URI(resolvedSyncRealmUrl);
+            } catch (URISyntaxException e) {
+                RealmLog.error(e, "Cannot create a URI from the Realm URL address");
+            }
             nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
         }
+        this.resolvedRealmURI = resolvedRealmURI;
     }
 
     @Override
@@ -234,6 +268,10 @@ public class OsRealmConfig implements NativeObject {
         return realmConfiguration;
     }
 
+    public URI getResolvedRealmURI() {
+        return resolvedRealmURI;
+    }
+
     NativeContext getContext() {
         return context;
     }
@@ -246,16 +284,16 @@ public class OsRealmConfig implements NativeObject {
 
     private native void nativeSetSchemaConfig(long nativePtr, byte schemaMode, long schemaVersion,
                                               long schemaInfoPtr,
-                                              @Nullable SharedRealm.MigrationCallback migrationCallback);
+                                              @Nullable OsSharedRealm.MigrationCallback migrationCallback);
 
     private static native void nativeSetCompactOnLaunchCallback(long nativePtr, CompactOnLaunchCallback callback);
 
-    private native void nativeSetInitializationCallback(long nativePtr, SharedRealm.InitializationCallback callback);
+    private native void nativeSetInitializationCallback(long nativePtr, OsSharedRealm.InitializationCallback callback);
 
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
-    private static native void nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl,
-                                                            String authUrl, String userId, String refreshToken);
+    private static native String nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl,
+                                                            String authUrl, String userId, String refreshToken, boolean isPartial, byte sessionStopPolicy);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);

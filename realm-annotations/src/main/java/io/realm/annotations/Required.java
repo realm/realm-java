@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * Fields with primitive types and the {@link io.realm.RealmList} type are required implicitly.
  * Fields with {@link io.realm.RealmObject} type are always nullable.
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Required {
 

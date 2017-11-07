@@ -12,7 +12,6 @@ buildscript {
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 android {
@@ -38,10 +37,6 @@ android {
         debug {
             minifyEnabled true
         }
-    }
-
-    command {
-        monkey.events 2000
     }
 
     sourceSets {

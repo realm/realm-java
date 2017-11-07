@@ -36,8 +36,6 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -278,31 +276,6 @@ public class SyncUserTests {
 
         SyncUser user = SyncUser.login(SyncCredentials.facebook("foo"), "http://bar.com/auth");
         assertEquals(user, SyncUser.currentUser());
-    }
-
-    @Test
-    public void getManagementRealm() {
-        SyncUser user = SyncTestUtils.createTestUser();
-        Realm managementRealm = user.getManagementRealm();
-        assertNotNull(managementRealm);
-        managementRealm.close();
-    }
-
-    @Test
-    public void getManagementRealm_enforceTLS() throws URISyntaxException {
-        // Non TLS
-        SyncUser user = SyncTestUtils.createTestUser("http://objectserver.realm.io/auth");
-        Realm managementRealm = user.getManagementRealm();
-        SyncConfiguration config = (SyncConfiguration) managementRealm.getConfiguration();
-        assertEquals(new URI("realm://objectserver.realm.io/" + user.getIdentity() + "/__management"), config.getServerUrl());
-        managementRealm.close();
-
-        // TLS
-        user = SyncTestUtils.createTestUser("https://objectserver.realm.io/auth");
-        managementRealm = user.getManagementRealm();
-        config = (SyncConfiguration) managementRealm.getConfiguration();
-        assertEquals(new URI("realms://objectserver.realm.io/" + user.getIdentity() + "/__management"), config.getServerUrl());
-        managementRealm.close();
     }
 
     @Test

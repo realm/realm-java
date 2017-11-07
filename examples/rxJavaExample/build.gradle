@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 android {
@@ -23,10 +22,6 @@ android {
             minifyEnabled false
             signingConfig signingConfigs.debug
         }
-    }
-
-    command {
-        monkey.events 2000
     }
 
     packagingOptions {

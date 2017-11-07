@@ -45,7 +45,7 @@ try {
           rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_DE_VERSION=${rosDeVersion} tools/sync_test_server"
         }
 
-	    rosContainer = rosEnv.run('-v /tmp=/tmp/.ros')
+	    rosContainer = rosEnv.run()
 
         try {
               buildEnv.inside("-e HOME=/tmp " +
@@ -116,6 +116,7 @@ try {
                 }
               }
         } finally {
+              archiveRosLog(rosContainer.id)
               sh "docker logs ${rosContainer.id}"
               rosContainer.stop()
         }
@@ -171,6 +172,16 @@ def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
 	])
   }
   sh 'rm logcat.txt'
+}
+
+def archiveRosLog(String id) {
+  sh "docker cp ${id}:/tmp/ros-testing-server.log ./ros.log"
+  zip([
+      'zipFile': 'roslog.zip',
+      'archive': true,
+      'glob' : 'ros.log'
+  ])
+  sh 'rm ros.log'
 }
 
 def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {

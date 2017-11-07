@@ -50,6 +50,9 @@ public class HttpUtils {
     private static final String STOP_SERVER = "http://127.0.0.1:8888/stop";
     public static final String TAG = "IntegrationTestServer";
 
+    /**
+     * Start the sync server. If the server has been started before, stop it first.
+     */
     public static void startSyncServer() throws Exception {
         Request request = new Request.Builder()
                 .url(START_SERVER)
@@ -63,6 +66,10 @@ public class HttpUtils {
         SystemClock.sleep(2000);
     }
 
+    /**
+     * Stop the sync server if it is alive. {@link #startSyncServer()} will implicitly stop the server if needed, so
+     * normally there is no need to call this.
+     */
     public static void stopSyncServer() throws Exception {
         Request request = new Request.Builder()
                 .url(STOP_SERVER)
