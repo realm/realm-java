@@ -270,6 +270,7 @@ android.productFlavors.all { flavor ->
     def accessKey = project.findProperty('bintrayKey') ?: 'noKey'
 
     // BINTRAY
+    def artifactId = "realm-android-kotlin-extensions${librarySuffix}"
 
     task("bintrayAar${flavor.name.capitalize()}", type: Exec) {
         dependsOn "assemble${flavor.name.capitalize()}"
@@ -281,7 +282,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/outputs/aar/realm-kotlin-extensions-${flavor.name}-release.aar",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/realm-kotlin-extensions${librarySuffix}/${project.version}/io/realm/realm-kotlin-extensions${librarySuffix}/${project.version}/realm-kotlin-extensions${librarySuffix}-${project.version}.aar?publish=0"
+                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}.aar?publish=0"
     }
 
     task("bintraySources${flavor.name.capitalize()}", type: Exec) {
@@ -294,7 +295,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/libs/realm-kotlin-extensions-${project.version}-sources.jar",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/realm-kotlin-extensions${librarySuffix}/${project.version}/io/realm/realm-kotlin-extensions${librarySuffix}/${project.version}/realm-kotlin-extensions${librarySuffix}-${project.version}-sources.jar?publish=0"
+                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}-sources.jar?publish=0"
     }
 
     task("bintrayJavadoc${flavor.name.capitalize()}", type: Exec) {
@@ -307,7 +308,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/libs/realm-kotlin-extensions-${project.version}-javadoc.jar",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/realm-kotlin-extensions${librarySuffix}/${project.version}/io/realm/realm-kotlin-extensions${librarySuffix}/${project.version}/realm-kotlin-extensions${librarySuffix}-${project.version}-javadoc.jar?publish=0"
+                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}-javadoc.jar?publish=0"
     }
 
     task("bintrayPom${flavor.name.capitalize()}", type: Exec) {
@@ -320,7 +321,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/realm-kotlin-extensions${librarySuffix}/${project.version}/io/realm/realm-kotlin-extensions${librarySuffix}/${project.version}/realm-kotlin-extensions${librarySuffix}-${project.version}.pom?publish=0"
+                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}.pom?publish=0"
     }
 
     // OJO
@@ -335,7 +336,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/outputs/aar/realm-kotlin-extensions-${flavor.name}-release.aar",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-kotlin-extensions${librarySuffix}/${project.version}/realm-kotlin-extensions${librarySuffix}-${project.version}.aar?publish=0"
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/${artifactId}/${project.version}/${artifactId}-${project.version}.aar?publish=0"
     }
 
     task("ojoSources${flavor.name.capitalize()}", type: Exec) {
@@ -345,10 +346,10 @@ android.productFlavors.all { flavor ->
                 '-X',
                 'PUT',
                 '-T',
-                "${buildDir}/libs/realm-android-library-${project.version}-sources.jar",
+                "${buildDir}/libs/realm-kotlin-extensions-${project.version}-sources.jar",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-kotlin-extensions${librarySuffix}/${project.version}/realm-kotlin-extensions${librarySuffix}-${project.version}-sources.jar?publish=0"
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}-sources.jar?publish=0"
     }
 
     task("ojoJavadoc${flavor.name.capitalize()}", type: Exec) {
@@ -361,7 +362,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/libs/realm-kotlin-extensions-${project.version}-javadoc.jar",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-kotlin-extensions${librarySuffix}/${project.version}/realm-kotlin-extensions${librarySuffix}-${project.version}-javadoc.jar?publish=0"
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}-javadoc.jar?publish=0"
     }
 
     task("ojoPom${flavor.name.capitalize()}", type: Exec) {
@@ -374,7 +375,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/realm-kotlin-extensions${librarySuffix}/${project.version}/realm-kotlin-extensions${librarySuffix}-${project.version}.pom?publish=0"
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}.pom?publish=0"
     }
 
     task("bintray${flavor.name.capitalize()}") {
