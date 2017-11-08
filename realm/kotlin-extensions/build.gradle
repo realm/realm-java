@@ -268,9 +268,9 @@ android.productFlavors.all { flavor ->
     def librarySuffix = flavor.name == 'base' ? '' : '-object-server'
     def userName = project.findProperty('bintrayUser') ?: 'noUser'
     def accessKey = project.findProperty('bintrayKey') ?: 'noKey'
+    def artifactId = "realm-android-kotlin-extensions${librarySuffix}"
 
     // BINTRAY
-    def artifactId = "realm-android-kotlin-extensions${librarySuffix}"
 
     task("bintrayAar${flavor.name.capitalize()}", type: Exec) {
         dependsOn "assemble${flavor.name.capitalize()}"
