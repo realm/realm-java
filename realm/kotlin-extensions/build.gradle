@@ -336,7 +336,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/outputs/aar/realm-kotlin-extensions-${flavor.name}-release.aar",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/${artifactId}/${project.version}/${artifactId}-${project.version}.aar?publish=0"
+                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}.aar?publish=0"
     }
 
     task("ojoSources${flavor.name.capitalize()}", type: Exec) {
