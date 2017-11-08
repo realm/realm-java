@@ -98,12 +98,7 @@ def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This soft
 
 dokka {
     outputFormat = 'html'
-    outputDirectory = "$buildDir/javadoc"
-}
-
-task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
-    outputFormat = "javadoc"
-    outputDirectory = "$buildDir/dokkaJavadoc"
+    outputDirectory = "$buildDir/dokka"
 }
 
 //task javadoc(type: Javadoc) {
@@ -137,9 +132,9 @@ task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
 //    }
 //}
 
-task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {
-//    classifier = 'javadoc'
-    from "$buildDir/dokkaJavadoc"
+task javadocJar(type: Jar, dependsOn: dokka) {
+    classifier = 'javadoc'
+    from "$buildDir/dokka" // Use Dokka format. Not 100% what implications this might have, but the Javadoc is really ugly.
 }
 
 
@@ -154,7 +149,7 @@ install {
 
                 // Add your description here
                 name 'realm-kotlin-extensions'
-                description 'Kotlin specific APIs and extension functions for Realm'
+                description 'Kotlin specific APIs and extension functions for Realm for Android'
                 url 'http://realm.io'
 
                 // Set your license
@@ -186,7 +181,7 @@ def createPomDependencies(configurationNames) {
         def dependenciesNode = asNode().appendNode('dependencies')
         configurationNames.each { configurationName ->
             configurations[configurationName].allDependencies.each {
-                if (it.group != null && it.name != null) {
+                if (it.group != null && it.name != null && it.name != 'realm-library') {
                     def dependencyNode = dependenciesNode.appendNode('dependency')
                     dependencyNode.appendNode('groupId', it.group)
                     dependencyNode.appendNode('artifactId', it.name)
@@ -213,7 +208,7 @@ publishing {
             groupId 'io.realm'
             artifactId 'realm-android-kotlin-extensions'
             version project.version
-            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-kotlin-extensions-base-release.aar")
+            artifact file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-base-release.aar")
             artifact sourcesJar
             artifact javadocJar
 
@@ -222,9 +217,9 @@ publishing {
 
         objectServerPublication(MavenPublication) {
             groupId 'io.realm'
-            artifactId 'realm-android-kotlin-extensions'
+            artifactId 'realm-android-kotlin-extensions-object-server'
             version project.version
-            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-kotlin-extensions-objectServer-release.aar")
+            artifact file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-objectServer-release.aar")
             artifact sourcesJar
             artifact javadocJar
 
@@ -255,7 +250,7 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-            publications('basePublication', 'objectServerPublication')
+             publications('basePublication', 'objectServerPublication')
             publishPom = true
             publishIvy = false
         }

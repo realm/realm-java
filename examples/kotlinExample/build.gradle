@@ -44,6 +44,12 @@ android {
     }
 }
 
+// This is set as the default, but Kotlin extension functions for Realm can be excluded if needed.
+realm {
+    kotlinExtensionsEnabled = true
+}
+
+
 // enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/09/kotlin-1-1-50-is-out/
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {

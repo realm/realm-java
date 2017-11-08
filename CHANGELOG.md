@@ -5,6 +5,7 @@
 ### Enhancements
 
 * Added support for using non-encrypted Realms in multiple processes. Some caveats apply. Read [doc](https://realm.io/docs/java/latest/#multiprocess) for more info (#1091).
+* Projects using Kotlin now include additional extension functions that make working with Kotlin easier (#4684).
 
 ### Bug Fixes
 
