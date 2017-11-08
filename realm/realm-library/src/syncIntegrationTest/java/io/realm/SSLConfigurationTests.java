@@ -64,7 +64,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
         user.logout();
-        Realm.deleteRealm(syncConfig);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
@@ -108,7 +107,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
         user.logout();
-        Realm.deleteRealm(syncConfig);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
@@ -152,7 +150,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
         user.logout();
-        Realm.deleteRealm(syncConfig);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
@@ -161,9 +158,12 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SyncConfiguration syncConfigSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .name("useSsl")
                 .schema(StringOnly.class)
+                .trustedRootCA("untrusted_ca.pem")
+//                .waitForInitialRemoteData()
                 .build();
+        // waitForInitialRemoteData will throw an Internal error (125): Operation Canceled
+        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));
         realm = Realm.getInstance(syncConfigSSL);
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));// don't call waitForInitialRemoteData as it will block forever
         try {
             assertTrue(realm.isEmpty());
         } finally {
@@ -236,7 +236,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SyncManager.getSession(syncConfigWithCertificate).uploadAllLocalChanges();
         realm.close();
         user.logout();
-        Realm.deleteRealm(syncConfigWithCertificate);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
@@ -259,6 +258,10 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         }
     }
 
+    // IMPORTANT: Following test assume the root certificate is installed on the test device
+    //            certificate is located in <realm-java>/tools/sync_test_server/keys/android_test_certificate.crt
+    //            adb push <realm-java>/tools/sync_test_server/keys/android_test_certificate.crt /sdcard/
+    //            then import the certificate from the device (Settings/Security/Install from storage)
     @Test
     public void sslVerifyCallback_isUsed() throws InterruptedException {
         String username = UUID.randomUUID().toString();
@@ -280,7 +283,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
         user.logout();
-        Realm.deleteRealm(syncConfig);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.

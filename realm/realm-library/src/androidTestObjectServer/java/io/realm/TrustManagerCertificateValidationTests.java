@@ -21,8 +21,12 @@ public class TrustManagerCertificateValidationTests {
         Realm.init(InstrumentationRegistry.getTargetContext());
     }
 
+    // IMPORTANT: Following test assume the root certificate is installed on the test device
+    //            certificate is located in <realm-java>/tools/sync_test_server/keys/android_test_certificate.crt
+    //            adb push <realm-java>/tools/sync_test_server/keys/android_test_certificate.crt /sdcard/
+    //            then import the certificate from the device (Settings/Security/Install from storage)
     @Test
-    public void certificateChainWithNoRootCAInstalledShouldNotValidate() {
+    public void sslVerifyCallback_certificateChainWithRootCAInstalledShouldValidate() {
         // simulating the following certificate chain
         // ---
         // Certificate chain
@@ -101,11 +105,11 @@ public class TrustManagerCertificateValidationTests {
         String serverAddress = "127.0.0.1";
 
         assertTrue(SyncManager.sslVerifyCallback(serverAddress, pem_depth1, 1));
-        assertFalse(SyncManager.sslVerifyCallback(serverAddress, pem_depth0,0));
+        assertTrue(SyncManager.sslVerifyCallback(serverAddress, pem_depth0, 0));
     }
 
     @Test
-    public void certificateChainWithRootCAInstalledShouldValidate() {
+    public void sslVerifyCallback_shouldVerifyHostname() {
         // simulating the following certificate chain
         // ---
         // Certificate chain
@@ -241,10 +245,11 @@ public class TrustManagerCertificateValidationTests {
         // make sure the hostname verify works
 
         String wrongServerAddress = "hax0r-test.realmlab.net";
-        // Note hax0r-test.ie1.realmlab.net is valid since the certificate allow *.ie1.realmlab.net
         assertTrue(SyncManager.sslVerifyCallback(wrongServerAddress, pem_depth3, 3));
         assertTrue(SyncManager.sslVerifyCallback(wrongServerAddress, pem_depth2, 2));
         assertTrue(SyncManager.sslVerifyCallback(wrongServerAddress, pem_depth1, 1));
+        // Note hax0r-test.ie1.realmlab.net is valid since the certificate allow *.ie1.realmlab.net
+        // but the method fails because of the hostname verification
         assertFalse(SyncManager.sslVerifyCallback(wrongServerAddress, pem_depth0, 0));
     }
 }

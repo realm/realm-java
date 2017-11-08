@@ -405,7 +405,6 @@ public class SyncManager {
     // X509Certificate format.
     private static CertificateFactory CERTIFICATE_FACTORY;
 
-    //TODO @KeepMember  & @SuppressWarnings("unused")? same for all other methods
     // From Sync implementation:
     //  A recommended way of using the callback function is to return true
     //  if preverify_ok = 1 and depth > 0,
@@ -418,6 +417,7 @@ public class SyncManager {
     //
     // In this implementation we use the second method, since it's more suitable for
     // the underlying Java API we need to call to validate the certificate chain.
+    @SuppressWarnings("unused")
     synchronized static boolean sslVerifyCallback(String serverAddress, String pemData, int depth) {
         try {
             if (ROS_CERTIFICATES_CHAIN == null) {
@@ -440,7 +440,7 @@ public class SyncManager {
                 for (String pem : ROS_CERTIFICATES_CHAIN.get(serverAddress)) {
                     // The depth of the last certificate is 0.
                     // The depth of the first certificate is chain length - 1.
-                    chain[--n] = buildCertificateFromPEM(pem);// FIXME add test where Sync send Garbage pem
+                    chain[--n] = buildCertificateFromPEM(pem);
                 }
 
                 // verify the entire chain
