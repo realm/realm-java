@@ -44,6 +44,7 @@ import javax.net.ssl.X509TrustManager;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
+import io.realm.internal.Util;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.network.OkHttpAuthenticationServer;
@@ -233,6 +234,15 @@ public class SyncManager {
         return session;
     }
 
+    static synchronized SyncSession getExistingSessionIfExist(SyncConfiguration syncConfiguration) {
+        //noinspection ConstantConditions
+        if (syncConfiguration == null) {
+            throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
+        }
+
+        return sessions.get(syncConfiguration.getPath());
+    }
+
     /**
      * Remove the wrapped Java session.
      * @param syncConfiguration configuration object for the synchronized Realm.
@@ -308,8 +318,18 @@ public class SyncManager {
      */
     @SuppressWarnings("unused")
     private static synchronized void notifyErrorHandler(int errorCode, String errorMessage, @Nullable String path) {
-        for (SyncSession syncSession : sessions.values()) {
-            if (path == null || path.equals(syncSession.getConfiguration().getPath())) {
+        if (Util.isEmptyString(path)) {
+            // notify all sessions
+            for (SyncSession syncSession : sessions.values()) {
+                    try {
+                        syncSession.notifySessionError(errorCode, errorMessage);
+                    } catch (Exception exception) {
+                        RealmLog.error(exception);
+                    }
+                }
+        } else {
+            SyncSession syncSession = sessions.get(path);
+            if (syncSession != null) {
                 try {
                     syncSession.notifySessionError(errorCode, errorMessage);
                 } catch (Exception exception) {

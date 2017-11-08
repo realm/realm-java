@@ -19,13 +19,12 @@ package io.realm;
 import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.StringOnly;
@@ -51,6 +50,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server
+        //noinspection unchecked
         final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .schema(StringOnly.class)
                 .build();
@@ -61,7 +61,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         realm.commitTransaction();
 
         // make sure the changes gets to the server
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
+        SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
         user.logout();
         Realm.deleteRealm(syncConfig);
@@ -69,13 +69,14 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+        //noinspection unchecked
+        SyncConfiguration syncConfigSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .name("useSsl")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .trustedRootCA("trusted_ca.pem")
                 .build();
-        realm = Realm.getInstance(config);
+        realm = Realm.getInstance(syncConfigSSL);
 
         RealmResults<StringOnly> all = realm.where(StringOnly.class).findAll();
         try {
@@ -93,30 +94,33 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server
-        final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+        //noinspection unchecked
+        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .schema(StringOnly.class)
                 .build();
-        Realm realm = Realm.getInstance(configOld);
+        Realm realm = Realm.getInstance(syncConfig);
 
         realm.beginTransaction();
         realm.createObject(StringOnly.class).setChars("Foo");
         realm.commitTransaction();
 
         // make sure the changes gets to the server
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
+        SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
         user.logout();
+        Realm.deleteRealm(syncConfig);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+        //noinspection unchecked
+        SyncConfiguration syncConfigSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .name("useSsl")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .disableSSLVerification()
                 .build();
-        realm = Realm.getInstance(config);
+        realm = Realm.getInstance(syncConfigSSL);
 
         RealmResults<StringOnly> all = realm.where(StringOnly.class).findAll();
         try {
@@ -134,28 +138,31 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server
-        final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+        //noinspection unchecked
+        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .schema(StringOnly.class)
                 .build();
-        Realm realm = Realm.getInstance(configOld);
+        Realm realm = Realm.getInstance(syncConfig);
 
         realm.beginTransaction();
         realm.createObject(StringOnly.class).setChars("Foo");
         realm.commitTransaction();
 
         // make sure the changes gets to the server
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
+        SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
         user.logout();
+        Realm.deleteRealm(syncConfig);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+        //noinspection unchecked
+        SyncConfiguration syncConfigSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .name("useSsl")
                 .schema(StringOnly.class)
                 .build();
-        realm = Realm.getInstance(config);
+        realm = Realm.getInstance(syncConfigSSL);
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));// don't call waitForInitialRemoteData as it will block forever
         try {
             assertTrue(realm.isEmpty());
@@ -175,7 +182,9 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         RealmLog.add(testLogger);
         RealmLog.setLevel(LogLevel.WARN);
 
+        //noinspection unchecked
         configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .name("useSsl")
                 .schema(StringOnly.class)
                 .trustedRootCA("trusted_ca.pem")
                 .disableSSLVerification()
@@ -192,51 +201,54 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
-        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+        //noinspection unchecked
+        SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
-                .trustedRootCA("not_existing_file.pem")
+                .trustedRootCA("none_existing_file.pem")
                 .build();
 
         try {
-            Realm.getInstance(config);
+            Realm.getInstance(syncConfig);
             fail();
         } catch (RealmFileException ignored) {
         }
     }
 
-    // combining ssl_trust_certificate_path & verify_servers_ssl_certificate=false (should work since no validation for second)
     @Test
-    public void combiningTwoSSLConfiguration() throws InterruptedException {
+    public void combiningTrustedRootCA_and_disableSSLVerification() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server using ssl_verify_path option
-        final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+        //noinspection unchecked
+        final SyncConfiguration syncConfigWithCertificate = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
                 .trustedRootCA("trusted_ca.pem")
                 .build();
-        Realm realm = Realm.getInstance(configOld);
+        Realm realm = Realm.getInstance(syncConfigWithCertificate);
 
         realm.beginTransaction();
         realm.createObject(StringOnly.class).setChars("Foo");
         realm.commitTransaction();
 
         // make sure the changes gets to the server
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
+        SyncManager.getSession(syncConfigWithCertificate).uploadAllLocalChanges();
         realm.close();
         user.logout();
-        Realm.deleteRealm(configOld);
+        Realm.deleteRealm(syncConfigWithCertificate);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+        //noinspection unchecked
+        SyncConfiguration syncConfigDisableSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .name("useSsl")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .disableSSLVerification()
                 .build();
-        realm = Realm.getInstance(config);
+        realm = Realm.getInstance(syncConfigDisableSSL);
 
         RealmResults<StringOnly> all = realm.where(StringOnly.class).findAll();
         try {
@@ -247,115 +259,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         }
     }
 
-    // combining verify_servers_ssl_certificate=false & SSLVerifyCallback (should fail since first config is not inherited)
-    @Test
-    public void combiningTwoSSLConfiguration2() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
-        String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
-
-        // 1. Copy a valid Realm to the server using ssl_verify_path option
-        final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
-                .schema(StringOnly.class)
-                .disableSSLVerification()
-                .build();
-        Realm realm = Realm.getInstance(configOld);
-
-        realm.beginTransaction();
-        realm.createObject(StringOnly.class).setChars("Foo");
-        realm.commitTransaction();
-
-        // make sure the changes gets to the server
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
-        realm.close();
-        user.logout();
-        Realm.deleteRealm(configOld);
-
-        // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
-        // not download the uploaded changes. since it uses the verifyCallback which returns false (cert is not installed on Android)
-        // TODO add test that make sure the callback is called, use mockito to verify number of calls
-        // plus override the behaviour ti return false/true as desired
-        user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
-                .schema(StringOnly.class)
-                .build();
-        realm = Realm.getInstance(config);
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));
-        assertTrue(realm.isEmpty());
-        realm.close();
-    }
-
-    // combining 2 different certificate path second is invalid should not use the first valid one (from 1 sync)
-    @Test
-    public void combiningTwoSSLConfiguration3() throws InterruptedException {
-        String username = UUID.randomUUID().toString();
-        String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
-//        String json = user.getSyncUser().toJson();
-        // 1. Copy a valid Realm to the server using ssl_verify_path option
-        final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
-                .schema(StringOnly.class)
-                .trustedRootCA("untrusted_ca.pem")
-                .build();
-        Realm realm = Realm.getInstance(configOld);
-
-        realm.beginTransaction();
-        realm.createObject(StringOnly.class).setChars("Foo");
-        realm.commitTransaction();
-
-//        // make sure the changes gets to the server
-//        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
-//        realm.close();
-//        user.logout();
-//        Realm.deleteRealm(configOld);
-
-        // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
-        // download the uploaded changes.
-        String username2 = UUID.randomUUID().toString();
-        final SyncUser user2 = SyncUser.login(SyncCredentials.usernamePassword(username2, password, true), Constants.AUTH_URL);
-        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user2, Constants.USER_REALM_SECURE)
-                .schema(StringOnly.class)
-                .trustedRootCA("trusted_ca.pem")
-                .build();
-        Realm realm2 = Realm.getInstance(config);
-
-        realm2.beginTransaction();
-        realm2.createObject(StringOnly.class).setChars("Bar");
-        realm2.commitTransaction();
-
-        // wait for realm2 to upload commits
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));
-
-        realm.close();
-        realm2.close();
-
-        final CountDownLatch wait = new CountDownLatch(1);
-        new Thread() {
-            @Override
-            public void run() {
-                // now try with none SSL to make sure commits only from Realm2 were uploaded
-                SyncConfiguration config3 = configurationFactory.createSyncConfigurationBuilder(user2, Constants.USER_REALM_SECURE)
-                        .schema(StringOnly.class)
-                        .disableSSLVerification()
-                        .build();
-                Realm realm3 = Realm.getInstance(config3);
-
-                RealmResults<StringOnly> all = realm3.where(StringOnly.class).findAll();
-                try {
-                    assertEquals(1, all.size());
-                    assertEquals("Bar", all.get(0).getChars());
-                } finally {
-                    realm3.close();
-                    wait.countDown();
-                }
-            }
-        }.start();
-
-        wait.await();
-    }
-
-    // make sure SSLValidate Callback is called
-    //FIXME test passed make sure the certificate is installed
     @Test
     public void sslVerifyCallback_isUsed() throws InterruptedException {
         String username = UUID.randomUUID().toString();
@@ -363,41 +266,32 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server using ssl_verify_path option
-        final SyncConfiguration configUnsecure = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+        //noinspection unchecked
+        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .schema(StringOnly.class)
-                .errorHandler(new SyncSession.ErrorHandler() {
-                    @Override
-                    public void onError(SyncSession session, ObjectServerError error) {
-                        System.out.println(">>>>>>>>>>>>>>>> UN-S E C  E R R O R HANDLER");
-                    }
-                })
                 .build();
-        Realm realm = Realm.getInstance(configUnsecure);
+        Realm realm = Realm.getInstance(syncConfig);
 
         realm.beginTransaction();
         realm.createObject(StringOnly.class).setChars("Foo");
         realm.commitTransaction();
 
         // make sure the changes gets to the server
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
+        SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
         user.logout();
-        Realm.deleteRealm(configUnsecure);
+        Realm.deleteRealm(syncConfig);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration configSecure = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+        //noinspection unchecked
+        SyncConfiguration syncConfigSecure = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .name("useSsl")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
-                .errorHandler(new SyncSession.ErrorHandler() {
-                    @Override
-                    public void onError(SyncSession session, ObjectServerError error) {
-                        System.out.println(">>>>>>>>>>>>>>>> S E C  E R R O R HANDLER");
-                    }
-                })
                 .build();
-        realm = Realm.getInstance(configSecure);
+        realm = Realm.getInstance(syncConfigSecure);
 
         RealmResults<StringOnly> all = realm.where(StringOnly.class).findAll();
         try {
