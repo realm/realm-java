@@ -25,27 +25,20 @@ class KotlinRealmTests {
         }
     }
 
-    @Test
-    fun kclassExtensionMethods() {
-        // Extend all <x>(Class) methods with <x>(KClass)
-        val realm = Realm.getDefaultInstance()
-        val query : RealmQuery<AllKotlinTypes> = realm.where()
-        assertEquals(0, query.count())
-        realm.close()
-    }
-
-    @Test
-    fun kotlinNullability() {
-        // Add support for org.jetbrains.annotations.NotNull will add support for Kotlin null/non-null types
-        val realm = Realm.getDefaultInstance()
-        assertFalse(realm.getSchema().get(AllKotlinTypes::class.simpleName)!!.isNullable("requiredString"))
-    }
-
-    @Test
-    fun typeSafeFieldNames() {
+//    @Test
+//    fun kclassExtensionMethods() {
+//        // Extend all <x>(Class) methods with <x>(KClass)
+//        val realm = Realm.getDefaultInstance()
+//        val query : RealmQuery<AllKotlinTypes> = realm.where()
+//        assertEquals(0, query.count())
+//        realm.close()
+//    }
+//
+//    @Test
+//    fun typeSafeFieldNames() {
 // Requires kotlin-reflect.jar which is a rather large dependency
 //        val realm = Realm.getDefaultInstance()
 //        val field: KMutableProperty1<AllKotlinTypes, String> = AllKotlinTypes::requiredString
 //        assertFalse(realm.getSchema().get(AllKotlinTypes::class.simpleName).isNullable(AllKotlinTypes::requiredString))
-    }
+//    }
 }
