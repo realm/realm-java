@@ -27,7 +27,6 @@ android {
         project.archivesBaseName = "realm-kotlin-extensions"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-//        missingDimensionStrategy 'api', 'base'
     }
     buildTypes {
         debug {
@@ -38,7 +37,6 @@ android {
         }
         release {
             minifyEnabled false
-//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
@@ -47,11 +45,9 @@ android {
     productFlavors {
         base {
             dimension 'api'
-//            consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-base.pro'
         }
         objectServer {
             dimension 'api'
-//            consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-objectServer.pro'
         }
     }
 
@@ -91,53 +87,17 @@ task sourcesJar(type: Jar) {
     classifier = 'sources'
 }
 
-def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This software is considered in beta phase. ' +
-        'It indicates that any public interface can change without prior announcements. ' +
-        'Moreover, classes, constructors, and methods annotated as beta are not ' +
-        'considered at production quality, and should be used with care.</div>'
-
 dokka {
+    // TODO Filtering is currently not possible https://youtrack.jetbrains.com/issue/KT-21022
+    // This means we cannot filter R/BuildConfig files for the time being
     outputFormat = 'html'
     outputDirectory = "$buildDir/dokka"
 }
-
-//task javadoc(type: Javadoc) {
-//    source android.sourceSets.objectServer.java.srcDirs
-//    source android.sourceSets.main.java.srcDirs
-//    source "../../realm-annotations/src/main/java"
-//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-//    options {
-//        title = "Realm ${project.version}"
-//        memberLevel = JavadocMemberLevel.PUBLIC
-//        docEncoding = 'UTF-8'
-//        encoding = 'UTF-8'
-//        charSet = 'UTF-8'
-//        locale = 'en_US'
-//        overview = 'src/overview.html'
-//
-//        links "https://docs.oracle.com/javase/7/docs/api/"
-//        links "http://reactivex.io/RxJava/javadoc/"
-//        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
-//
-//        tags = [betaTag]
-//    }
-//    exclude '**/internal/**'
-//    exclude '**/BuildConfig.java'
-//    exclude '**/R.java'
-//    doLast {
-//        copy {
-//            from "src/realm-java-overview.png"
-//            into "$buildDir/docs/javadoc"
-//        }
-//    }
-//}
 
 task javadocJar(type: Jar, dependsOn: dokka) {
     classifier = 'javadoc'
     from "$buildDir/dokka" // Use Dokka format. Not 100% what implications this might have, but the Javadoc is really ugly.
 }
-
-
 
 // Deployment
 
