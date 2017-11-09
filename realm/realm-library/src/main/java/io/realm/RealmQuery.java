@@ -1519,6 +1519,18 @@ public class RealmQuery<E> {
 
         return orWithoutThreadValidation();
     }
+    
+    /**
+     * Logical-and two conditions
+     * Technically, does nothing. Intended purely for syntactic sugar
+     *
+     * @return the query object
+     */
+    public RealmQuery<E> and() {
+    	realm.checkIfValid();
+    	
+    	return this;
+    }
 
     private RealmQuery<E> orWithoutThreadValidation() {
         this.query.or();
