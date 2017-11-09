@@ -47,13 +47,13 @@ public class SortDescriptorTests {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
     private Table table;
 
     @Before
     public void setUp() {
         RealmConfiguration config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
         sharedRealm.beginTransaction();
         table = sharedRealm.createTable("test_table");
     }
@@ -231,7 +231,7 @@ public class SortDescriptorTests {
         table.addColumnLink(listType, listType.name(), table);
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Invalid query: field 'LIST' in table 'test_table' is of invalid type 'LIST'.");
+        thrown.expectMessage("Invalid query: field 'LIST' in class 'test_table' is of invalid type 'LIST'.");
         SortDescriptor.getInstanceForSort(null, table, String.format("%s.%s", listType.name(), type.name()), Sort.ASCENDING);
     }
 
@@ -240,10 +240,14 @@ public class SortDescriptorTests {
         for (RealmFieldType type : RealmFieldType.values()) {
             if (!filter.contains(type)) {
                 switch (type) {
-                    case UNSUPPORTED_DATE:
-                    case UNSUPPORTED_TABLE:
-                    case UNSUPPORTED_MIXED:
                     case LINKING_OBJECTS: // TODO: should be supported?s
+                    case INTEGER_LIST: // FIXME zaki50 revisit this once Primitive List query is implemented
+                    case BOOLEAN_LIST:
+                    case STRING_LIST:
+                    case BINARY_LIST:
+                    case DATE_LIST:
+                    case FLOAT_LIST:
+                    case DOUBLE_LIST:
                         break;
                     case LIST:
                     case OBJECT:

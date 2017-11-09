@@ -18,6 +18,7 @@ package some.test;
 
 import java.util.Date;
 
+import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
@@ -32,16 +33,36 @@ public class AllTypes extends RealmObject {
 
     @PrimaryKey
     private String columnString;
+
     private long columnLong;
     private float columnFloat;
     private double columnDouble;
     private boolean columnBoolean;
+
     @Required
     private Date columnDate;
+
     @Required
     private byte[] columnBinary;
+
+    private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.valueOf(0);
+
     private AllTypes columnObject;
+
     private RealmList<AllTypes> columnRealmList;
+
+    private RealmList<String> columnStringList;
+    private RealmList<byte[]> columnBinaryList;
+    private RealmList<Boolean> columnBooleanList;
+    private RealmList<Long> columnLongList;
+    private RealmList<Integer> columnIntegerList;
+    private RealmList<Short> columnShortList;
+    private RealmList<Byte> columnByteList;
+    private RealmList<Double> columnDoubleList;
+    private RealmList<Float> columnFloatList;
+    private RealmList<Date> columnDateList;
+
+
     @LinkingObjects(FIELD_PARENTS)
     private final RealmResults<AllTypes> parentObjects = null;
 
@@ -189,4 +210,11 @@ public class AllTypes extends RealmObject {
         this.columnRealmList = columnRealmList;
     }
 
+    public MutableRealmInteger getColumnMutableRealmInteger() {
+        return realmGet$columnMutableRealmInteger();
+    }
+
+    public MutableRealmInteger realmGet$columnMutableRealmInteger() {
+        return columnMutableRealmInteger;
+    }
 }

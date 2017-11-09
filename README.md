@@ -24,11 +24,11 @@ The API reference is located at [realm.io/docs/java/api](https://realm.io/docs/j
 - **Need help with your code?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](http://stackoverflow.com/questions/ask?tags=realm). We activtely monitor & answer questions on SO!
 - **Have a bug to report?** [Open an issue](https://github.com/realm/realm-java/issues/new). If possible, include the version of Realm, a full log, the Realm file, and a project that shows the issue.
 - **Have a feature request?** [Open an issue](https://github.com/realm/realm-java/issues/new). Tell us what the feature should do, and why you want the feature.
-- Sign up for our [**Community Newsletter**](http://eepurl.com/VEKCn) to get regular tips, learn about other use-cases and get alerted of blogposts and tutorials about Realm.
+- Sign up for our [**Community Newsletter**](https://go.pardot.com/l/210132/2017-04-26/3j74l) to get regular tips, learn about other use-cases and get alerted of blogposts and tutorials about Realm.
 
 ## Using Snapshots
 
-If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [OJO](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-android/)
+If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [Jfrog OSS](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-gradle-plugin/)
 
 ```gradle
 buildscript {
@@ -60,11 +60,12 @@ In case you don't want to use the precompiled version, you can build Realm yours
 ### Prerequisites
 
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * Download & install the Android SDK **Build-Tools 25.0.3**, **Android N (API 25)** (for example through Android Studio’s **Android SDK Manager**).
+ * Download & install the Android SDK **Build-Tools 26.0.2**, **Android O (API 26)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
+ * If you use Android Studio, Android Studio 3.0 or later is required.
 
  * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
-You may unzip the file wherever you choose.  For OSX, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
+You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
 
  * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full path name of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
@@ -80,7 +81,7 @@ You may unzip the file wherever you choose.  For OSX, a suggested location is `~
     export ANDROID_NDK_HOME=~/Library/Android/android-ndk-r10e
     ```
 
- * If you will be launching Android Studio from the OS X Finder, you should also run the following two commands:
+ * If you will be launching Android Studio from the macOS Finder, you should also run the following two commands:
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
@@ -93,14 +94,20 @@ You may unzip the file wherever you choose.  For OSX, a suggested location is `~
    export REALM_CORE_DOWNLOAD_DIR=~/.realmCore
    ```
 
-   OS X users must also run the following command in order for Android Studio to see this environment variable..
+   macOS users must also run the following command in order for Android Studio to see this environment variable..
 
    ```
    launchctl setenv REALM_CORE_DOWNLOAD_DIR "$REALM_CORE_DOWNLOAD_DIR"
    ```
 
-It would be a good idea to add all of the symbol definitions (and their accompanying `launchctl` commands, if you are using OS X) to your `~/.profile` (or `~/.zprofile` if the login shell is `zsh`)
+It would be a good idea to add all of the symbol definitions (and their accompanying `launchctl` commands, if you are using macOS) to your `~/.profile` (or `~/.zprofile` if the login shell is `zsh`)
 
+ * If you develop Realm Java with Android Studio, we recommend you to exclude some directories from indexing target by executing following steps on Android Studio. It really speeds up indexing phase after build.
+
+    - Under `/realm/realm-library/`, select `build`, `.externalNativeBuild` and `distribution` folders in `Project` view.
+    - Press `Command + Shift + A` to open `Find action` dialog. If you are not using defaut keymap nor using macOS, you can find your shortcut key in `Keymap` preference by searching `Find action`.
+    - Search `Excluded` (not `Exclude`) action and select it. Selected folder icons should become orange (in default theme).
+    - Restart Android Studio.
 
 ### Download sources
 
@@ -143,6 +150,16 @@ The full build may take an hour or more, to complete.
  * `./gradlew connectedUnitTests -PbuildTargetABIs=$(adb shell getprop ro.product.cpu.abi)` will build JNI files only for the ABI which corresponds to the connected device.  These tests require a running Object Server (see below)
 
 Generating the Javadoc using the command above may generate warnings. The Javadoc is generated despite the warnings.
+
+
+### Upgrading Gradle Wrappers
+
+ All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer `gradleVersion` propertiy defined in `/realm.properties` in order to determine Geadle Version of generating wrappers. After generating Gradle Wrappers, we need to modify `gradle/wrapper/gradle-wrapper.properties` to use `*-all.zip` distribution instead of `*-bin.zip` distribution.
+
+We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. When you update Gradle Wrappers, please obey the following steps.
+
+ 1. Edit `gradleVersion` property in defined in `/realm.properties` to new Gradle Wrapper version.
+ 2. Execute `/tools/update_gradle_wrapper.sh`.
 
 ### Gotchas
 
@@ -239,7 +256,9 @@ style/lint in the drop-down to the left of the Manage... button.
 ## License
 
 Realm Java is published under the Apache 2.0 license.
-The underlying core is available under the [Realm Core Binary License](LICENSE#L210-L243) while we [work to open-source it under the Apache 2.0 license](https://realm.io/docs/java/#faq).
+
+Realm Core is also published under the Apache 2.0 license and is available
+[here](https://github.com/realm/realm-core).
 
 **This product is not being made available to any person located in Cuba, Iran,
 North Korea, Sudan, Syria or the Crimea region, or to any other person that is
@@ -247,7 +266,7 @@ not eligible to receive the product under U.S. law.**
 
 ## Feedback
 
-**_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm), announce your app on [our mailing-list](https://groups.google.com/forum/#!forum/realm-java), or email [help@realm.io](mailto:help@realm.io) to let us know about it!_**
+**_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm) to share your thoughts!_**
 
 **_And if you don't like it, please let us know what you would like improved, so we can fix it!_**
 

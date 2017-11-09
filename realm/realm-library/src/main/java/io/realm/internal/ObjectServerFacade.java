@@ -19,6 +19,7 @@ package io.realm.internal;
 import android.content.Context;
 
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
@@ -67,7 +68,7 @@ public class ObjectServerFacade {
     }
 
     public Object[] getUserAndServerUrl(RealmConfiguration config) {
-        return new Object[6];
+        return new Object[8];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -86,7 +87,7 @@ public class ObjectServerFacade {
     }
 
     // If no session yet exists for this path. Wrap a new Java Session around an existing OS one.
-    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
+    public void wrapObjectStoreSessionIfRequired(OsRealmConfig config) {
     }
 
     public String getSyncServerCertificateAssetName(RealmConfiguration config) {
@@ -100,9 +101,10 @@ public class ObjectServerFacade {
     /**
      * Block until all latest changes have been downloaded from the server.
      *
-     * @throws {@code DownloadingRealmInterruptedException}  if the thread was interrupted while blocked waiting for
+     * @throws {@code DownloadingRealmInterruptedException} if the thread was interrupted while blocked waiting for
      * this to complete.
      */
+    @SuppressWarnings("JavaDoc")
     public void downloadRemoteChanges(RealmConfiguration config) {
         // Do nothing
     }

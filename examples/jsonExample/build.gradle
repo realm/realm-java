@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 android {
@@ -12,21 +11,22 @@ android {
         minSdkVersion 15
         versionCode 1
         versionName "1.0"
+        javaCompileOptions.annotationProcessorOptions.includeCompileClasspath = true
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.debug
+        }
+        debug {
+            minifyEnabled true
         }
     }
     productFlavors {
     }
-
-    command {
-        events 2000
-    }
 }
 
 dependencies {
-    provided 'org.projectlombok:lombok:1.16.6'
+    compileOnly 'org.projectlombok:lombok:1.16.6'
     annotationProcessor 'org.projectlombok:lombok:1.16.6'
 }

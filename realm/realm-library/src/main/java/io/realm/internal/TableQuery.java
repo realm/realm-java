@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import java.util.Date;
 
+import javax.annotation.Nullable;
+
 import io.realm.Case;
 import io.realm.Sort;
 import io.realm.log.RealmLog;
@@ -247,7 +249,7 @@ public class TableQuery implements NativeObject {
 
     private static final String DATE_NULL_ERROR_MESSAGE = "Date value in query criteria must not be null.";
 
-    public TableQuery equalTo(long[] columnIndex, long[] tablePtrs, Date value) {
+    public TableQuery equalTo(long[] columnIndex, long[] tablePtrs, @Nullable Date value) {
         if (value == null) {
             nativeIsNull(nativePtr, columnIndex, tablePtrs);
         } else {
@@ -258,6 +260,7 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, Date value) {
+        //noinspection ConstantConditions
         if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
         nativeNotEqualTimestamp(nativePtr, columnIndex, tablePtrs, value.getTime());
         queryValidated = false;
@@ -265,6 +268,7 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery greaterThan(long[] columnIndex, long[] tablePtrs, Date value) {
+        //noinspection ConstantConditions
         if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
         nativeGreaterTimestamp(nativePtr, columnIndex, tablePtrs, value.getTime());
         queryValidated = false;
@@ -272,6 +276,7 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery greaterThanOrEqual(long[] columnIndex, long[] tablePtrs, Date value) {
+        //noinspection ConstantConditions
         if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
         nativeGreaterEqualTimestamp(nativePtr, columnIndex, tablePtrs, value.getTime());
         queryValidated = false;
@@ -279,6 +284,7 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery lessThan(long[] columnIndex, long[] tablePtrs, Date value) {
+        //noinspection ConstantConditions
         if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
         nativeLessTimestamp(nativePtr, columnIndex, tablePtrs, value.getTime());
         queryValidated = false;
@@ -286,6 +292,7 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery lessThanOrEqual(long[] columnIndex, long[] tablePtrs, Date value) {
+        //noinspection ConstantConditions
         if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
         nativeLessEqualTimestamp(nativePtr, columnIndex, tablePtrs, value.getTime());
         queryValidated = false;
@@ -293,6 +300,7 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery between(long[] columnIndex, Date value1, Date value2) {
+        //noinspection ConstantConditions
         if (value1 == null || value2 == null) {
             throw new IllegalArgumentException("Date values in query criteria must not be null."); // Different text
         }
@@ -316,7 +324,7 @@ public class TableQuery implements NativeObject {
     }
 
     // Equals
-    public TableQuery equalTo(long[] columnIndexes, long[] tablePtrs, String value, Case caseSensitive) {
+    public TableQuery equalTo(long[] columnIndexes, long[] tablePtrs, @Nullable String value, Case caseSensitive) {
         nativeEqual(nativePtr, columnIndexes, tablePtrs, value, caseSensitive.getValue());
         queryValidated = false;
         return this;
@@ -329,13 +337,13 @@ public class TableQuery implements NativeObject {
     }
 
     // Not Equals
-    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, String value, Case caseSensitive) {
+    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, @Nullable String value, Case caseSensitive) {
         nativeNotEqual(nativePtr, columnIndex, tablePtrs, value, caseSensitive.getValue());
         queryValidated = false;
         return this;
     }
 
-    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, String value) {
+    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, @Nullable String value) {
         nativeNotEqual(nativePtr, columnIndex, tablePtrs, value, true);
         queryValidated = false;
         return this;
@@ -396,7 +404,9 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery isNotEmpty(long[] columnIndices, long[] tablePtrs) {
-        return not().isEmpty(columnIndices, tablePtrs);
+        nativeIsNotEmpty(nativePtr, columnIndices, tablePtrs);
+        queryValidated = false;
+        return this;
     }
 
     // Searching methods.
@@ -413,27 +423,6 @@ public class TableQuery implements NativeObject {
     public long find() {
         validateQuery();
         return nativeFind(nativePtr, 0);
-    }
-
-    /**
-     * Imports a row from a worker thread to the caller thread.
-     *
-     * @param handoverRowPtr pointer to the handover row object
-     * @param sharedRealm the SharedRealm on the caller thread.
-     * @return the row pointer on the caller thread.
-     */
-    public static long importHandoverRow(long handoverRowPtr, SharedRealm sharedRealm) {
-        return nativeImportHandoverRowIntoSharedGroup(handoverRowPtr, sharedRealm.getNativePtr());
-    }
-
-    /**
-     * Handovers the query, so it can be used by other SharedGroup (in different thread)
-     *
-     * @param sharedRealm the SharedGroup holding the query
-     * @return native pointer to the handover query
-     */
-    public long handoverQuery(SharedRealm sharedRealm) {
-        return nativeHandoverQuery(sharedRealm.getNativePtr(), nativePtr);
     }
 
     //
@@ -636,17 +625,6 @@ public class TableQuery implements NativeObject {
         return nativeRemove(nativePtr);
     }
 
-    /**
-     * Converts a list of sort orders to their native values.
-     */
-    public static boolean[] getNativeSortOrderValues(Sort[] sortOrders) {
-        boolean[] nativeValues = new boolean[sortOrders.length];
-        for (int i = 0; i < sortOrders.length; i++) {
-            nativeValues[i] = sortOrders[i].getValue();
-        }
-        return nativeValues;
-    }
-
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
@@ -723,9 +701,9 @@ public class TableQuery implements NativeObject {
 
     private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndices, long[] tablePtrs, byte[] value);
 
-    private native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, long[] tablePtrs, String value, boolean caseSensitive);
+    private native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, long[] tablePtrs, @Nullable String value, boolean caseSensitive);
 
-    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String value, boolean caseSensitive);
+    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, @Nullable String value, boolean caseSensitive);
 
     private native void nativeBeginsWith(long nativeQueryPtr, long[] columnIndices, long[] tablePtrs, String value, boolean caseSensitive);
 
@@ -736,6 +714,8 @@ public class TableQuery implements NativeObject {
     private native void nativeContains(long nativeQueryPtr, long[] columnIndices, long[] tablePtrs, String value, boolean caseSensitive);
 
     private native void nativeIsEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
+
+    private native void nativeIsNotEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
 
     private native long nativeFind(long nativeQueryPtr, long fromTableRow);
 
@@ -776,10 +756,6 @@ public class TableQuery implements NativeObject {
     private native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
 
     private native long nativeRemove(long nativeQueryPtr);
-
-    private native long nativeHandoverQuery(long callerSharedRealmPtr, long nativeQueryPtr);
-
-    private static native long nativeImportHandoverRowIntoSharedGroup(long handoverRowPtr, long callerSharedRealmPtr);
 
     private static native long nativeGetFinalizerPtr();
 }

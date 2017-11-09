@@ -19,6 +19,7 @@
 #include <realm/util/assert.hpp>
 
 #include "jni_util/log.hpp"
+#include "jni_util/java_local_ref.hpp"
 
 using namespace realm;
 using namespace realm::jni_util;
@@ -91,8 +92,9 @@ void JavaLogger::log(Log::Level level, const char* tag, jthrowable throwable, co
     // "JNI called with pending exception". This is something that should be avoided when printing log in JNI --
     // Always
     // print log before calling env->ThrowNew. Doing env->ExceptionCheck() here creates overhead for normal cases.
-    env->CallVoidMethod(m_java_logger, m_log_method, level, env->NewStringUTF(tag), throwable,
-                        env->NewStringUTF(message));
+    JavaLocalRef<jstring> java_tag(env, env->NewStringUTF(tag));
+    JavaLocalRef<jstring> java_error_message(env, env->NewStringUTF(message));
+    env->CallVoidMethod(m_java_logger, m_log_method, level, java_tag.get(), throwable, java_error_message.get());
 }
 
 bool JavaLogger::is_same_object(JNIEnv* env, jobject java_logger)

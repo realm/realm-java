@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import java.util.Date;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmFieldType;
 
 
@@ -25,8 +27,8 @@ import io.realm.RealmFieldType;
  * Wrapper around a Row in Realm Core.
  * <p>
  * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the
- * annotation processor and {@link RealmProxyMediator#validateTable(Class, SharedRealm, boolean)}
- * which is called before the typed API can be used.
+ * annotation processor and Object Store's typed Realm schema validation which is called before the typed API can be
+ * used.
  * <p>
  * For low-level access to Row data where error checking is required, use {@link CheckedRow}.
  */
@@ -88,19 +90,6 @@ public class UncheckedRow implements NativeObject, Row {
         return new UncheckedRow(context, table, nativeRowPointer);
     }
 
-    /**
-     * Gets the row object associated to an index in a LinkView.
-     *
-     * @param context the Realm context.
-     * @param linkView the LinkView holding the row.
-     * @param index the index of the row.
-     * @return an instance of Row for the LinkView and index specified.
-     */
-    static UncheckedRow getByRowIndex(NativeContext context, LinkView linkView, long index) {
-        long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePtr(), index);
-        return new UncheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
-    }
-
     @Override
     public long getColumnCount() {
         return nativeGetColumnCount(nativePtr);
@@ -114,6 +103,7 @@ public class UncheckedRow implements NativeObject, Row {
 
     @Override
     public long getColumnIndex(String columnName) {
+        //noinspection ConstantConditions
         if (columnName == null) {
             throw new IllegalArgumentException("Column name can not be null.");
         }
@@ -183,9 +173,13 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public LinkView getLinkList(long columnIndex) {
-        long nativeLinkViewPtr = nativeGetLinkView(nativePtr, columnIndex);
-        return new LinkView(context, parent, columnIndex, nativeLinkViewPtr);
+    public OsList getModelList(long columnIndex) {
+        return new OsList(this, columnIndex);
+    }
+
+    @Override
+    public OsList getValueList(long columnIndex, RealmFieldType fieldType) {
+        return new OsList(this, columnIndex);
     }
 
     // Setters
@@ -193,7 +187,6 @@ public class UncheckedRow implements NativeObject, Row {
     @Override
     public void setLong(long columnIndex, long value) {
         parent.checkImmutable();
-        getTable().checkIntValueIsLegal(columnIndex, getIndex(), value);
         nativeSetLong(nativePtr, columnIndex, value);
     }
 
@@ -218,6 +211,7 @@ public class UncheckedRow implements NativeObject, Row {
     @Override
     public void setDate(long columnIndex, Date date) {
         parent.checkImmutable();
+        //noinspection ConstantConditions
         if (date == null) {
             throw new IllegalArgumentException("Null Date is not allowed.");
         }
@@ -232,19 +226,17 @@ public class UncheckedRow implements NativeObject, Row {
      * @param value the value to to a row
      */
     @Override
-    public void setString(long columnIndex, String value) {
+    public void setString(long columnIndex, @Nullable String value) {
         parent.checkImmutable();
         if (value == null) {
-            getTable().checkDuplicatedNullForPrimaryKeyValue(columnIndex, getIndex());
             nativeSetNull(nativePtr, columnIndex);
         } else {
-            getTable().checkStringValueIsLegal(columnIndex, getIndex(), value);
             nativeSetString(nativePtr, columnIndex, value);
         }
     }
 
     @Override
-    public void setBinaryByteArray(long columnIndex, byte[] data) {
+    public void setBinaryByteArray(long columnIndex, @Nullable byte[] data) {
         parent.checkImmutable();
         nativeSetByteArray(nativePtr, columnIndex, data);
     }
@@ -274,7 +266,6 @@ public class UncheckedRow implements NativeObject, Row {
     @Override
     public void setNull(long columnIndex) {
         parent.checkImmutable();
-        getTable().checkDuplicatedNullForPrimaryKeyValue(columnIndex, getIndex());
         nativeSetNull(nativePtr, columnIndex);
     }
 
@@ -330,8 +321,6 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
 
-    protected native long nativeGetLinkView(long nativePtr, long columnIndex);
-
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
 
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
@@ -346,7 +335,7 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
 
-    protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
+    protected native void nativeSetByteArray(long nativePtr, long columnIndex, @Nullable byte[] data);
 
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
 

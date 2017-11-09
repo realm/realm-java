@@ -23,20 +23,15 @@ import android.widget.TextView;
 
 import com.example.securetokenandroidkeystore.R;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.security.KeyStoreException;
-import java.util.UUID;
 
+import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.SyncConfiguration;
+import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.android.SecureUserStore;
-import io.realm.internal.objectserver.ObjectServerUser;
-import io.realm.internal.objectserver.Token;
 
 /**
  * Activity responsible of unlocking the KeyStore
@@ -88,37 +83,21 @@ public class MainActivity extends AppCompatActivity {
     // build SyncConfiguration with a user store to store encrypted Token.
     private void buildSyncConf() {
         // the rest of Sync logic ...
-        SyncUser user = createTestUser(Long.MAX_VALUE);
-        String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration secureConfig = new SyncConfiguration.Builder(user, url).build();
-        Realm realm = Realm.getInstance(secureConfig);
-        // ...
-    }
+        SyncCredentials credentials = SyncCredentials.usernamePassword("username", "password");
+        final String urlAuth = "http://objectserver.realm.io:9080/auth";
+        final String url = "realm://objectserver.realm.io/default";
 
-    // Helpers
-    private final static String USER_TOKEN = UUID.randomUUID().toString();
-    private final static String REALM_TOKEN = UUID.randomUUID().toString();
+        SyncUser.loginAsync(credentials, urlAuth, new SyncUser.Callback<SyncUser>() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                SyncConfiguration secureConfig = new SyncConfiguration.Builder(user, url).build();
+                Realm realm = Realm.getInstance(secureConfig);
+                // ...
+            }
 
-    private static SyncUser createTestUser(long expires) {
-        Token userToken = new Token(USER_TOKEN, "JohnDoe", null, expires, null);
-        Token accessToken = new Token(REALM_TOKEN, "JohnDoe", "/foo", expires, new Token.Permission[]{Token.Permission.DOWNLOAD});
-        ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(accessToken, "/data/data/myapp/files/default", false);
-
-        JSONObject obj = new JSONObject();
-        try {
-            JSONArray realmList = new JSONArray();
-            JSONObject realmDesc = new JSONObject();
-            realmDesc.put("uri", "realm://objectserver.realm.io/default");
-            realmDesc.put("description", desc.toJson());
-            realmList.put(realmDesc);
-
-            obj.put("authUrl", "http://objectserver.realm.io/auth");
-            obj.put("userToken", userToken.toJson());
-            obj.put("realms", realmList);
-            return SyncUser.fromJson(obj.toString());
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+            @Override
+            public void onError(ObjectServerError error) {}
+        });
     }
 
     private void keystoreLockedMessage() {

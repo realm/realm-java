@@ -534,6 +534,9 @@ public class RealmLinkTests {
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNull("cat").findAll();
         assertEquals(1, owners2.size());
+
+        RealmResults<Owner> owners3 = testRealm.where(Owner.class).isNull("dogs.birthday").findAll();
+        assertEquals(0, owners3.size());
     }
 
     @Test
@@ -547,6 +550,27 @@ public class RealmLinkTests {
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotNull("cat").findAll();
         assertEquals(0, owners2.size());
+
+        RealmResults<Owner> owners3 = testRealm.where(Owner.class).isNotNull("dogs.birthday").findAll();
+        assertEquals(1, owners3.size());
+    }
+
+    @Test
+    public void isEmpty() {
+        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isEmpty("cat.name").findAll();
+        assertEquals(0, owners1.size());
+
+        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isEmpty("dogs.name").findAll();
+        assertEquals(0, owners2.size());
+    }
+
+    @Test
+    public void isNotEmpty() {
+        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNotEmpty("cat.name").findAll();
+        assertEquals(1, owners1.size());
+
+        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotEmpty("dogs.name").findAll();
+        assertEquals(1, owners2.size());
     }
 
     @Test

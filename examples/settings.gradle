@@ -8,12 +8,11 @@ include 'migrationExample'
 include 'moduleExample:app'
 include 'moduleExample:library'
 include 'newsreaderExample'
-include 'realmModuleExample'
 include 'rxJavaExample'
 include 'secureTokenAndroidKeyStore'
 include 'threadExample'
 include 'unitTestExample'
 include 'objectServerExample'
+include 'multiprocessExample'
 
 rootProject.name = 'realm-examples'
-

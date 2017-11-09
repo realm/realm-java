@@ -1,23 +1,18 @@
-FROM ubuntu:16.04
+FROM node:6.11.4
 
 ARG ROS_DE_VERSION
 
-# Add realm repo
-RUN apt-get update -qq \
-    && apt-get install -y curl npm \
-    # && curl -s https://packagecloud.io/install/repositories/realm/realm/script.deb.sh \
-    && curl -s https://packagecloud.io/install/repositories/realm/realm-testing/script.deb.sh | bash
+# Install realm object server
+RUN npm install -g realm-object-server@$ROS_DE_VERSION -S
 
-# ROS npm dependencies
-RUN npm init -y
-RUN npm install winston temp httpdispatcher@1.0.0
+# Install test server dependencies
+RUN npm install winston temp httpdispatcher@1.0.0 fs-extra moment
 
 COPY keys/public.pem keys/private.pem keys/127_0_0_1-server.key.pem keys/127_0_0_1-chain.crt.pem configuration.yml /
 COPY ros-testing-server.js /usr/bin/
 
-# Install realm object server
-RUN apt-get update -qq \
-    && apt-get install -y realm-object-server-developer=$ROS_DE_VERSION \
-    && apt-get clean
+#Bypass the ROS license check
+ENV DOCKER_DATA_PATH /
+ENV ROS_TOS_EMAIL_ADDRESS 'ci@realm.io'
 
 CMD /usr/bin/ros-testing-server.js /tmp/ros-testing-server.log

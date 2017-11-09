@@ -34,10 +34,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Capabilities;
-import io.realm.internal.ColumnIndices;
 import io.realm.internal.ObjectServerFacade;
+import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmNotifier;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
@@ -142,6 +142,8 @@ final class RealmCache {
                         if (instanceToReturn != null) {
                             callback.onSuccess(instanceToReturn);
                         } else {
+                            // throwable is non-null
+                            //noinspection ConstantConditions
                             callback.onError(throwable);
                         }
                     }
@@ -193,11 +195,6 @@ final class RealmCache {
     // first time when globalCount == 0, this could have a non-null value but it will be reset when the next
     // doCreateRealmOrGetFromCache is called with globalCount == 0.
     private RealmConfiguration configuration;
-
-    // Column indices are cached to speed up opening typed Realm. If a Realm instance is created in one thread, creating
-    // Realm instances in other threads doesn't have to initialize the column indices again.
-    private static final int MAX_ENTRIES_IN_TYPED_COLUMN_INDICES_ARRAY = 4;
-    private final ColumnIndices[] typedColumnIndicesArray = new ColumnIndices[MAX_ENTRIES_IN_TYPED_COLUMN_INDICES_ARRAY];
 
     // Realm path will be used to identify different RealmCaches. Different Realm configurations with same path
     // are not allowed and an exception will be thrown when trying to add it to the cache list.
@@ -256,6 +253,7 @@ final class RealmCache {
             RealmConfiguration configuration, BaseRealm.InstanceCallback<T> callback, Class<T> realmClass) {
         Capabilities capabilities = new AndroidCapabilities();
         capabilities.checkCanDeliverNotification(ASYNC_NOT_ALLOWED_MSG);
+        //noinspection ConstantConditions
         if (callback == null) {
             throw new IllegalArgumentException(ASYNC_CALLBACK_NULL_MSG);
         }
@@ -293,37 +291,35 @@ final class RealmCache {
             copyAssetFileIfNeeded(configuration);
             boolean fileExists = configuration.realmExists();
 
-            SharedRealm sharedRealm = null;
+            OsSharedRealm sharedRealm = null;
             try {
-                sharedRealm = SharedRealm.getInstance(configuration);
-
-                // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
-                // before proceeding. We need to open the Realm instance first to start any potential underlying
-                // SyncSession so this will work. TODO: This needs to be decoupled.
-                if (!fileExists) {
-                    try {
-                        ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
-                    } catch (Throwable t) {
-                        // If an error happened while downloading initial data, we need to reset the file so we can
-                        // download it again on the next attempt.
-                        // Realm.deleteRealm() is under the same lock as this method and globalCount is still 0, so
-                        // this should be safe.
-                        sharedRealm.close();
-                        sharedRealm = null;
-                        Realm.deleteRealm(configuration);
-                        throw t;
+                if (configuration.isSyncConfiguration()) {
+                    // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
+                    // before proceeding. We need to open the Realm instance first to start any potential underlying
+                    // SyncSession so this will work. TODO: This needs to be decoupled.
+                    if (!fileExists) {
+                        sharedRealm = OsSharedRealm.getInstance(configuration);
+                        try {
+                            ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
+                        } catch (Throwable t) {
+                            // If an error happened while downloading initial data, we need to reset the file so we can
+                            // download it again on the next attempt.
+                            sharedRealm.close();
+                            sharedRealm = null;
+                            // FIXME: We don't have a way to ensure that the Realm instance on client thread has been
+                            //        closed for now.
+                            // https://github.com/realm/realm-java/issues/5416
+                            BaseRealm.deleteRealm(configuration);
+                            throw t;
+                        }
+                    }
+                } else {
+                    if (fileExists) {
+                        // Primary key problem only exists before we release sync.
+                        sharedRealm = OsSharedRealm.getInstance(configuration);
+                        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
                     }
                 }
-
-                if (Table.primaryKeyTableNeedsMigration(sharedRealm)) {
-                    sharedRealm.beginTransaction();
-                    if (Table.migratePrimaryKeyTableIfNeeded(sharedRealm)) {
-                        sharedRealm.commitTransaction();
-                    } else {
-                        sharedRealm.cancelTransaction();
-                    }
-                }
-
             } finally {
                 if (sharedRealm != null) {
                     sharedRealm.close();
@@ -354,10 +350,6 @@ final class RealmCache {
             refAndCount.localRealm.set(realm);
             refAndCount.localCount.set(0);
 
-            if (realmClass == Realm.class && refAndCount.globalCount == 0) {
-                // Stores a copy of local ColumnIndices as a global cache.
-                RealmCache.storeColumnIndices(typedColumnIndicesArray, realm.schema.getImmutableColumnIndicies());
-            }
             // This is the first instance in current thread, increase the global count.
             refAndCount.globalCount++;
         }
@@ -403,12 +395,6 @@ final class RealmCache {
                 // Should never happen.
                 throw new IllegalStateException("Global reference counter of Realm" + canonicalPath +
                         " got corrupted.");
-            }
-
-            // Clears the column indices cache if needed.
-            if (realm instanceof Realm && refAndCount.globalCount == 0) {
-                // All typed Realm instances of this file are cleared from cache.
-                Arrays.fill(typedColumnIndicesArray, null);
             }
 
             // No more local reference to this Realm in current thread, close the instance.
@@ -491,25 +477,6 @@ final class RealmCache {
     }
 
     /**
-     * Updates the schema cache in the typed Realm for {@code pathOfRealm}.
-     *
-     * @param realm the instance that contains the schema cache to be updated.
-     */
-    synchronized void updateSchemaCache(Realm realm) {
-        final RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.TYPED_REALM);
-        if (refAndCount.localRealm.get() == null) {
-            // Called during initialization. just skip it.
-            // We can reach here if the DynamicRealm instance is initialized first.
-            return;
-        }
-        final ColumnIndices[] globalCacheArray = typedColumnIndicesArray;
-        final ColumnIndices createdCacheEntry = realm.updateSchemaCache(globalCacheArray);
-        if (createdCacheEntry != null) {
-            RealmCache.storeColumnIndices(globalCacheArray, createdCacheEntry);
-        }
-    }
-
-    /**
      * Runs the callback function with synchronization on {@link RealmCache}.
      *
      * @param callback the callback will be executed.
@@ -527,20 +494,32 @@ final class RealmCache {
      * @param configuration configuration object for Realm instance.
      * @throws RealmFileException if copying the file fails.
      */
-    private static void copyAssetFileIfNeeded(RealmConfiguration configuration) {
-        if (configuration.hasAssetFile()) {
-            File realmFile = new File(configuration.getRealmDirectory(), configuration.getRealmFileName());
+    private static void copyAssetFileIfNeeded(final RealmConfiguration configuration) {
+        final File realmFileFromAsset = configuration.hasAssetFile() ?
+                new File(configuration.getRealmDirectory(), configuration.getRealmFileName())
+                : null;
+        final String syncServerCertificateAssetName = ObjectServerFacade.getFacade(
+                configuration.isSyncConfiguration()).getSyncServerCertificateAssetName(configuration);
+        final boolean certFileExists = !Util.isEmptyString(syncServerCertificateAssetName);
 
-            copyFileIfNeeded(configuration.getAssetFilePath(), realmFile);
-        }
+        if (realmFileFromAsset!= null || certFileExists) {
+            OsObjectStore.callWithLock(configuration, new Runnable() {
+                @Override
+                public void run() {
+                    if (realmFileFromAsset != null) {
+                        copyFileIfNeeded(configuration.getAssetFilePath(), realmFileFromAsset);
+                    }
 
-        // Copy Sync Server certificate path if available
-        String syncServerCertificateAssetName = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateAssetName(configuration);
-        if (!Util.isEmptyString(syncServerCertificateAssetName)) {
-            String syncServerCertificateFilePath = ObjectServerFacade.getFacade(configuration.isSyncConfiguration()).getSyncServerCertificateFilePath(configuration);
+                    // Copy Sync Server certificate path if available
+                    if (certFileExists) {
+                        String syncServerCertificateFilePath = ObjectServerFacade.getFacade(
+                                configuration.isSyncConfiguration()).getSyncServerCertificateFilePath(configuration);
 
-            File certificateFile = new File(syncServerCertificateFilePath);
-            copyFileIfNeeded(syncServerCertificateAssetName, certificateFile);
+                        File certificateFile = new File(syncServerCertificateFilePath);
+                        copyFileIfNeeded(syncServerCertificateAssetName, certificateFile);
+                    }
+                }
+            });
         }
     }
 
@@ -609,59 +588,8 @@ final class RealmCache {
         return totalRefCount;
     }
 
-    /**
-     * Finds an entry for specified schema version in the array.
-     *
-     * @param array target array of schema cache.
-     * @param schemaVersion requested version of the schema.
-     * @return {@link ColumnIndices} instance for specified schema version. {@code null} if not found.
-     */
-    static ColumnIndices findColumnIndices(ColumnIndices[] array, long schemaVersion) {
-        for (int i = array.length - 1; 0 <= i; i--) {
-            final ColumnIndices candidate = array[i];
-            if (candidate != null && candidate.getSchemaVersion() == schemaVersion) {
-                return candidate;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Stores the schema cache to the array.
-     * <p>
-     * If the {@code array} has an empty slot ({@code == null}), this method stores
-     * the {@code columnIndices} to it. Otherwise, the entry of the oldest schema version is
-     * replaced.
-     *
-     * @param array target array.
-     * @param columnIndices the item to be stored into the {@code array}.
-     * @return the index in the {@code array} where the {@code columnIndices} was stored.
-     */
-    private static int storeColumnIndices(ColumnIndices[] array, ColumnIndices columnIndices) {
-        long oldestSchemaVersion = Long.MAX_VALUE;
-        int candidateIndex = -1;
-        for (int i = array.length - 1; 0 <= i; i--) {
-            if (array[i] == null) {
-                array[i] = columnIndices;
-                return i;
-            }
-
-            ColumnIndices target = array[i];
-            if (target.getSchemaVersion() <= oldestSchemaVersion) {
-                oldestSchemaVersion = target.getSchemaVersion();
-                candidateIndex = i;
-            }
-        }
-        array[candidateIndex] = columnIndices;
-        return candidateIndex;
-    }
-
     public RealmConfiguration getConfiguration() {
         return configuration;
-    }
-
-    public ColumnIndices[] getTypedColumnIndicesArray() {
-        return typedColumnIndicesArray;
     }
 
     /**

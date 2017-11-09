@@ -19,6 +19,7 @@ package io.realm;
 import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
@@ -31,22 +32,17 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.BaseIntegrationTest;
 import io.realm.objectserver.utils.Constants;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class SSLConfigurationTests extends BaseIntegrationTest {
+public class SSLConfigurationTests extends StandardIntegrationTest {
 
     @Rule
     public Timeout globalTimeout = Timeout.seconds(10);
-
-    @Rule
-    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
 
     @Test
     public void trustedRootCA() throws InterruptedException {
@@ -68,12 +64,12 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
         user.logout();
-        Realm.deleteRealm(configOld);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .name("useSsl")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .trustedRootCA("trusted_ca.pem")
@@ -109,12 +105,12 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
         user.logout();
-        Realm.deleteRealm(configOld);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .name("useSsl")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .disableSSLVerification()
@@ -150,12 +146,12 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
         user.logout();
-        Realm.deleteRealm(configOld);
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
+                .name("useSsl")
                 .schema(StringOnly.class)
                 .build();
         realm = Realm.getInstance(config);
@@ -173,6 +169,7 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
         SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+        int originalLevel = RealmLog.getLevel();
         RealmLog.add(testLogger);
         RealmLog.setLevel(LogLevel.WARN);
 
@@ -182,7 +179,10 @@ public class SSLConfigurationTests extends BaseIntegrationTest {
                 .disableSSLVerification()
                 .build();
 
-        assertEquals("SSL Verification is disable, server certificate provided will not be used", testLogger.message);
+        assertEquals("SSL Verification is disabled, the provided server certificate will not be used.",
+                testLogger.message);
+        RealmLog.remove(testLogger);
+        RealmLog.setLevel(originalLevel);
     }
 
     @Test

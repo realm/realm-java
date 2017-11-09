@@ -31,13 +31,12 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmModel;
-import io.realm.RealmObjectSchema;
-import io.realm.RealmSchema;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Util;
 
 
@@ -50,6 +49,7 @@ public class CompositeMediator extends RealmProxyMediator {
 
     public CompositeMediator(RealmProxyMediator... mediators) {
         final HashMap<Class<? extends RealmModel>, RealmProxyMediator> tempMediators = new HashMap<>();
+        //noinspection ConstantConditions
         if (mediators != null) {
             for (RealmProxyMediator mediator : mediators) {
                 for (Class<? extends RealmModel> realmClass : mediator.getModelClasses()) {
@@ -61,16 +61,19 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema schema) {
-        RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.createRealmObjectSchema(clazz, schema);
+    public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
+        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
+                new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
+        for (RealmProxyMediator mediator : mediators.values()) {
+            infoMap.putAll(mediator.getExpectedObjectSchemaInfoMap());
+        }
+        return infoMap;
     }
 
     @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm,
-            boolean allowExtraColumns) {
+    public ColumnInfo createColumnInfo(Class<? extends RealmModel> clazz, OsSchemaInfo osSchemaInfo) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.validateTable(clazz, sharedRealm, allowExtraColumns);
+        return mediator.createColumnInfo(clazz, osSchemaInfo);
     }
 
     @Override
@@ -80,9 +83,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public String getTableName(Class<? extends RealmModel> clazz) {
+    protected String getSimpleClassNameImpl(Class<? extends RealmModel> clazz) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.getTableName(clazz);
+        return mediator.getSimpleClassName(clazz);
     }
 
     @Override

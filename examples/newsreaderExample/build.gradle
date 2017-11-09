@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 android {
@@ -13,37 +12,43 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
+            // FIXME: Fix the proguard with 3rd party libs
             minifyEnabled false
+            signingConfig signingConfigs.debug
         }
     }
-    command {
-        events 2000
-    }
+
     lintOptions {
         disable 'InvalidPackage'
     }
+
     packagingOptions {
         exclude 'META-INF/services/javax.annotation.processing.Processor'
         exclude 'META-INF/NOTICE'
         exclude 'META-INF/LICENSE'
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
     //noinspection GradleDependency
-    compile 'com.android.support:appcompat-v7:25.2.0'
+    implementation 'com.android.support:appcompat-v7:26.0.1'
     //noinspection GradleDependency
-    compile 'com.android.support:design:25.2.0'
-    compile 'io.reactivex:rxjava:1.1.0'
-    compile 'io.reactivex:rxandroid:1.1.0'
-    compile 'com.squareup.retrofit:retrofit:2.0.0-beta2'
-    compile 'com.squareup.retrofit:converter-jackson:2.0.0-beta2'
-    compile 'com.squareup.retrofit:adapter-rxjava:2.0.0-beta2'
-    compile 'com.jakewharton.timber:timber:4.1.0'
-    compile 'com.jakewharton:butterknife:8.5.1'
+    implementation 'com.android.support:design:26.0.1'
+    implementation 'com.jakewharton.timber:timber:4.1.0'
+    implementation 'com.jakewharton:butterknife:8.5.1'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
+    implementation 'com.squareup.retrofit2:converter-jackson:2.3.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.0'
+    implementation 'me.zhanghai.android.materialprogressbar:library:1.1.4'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
-    compile 'me.zhanghai.android.materialprogressbar:library:1.1.4'
 }

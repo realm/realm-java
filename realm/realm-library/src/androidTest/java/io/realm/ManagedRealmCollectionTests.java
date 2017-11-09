@@ -16,8 +16,10 @@
 
 package io.realm;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -671,6 +673,12 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         } else {
             assertEquals(0, collection.size());
         }
+        if (isRealmList(collectionClass)) {
+            // The parent object was not deleted
+            assertEquals(1, realm.where(AllJavaTypes.class).count());
+        } else {
+            assertEquals(0, realm.where(AllJavaTypes.class).count());
+        }
     }
 
     @Test(expected = IllegalStateException.class)
@@ -691,11 +699,10 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     @Test
     public void deleteAllFromRealm_invalidList() {
         realm.close();
-        try {
-            collection.deleteAllFromRealm();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage(CoreMatchers.containsString(
+                "This Realm instance has already been closed, making it unusable."));
+        collection.deleteAllFromRealm();
     }
 
     @Test

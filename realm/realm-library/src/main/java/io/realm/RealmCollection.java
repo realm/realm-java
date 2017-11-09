@@ -20,6 +20,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 
+import javax.annotation.Nullable;
+
+import io.realm.internal.ManagableObject;
+
 
 /**
  * {@code RealmCollection} is the root of the collection hierarchy that Realm supports. It defines operations on data
@@ -31,7 +35,7 @@ import java.util.Date;
  *
  * @param <E> type of {@link RealmObject} stored in the collection.
  */
-public interface RealmCollection<E extends RealmModel> extends Collection<E> {
+public interface RealmCollection<E> extends Collection<E>, ManagableObject {
 
     /**
      * Returns a {@link RealmQuery}, which can be used to query for specific objects from this collection.
@@ -52,6 +56,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Number min(String fieldName);
 
     /**
@@ -64,6 +69,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Number max(String fieldName);
 
     /**
@@ -100,6 +106,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Date maxDate(String fieldName);
 
     /**
@@ -113,6 +120,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
+    @Nullable
     Date minDate(String fieldName);
 
     /**
@@ -144,6 +152,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      *
      * @return {@code true} if it is still valid to use or an unmanaged collection, {@code false} otherwise.
      */
+    @Override
     boolean isValid();
 
     /**
@@ -159,6 +168,7 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      *
      * @return {@code true} if this is a managed {@link RealmCollection}, {@code false} otherwise.
      */
+    @Override
     boolean isManaged();
 
     /**
@@ -173,5 +183,5 @@ public interface RealmCollection<E extends RealmModel> extends Collection<E> {
      * support {@code null} elements.
      */
     @Override
-    boolean contains(Object object);
+    boolean contains(@Nullable Object object);
 }

@@ -45,7 +45,7 @@ static jstring throwOrGetExpectedMessage(JNIEnv* env, jlong testcase, bool shoul
                 ThrowException(env, UnsupportedOperation, "parm1", "parm2");
             break;
         case OutOfMemory:
-            expect = "io.realm.internal.OutOfMemoryError: parm1 parm2";
+            expect = "java.lang.OutOfMemoryError: parm1 parm2";
             if (should_throw)
                 ThrowException(env, OutOfMemory, "parm1", "parm2");
             break;

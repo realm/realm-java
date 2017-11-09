@@ -29,8 +29,6 @@ import java.util.Set;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
-import io.realm.RealmObjectSchema;
-import io.realm.RealmSchema;
 import io.realm.exceptions.RealmException;
 
 
@@ -46,26 +44,21 @@ import io.realm.exceptions.RealmException;
 public abstract class RealmProxyMediator {
 
     /**
-     * Creates a object schema for the given RealmObject class.
+     * Returns a map of model classes to their schema information which are defined in this mediator. Classes which have
+     * same class name but in different packages should have different names in the {@code OsObjectSchemaInfo}.
      *
-     * @param clazz the {@link RealmObject} model class to create object schema for.
-     * @param realmSchema the {@link RealmSchema} to associate the object schema with.
-     * @return the object schema.
+     * @return the map with classes and their schema information.
      */
-    public abstract RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema realmSchema);
+    public abstract Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap();
 
     /**
-     * Validates the backing table in Realm for the given RealmObject class.
+     * Creates {@link ColumnInfo} for the given RealmObject class.
      *
-     * @param clazz the {@link RealmObject} model class to validate.
-     * @param sharedRealm the wrapper object of underlying native database to validate against.
-     * @param allowExtraColumns if {@code} false, {@link io.realm.exceptions.RealmMigrationNeededException}
-     * is thrown when the column count it more than expected.
+     * @param clazz which {@link RealmObject} model class to create the column info of.
+     * @param osSchemaInfo the {@link OsSchemaInfo} for the corresponding Realm instance.
      * @return the field indices map.
      */
-    public abstract ColumnInfo validateTable(Class<? extends RealmModel> clazz,
-            SharedRealm sharedRealm,
-            boolean allowExtraColumns);
+    public abstract ColumnInfo createColumnInfo(Class<? extends RealmModel> clazz, OsSchemaInfo osSchemaInfo);
 
     /**
      * Returns a map of non-obfuscated object field names to their internal Realm name.
@@ -76,14 +69,24 @@ public abstract class RealmProxyMediator {
     public abstract List<String> getFieldNames(Class<? extends RealmModel> clazz);
 
     /**
-     * Returns the name that Realm should use for all its internal tables. This is the un-obfuscated name of the
+     * Returns the name that Realm should use for all its internal tables. This is the un-obfuscated simple name of the
      * class.
      *
-     * @param clazz the {@link RealmObject} class reference.
+     * @param clazz the {@link RealmModel} or the Realm object proxy class reference.
      * @return the simple name of an RealmObject class (before it has been obfuscated).
-     * @throws java.lang.NullPointerException if null is given as argument.
      */
-    public abstract String getTableName(Class<? extends RealmModel> clazz);
+    public final String getSimpleClassName(Class<? extends RealmModel> clazz) {
+        return getSimpleClassNameImpl(Util.getOriginalModelClass(clazz));
+    }
+
+    /**
+     * Returns the name that Realm should use for all its internal tables. This is the un-obfuscated simple name of the
+     * class.
+     *
+     * @param clazz the {@link RealmModel} class reference.
+     * @return the simple name of an RealmObject class (before it has been obfuscated).
+     */
+    protected abstract String getSimpleClassNameImpl(Class<? extends RealmModel> clazz);
 
     /**
      * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.
@@ -226,12 +229,19 @@ public abstract class RealmProxyMediator {
     }
 
     protected static void checkClass(Class<? extends RealmModel> clazz) {
+        //noinspection ConstantConditions
         if (clazz == null) {
             throw new NullPointerException("A class extending RealmObject must be provided");
         }
     }
 
     protected static RealmException getMissingProxyClassException(Class<? extends RealmModel> clazz) {
-        return new RealmException(clazz + " is not part of the schema for this Realm.");
+        return new RealmException(
+                String.format("'%s' is not part of the schema for this Realm.", clazz.toString()));
+    }
+
+    protected static RealmException getMissingProxyClassException(String className) {
+        return new RealmException(
+                String.format("'%s' is not part of the schema for this Realm.", className));
     }
 }

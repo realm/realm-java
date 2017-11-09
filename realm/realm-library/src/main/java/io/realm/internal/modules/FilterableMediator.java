@@ -24,6 +24,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -31,13 +32,12 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmModel;
-import io.realm.RealmObjectSchema;
-import io.realm.RealmSchema;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsObjectSchemaInfo;
+import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Util;
 
 
@@ -60,6 +60,7 @@ public class FilterableMediator extends RealmProxyMediator {
         this.originalMediator = originalMediator;
 
         Set<Class<? extends RealmModel>> tempAllowedClasses = new HashSet<>();
+        //noinspection ConstantConditions
         if (originalMediator != null) {
             Set<Class<? extends RealmModel>> originalClasses = originalMediator.getModelClasses();
             for (Class<? extends RealmModel> clazz : allowedClasses) {
@@ -71,21 +72,23 @@ public class FilterableMediator extends RealmProxyMediator {
         this.allowedClasses = Collections.unmodifiableSet(tempAllowedClasses);
     }
 
-    public RealmProxyMediator getOriginalMediator() {
-        return originalMediator;
+    @Override
+    public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
+        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
+                new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
+        for (Map.Entry<Class<? extends RealmModel>, OsObjectSchemaInfo> entry :
+                originalMediator.getExpectedObjectSchemaInfoMap().entrySet()) {
+            if (allowedClasses.contains(entry.getKey())) {
+                infoMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return infoMap;
     }
 
     @Override
-    public RealmObjectSchema createRealmObjectSchema(Class<? extends RealmModel> clazz, RealmSchema schema) {
+    public ColumnInfo createColumnInfo(Class<? extends RealmModel> clazz, OsSchemaInfo osSchemaInfo) {
         checkSchemaHasClass(clazz);
-        return originalMediator.createRealmObjectSchema(clazz, schema);
-    }
-
-    @Override
-    public ColumnInfo validateTable(Class<? extends RealmModel> clazz, SharedRealm sharedRealm,
-            boolean allowExtraColumns) {
-        checkSchemaHasClass(clazz);
-        return originalMediator.validateTable(clazz, sharedRealm, allowExtraColumns);
+        return originalMediator.createColumnInfo(clazz, osSchemaInfo);
     }
 
     @Override
@@ -95,9 +98,9 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public String getTableName(Class<? extends RealmModel> clazz) {
+    protected String getSimpleClassNameImpl(Class<? extends RealmModel> clazz) {
         checkSchemaHasClass(clazz);
-        return originalMediator.getTableName(clazz);
+        return originalMediator.getSimpleClassName(clazz);
     }
 
     @Override

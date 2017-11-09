@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 // Credit: http://jeremie-martinez.com/2015/05/05/inject-host-gradle/
@@ -29,7 +28,7 @@ android {
     defaultConfig {
         applicationId 'io.realm.examples.objectserver'
         targetSdkVersion rootProject.sdkVersion
-        minSdkVersion 15
+        minSdkVersion 16
         versionCode 1
         versionName "1.0"
     }
@@ -43,15 +42,13 @@ android {
         def host = getIP()
         debug {
             buildConfigField "String", "OBJECT_SERVER_IP", "\"${host}\""
+            minifyEnabled true
         }
         release {
-            minifyEnabled false
             buildConfigField "String", "OBJECT_SERVER_IP", "\"${host}\""
+            minifyEnabled true
+            signingConfig signingConfigs.debug
         }
-    }
-
-    command {
-        events 2000
     }
 }
 
@@ -60,8 +57,10 @@ realm {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:25.2.0'
-    compile 'com.android.support:design:25.2.0'
-    compile 'com.jakewharton:butterknife:8.5.1'
+    implementation 'com.android.support:support-v4:26.0.1'
+    implementation 'com.android.support:appcompat-v7:26.0.1'
+    implementation 'com.android.support:design:26.0.1'
+    implementation 'me.zhanghai.android.materialprogressbar:library:1.3.0'
+    implementation 'com.jakewharton:butterknife:8.5.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
 }

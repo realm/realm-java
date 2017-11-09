@@ -39,22 +39,25 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
+import io.realm.entities.BacklinksSource;
+import io.realm.entities.BacklinksTarget;
 import io.realm.entities.NullTypes;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
-import io.realm.entities.StringOnly;
-import io.realm.internal.Collection;
+import io.realm.internal.OsResults;
+import io.realm.internal.OsObject;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
@@ -68,7 +71,6 @@ public class TestHelper {
     public static final int VERY_SHORT_WAIT_SECS = 1;
     public static final int SHORT_WAIT_SECS = 10;
     public static final int STANDARD_WAIT_SECS = 100;
-    public static final int LONG_WAIT_SECS = 1000;
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
     private static final Random RANDOM = new Random();
@@ -88,40 +90,209 @@ public class TestHelper {
     }
 
     public static RealmFieldType getColumnType(Object o) {
-        if (o instanceof Boolean)
+        if (o instanceof Boolean) {
             return RealmFieldType.BOOLEAN;
-        if (o instanceof String)
+        }
+        if (o instanceof String) {
             return RealmFieldType.STRING;
-        if (o instanceof Long)
+        }
+        if (o instanceof Long) {
             return RealmFieldType.INTEGER;
-        if (o instanceof Float)
+        }
+        if (o instanceof Float) {
             return RealmFieldType.FLOAT;
-        if (o instanceof Double)
+        }
+        if (o instanceof Double) {
             return RealmFieldType.DOUBLE;
-        if (o instanceof Date)
+        }
+        if (o instanceof Date) {
             return RealmFieldType.DATE;
-        if (o instanceof byte[])
+        }
+        if (o instanceof byte[]) {
             return RealmFieldType.BINARY;
-        return RealmFieldType.UNSUPPORTED_MIXED;
+        }
+
+        throw new IllegalArgumentException("Unsupported type");
     }
 
     /**
-     * Creates an empty table with 1 column of all our supported column types, currently 9 columns.
+     * Appends the specified row to the end of the table. For internal testing usage only.
      *
-     * @return
+     * @param table the table where the object to be added.
+     * @param values values.
+     * @return the row index of the appended row.
+     * @deprecated Remove this functions since it doesn't seem to be useful. And this function does deal with tables
+     * with primary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
+     * added.
      */
-    public static Table getTableWithAllColumnTypes() {
-        Table t = new Table();
+    public static long addRowWithValues(Table table, Object... values) {
+        long rowIndex = OsObject.createRow(table);
 
-        t.addColumn(RealmFieldType.BINARY, "binary");
-        t.addColumn(RealmFieldType.BOOLEAN, "boolean");
-        t.addColumn(RealmFieldType.DATE, "date");
-        t.addColumn(RealmFieldType.DOUBLE, "double");
-        t.addColumn(RealmFieldType.FLOAT, "float");
-        t.addColumn(RealmFieldType.INTEGER, "long");
-        t.addColumn(RealmFieldType.STRING, "string");
+        // Checks values types.
+        int columns = (int) table.getColumnCount();
+        if (columns != values.length) {
+            throw new IllegalArgumentException("The number of value parameters (" +
+                    String.valueOf(values.length) +
+                    ") does not match the number of columns in the table (" +
+                    String.valueOf(columns) + ").");
+        }
+        RealmFieldType[] colTypes = new RealmFieldType[columns];
+        for (int columnIndex = 0; columnIndex < columns; columnIndex++) {
+            Object value = values[columnIndex];
+            RealmFieldType colType = table.getColumnType(columnIndex);
+            colTypes[columnIndex] = colType;
+            if (!colType.isValid(value)) {
+                // String representation of the provided value type.
+                String providedType;
+                if (value == null) {
+                    providedType = "null";
+                } else {
+                    providedType = value.getClass().toString();
+                }
 
-        return t;
+                throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
+                        ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
+            }
+        }
+
+        // Inserts values.
+        for (long columnIndex = 0; columnIndex < columns; columnIndex++) {
+            Object value = values[(int) columnIndex];
+            switch (colTypes[(int) columnIndex]) {
+                case BOOLEAN:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setBoolean(columnIndex, rowIndex, (Boolean) value, false);
+                    }
+                    break;
+                case INTEGER:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        long longValue = ((Number) value).longValue();
+                        table.setLong(columnIndex, rowIndex, longValue, false);
+                    }
+                    break;
+                case FLOAT:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setFloat(columnIndex, rowIndex, (Float) value, false);
+                    }
+                    break;
+                case DOUBLE:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setDouble(columnIndex, rowIndex, (Double) value, false);
+                    }
+                    break;
+                case STRING:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setString(columnIndex, rowIndex, (String) value, false);
+                    }
+                    break;
+                case DATE:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setDate(columnIndex, rowIndex, (Date) value, false);
+                    }
+                    break;
+                case BINARY:
+                    if (value == null) {
+                        table.setNull(columnIndex, rowIndex, false);
+                    } else {
+                        table.setBinaryByteArray(columnIndex, rowIndex, (byte[]) value, false);
+                    }
+                    break;
+                default:
+                    throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int) columnIndex]));
+            }
+        }
+        return rowIndex;
+    }
+
+    /**
+     * Creates an empty table whose name is "temp" with 1 column of all our supported column types, currently 7 columns.
+     *
+     * @param sharedRealm A {@link OsSharedRealm} where the table is created.
+     * @return created table.
+     */
+    public static Table createTableWithAllColumnTypes(OsSharedRealm sharedRealm) {
+        return createTableWithAllColumnTypes(sharedRealm, "temp");
+    }
+
+    /**
+     * Creates an empty table with 1 column of all our supported column types, currently 7 columns.
+     *
+     * @param sharedRealm A {@link OsSharedRealm} where the table is created.
+     * @param name name of the table.
+     * @return created table.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static Table createTableWithAllColumnTypes(OsSharedRealm sharedRealm,
+            @SuppressWarnings("SameParameterValue") String name) {
+        boolean wasInTransaction = sharedRealm.isInTransaction();
+        if (!wasInTransaction) {
+            sharedRealm.beginTransaction();
+        }
+        try {
+            Table t = sharedRealm.createTable(name);
+
+            t.addColumn(RealmFieldType.BINARY, "binary");
+            t.addColumn(RealmFieldType.BOOLEAN, "boolean");
+            t.addColumn(RealmFieldType.DATE, "date");
+            t.addColumn(RealmFieldType.DOUBLE, "double");
+            t.addColumn(RealmFieldType.FLOAT, "float");
+            t.addColumn(RealmFieldType.INTEGER, "long");
+            t.addColumn(RealmFieldType.STRING, "string");
+
+            return t;
+        } catch (RuntimeException e) {
+            if (!wasInTransaction) {
+                sharedRealm.cancelTransaction();
+            }
+            throw e;
+        } finally {
+            if (!wasInTransaction && sharedRealm.isInTransaction()) {
+                sharedRealm.commitTransaction();
+            }
+        }
+    }
+
+    public static Table createTable(OsSharedRealm sharedRealm, String name) {
+        return createTable(sharedRealm, name, null);
+    }
+
+    public interface AdditionalTableSetup {
+        void execute(Table table);
+    }
+
+    public static Table createTable(OsSharedRealm sharedRealm, String name, AdditionalTableSetup additionalSetup) {
+        boolean wasInTransaction = sharedRealm.isInTransaction();
+        if (!wasInTransaction) {
+            sharedRealm.beginTransaction();
+        }
+        try {
+            Table table = sharedRealm.createTable(name);
+            if (additionalSetup != null) {
+                additionalSetup.execute(table);
+            }
+            return table;
+        } catch (RuntimeException e) {
+            if (!wasInTransaction) {
+                sharedRealm.cancelTransaction();
+            }
+            throw e;
+        } finally {
+            if (!wasInTransaction && sharedRealm.isInTransaction()) {
+                sharedRealm.commitTransaction();
+            }
+        }
     }
 
     public static String streamToString(InputStream in) throws IOException {
@@ -146,24 +317,18 @@ public class TestHelper {
         return new ByteArrayInputStream(str.getBytes(UTF_8));
     }
 
-    // Creates a simple migration step in order to support null.
-    // FIXME: generate a new encrypted.realm will null support
-    public static RealmMigration prepareMigrationToNullSupportStep() {
-        RealmMigration realmMigration = new RealmMigration() {
-            @Override
-            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                Table stringOnly = realm.schema.getTable(StringOnly.class);
-                stringOnly.convertColumnToNullable(stringOnly.getColumnIndex("chars"));
-            }
-        };
-        return realmMigration;
-    }
-
     // Returns a random key used by encrypted Realms.
     public static byte[] getRandomKey() {
         byte[] key = new byte[64];
         RANDOM.nextBytes(key);
         return key;
+    }
+
+    public static String getRandomEmail() {
+        StringBuilder sb = new StringBuilder(UUID.randomUUID().toString().toLowerCase());
+        sb.append('@');
+        sb.append("androidtest.realm.io");
+        return sb.toString();
     }
 
     // Returns a random key from the given seed. Used by encrypted Realms.
@@ -194,11 +359,12 @@ public class TestHelper {
         };
     }
 
+    // Generate a random string with only capital letters which is always a valid class/field name.
     public static String getRandomString(int length) {
         Random r = new Random();
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append((char) r.nextInt(128)); // Restrict to standard ASCII chars.
+            sb.append((char) (r.nextInt(26) + 'A')); // Restrict to capital letters
         }
         return sb.toString();
     }
@@ -717,30 +883,6 @@ public class TestHelper {
         realm.commitTransaction();
     }
 
-    public static void populateForMultiSort(Realm typedRealm) {
-        DynamicRealm dynamicRealm = DynamicRealm.getInstance(typedRealm.getConfiguration());
-        populateForMultiSort(dynamicRealm);
-        dynamicRealm.close();
-        typedRealm.waitForChange();
-    }
-
-    public static void populateForMultiSort(DynamicRealm realm) {
-        realm.beginTransaction();
-        realm.delete(AllTypes.CLASS_NAME);
-        DynamicRealmObject object1 = realm.createObject(AllTypes.CLASS_NAME);
-        object1.setLong(AllTypes.FIELD_LONG, 5);
-        object1.setString(AllTypes.FIELD_STRING, "Adam");
-
-        DynamicRealmObject object2 = realm.createObject(AllTypes.CLASS_NAME);
-        object2.setLong(AllTypes.FIELD_LONG, 4);
-        object2.setString(AllTypes.FIELD_STRING, "Brian");
-
-        DynamicRealmObject object3 = realm.createObject(AllTypes.CLASS_NAME);
-        object3.setLong(AllTypes.FIELD_LONG, 4);
-        object3.setString(AllTypes.FIELD_STRING, "Adam");
-        realm.commitTransaction();
-    }
-
     public static void populateSimpleAllTypesPrimaryKey(Realm realm) {
         realm.beginTransaction();
         AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
@@ -855,19 +997,19 @@ public class TestHelper {
      * This helper method is useful to create a mocked {@link RealmResults}.
      *
      * @param realm a {@link Realm} or a {@link DynamicRealm} instance.
-     * @param collection a {@link Collection} instance.
+     * @param osResults a {@link OsResults} instance.
      * @param tableClass a Class of Table.
      * @return a created {@link RealmResults} instance.
      */
     public static <T extends RealmObject> RealmResults<T> newRealmResults(
-            BaseRealm realm, Collection collection, Class<T> tableClass) {
+            BaseRealm realm, OsResults osResults, Class<T> tableClass) {
         //noinspection TryWithIdenticalCatches
         try {
             final Constructor<RealmResults> c = RealmResults.class.getDeclaredConstructor(
-                    BaseRealm.class, Collection.class, Class.class);
+                    BaseRealm.class, OsResults.class, Class.class);
             c.setAccessible(true);
             //noinspection unchecked
-            return c.newInstance(realm, collection, tableClass);
+            return c.newInstance(realm, osResults, tableClass);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (InstantiationException e) {
@@ -981,7 +1123,7 @@ public class TestHelper {
             }
             counter--;
         }
-        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10 + " seconds");
+        fail("'BaseRealm.asyncTaskExecutor' is not finished in " + counter/10.0D + " seconds");
     }
 
     /**
@@ -1075,4 +1217,36 @@ public class TestHelper {
             return false;
         }
     }
+
+    public static void populateLinkedDataSet(Realm realm) {
+        realm.beginTransaction();
+        realm.delete(BacklinksSource.class);
+        realm.delete(BacklinksTarget.class);
+
+        BacklinksTarget target1 = realm.createObject(BacklinksTarget.class);
+        target1.setId(1);
+
+        BacklinksTarget target2 = realm.createObject(BacklinksTarget.class);
+        target2.setId(2);
+
+        BacklinksTarget target3 = realm.createObject(BacklinksTarget.class);
+        target3.setId(3);
+
+        BacklinksSource source1 = realm.createObject(BacklinksSource.class);
+        source1.setName("1");
+        source1.setChild(target1);
+        BacklinksSource source2 = realm.createObject(BacklinksSource.class);
+        source2.setName("2");
+        source2.setChild(target2);
+
+        BacklinksSource source3 = realm.createObject(BacklinksSource.class);
+        source3.setName("3");
+
+        BacklinksSource source4 = realm.createObject(BacklinksSource.class);
+        source4.setName("4");
+        source4.setChild(target1);
+
+        realm.commitTransaction();
+    }
+
 }

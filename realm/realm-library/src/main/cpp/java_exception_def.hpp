@@ -26,6 +26,8 @@ public:
     // Class names
     static const char* IllegalState;
     static const char* IllegalArgument;
+    static const char* OutOfMemory;
+    static const char* RealmMigrationNeeded;
 };
 
 } // namespace realm

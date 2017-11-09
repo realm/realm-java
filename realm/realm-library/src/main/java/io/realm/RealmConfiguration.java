@@ -25,14 +25,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
+import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedRealm;
 import io.realm.internal.Util;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
@@ -51,7 +54,7 @@ import io.realm.rx.RxObservableFactory;
  * <p>
  * A minimal configuration can be created using:
  * <p>
- * {@code RealmConfiguration config = new RealmConfiguration.Builder(getContext()).build())}
+ * {@code RealmConfiguration config = new RealmConfiguration.Builder().build()}
  * <p>
  * This will create a RealmConfiguration with the following properties.
  * <ul>
@@ -92,27 +95,35 @@ public class RealmConfiguration {
     private final long schemaVersion;
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
-    private final SharedRealm.Durability durability;
+    private final OsRealmConfig.Durability durability;
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
     private final Realm.Transaction initialDataTransaction;
     private final boolean readOnly;
+    private final CompactOnLaunchCallback compactOnLaunch;
+    /**
+     * Whether this RealmConfiguration is intended to open a
+     * recovery Realm produced after an offline/online client reset.
+     */
+    private final boolean isRecoveryConfiguration;
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
-    protected RealmConfiguration(File realmDirectory,
-            String realmFileName,
+    protected RealmConfiguration(@Nullable File realmDirectory,
+            @Nullable String realmFileName,
             String canonicalPath,
-            String assetFilePath,
-            byte[] key,
+            @Nullable String assetFilePath,
+            @Nullable byte[] key,
             long schemaVersion,
-            RealmMigration migration,
+            @Nullable RealmMigration migration,
             boolean deleteRealmIfMigrationNeeded,
-            SharedRealm.Durability durability,
+            OsRealmConfig.Durability durability,
             RealmProxyMediator schemaMediator,
-            RxObservableFactory rxObservableFactory,
-            Realm.Transaction initialDataTransaction,
-            boolean readOnly) {
+            @Nullable RxObservableFactory rxObservableFactory,
+            @Nullable Realm.Transaction initialDataTransaction,
+            boolean readOnly,
+            @Nullable CompactOnLaunchCallback compactOnLaunch,
+            boolean isRecoveryConfiguration) {
         this.realmDirectory = realmDirectory;
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
@@ -126,6 +137,8 @@ public class RealmConfiguration {
         this.rxObservableFactory = rxObservableFactory;
         this.initialDataTransaction = initialDataTransaction;
         this.readOnly = readOnly;
+        this.compactOnLaunch = compactOnLaunch;
+        this.isRecoveryConfiguration = isRecoveryConfiguration;
     }
 
     public File getRealmDirectory() {
@@ -152,7 +165,7 @@ public class RealmConfiguration {
         return deleteRealmIfMigrationNeeded;
     }
 
-    public SharedRealm.Durability getDurability() {
+    public OsRealmConfig.Durability getDurability() {
         return durability;
     }
 
@@ -161,7 +174,8 @@ public class RealmConfiguration {
      *
      * @return the mediator of the schema.
      */
-    RealmProxyMediator getSchemaMediator() {
+    // Protected for testing with mockito.
+    protected RealmProxyMediator getSchemaMediator() {
         return schemaMediator;
     }
 
@@ -190,6 +204,17 @@ public class RealmConfiguration {
      */
     String getAssetFilePath() {
         return assetFilePath;
+    }
+
+    /**
+     * Returns a callback to determine if the Realm file should be compacted before being returned to the user.
+     *
+     * @return a callback called when opening a Realm for the first time during the life of a process to determine if
+     * it should be compacted before being returned to the user. It is passed the total file size (data + free space)
+     * and the total bytes used by data in the file.
+     */
+    public CompactOnLaunchCallback getCompactOnLaunchCallback() {
+        return compactOnLaunch;
     }
 
     /**
@@ -248,6 +273,14 @@ public class RealmConfiguration {
         return readOnly;
     }
 
+    /**
+     * @return {@code true} if this configuration is intended to open a backup Realm (as a result of a client reset).
+     * @see <a href="https://realm.io/docs/java/latest/api/io/realm/ClientResetRequiredError.html">ClientResetRequiredError</a>
+     */
+    public boolean isRecoveryConfiguration() {
+        return isRecoveryConfiguration;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) { return true; }
@@ -257,40 +290,50 @@ public class RealmConfiguration {
 
         if (schemaVersion != that.schemaVersion) { return false; }
         if (deleteRealmIfMigrationNeeded != that.deleteRealmIfMigrationNeeded) { return false; }
-        if (!realmDirectory.equals(that.realmDirectory)) { return false; }
-        if (!realmFileName.equals(that.realmFileName)) { return false; }
+        if (readOnly != that.readOnly) { return false; }
+        if (isRecoveryConfiguration != that.isRecoveryConfiguration) { return false; }
+        if (realmDirectory != null ? !realmDirectory.equals(that.realmDirectory) : that.realmDirectory != null) {
+            return false;
+        }
+        if (realmFileName != null ? !realmFileName.equals(that.realmFileName) : that.realmFileName != null) {
+            return false;
+        }
         if (!canonicalPath.equals(that.canonicalPath)) { return false; }
+        if (assetFilePath != null ? !assetFilePath.equals(that.assetFilePath) : that.assetFilePath != null) {
+            return false;
+        }
         if (!Arrays.equals(key, that.key)) { return false; }
-        if (!durability.equals(that.durability)) { return false; }
-        if (migration != null ? !migration.equals(that.migration) : that.migration != null) { return false; }
-        //noinspection SimplifiableIfStatement
+        if (migration != null ? !migration.equals(that.migration) : that.migration != null) {
+            return false;
+        }
+        if (durability != that.durability) { return false; }
+        if (!schemaMediator.equals(that.schemaMediator)) { return false; }
         if (rxObservableFactory != null ? !rxObservableFactory.equals(that.rxObservableFactory) : that.rxObservableFactory != null) {
             return false;
         }
         if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) {
             return false;
         }
-        if (readOnly != that.readOnly) { return false; }
-
-        return schemaMediator.equals(that.schemaMediator);
+        return compactOnLaunch != null ? compactOnLaunch.equals(that.compactOnLaunch) : that.compactOnLaunch == null;
     }
-
 
     @Override
     public int hashCode() {
-        int result = realmDirectory.hashCode();
-        result = 31 * result + realmFileName.hashCode();
+        int result = realmDirectory != null ? realmDirectory.hashCode() : 0;
+        result = 31 * result + (realmFileName != null ? realmFileName.hashCode() : 0);
         result = 31 * result + canonicalPath.hashCode();
-        result = 31 * result + (key != null ? Arrays.hashCode(key) : 0);
-        result = 31 * result + (int) schemaVersion;
+        result = 31 * result + (assetFilePath != null ? assetFilePath.hashCode() : 0);
+        result = 31 * result + Arrays.hashCode(key);
+        result = 31 * result + (int) (schemaVersion ^ (schemaVersion >>> 32));
         result = 31 * result + (migration != null ? migration.hashCode() : 0);
         result = 31 * result + (deleteRealmIfMigrationNeeded ? 1 : 0);
-        result = 31 * result + schemaMediator.hashCode();
         result = 31 * result + durability.hashCode();
+        result = 31 * result + schemaMediator.hashCode();
         result = 31 * result + (rxObservableFactory != null ? rxObservableFactory.hashCode() : 0);
         result = 31 * result + (initialDataTransaction != null ? initialDataTransaction.hashCode() : 0);
         result = 31 * result + (readOnly ? 1 : 0);
-
+        result = 31 * result + (compactOnLaunch != null ? compactOnLaunch.hashCode() : 0);
+        result = 31 * result + (isRecoveryConfiguration ? 1 : 0);
         return result;
     }
 
@@ -322,7 +365,7 @@ public class RealmConfiguration {
     private static RealmProxyMediator getModuleMediator(String fullyQualifiedModuleClassName) {
         String[] moduleNameParts = fullyQualifiedModuleClassName.split("\\.");
         String moduleSimpleName = moduleNameParts[moduleNameParts.length - 1];
-        String mediatorName = String.format("io.realm.%s%s", moduleSimpleName, "Mediator");
+        String mediatorName = String.format(Locale.US, "io.realm.%s%s", moduleSimpleName, "Mediator");
         Class<?> clazz;
         //noinspection TryWithIdenticalCatches
         try {
@@ -345,7 +388,7 @@ public class RealmConfiguration {
     public String toString() {
         //noinspection StringBufferReplaceableByString
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("realmDirectory: ").append(realmDirectory.toString());
+        stringBuilder.append("realmDirectory: ").append(realmDirectory != null ? realmDirectory.toString() : "");
         stringBuilder.append("\n");
         stringBuilder.append("realmFileName : ").append(realmFileName);
         stringBuilder.append("\n");
@@ -364,6 +407,8 @@ public class RealmConfiguration {
         stringBuilder.append("schemaMediator: ").append(schemaMediator);
         stringBuilder.append("\n");
         stringBuilder.append("readOnly: ").append(readOnly);
+        stringBuilder.append("\n");
+        stringBuilder.append("compactOnLaunch: ").append(compactOnLaunch);
 
         return stringBuilder.toString();
     }
@@ -377,7 +422,7 @@ public class RealmConfiguration {
     static synchronized boolean isRxJavaAvailable() {
         if (rxJavaAvailable == null) {
             try {
-                Class.forName("rx.Observable");
+                Class.forName("io.reactivex.Flowable");
                 rxJavaAvailable = true;
             } catch (ClassNotFoundException ignore) {
                 rxJavaAvailable = false;
@@ -414,12 +459,13 @@ public class RealmConfiguration {
         private long schemaVersion;
         private RealmMigration migration;
         private boolean deleteRealmIfMigrationNeeded;
-        private SharedRealm.Durability durability;
+        private OsRealmConfig.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         private RxObservableFactory rxFactory;
         private Realm.Transaction initialDataTransaction;
         private boolean readOnly;
+        private CompactOnLaunchCallback compactOnLaunch;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -433,6 +479,7 @@ public class RealmConfiguration {
         }
 
         Builder(Context context) {
+            //noinspection ConstantConditions
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a RealmConfiguration");
             }
@@ -448,8 +495,9 @@ public class RealmConfiguration {
             this.schemaVersion = 0;
             this.migration = null;
             this.deleteRealmIfMigrationNeeded = false;
-            this.durability = SharedRealm.Durability.FULL;
+            this.durability = OsRealmConfig.Durability.FULL;
             this.readOnly = false;
+            this.compactOnLaunch = null;
             if (DEFAULT_MODULE != null) {
                 this.modules.add(DEFAULT_MODULE);
             }
@@ -459,6 +507,7 @@ public class RealmConfiguration {
          * Sets the filename for the Realm file.
          */
         public Builder name(String filename) {
+            //noinspection ConstantConditions
             if (filename == null || filename.isEmpty()) {
                 throw new IllegalArgumentException("A non-empty filename must be provided");
             }
@@ -475,6 +524,7 @@ public class RealmConfiguration {
          * @throws IllegalArgumentException if {@code directory} is null, not writable or a file.
          */
         public Builder directory(File directory) {
+            //noinspection ConstantConditions
             if (directory == null) {
                 throw new IllegalArgumentException("Non-null 'dir' required.");
             }
@@ -496,11 +546,13 @@ public class RealmConfiguration {
          * Sets the {@value io.realm.RealmConfiguration#KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
          */
         public Builder encryptionKey(byte[] key) {
+            //noinspection ConstantConditions
             if (key == null) {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
             if (key.length != KEY_LENGTH) {
-                throw new IllegalArgumentException(String.format("The provided key must be %s bytes. Yours was: %s",
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "The provided key must be %s bytes. Yours was: %s",
                         KEY_LENGTH, key.length));
             }
             this.key = Arrays.copyOf(key, key.length);
@@ -530,6 +582,7 @@ public class RealmConfiguration {
          * will be thrown.
          */
         public Builder migration(RealmMigration migration) {
+            //noinspection ConstantConditions
             if (migration == null) {
                 throw new IllegalArgumentException("A non-null migration must be provided");
             }
@@ -571,7 +624,7 @@ public class RealmConfiguration {
                 throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
             }
 
-            this.durability = SharedRealm.Durability.MEM_ONLY;
+            this.durability = OsRealmConfig.Durability.MEM_ONLY;
 
             return this;
         }
@@ -595,6 +648,7 @@ public class RealmConfiguration {
         public Builder modules(Object baseModule, Object... additionalModules) {
             modules.clear();
             addModule(baseModule);
+            //noinspection ConstantConditions
             if (additionalModules != null) {
                 for (int i = 0; i < additionalModules.length; i++) {
                     Object module = additionalModules[i];
@@ -644,7 +698,7 @@ public class RealmConfiguration {
             if (Util.isEmptyString(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
             }
-            if (durability == SharedRealm.Durability.MEM_ONLY) {
+            if (durability == OsRealmConfig.Durability.MEM_ONLY) {
                 throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
             }
             if (this.deleteRealmIfMigrationNeeded) {
@@ -670,7 +724,33 @@ public class RealmConfiguration {
             return this;
         }
 
+        /**
+         * Setting this will cause Realm to compact the Realm file if the Realm file has grown too large and a
+         * significant amount of space can be recovered. See {@link DefaultCompactOnLaunchCallback} for details.
+         */
+        public Builder compactOnLaunch() {
+            return compactOnLaunch(new DefaultCompactOnLaunchCallback());
+        }
+
+        /**
+         * Sets this to determine if the Realm file should be compacted before returned to the user. It is passed the
+         * total file size (data + free space) and the bytes used by data in the file.
+         *
+         * @param compactOnLaunch a callback called when opening a Realm for the first time during the life of a process
+         *                        to determine if it should be compacted before being returned to the user. It is passed
+         *                        the total file size (data + free space) and the bytes used by data in the file.
+         */
+        public Builder compactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
+            //noinspection ConstantConditions
+            if (compactOnLaunch == null) {
+                throw new IllegalArgumentException("A non-null compactOnLaunch must be provided");
+            }
+            this.compactOnLaunch = compactOnLaunch;
+            return this;
+        }
+
         private void addModule(Object module) {
+            //noinspection ConstantConditions
             if (module != null) {
                 checkModule(module);
                 modules.add(module);
@@ -682,13 +762,15 @@ public class RealmConfiguration {
          * create a module. These classes must be available in the default module. Calling this will remove any
          * previously configured modules.
          */
-        Builder schema(Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
+        final Builder schema(Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
+            //noinspection ConstantConditions
             if (firstClass == null) {
                 throw new IllegalArgumentException("A non-null class must be provided");
             }
             modules.clear();
             modules.add(DEFAULT_MODULE_MEDIATOR);
             debugSchema.add(firstClass);
+            //noinspection ConstantConditions
             if (additionalClasses != null) {
                 Collections.addAll(debugSchema, additionalClasses);
             }
@@ -714,6 +796,9 @@ public class RealmConfiguration {
                 if (deleteRealmIfMigrationNeeded) {
                     throw new IllegalStateException("'deleteRealmIfMigrationNeeded()' and read-only Realms cannot be combined");
                 }
+                if (compactOnLaunch != null) {
+                    throw new IllegalStateException("'compactOnLaunch()' and read-only Realms cannot be combined");
+                }
             }
 
             if (rxFactory == null && isRxJavaAvailable()) {
@@ -732,7 +817,9 @@ public class RealmConfiguration {
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
                     initialDataTransaction,
-                    readOnly
+                    readOnly,
+                    compactOnLaunch,
+                    false
             );
         }
 

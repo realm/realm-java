@@ -18,6 +18,8 @@ package io.realm;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 
 /**
  * An {@code OrderedRealmCollection} is a collection which maintains an ordering for its elements. Every
@@ -98,7 +100,7 @@ import java.util.List;
  * As you can see, after deletion, the size and elements order of snapshot stay the same as before. But the element at
  * the position becomes invalid.
  */
-public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, RealmCollection<E> {
+public interface OrderedRealmCollection<E> extends List<E>, RealmCollection<E> {
 
     /**
      * Gets the first object from the collection.
@@ -106,6 +108,7 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
      * @return the first object.
      * @throws IndexOutOfBoundsException if the collection is empty.
      */
+    @Nullable
     E first();
 
     /**
@@ -113,7 +116,8 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
      *
      * @return the first object or the provided default.
      */
-    E first(E defaultValue);
+    @Nullable
+    E first(@Nullable E defaultValue);
 
     /**
      * Gets the last object from the collection.
@@ -121,6 +125,7 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
      * @return the last object.
      * @throws IndexOutOfBoundsException if the collection is empty.
      */
+    @Nullable
     E last();
 
     /**
@@ -128,7 +133,8 @@ public interface OrderedRealmCollection<E extends RealmModel> extends List<E>, R
      *
      * @return the last object or the provided default.
      */
-    E last(E defaultValue);
+    @Nullable
+    E last(@Nullable E defaultValue);
 
     /**
      * Sorts a collection based on the provided field in ascending order.

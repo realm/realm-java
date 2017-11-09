@@ -28,17 +28,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.realm.DynamicRealm;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmMigration;
-import io.realm.RealmObject;
-import io.realm.TestHelper;
-import io.realm.annotations.RealmModule;
 
 import static org.junit.Assert.assertTrue;
 
@@ -53,12 +49,15 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     private final Set<RealmConfiguration> configurations = Collections.newSetFromMap(map);
 
     private boolean unitTestFailed = false;
+    private String testName = "";
+    private File tempFolder = null;
 
     @Override
-    public Statement apply(final Statement base, Description description) {
+    public Statement apply(final Statement base, final Description description) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
+                setTestName(description);
                 before();
                 try {
                     base.evaluate();
@@ -93,6 +92,30 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
             // This will delete the temp directory.
             super.after();
         }
+    }
+
+    @Override
+    public void create() throws IOException {
+        super.create();
+        tempFolder = new File(super.getRoot(), testName);
+        tempFolder.delete();
+        tempFolder.mkdir();
+    }
+
+    @Override
+    public File getRoot() {
+        if (tempFolder == null) {
+            throw new IllegalStateException(
+                    "the temporary folder has not yet been created");
+        }
+        return tempFolder;
+    }
+
+    /**
+     * To be called in the {@link #apply(Statement, Description)}.
+     */
+    protected void setTestName(Description description) {
+        testName = description.getDisplayName();
     }
 
     public synchronized void setUnitTestFailed() {
@@ -168,8 +191,9 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     }
 
     public void copyRealmFromAssets(Context context, String realmPath, RealmConfiguration config) throws IOException {
-        // Deletes the existing file before copy
-        Realm.deleteRealm(config);
+        if (new File(config.getPath()).exists()) {
+            throw new IllegalStateException(String.format(Locale.ENGLISH, "%s exists!", config.getPath()));
+        }
 
         File outFile = new File(config.getRealmDirectory(), config.getRealmFileName());
 

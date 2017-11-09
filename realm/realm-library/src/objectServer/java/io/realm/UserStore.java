@@ -18,6 +18,9 @@ package io.realm;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
+
 /**
  * Interface for classes responsible for saving and retrieving Object Server users again.
  * <p>
@@ -43,15 +46,18 @@ public interface UserStore {
      * This method will throw an exception if more than one valid, logged in users exist.
      * @return {@link SyncUser} object or {@code null} if not found.
      */
+    @Nullable
     SyncUser getCurrent();
 
     /**
      * Retrieves specified {@link SyncUser}.
      *
      * @param identity identity of the user.
+     * @param authenticationUrl the URL of the authentication.
      * @return {@link SyncUser} object or {@code null} if not found.
      */
-    SyncUser get(String identity);
+    @Nullable
+    SyncUser get(String identity, String authenticationUrl);
 
     /**
      * Removes the user from the store.
@@ -59,8 +65,9 @@ public interface UserStore {
      * If the user is not found, this method does nothing.
      *
      * @param identity identity of the user.
+     * @param authenticationUrl the URL of the authentication.
      */
-    void remove(String identity);
+    void remove(String identity, String authenticationUrl);
 
     /**
      * Returns a collection of all users saved in the User store.
@@ -68,4 +75,15 @@ public interface UserStore {
      * @return Collection of all users. If no users exist, an empty collection is returned.
      */
     Collection<SyncUser> allUsers();
+
+    /**
+     * Returns the state of the specified user: {@code true} if active (not logged out), {@code false} otherwise.
+     * This method checks if the user was marked as logged out. If the user has expired but not actively logged out
+     * this method will return {@code true}.
+     *
+     * @param identity identity of the user.
+     * @param authenticationUrl the URL of the authentication.
+     * @return {@code true} if the user is not logged out, {@code false} otherwise.
+     */
+    boolean isActive(String identity, String authenticationUrl);
 }

@@ -23,6 +23,8 @@ import org.junit.runner.Description;
 import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +40,7 @@ import java.util.concurrent.ThreadFactory;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
+import io.realm.internal.android.AndroidCapabilities;
 
 
 /**
@@ -58,6 +61,9 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     // Thread safe
     private final CountDownLatch signalTestCompleted = new CountDownLatch(1);
+
+    // Thread safe
+    private boolean ruleBeingUsed = false;
 
     // Access guarded by 'lock'
     private RealmConfiguration realmConfiguration;
@@ -80,6 +86,14 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     // that the instance is closed when exiting the test.
     // Access guarded by 'lock'
     private List<Realm> testRealms;
+
+    // List of closable resources that will be automatically closed when the test finishes.
+    // Access guarded by 'lock'
+    private List<Closeable> closableResources;
+
+    // Runnable guaranteed to trigger after the test either succeeded or failed.
+    // Access guarded by 'lock'
+    private List<Runnable> runAfterTestIsComplete = new ArrayList<>();
 
     /**
      * Get the configuration for the test realm.
@@ -126,6 +140,33 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     public void keepStrongReference(Object obj) {
         synchronized (lock) {
             keepStrongReference.add(obj);
+        }
+    }
+
+    /**
+     * Add a closable resource which this test will guarantee to call {@link Closeable#close()} on
+     * when the tests is done.
+     *
+     * @param closeable {@link Closeable} to close.
+     */
+    public void closeAfterTest(Closeable closeable) {
+        synchronized (lock) {
+            closableResources.add(closeable);
+        }
+    }
+
+    /**
+     * Run this task after the unit test either failed or succeeded.
+     * This is a work-around for the the current @After being triggered right after the unit test method exits,
+     * but before the @RunTestInLooperThread has determined the test is done
+     *
+     * TODO: Consider replacing this pattern with `@AfterLooperTest` annotation.
+     *
+     * @param task task to run. Only one task can be provided
+     */
+    public void runAfterTest(Runnable task) {
+        synchronized (lock) {
+            runAfterTestIsComplete.add(task);
         }
     }
 
@@ -227,6 +268,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         RealmConfiguration config = createConfiguration(UUID.randomUUID().toString());
         LinkedList<Object> refs = new LinkedList<>();
         List<Realm> realms = new LinkedList<>();
+        LinkedList<Closeable> closeables = new LinkedList<>();
 
         synchronized (lock) {
             realmConfiguration = config;
@@ -234,6 +276,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             backgroundHandler = null;
             keepStrongReference = refs;
             testRealms = realms;
+            closableResources = closeables;
         }
     }
 
@@ -242,7 +285,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         // Wait for all async tasks to have completed to ensure a successful deleteRealm call.
         // If it times out, it will throw.
         TestHelper.waitRealmThreadExecutorFinish();
-
+        AndroidCapabilities.EMULATE_MAIN_THREAD = false;
         super.after();
 
         // probably belt *and* suspenders...
@@ -254,9 +297,13 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     @Override
     public Statement apply(Statement base, Description description) {
+        setTestName(description);
         final RunTestInLooperThread annotation = description.getAnnotation(RunTestInLooperThread.class);
         if (annotation == null) {
             return base;
+        }
+        synchronized (lock) {
+            ruleBeingUsed = true;
         }
         return new RunInLooperThreadStatement(annotation, base);
     }
@@ -290,6 +337,31 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         }
     }
 
+    private void closeResources() throws IOException {
+        synchronized (lock) {
+            for (Closeable cr : closableResources) {
+                cr.close();
+            }
+        }
+    }
+
+    /**
+     * Checks if the current test is considered completed or not.
+     * It is completed if either {@link #testComplete()} was called or an uncaught exception was thrown.
+     */
+    public boolean isTestComplete() {
+        synchronized (lock) {
+            return signalTestCompleted.getCount() == 0;
+        }
+    }
+
+    /**
+     * Returns true if the current test being run is using this rule.
+     */
+    public boolean isRuleUsed() {
+        return ruleBeingUsed;
+    }
+
     /**
      * If an implementation of this is supplied with the annotation, the {@link RunnableBefore#run(RealmConfiguration)}
      * will be executed before the looper thread starts. It is normally for populating the Realm before the test.
@@ -319,6 +391,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                 runnableBefore.newInstance().run(getConfiguration());
             }
 
+            AndroidCapabilities.EMULATE_MAIN_THREAD = annotation.emulateMainThread();
             runTest(annotation.threadName());
         }
 
@@ -427,6 +500,10 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             } finally {
                 try {
                     looperTearDown();
+                    closeResources();
+                    for (Runnable task : runAfterTestIsComplete) {
+                        task.run();
+                    }
                 } catch (Throwable t) {
                     setAssertionError(t);
                     setUnitTestFailed();

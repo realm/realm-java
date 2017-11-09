@@ -20,6 +20,7 @@ import android.os.SystemClock;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -735,6 +736,7 @@ public class RealmAsyncQueryTests {
         final Realm realm = looperThread.getRealm();
         final AllTypes allTypes = realm.where(AllTypes.class).findFirstAsync();
         final AtomicBoolean firstListenerCalled = new AtomicBoolean(false);
+        looperThread.keepStrongReference(allTypes);
 
         allTypes.addChangeListener(new RealmChangeListener<AllTypes>() {
             @Override

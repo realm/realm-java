@@ -12,6 +12,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
@@ -23,20 +24,23 @@ public class Utils {
 
     public static Types typeUtils;
     private static Messager messager;
+    private static TypeMirror realmInteger;
     private static DeclaredType realmList;
     private static DeclaredType realmResults;
     private static DeclaredType markerInterface;
     private static TypeMirror realmModel;
 
     public static void initialize(ProcessingEnvironment env) {
+        Elements elementUtils = env.getElementUtils();
         typeUtils = env.getTypeUtils();
         messager = env.getMessager();
-        realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"),
-                typeUtils.getWildcardType(null, null));
-        realmResults = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmResults"),
-                typeUtils.getWildcardType(null, null));
-        realmModel = env.getElementUtils().getTypeElement("io.realm.RealmModel").asType();
-        markerInterface = env.getTypeUtils().getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmModel"));
+        realmInteger = elementUtils.getTypeElement("io.realm.MutableRealmInteger").asType();
+        realmList = typeUtils.getDeclaredType(
+                elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
+        realmResults = typeUtils.getDeclaredType(
+                env.getElementUtils().getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null));
+        realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType();
+        markerInterface = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmModel"));
     }
 
     /**
@@ -147,6 +151,13 @@ public class Utils {
     }
 
     /**
+     * @return {@code true} if a given field type is {@code MutableRealmInteger}, {@code false} otherwise.
+     */
+    public static boolean isMutableRealmInteger(VariableElement field) {
+        return typeUtils.isAssignable(field.asType(), realmInteger);
+    }
+
+    /**
      * @return {@code true} if a given field type is {@code RealmList}, {@code false} otherwise.
      */
     public static boolean isRealmList(VariableElement field) {
@@ -154,10 +165,50 @@ public class Utils {
     }
 
     /**
+     * @param field {@link VariableElement} of a value list field.
+     * @return element type of the list field.
+     */
+    public static Constants.RealmFieldType getValueListFieldType(VariableElement field) {
+        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
+        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES.get(elementTypeMirror.toString());
+    }
+
+    /**
+     * @return {@code true} if a given field type is {@code RealmList} and its element type is {@Code RealmObject},
+     * {@code false} otherwise.
+     */
+    public static boolean isRealmModelList(VariableElement field) {
+        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
+        if (elementTypeMirror == null) {
+            return false;
+        }
+        return isRealmModel(elementTypeMirror);
+    }
+
+    /**
+     * @return {@code true} if a given field type is {@code RealmList} and its element type is value type,
+     * {@code false} otherwise.
+     */
+    public static boolean isRealmValueList(VariableElement field) {
+        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
+        if (elementTypeMirror == null) {
+            return false;
+        }
+        return !isRealmModel(elementTypeMirror);
+    }
+
+    /**
      * @return {@code true} if a given field type is {@code RealmModel}, {@code false} otherwise.
      */
-    public static boolean isRealmModel(VariableElement field) {
-        return typeUtils.isAssignable(field.asType(), realmModel);
+    public static boolean isRealmModel(Element field) {
+        return isRealmModel(field.asType());
+    }
+
+    /**
+     * @return {@code true} if a given type is {@code RealmModel}, {@code false} otherwise.
+     */
+    public static boolean isRealmModel(TypeMirror type) {
+        return typeUtils.isAssignable(type, realmModel);
     }
 
     public static boolean isRealmResults(VariableElement field) {

@@ -28,6 +28,7 @@ import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
+import io.realm.SyncUser;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
@@ -86,13 +87,15 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public Object[] getUserAndServerUrl(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
+            SyncUser user = syncConfig.getUser();
             String rosServerUrl = syncConfig.getServerUrl().toString();
-            String rosUserIdentity = syncConfig.getUser().getIdentity();
-            String syncRealmAuthUrl = syncConfig.getUser().getAuthenticationUrl().toString();
-            String rosRefreshToken = syncConfig.getUser().getAccessToken().value();
-            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosRefreshToken, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
+            String rosUserIdentity = user.getIdentity();
+            String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
+            String rosSerializedUser = user.toJson();
+            byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
+            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath(), sessionStopPolicy, syncConfig.isPartialRealm()};
         } else {
-            return new Object[6];
+            return new Object[8];
         }
     }
 
@@ -101,9 +104,10 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
-        if (config instanceof SyncConfiguration) {
-            SyncManager.getSession((SyncConfiguration) config);
+    public void wrapObjectStoreSessionIfRequired(OsRealmConfig config) {
+        if (config.getRealmConfiguration() instanceof SyncConfiguration) {
+            SyncSession session = SyncManager.getSession((SyncConfiguration) config.getRealmConfiguration());
+            session.setResolvedRealmURI(config.getResolvedRealmURI());
         }
     }
 

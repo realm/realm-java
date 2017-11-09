@@ -16,14 +16,17 @@
 
 package io.realm;
 
+import io.reactivex.Flowable;
+import java.util.Locale;
+
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.log.RealmLog;
-import rx.Observable;
-
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -47,12 +50,36 @@ import rx.Observable;
  */
 public class DynamicRealm extends BaseRealm {
 
-    private DynamicRealm(RealmCache cache) {
-        super(cache);
+    private final RealmSchema schema;
+
+    private DynamicRealm(final RealmCache cache) {
+        super(cache, null);
+        RealmCache.invokeWithGlobalRefCount(cache.getConfiguration(), new RealmCache.Callback() {
+            @Override
+            public void onResult(int count) {
+                if (count > 0)  {
+                    return;
+                }
+                if (cache.getConfiguration().isReadOnly()) {
+                    return;
+                }
+                if (OsObjectStore.getSchemaVersion(sharedRealm) != OsObjectStore.SCHEMA_NOT_VERSIONED) {
+                    return;
+                }
+                sharedRealm.beginTransaction();
+                if (OsObjectStore.getSchemaVersion(sharedRealm) == OsObjectStore.SCHEMA_NOT_VERSIONED) {
+                    // To initialize the meta table.
+                    OsObjectStore.setSchemaVersion(sharedRealm, OsObjectStore.SCHEMA_NOT_VERSIONED);
+                }
+                sharedRealm.commitTransaction();
+            }
+        });
+        this.schema = new MutableRealmSchema(this);
     }
 
-    private DynamicRealm(RealmConfiguration configuration) {
-        super(configuration);
+    private DynamicRealm(OsSharedRealm sharedRealm) {
+        super(sharedRealm);
+        this.schema = new MutableRealmSchema(this);
     }
 
     /**
@@ -66,6 +93,7 @@ public class DynamicRealm extends BaseRealm {
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
@@ -87,6 +115,7 @@ public class DynamicRealm extends BaseRealm {
      */
     public static RealmAsyncTask getInstanceAsync(RealmConfiguration configuration,
                                                   Callback callback) {
+        //noinspection ConstantConditions
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
@@ -103,13 +132,15 @@ public class DynamicRealm extends BaseRealm {
     public DynamicRealmObject createObject(String className) {
         checkIfValid();
         Table table = schema.getTable(className);
+        String pkField = OsObjectStore.getPrimaryKeyForObject(sharedRealm, className);
         // Check and throw the exception earlier for a better exception message.
-        if (table.hasPrimaryKey()) {
-            throw new RealmException(String.format("'%s' has a primary key, use" +
-                    " 'createObject(String, Object)' instead.", className));
+        if (pkField != null) {
+            throw new RealmException(String.format(Locale.US,
+                    "'%s' has a primary key field '%s', use  'createObject(String, Object)' instead.",
+                    className, pkField));
         }
 
-        return new DynamicRealmObject(this, CheckedRow.getFromRow(OsObject.create(sharedRealm, table)));
+        return new DynamicRealmObject(this, CheckedRow.getFromRow(OsObject.create(table)));
     }
 
     /**
@@ -126,7 +157,7 @@ public class DynamicRealm extends BaseRealm {
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
         return new DynamicRealmObject(this,
-                CheckedRow.getFromRow(OsObject.createWithPrimaryKey(sharedRealm, table, primaryKeyValue)));
+                CheckedRow.getFromRow(OsObject.createWithPrimaryKey(table, primaryKeyValue)));
     }
 
     /**
@@ -208,6 +239,7 @@ public class DynamicRealm extends BaseRealm {
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
      */
     public void executeTransaction(Transaction transaction) {
+        //noinspection ConstantConditions
         if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
         }
@@ -236,20 +268,45 @@ public class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * Create a {@link DynamicRealm} instance without associating it to any RealmCache.
+     * Creates a {@link DynamicRealm} instance with a given {@link OsSharedRealm} instance without owning it.
+     * This is designed to be used in the migration block when opening a typed Realm instance.
      *
+     * @param sharedRealm the existing {@link OsSharedRealm} instance.
      * @return a {@link DynamicRealm} instance.
      */
-    static DynamicRealm createInstance(RealmConfiguration configuration) {
-        return new DynamicRealm(configuration);
+    static DynamicRealm createInstance(OsSharedRealm sharedRealm) {
+        return new DynamicRealm(sharedRealm);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Observable<DynamicRealm> asObservable() {
+    public Flowable<DynamicRealm> asFlowable() {
         return configuration.getRxFactory().from(this);
+    }
+
+    /**
+     * Returns the mutable schema for this Realm.
+     *
+     * @return The {@link RealmSchema} for this Realm.
+     */
+    @Override
+    public RealmSchema getSchema() {
+        return schema;
+    }
+
+    /**
+     * Set the schema version of this dynamic realm to the given version number. If the meta table doesn't exist, this
+     * will create the meta table first.
+     * <p>
+     * NOTE: This API is for internal testing only. Except testing, the schema version should always be set by the
+     * Object Store during schema initialization or migration.
+     *
+     * @param version the schema version to be set.
+     */
+    void setVersion(long version) {
+        OsObjectStore.setSchemaVersion(sharedRealm, version);
     }
 
     /**
@@ -282,4 +339,3 @@ public class DynamicRealm extends BaseRealm {
         }
     }
 }
-

@@ -16,72 +16,75 @@
 
 package io.realm.util;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.SyncManager;
 import io.realm.SyncUser;
+import io.realm.UserStore;
 import io.realm.internal.network.AuthenticateResponse;
-import io.realm.internal.objectserver.ObjectServerUser;
 import io.realm.internal.objectserver.Token;
 
 public class SyncTestUtils {
 
     public static final String USER_TOKEN = UUID.randomUUID().toString();
-    public static final String REALM_TOKEN = UUID.randomUUID().toString();
     public static final String DEFAULT_AUTH_URL = "http://objectserver.realm.io/auth";
-    public static final String DEFAULT_USER_IDENTIFIER = "JohnDoe";
 
-    public static SyncUser createRandomTestUser() {
-        return createTestUser(UUID.randomUUID().toString(),
-                UUID.randomUUID().toString(),
-                UUID.randomUUID().toString(),
-                DEFAULT_AUTH_URL,
-                Long.MAX_VALUE,
-                false);
+    private final static Method SYNC_MANAGER_GET_USER_STORE_METHOD;
+    private final static Method SYNC_USER_GET_ACCESS_TOKEN_METHOD;
+    static {
+        try {
+            SYNC_MANAGER_GET_USER_STORE_METHOD = SyncManager.class.getDeclaredMethod("getUserStore");
+            SYNC_USER_GET_ACCESS_TOKEN_METHOD = SyncUser.class.getDeclaredMethod("getRefreshToken");
+            SYNC_MANAGER_GET_USER_STORE_METHOD.setAccessible(true);
+            SYNC_USER_GET_ACCESS_TOKEN_METHOD.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError(e);
+        }
     }
 
     public static SyncUser createTestAdminUser() {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER, DEFAULT_AUTH_URL, Long.MAX_VALUE, true);
+        return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, Long.MAX_VALUE, true);
     }
 
     public static SyncUser createTestUser() {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER, DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
+        return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
     }
 
     public static SyncUser createTestUser(long expires) {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER,  DEFAULT_AUTH_URL, expires, false);
+        return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, expires, false);
     }
 
     public static SyncUser createTestUser(String authUrl) {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, DEFAULT_USER_IDENTIFIER,  authUrl, Long.MAX_VALUE, false);
+        return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), authUrl, Long.MAX_VALUE, false);
     }
 
     public static SyncUser createNamedTestUser(String userIdentifier) {
-        return createTestUser(USER_TOKEN, REALM_TOKEN, userIdentifier, DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
+        return createTestUser(USER_TOKEN, userIdentifier, DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
     }
 
-    public static SyncUser createTestUser(String userTokenValue, String realmTokenValue, String userIdentifier, String authUrl, long expires, boolean isAdmin) {
+    public static SyncUser createTestUser(String userTokenValue, String userIdentifier, String authUrl, long expires, boolean isAdmin) {
         Token userToken = new Token(userTokenValue, userIdentifier, null, expires, null, isAdmin);
-        Token accessToken = new Token(realmTokenValue, userIdentifier, "/foo", expires, new Token.Permission[] {Token.Permission.DOWNLOAD });
-        ObjectServerUser.AccessDescription desc = new ObjectServerUser.AccessDescription(accessToken, "/data/data/myapp/files/default", false);
 
         JSONObject obj = new JSONObject();
         try {
-            JSONArray realmList = new JSONArray();
             JSONObject realmDesc = new JSONObject();
             realmDesc.put("uri", "realm://objectserver.realm.io/default");
-            realmDesc.put("description", desc.toJson());
-            realmList.put(realmDesc);
 
             obj.put("authUrl", authUrl);
             obj.put("userToken", userToken.toJson());
-            obj.put("realms", realmList);
-            return SyncUser.fromJson(obj.toString());
+            SyncUser syncUser = SyncUser.fromJson(obj.toString());
+            // persist the user to the ObjectStore sync metadata, to simulate real login, otherwise SyncUser.isValid will
+            // "throw IllegalArgumentException: User not authenticated or authentication expired." since
+            // the call to  SyncManager.getUserStore().isActive(syncUser.getIdentity()) will return false
+            addToUserStore(syncUser);
+            return syncUser;
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -102,18 +105,24 @@ public class SyncTestUtils {
         }
     }
 
-    public static AuthenticateResponse createRefreshResponse() {
+    public static AuthenticateResponse createErrorResponse(ErrorCode code) {
+        return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
+    }
+
+    public static Token getRefreshToken(SyncUser user) {
         try {
-            Token userToken = new Token(USER_TOKEN, "JohnDoe", null, Long.MAX_VALUE, null);
-            JSONObject response = new JSONObject();
-            response.put("refresh_token", userToken.toJson());
-            return AuthenticateResponse.from(response.toString());
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
+            return (Token) SYNC_USER_GET_ACCESS_TOKEN_METHOD.invoke(user);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new AssertionError(e);
         }
     }
 
-    public static AuthenticateResponse createErrorResponse(ErrorCode code) {
-        return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
+    private static void addToUserStore(SyncUser user) {
+        try {
+            UserStore userStore = (UserStore) SYNC_MANAGER_GET_USER_STORE_METHOD.invoke(null);
+            userStore.put(user);
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            throw new AssertionError(e);
+        }
     }
 }

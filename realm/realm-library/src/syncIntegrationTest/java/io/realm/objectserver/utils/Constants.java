@@ -18,13 +18,13 @@ package io.realm.objectserver.utils;
 
 public class Constants {
 
-    public static final String USER_REALM = "realm://127.0.0.1:9080/~/tests";
-    public static final String USER_REALM_SECURE = "realms://127.0.0.1:9443/~/tests";
-    public static final String SYNC_SERVER_URL = "realm://127.0.0.1/tests";
-    public static final String SYNC_SERVER_URL_2 = "realm://127.0.0.1/tests2";
+    public static String HOST = "127.0.0.1";
+    public static final String USER_REALM = "realm://" + HOST + ":9080/~/tests";
+    public static final String USER_REALM_2 = "realm://" + HOST + ":9080/~/tests2";
+    public static final String USER_REALM_SECURE = "realms://" + HOST + ":9443/~/tests";
+    public static final String SYNC_SERVER_URL = "realm://" + HOST + ":9080/~/tests";
+    public static final String SYNC_SERVER_URL_2 = "realm://" + HOST + "/~/tests2";
 
-    public static final String AUTH_SERVER_URL = "http://127.0.0.1:9080/";
+    public static final String AUTH_SERVER_URL = "http://" + HOST + ":9080/";
     public static final String AUTH_URL = AUTH_SERVER_URL + "auth";
-
-    public static final long TEST_TIMEOUT_SECS = 300;
 }

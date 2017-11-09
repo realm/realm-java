@@ -505,7 +505,7 @@ public class BulkInsertTests {
     public void insert_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(CatOwner.class, Cat.class, Owner.class, DogPrimaryKey.class, Dog.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);
@@ -601,7 +601,7 @@ public class BulkInsertTests {
     public void insertOrUpdate_emptyListWithFilterableMediator() {
         //noinspection unchecked
         final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .schema(CatOwner.class, Cat.class)
+                .schema(CatOwner.class, Cat.class, Owner.class, DogPrimaryKey.class, Dog.class)
                 .name("filterable.realm")
                 .build();
         Realm.deleteRealm(config);
@@ -910,6 +910,27 @@ public class BulkInsertTests {
         allTypes = realm.where(AllTypesPrimaryKey.class).findFirst();
         assertNotNull(allTypes);
         assertEquals(1, allTypes.getColumnRealmList().size());
+    }
+
+    @Test
+    public void insertOrUpdate_ownList() {
+        realm.beginTransaction();
+        AllJavaTypes managedObj = realm.createObject(AllJavaTypes.class, 1);
+        managedObj.getFieldList().add(managedObj);
+        AllJavaTypes unmanagedObj = realm.copyFromRealm(managedObj);
+        unmanagedObj.setFieldList(managedObj.getFieldList());
+
+        // Check single object insert
+        realm.insertOrUpdate(unmanagedObj);
+        managedObj = realm.where(AllJavaTypes.class).findFirst();
+        assertEquals(1, managedObj.getFieldList().size());
+        assertEquals(1, managedObj.getFieldList().first().getFieldId());
+
+        // Check collection insert
+        realm.insertOrUpdate(Arrays.asList(unmanagedObj));
+        managedObj = realm.where(AllJavaTypes.class).findFirst();
+        assertEquals(1, managedObj.getFieldList().size());
+        assertEquals(1, managedObj.getFieldList().first().getFieldId());
     }
 
     @Test

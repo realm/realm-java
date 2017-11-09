@@ -1,6 +1,8 @@
 import java.security.MessageDigest
 
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
@@ -34,10 +36,12 @@ ext.coreDir = file(project.coreSourcePath ?
         "${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
 ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
+// Set to true to enable linking with debug core.
+ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false //FIXME Use 'false' as default until https://github.com/realm/realm-java/issues/5354 is fixed
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.3'
+    compileSdkVersion 26
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
         minSdkVersion 9
@@ -53,14 +57,26 @@ android {
                         // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
                         // JNI build currently (lack of lto linking support).
                         // This file should be removed and use the one from Android SDK cmake package when it supports lto.
-                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}"
+                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}",
+                        "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
+                if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=$project.coreSourcePath"
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
                     // armeabi is not supported anymore.
                     abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                }
+            }
+        }
+
+        buildTypes {
+            debug {
+                javaCompileOptions {
+                    annotationProcessorOptions {
+                        arguments += [ 'realm.suppressWarnings' : 'false' ]
+                    }
                 }
             }
         }
@@ -80,7 +96,7 @@ android {
 
     sourceSets {
         androidTest {
-            java.srcDirs += 'src/benchmarks/java'
+            java.srcDirs += 'src/androidTest/kotlin'
         }
         androidTestObjectServer {
             java.srcDirs += 'src/syncIntegrationTest/java'
@@ -88,17 +104,28 @@ android {
         }
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
     packagingOptions {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE.txt'
+        // We did strip with cmake for release build.
+        // Please, Gradle, you are not that smart! Pleas DO NOT strip debug symbols for debug build!
+        doNotStrip "*/*/*.so"
     }
 
     lintOptions {
         abortOnError false
     }
 
+    flavorDimensions 'api'
+
     productFlavors {
         base {
+            dimension 'api'
             externalNativeBuild {
                 cmake {
                     arguments "-DREALM_FLAVOR=base"
@@ -107,6 +134,7 @@ android {
             consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-base.pro'
         }
         objectServer {
+            dimension 'api'
             externalNativeBuild {
                 cmake {
                     arguments "-DREALM_FLAVOR=objectServer"
@@ -130,6 +158,21 @@ project.afterEvaluate {
     tasks.withType(JavaCompile) {
         options.compilerArgs << '-Werror'
     }
+
+    tasks.all { task ->
+        android.productFlavors.all { flavor ->
+            if (task.name == "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal") {
+                task.dependsOn "assemble${flavor.name.capitalize()}"
+            }
+        }
+    }
+}
+
+// enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/08/kotlin-1-1-4-is-out/
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        freeCompilerArgs = ["-Xjsr305=strict"]
+    }
 }
 
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
@@ -140,30 +183,34 @@ android.registerTransform(new RealmTransformer())
 
 repositories {
     maven { url "https://jitpack.io" }
+    mavenCentral()
 }
 
 dependencies {
 
-    provided 'io.reactivex:rxjava:1.1.0'
-    provided 'com.google.code.findbugs:findbugs-annotations:3.0.1'
+    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.4'
+    compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
-    compile "io.realm:realm-annotations:${version}"
-    compile 'com.getkeepsafe.relinker:relinker:1.2.2'
+    api "io.realm:realm-annotations:${version}"
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
 
-    objectServerAnnotationProcessor project(':realm-annotations-processor')
-    objectServerCompile 'com.squareup.okhttp3:okhttp:3.4.1'
+    kaptObjectServer project(':realm-annotations-processor')
+    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
 
-    androidTestAnnotationProcessor project(':realm-annotations-processor')
-    androidTestCompile fileTree(dir: 'testLibs', include: ['*.jar'])
-    androidTestCompile 'io.reactivex:rxjava:1.1.0'
-    androidTestCompile 'com.android.support:support-annotations:25.3.1'
-    androidTestCompile 'com.android.support.test:runner:0.5'
-    androidTestCompile 'com.android.support.test:rules:0.5'
-    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
-    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
-    androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
-    androidTestCompile 'com.opencsv:opencsv:3.4'
-    androidTestCompile 'dk.ilios:spanner:0.6.0'
+    kaptAndroidTest project(':realm-annotations-processor')
+    androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
+    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.4'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test:rules:1.0.1'
+    androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
+    androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+
+    // specify error prone version to prevent sudden failure
+    errorprone 'com.google.errorprone:error_prone_core:2.0.21'
 }
 
 task sourcesJar(type: Jar) {
@@ -228,10 +275,10 @@ task findbugs(type: FindBugs) {
         xml.enabled = false
         html.enabled = true
         xml {
-            destination "$project.buildDir/findbugs/findbugs-output.xml"
+            destination file("$project.buildDir/findbugs/findbugs-output.xml")
         }
         html {
-            destination "$project.buildDir/findbugs/findbugs-output.html"
+            destination file("$project.buildDir/findbugs/findbugs-output.html")
         }
     }
 }
@@ -255,8 +302,7 @@ task checkstyle(type: Checkstyle) {
 
     source 'src'
     include '*/java/**/*.java'
-    exclude 'benchmarks/**'
-    // Ingore tests for now.
+    // Ignore tests for now.
     exclude '*Test*/**'
 
     // empty classpath
@@ -274,24 +320,6 @@ checkstyle {
     ignoreFailures = true
 }
 check.dependsOn tasks.checkstyle
-
-// Configuration options can be found here:
-// http://developer.android.com/reference/android/support/test/runner/AndroidJUnitRunner.html
-task connectedBenchmarks(type: GradleBuild) {
-    description = 'Run all benchmarks on connected devices'
-    group = 'Verification'
-    buildFile = file("${projectDir}/build.gradle")
-    startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.package', 'io.realm.benchmarks')
-    tasks = ['connectedCheck']
-}
-
-task connectedUnitTests(type: GradleBuild) {
-    description = 'Run all unit tests on connected devices'
-    group = 'Verification'
-    buildFile = file("${projectDir}/build.gradle")
-    startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.notPackage', 'io.realm.benchmarks')
-    tasks = ['connectedAndroidTest']
-}
 
 install {
     repositories.mavenInstaller {
@@ -364,7 +392,7 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
 
-            pom.withXml(createPomDependencies(["baseCompile", "compile"]))
+            pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
 
         objectServerPublication(MavenPublication) {
@@ -375,7 +403,7 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
 
-            pom.withXml(createPomDependencies(["objectServerCompile", "compile"]))
+            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
         }
     }
     repositories {
@@ -477,35 +505,9 @@ task downloadCore() {
     }
 }
 
-task compileCore(group: 'build setup', description: 'Compile the core library from source code') {
-    // Build the library from core source code
-    doFirst {
-        if (!coreSourcePath) {
-            throw new GradleException('The coreSourcePath is not set.')
-        }
-        exec {
-            workingDir = coreSourcePath
-            commandLine = [
-                    "bash",
-                    "build.sh",
-                    "build-android"
-            ]
-        }
-    }
-
-    // Copy the core tar ball
-    doLast {
-        copy {
-            from "${coreSourcePath}/realm-core-android-${coreVersion}.tar.gz"
-            into project.coreArchiveFile.parent
-            rename "realm-core-android-${coreVersion}.tar.gz", "realm-sync-android-${coreVersion}.tar.gz"
-        }
-    }
-}
-
 task deployCore(group: 'build setup', description: 'Deploy the latest version of Realm Core') {
     dependsOn {
-        coreSourcePath ? compileCore : downloadCore
+        downloadCore
     }
 
     // Build with the output from core source dir. No need to deploy anything.
@@ -563,6 +565,17 @@ project.afterEvaluate {
         variant.externalNativeBuildTasks[0].dependsOn(checkNdk)
         if (project.hasProperty('buildTargetABIs') && project.getProperty('buildTargetABIs').trim().isEmpty()) {
             variant.externalNativeBuildTasks[0].enabled = false
+        }
+
+        // all Java files must be compiled before native build
+        android.libraryVariants.all { anotherVariant ->
+            if (variant.flavorName == anotherVariant.flavorName) {
+                variant.externalNativeBuildTasks[0].dependsOn("compile${anotherVariant.name.capitalize()}JavaWithJavac")
+            }
+        }
+        // as of android gradle plugin 3.0.0-alpha5, generateJsonModel* triggers native build. Java files must be compiled before them.
+        android.buildTypes.all { buildType ->
+            tasks["generateJsonModel${variant.name.capitalize()}"].dependsOn "compile${variant.flavorName.capitalize()}${buildType.name.capitalize()}JavaWithJavac"
         }
     }
 }

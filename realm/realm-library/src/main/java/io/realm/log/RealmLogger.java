@@ -16,6 +16,8 @@
 
 package io.realm.log;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.Keep;
 
 
@@ -23,7 +25,7 @@ import io.realm.internal.Keep;
  * Interface for custom loggers that can be registered at {@link RealmLog#add(RealmLogger)}.
  * The different log levels are described in {@link LogLevel}.
  */
-@Keep // This interface is used as a parameter type of a native method in SharedRealm.java
+@Keep // This interface is used as a parameter type of a native method in OsSharedRealm.java
 public interface RealmLogger {
 
     /**
@@ -35,5 +37,5 @@ public interface RealmLogger {
      * @param throwable optional exception to log.
      * @param message optional additional message.
      */
-    void log(int level, String tag, Throwable throwable, String message);
+    void log(int level, String tag, @Nullable Throwable throwable, @Nullable String message);
 }

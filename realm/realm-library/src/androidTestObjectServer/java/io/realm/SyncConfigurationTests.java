@@ -16,12 +16,10 @@
 
 package io.realm;
 
-import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,10 +32,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.realm.entities.AllJavaTypes;
 import io.realm.entities.StringOnly;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestSyncConfigurationFactory;
 
 import static io.realm.util.SyncTestUtils.createNamedTestUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
@@ -61,13 +57,6 @@ public class SyncConfigurationTests {
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
-
-    private Context context;
-
-    @Before
-    public void setUp() {
-        context = InstrumentationRegistry.getContext();
-    }
 
     @After
     public void tearDown() throws Exception {
@@ -105,7 +94,7 @@ public class SyncConfigurationTests {
 
             SyncConfiguration config = new SyncConfiguration.Builder(user, serverUrl).build();
 
-            assertEquals(new File(context.getFilesDir(), expectedFolder), config.getRealmDirectory());
+            assertEquals(new File(InstrumentationRegistry.getContext().getFilesDir(), expectedFolder), config.getRealmDirectory());
             assertEquals(expectedFileName, config.getRealmFileName());
         }
     }
