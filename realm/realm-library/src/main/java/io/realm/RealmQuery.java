@@ -1519,6 +1519,11 @@ public class RealmQuery<E> {
 
         return orWithoutThreadValidation();
     }
+
+    private RealmQuery<E> orWithoutThreadValidation() {
+        this.query.or();
+        return this;
+    }
     
     /**
      * Logical-and two conditions
@@ -1530,11 +1535,6 @@ public class RealmQuery<E> {
     	realm.checkIfValid();
     	
     	return this;
-    }
-
-    private RealmQuery<E> orWithoutThreadValidation() {
-        this.query.or();
-        return this;
     }
 
     /**
