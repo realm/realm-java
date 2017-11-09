@@ -1,44 +1,56 @@
 package io.realm
 
-import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-import io.realm.entities.AllKotlinTypes
+import io.realm.entities.PrimaryKeyClass
+import io.realm.entities.SimpleClass
+import io.realm.kotlin.createObject
 import io.realm.kotlin.where
-import org.junit.Assert.*
+import io.realm.rule.TestRealmConfigurationFactory
+import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
-import org.junit.BeforeClass
-
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty1
-
+@Suppress("FunctionName")
 @RunWith(AndroidJUnit4::class)
 class KotlinRealmTests {
 
-    companion object {
-        @BeforeClass
-        @JvmStatic
-        fun before() {
-            Realm.init(InstrumentationRegistry.getTargetContext())
-        }
+    @get:Rule
+    private val configFactory = TestRealmConfigurationFactory()
+
+    private lateinit var realm: Realm
+
+    @Before
+    fun setUp() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
     }
 
-//    @Test
-//    fun kclassExtensionMethods() {
-//        // Extend all <x>(Class) methods with <x>(KClass)
-//        val realm = Realm.getDefaultInstance()
-//        val query : RealmQuery<AllKotlinTypes> = realm.where()
-//        assertEquals(0, query.count())
-//        realm.close()
-//    }
-//
-//    @Test
-//    fun typeSafeFieldNames() {
-// Requires kotlin-reflect.jar which is a rather large dependency
-//        val realm = Realm.getDefaultInstance()
-//        val field: KMutableProperty1<AllKotlinTypes, String> = AllKotlinTypes::requiredString
-//        assertFalse(realm.getSchema().get(AllKotlinTypes::class.simpleName).isNullable(AllKotlinTypes::requiredString))
-//    }
+    @After
+    fun tearDown() {
+        realm.close()
+    }
+
+    @Test
+    fun createObject() {
+        realm.executeTransaction {
+            it.createObject<SimpleClass>()
+        }
+        assertEquals(1, realm.where<SimpleClass>().count())
+    }
+
+
+    @Test
+    fun createObject_primaryKey() {
+        realm.executeTransaction {
+            it.createObject<PrimaryKeyClass>(1)
+        }
+        assertEquals(1, realm.where<PrimaryKeyClass>().count())
+    }
+
+    @Test
+    fun where() {
+        assertEquals(0, realm.where<SimpleClass>().count())
+    }
 }
