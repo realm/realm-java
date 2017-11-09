@@ -234,15 +234,6 @@ public class SyncManager {
         return session;
     }
 
-    static synchronized SyncSession getExistingSessionIfExist(SyncConfiguration syncConfiguration) {
-        //noinspection ConstantConditions
-        if (syncConfiguration == null) {
-            throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
-        }
-
-        return sessions.get(syncConfiguration.getPath());
-    }
-
     /**
      * Remove the wrapped Java session.
      * @param syncConfiguration configuration object for the synchronized Realm.

@@ -229,9 +229,9 @@ public class SyncUser {
 
             // invalidate all pending refresh_token queries
             for (SyncConfiguration syncConfiguration : realms.keySet()) {
-                SyncSession session = SyncManager.getExistingSessionIfExist(syncConfiguration);
+                SyncSession session = SyncManager.getSession(syncConfiguration);
                 if (session != null) {
-                    session.close();
+                    session.clearScheduledAccessTokenRefresh();
                 }
             }
 

@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.internal.Keep;
 import io.realm.internal.SyncObjectServerFacade;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
@@ -59,6 +60,7 @@ import io.realm.log.RealmLog;
  * <p>
  * This object is thread safe.
  */
+@Keep
 public class SyncSession {
     private final static ScheduledThreadPoolExecutor REFRESH_TOKENS_EXECUTOR = new ScheduledThreadPoolExecutor(1);
     private final static long REFRESH_MARGIN_DELAY = TimeUnit.SECONDS.toMillis(10);
