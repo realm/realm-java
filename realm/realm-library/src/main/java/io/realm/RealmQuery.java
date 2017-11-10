@@ -1527,7 +1527,7 @@ public class RealmQuery<E> {
     
     /**
      * Logical-and two conditions
-     * Technically, does nothing. Intended purely for syntactic sugar
+     * Realm automatically applies logical-and between all query statements, so this is intended only as a mean to increase readability.
      *
      * @return the query object
      */
