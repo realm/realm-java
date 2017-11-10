@@ -97,7 +97,7 @@ android {
 
     sourceSets {
         androidTest {
-            java.srcDirs += 'src/androidTest/kotlin'
+            java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java']
         }
         androidTestObjectServer {
             java.srcDirs += 'src/syncIntegrationTest/java'
