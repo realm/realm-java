@@ -1,3 +1,18 @@
+## 4.2.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+### Enhancements
+
+* Added support for using non-encrypted Realms in multiple processes. Some caveats apply. Read [doc](https://realm.io/docs/java/latest/#multiprocess) for more info (#1091).
+
+### Bug Fixes
+
+### Interal
+
+### Credits
+
+
 ## 4.1.2 (YYYY-MM-DD)
 
 ### Bug Fixes
@@ -24,11 +39,11 @@
 
 ## 4.1.0 (2017-10-20)
 
-## Enhancements
+### Enhancements
 
 * `Realm.deleteRealm()` and `RealmConfiguration.assetFile()` are multi-processes safe now.
 
-## Bug Fixes
+### Bug Fixes
 
 * Fix some potential database corruption caused by deleting the Realm file while a Realm instance are still opened in another process or the sync client thread.
 * Added `realm.ignoreKotlinNullability` as a kapt argument to disable treating kotlin non-null types as `@Required` (#5412) (introduced in `v3.6.0`).
@@ -37,7 +52,7 @@
 
 ## 4.0.0 (2017-10-16)
 
-## Breaking Changes
+### Breaking Changes
 
 The internal file format has been upgraded. Opening an older Realm will upgrade the file automatically, but older versions of Realm will no longer be able to read the file.
 
@@ -61,7 +76,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 * Removed deprecated API `RealmResults.distinct()`/`RealmResults.distinctAsync()`. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
 * `RealmQuery.createQuery(Realm, Class)`, `RealmQuery.createDynamicQuery(DynamicRealm, String)`, `RealmQuery.createQueryFromResult(RealmResults)` and `RealmQuery.createQueryFromList(RealmList)` have been removed. Use `Realm.where(Class)`, `DynamicRealm.where(String)`, `RealmResults.where()` and `RealmList.where()` instead.
 
-## Enhancements
+### Enhancements
 
 * [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
 * `RealmList` can now contain `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` values. [Queries](https://github.com/realm/realm-java/issues/5361) and [Importing primitive lists from JSON](https://github.com/realm/realm-java/issues/5361) are not supported yet.
@@ -75,7 +90,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 * All Realm annotations are now kept at runtime, allowing runtime tools access to them (#5344).
 * Speedup schema initialization when a Realm file is first accessed (#5391).
 
-## Bug Fixes
+### Bug Fixes
 
 * [ObjectServer] Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759/#5223).
 * [ObjectServer] Realm no longer throws a native “unsupported instruction” exception in some cases when opening a synced Realm asynchronously (https://github.com/realm/realm-object-store/issues/502).
@@ -88,7 +103,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 * Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
 * Removing and re-adding a changelistener from inside a changelistener sometimes caused notifications to be missed (#5411).
 
-## Internal
+### Internal
 
 * Upgraded to Realm Sync 2.0.2.
 * Upgraded to Realm Core 4.0.2.
