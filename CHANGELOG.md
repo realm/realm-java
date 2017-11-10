@@ -1,8 +1,15 @@
+## 4.1.2 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Leaked file handler in the Realm Transformer (#5521)
+
+### Internal
+
+* Updated JavaAssist to 3.22.0-GA
+
+
 ## 4.1.1 (2017-10-27)
-
-### Breaking Changes
-
-### Enhancements
 
 ### Bug Fixes
 
@@ -13,8 +20,6 @@
 ### Internal
 
 * Updated Realm Sync to 2.1.0
-
-### Credits
 
 
 ## 4.1.0 (2017-10-20)
