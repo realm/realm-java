@@ -21,7 +21,8 @@ import javassist.ClassPath
 import javassist.ClassPool
 
 /**
- * This class implements the Transform API provided by the Android Gradle plugin.
+ * This class is a wrapper around JavaAssists {@code ClassPool} class that allows for correct cleanup
+ * of the resources used.
  */
 @SuppressWarnings("GroovyUnusedDeclaration")
 class ManagedClassPool extends ClassPool implements Closeable {
@@ -30,7 +31,7 @@ class ManagedClassPool extends ClassPool implements Closeable {
 
     /**
      * Constructor for creating and populating the JavAssist class pool.
-     * Remember to class {@link #close()} when done with it to avoid leaking file resources
+     * Remember to call {@link #close()} when done with it to avoid leaking file resources
      *
      * @param inputs the inputs provided by the Transform API
      * @param referencedInputs the referencedInputs provided by the Transform API
