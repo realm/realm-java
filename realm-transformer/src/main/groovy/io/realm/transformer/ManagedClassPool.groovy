@@ -47,8 +47,6 @@ class ManagedClassPool extends ClassPool implements Closeable {
                 pathElements.add(appendClassPath(it.file.absolutePath))
             }
 
-            // JavaAssist is leaking file handles, manually create it
-            // See
             it.jarInputs.each {
                 pathElements.add(appendClassPath(it.file.absolutePath))
             }
