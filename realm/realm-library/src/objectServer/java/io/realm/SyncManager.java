@@ -326,6 +326,8 @@ public class SyncManager {
                 } catch (Exception exception) {
                     RealmLog.error(exception);
                 }
+            } else {
+                RealmLog.warn("Cannot find the SyncSession corresponding to the path: " + path);
             }
         }
     }
@@ -426,9 +428,10 @@ public class SyncManager {
             if (depth == 0) {
                 // transform all PEM ROS_CERTIFICATES_CHAIN into Java X509
                 // with respecting the order/depth provided from Sync.
-                int n = ROS_CERTIFICATES_CHAIN.get(serverAddress).size();
+                LinkedList<String> pemChain = ROS_CERTIFICATES_CHAIN.get(serverAddress);
+                int n = pemChain.size();
                 X509Certificate[] chain = new X509Certificate[n];
-                for (String pem : ROS_CERTIFICATES_CHAIN.get(serverAddress)) {
+                for (String pem : pemChain) {
                     // The depth of the last certificate is 0.
                     // The depth of the first certificate is chain length - 1.
                     chain[--n] = buildCertificateFromPEM(pem);
@@ -457,7 +460,7 @@ public class SyncManager {
                 // when receiving the depth == 0 (host certificate)
                 return true;
             }
-        } catch (CertificateException | IOException e) {
+        } catch (Exception e) {
             RealmLog.error(e, "Error during certificate validation for host: " + serverAddress);
             return false;
         }
@@ -481,10 +484,15 @@ public class SyncManager {
     }
 
     private static X509Certificate buildCertificateFromPEM(String pem) throws IOException, CertificateException {
-        InputStream stream = new ByteArrayInputStream(pem.getBytes("UTF-8"));
-        X509Certificate x509Certificate = (X509Certificate) CERTIFICATE_FACTORY.generateCertificate(stream);
-        stream.close();
-        return x509Certificate;
+        InputStream stream = null;
+        try {
+            stream = new ByteArrayInputStream(pem.getBytes("UTF-8"));
+            return (X509Certificate) CERTIFICATE_FACTORY.generateCertificate(stream);
+        } finally {
+            if (stream != null) {
+                stream.close();
+            }
+        }
     }
 
     /**

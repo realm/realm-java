@@ -159,7 +159,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
                 .name("useSsl")
                 .schema(StringOnly.class)
                 .trustedRootCA("untrusted_ca.pem")
-//                .waitForInitialRemoteData()
                 .build();
         // waitForInitialRemoteData will throw an Internal error (125): Operation Canceled
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));
