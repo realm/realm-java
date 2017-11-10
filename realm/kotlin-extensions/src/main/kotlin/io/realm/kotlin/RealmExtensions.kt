@@ -1,5 +1,18 @@
-@file:Suppress("unused")
-
+/*
+ * Copyright 2017 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.realm.kotlin
 
 import io.realm.Realm
@@ -7,7 +20,6 @@ import io.realm.RealmModel
 import io.realm.RealmQuery
 import io.realm.exceptions.RealmException
 import java.util.concurrent.atomic.AtomicReference
-
 
 //
 // Add variants of all methods in Realm.java that takes a `Class` reference and use a reified variant instead.
@@ -32,18 +44,6 @@ inline fun <reified T : RealmModel> Realm.where(): RealmQuery<T> {
 inline fun <reified T : RealmModel> Realm.delete() {
     return this.delete(T::class.java)
 }
-
-// TODO: Figure out if we should include this is or. Using this makes it possible to do
-// ```
-// realm.callTransaction { createObject<Foo>() }
-//
-//inline fun <T> Realm.callTransaction(crossinline action: Realm.() -> T): T {
-//    val ref = AtomicReference<T>()
-//    executeTransaction {
-//        ref.set(action(it))
-//    }
-//    return ref.get()
-//}
 
 /**
  * Instantiates and adds a new object to the Realm.
@@ -76,3 +76,30 @@ inline fun <reified T : RealmModel> Realm.createObject(): T {
 inline fun <reified T : RealmModel> Realm.createObject(primaryKeyValue: Any?): T {
     return this.createObject(T::class.java, primaryKeyValue)
 }
+
+/**
+TODO: Figure out if we should include this is or not. Using this makes it possible to do
+
+inline fun <T> Realm.callTransaction(crossinline action: Realm.() -> T): T {
+    val ref = AtomicReference<T>()
+    executeTransaction {
+        ref.set(action(it))
+    }
+    return ref.get()
+}
+
+Missing functions. Consider these for inclusion later:
+- createAllFromJson(Class<E> clazz, InputStream inputStream)
+- createAllFromJson(Class<E> clazz, org.json.JSONArray json)
+- createAllFromJson(Class<E> clazz, String json)
+- createObjectFromJson(Class<E> clazz, InputStream inputStream)
+- createObjectFromJson(Class<E> clazz, org.json.JSONObject json)
+- createObjectFromJson(Class<E> clazz, String json)
+- createOrUpdateAllFromJson(Class<E> clazz, InputStream in)
+- createOrUpdateAllFromJson(Class<E> clazz, org.json.JSONArray json)
+- createOrUpdateAllFromJson(Class<E> clazz, String json)
+- createOrUpdateObjectFromJson(Class<E> clazz, InputStream in)
+- createOrUpdateObjectFromJson(Class<E> clazz, org.json.JSONObject json)
+- createOrUpdateObjectFromJson(Class<E> clazz, String json)
+- createOrUpdateObjectFromJson(Class<E> clazz, String json)
+*/
