@@ -1203,18 +1203,12 @@ public class PermissionManagerTests extends StandardIntegrationTest {
      * states and fail if neither of these can be verified.
      */
     private void assertInitialPermissions(RealmResults<Permission> permissions) {
-        assertGreaterThan("Unexpected count() for __permission Realm: " + Arrays.toString(permissions.toArray()), 0, permissions.where().endsWith("path", "__permission").count());
-        assertGreaterThan("Unexpected count() for __management Realm: " + Arrays.toString(permissions.toArray()), 0, permissions.where().endsWith("path", "__management").count());
-        // FIXME: Enable these again when https://github.com/realm/ros/issues/549 is fixed
-        // assertEquals("Unexpected count() for __permission Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__permission").count());
-        // assertEquals("Unexpected count() for __management Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__management").count());
+         assertEquals("Unexpected count() for __permission Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__permission").count());
+         assertEquals("Unexpected count() for __management Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__management").count());
     }
 
     private void assertInitialDefaultPermissions(RealmResults<Permission> permissions) {
-        assertGreaterThan("Unexpected count() for __wildcardpermissions Realm: " + Arrays.toString(permissions.toArray()), 0, permissions.where().endsWith("path", "__wildcardpermissions").count());
-
-        // FIXME: Enable these again when https://github.com/realm/ros/issues/549 is fixed
-        // assertEquals("Unexpected count() for __wildcardpermissions Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__wildcardpermissions").count());
+         assertEquals("Unexpected count() for __wildcardpermissions Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__wildcardpermissions").count());
     }
 
     private void assertGreaterThan(String error, int base, long count) {
