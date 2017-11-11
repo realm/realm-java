@@ -166,6 +166,8 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+                .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                .directory(configurationFactory.getRoot())
                 .waitForInitialRemoteData()
                 .build();
         Random randomizer = new Random();
