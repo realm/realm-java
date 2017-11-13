@@ -92,7 +92,6 @@ try {
                       backgroundPid = startLogCatCollector()
                       forwardAdbPorts()
                       gradle('realm', "${instrumentationTestTarget}")
-                      archiveLog = false;
                     } finally {
                       stopLogCatCollector(backgroundPid)
                       storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
@@ -163,11 +162,11 @@ def String startLogCatCollector() {
 
 def stopLogCatCollector(String backgroundPid) {
   sh "kill ${backgroundPid}"
-  if (archiveLog) {
-	 'zipFile': 'logcat.zip',
-	 'archive': true,
-	 'glob' : 'logcat.txt'
-  }
+  zip([
+    'zipFile': 'logcat.zip',
+    'archive': true,
+    'glob' : 'logcat.txt'
+  ])
   sh 'rm logcat.txt'
 }
 
