@@ -87,7 +87,6 @@ try {
 
                 stage('Run instrumented tests') {
                   lock("${env.NODE_NAME}-android") {
-                    boolean archiveLog = true
                     String backgroundPid
                     try {
                       backgroundPid = startLogCatCollector()
@@ -95,7 +94,7 @@ try {
                       gradle('realm', "${instrumentationTestTarget}")
                       archiveLog = false;
                     } finally {
-                      stopLogCatCollector(backgroundPid, archiveLog)
+                      stopLogCatCollector(backgroundPid)
                       storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
                     }
                   }
@@ -162,14 +161,12 @@ def String startLogCatCollector() {
   return readFile("pid").trim()
 }
 
-def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
+def stopLogCatCollector(String backgroundPid) {
   sh "kill ${backgroundPid}"
   if (archiveLog) {
-    zip([
-	  'zipFile': 'logcat.zip',
+	 'zipFile': 'logcat.zip',
 	 'archive': true,
 	 'glob' : 'logcat.txt'
-	])
   }
   sh 'rm logcat.txt'
 }
