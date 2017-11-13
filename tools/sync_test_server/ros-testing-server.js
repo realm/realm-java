@@ -140,6 +140,7 @@ dispatcher.onGet("/start", function(req, res) {
         res.end('ROS started');
         console.log(">>>>>>>>>>>>>>>>>>>>>>>> ROS TIME " + getDateTime());
     }, function (err) {
+        winston.error('Starting ROS failed: ' + err);
         res.writeHead(500, {'Content-Type': 'text/plain'});
         res.end('Starting ROS failed: ' + err);
     });
