@@ -43,7 +43,7 @@ function handleRequest(request, response) {
 var syncServerChildProcess = null;
 
 // Waits for ROS to be fully initialized.
-function waitForRosToInitialize(attempts, onSuccess, onError) {
+function waitForRosToInitialize(attempts, onSuccess, onError, startSequence) {
     if (attempts == 0) {
         onError("Could not get ROS to start. See Docker log.");
         return;
@@ -51,16 +51,16 @@ function waitForRosToInitialize(attempts, onSuccess, onError) {
     http.get("http://0.0.0.0:9080/health", function(res) {
         if (res.statusCode != 200) {
             winston.info("ROS /health/ returned: " + res.statusCode)
-            waitForRosToInitialize(attempts - 1, onSuccess, onError)
+            waitForRosToInitialize(attempts - 1, onSuccess, onError, startSequence)
         } else {
-            onSuccess();
+            onSuccess(startSequence);
         }
     }).on('error', function(err) {
         // ROS not accepting any connections yet.
         // Errors like ECONNREFUSED 0.0.0.0:9080 will be reported here.
         // Wait a little before trying again (common startup is ~1 second).
         setTimeout(function() {
-            waitForRosToInitialize(attempts - 1, onSuccess, onError);
+            waitForRosToInitialize(attempts - 1, onSuccess, onError, startSequence);
         }, 200);
     });
 }
@@ -112,7 +112,7 @@ function doStartRealmObjectServer(onSuccess, onError) {
                 winston.info(`${data}`);
             });
 
-            waitForRosToInitialize(20, onSuccess, onError);
+            waitForRosToInitialize(100, onSuccess, onError, Date.now());
         }
     });
 }
@@ -121,24 +121,26 @@ function stopRealmObjectServer(onSuccess, onError) {
     if(syncServerChildProcess == null || syncServerChildProcess.killed) {
         onSuccess("No ROS process found or the process has been killed before");
     }
+    if (syncServerChildProcess) {
+        syncServerChildProcess.on('exit', function(code) {
+            winston.info("ROS server stopped due to process being killed. Exit code: " + code);
+            syncServerChildProcess.removeAllListeners('exit');
+            syncServerChildProcess = null;
+            onSuccess();
+        });
 
-    syncServerChildProcess.on('exit', function(code) {
-        winston.info("ROS server stopped due to process being killed. Exit code: " + code);
-        syncServerChildProcess.removeAllListeners('exit');
-        syncServerChildProcess = null;
-        onSuccess();
-    });
-
-    syncServerChildProcess.kill('SIGKILL');
+        syncServerChildProcess.kill('SIGKILL');
+    }
 }
 
 // start sync server
 dispatcher.onGet("/start", function(req, res) {
     winston.info("Attempting to start ROS");
-    startRealmObjectServer(() => {
+    startRealmObjectServer((startSequence) => {
         res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('ROS started');
-        console.log(">>>>>>>>>>>>>>>>>>>>>>>> ROS TIME " + getDateTime());
+        let response = `ROS started after ${Date.now() - startSequence} ms`;
+        winston.info(response);
+        res.end(response);
     }, function (err) {
         winston.error('Starting ROS failed: ' + err);
         res.writeHead(500, {'Content-Type': 'text/plain'});

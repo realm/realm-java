@@ -54,7 +54,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class PermissionManagerTests extends StandardIntegrationTest {
+public class PermissionManagerTests extends BaseIntegrationTest {
 
     private SyncUser user;
 
