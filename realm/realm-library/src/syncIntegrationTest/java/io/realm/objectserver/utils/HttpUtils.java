@@ -55,6 +55,7 @@ public class HttpUtils {
      * Start the sync server. If the server has been started before, stop it first.
      */
     public static void startSyncServer() throws Exception {
+        long begin = System.nanoTime();
         Request request = new Request.Builder()
                 .url(START_SERVER)
                 .build();
@@ -62,9 +63,11 @@ public class HttpUtils {
         Response response = client.newCall(request).execute();
         if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
+        long end = System.nanoTime();
+        System.out.println(">>>>>>>>>>>>>>>>>>>>> SYNC SERVER STARTED AFTER: " + TimeUnit.NANOSECONDS.toMillis(end - begin));
         // Work around race condition between starting ROS and logging in first user
         // See https://github.com/realm/ros/issues/389
-        SystemClock.sleep(2000);
+        SystemClock.sleep(2000);//FIXME resolved
     }
 
     /**
