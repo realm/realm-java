@@ -41,8 +41,7 @@ public class HttpUtils {
     // TODO If the timeouts are longer than the test timeout you risk getting
     // "Realm could not be deleted errors".
     private final static OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(5, TimeUnit.MINUTES)
-//            .retryOnConnectionFailure(true)
+            .connectTimeout(30, TimeUnit.SECONDS)
             .build();
 
     // adb reverse tcp:8888 tcp:8888
@@ -67,7 +66,7 @@ public class HttpUtils {
         System.out.println(">>>>>>>>>>>>>>>>>>>>> SYNC SERVER STARTED AFTER: " + TimeUnit.NANOSECONDS.toMillis(end - begin));
         // Work around race condition between starting ROS and logging in first user
         // See https://github.com/realm/ros/issues/389
-        SystemClock.sleep(2000);//FIXME resolved
+        SystemClock.sleep(2000);
     }
 
     /**
