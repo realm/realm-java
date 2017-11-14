@@ -41,8 +41,8 @@ public class HttpUtils {
     // TODO If the timeouts are longer than the test timeout you risk getting
     // "Realm could not be deleted errors".
     private final static OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(1, TimeUnit.MINUTES)
-            .retryOnConnectionFailure(true)
+            .connectTimeout(5, TimeUnit.MINUTES)
+//            .retryOnConnectionFailure(true)
             .build();
 
     // adb reverse tcp:8888 tcp:8888
