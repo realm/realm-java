@@ -904,7 +904,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         // already expired.
         long delayMillis = TimeUnit.SECONDS.toMillis(10);
         Date expiresAt = new Date(new Date().getTime() + delayMillis);
-        RealmLog.info(">>>>>>>>>>>>>>>>> OFFER EXPIRES AT> " + expiresAt + " in ms " + expiresAt.getTime());
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, expiresAt);
         SystemClock.sleep(delayMillis); // Make sure that the offer expires.
         final SyncUser user2 = UserFactory.createUniqueUser();
@@ -1179,6 +1178,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     private String createRemoteRealm(SyncUser user, String realmName) {
         String url = Constants.AUTH_SERVER_URL + "~/" + realmName;
         SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .name(realmName)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
 

@@ -17,18 +17,12 @@
 package io.realm.objectserver.utils;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.log.RealmLog;
-import okhttp3.Headers;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
@@ -54,7 +48,6 @@ public class HttpUtils {
      * Start the sync server. If the server has been started before, stop it first.
      */
     public static void startSyncServer() throws Exception {
-        long begin = System.nanoTime();
         Request request = new Request.Builder()
                 .url(START_SERVER)
                 .build();
@@ -62,8 +55,6 @@ public class HttpUtils {
         Response response = client.newCall(request).execute();
         if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
-        long end = System.nanoTime();
-        System.out.println(">>>>>>>>>>>>>>>>>>>>> SYNC SERVER STARTED AFTER: " + TimeUnit.NANOSECONDS.toMillis(end - begin));
         // Work around race condition between starting ROS and logging in first user
         // See https://github.com/realm/ros/issues/389
         SystemClock.sleep(2000);
