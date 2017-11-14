@@ -34,8 +34,9 @@ import okhttp3.Response;
 public class HttpUtils {
     // TODO If the timeouts are longer than the test timeout you risk getting
     // "Realm could not be deleted errors".
+    // FIXME re-adjust timeout after https://github.com/realm/realm-object-server-private/issues/697 is fixed
     private final static OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(1, TimeUnit.MINUTES)
             .build();
 
     // adb reverse tcp:8888 tcp:8888
