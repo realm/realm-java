@@ -2,7 +2,7 @@
 
 ### Enhancements
 
-* Added support for partial Realms. Read [here](https://realm.io/docs/java/latest/#partal-realms) for mere information.
+* Added support for partial Realms. Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
 
 
 ## 4.2.0 (YYYY-MM-DD)
