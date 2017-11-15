@@ -36,7 +36,7 @@ public class HttpUtils {
     // "Realm could not be deleted errors".
     // FIXME re-adjust timeout after https://github.com/realm/realm-object-server-private/issues/697 is fixed
     private final static OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(1, TimeUnit.MINUTES)
+            .connectTimeout(2, TimeUnit.MINUTES)
             .build();
 
     // adb reverse tcp:8888 tcp:8888
