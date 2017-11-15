@@ -19,6 +19,7 @@ package io.realm;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -32,6 +33,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -42,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
@@ -541,7 +544,7 @@ public class NotificationsTest {
         // Any REALM_CHANGED message should now only reach the open Handler on Thread1.
         try {
             // TODO: Waiting a few seconds is not a reliable condition. Figure out a better way for this.
-            if (!handlerNotified.await(TestHelper.SHORT_WAIT_SECS,  TimeUnit.SECONDS)) {
+            if (!handlerNotified.await(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS)) {
                 fail("Handler didn't receive message");
             }
         } finally {
@@ -947,6 +950,7 @@ public class NotificationsTest {
     @Test
     public void listenersNotAllowedOnNonLooperThreads() {
         realm = Realm.getInstance(realmConfig);
+
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -987,5 +991,76 @@ public class NotificationsTest {
             fail();
         } catch (IllegalStateException ignored) {
         }
+    }
+
+
+    @Test
+    @RunTestInLooperThread
+    public void realmList_notificationsNotTriggered() throws InterruptedException {
+        // TODO: Still not possible to reproduce https://github.com/realm/realm-java/issues/5507
+        // Best guess is that it is related to the query results being GC'ed as you skip
+        // between MainActivity and the CreateActivity as it seems to work if you just
+        // use background threads on the MainActivity. We need to modify this unit test
+        // so it also GC results.
+        final int TEST_SIZE = 100;
+        Realm realm = looperThread.getRealm();
+
+        // 1. Create initial data
+        realm.beginTransaction();
+        final AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        assertTrue(obj.getColumnRealmList().isEmpty());
+        looperThread.keepStrongReference(obj);
+
+        // 4. Do a background write
+        final Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < TEST_SIZE; i++) {
+                    Realm realm = Realm.getInstance(looperThread.getConfiguration());
+                    realm.beginTransaction();
+                    realm.where(AllTypes.class).findFirst().getColumnRealmList().add(new Dog("Fido"));
+                    realm.commitTransaction();
+                    realm.close();
+                }
+            }
+        });
+
+        // RealmListener is always triggered before collection listeners
+        final AtomicLong realmNotified = new AtomicLong(0);
+        final AtomicLong listNotified = new AtomicLong(0);
+
+        RealmChangeListener<Realm> realmListener = new RealmChangeListener<Realm>() {
+            @Override
+            public void onChange(Realm realm) {
+                realmNotified.incrementAndGet();
+            }
+        };
+
+        final RealmChangeListener listListener = new RealmChangeListener<RealmList<Dog>>() {
+            @Override
+            public void onChange(RealmList<Dog> dogs) {
+                long listNotifications = listNotified.incrementAndGet();
+                long realmNotifications = realmNotified.get();
+                if (listNotifications != realmNotifications) {
+                    fail(String.format("List Collection listener did not keep up: %s vs. %s", listNotifications, realmNotifications));
+                }
+                if (dogs.size() == TEST_SIZE) {
+                    try {
+                        t.join();
+                    } catch (InterruptedException e) {
+                        fail(e.toString());
+                    }
+                    looperThread.testComplete();
+                }
+                obj.getColumnRealmList().removeChangeListener(this);
+                obj.getColumnRealmList().addChangeListener(this);
+            }
+        };
+
+        realm.addChangeListener(realmListener);
+        obj.getColumnRealmList().addChangeListener(listListener);
+
+        t.start();
     }
 }
