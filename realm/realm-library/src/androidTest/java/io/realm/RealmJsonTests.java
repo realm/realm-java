@@ -43,6 +43,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import javax.annotation.Nullable;
+
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationTypes;
@@ -51,6 +53,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NullTypes;
 import io.realm.entities.OwnerPrimaryKey;
+import io.realm.entities.PrimitiveListTypes;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Util;
@@ -60,6 +63,7 @@ import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -401,7 +405,15 @@ public class RealmJsonTests {
         assertEquals(DefaultValueOfField.FIELD_DOUBLE_DEFAULT_VALUE, managedObj.getFieldDouble(), 0d);
         assertEquals(DefaultValueOfField.FIELD_BOOLEAN_DEFAULT_VALUE, managedObj.isFieldBoolean());
         assertEquals(DefaultValueOfField.FIELD_DATE_DEFAULT_VALUE, managedObj.getFieldDate());
-        assertTrue(Arrays.equals(DefaultValueOfField.FIELD_BINARY_DEFAULT_VALUE, managedObj.getFieldBinary()));
+        assertArrayEquals(DefaultValueOfField.FIELD_BINARY_DEFAULT_VALUE, managedObj.getFieldBinary());
+        assertArrayEquals(DefaultValueOfField.FIELD_BYTE_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldByteList().toArray());
+        assertArrayEquals(DefaultValueOfField.FIELD_SHORT_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldShortList().toArray());
+        assertArrayEquals(DefaultValueOfField.FIELD_INTEGER_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldIntegerList().toArray());
+        assertArrayEquals(DefaultValueOfField.FIELD_LONG_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldLongList().toArray());
+        assertArrayEquals(DefaultValueOfField.FIELD_BOOLEAN_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldBooleanList().toArray());
+        assertArrayEquals(DefaultValueOfField.FIELD_BINARY_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldBinaryList().toArray());
+        assertArrayEquals(DefaultValueOfField.FIELD_STRING_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldStringList().toArray());
+        assertArrayEquals(DefaultValueOfField.FIELD_DATE_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldDateList().toArray());
         assertEquals(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE, managedObj.getFieldObject().getFieldInt());
         assertEquals(1, managedObj.getFieldList().size());
         assertEquals(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE, managedObj.getFieldList().first().getFieldInt());
@@ -1708,5 +1720,122 @@ public class RealmJsonTests {
         assertEquals(2, owners.size());
         assertEquals(1, owners.get(1).getId());
         assertEquals("bar", owners.get(1).getName());
+    }
+
+    private void testPrimitiveListWithValues(String fieldName, Object[] values) throws JSONException, IOException {
+        testPrimitiveListWithValues(fieldName, values, values);
+    }
+
+    private void testPrimitiveListWithValues(String fieldName, @Nullable Object[] valuesToSave, Object[] valuesToLoad)
+            throws JSONException, IOException {
+        JSONObject jsonObject = new JSONObject();
+        JSONArray jsonArray = valuesToSave != null ? new JSONArray(valuesToSave) : null;
+        jsonObject.put(fieldName, jsonArray);
+
+        // Test from JSONObject
+        realm.beginTransaction();
+        PrimitiveListTypes primitiveListTypes = realm.createObjectFromJson(PrimitiveListTypes.class, jsonObject);
+        realm.commitTransaction();
+        assertNotNull(primitiveListTypes);
+        assertArrayEquals(valuesToLoad, primitiveListTypes.getList(fieldName).toArray());
+
+        // Test from JSONStream
+        realm.beginTransaction();
+        primitiveListTypes = realm.createObjectFromJson(PrimitiveListTypes.class, convertJsonObjectToStream(jsonObject));
+        realm.commitTransaction();
+        assertNotNull(primitiveListTypes);
+        assertArrayEquals(valuesToLoad, primitiveListTypes.getList(fieldName).toArray());
+    }
+
+    @Test
+    public void createObjectFromJson_primitiveList_mixedValues() throws JSONException, IOException {
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_STRING_LIST, new String[] {"a", null, "bc"});
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_BOOLEAN_LIST, new Boolean[] {true, null, false});
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DOUBLE_LIST, new Double[] {1.0d, null, 2.0d});
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_FLOAT_LIST, new Float[] {1.0f, null, 2.0f});
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_BYTE_LIST, new Byte[] {1, null, 2});
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_SHORT_LIST, new Short[] {1, null, 2});
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_INT_LIST, new Integer[] {1, null, 2});
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_LONG_LIST, new Long[] {1L, null, 2L});
+
+        // Date as integer
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DATE_LIST,
+                new Integer[] {0, null, 1},
+                new Date[] {new Date(0), null, new Date(1)});
+        // Date as String
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DATE_LIST,
+                new String [] {"/Date(1000)/", null, "/Date(2000)/"},
+                new Date[] {new Date(1000), null, new Date(2000)});
+        // Date as String timezone
+        // Oct 03 2015 14:45.33
+        Calendar cal = GregorianCalendar.getInstance();
+        cal.setTimeZone(TimeZone.getTimeZone("Australia/West"));
+        cal.set(2015, Calendar.OCTOBER, 3, 14, 45, 33);
+        cal.set(Calendar.MILLISECOND, 376);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DATE_LIST,
+                new String [] {"/Date(1443854733376+0800)/", null},
+                new Date[] {cal.getTime(), null});
+
+
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_BINARY_LIST,
+                new String[] {new String(Base64.encode(new byte[] {1, 2, 3}, Base64.DEFAULT), UTF_8),
+                        null, new String(Base64.encode(new byte[] {4, 5, 6}, Base64.DEFAULT), UTF_8)},
+                new byte[][] {new byte[]{1, 2, 3}, null, new byte[]{4, 5, 6}});
+    }
+
+    // Null list will be saved as empty list since We don't support nullable RealmList
+    @Test
+    public void createObjectFromJson_primitiveList_nullList() throws IOException, JSONException {
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_STRING_LIST, null, new String[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_BOOLEAN_LIST, null, new Boolean[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DOUBLE_LIST, null, new Double[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_FLOAT_LIST, null, new Float[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_BYTE_LIST, null, new Byte[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_SHORT_LIST, null, new Short[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_INT_LIST, null, new Integer[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_LONG_LIST, null, new Long[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DATE_LIST, null, new Date[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_BYTE_LIST, null, new byte[0][]);
+    }
+
+    private void testRequiredPrimitiveListWithNullValue(String fieldName) throws JSONException, IOException {
+        JSONObject jsonObject = new JSONObject();
+        JSONArray jsonArray =new JSONArray();
+        jsonArray.put(null);
+        jsonObject.put(fieldName, jsonArray);
+
+        // Test from JSONObject
+        realm.beginTransaction();
+        try {
+            realm.createObjectFromJson(PrimitiveListTypes.class, jsonObject);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+
+        // Test from JSONStream
+        realm.beginTransaction();
+        try {
+            realm.createObjectFromJson(PrimitiveListTypes.class, convertJsonObjectToStream(jsonObject));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    @Test
+    public void createObjectFromJson_primitiveList_nullValueForRequiredField() throws IOException, JSONException {
+        testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_STRING_LIST);
+        testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_BOOLEAN_LIST);
+        testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_DOUBLE_LIST);
+        testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_FLOAT_LIST);
+        testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_BYTE_LIST);
+        testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_SHORT_LIST);
+        testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_INT_LIST);
+        testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_LONG_LIST);
+        testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_DATE_LIST);
+        testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_BYTE_LIST);
     }
 }
