@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsList;
@@ -12,7 +13,6 @@ import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.Property;
-import io.realm.internal.ProxyUtils;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -1041,16 +1041,16 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
-        // TODO implement logic for value list columnStringList.
-        // TODO implement logic for value list columnBinaryList.
-        // TODO implement logic for value list columnBooleanList.
-        // TODO implement logic for value list columnLongList.
-        // TODO implement logic for value list columnIntegerList.
-        // TODO implement logic for value list columnShortList.
-        // TODO implement logic for value list columnByteList.
-        // TODO implement logic for value list columnDoubleList.
-        // TODO implement logic for value list columnFloatList.
-        // TODO implement logic for value list columnDateList.
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnStringList(), json, "columnStringList");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnBinaryList(), json, "columnBinaryList");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnBooleanList(), json, "columnBooleanList");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnLongList(), json, "columnLongList");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnIntegerList(), json, "columnIntegerList");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnShortList(), json, "columnShortList");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnByteList(), json, "columnByteList");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnDoubleList(), json, "columnDoubleList");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnFloatList(), json, "columnFloatList");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnDateList(), json, "columnDateList");
         return obj;
     }
 
@@ -1150,25 +1150,25 @@ public class AllTypesRealmProxy extends some.test.AllTypes
                     reader.endArray();
                 }
             } else if (name.equals("columnStringList")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$columnStringList(ProxyUtils.createRealmListWithJsonStream(java.lang.String.class, reader));
             } else if (name.equals("columnBinaryList")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$columnBinaryList(ProxyUtils.createRealmListWithJsonStream(byte[].class, reader));
             } else if (name.equals("columnBooleanList")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$columnBooleanList(ProxyUtils.createRealmListWithJsonStream(java.lang.Boolean.class, reader));
             } else if (name.equals("columnLongList")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$columnLongList(ProxyUtils.createRealmListWithJsonStream(java.lang.Long.class, reader));
             } else if (name.equals("columnIntegerList")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$columnIntegerList(ProxyUtils.createRealmListWithJsonStream(java.lang.Integer.class, reader));
             } else if (name.equals("columnShortList")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$columnShortList(ProxyUtils.createRealmListWithJsonStream(java.lang.Short.class, reader));
             } else if (name.equals("columnByteList")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$columnByteList(ProxyUtils.createRealmListWithJsonStream(java.lang.Byte.class, reader));
             } else if (name.equals("columnDoubleList")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$columnDoubleList(ProxyUtils.createRealmListWithJsonStream(java.lang.Double.class, reader));
             } else if (name.equals("columnFloatList")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$columnFloatList(ProxyUtils.createRealmListWithJsonStream(java.lang.Float.class, reader));
             } else if (name.equals("columnDateList")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$columnDateList(ProxyUtils.createRealmListWithJsonStream(java.util.Date.class, reader));
             } else {
                 reader.skipValue();
             }
