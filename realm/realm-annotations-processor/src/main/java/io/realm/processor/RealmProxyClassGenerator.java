@@ -55,7 +55,7 @@ public class RealmProxyClassGenerator {
             "io.realm.internal.OsSchemaInfo",
             "io.realm.internal.OsObjectSchemaInfo",
             "io.realm.internal.Property",
-            "io.realm.internal.ProxyUtils",
+            "io.realm.ProxyUtils",
             "io.realm.internal.RealmObjectProxy",
             "io.realm.internal.Row",
             "io.realm.internal.Table",
@@ -2006,9 +2006,8 @@ public class RealmProxyClassGenerator {
                         writer);
 
             } else if (Utils.isRealmValueList(field)) {
-                // FIXME need to implement logic for value list fields.
-                writer.emitSingleLineComment(String.format(Locale.ENGLISH,
-                        "TODO implement logic for value list %1$s.", field.getSimpleName()));
+                writer.emitStatement("ProxyUtils.setRealmListWithJsonObject(objProxy.%1$s(), json, \"%2$s\")",
+                        metadata.getInternalGetter(fieldName), fieldName);
             } else if (Utils.isMutableRealmInteger(field)) {
                 RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
                         "objProxy",
@@ -2091,8 +2090,9 @@ public class RealmProxyClassGenerator {
                         writer);
 
             } else if (Utils.isRealmValueList(field)) {
-                // FIXME need to implement logic for value list fields.
-                writer.emitSingleLineComment("TODO implement logic for value list.");
+                writer.emitStatement("objProxy.%1$s(ProxyUtils.createRealmListWithJsonStream(%2$s.class, reader))",
+                        metadata.getInternalSetter(fieldName),
+                        Utils.getRealmListType(field));
             } else if (Utils.isMutableRealmInteger(field)) {
                 RealmJsonTypeHelper.emitFillJavaTypeFromStream(
                         "objProxy",

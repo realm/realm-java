@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsList;
@@ -12,7 +13,6 @@ import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.Property;
-import io.realm.internal.ProxyUtils;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -1985,26 +1985,26 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                 objProxy.realmSet$fieldObjectNull(fieldObjectNullObj);
             }
         }
-        // TODO implement logic for value list fieldStringListNotNull.
-        // TODO implement logic for value list fieldStringListNull.
-        // TODO implement logic for value list fieldBinaryListNotNull.
-        // TODO implement logic for value list fieldBinaryListNull.
-        // TODO implement logic for value list fieldBooleanListNotNull.
-        // TODO implement logic for value list fieldBooleanListNull.
-        // TODO implement logic for value list fieldLongListNotNull.
-        // TODO implement logic for value list fieldLongListNull.
-        // TODO implement logic for value list fieldIntegerListNotNull.
-        // TODO implement logic for value list fieldIntegerListNull.
-        // TODO implement logic for value list fieldShortListNotNull.
-        // TODO implement logic for value list fieldShortListNull.
-        // TODO implement logic for value list fieldByteListNotNull.
-        // TODO implement logic for value list fieldByteListNull.
-        // TODO implement logic for value list fieldDoubleListNotNull.
-        // TODO implement logic for value list fieldDoubleListNull.
-        // TODO implement logic for value list fieldFloatListNotNull.
-        // TODO implement logic for value list fieldFloatListNull.
-        // TODO implement logic for value list fieldDateListNotNull.
-        // TODO implement logic for value list fieldDateListNull.
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldStringListNotNull(), json, "fieldStringListNotNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldStringListNull(), json, "fieldStringListNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldBinaryListNotNull(), json, "fieldBinaryListNotNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldBinaryListNull(), json, "fieldBinaryListNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldBooleanListNotNull(), json, "fieldBooleanListNotNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldBooleanListNull(), json, "fieldBooleanListNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldLongListNotNull(), json, "fieldLongListNotNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldLongListNull(), json, "fieldLongListNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldIntegerListNotNull(), json, "fieldIntegerListNotNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldIntegerListNull(), json, "fieldIntegerListNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldShortListNotNull(), json, "fieldShortListNotNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldShortListNull(), json, "fieldShortListNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldByteListNotNull(), json, "fieldByteListNotNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldByteListNull(), json, "fieldByteListNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldDoubleListNotNull(), json, "fieldDoubleListNotNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldDoubleListNull(), json, "fieldDoubleListNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldFloatListNotNull(), json, "fieldFloatListNotNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldFloatListNull(), json, "fieldFloatListNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldDateListNotNull(), json, "fieldDateListNotNull");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldDateListNull(), json, "fieldDateListNull");
         return obj;
     }
 
@@ -2177,45 +2177,45 @@ public class NullTypesRealmProxy extends some.test.NullTypes
                     objProxy.realmSet$fieldObjectNull(fieldObjectNullObj);
                 }
             } else if (name.equals("fieldStringListNotNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldStringListNotNull(ProxyUtils.createRealmListWithJsonStream(java.lang.String.class, reader));
             } else if (name.equals("fieldStringListNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldStringListNull(ProxyUtils.createRealmListWithJsonStream(java.lang.String.class, reader));
             } else if (name.equals("fieldBinaryListNotNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldBinaryListNotNull(ProxyUtils.createRealmListWithJsonStream(byte[].class, reader));
             } else if (name.equals("fieldBinaryListNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldBinaryListNull(ProxyUtils.createRealmListWithJsonStream(byte[].class, reader));
             } else if (name.equals("fieldBooleanListNotNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldBooleanListNotNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Boolean.class, reader));
             } else if (name.equals("fieldBooleanListNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldBooleanListNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Boolean.class, reader));
             } else if (name.equals("fieldLongListNotNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldLongListNotNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Long.class, reader));
             } else if (name.equals("fieldLongListNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldLongListNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Long.class, reader));
             } else if (name.equals("fieldIntegerListNotNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldIntegerListNotNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Integer.class, reader));
             } else if (name.equals("fieldIntegerListNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldIntegerListNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Integer.class, reader));
             } else if (name.equals("fieldShortListNotNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldShortListNotNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Short.class, reader));
             } else if (name.equals("fieldShortListNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldShortListNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Short.class, reader));
             } else if (name.equals("fieldByteListNotNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldByteListNotNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Byte.class, reader));
             } else if (name.equals("fieldByteListNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldByteListNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Byte.class, reader));
             } else if (name.equals("fieldDoubleListNotNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldDoubleListNotNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Double.class, reader));
             } else if (name.equals("fieldDoubleListNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldDoubleListNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Double.class, reader));
             } else if (name.equals("fieldFloatListNotNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldFloatListNotNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Float.class, reader));
             } else if (name.equals("fieldFloatListNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldFloatListNull(ProxyUtils.createRealmListWithJsonStream(java.lang.Float.class, reader));
             } else if (name.equals("fieldDateListNotNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldDateListNotNull(ProxyUtils.createRealmListWithJsonStream(java.util.Date.class, reader));
             } else if (name.equals("fieldDateListNull")) {
-                // TODO implement logic for value list.
+                objProxy.realmSet$fieldDateListNull(ProxyUtils.createRealmListWithJsonStream(java.util.Date.class, reader));
             } else {
                 reader.skipValue();
             }
