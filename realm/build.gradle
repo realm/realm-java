@@ -41,4 +41,5 @@ allprojects {
 
 task wrapper(type: Wrapper) {
     gradleVersion = project.gradleVersion
+    distributionType = 'all'
 }
