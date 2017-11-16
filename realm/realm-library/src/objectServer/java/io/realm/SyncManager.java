@@ -440,7 +440,7 @@ public class SyncManager {
                 // verify the entire chain
                 try {
                     TRUST_MANAGER.checkServerTrusted(chain, "RSA");
-                    // verify that the hostname
+                    // verify the hostname
                     boolean isValid = OkHostnameVerifier.INSTANCE.verify(serverAddress, chain[0]);
                     if (isValid) {
                         return true;
