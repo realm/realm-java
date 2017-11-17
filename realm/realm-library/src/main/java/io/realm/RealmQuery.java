@@ -1524,6 +1524,18 @@ public class RealmQuery<E> {
         this.query.or();
         return this;
     }
+    
+    /**
+     * Logical-and two conditions
+     * Realm automatically applies logical-and between all query statements, so this is intended only as a mean to increase readability.
+     *
+     * @return the query object
+     */
+    public RealmQuery<E> and() {
+    	realm.checkIfValid();
+    	
+    	return this;
+    }
 
     /**
      * Negate condition.
