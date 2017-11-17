@@ -124,7 +124,8 @@ public class SyncedRealmTests extends StandardIntegrationTest {
     // We cannot do much better since we cannot control the order of events internally in Realm which would be
     // needed to correctly test all error paths.
     @Test
-    @Ignore("See https://github.com/realm/realm-java/issues/5177")
+    @Ignore("Sync somehow keeps a Realm alive, causing the Realm.deleteRealm to throw " +
+            " https://github.com/realm/realm-java/issues/5416")
     public void waitForInitialData_resilientInCaseOfRetries() throws InterruptedException {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -166,6 +167,8 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+                .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                .directory(configurationFactory.getRoot())
                 .waitForInitialRemoteData()
                 .build();
         Random randomizer = new Random();
