@@ -1,4 +1,4 @@
-## 4.2.0 (YYYY-MM-DD)
+## 4.2.0 (2017-11-17)
 
 ### Breaking Changes
 
@@ -9,26 +9,20 @@
 * [ObjectServer] Support SSL validation using Android TrustManager (no need to specify `trustedRootCA` in `SynConfiguration` if the certificate is installed on the device), fixes (#4759).
 * Added the and() function to `RealmQuery` in order to improve readability.
 
-
-### Bug Fixes
-
-### Interal
-
-### Credits
-
-
-## 4.1.2 (YYYY-MM-DD)
-
 ### Bug Fixes
 
 * Leaked file handler in the Realm Transformer (#5521).
 * Potential fix for "RealmError: Incompatible lock file" crash (#2459).
 
-### Internal
+### Interal
 
 * Updated JavaAssist to 3.22.0-GA.
 * Upgraded to Realm Sync 2.1.4.
 * Upgraded to Realm Core 4.0.3.
+
+### Credits
+
+Thanks to @rakshithravi1997 for adding `RealmQuery.and()` (#5520).
 
 
 ## 4.1.1 (2017-10-27)
