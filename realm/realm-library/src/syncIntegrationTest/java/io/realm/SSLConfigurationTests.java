@@ -41,7 +41,7 @@ import static org.junit.Assert.fail;
 public class SSLConfigurationTests extends StandardIntegrationTest {
 
     @Rule
-    public Timeout globalTimeout = Timeout.seconds(10);
+    public Timeout globalTimeout = Timeout.seconds(120);
 
     @Test
     public void trustedRootCA() throws InterruptedException {

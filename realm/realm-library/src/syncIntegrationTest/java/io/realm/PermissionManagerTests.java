@@ -106,7 +106,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
     public void getPermissions_updatedWithNewRealms() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -153,7 +152,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
     public void getPermissions_updatedWithNewRealms_stressTest() {
         final int TEST_SIZE = 10;
         final PermissionManager pm = user.getPermissionManager();
@@ -289,7 +287,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         });
     }
 
-    @Ignore("See https://github.com/realm/realm-java/issues/5143")
+    @Ignore("The PermissionManager can only be opened from the main thread")
     @Test
     public void clientResetOnMultipleThreads() {
 
@@ -901,7 +899,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
+    @Ignore("The offer is randomly accepted mostly on docker-02 SHIELD K1")
     public void acceptOffer_expiredThrows() {
         // Trying to guess how long CI is to process this. The offer cannot be created if it
         // already expired.
@@ -1181,6 +1179,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     private String createRemoteRealm(SyncUser user, String realmName) {
         String url = Constants.AUTH_SERVER_URL + "~/" + realmName;
         SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .name(realmName)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
 
@@ -1205,18 +1204,12 @@ public class PermissionManagerTests extends StandardIntegrationTest {
      * states and fail if neither of these can be verified.
      */
     private void assertInitialPermissions(RealmResults<Permission> permissions) {
-        assertGreaterThan("Unexpected count() for __permission Realm: " + Arrays.toString(permissions.toArray()), 0, permissions.where().endsWith("path", "__permission").count());
-        assertGreaterThan("Unexpected count() for __management Realm: " + Arrays.toString(permissions.toArray()), 0, permissions.where().endsWith("path", "__management").count());
-        // FIXME: Enable these again when https://github.com/realm/ros/issues/549 is fixed
-        // assertEquals("Unexpected count() for __permission Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__permission").count());
-        // assertEquals("Unexpected count() for __management Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__management").count());
+         assertEquals("Unexpected count() for __permission Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__permission").count());
+         assertEquals("Unexpected count() for __management Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__management").count());
     }
 
     private void assertInitialDefaultPermissions(RealmResults<Permission> permissions) {
-        assertGreaterThan("Unexpected count() for __wildcardpermissions Realm: " + Arrays.toString(permissions.toArray()), 0, permissions.where().endsWith("path", "__wildcardpermissions").count());
-
-        // FIXME: Enable these again when https://github.com/realm/ros/issues/549 is fixed
-        // assertEquals("Unexpected count() for __wildcardpermissions Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__wildcardpermissions").count());
+         assertEquals("Unexpected count() for __wildcardpermissions Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__wildcardpermissions").count());
     }
 
     private void assertGreaterThan(String error, int base, long count) {
