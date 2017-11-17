@@ -5,13 +5,30 @@
 ### Enhancements
 
 * Added support for using non-encrypted Realms in multiple processes. Some caveats apply. Read [doc](https://realm.io/docs/java/latest/#multiprocess) for more info (#1091).
+* Added support for importing primitive lists from JSON (#5362).
+* [ObjectServer] Support SSL validation using Android TrustManager (no need to specify `trustedRootCA` in `SynConfiguration` if the certificate is installed on the device), fixes (#4759).
 * Added the and() function to `RealmQuery` in order to improve readability.
+
 
 ### Bug Fixes
 
 ### Interal
 
 ### Credits
+
+
+## 4.1.2 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Leaked file handler in the Realm Transformer (#5521).
+* Potential fix for "RealmError: Incompatible lock file" crash (#2459).
+
+### Internal
+
+* Updated JavaAssist to 3.22.0-GA.
+* Upgraded to Realm Sync 2.1.4.
+* Upgraded to Realm Core 4.0.3.
 
 
 ## 4.1.1 (2017-10-27)
@@ -24,9 +41,7 @@
 
 ### Internal
 
-* Updated Realm Sync to 2.1.0
-
-### Credits
+* Updated Realm Sync to 2.1.0.
 
 
 ## 4.1.0 (2017-10-20)
@@ -71,7 +86,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 ### Enhancements
 
 * [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
-* `RealmList` can now contain `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` values. [Queries](https://github.com/realm/realm-java/issues/5361) and [Importing primitive lists from JSON](https://github.com/realm/realm-java/issues/5361) are not supported yet.
+* `RealmList` can now contain `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` values. [Queries](https://github.com/realm/realm-java/issues/5361) and [Importing primitive lists from JSON](https://github.com/realm/realm-java/issues/5362) are not supported yet.
 * Added support for lists of primitives in `RealmObjectSchema` with `addRealmListField(String fieldName, Class<?> primitiveType)`
 * Added support for lists of primitives in `DynamicRealmObject` with `setList(String fieldName, RealmList<?> list)` and `getList(String fieldName, Class<?> primitiveType)`.
 * Minor performance improvement when copy/insert objects into Realm.
