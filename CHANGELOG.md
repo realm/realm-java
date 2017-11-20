@@ -14,7 +14,7 @@
 * Leaked file handler in the Realm Transformer (#5521).
 * Potential fix for "RealmError: Incompatible lock file" crash (#2459).
 
-### Interal
+### Internal
 
 * Updated JavaAssist to 3.22.0-GA.
 * Upgraded to Realm Sync 2.1.4.
