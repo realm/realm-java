@@ -131,6 +131,7 @@ public class OrderedCollectionChangeSetTests {
                 assertNotNull(owner);
                 RealmList<Dog> dogs = owner.getDogs();
                 boolean added = false;
+                // Insert the newly created dog to the RealmList by the order of age.
                 for (int i = 0; i < dogs.size(); i++) {
                     if (dog.getAge() <= dogs.get(i).getAge()) {
                         dogs.add(i, dog);
@@ -143,11 +144,6 @@ public class OrderedCollectionChangeSetTests {
                 }
             }
         }
-        /*
-        if (type == ObservablesType.REALM_LIST) {
-            reorderRealmList(realm);
-        }
-        */
     }
 
     // Modifies Dogs objects which's columnLong is in the indices array.
@@ -161,6 +157,10 @@ public class OrderedCollectionChangeSetTests {
 
     private void moveObjects(Realm realm, int originAge, int newAge) {
         if (type == ObservablesType.REALM_LIST) {
+            // For RealmList we need to:
+            // 1. Find the object by the original age and move it to the new place where it should be with the new age
+            //    set -- the RealmList is sorted by age.
+            // 2. Set the object's age with new value.
             RealmList<Dog> dogs = realm.where(Owner.class).findFirst().getDogs();
             int originIdx = -1;
             int newIdx = -1;
@@ -169,28 +169,27 @@ public class OrderedCollectionChangeSetTests {
                 assertNotNull(dog);
                 if (dog.getAge() == originAge) {
                     originIdx = i;
-                    continue;
-                }
-                if (dog.getAge() == newAge) {
-                    newIdx = i;
-                    continue;
-                }
-                if (originIdx != -1 && newIdx != -1) {
                     break;
                 }
             }
             assertNotEquals(-1, originIdx);
-            // If it cannot be found in the list, just added it at the last or the first.
-            if (newIdx == -1) {
-                if(newAge > dogs.last().getAge()) {
-                    newIdx = dogs.size() - 1;
-                } else if (newAge < dogs.first().getAge()) {
-                    newIdx = 0;
+            for (int i = 0; i < dogs.size(); i++) {
+                if (i == originIdx) {
+                    // not precise code, but good enough for testing.
+                    continue;
                 }
+                if (newAge <= dogs.get(i).getAge()) {
+                    newIdx = i;
+                    break;
+                }
+            }
+            if (newIdx == -1) {
+                newIdx = dogs.size() - 1;
             }
             dogs.get(originIdx).setAge(newAge);
             dogs.move(originIdx, newIdx);
         } else {
+            // Since the RealmResults is sorted by age, just simply set the object's age with new value.
             realm.where(Dog.class).equalTo(Dog.FIELD_AGE, originAge).findFirst().setAge(newAge);
         }
     }
