@@ -758,14 +758,14 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new OsResults(realm.sharedRealm, osListOperator.getOsList(), null),
+                    OsResults.createFromQuery(realm.sharedRealm, osListOperator.getOsList().getQuery()),
                     className);
         } else {
             // 'clazz' is non-null when 'dynamicClassName' is null.
             //noinspection ConstantConditions
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new OsResults(realm.sharedRealm, osListOperator.getOsList(), null),
+                    OsResults.createFromQuery(realm.sharedRealm, osListOperator.getOsList().getQuery()),
                     clazz);
         }
     }
