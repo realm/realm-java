@@ -14,6 +14,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.Exception
 
 @Suppress("FunctionName")
 @RunWith(AndroidJUnit4::class)
@@ -127,5 +128,26 @@ class KotlinRealmTests {
 
         assertEquals(101L, pk)
     }
+
+    @Test
+    fun callInTransaction_ExceptionCancelsTx() {
+
+        var firedException = false
+
+        assertFalse("Test Precondition expected Realm was not in TX before running",
+                realm.isInTransaction)
+        try {
+            realm.callInTransaction {
+                throw RuntimeException("Exeception")
+            }
+        } catch(e: Exception) {
+            firedException = true
+        } finally {
+            assertTrue("Expected exception to fire",firedException)
+            assertFalse("Expected tx to cancel", realm.isInTransaction)
+        }
+
+    }
+
 
 }

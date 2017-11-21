@@ -58,10 +58,10 @@ class KotlinRealmModelTests {
     fun isValid() {
         realm.executeTransaction {
             val simple = it.createObject<SimpleClass>()
-            assertTrue(simple.isValid())
+            assertTrue("Expected valid after insert", simple.isValid())
 
             simple.deleteFromRealm()
-            assertFalse(simple.isValid())
+            assertFalse("Expected invalid after delete", simple.isValid())
         }
     }
 
@@ -69,10 +69,10 @@ class KotlinRealmModelTests {
     fun isManaged() {
         realm.executeTransaction {
             var simple = SimpleClass()
-            assertFalse(simple.isManaged())
+            assertFalse("Expected not managed until attached", simple.isManaged())
 
             simple = it.copyToRealm(simple)
-            assertTrue(simple.isManaged())
+            assertTrue("Expected managed after attaching", simple.isManaged())
         }
     }
 
@@ -202,12 +202,12 @@ class KotlinRealmModelTests {
         realm.executeTransaction { it.createObject<SimpleClass>() }
 
         val result = realm.where<SimpleClass>().findFirstAsync()
-        assertFalse(result.isLoaded())
+        assertFalse("Expect isLoaded is false just after async call", result.isLoaded())
 
         looperThread.keepStrongReference(result)
 
         result.addChangeListener(RealmChangeListener { r ->
-            assertTrue(r.isLoaded())
+            assertTrue("Expected the loading to have completed", r.isLoaded())
             looperThread.testComplete()
         })
     }
@@ -222,11 +222,11 @@ class KotlinRealmModelTests {
         realm.executeTransaction { it.createObject<SimpleClass>() }
 
         val result = realm.where<SimpleClass>().findFirstAsync()
-        assertFalse(result.isLoaded())
+        assertFalse("Expect isLoaded is false just after async call", result.isLoaded())
 
         result.load()
 
-        assertTrue(result.isLoaded())
+        assertTrue("Expected isLoaded after blocking on load()", result.isLoaded())
         looperThread.testComplete()
     }
 
