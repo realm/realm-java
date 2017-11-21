@@ -1,6 +1,17 @@
-## 4.2.0 (2017-11-17)
+## 4.2.1 (YYYY-MM-DD)
 
-### Breaking Changes
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+### Credits
+
+* Thanks to @tbsandee for fixing a typo (#5548).
+
+
+## 4.2.0 (2017-11-17)
 
 ### Enhancements
 
@@ -22,7 +33,7 @@
 
 ### Credits
 
-Thanks to @rakshithravi1997 for adding `RealmQuery.and()` (#5520).
+* Thanks to @rakshithravi1997 for adding `RealmQuery.and()` (#5520).
 
 
 ## 4.1.1 (2017-10-27)
@@ -114,7 +125,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 
 ### Credits
 
-Thanks to @JussiPekonen for adding support for 2-digit time zone designators when importing JSON (#5309).
+* Thanks to @JussiPekonen for adding support for 2-digit time zone designators when importing JSON (#5309).
 
 
 ## 3.7.2 (2017-09-12)
