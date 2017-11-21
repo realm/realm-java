@@ -1,9 +1,11 @@
 package io.realm.entities
 
-import io.realm.RealmObject
+import io.realm.RealmModel
 import io.realm.annotations.PrimaryKey
+import io.realm.annotations.RealmClass
 
-open class PrimaryKeyClass: RealmObject() {
+@RealmClass
+open class PrimaryKeyClass: RealmModel {
     @PrimaryKey
     var id: Long = 0
     var name: String = "";
