@@ -8,5 +8,5 @@ import io.realm.annotations.RealmClass
 open class PrimaryKeyClass: RealmModel {
     @PrimaryKey
     var id: Long = 0
-    var name: String = "";
+    var name: String = ""
 }

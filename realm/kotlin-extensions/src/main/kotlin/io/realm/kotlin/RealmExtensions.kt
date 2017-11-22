@@ -6,7 +6,6 @@ import io.realm.Realm
 import io.realm.RealmModel
 import io.realm.RealmQuery
 import io.realm.exceptions.RealmException
-import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Returns a typed RealmQuery, which can be used to query for specific objects of this type
@@ -29,45 +28,8 @@ inline fun <reified T : RealmModel> Realm.delete() {
 }
 
 /**
- * Invokes the `action` provided to this function, using a transactional Realm instance and
- * returns the value that is returned from the action.
  *
- * ### Example Usage:
- * ``` kotlin
- * val realm = Realm.getDefaultInstance()
- * val (person, dog) = realm.callInTransaction {
- *
- *     val pet = createObject<Dog>().apply {
- *         name = "Tony"
- *         age = 2
- *     }
- *     val person = createObject<Person>(101).apply {
- *         name = "Andy Kotlin"
- *         dog = pet
- *     }
- *     Pair(person, pet)  // becomes T, can be anything.
- * }
- *
- * // Andy Kotlin has a 2 year old dog named Tony
- * println("${person.name} has a ${dog.age} year old dog named ${dog.name}")
- * ```
- *
- * @param action A function that operates on a receiver type Realm that is in a transaction.
- *               The return value of `action` is returned by this function.
- * @return T the object returned from the `action`.
- *
- */
-inline fun <T> Realm.callInTransaction(crossinline action: Realm.() -> T): T {
-    val ref = AtomicReference<T>()
-    executeTransaction {
-        ref.set(action(it))
-    }
-    return ref.get()
-}
-
-/**
- *
- *  Instantiates and adds a new object to the Realm.
+ * Instantiates and adds a new object to the Realm.
  *
  * This method is only available for model classes with no `@PrimaryKey` annotation.
  * If you like to create an object that has a primary key, use [createObject] instead.

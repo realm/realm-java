@@ -2,7 +2,10 @@
 
 package io.realm.kotlin
 
-import io.realm.*
+import io.realm.RealmChangeListener
+import io.realm.RealmModel
+import io.realm.RealmObject
+import io.realm.RealmObjectChangeListener
 
 /**
  * Deletes the object from the Realm it is currently associated with.
@@ -11,7 +14,7 @@ import io.realm.*
  * fail with an `IllegalStateException`.
  *
  * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
- * @see #isValid()
+ * @see [isValid]
  */
 fun RealmModel.deleteFromRealm() {
     RealmObject.deleteFromRealm(this)
@@ -21,7 +24,6 @@ fun RealmModel.deleteFromRealm() {
  * Checks if the RealmObject is still valid to use i.e., the RealmObject hasn't been deleted nor has the
  * Realm been closed. It will always return `true` for unmanaged objects.
  *
- * @param object RealmObject to check validity for.
  * @return `true` if the object is still accessible or an unmanaged object, `false` otherwise.
  */
 fun RealmModel.isValid(): Boolean {
@@ -31,7 +33,7 @@ fun RealmModel.isValid(): Boolean {
 /**
  * Checks if this object is managed by Realm. A managed object is just a wrapper around the data in the underlying
  * Realm file. On Looper threads, a managed object will be live-updated so it always points to the latest data. It
- * is possible to register a change listener using [addChangeListener(RealmChangeListener)] to be
+ * is possible to register a change listener using [addChangeListener] to be
  * notified when changes happen. Managed objects are thread confined so that they cannot be accessed from other threads
  * than the one that created them.
  *
@@ -40,8 +42,8 @@ fun RealmModel.isValid(): Boolean {
  * so it will not be live updated.
  *
  * It is possible to create a managed object from an unmanaged object by using
- * [Realm.copyToRealm(RealmModel)]. An unmanaged object can be created from a managed object by using
- * [Realm#copyFromRealm(RealmModel)].
+ * [io.realm.Realm.copyToRealm]. An unmanaged object can be created from a managed object by using
+ * [io.realm.Realm.copyFromRealm].
  *
  * @return `true` if the object is managed, `false` if it is unmanaged.
  */
@@ -52,7 +54,7 @@ fun RealmModel.isManaged(): Boolean {
 /**
  * Checks if the query used to find this RealmObject has completed.
  *
- * Async methods like [RealmQuery#findFirstAsync()] return an RealmObject that represents the future result
+ * Async methods like [io.realm.RealmQuery.findFirstAsync] return an RealmObject that represents the future result
  * of the RealmQuery. It can be considered similar to a [java.util.concurrent.Future] in this regard.
  *
  * Once `isLoaded()` returns `true`, the object represents the query result even if the query
@@ -76,10 +78,9 @@ fun RealmModel.isManaged(): Boolean {
  * Synchronous RealmObjects are by definition blocking hence this method will always return `true` for them.
  * This method will return `true` if called on an unmanaged object (created outside of Realm).
  *
- * @param object RealmObject to check.
  * @return `true` if the query has completed, `false` if the query is in
  * progress.
- * @see isValid(RealmModel)
+ * @see [isValid]
  */
 fun RealmModel.isLoaded(): Boolean {
     return RealmObject.isLoaded(this)
@@ -90,8 +91,7 @@ fun RealmModel.isLoaded(): Boolean {
  *
  * Note: This will return `true` if called for an unmanaged object (created outside of Realm).
  *
- * @param object RealmObject to force load.
- * @return true if it successfully completed the query, `false` otherwise.
+ * @return `true` if it successfully completed the query, `false` otherwise.
  */
 fun RealmModel.load(): Boolean {
     return RealmObject.load(this)
@@ -121,7 +121,6 @@ fun RealmModel.load(): Boolean {
  * }
  * ```
  *
- * @param object RealmObject to add listener to.
  * @param listener the change listener to be notified.
  * @throws IllegalArgumentException if the `object` is `null` or an unmanaged object, or the change
  * listener is `null`.
@@ -156,7 +155,6 @@ fun <E : RealmModel> E.addChangeListener(listener: RealmChangeListener<E>) {
  * }
  * ```
  *
- * @param object RealmObject to add listener to.
  * @param listener the change listener to be notified.
  * @throws IllegalArgumentException if the `object` is `null` or an unmanaged object, or the change
  * listener is `null`.
@@ -170,7 +168,6 @@ fun <E : RealmModel> E.addChangeListener(listener: RealmObjectChangeListener<E>)
 /**
  * Removes a previously registered listener on the given RealmObject.
  *
- * @param object RealmObject to remove listener from.
  * @param listener the instance to be removed.
  * @throws IllegalArgumentException if the `object` or the change listener is `null`.
  * @throws IllegalArgumentException if object is an unmanaged RealmObject.
@@ -183,7 +180,6 @@ fun  <E : RealmModel> E.removeChangeListener(listener: RealmChangeListener<E>) {
 /**
  * Removes a previously registered listener on the given RealmObject.
  *
- * @param object RealmObject to remove listener from.
  * @param listener the instance to be removed.
  * @throws IllegalArgumentException if the `object` or the change listener is `null`.
  * @throws IllegalArgumentException if object is an unmanaged RealmObject.
@@ -196,7 +192,6 @@ fun  <E : RealmModel> E.removeChangeListener(listener: RealmObjectChangeListener
 /**
  * Removes all registered listeners from the given RealmObject.
  *
- * @param object RealmObject to remove all listeners from.
  * @throws IllegalArgumentException if object is `null` or isn't managed by Realm.
  */
 fun RealmModel.removeAllChangeListeners() {

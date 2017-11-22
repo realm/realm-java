@@ -57,81 +57,81 @@ class KotlinRealmModelTests {
     @Test
     fun isValid() {
         realm.executeTransaction {
-            val simple = it.createObject<SimpleClass>()
-            assertTrue("Expected valid after insert", simple.isValid())
+            val obj = it.createObject<SimpleClass>()
+            assertTrue("Expected valid after insert", obj.isValid())
 
-            simple.deleteFromRealm()
-            assertFalse("Expected invalid after delete", simple.isValid())
+            obj.deleteFromRealm()
+            assertFalse("Expected invalid after delete", obj.isValid())
         }
     }
 
    @Test
     fun isManaged() {
         realm.executeTransaction {
-            var simple = SimpleClass()
-            assertFalse("Expected not managed until attached", simple.isManaged())
+            var obj = SimpleClass()
+            assertFalse("Expected not managed until attached", obj.isManaged())
 
-            simple = it.copyToRealm(simple)
-            assertTrue("Expected managed after attaching", simple.isManaged())
+            obj = it.copyToRealm(obj)
+            assertTrue("Expected managed after attaching", obj.isManaged())
         }
     }
 
     @Test
     @RunTestInLooperThread
-    fun add_realmObjectChangeListener() {
+    fun addChangeListener_RealmObjectChangeListener_addObject() {
         val realm = looperThread.realm
         realm.beginTransaction()
-        val simple = realm.createObject<SimpleClass>()
+        val obj = realm.createObject<SimpleClass>()
         realm.commitTransaction()
 
-        looperThread.keepStrongReference(simple)
-        simple.addChangeListener(RealmObjectChangeListener{ simpleClass, changes ->
+        looperThread.keepStrongReference(obj)
+        obj.addChangeListener(RealmObjectChangeListener{ updatedObj, changes ->
             assert(changes?.isFieldChanged(SimpleClass::name.name) ?: false)
-            assertEquals("simple1", simpleClass.name)
+            assertEquals("simple1", updatedObj.name)
             looperThread.testComplete()
         })
 
         realm.beginTransaction()
-        simple.name = "simple1"
+        obj.name = "simple1"
         realm.commitTransaction()
     }
 
     @Test
     @RunTestInLooperThread
-    fun add_realmChangeListener() {
+    fun addChangeListener_RealmChangeListener_addObject() {
         val realm = looperThread.realm
         realm.beginTransaction()
-        val simple = realm.createObject<SimpleClass>()
+        val obj = realm.createObject<SimpleClass>()
         realm.commitTransaction()
 
-        looperThread.keepStrongReference(simple)
-        simple.addChangeListener(RealmChangeListener{ simpleClass ->
+        looperThread.keepStrongReference(obj)
+        obj.addChangeListener(RealmChangeListener{ simpleClass ->
             assertEquals("simple1", simpleClass.name)
             looperThread.testComplete()
         })
 
         realm.beginTransaction()
-        simple.name = "simple1"
+        obj.name = "simple1"
         realm.commitTransaction()
     }
 
     @Test
     @RunTestInLooperThread
-    fun remove_realmChangeListener() {
+    fun removeChangeListener_RealmChangeListener_removeObject() {
         val realm = looperThread.realm
         realm.beginTransaction()
-        val model = realm.createObject<PrimaryKeyClass>(101)
+        val obj = realm.createObject<PrimaryKeyClass>(101)
         realm.commitTransaction()
 
         val listener = RealmChangeListener<PrimaryKeyClass>{
             fail()
         }
 
-        model.addChangeListener(listener)
-        model.removeChangeListener(listener)
+        obj.addChangeListener(listener)
+        obj.removeChangeListener(listener)
 
         realm.beginTransaction()
-        model.name = "Bobby Risigliano"
+        obj.name = "Bobby Risigliano"
         realm.commitTransaction()
 
         // Try to trigger the listeners.
@@ -141,21 +141,21 @@ class KotlinRealmModelTests {
 
     @Test
     @RunTestInLooperThread
-    fun remove_realmObjectChangeListener() {
+    fun removeChangeListener_RealmObjectChangeListener_removeObject() {
         val realm = looperThread.realm
         realm.beginTransaction()
-        val model = realm.createObject<PrimaryKeyClass>(101)
+        val obj = realm.createObject<PrimaryKeyClass>(101)
         realm.commitTransaction()
 
         val listener = RealmObjectChangeListener<PrimaryKeyClass>{ _,_ ->
             fail()
         }
 
-        model.addChangeListener(listener)
-        model.removeChangeListener(listener)
+        obj.addChangeListener(listener)
+        obj.removeChangeListener(listener)
 
         realm.beginTransaction()
-        model.name = "Bobby Risigliano"
+        obj.name = "Bobby Risigliano"
         realm.commitTransaction()
 
         // Try to trigger the listeners.
@@ -165,10 +165,10 @@ class KotlinRealmModelTests {
 
     @Test
     @RunTestInLooperThread
-    fun remove_allChangeListeners() {
+    fun removeAllChangeListeners() {
         val realm = looperThread.realm
         realm.beginTransaction()
-        val model = realm.createObject<PrimaryKeyClass>(101)
+        val obj = realm.createObject<PrimaryKeyClass>(101)
         realm.commitTransaction()
 
         val changeListener = RealmChangeListener<PrimaryKeyClass> {
@@ -178,13 +178,13 @@ class KotlinRealmModelTests {
             fail()
         }
 
-        model.addChangeListener(changeListener)
-        model.addChangeListener(objectChangeListener)
+        obj.addChangeListener(changeListener)
+        obj.addChangeListener(objectChangeListener)
 
-        model.removeAllChangeListeners()
+        obj.removeAllChangeListeners()
 
         realm.beginTransaction()
-        model.name = "Bobby Risigliano"
+        obj.name = "Bobby Risigliano"
         realm.commitTransaction()
 
         // Try to trigger the listeners.
@@ -226,7 +226,7 @@ class KotlinRealmModelTests {
 
         result.load()
 
-        assertTrue("Expected isLoaded after blocking on load()", result.isLoaded())
+        assertTrue("Expected isLoaded is true after blocking on load()", result.isLoaded())
         looperThread.testComplete()
     }
 
