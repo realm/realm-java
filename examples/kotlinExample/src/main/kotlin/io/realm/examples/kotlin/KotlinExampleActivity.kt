@@ -116,7 +116,7 @@ class KotlinExampleActivity : Activity() {
 
         val ageCriteria = 99
         val results = realm.where<Person>()
-                .equalTo(Person::age.name, ageCriteria)
+                .equalTo("age", ageCriteria)
                 .findAll()
 
         showStatus("Size of result set: " + results.size)
@@ -199,8 +199,8 @@ class KotlinExampleActivity : Activity() {
             // Find all persons where age between 7 and 9 and name begins with "Person".
             val results = it
                     .where<Person>()
-                    .between(Person::age.name, 7, 9)       // Notice implicit "and" operation
-                    .beginsWith(Person::name.name, "Person")
+                    .between("age", 7, 9)       // Notice implicit "and" operation
+                    .beginsWith("name", "Person")
                     .findAll()
 
             status += "\nSize of result set: ${results.size}"
