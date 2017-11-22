@@ -4,7 +4,11 @@
 
 ### Bug Fixes
 
+* Added missing `toString()` for the implementation of `OrderedCollectionChangeSet`.
+
 ### Internal
+
+* Use `OsList` instead of `OsResults` to add notification token on for `RealmList<RealmModel>`.
 
 ### Credits
 
