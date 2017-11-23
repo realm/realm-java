@@ -20,7 +20,6 @@ import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,7 +103,6 @@ public class ProcessCommitTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     @RunTestWithRemoteService(remoteService = SimpleCommitRemoteService.class, onLooperThread = true)
-    @Ignore("See https://github.com/realm/realm-java/issues/5376")
     public void expectSimpleCommit() {
         looperThread.runAfterTest(remoteService.afterRunnable);
         remoteService.createHandler(Looper.myLooper());

@@ -12,5 +12,6 @@ include 'unitTestExample'
 include 'newsreaderExample'
 include 'rxJavaExample'
 include 'objectServerExample'
+include 'multiprocessExample'
 
 rootProject.name = 'realm-examples'

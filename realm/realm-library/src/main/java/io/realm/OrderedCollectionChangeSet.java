@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import java.util.Locale;
+
 /**
  * This interface describes the changes made to a collection during the last update.
  * <p>
@@ -94,6 +96,11 @@ public interface OrderedCollectionChangeSet {
         public Range(int startIndex, int length) {
             this.startIndex = startIndex;
             this.length = length;
+        }
+
+        @Override
+        public String toString() {
+            return String.format(Locale.ENGLISH, "startIndex: %d, length: %d", startIndex, length);
         }
     }
 }

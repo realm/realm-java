@@ -16,7 +16,17 @@
 
 package io.realm;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -27,13 +37,18 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
+import io.realm.internal.Util;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.network.OkHttpAuthenticationServer;
 import io.realm.log.RealmLog;
+import okhttp3.internal.tls.OkHostnameVerifier;
 
 /**
  * The SyncManager is the central controller for interacting with the Realm Object Server.
@@ -293,13 +308,25 @@ public class SyncManager {
      */
     @SuppressWarnings("unused")
     private static synchronized void notifyErrorHandler(int errorCode, String errorMessage, @Nullable String path) {
-        for (SyncSession syncSession : sessions.values()) {
-            if (path == null || path.equals(syncSession.getConfiguration().getPath())) {
+        if (Util.isEmptyString(path)) {
+            // notify all sessions
+            for (SyncSession syncSession : sessions.values()) {
+                    try {
+                        syncSession.notifySessionError(errorCode, errorMessage);
+                    } catch (Exception exception) {
+                        RealmLog.error(exception);
+                    }
+                }
+        } else {
+            SyncSession syncSession = sessions.get(path);
+            if (syncSession != null) {
                 try {
                     syncSession.notifySessionError(errorCode, errorMessage);
                 } catch (Exception exception) {
                     RealmLog.error(exception);
                 }
+            } else {
+                RealmLog.warn("Cannot find the SyncSession corresponding to the path: " + path);
             }
         }
     }
@@ -354,6 +381,117 @@ public class SyncManager {
             }
         }
         return null;
+    }
+
+    // Holds the certificate chain (per hostname). We need to keep the order of each certificate
+    // according to it's depth in the chain. The depth of the last
+    // certificate is 0. The depth of the first certificate is chain
+    // length - 1.
+    private static HashMap<String, List<String>> ROS_CERTIFICATES_CHAIN;
+
+    // The default Android Trust Manager which uses the default KeyStore to
+    // validate the certificate chain.
+    private static X509TrustManager TRUST_MANAGER;
+
+    // Help transform a String PEM representation of the certificate, into
+    // X509Certificate format.
+    private static CertificateFactory CERTIFICATE_FACTORY;
+
+    // From Sync implementation:
+    //  A recommended way of using the callback function is to return true
+    //  if preverify_ok = 1 and depth > 0,
+    //  always check the host name if depth = 0,
+    //  and use an independent verification step if preverify_ok = 0.
+    //
+    //  Another possible way of using the callback is to collect all the
+    //  ROS_CERTIFICATES_CHAIN until depth = 0, and present the entire chain for
+    //  independent verification.
+    //
+    // In this implementation we use the second method, since it's more suitable for
+    // the underlying Java API we need to call to validate the certificate chain.
+    @SuppressWarnings("unused")
+    synchronized static boolean sslVerifyCallback(String serverAddress, String pemData, int depth) {
+        try {
+            if (ROS_CERTIFICATES_CHAIN == null) {
+                ROS_CERTIFICATES_CHAIN = new HashMap<>();
+                TRUST_MANAGER = systemDefaultTrustManager();
+                CERTIFICATE_FACTORY = CertificateFactory.getInstance("X.509");
+            }
+
+            if (!ROS_CERTIFICATES_CHAIN.containsKey(serverAddress)) {
+                ROS_CERTIFICATES_CHAIN.put(serverAddress, new ArrayList<String>());
+            }
+
+            ROS_CERTIFICATES_CHAIN.get(serverAddress).add(pemData);
+
+            if (depth == 0) {
+                // transform all PEM ROS_CERTIFICATES_CHAIN into Java X509
+                // with respecting the order/depth provided from Sync.
+                List<String> pemChain = ROS_CERTIFICATES_CHAIN.get(serverAddress);
+                int n = pemChain.size();
+                X509Certificate[] chain = new X509Certificate[n];
+                for (String pem : pemChain) {
+                    // The depth of the last certificate is 0.
+                    // The depth of the first certificate is chain length - 1.
+                    chain[--n] = buildCertificateFromPEM(pem);
+                }
+
+                // verify the entire chain
+                try {
+                    TRUST_MANAGER.checkServerTrusted(chain, "RSA");
+                    // verify the hostname
+                    boolean isValid = OkHostnameVerifier.INSTANCE.verify(serverAddress, chain[0]);
+                    if (isValid) {
+                        return true;
+                    } else {
+                        RealmLog.error("Can not verify the hostname for the host: " + serverAddress);
+                        return false;
+                    }
+                } catch (CertificateException e) {
+                    RealmLog.error(e, "Can not validate SSL chain certificate for the host: " + serverAddress);
+                    return false;
+                } finally {
+                    // don't keep the certificate chain in memory
+                    ROS_CERTIFICATES_CHAIN.remove(serverAddress);
+                }
+            } else {
+                // return true, since the verification will happen for the entire chain
+                // when receiving the depth == 0 (host certificate)
+                return true;
+            }
+        } catch (Exception e) {
+            RealmLog.error(e, "Error during certificate validation for host: " + serverAddress);
+            return false;
+        }
+    }
+
+    // Credit OkHttp https://github.com/square/okhttp/blob/e5c84e1aef9572adb493197c1b6c4e882aca085b/okhttp/src/main/java/okhttp3/OkHttpClient.java#L270
+    private static X509TrustManager systemDefaultTrustManager() {
+        try {
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(
+                    TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init((KeyStore) null);
+            TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+            if (trustManagers.length != 1 || !(trustManagers[0] instanceof X509TrustManager)) {
+                throw new IllegalStateException("Unexpected default trust managers:"
+                        + Arrays.toString(trustManagers));
+            }
+            return (X509TrustManager) trustManagers[0];
+        } catch (GeneralSecurityException e) {
+            throw new AssertionError(); // The system has no TLS. Just give up.
+        }
+    }
+
+    private static X509Certificate buildCertificateFromPEM(String pem) throws IOException, CertificateException {
+        InputStream stream = null;
+        try {
+            stream = new ByteArrayInputStream(pem.getBytes("UTF-8"));
+            return (X509Certificate) CERTIFICATE_FACTORY.generateCertificate(stream);
+        } finally {
+            if (stream != null) {
+                stream.close();
+            }
+        }
     }
 
     /**
