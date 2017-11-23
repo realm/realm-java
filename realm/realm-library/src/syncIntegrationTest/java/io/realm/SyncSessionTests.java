@@ -12,7 +12,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -309,6 +311,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     // this test validate the behaviour of SyncSessionStopPolicy::AfterChangesUploaded
     @Test
     public void uploadChangesWhenRealmOutOfScope() throws InterruptedException {
+        final List<Object> strongRefs = new ArrayList<>();
         final String uniqueName = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
@@ -351,6 +354,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                         .build();
                 final Realm adminRealm = Realm.getInstance(adminConfig);
                 RealmResults<StringOnly> all = adminRealm.where(StringOnly.class).findAll();
+                strongRefs.add(all);
                 RealmChangeListener<RealmResults<StringOnly>> realmChangeListener = new RealmChangeListener<RealmResults<StringOnly>>() {
                     @Override
                     public void onChange(RealmResults<StringOnly> stringOnlies) {
@@ -369,9 +373,9 @@ public class SyncSessionTests extends StandardIntegrationTest {
         });
 
         TestHelper.awaitOrFail(testCompleted, 60);
+        handlerThread.join();
 
         user.logout();
-        realm.close();
     }
 
     // A Realm that was opened before a user logged out should be able to resume downloading if the user logs back in.
