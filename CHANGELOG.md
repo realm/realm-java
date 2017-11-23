@@ -1,3 +1,16 @@
+## 4.3.0 (YYYY-MM-DD)
+
+### Deprecated
+
+* Support for mips deivces is deprecated.
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+
 ## 4.2.1 (YYYY-MM-DD)
 
 ### Enhancements
