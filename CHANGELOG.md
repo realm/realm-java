@@ -10,12 +10,12 @@
 ### Internal
 
 * Use `OsList` instead of `OsResults` to add notification token on for `RealmList<RealmModel>`.
-* Updated gralde and plugins to support Android Studio `3.0.0` (#5472).
+* Updated Gralde and plugins to support Android Studio `3.0.0` (#5472).
 
 ### Credits
 
 * Thanks to @tbsandee for fixing a typo (#5548).
-* Thanks to @vivekkiran for updating gralde and plugins to support Android Studio `3.0.0` (#5472).
+* Thanks to @vivekkiran for updating Gralde and plugins to support Android Studio `3.0.0` (#5472).
 
 
 ## 4.2.0 (2017-11-17)
