@@ -1,7 +1,7 @@
 ![Realm](logo.png)
 
 [![bintray](https://api.bintray.com/packages/realm/maven/realm-gradle-plugin/images/download.svg) ](https://bintray.com/realm/maven/realm-gradle-plugin/_latestVersion)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/realm/realm-java/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/realm/realm-java/blob/master/LICENSE)
 
 Realm is a mobile database that runs directly inside phones, tablets or wearables.
 This repository holds the source code for the Java version of Realm, which currently runs only on Android.
@@ -33,7 +33,7 @@ The API reference is located at [realm.io/docs/java/api](https://realm.io/docs/j
 
 If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [JFrog OSS](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-gradle-plugin/)
 
-```In build.gradle
+```
 buildscript {
     repositories {
         jcenter()
@@ -161,7 +161,7 @@ Generating the Javadoc using the command above may generate warnings. The Javado
 
 ### Upgrading Gradle Wrappers
 
- All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer `gradleVersion` property defined in `/realm.properties` in order to determine Gradle Version of generating wrappers.
+ All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradleVersion` property defined in `/realm.properties` in order to determine Gradle Version of generating wrappers.
 We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. When you update Gradle Wrappers, please obey the following steps.
 
  1. Edit `gradleVersion` property in defined in `/realm.properties` to new Gradle Wrapper version.
