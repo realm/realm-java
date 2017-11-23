@@ -2,7 +2,7 @@
 
 ### Deprecated
 
-* Support for mips deivces is deprecated.
+* Support for mips deivces are deprecated.
 
 ### Enhancements
 
