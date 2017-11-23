@@ -429,6 +429,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
         try {
             it.remove();
+            fail();
         } catch (IllegalStateException e) {
             assertRealmList();
         } catch (UnsupportedOperationException e) {
@@ -612,6 +613,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         assertEquals(42, obj.getFieldLong());
     }
 
+    @Test
     public void listIterator_add() {
         if (skipTest(CollectionClass.REALMRESULTS)) {
             return;
