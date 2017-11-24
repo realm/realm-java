@@ -1599,6 +1599,7 @@ public class RealmQuery<E> {
      * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
      * to linked fields.
      */
+    @Deprecated
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
 
@@ -1619,6 +1620,7 @@ public class RealmQuery<E> {
      * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
      * to linked fields.
      */
+    @Deprecated
     public RealmResults<E> distinctAsync(String fieldName) {
         realm.checkIfValid();
 
@@ -1639,6 +1641,7 @@ public class RealmQuery<E> {
      * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
      * is an unsupported type, or points to a linked field.
      */
+    @Deprecated
     public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
         realm.checkIfValid();
 

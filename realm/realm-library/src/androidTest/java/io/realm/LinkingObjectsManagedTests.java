@@ -678,7 +678,7 @@ public class LinkingObjectsManagedTests {
 
         assertEquals(2, child.getListParents().size());
 
-        RealmResults<AllJavaTypes> distinctParents = child.getListParents().where().distinct("fieldId");
+        RealmResults<AllJavaTypes> distinctParents = child.getListParents().where().distinctValues("fieldId").findAll();
         assertEquals(1, distinctParents.size());
         assertTrue(child.getListParents().contains(parent));
     }
