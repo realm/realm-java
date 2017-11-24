@@ -779,10 +779,10 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                     case REMOVE_INDEX: collection.remove(0); break;
                 }
                 fail("Unknown method or it failed to throw: " + method);
-            } catch (Throwable t) {
-                if (!t.getClass().equals(expected)) {
-                    fail(method + " didn't throw the expected exception. Was: " + t + ", expected: " + expected);
-                }
+            } catch (IllegalStateException e) {
+                assertEquals(expected, e.getClass());
+            } catch (UnsupportedOperationException e) {
+                assertEquals(expected, e.getClass());
             }
         }
     }
