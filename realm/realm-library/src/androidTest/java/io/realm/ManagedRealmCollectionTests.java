@@ -784,10 +784,10 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                     case RETAIN_ALL: collection.retainAll(Collections.singletonList(new AllJavaTypes())); break;
                 }
                 fail("Unknown method or it failed to throw: " + method);
-            } catch (Throwable t) {
-                if (!t.getClass().equals(expected)) {
-                    fail(method + " didn't throw the expected exception. Was: " + t + ", expected: " + expected);
-                }
+            } catch (IllegalStateException e) {
+                assertEquals(expected, e.getClass());
+            } catch (UnsupportedOperationException e) {
+                assertEquals(expected, e.getClass());
             }
         }
     }

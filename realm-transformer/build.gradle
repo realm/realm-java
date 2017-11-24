@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        google()
         jcenter()
     }
     dependencies {
@@ -31,11 +32,12 @@ properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
 
 def syncVersion = properties.getProperty('REALM_SYNC_VERSION')
 
-sourceCompatibility = '1.6'
-targetCompatibility = '1.6'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 repositories {
     mavenLocal()
+    google()
     jcenter()
 }
 
@@ -58,7 +60,7 @@ dependencies {
     compile localGroovy()
     compile gradleApi()
     compile "io.realm:realm-annotations:${version}"
-    provided 'com.android.tools.build:gradle:2.1.0'
+    provided 'com.android.tools.build:gradle:3.1.0-alpha03'
     compile 'org.javassist:javassist:3.22.0-GA'
 
     testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
