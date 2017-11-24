@@ -3,8 +3,13 @@
 ### Deprecated
 
 * Support for mips deivces are deprecated.
+* `RealmQuery.findAllSorted()` and `RealmQuery.findAllSortedAsync()` variants in favor of predicate `RealmQuery.sort().findAll()`.
+* `RealmQuery.distinct()` and `RealmQuery.distinctAsync()` variants in favor of predicate `RealmQuery.distinctValues().findAll()`
 
 ### Enhancements
+
+* New query predicate: `sort()`.
+* New query predicate: `distinctValues()`. Will be renamed to `distinct` in next major version.
 
 ### Bug Fixes
 

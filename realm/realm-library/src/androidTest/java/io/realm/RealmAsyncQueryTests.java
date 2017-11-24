@@ -20,7 +20,6 @@ import android.os.SystemClock;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -769,13 +768,14 @@ public class RealmAsyncQueryTests {
     // similar UC as #testFindAllAsync using 'findAllSorted'
     @Test
     @RunTestInLooperThread
-    public void findAllSortedAsync() throws Throwable {
+    public void sort_async() throws Throwable {
         final Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
 
         final RealmResults<AllTypes> results = realm.where(AllTypes.class)
                 .between("columnLong", 0, 4)
-                .findAllSortedAsync("columnString", Sort.DESCENDING);
+                .sort("columnString", Sort.DESCENDING)
+                .findAllAsync();
 
         assertFalse(results.isLoaded());
         assertEquals(0, results.size());
@@ -1094,9 +1094,9 @@ public class RealmAsyncQueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmResults<AllTypes> findAllAsync = realm.where(AllTypes.class).findAllAsync();
-        RealmResults<AllTypes> findAllSorted = realm.where(AllTypes.class).findAllSortedAsync("columnString", Sort.ASCENDING);
-        RealmResults<AllTypes> findAllSortedMulti = realm.where(AllTypes.class).findAllSortedAsync(new String[]{"columnString", "columnLong"},
-                new Sort[]{Sort.ASCENDING, Sort.DESCENDING});
+        RealmResults<AllTypes> findAllSorted = realm.where(AllTypes.class).sort("columnString", Sort.ASCENDING).findAllAsync();
+        RealmResults<AllTypes> findAllSortedMulti = realm.where(AllTypes.class).sort(new String[]{"columnString", "columnLong"},
+                new Sort[]{Sort.ASCENDING, Sort.DESCENDING}).findAllAsync();
         RealmResults<AnnotationIndexTypes> findDistinct = realm.where(AnnotationIndexTypes.class).distinctAsync("indexString");
 
         looperThread.keepStrongReference(findAllAsync);
@@ -1264,7 +1264,7 @@ public class RealmAsyncQueryTests {
         Realm realm = looperThread.getRealm();
 
         // 1. Makes sure that async query is not started.
-        final RealmResults<AllTypes> result = realm.where(AllTypes.class).findAllSortedAsync(AllTypes.FIELD_STRING);
+        final RealmResults<AllTypes> result = realm.where(AllTypes.class).sort(AllTypes.FIELD_STRING).findAllAsync();
         looperThread.keepStrongReference(result);
         result.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override

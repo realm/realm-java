@@ -472,7 +472,7 @@ public class SortTest {
 
         populateDates(realm, TEST_SIZE);
 
-        RealmResults<AllTypes> objectsAscending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.ASCENDING);
+        RealmResults<AllTypes> objectsAscending = realm.where(AllTypes.class).sort(AllTypes.FIELD_DATE, Sort.ASCENDING).findAll();
         assertEquals(TEST_SIZE, objectsAscending.size());
         int i = 0;
         for (AllTypes allTypes : objectsAscending) {
@@ -480,7 +480,7 @@ public class SortTest {
             i++;
         }
 
-        RealmResults<AllTypes> objectsDescending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.DESCENDING);
+        RealmResults<AllTypes> objectsDescending = realm.where(AllTypes.class).sort(AllTypes.FIELD_DATE, Sort.DESCENDING).findAll();
         assertEquals(TEST_SIZE, objectsDescending.size());
         i = TEST_SIZE - 1;
         for (AllTypes allTypes : objectsDescending) {
@@ -509,7 +509,7 @@ public class SortTest {
             }
         };
 
-        RealmResults<AllTypes> objectsAscending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.ASCENDING);
+        RealmResults<AllTypes> objectsAscending = realm.where(AllTypes.class).sort(AllTypes.FIELD_DATE, Sort.ASCENDING).findAll();
         assertEquals(TEST_SIZE, objectsAscending.size());
         looperThread.keepStrongReference(objectsAscending);
         objectsAscending.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -525,7 +525,7 @@ public class SortTest {
             }
         });
 
-        RealmResults<AllTypes> objectsDescending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.DESCENDING);
+        RealmResults<AllTypes> objectsDescending = realm.where(AllTypes.class).sort(AllTypes.FIELD_DATE, Sort.DESCENDING).findAll();
         assertEquals(TEST_SIZE, objectsDescending.size());
         looperThread.keepStrongReference(objectsDescending);
         objectsDescending.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -559,7 +559,8 @@ public class SortTest {
         // (2, 1, "B")
         // (1, 1, "A)
         RealmResults<AnnotationIndexTypes> results1 = realm.where(AnnotationIndexTypes.class)
-                .findAllSorted(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING);
+                .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING)
+                .findAll();
         assertEquals(3, results1.size());
         assertEquals(3, results1.get(0).getIndexLong());
 
@@ -579,7 +580,7 @@ public class SortTest {
             stringOnly.setChars(str.substring(i, i + 1));
         }
         realm.commitTransaction();
-        RealmResults<StringOnly> stringOnlies = realm.where(StringOnly.class).findAllSorted("chars");
+        RealmResults<StringOnly> stringOnlies = realm.where(StringOnly.class).sort("chars").findAll();
         for (int i = 0; i < chars.length(); i++) {
             assertEquals(chars.substring(i, i + 1), stringOnlies.get(i).getChars());
         }

@@ -3299,7 +3299,7 @@ public class RealmTests {
     @Test
     public void copyFromRealm() {
         populateTestRealm();
-        AllTypes realmObject = realm.where(AllTypes.class).findAllSorted("columnLong").first();
+        AllTypes realmObject = realm.where(AllTypes.class).sort("columnLong").findAll().first();
         AllTypes unmanagedObject = realm.copyFromRealm(realmObject);
         assertArrayEquals(realmObject.getColumnBinary(), unmanagedObject.getColumnBinary());
         assertEquals(realmObject.getColumnString(), unmanagedObject.getColumnString());
@@ -3313,7 +3313,7 @@ public class RealmTests {
     @Test
     public void copyFromRealm_newCopyEachTime() {
         populateTestRealm();
-        AllTypes realmObject = realm.where(AllTypes.class).findAllSorted("columnLong").first();
+        AllTypes realmObject = realm.where(AllTypes.class).sort("columnLong").findAll().first();
         AllTypes unmanagedObject1 = realm.copyFromRealm(realmObject);
         AllTypes unmanagedObject2 = realm.copyFromRealm(realmObject);
         assertFalse(unmanagedObject1 == unmanagedObject2);

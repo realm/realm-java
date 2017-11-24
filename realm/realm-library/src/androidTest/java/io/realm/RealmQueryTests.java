@@ -221,14 +221,9 @@ public class RealmQueryTests extends QueryTests {
 
         FIND_ALL,
         FIND_ALL_ASYNC,
-        FIND_ALL_SORTED,
-        FIND_ALL_SORTED_ASYNC,
-        FIND_ALL_SORTED_WITH_ORDER,
-        FIND_ALL_SORTED_ASYNC_WITH_ORDER,
-        FIND_ALL_SORTED_WITH_TWO_ORDERS,
-        FIND_ALL_SORTED_ASYNC_WITH_TWO_ORDERS,
-        FIND_ALL_SORTED_WITH_MANY_ORDERS,
-        FIND_ALL_SORTED_ASYNC_WITH_MANY_ORDERS,
+        SORT,
+        SORT_WITH_ORDER,
+        SORT_WITH_MANY_ORDERS,
 
         FIND_FIRST,
         FIND_FIRST_ASYNC,
@@ -338,15 +333,9 @@ public class RealmQueryTests extends QueryTests {
 
             case FIND_ALL: query.findAll(); break;
             case FIND_ALL_ASYNC: query.findAllAsync(); break;
-            case FIND_ALL_SORTED: query.findAllSorted(                             AllJavaTypes.FIELD_STRING); break;
-            case FIND_ALL_SORTED_ASYNC: query.findAllSortedAsync(                  AllJavaTypes.FIELD_STRING); break;
-            case FIND_ALL_SORTED_WITH_ORDER: query.findAllSorted(                  AllJavaTypes.FIELD_STRING, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_ASYNC_WITH_ORDER: query.findAllSortedAsync(       AllJavaTypes.FIELD_STRING, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_WITH_TWO_ORDERS: query.findAllSorted(             AllJavaTypes.FIELD_STRING, Sort.DESCENDING, AllJavaTypes.FIELD_ID, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_ASYNC_WITH_TWO_ORDERS: query.findAllSortedAsync(  AllJavaTypes.FIELD_STRING, Sort.DESCENDING, AllJavaTypes.FIELD_ID, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_WITH_MANY_ORDERS: query.findAllSorted(            new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
-            case FIND_ALL_SORTED_ASYNC_WITH_MANY_ORDERS: query.findAllSortedAsync( new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
-
+            case SORT: query.sort(AllJavaTypes.FIELD_STRING); break;
+            case SORT_WITH_ORDER: query.sort(AllJavaTypes.FIELD_STRING, Sort.ASCENDING); break;
+            case SORT_WITH_MANY_ORDERS: query.sort(new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
             case FIND_FIRST: query.findFirst(); break;
             case FIND_FIRST_ASYNC: query.findFirstAsync(); break;
 
@@ -1276,36 +1265,42 @@ public class RealmQueryTests extends QueryTests {
         // Dog.weight has index 4 which is more than the total number of columns in Owner
         // This tests exposes a subtle error where the Owner table spec is used instead of Dog table spec.
         RealmResults<Dog> dogs = realm.where(Owner.class).findFirst().getDogs().where()
-                .findAllSorted("name", Sort.ASCENDING);
+                .sort("name", Sort.ASCENDING)
+                .findAll();
         Dog dog = dogs.where().equalTo("weight", 1d).findFirst();
         assertEquals(dog1, dog);
     }
 
     @Test
-    public void findAllSorted_multiFailures() {
+    public void sort_multiFailures() {
         // Zero fields specified.
         try {
-            realm.where(AllTypes.class).findAllSorted(new String[]{}, new Sort[]{});
+            realm.where(AllTypes.class).sort(new String[]{}, new Sort[]{}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // Number of fields and sorting orders don't match.
         try {
-            realm.where(AllTypes.class).findAllSorted(new String[]{AllTypes.FIELD_STRING},
-                    new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
+            realm.where(AllTypes.class)
+                    .sort(new String[]{AllTypes.FIELD_STRING},new Sort[]{Sort.ASCENDING, Sort.ASCENDING})
+                    .findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // Null is not allowed.
         try {
-            realm.where(AllTypes.class).findAllSorted((String[]) null, null);
+            realm.where(AllTypes.class)
+                    .sort((String[]) null, null)
+                    .findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            realm.where(AllTypes.class).findAllSorted(new String[]{AllTypes.FIELD_STRING}, null);
+            realm.where(AllTypes.class)
+                    .sort(new String[]{AllTypes.FIELD_STRING}, null)
+                    .findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -1313,15 +1308,15 @@ public class RealmQueryTests extends QueryTests {
         // Non-existing field name.
         try {
             realm.where(AllTypes.class)
-                    .findAllSorted(new String[]{AllTypes.FIELD_STRING, "do-not-exist"},
-                            new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
+                    .sort(new String[]{AllTypes.FIELD_STRING, "do-not-exist"}, new Sort[]{Sort.ASCENDING, Sort.ASCENDING})
+                    .findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     @Test
-    public void findAllSorted_singleField() {
+    public void sort_singleField() {
         realm.beginTransaction();
         for (int i = 0; i < TEST_DATA_SIZE; i++) {
             AllTypes allTypes = realm.createObject(AllTypes.class);
@@ -1330,7 +1325,8 @@ public class RealmQueryTests extends QueryTests {
         realm.commitTransaction();
 
         RealmResults<AllTypes> sortedList = realm.where(AllTypes.class)
-                .findAllSorted(new String[]{AllTypes.FIELD_LONG}, new Sort[]{Sort.DESCENDING});
+                .sort(new String[]{AllTypes.FIELD_LONG}, new Sort[]{Sort.DESCENDING})
+                .findAll();
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
         assertEquals(0, sortedList.last().getColumnLong());
@@ -2893,21 +2889,23 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void findAllSorted_onSubObjectField() {
+    public void sort_onSubObjectField() {
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
-                .findAllSorted(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+                .sort(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE)
+                .findAll();
         assertEquals(0, results.get(0).getColumnRealmObject().getAge());
         assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
     }
 
     @Test
     @RunTestInLooperThread
-    public void findAllSortedAsync_onSubObjectField() {
+    public void sort_async_onSubObjectField() {
         Realm realm = looperThread.getRealm();
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
-                .findAllSortedAsync(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+                .sort(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE)
+                .findAllAsync();
         looperThread.keepStrongReference(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
@@ -2934,7 +2932,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void findAllSorted_listOnSubObjectField() {
+    public void sort_listOnSubObjectField() {
         String[] fieldNames = new String[2];
         fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
         fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
@@ -2945,35 +2943,10 @@ public class RealmQueryTests extends QueryTests {
 
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
-                .findAllSorted(fieldNames, sorts);
+                .sort(fieldNames, sorts)
+                .findAll();
         assertEquals(0, results.get(0).getColumnRealmObject().getAge());
         assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void findAllSortedAsync_listOnSubObjectField() {
-        Realm realm = looperThread.getRealm();
-        String[] fieldNames = new String[2];
-        fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
-        fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
-
-        Sort[] sorts = new Sort[2];
-        sorts[0] = Sort.ASCENDING;
-        sorts[1] = Sort.ASCENDING;
-
-        populateTestRealm(realm, TEST_DATA_SIZE);
-        RealmResults<AllTypes> results = realm.where(AllTypes.class)
-                .findAllSortedAsync(fieldNames, sorts);
-        looperThread.keepStrongReference(results);
-        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
-            @Override
-            public void onChange(RealmResults<AllTypes> results) {
-                assertEquals(0, results.get(0).getColumnRealmObject().getAge());
-                assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
-                looperThread.testComplete();
-            }
-        });
     }
 
     // RealmQuery.distinct(): requires indexing, and type = boolean, integer, date, string.

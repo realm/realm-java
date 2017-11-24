@@ -125,7 +125,10 @@ public class RealmModelTests {
     public void copyFromRealm() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
-        AllTypesRealmModel realmObject = realm.where(AllTypesRealmModel.class).findAllSorted(AllTypesRealmModel.FIELD_LONG).first();
+        AllTypesRealmModel realmObject = realm.where(AllTypesRealmModel.class)
+                .sort(AllTypesRealmModel.FIELD_LONG)
+                .findAll()
+                .first();
         AllTypesRealmModel unmanagedObject = realm.copyFromRealm(realmObject);
         assertArrayEquals(realmObject.columnBinary, unmanagedObject.columnBinary);
         assertEquals(realmObject.columnString, unmanagedObject.columnString);
