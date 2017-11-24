@@ -2,7 +2,7 @@
 
 ### Deprecated
 
-* Support for mips deivces are deprecated.
+* Support for mips devices are deprecated.
 
 ### Enhancements
 
