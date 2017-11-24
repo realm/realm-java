@@ -346,7 +346,6 @@ public class RealmQueryTests extends QueryTests {
     public void callThreadConfinedMethodsFromWrongThread() throws Throwable {
         final RealmQuery<AllJavaTypes> query = realm.where(AllJavaTypes.class);
 
-        final AtomicReference<Throwable> throwableFromThread = new AtomicReference<Throwable>();
         final CountDownLatch testFinished = new CountDownLatch(1);
 
         final String expectedMessage;
@@ -369,13 +368,8 @@ public class RealmQueryTests extends QueryTests {
                         try {
                             callThreadConfinedMethod(query, method);
                             fail("IllegalStateException must be thrown.");
-                        } catch (Throwable e) {
-                            if (e instanceof IllegalStateException && expectedMessage.equals(e.getMessage())) {
-                                // expected exception
-                                continue;
-                            }
-                            throwableFromThread.set(e);
-                            return;
+                        } catch (IllegalStateException e) {
+                            assertEquals(expectedMessage, e.getMessage());
                         }
                     }
                 } finally {
@@ -386,10 +380,6 @@ public class RealmQueryTests extends QueryTests {
         thread.start();
 
         TestHelper.awaitOrFail(testFinished);
-        final Throwable throwable = throwableFromThread.get();
-        if (throwable != null) {
-            throw throwable;
-        }
     }
 
     @Test

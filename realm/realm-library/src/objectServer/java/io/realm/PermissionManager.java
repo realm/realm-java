@@ -24,10 +24,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -142,7 +140,7 @@ public class PermissionManager implements Closeable {
     private Realm defaultPermissionRealm;
 
     // Task list used to queue tasks until the underlying Realms are done opening (or failed doing so).
-    private Deque<PermissionManagerTask> delayedTasks = new LinkedList<>();
+    private List<PermissionManagerTask> delayedTasks = new ArrayList<>();
 
     // List of tasks that are being processed. Used to keep strong references for listeners to work.
     // The task must remove itself from this list once it either completes

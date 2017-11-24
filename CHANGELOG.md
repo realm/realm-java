@@ -2,7 +2,7 @@
 
 ### Deprecated
 
-* Support for mips deivces are deprecated.
+* Support for mips devices are deprecated.
 * `RealmQuery.findAllSorted()` and `RealmQuery.findAllSortedAsync()` variants in favor of predicate `RealmQuery.sort().findAll()`.
 * `RealmQuery.distinct()` and `RealmQuery.distinctAsync()` variants in favor of predicate `RealmQuery.distinctValues().findAll()`
 
@@ -28,10 +28,12 @@
 ### Internal
 
 * Use `OsList` instead of `OsResults` to add notification token on for `RealmList<RealmModel>`.
+* Updated Gradle and plugins to support Android Studio `3.0.0` (#5472).
 
 ### Credits
 
 * Thanks to @tbsandee for fixing a typo (#5548).
+* Thanks to @vivekkiran for updating Grale and plugins to support Android Studio `3.0.0` (#5472).
 
 
 ## 4.2.0 (2017-11-17)

@@ -661,7 +661,7 @@ public class SortTest {
     @Test
     public void sortCaseSensitive() {
         chars = "'- !\"#$%&()*,./:;?_+<=>123aAbBcCxXyYzZ";
-        createAndTest(new StringBuffer(chars).reverse().toString());
+        createAndTest(new StringBuilder(chars).reverse().toString());
 
         // try all permutations - keep the list short
         chars = "12aAbB";
