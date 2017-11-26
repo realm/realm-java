@@ -607,7 +607,7 @@ public class SortTest {
 
         RealmResults<AnnotationIndexTypes> results2b = realm.where(AnnotationIndexTypes.class)
                 .distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT)
-                .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING)
+                .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.ASCENDING)
                 .findAll();
         assertEquals(1, results2b.size());
         assertEquals(1, results2b.get(0).getIndexLong());
