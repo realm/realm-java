@@ -955,7 +955,7 @@ public class RealmAsyncQueryTests {
 
     @Test
     @RunTestInLooperThread()
-    public void distinctAsync_rememberQueryParams() {
+    public void distinct_async_rememberQueryParams() {
         final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         final int TEST_SIZE = 10;
@@ -966,7 +966,8 @@ public class RealmAsyncQueryTests {
 
         RealmResults<AllJavaTypes> results = realm.where(AllJavaTypes.class)
                 .notEqualTo(AllJavaTypes.FIELD_ID, TEST_SIZE / 2)
-                .distinctAsync(AllJavaTypes.FIELD_ID);
+                .distinctValues(AllJavaTypes.FIELD_ID)
+                .findAllAsync();
 
         results.addChangeListener(new RealmChangeListener<RealmResults<AllJavaTypes>>() {
             @Override

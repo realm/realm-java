@@ -3084,17 +3084,17 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync() throws Throwable {
+    public void distinct_async() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
         final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 3;
         final long numberOfObjects = 3; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_BOOL);
-        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_LONG);
-        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
-        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
+        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_BOOL).findAllAsync();
+        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_LONG).findAllAsync();
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_DATE).findAllAsync();
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_STRING).findAllAsync();
 
         assertFalse(distinctBool.isLoaded());
         assertTrue(distinctBool.isValid());
@@ -3160,7 +3160,7 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync_withNullValues() throws Throwable {
+    public void distinct_async_withNullValues() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(2);
         final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 3;
@@ -3168,9 +3168,11 @@ public class RealmQueryTests extends QueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class)
-                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_DATE)
+                .findAllAsync();
         final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class)
-                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_STRING)
+                .findAllAsync();
 
         final Runnable endTest = new Runnable() {
             @Override
@@ -3203,13 +3205,13 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync_doesNotExist() {
+    public void distinct_async_doesNotExist() {
         final long numberOfBlocks = 3;
         final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         try {
-            realm.where(AnnotationIndexTypes.class).distinctAsync("doesNotExist");
+            realm.where(AnnotationIndexTypes.class).distinctValues("doesNotExist").findAllAsync();
         } catch (IllegalArgumentException ignored) {
         }
         looperThread.testComplete();
@@ -3217,12 +3219,12 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync_invalidTypes() {
+    public void distinct_async_invalidTypes() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
         for (String field : new String[]{AllTypes.FIELD_REALMOBJECT, AllTypes.FIELD_REALMLIST, AllTypes.FIELD_DOUBLE, AllTypes.FIELD_FLOAT}) {
             try {
-                realm.where(AllTypes.class).distinctAsync(field);
+                realm.where(AllTypes.class).distinctValues(field).findAllAsync();
             } catch (IllegalArgumentException ignored) {
             }
         }
@@ -3231,14 +3233,14 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync_indexedLinkedFields() {
+    public void distinct_async_indexedLinkedFields() {
         final long numberOfBlocks = 3;
         final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         for (String field : AnnotationIndexTypes.INDEX_FIELDS) {
             try {
-                realm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_OBJECT + "." + field);
+                realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_OBJECT + "." + field).findAllAsync();
                 fail("Unsupported " + field + " linked field");
             } catch (IllegalArgumentException ignored) {
             }
@@ -3248,11 +3250,11 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync_notIndexedLinkedFields() {
+    public void distinct_async_notIndexedLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
         try {
-            realm.where(AllJavaTypes.class).distinctAsync(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
+            realm.where(AllJavaTypes.class).distinctValues(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY).findAllAsync();
         } catch (IllegalArgumentException ignored) {
         }
         looperThread.testComplete();
