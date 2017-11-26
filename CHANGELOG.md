@@ -33,7 +33,7 @@
 ### Credits
 
 * Thanks to @tbsandee for fixing a typo (#5548).
-* Thanks to @vivekkiran for updating Grale and plugins to support Android Studio `3.0.0` (#5472).
+* Thanks to @vivekkiran for updating Gradle and plugins to support Android Studio `3.0.0` (#5472).
 
 
 ## 4.2.0 (2017-11-17)
