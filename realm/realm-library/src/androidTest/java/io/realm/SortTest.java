@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
+import io.realm.entities.Dog;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
@@ -72,18 +73,22 @@ public class SortTest {
         AllTypes object1 = realm.createObject(AllTypes.class);
         object1.setColumnLong(5);
         object1.setColumnString("Adam");
+        object1.setColumnRealmObject(realm.copyToRealm(new Dog("D")));
 
         AllTypes object2 = realm.createObject(AllTypes.class);
         object2.setColumnLong(4);
         object2.setColumnString("Brian");
+        object2.setColumnRealmObject(realm.copyToRealm(new Dog("C")));
 
         AllTypes object3 = realm.createObject(AllTypes.class);
         object3.setColumnLong(4);
         object3.setColumnString("Adam");
+        object3.setColumnRealmObject(realm.copyToRealm(new Dog("B")));
 
         AllTypes object4 = realm.createObject(AllTypes.class);
         object4.setColumnLong(5);
         object4.setColumnString("Adam");
+        object4.setColumnRealmObject(realm.copyToRealm(new Dog("A")));
 
         realm.delete(AnnotationIndexTypes.class);
         AnnotationIndexTypes obj1 = realm.createObject(AnnotationIndexTypes.class);
@@ -112,10 +117,10 @@ public class SortTest {
     @Before
     public void setUp() {
         // Creates a Realm with the following objects:
-        // 0: (5, "Adam")
-        // 1: (4, "Brian")
-        // 2: (4, "Adam")
-        // 3: (5, "Adam")
+        // 0: (5, "Adam", Dog("D"))
+        // 1: (4, "Brian", Dog("C"))
+        // 2: (4, "Adam", Dog("B"))
+        // 3: (5, "Adam", Dog("A"))
 
         // Injecting the Instrumentation instance is required
         // for your test to run with AndroidJUnitRunner.
@@ -611,6 +616,16 @@ public class SortTest {
                 .findAll();
         assertEquals(1, results2b.size());
         assertEquals(1, results2b.get(0).getIndexLong());
+    }
+
+    @Test
+    public void sortByChildValue() {
+        RealmResults<AllTypes> result = realm.where(AllTypes.class)
+                .sort(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_NAME, Sort.ASCENDING)
+                .findAll();
+
+        assertEquals("A", result.first().getColumnRealmObject().getName());
+        assertEquals("D", result.last().getColumnRealmObject().getName());
     }
 
     private void createAndTest(String str) {

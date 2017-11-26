@@ -1874,7 +1874,6 @@ public class RealmQuery<E> {
     }
 
     /**
-     * // FIXME: I think we can sort on children now?
      * Sort the query result by the specific field name in ascending order. This predicate can be applied multiple
      * times, but only the last specified sorting order will be used.
      * <p>
@@ -1882,8 +1881,7 @@ public class RealmQuery<E> {
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName the field name to sort by.
-     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @throws java.lang.IllegalArgumentException if the field name does not exist.
      */
     public RealmQuery<E> sort(String fieldName) {
         realm.checkIfValid();
@@ -1891,7 +1889,6 @@ public class RealmQuery<E> {
     }
 
     /**
-     * // FIXME: Sorting on children?
      * Sort the query result by the specified field name and order. This predicate can be applied multiple
      * times, but only the last specified sorting order will be used.
      * <p>
@@ -1900,8 +1897,7 @@ public class RealmQuery<E> {
      *
      * @param fieldName the field name to sort by.
      * @param sortOrder how to sort the results.
-     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @throws java.lang.IllegalArgumentException if the field name does not exist.
      */
     public RealmQuery<E> sort(String fieldName, Sort sortOrder) {
         realm.checkIfValid();
@@ -1909,7 +1905,6 @@ public class RealmQuery<E> {
     }
 
     /**
-     * // FIXME: Sorting on children?
      * Sort the query result by the specific field names in the provided order. {@code fieldName2} is only used
      * in case of equal values in {@code fieldName1}. This predicate can be applied multiple
      * times, but only the last specified sorting order will be used.
@@ -1921,8 +1916,7 @@ public class RealmQuery<E> {
      * @param sortOrder1 sort order for first field
      * @param fieldName2 second field name
      * @param sortOrder2 sort order for second field
-     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @throws java.lang.IllegalArgumentException if the field name does not exist.
      */
     public RealmQuery<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
         realm.checkIfValid();
@@ -1930,7 +1924,6 @@ public class RealmQuery<E> {
     }
 
     /**
-     * // FIXME: Sorting on children?
      * Sort the query result by the specific field names in the provided order. Later fields will only be used
      * if the previous field values are equal. This predicate can be applied multiple times, but only the last
      * specified sorting order will be used.
@@ -1940,8 +1933,7 @@ public class RealmQuery<E> {
      *
      * @param fieldNames an array of field names to sort by.
      * @param sortOrders how to sort the field names.
-     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @throws java.lang.IllegalArgumentException if the field name does not exist.
      */
     public RealmQuery<E> sort(String[] fieldNames, Sort[] sortOrders) {
         realm.checkIfValid();
