@@ -6,9 +6,15 @@
 
 ### Enhancements
 
+* The Realm annotation processor now has a stable output when there are no changes to model classes, improving support for incremental compilers (#5567).
+
 ### Bug Fixes
 
 ### Internal
+
+### Credits
+
+* Thanks to @madisp for adding better support for incremental compilers (#5567).
 
 
 ## 4.2.1 (YYYY-MM-DD)
