@@ -19,6 +19,7 @@ package io.realm.processor;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -132,7 +133,7 @@ public class RealmProcessor extends AbstractProcessor {
 
 
     // List of all fields maintained by Realm (RealmResults)
-    private final Set<ClassMetaData> classesToValidate = new HashSet<ClassMetaData>();
+    private final Set<ClassMetaData> classesToValidate = new LinkedHashSet<ClassMetaData>();
     // List of backlinks
     private final Set<Backlink> backlinksToValidate = new HashSet<Backlink>();
 
