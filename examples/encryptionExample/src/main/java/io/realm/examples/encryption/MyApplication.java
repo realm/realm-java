@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,17 @@
  * limitations under the License.
  */
 
-package io.realm.examples.encryptionexample;
+package io.realm.examples.encryption;
 
-import io.realm.RealmObject;
+import android.app.Application;
 
-public class Person extends RealmObject {
-    private String name;
-    private int age;
+import io.realm.Realm;
 
-    public String getName() {
-        return name;
-    }
+public class MyApplication extends Application {
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Realm.init(this);
     }
 }
