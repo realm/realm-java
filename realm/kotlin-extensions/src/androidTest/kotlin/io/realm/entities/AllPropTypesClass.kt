@@ -1,8 +1,6 @@
 package io.realm.entities
 
-import io.realm.Case
 import io.realm.RealmModel
-import io.realm.RealmQuery
 import io.realm.annotations.RealmClass
 import java.util.*
 
