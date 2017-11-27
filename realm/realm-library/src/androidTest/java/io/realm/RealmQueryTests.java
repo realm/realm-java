@@ -1301,6 +1301,15 @@ public class RealmQueryTests extends QueryTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
+
+        // Defining sort multiple times
+        try {
+            realm.where(AllTypes.class)
+                    .sort(AllTypes.FIELD_STRING)
+                    .sort(AllTypes.FIELD_STRING);
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     @Test
@@ -2991,6 +3000,13 @@ public class RealmQueryTests extends QueryTests {
             RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinctValues(field).findAll();
             assertEquals(field, 1, distinct.size());
         }
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void distinct_failIfAppliedMultipleTimes() {
+        realm.where(AnnotationIndexTypes.class)
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_DATE)
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_DATE);
     }
 
     @Test

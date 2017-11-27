@@ -1874,14 +1874,14 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Sort the query result by the specific field name in ascending order. This predicate can be applied multiple
-     * times, but only the last specified sorting order will be used.
+     * Sorts the query result by the specific field name in ascending order.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName the field name to sort by.
-     * @throws java.lang.IllegalArgumentException if the field name does not exist.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String fieldName) {
         realm.checkIfValid();
@@ -1889,15 +1889,15 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Sort the query result by the specified field name and order. This predicate can be applied multiple
-     * times, but only the last specified sorting order will be used.
+     * Sorts the query result by the specified field name and order.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName the field name to sort by.
      * @param sortOrder how to sort the results.
-     * @throws java.lang.IllegalArgumentException if the field name does not exist.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String fieldName, Sort sortOrder) {
         realm.checkIfValid();
@@ -1905,9 +1905,8 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Sort the query result by the specific field names in the provided order. {@code fieldName2} is only used
-     * in case of equal values in {@code fieldName1}. This predicate can be applied multiple
-     * times, but only the last specified sorting order will be used.
+     * Sorts the query result by the specific field names in the provided orders. {@code fieldName2} is only used
+     * in case of equal values in {@code fieldName1}.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
@@ -1916,7 +1915,8 @@ public class RealmQuery<E> {
      * @param sortOrder1 sort order for first field
      * @param fieldName2 second field name
      * @param sortOrder2 sort order for second field
-     * @throws java.lang.IllegalArgumentException if the field name does not exist.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
         realm.checkIfValid();
@@ -1924,21 +1924,21 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Sort the query result by the specific field names in the provided order. Later fields will only be used
-     * if the previous field values are equal. This predicate can be applied multiple times, but only the last
-     * specified sorting order will be used.
+     * Sorts the query result by the specific field names in the provided orders. Later fields will only be used
+     * if the previous field values are equal.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldNames an array of field names to sort by.
      * @param sortOrders how to sort the field names.
-     * @throws java.lang.IllegalArgumentException if the field name does not exist.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String[] fieldNames, Sort[] sortOrders) {
         realm.checkIfValid();
         if (sortDescriptor != null) {
-            RealmLog.debug("Overriding existing sort order");
+            throw new IllegalStateException("A sorting order was already defined.");
         }
         sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
         return this;
@@ -1948,14 +1948,14 @@ public class RealmQuery<E> {
      * BETA API: Will be renamed to {@code distinct} in next major release.
      *
      * Selects a distinct set of objects of a specific class. If the result is sorted, the first object will be
-     * returned in case of multiple occurrences, otherwise it is undefined which object is returned. This
-     * predicate can be applied multiple times, but only the last applied will be used.
+     * returned in case of multiple occurrences, otherwise it is undefined which object is returned.
      * <p>
      * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
      *
      * @param fieldName the field name.
      * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
      * to linked fields.
+     * @throws IllegalStateException if distinct field names were already defined.
      */
     @Beta
     public RealmQuery<E> distinctValues(String fieldName) {
@@ -1976,13 +1976,15 @@ public class RealmQuery<E> {
      * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
      * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
      * is an unsupported type, or points to a linked field.
+     * @throws IllegalStateException if distinct field names were already defined.
      */
     @Beta
     public RealmQuery<E> distinctValues(String firstFieldName, String... remainingFieldNames) {
         realm.checkIfValid();
-
+        if (distinctDescriptor != null) {
+            throw new IllegalStateException("Distinct fields have already been defined.");
+        }
         String[] fieldNames = new String[1 + remainingFieldNames.length];
-
         fieldNames[0] = firstFieldName;
         System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
         distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
