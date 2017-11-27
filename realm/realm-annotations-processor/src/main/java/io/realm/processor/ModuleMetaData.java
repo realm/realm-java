@@ -18,6 +18,7 @@ package io.realm.processor;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,7 +82,7 @@ public class ModuleMetaData {
             if (module.allClasses()) {
                 classes = availableClasses;
             } else {
-                classes = new HashSet<ClassMetaData>();
+                classes = new LinkedHashSet<ClassMetaData>();
                 Set<String> classNames = getClassMetaDataFromModule(classElement);
                 for (String fullyQualifiedClassName : classNames) {
                     ClassMetaData metadata = classMetaData.get(fullyQualifiedClassName);
