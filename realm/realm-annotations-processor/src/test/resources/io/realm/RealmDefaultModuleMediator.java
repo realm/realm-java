@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,8 +32,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
     @Override
     public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
-        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
-                    new LinkedHashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>(1);
+        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap = new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>(1);
         infoMap.put(some.test.AllTypes.class, io.realm.AllTypesRealmProxy.getExpectedObjectSchemaInfo());
         return infoMap;
     }
