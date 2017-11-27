@@ -3293,9 +3293,8 @@ public class RealmQueryTests extends QueryTests {
         TestHelper.populateForDistinctFieldsOrder(realm, numberOfBlocks);
 
         // Regardless of the block size defined above, the output size is expected to be the same, 4 in this case, due to receiving unique combinations of tuples.
-        RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
-        RealmResults<AnnotationIndexTypes> distinctStringLong = query.distinctValues(AnnotationIndexTypes.FIELD_INDEX_STRING, AnnotationIndexTypes.FIELD_INDEX_LONG).findAll();
-        RealmResults<AnnotationIndexTypes> distinctLongString = query.distinctValues(AnnotationIndexTypes.FIELD_INDEX_LONG, AnnotationIndexTypes.FIELD_INDEX_STRING).findAll();
+        RealmResults<AnnotationIndexTypes> distinctStringLong = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_STRING, AnnotationIndexTypes.FIELD_INDEX_LONG).findAll();
+        RealmResults<AnnotationIndexTypes> distinctLongString = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_LONG, AnnotationIndexTypes.FIELD_INDEX_STRING).findAll();
         assertEquals(4, distinctStringLong.size());
         assertEquals(4, distinctLongString.size());
         assertEquals(distinctStringLong.size(), distinctLongString.size());

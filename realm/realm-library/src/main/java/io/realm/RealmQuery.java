@@ -1959,9 +1959,7 @@ public class RealmQuery<E> {
      */
     @Beta
     public RealmQuery<E> distinctValues(String fieldName) {
-        realm.checkIfValid();
-        distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
-        return this;
+        return distinctValues(fieldName, new String[]{});
     }
 
     /**
@@ -1984,10 +1982,14 @@ public class RealmQuery<E> {
         if (distinctDescriptor != null) {
             throw new IllegalStateException("Distinct fields have already been defined.");
         }
-        String[] fieldNames = new String[1 + remainingFieldNames.length];
-        fieldNames[0] = firstFieldName;
-        System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
-        distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
+        if (remainingFieldNames.length == 0) {
+            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, firstFieldName);
+        } else {
+            String[] fieldNames = new String[1 + remainingFieldNames.length];
+            fieldNames[0] = firstFieldName;
+            System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
+            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
+        }
         return this;
     }
 
