@@ -23,7 +23,6 @@ class KotlinRealmModelTests {
     @get:Rule
     val looperThread = RunInLooperThread()
 
-
     private lateinit var realm: Realm
 
     @Before
@@ -39,7 +38,6 @@ class KotlinRealmModelTests {
 
     @Test
     fun deleteFromRealm() {
-
         // Make sure starting with 0
         Assert.assertEquals(0, realm.where<SimpleClass>().count())
 
@@ -85,8 +83,8 @@ class KotlinRealmModelTests {
         realm.commitTransaction()
 
         looperThread.keepStrongReference(obj)
-        obj.addChangeListener(RealmObjectChangeListener{ updatedObj, changes ->
-            assert(changes?.isFieldChanged(SimpleClass::name.name) ?: false)
+        obj.addChangeListener( RealmObjectChangeListener { updatedObj, changes ->
+            assertTrue(changes?.isFieldChanged(SimpleClass::name.name) ?: false)
             assertEquals("simple1", updatedObj.name)
             looperThread.testComplete()
         })
@@ -105,7 +103,7 @@ class KotlinRealmModelTests {
         realm.commitTransaction()
 
         looperThread.keepStrongReference(obj)
-        obj.addChangeListener(RealmChangeListener{ simpleClass ->
+        obj.addChangeListener( RealmChangeListener { simpleClass ->
             assertEquals("simple1", simpleClass.name)
             looperThread.testComplete()
         })
@@ -196,7 +194,6 @@ class KotlinRealmModelTests {
     @RunTestInLooperThread
     @Throws(Throwable::class)
     fun isLoaded() {
-
         val realm = looperThread.realm
 
         realm.executeTransaction { it.createObject<SimpleClass>() }
@@ -216,7 +213,6 @@ class KotlinRealmModelTests {
     @RunTestInLooperThread
     @Throws(Throwable::class)
     fun load() {
-
         val realm = looperThread.realm
 
         realm.executeTransaction { it.createObject<SimpleClass>() }
