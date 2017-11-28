@@ -37,8 +37,8 @@ fun RealmModel.isValid(): Boolean {
  * notified when changes happen. Managed objects are thread confined so that they cannot be accessed from other threads
  * than the one that created them.
  *
- * If this method returns `false`, the object is unmanaged. An unmanaged object is just a normal Java object,
- * so it can be parsed freely across threads, but the data in the object is not connected to the underlying Realm,
+ * If this method returns `false`, the object is unmanaged. An unmanaged object is just a normal Kotlin object,
+ * so it can be passed freely across threads, but the data in the object is not connected to the underlying Realm,
  * so it will not be live updated.
  *
  * It is possible to create a managed object from an unmanaged object by using
@@ -61,11 +61,11 @@ fun RealmModel.isManaged(): Boolean {
  * didn't find any object matching the query parameters. In this case the RealmObject will
  * become a `null` object.
  *
- * "Null" objects represents `null`.  An exception is throw if any accessor is called, so it is important to also
+ * "Null" objects represents `null`.  An exception is thrown if any accessor is called, so it is important to also
  * check isValid before calling any methods. A common pattern is:
  *
  *
- * ```
+ * ```kotlin
  * val person = realm.where<Person>().findFirstAsync()
  * person.isLoaded() // == false
  * person.addChangeListener { p ->
@@ -106,7 +106,7 @@ fun RealmModel.load(): Boolean {
  * If the RealmObject is garbage collected, the change listener will stop being triggered. To avoid this, keep a
  * strong reference for as long as appropriate e.g. in a class variable.
  *
- * ``` kotlin
+ * ```kotlin
  * class MyActivity : Activity {
  *
  *     private var person: Person?
@@ -140,7 +140,7 @@ fun <E : RealmModel> E.addChangeListener(listener: RealmChangeListener<E>) {
  * If the RealmObject is garbage collected, the change listener will stop being triggered. To avoid this, keep a
  * strong reference for as long as appropriate e.g. in a class variable.
  *
- * ``` kotlin
+ * ```kotlin
  * class MyActivity : Activity {
  *
  *     private var person: Person?
