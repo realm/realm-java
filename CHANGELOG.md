@@ -1,16 +1,65 @@
-## 4.2.0 (YYYY-MM-DD)
+## 4.3.0 (YYYY-MM-DD)
 
-### Breaking Changes
+### Deprecated
+
+* Support for mips devices are deprecated.
+
+### Enhancements
+
+* The Realm annotation processor now has a stable output when there are no changes to model classes, improving support for incremental compilers (#5567).
+
+### Bug Fixes
+
+### Internal
+
+### Credits
+
+* Thanks to @madisp for adding better support for incremental compilers (#5567).
+
+
+## 4.2.1 (YYYY-MM-DD)
+
+### Enhancements
+
+### Bug Fixes
+
+* Added missing `toString()` for the implementation of `OrderedCollectionChangeSet`.
+* Sync queries are evaluated immediately to solve the performance issue when the query results are huge, `RealmResults.size()` takes too long time (#5387).
+
+### Internal
+
+* Use `OsList` instead of `OsResults` to add notification token on for `RealmList<RealmModel>`.
+* Updated Gralde and plugins to support Android Studio `3.0.0` (#5472).
+
+### Credits
+
+* Thanks to @tbsandee for fixing a typo (#5548).
+* Thanks to @vivekkiran for updating Gralde and plugins to support Android Studio `3.0.0` (#5472).
+
+
+## 4.2.0 (2017-11-17)
 
 ### Enhancements
 
 * Added support for using non-encrypted Realms in multiple processes. Some caveats apply. Read [doc](https://realm.io/docs/java/latest/#multiprocess) for more info (#1091).
+* Added support for importing primitive lists from JSON (#5362).
+* [ObjectServer] Support SSL validation using Android TrustManager (no need to specify `trustedRootCA` in `SynConfiguration` if the certificate is installed on the device), fixes (#4759).
+* Added the and() function to `RealmQuery` in order to improve readability.
 
 ### Bug Fixes
 
-### Interal
+* Leaked file handler in the Realm Transformer (#5521).
+* Potential fix for "RealmError: Incompatible lock file" crash (#2459).
+
+### Internal
+
+* Updated JavaAssist to 3.22.0-GA.
+* Upgraded to Realm Sync 2.1.4.
+* Upgraded to Realm Core 4.0.3.
 
 ### Credits
+
+* Thanks to @rakshithravi1997 for adding `RealmQuery.and()` (#5520).
 
 
 ## 4.1.1 (2017-10-27)
@@ -23,9 +72,7 @@
 
 ### Internal
 
-* Updated Realm Sync to 2.1.0
-
-### Credits
+* Updated Realm Sync to 2.1.0.
 
 
 ## 4.1.0 (2017-10-20)
@@ -70,7 +117,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 ### Enhancements
 
 * [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
-* `RealmList` can now contain `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` values. [Queries](https://github.com/realm/realm-java/issues/5361) and [Importing primitive lists from JSON](https://github.com/realm/realm-java/issues/5361) are not supported yet.
+* `RealmList` can now contain `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` values. [Queries](https://github.com/realm/realm-java/issues/5361) and [Importing primitive lists from JSON](https://github.com/realm/realm-java/issues/5362) are not supported yet.
 * Added support for lists of primitives in `RealmObjectSchema` with `addRealmListField(String fieldName, Class<?> primitiveType)`
 * Added support for lists of primitives in `DynamicRealmObject` with `setList(String fieldName, RealmList<?> list)` and `getList(String fieldName, Class<?> primitiveType)`.
 * Minor performance improvement when copy/insert objects into Realm.
@@ -104,7 +151,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 
 ### Credits
 
-Thanks to @JussiPekonen for adding support for 2-digit time zone designators when importing JSON (#5309).
+* Thanks to @JussiPekonen for adding support for 2-digit time zone designators when importing JSON (#5309).
 
 
 ## 3.7.2 (2017-09-12)

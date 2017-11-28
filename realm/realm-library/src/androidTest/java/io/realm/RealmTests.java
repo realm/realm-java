@@ -4017,7 +4017,6 @@ public class RealmTests {
     @Test
     public void waitForChange_onLooperThread() throws Throwable {
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
-        final ExceptionHolder bgError = new ExceptionHolder();
 
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -4027,8 +4026,7 @@ public class RealmTests {
                 try {
                     realm.waitForChange();
                     fail();
-                } catch (Throwable expected) {
-                    bgError.setException(expected);
+                } catch (IllegalStateException ignored) {
                 } finally {
                     realm.close();
                     bgRealmClosed.countDown();
@@ -4038,10 +4036,6 @@ public class RealmTests {
         thread.start();
 
         TestHelper.awaitOrFail(bgRealmClosed);
-        if (bgError.getException() instanceof AssertionError) {
-            throw bgError.getException();
-        }
-        assertEquals(IllegalStateException.class, bgError.getException().getClass());
     }
 
     // Cannot wait inside of a transaction.

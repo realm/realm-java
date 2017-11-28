@@ -428,7 +428,12 @@ public class OrderedRealmCollectionTests extends CollectionTests {
                 break;
             case MANAGED_REALMLIST:
             case REALMRESULTS:
-                assertEquals(collection.size(), snapshot.size());
+                int sizeBeforeChange = collection.size();
+                realm.beginTransaction();
+                collection.deleteLastFromRealm();
+                realm.commitTransaction();
+                assertEquals(sizeBeforeChange - 1, collection.size());
+                assertEquals(sizeBeforeChange, snapshot.size());
                 break;
             default:
                 break;
