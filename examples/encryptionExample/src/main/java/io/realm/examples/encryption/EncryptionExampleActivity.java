@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm.examples.encryptionexample;
+package io.realm.examples.encryption;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 
 import java.security.SecureRandom;
@@ -42,6 +43,13 @@ public class EncryptionExampleActivity extends Activity {
         // * http://nelenkov.blogspot.dk/2012/05/storing-application-secrets-in-androids.html
         byte[] key = new byte[64];
         new SecureRandom().nextBytes(key);
+
+        // An encrypted Realm file can be opened in Realm Studio by using a Hex encoded version
+        // of the key. Copy the key from Logcat, then download the Realm file from the device using
+        // the method described here: https://stackoverflow.com/a/28486297/1389357
+        // The path is normally `/data/data/io.realm.examples.encryption/files/default.realm`
+        Log.i("RealmEncryptionKey", Util.bytesToHex(key));
+
         RealmConfiguration realmConfiguration = new RealmConfiguration.Builder()
                 .encryptionKey(key)
                 .build();
