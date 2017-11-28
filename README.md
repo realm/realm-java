@@ -33,7 +33,7 @@ The API reference is located at [realm.io/docs/java/api](https://realm.io/docs/j
 
 If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [JFrog OSS](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-gradle-plugin/)
 
-```
+```groovy
 buildscript {
     repositories {
         jcenter()
@@ -161,7 +161,7 @@ Generating the Javadoc using the command above may generate warnings. The Javado
 
 ### Upgrading Gradle Wrappers
 
- All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradleVersion` property defined in `/realm.properties` in order to determine Gradle Version of generating wrappers.
+All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradleVersion` property defined in `/realm.properties` in order to determine Gradle Version of generating wrappers.
 We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. When you update Gradle Wrappers, please obey the following steps.
 
  1. Edit `gradleVersion` property in defined in `/realm.properties` to new Gradle Wrapper version.
