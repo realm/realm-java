@@ -6,6 +6,7 @@
 
 * Added missing `toString()` for the implementation of `OrderedCollectionChangeSet`.
 * Sync queries are evaluated immediately to solve the performance issue when the query results are huge, `RealmResults.size()` takes too long time (#5387).
+* Fixed the listener on `RealmList` was not called issue when removing the listener then adding it again (#5507). Please notice the similar issue still exists for `RealmResults`.
 
 ### Internal
 
