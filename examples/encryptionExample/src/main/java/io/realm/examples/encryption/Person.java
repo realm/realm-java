@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.encryptionexample;
+package io.realm.examples.encryption;
 
 import io.realm.RealmObject;
 
