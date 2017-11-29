@@ -6,6 +6,7 @@
 
 * Added missing `toString()` for the implementation of `OrderedCollectionChangeSet`.
 * Sync queries are evaluated immediately to solve the performance issue when the query results are huge, `RealmResults.size()` takes too long time (#5387).
+* Correctly close the Realm instance if an exception was thrown while opening it. This avoids `IllegalStateException` when deleting the Realm in the catch block (#5570).
 
 ### Internal
 
