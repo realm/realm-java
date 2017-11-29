@@ -258,7 +258,7 @@ public class BulkInsertTests {
         realm.insert(Arrays.asList(oneCyclicType, anotherCyclicType));
         realm.commitTransaction();
 
-        RealmResults<CyclicType> realmObjects = realm.where(CyclicType.class).findAllSorted(CyclicType.FIELD_NAME);
+        RealmResults<CyclicType> realmObjects = realm.where(CyclicType.class).sort(CyclicType.FIELD_NAME).findAll();
         assertNotNull(realmObjects);
         assertEquals(2, realmObjects.size());
         assertEquals("One", realmObjects.get(0).getName());
@@ -276,7 +276,7 @@ public class BulkInsertTests {
         realm.insertOrUpdate(Arrays.asList(oneCyclicType, anotherCyclicType));
         realm.commitTransaction();
 
-        RealmResults<CyclicTypePrimaryKey> realmObjects = realm.where(CyclicTypePrimaryKey.class).findAllSorted("name");
+        RealmResults<CyclicTypePrimaryKey> realmObjects = realm.where(CyclicTypePrimaryKey.class).sort("name").findAll();
         assertNotNull(realmObjects);
         assertEquals(2, realmObjects.size());
         assertEquals("One", realmObjects.get(0).getName());
@@ -694,7 +694,7 @@ public class BulkInsertTests {
         realm.insertOrUpdate(objA_no_pk);
         realm.commitTransaction();
 
-        all = realm.where(NoPrimaryKeyWithPrimaryKeyObjectRelation.class).findAllSorted("columnString");
+        all = realm.where(NoPrimaryKeyWithPrimaryKeyObjectRelation.class).sort("columnString").findAll();
         assertEquals(2, all.size());
         assertEquals("A", all.get(0).getColumnString());
         assertEquals(8, all.get(0).getColumnInt());
@@ -735,7 +735,9 @@ public class BulkInsertTests {
         realm.insertOrUpdate(objects);
         realm.commitTransaction();
 
-        RealmResults<NoPrimaryKeyWithPrimaryKeyObjectRelation> all = realm.where(NoPrimaryKeyWithPrimaryKeyObjectRelation.class).findAllSorted("columnString", Sort.DESCENDING);
+        RealmResults<NoPrimaryKeyWithPrimaryKeyObjectRelation> all = realm.where(NoPrimaryKeyWithPrimaryKeyObjectRelation.class)
+                .sort("columnString", Sort.DESCENDING)
+                .findAll();
         assertEquals(2, all.size());
         assertEquals("B", all.get(0).getColumnString());
         assertEquals("A", all.get(1).getColumnString());

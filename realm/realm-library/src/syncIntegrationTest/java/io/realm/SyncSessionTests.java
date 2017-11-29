@@ -279,7 +279,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                         .build();
                 final Realm adminRealm = Realm.getInstance(adminConfig);
 
-                RealmResults<StringOnly> all = adminRealm.where(StringOnly.class).findAllSorted(StringOnly.FIELD_CHARS);
+                RealmResults<StringOnly> all = adminRealm.where(StringOnly.class).sort(StringOnly.FIELD_CHARS).findAll();
                 RealmChangeListener<RealmResults<StringOnly>> realmChangeListener = new RealmChangeListener<RealmResults<StringOnly>>() {
                     @Override
                     public void onChange(RealmResults<StringOnly> stringOnlies) {

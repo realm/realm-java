@@ -52,9 +52,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNI
         }
 
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-
         DescriptorOrdering descriptor_ordering;
-        REALM_ASSERT_RELEASE(!(j_sort_desc && j_distinct_desc));
         if (j_sort_desc) {
             descriptor_ordering.append_sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor());
         }

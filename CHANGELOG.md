@@ -3,9 +3,13 @@
 ### Deprecated
 
 * Support for mips devices are deprecated.
+* `RealmQuery.findAllSorted()` and `RealmQuery.findAllSortedAsync()` variants in favor of predicate `RealmQuery.sort().findAll()`.
+* `RealmQuery.distinct()` and `RealmQuery.distinctAsync()` variants in favor of predicate `RealmQuery.distinctValues().findAll()`
 
 ### Enhancements
 
+* New query predicate: `sort()`.
+* New query predicate: `distinctValues()`. Will be renamed to `distinct` in next major version.
 * The Realm annotation processor now has a stable output when there are no changes to model classes, improving support for incremental compilers (#5567).
 
 ### Bug Fixes
