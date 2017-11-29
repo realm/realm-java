@@ -506,7 +506,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
         if (isManaged()) {
-            return this.where().findAllSorted(fieldName, sortOrder);
+            return this.where().sort(fieldName, sortOrder).findAll();
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
@@ -526,7 +526,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Override
     public RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders) {
         if (isManaged()) {
-            return where().findAllSorted(fieldNames, sortOrders);
+            return where().sort(fieldNames, sortOrders).findAll();
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }

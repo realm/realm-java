@@ -394,11 +394,12 @@ public class DynamicRealmTests {
 
     @Test
     @RunTestInLooperThread
-    public void findAllSortedAsync() {
+    public void sort_async() {
         final DynamicRealm dynamicRealm = initializeDynamicRealm();
         final RealmResults<DynamicRealmObject> allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 0, 4)
-                .findAllSortedAsync(AllTypes.FIELD_STRING, Sort.DESCENDING);
+                .sort(AllTypes.FIELD_STRING, Sort.DESCENDING)
+                .findAllAsync();
         assertFalse(allTypes.isLoaded());
         assertEquals(0, allTypes.size());
 
@@ -428,7 +429,7 @@ public class DynamicRealmTests {
 
     @Test
     @RunTestInLooperThread
-    public void findAllSortedAsync_usingMultipleFields() {
+    public void sort_async_usingMultipleFields() {
         final DynamicRealm dynamicRealm = initializeDynamicRealm();
 
         dynamicRealm.setAutoRefresh(false);
@@ -448,18 +449,20 @@ public class DynamicRealmTests {
 
         // Sorts first set by using: String[ASC], Long[DESC].
         final RealmResults<DynamicRealmObject> realmResults1 = dynamicRealm.where(AllTypes.CLASS_NAME)
-                .findAllSortedAsync(
+                .sort(
                         new String[]{AllTypes.FIELD_STRING, AllTypes.FIELD_LONG},
                         new Sort[]{Sort.ASCENDING, Sort.DESCENDING}
-                );
+                )
+                .findAllAsync();
 
         // Sorts second set by using: String[DESC], Long[ASC].
         final RealmResults<DynamicRealmObject> realmResults2 = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 0, 5)
-                .findAllSortedAsync(
+                .sort(
                         new String[]{AllTypes.FIELD_STRING, AllTypes.FIELD_LONG},
                         new Sort[]{Sort.DESCENDING, Sort.ASCENDING}
-                );
+                )
+                .findAllAsync();
 
         final Runnable signalCallbackDone = new Runnable() {
             final AtomicInteger callbacksDone = new AtomicInteger(2);
