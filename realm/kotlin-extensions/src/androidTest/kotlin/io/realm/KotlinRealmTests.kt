@@ -7,21 +7,16 @@ import io.realm.entities.SimpleClass
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.rule.TestRealmConfigurationFactory
-import org.junit.*
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 
 @Suppress("FunctionName")
 @RunWith(AndroidJUnit4::class)
 class KotlinRealmTests {
-
-//    companion object {
-//        @BeforeClass
-//        @JvmStatic
-//        fun before() {
-//            Realm.init(InstrumentationRegistry.getTargetContext())
-//        }
-//    }
 
     @Suppress("MemberVisibilityCanPrivate")
     @get:Rule
@@ -61,4 +56,6 @@ class KotlinRealmTests {
     fun where() {
         assertEquals(0, realm.where<SimpleClass>().count())
     }
+
+
 }
