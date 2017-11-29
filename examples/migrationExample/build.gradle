@@ -8,7 +8,7 @@ android {
     defaultConfig {
         applicationId "examples.realm.io.migration"
         targetSdkVersion rootProject.sdkVersion
-        minSdkVersion 15
+        minSdkVersion rootProject.minSdkVersion
         versionCode 1
         versionName "1.0"
     }

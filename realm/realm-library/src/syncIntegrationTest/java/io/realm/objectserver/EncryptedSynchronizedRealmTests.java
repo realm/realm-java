@@ -226,8 +226,8 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
 
         adminRealm = Realm.getInstance(adminConfigWithEncryption);
 
-        RealmResults<StringOnly> allSorted = realm.where(StringOnly.class).findAllSorted(StringOnly.FIELD_CHARS);
-        RealmResults<StringOnly> allSortedAdmin = adminRealm.where(StringOnly.class).findAllSorted(StringOnly.FIELD_CHARS);
+        RealmResults<StringOnly> allSorted = realm.where(StringOnly.class).sort(StringOnly.FIELD_CHARS).findAll();
+        RealmResults<StringOnly> allSortedAdmin = adminRealm.where(StringOnly.class).sort(StringOnly.FIELD_CHARS).findAll();
         assertEquals("Hi Alice", allSorted.get(0).getChars());
         assertEquals("Hi Bob", allSorted.get(1).getChars());
 

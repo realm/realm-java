@@ -138,7 +138,8 @@ public class ManagedRealmCollectionTests extends CollectionTests {
             case REALMRESULTS_SNAPSHOT_RESULTS_BASE:
             case REALMRESULTS:
                 orderedCollection = realm.where(AllJavaTypes.class)
-                        .findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                        .sort(AllJavaTypes.FIELD_LONG, Sort.ASCENDING)
+                        .findAll();
                 break;
 
             default:
@@ -341,15 +342,15 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     }
 
     @Test
-    public void where_findAllSorted() {
-        RealmResults<AllJavaTypes> results = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+    public void where_sort() {
+        RealmResults<AllJavaTypes> results = realm.where(AllJavaTypes.class).sort(AllJavaTypes.FIELD_LONG, Sort.ASCENDING).findAll();
         assertEquals(TEST_SIZE, results.size());
         //noinspection ConstantConditions
         assertEquals(0, results.first().getFieldLong());
         //noinspection ConstantConditions
         assertEquals(TEST_SIZE - 1, results.last().getFieldLong());
 
-        RealmResults<AllJavaTypes> reverseList = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
+        RealmResults<AllJavaTypes> reverseList = realm.where(AllJavaTypes.class).sort(AllJavaTypes.FIELD_LONG, Sort.DESCENDING).findAll();
         assertEquals(TEST_SIZE, reverseList.size());
         //noinspection ConstantConditions
         assertEquals(0, reverseList.last().getFieldLong());
@@ -357,8 +358,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         assertEquals(TEST_SIZE - 1, reverseList.first().getFieldLong());
 
         try {
-            realm.where(AllJavaTypes.class).findAllSorted("invalid",
-                    Sort.DESCENDING);
+            realm.where(AllJavaTypes.class).sort("invalid", Sort.DESCENDING).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -784,10 +784,10 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                     case RETAIN_ALL: collection.retainAll(Collections.singletonList(new AllJavaTypes())); break;
                 }
                 fail("Unknown method or it failed to throw: " + method);
-            } catch (Throwable t) {
-                if (!t.getClass().equals(expected)) {
-                    fail(method + " didn't throw the expected exception. Was: " + t + ", expected: " + expected);
-                }
+            } catch (IllegalStateException e) {
+                assertEquals(expected, e.getClass());
+            } catch (UnsupportedOperationException e) {
+                assertEquals(expected, e.getClass());
             }
         }
     }

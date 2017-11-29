@@ -42,6 +42,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -98,7 +99,9 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
             case UNMANAGED_REALMLIST:
                 populateRealm(realm, sampleSize);
-                RealmResults<AllJavaTypes> objects = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                RealmResults<AllJavaTypes> objects = realm.where(AllJavaTypes.class)
+                        .sort(AllJavaTypes.FIELD_LONG, Sort.ASCENDING)
+                        .findAll();
                 RealmList<AllJavaTypes> inMemoryList = new RealmList<AllJavaTypes>();
                 inMemoryList.addAll(objects);
                 return inMemoryList;
@@ -107,7 +110,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             case REALMRESULTS:
                 populateRealm(realm, sampleSize);
                 orderedCollection = realm.where(AllJavaTypes.class)
-                        .findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                        .sort(AllJavaTypes.FIELD_LONG, Sort.ASCENDING)
+                        .findAll();
                 break;
 
             default:
@@ -429,6 +433,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
         try {
             it.remove();
+            fail();
         } catch (IllegalStateException e) {
             assertRealmList();
         } catch (UnsupportedOperationException e) {
@@ -612,22 +617,25 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         assertEquals(42, obj.getFieldLong());
     }
 
+    @Test
     public void listIterator_add() {
-        if (skipTest(CollectionClass.REALMRESULTS)) {
+        if (skipTest(CollectionClass.REALMRESULTS, CollectionClass.REALMRESULTS_SNAPSHOT_RESULTS_BASE,
+                CollectionClass.REALMRESULTS_SNAPSHOT_LIST_BASE)) {
             return;
         }
 
         realm.beginTransaction();
         ListIterator<AllJavaTypes> it = collection.listIterator();
 
-        // Calling set() before next() should throw.
-        try {
-            it.add(new AllJavaTypes());
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
+        // The element is inserted immediately before the element that would be returned by next(), if any, and after
+        // the element that would be returned by previous(), if any. (If the list contains no elements, the new element
+        // becomes the sole element on the list.)
+        it.add(new AllJavaTypes(4242));
+        AllJavaTypes obj = collection.first();
+        assertNotNull(obj);
+        assertEquals(4242, obj.getFieldLong());
 
-        AllJavaTypes obj = it.next();
+        obj = it.next();
         assertEquals(0, obj.getFieldLong());
         it.add(new AllJavaTypes(42));
         obj = it.previous();

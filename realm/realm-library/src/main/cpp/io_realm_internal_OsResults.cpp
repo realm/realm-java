@@ -52,9 +52,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNI
         }
 
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-
         DescriptorOrdering descriptor_ordering;
-        REALM_ASSERT_RELEASE(!(j_sort_desc && j_distinct_desc));
         if (j_sort_desc) {
             descriptor_ordering.append_sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor());
         }
@@ -62,27 +60,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNI
             descriptor_ordering.append_distinct(JavaSortDescriptor(env, j_distinct_desc).distinct_descriptor());
         }
         Results results(shared_realm, *query, descriptor_ordering);
-        auto wrapper = new ResultsWrapper(results);
-
-        return reinterpret_cast<jlong>(wrapper);
-    }
-    CATCH_STD()
-    return reinterpret_cast<jlong>(nullptr);
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFromList(JNIEnv* env, jclass,
-                                                                                          jlong shared_realm_ptr,
-                                                                                          jlong list_ptr,
-                                                                                          jobject j_sort_desc)
-{
-    TR_ENTER()
-    try {
-        auto& list_wrapper = *reinterpret_cast<ObservableCollectionWrapper<List>*>(list_ptr);
-        auto& list = list_wrapper.collection();
-        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        Results results = j_sort_desc ?
-            list.sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor()) :
-            list.as_results();
         auto wrapper = new ResultsWrapper(results);
 
         return reinterpret_cast<jlong>(wrapper);
@@ -420,4 +397,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFrom
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeEvaluateQueryIfNeeded(JNIEnv* env, jclass,
+                                                                                    jlong native_ptr,
+                                                                                    jboolean wants_notifications)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+        wrapper->collection().evaluate_query_if_needed(wants_notifications);
+    }
+    CATCH_STD()
 }

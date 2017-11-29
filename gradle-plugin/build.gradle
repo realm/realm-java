@@ -22,11 +22,12 @@ props.each { key, val ->
 
 repositories {
     mavenLocal()
+    google()
     jcenter()
 }
 
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim();
@@ -46,8 +47,12 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
     compile "io.realm:realm-transformer:${version}"
-    compile 'com.neenbedankt.gradle.plugins:android-apt:1.8'
-    provided 'com.android.tools.build:gradle:2.1.0'
+    /*Note: the latest Android Gradle plugin has now built in support for annotation processors and warns and/or blocks android-apt,
+     see this https://bitbucket.org/hvisser/android-apt/wiki/Migration page on how to migrate
+     and this https://www.littlerobots.nl/blog/Whats-next-for-android-apt/ for more info.
+   */
+    compile 'com.neenbedankt.gradle.plugins:android-apt:1.8' //TODO: https://www.littlerobots.nl/blog/Whats-next-for-android-apt/
+    provided 'com.android.tools.build:gradle:3.1.0-alpha03'
 
     testCompile gradleTestKit()
     testCompile 'junit:junit:4.12'

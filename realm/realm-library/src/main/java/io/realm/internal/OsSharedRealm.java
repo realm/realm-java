@@ -511,7 +511,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         } else {
             @SuppressWarnings("ConstantConditions")
             Table table = getTable(Table.getTableNameForClass(callback.className));
-            OsResults results = new OsResults(this, table, nativeResultsPtr, true);
+            OsResults results = new OsResults(this, table, nativeResultsPtr);
             callback.onSuccess(results);
         }
     }

@@ -106,8 +106,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     packagingOptions {
@@ -189,7 +189,7 @@ repositories {
 
 dependencies {
 
-    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.4'
+    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.5'
     compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
     api "io.realm:realm-annotations:${version}"
@@ -201,7 +201,7 @@ dependencies {
 
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
-    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.4'
+    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test:rules:1.0.1'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
@@ -211,7 +211,7 @@ dependencies {
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
     // specify error prone version to prevent sudden failure
-    errorprone 'com.google.errorprone:error_prone_core:2.0.21'
+    errorprone 'com.google.errorprone:error_prone_core:2.1.2'
 }
 
 task sourcesJar(type: Jar) {

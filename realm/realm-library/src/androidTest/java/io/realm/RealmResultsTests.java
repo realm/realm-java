@@ -73,7 +73,9 @@ public class RealmResultsTests extends CollectionTests {
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
         populateTestRealm();
-        collection = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_LONG, Sort.ASCENDING);
+        collection = realm.where(AllTypes.class)
+                .sort(AllTypes.FIELD_LONG, Sort.ASCENDING)
+                .findAll();
     }
 
     @After
