@@ -1,5 +1,8 @@
 ![Realm](logo.png)
 
+[![bintray](https://api.bintray.com/packages/realm/maven/realm-gradle-plugin/images/download.svg) ](https://bintray.com/realm/maven/realm-gradle-plugin/_latestVersion)
+[![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/realm/realm-java/blob/master/LICENSE)
+
 Realm is a mobile database that runs directly inside phones, tablets or wearables.
 This repository holds the source code for the Java version of Realm, which currently runs only on Android.
 
@@ -21,18 +24,20 @@ The API reference is located at [realm.io/docs/java/api](https://realm.io/docs/j
 
 ## Getting Help
 
-- **Need help with your code?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](http://stackoverflow.com/questions/ask?tags=realm). We activtely monitor & answer questions on SO!
+- **Need help with your code?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](http://stackoverflow.com/questions/ask?tags=realm). We actively monitor & answer questions on StackOverflow!
 - **Have a bug to report?** [Open an issue](https://github.com/realm/realm-java/issues/new). If possible, include the version of Realm, a full log, the Realm file, and a project that shows the issue.
 - **Have a feature request?** [Open an issue](https://github.com/realm/realm-java/issues/new). Tell us what the feature should do, and why you want the feature.
 - Sign up for our [**Community Newsletter**](https://go.pardot.com/l/210132/2017-04-26/3j74l) to get regular tips, learn about other use-cases and get alerted of blogposts and tutorials about Realm.
 
 ## Using Snapshots
 
-If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [Jfrog OSS](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-gradle-plugin/)
+If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [JFrog OSS](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-gradle-plugin/)
 
-```gradle
+```
 buildscript {
     repositories {
+        jcenter()
+        google()
         maven {
             url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
         }
@@ -44,6 +49,8 @@ buildscript {
 
 allprojects {
     repositories {
+        jcenter()
+        google()
         maven {
             url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
         }
@@ -59,10 +66,10 @@ In case you don't want to use the precompiled version, you can build Realm yours
 
 ### Prerequisites
 
- * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * Download & install the Android SDK **Build-Tools 26.0.2**, **Android O (API 26)** (for example through Android Studio’s **Android SDK Manager**).
+ * Download the [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
+ * Download & install the Android SDK **Build-Tools 27.0.1**, **Android Oreo (API 27)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
- * If you use Android Studio, Android Studio 3.0 or later is required.
+ * If you use Android Studio, Android Studio 3.0 or higher is required.
 
  * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
 You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
@@ -154,8 +161,7 @@ Generating the Javadoc using the command above may generate warnings. The Javado
 
 ### Upgrading Gradle Wrappers
 
- All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer `gradleVersion` propertiy defined in `/realm.properties` in order to determine Geadle Version of generating wrappers. After generating Gradle Wrappers, we need to modify `gradle/wrapper/gradle-wrapper.properties` to use `*-all.zip` distribution instead of `*-bin.zip` distribution.
-
+ All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradleVersion` property defined in `/realm.properties` in order to determine Gradle Version of generating wrappers.
 We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. When you update Gradle Wrappers, please obey the following steps.
 
  1. Edit `gradleVersion` property in defined in `/realm.properties` to new Gradle Wrapper version.

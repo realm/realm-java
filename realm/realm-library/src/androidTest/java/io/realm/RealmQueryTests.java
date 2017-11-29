@@ -199,6 +199,7 @@ public class RealmQueryTests extends QueryTests {
         BEGIN_GROUP,
         END_GROUP,
         OR,
+        AND,
         NOT,
         IS_NULL,
         IS_NOT_NULL,
@@ -315,6 +316,7 @@ public class RealmQueryTests extends QueryTests {
             case BEGIN_GROUP: query.beginGroup(); break;
             case END_GROUP: query.endGroup(); break;
             case OR: query.or(); break;
+            case AND: query.and(); break;
             case NOT: query.not(); break;
             case IS_NULL: query.isNull(          AllJavaTypes.FIELD_DATE); break;
             case IS_NOT_NULL: query.isNotNull(   AllJavaTypes.FIELD_DATE); break;
@@ -357,7 +359,6 @@ public class RealmQueryTests extends QueryTests {
     public void callThreadConfinedMethodsFromWrongThread() throws Throwable {
         final RealmQuery<AllJavaTypes> query = realm.where(AllJavaTypes.class);
 
-        final AtomicReference<Throwable> throwableFromThread = new AtomicReference<Throwable>();
         final CountDownLatch testFinished = new CountDownLatch(1);
 
         final String expectedMessage;
@@ -380,13 +381,8 @@ public class RealmQueryTests extends QueryTests {
                         try {
                             callThreadConfinedMethod(query, method);
                             fail("IllegalStateException must be thrown.");
-                        } catch (Throwable e) {
-                            if (e instanceof IllegalStateException && expectedMessage.equals(e.getMessage())) {
-                                // expected exception
-                                continue;
-                            }
-                            throwableFromThread.set(e);
-                            return;
+                        } catch (IllegalStateException e) {
+                            assertEquals(expectedMessage, e.getMessage());
                         }
                     }
                 } finally {
@@ -397,10 +393,6 @@ public class RealmQueryTests extends QueryTests {
         thread.start();
 
         TestHelper.awaitOrFail(testFinished);
-        final Throwable throwable = throwableFromThread.get();
-        if (throwable != null) {
-            throw throwable;
-        }
     }
 
     @Test
@@ -581,6 +573,19 @@ public class RealmQueryTests extends QueryTests {
 
         query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 81.2345f);
         resultList = query.between(AllTypes.FIELD_LONG, 1, 100).findAll();
+        assertEquals(1, resultList.size());
+    }
+    
+    @Test
+    public void and_explicit() {
+        populateTestRealm(realm, 200);
+
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 31.2345f);
+        RealmResults<AllTypes> resultList = query.and().between(AllTypes.FIELD_LONG, 1, 10).findAll();
+        assertEquals(0, resultList.size());
+
+        query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 81.2345f);
+        resultList = query.and().between(AllTypes.FIELD_LONG, 1, 100).findAll();
         assertEquals(1, resultList.size());
     }
 

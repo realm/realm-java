@@ -1524,6 +1524,18 @@ public class RealmQuery<E> {
         this.query.or();
         return this;
     }
+    
+    /**
+     * Logical-and two conditions
+     * Realm automatically applies logical-and between all query statements, so this is intended only as a mean to increase readability.
+     *
+     * @return the query object
+     */
+    public RealmQuery<E> and() {
+    	realm.checkIfValid();
+    	
+    	return this;
+    }
 
     /**
      * Negate condition.
@@ -2002,7 +2014,7 @@ public class RealmQuery<E> {
         if (realm.isInTransaction()) {
             // It is not possible to create async query inside a transaction. So immediately query the first object.
             // See OS Results::prepare_async()
-            row = new OsResults(realm.sharedRealm, query).firstUncheckedRow();
+            row = OsResults.createFromQuery(realm.sharedRealm, query).firstUncheckedRow();
         } else {
             // prepares an empty reference of the RealmObject which is backed by a pending query,
             // then update it once the query complete in the background.
@@ -2038,7 +2050,7 @@ public class RealmQuery<E> {
             @Nullable SortDescriptor distinctDescriptor,
             boolean loadResults) {
         RealmResults<E> results;
-        OsResults osResults = new OsResults(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
+        OsResults osResults = OsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
         if (isDynamicQuery()) {
             results = new RealmResults<>(realm, osResults, className);
         } else {

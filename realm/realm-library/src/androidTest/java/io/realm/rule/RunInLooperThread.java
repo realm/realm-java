@@ -80,7 +80,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     // events (Callbacks happening in the future), so we add a strong reference
     // to them for the duration of the test.
     // Access guarded by 'lock'
-    private LinkedList<Object> keepStrongReference;
+    private List<Object> keepStrongReference;
 
     // Custom Realm used by the test. Saving the reference here will guarantee
     // that the instance is closed when exiting the test.
@@ -266,9 +266,9 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         super.before();
 
         RealmConfiguration config = createConfiguration(UUID.randomUUID().toString());
-        LinkedList<Object> refs = new LinkedList<>();
-        List<Realm> realms = new LinkedList<>();
-        LinkedList<Closeable> closeables = new LinkedList<>();
+        List<Object> refs = new ArrayList<>();
+        List<Realm> realms = new ArrayList<>();
+        List<Closeable> closeables = new ArrayList<>();
 
         synchronized (lock) {
             realmConfiguration = config;

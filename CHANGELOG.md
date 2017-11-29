@@ -1,8 +1,49 @@
-## 4.1.1 (2017-10-27)
-
-### Breaking Changes
+## 4.2.1 (YYYY-MM-DD)
 
 ### Enhancements
+
+### Bug Fixes
+
+* Added missing `toString()` for the implementation of `OrderedCollectionChangeSet`.
+* Sync queries are evaluated immediately to solve the performance issue when the query results are huge, `RealmResults.size()` takes too long time (#5387).
+
+### Internal
+
+* Use `OsList` instead of `OsResults` to add notification token on for `RealmList<RealmModel>`.
+* Updated Gralde and plugins to support Android Studio `3.0.0` (#5472).
+
+### Credits
+
+* Thanks to @tbsandee for fixing a typo (#5548).
+* Thanks to @vivekkiran for updating Gralde and plugins to support Android Studio `3.0.0` (#5472).
+
+
+## 4.2.0 (2017-11-17)
+
+### Enhancements
+
+* Added support for using non-encrypted Realms in multiple processes. Some caveats apply. Read [doc](https://realm.io/docs/java/latest/#multiprocess) for more info (#1091).
+* Added support for importing primitive lists from JSON (#5362).
+* [ObjectServer] Support SSL validation using Android TrustManager (no need to specify `trustedRootCA` in `SynConfiguration` if the certificate is installed on the device), fixes (#4759).
+* Added the and() function to `RealmQuery` in order to improve readability.
+
+### Bug Fixes
+
+* Leaked file handler in the Realm Transformer (#5521).
+* Potential fix for "RealmError: Incompatible lock file" crash (#2459).
+
+### Internal
+
+* Updated JavaAssist to 3.22.0-GA.
+* Upgraded to Realm Sync 2.1.4.
+* Upgraded to Realm Core 4.0.3.
+
+### Credits
+
+* Thanks to @rakshithravi1997 for adding `RealmQuery.and()` (#5520).
+
+
+## 4.1.1 (2017-10-27)
 
 ### Bug Fixes
 
@@ -12,18 +53,16 @@
 
 ### Internal
 
-* Updated Realm Sync to 2.1.0
-
-### Credits
+* Updated Realm Sync to 2.1.0.
 
 
 ## 4.1.0 (2017-10-20)
 
-## Enhancements
+### Enhancements
 
 * `Realm.deleteRealm()` and `RealmConfiguration.assetFile()` are multi-processes safe now.
 
-## Bug Fixes
+### Bug Fixes
 
 * Fix some potential database corruption caused by deleting the Realm file while a Realm instance are still opened in another process or the sync client thread.
 * Added `realm.ignoreKotlinNullability` as a kapt argument to disable treating kotlin non-null types as `@Required` (#5412) (introduced in `v3.6.0`).
@@ -32,7 +71,7 @@
 
 ## 4.0.0 (2017-10-16)
 
-## Breaking Changes
+### Breaking Changes
 
 The internal file format has been upgraded. Opening an older Realm will upgrade the file automatically, but older versions of Realm will no longer be able to read the file.
 
@@ -56,10 +95,10 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 * Removed deprecated API `RealmResults.distinct()`/`RealmResults.distinctAsync()`. Use `RealmQuery.distinct()`/`RealmQuery.distinctAsync()` instead.
 * `RealmQuery.createQuery(Realm, Class)`, `RealmQuery.createDynamicQuery(DynamicRealm, String)`, `RealmQuery.createQueryFromResult(RealmResults)` and `RealmQuery.createQueryFromList(RealmList)` have been removed. Use `Realm.where(Class)`, `DynamicRealm.where(String)`, `RealmResults.where()` and `RealmList.where()` instead.
 
-## Enhancements
+### Enhancements
 
 * [ObjectServer] `SyncUserInfo` now also exposes a users metadata using `SyncUserInfo.getMetadata()`
-* `RealmList` can now contain `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` values. [Queries](https://github.com/realm/realm-java/issues/5361) and [Importing primitive lists from JSON](https://github.com/realm/realm-java/issues/5361) are not supported yet.
+* `RealmList` can now contain `String`, `byte[]`, `Boolean`, `Long`, `Integer`, `Short`, `Byte`, `Double`, `Float` and `Date` values. [Queries](https://github.com/realm/realm-java/issues/5361) and [Importing primitive lists from JSON](https://github.com/realm/realm-java/issues/5362) are not supported yet.
 * Added support for lists of primitives in `RealmObjectSchema` with `addRealmListField(String fieldName, Class<?> primitiveType)`
 * Added support for lists of primitives in `DynamicRealmObject` with `setList(String fieldName, RealmList<?> list)` and `getList(String fieldName, Class<?> primitiveType)`.
 * Minor performance improvement when copy/insert objects into Realm.
@@ -70,7 +109,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 * All Realm annotations are now kept at runtime, allowing runtime tools access to them (#5344).
 * Speedup schema initialization when a Realm file is first accessed (#5391).
 
-## Bug Fixes
+### Bug Fixes
 
 * [ObjectServer] Exposing a `RealmConfiguration` that allows a user to open the backup Realm after the client reset (#4759/#5223).
 * [ObjectServer] Realm no longer throws a native “unsupported instruction” exception in some cases when opening a synced Realm asynchronously (https://github.com/realm/realm-object-store/issues/502).
@@ -83,7 +122,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 * Don't try to acquire `ApplicationContext` if not available in `Realm.init(Context)` (#5389).
 * Removing and re-adding a changelistener from inside a changelistener sometimes caused notifications to be missed (#5411).
 
-## Internal
+### Internal
 
 * Upgraded to Realm Sync 2.0.2.
 * Upgraded to Realm Core 4.0.2.
@@ -93,7 +132,7 @@ The internal file format has been upgraded. Opening an older Realm will upgrade 
 
 ### Credits
 
-Thanks to @JussiPekonen for adding support for 2-digit time zone designators when importing JSON (#5309).
+* Thanks to @JussiPekonen for adding support for 2-digit time zone designators when importing JSON (#5309).
 
 
 ## 3.7.2 (2017-09-12)

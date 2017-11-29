@@ -19,12 +19,11 @@ package io.realm.objectserver;
 import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -53,8 +52,9 @@ public class ProcessCommitTests extends StandardIntegrationTest {
     @Rule
     public RunWithRemoteService remoteService = new RunWithRemoteService();
 
-    @Before
-    public void before() throws Exception {
+    @Override
+    public void setupTest() throws IOException {
+        super.setupTest();
         UserFactory.resetInstance();
     }
 
@@ -104,7 +104,6 @@ public class ProcessCommitTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     @RunTestWithRemoteService(remoteService = SimpleCommitRemoteService.class, onLooperThread = true)
-    @Ignore("See https://github.com/realm/realm-java/issues/5376")
     public void expectSimpleCommit() {
         looperThread.runAfterTest(remoteService.afterRunnable);
         remoteService.createHandler(Looper.myLooper());
