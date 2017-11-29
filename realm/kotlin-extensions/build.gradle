@@ -97,6 +97,7 @@ dokka {
 task javadocJar(type: Jar, dependsOn: dokka) {
     classifier = 'javadoc'
     from "$buildDir/dokka"
+}
 
 // Deployment
 
