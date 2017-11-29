@@ -26,7 +26,8 @@ import io.realm.Sort
 import io.realm.examples.kotlin.model.Cat
 import io.realm.examples.kotlin.model.Dog
 import io.realm.examples.kotlin.model.Person
-import io.realm.kotlin.*
+import io.realm.kotlin.createObject
+import io.realm.kotlin.where
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import kotlin.properties.Delegates
@@ -113,7 +114,10 @@ class KotlinExampleActivity : Activity() {
         showStatus("\nPerforming basic Query operation...")
         showStatus("Number of persons: ${realm.where<Person>().count()}")
 
-        val results = realm.where<Person>().equalTo(Person::age, 99).findAll()
+        val ageCriteria = 99
+        val results = realm.where<Person>()
+                .equalTo("age", ageCriteria)
+                .findAll()
 
         showStatus("Size of result set: " + results.size)
     }
@@ -174,7 +178,7 @@ class KotlinExampleActivity : Activity() {
             }
 
             // Sorting
-            val sortedPersons = realm.where<Person>().findAllSorted(Person::age, Sort.DESCENDING)
+            val sortedPersons = realm.where<Person>().findAllSorted(Person::age.name, Sort.DESCENDING)
             status += "\nSorting ${sortedPersons.last()?.name} == ${realm.where<Person>().findAll().first()?.name}"
 
         } finally {
@@ -195,8 +199,8 @@ class KotlinExampleActivity : Activity() {
             // Find all persons where age between 7 and 9 and name begins with "Person".
             val results = it
                     .where<Person>()
-                    .between(Person::age, 7, 9)       // Notice implicit "and" operation
-                    .beginsWith(Person::name, "Person")
+                    .between("age", 7, 9)       // Notice implicit "and" operation
+                    .beginsWith("name", "Person")
                     .findAll()
 
             status += "\nSize of result set: ${results.size}"
