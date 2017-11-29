@@ -490,7 +490,10 @@ public class OrderedCollectionChangeSetTests {
     @RunTestInLooperThread
     public void addChangeListener_bug5507() throws InterruptedException {
         // FIXME: See https://github.com/realm/realm-object-store/issues/605
-        if (type == ObservablesType.REALM_RESULTS) looperThread.testComplete();
+        if (type == ObservablesType.REALM_RESULTS) {
+            looperThread.testComplete();
+            return;
+        }
 
         Realm realm = looperThread.getRealm();
         populateData(realm, 1);
@@ -513,7 +516,6 @@ public class OrderedCollectionChangeSetTests {
             //noinspection unchecked
             ((RealmResults) dogs).addChangeListener(listener1);
         }
-
 
         Thread bgThread = new Thread(new Runnable() {
             @Override
