@@ -115,9 +115,7 @@ class KotlinExampleActivity : Activity() {
         showStatus("Number of persons: ${realm.where<Person>().count()}")
 
         val ageCriteria = 99
-        val results = realm.where<Person>()
-                .equalTo("age", ageCriteria)
-                .findAll()
+        val results = realm.where<Person>().equalTo("age", ageCriteria).findAll()
 
         showStatus("Size of result set: " + results.size)
     }

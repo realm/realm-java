@@ -44,7 +44,8 @@ android {
     }
 }
 
-// This is set as the default, but Kotlin extension functions for Realm can be excluded if needed.
+// This is added automatically if Kotlin is registered in the project, but Kotlin extension functions
+// for Realm can be excluded if needed.
 realm {
     kotlinExtensionsEnabled = true
 }

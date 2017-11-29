@@ -96,8 +96,7 @@ dokka {
 
 task javadocJar(type: Jar, dependsOn: dokka) {
     classifier = 'javadoc'
-    from "$buildDir/dokka" // Use Dokka format. Not 100% what implications this might have, but the Javadoc is really ugly.
-}
+    from "$buildDir/dokka"
 
 // Deployment
 
