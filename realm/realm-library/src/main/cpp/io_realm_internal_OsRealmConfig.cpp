@@ -155,10 +155,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
                                               reinterpret_cast<jlong>(new_shared_realm_ptr), config_global.get(), obj,
                                               old_realm->schema_version());
                 });
-                // Close the OsSharedRealm. Otherwise it will only be closed when the Java OsSharedRealm gets GCed. And
-                // that will be too late.
-                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(
-                    env, [&new_shared_realm_ptr]() { (*new_shared_realm_ptr)->close(); });
+                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
             };
         }
         else {
@@ -230,10 +227,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
                                               reinterpret_cast<jlong>(new_shared_realm_ptr), config_global_ref.get(),
                                               obj);
                 });
-                // Close the OsSharedRealm. Otherwise it will only be closed when the Java OsSharedRealm gets GCed. And
-                // that will be too late.
-                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(
-                    env, [&new_shared_realm_ptr]() { (*new_shared_realm_ptr)->close(); });
+                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
             };
         }
         else {
