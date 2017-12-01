@@ -8,6 +8,7 @@
 
 ### Enhancements
 
+* Projects using Kotlin now include additional extension functions that make working with Kotlin easier. See [docs](https://realm.io/docs/java/latest/#kotlin) for more info (#4684).
 * New query predicate: `sort()`.
 * New query predicate: `distinctValues()`. Will be renamed to `distinct` in next major version.
 * The Realm annotation processor now has a stable output when there are no changes to model classes, improving support for incremental compilers (#5567).

@@ -95,6 +95,7 @@ try {
                     } finally {
                       stopLogCatCollector(backgroundPid)
                       storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+                      storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
                     }
                   }
                 }
@@ -195,8 +196,9 @@ def getTagsString(Map<String, String> tags) {
 def storeJunitResults(String path) {
   step([
 	 $class: 'JUnitResultArchiver',
-	testResults: path
-       ])
+     allowEmptyResults: true,
+     testResults: path
+   ])
 }
 
 def collectAarMetrics() {
