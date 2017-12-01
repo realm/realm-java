@@ -28,6 +28,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.rule.RunInLooperThread;
@@ -89,6 +90,21 @@ public class OrderedCollectionChangeSetTests {
         for (int i = 0; i < testSize; i++) {
             Dog dog = realm.createObject(Dog.class);
             dog.setAge(i);
+
+            // Create friend cat
+            Cat catFriend = realm.createObject(Cat.class);
+            catFriend.setAge(i);
+            catFriend.setName("Fiend" + i);
+            dog.getCatFriends().add(catFriend);
+
+            // Create dog owner
+            Owner dogOwner = realm.createObject(Owner.class);
+            dogOwner.setName("Owner" + i);
+            Cat cat = realm.createObject(Cat.class);
+            cat.setAge(i);
+            dogOwner.setCat(cat);
+            dog.setOwner(dogOwner);
+
             if (type == ObservablesType.REALM_LIST) {
                 owner.getDogs().add(dog);
             }
@@ -152,6 +168,33 @@ public class OrderedCollectionChangeSetTests {
             Dog obj = realm.where(Dog.class).equalTo(Dog.FIELD_AGE, index).findFirst();
             assertNotNull(obj);
             obj.setName("modified");
+        }
+    }
+
+    // Modifies specific Dogs objects owner's name field.
+    private void modifyChildLinksField(Realm realm, int... indices) {
+        for (int index : indices) {
+            Dog obj = realm.where(Dog.class).equalTo(Dog.FIELD_AGE, index).findFirst();
+            assertNotNull(obj);
+            obj.getOwner().setName("modified");
+        }
+    }
+
+    // Modifies specific Dogs object's cat fiend's name
+    private void modifyChildLinkListsField(Realm realm, int... indices) {
+        for (int index : indices) {
+            Dog obj = realm.where(Dog.class).equalTo(Dog.FIELD_AGE, index).findFirst();
+            assertNotNull(obj);
+            obj.getCatFriends().first().setName("modified");
+        }
+    }
+
+    // Modifies specific dog owner's cat's name field.
+    private void modifyGrandchildLinksField(Realm realm, int... indices) {
+        for (int index : indices) {
+            Dog obj = realm.where(Dog.class).equalTo(Dog.FIELD_AGE, index).findFirst();
+            assertNotNull(obj);
+            obj.getOwner().getCat().setName("modified");
         }
     }
 
@@ -310,6 +353,99 @@ public class OrderedCollectionChangeSetTests {
 
         realm.beginTransaction();
         modifyObjects(realm,
+                0,
+                2, 3, 4,
+                8, 9);
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changes_causedByChildLinksFieldChanges() {
+        Realm realm = looperThread.realm;
+        populateData(realm, 10);
+        ChangesCheck changesCheck = new ChangesCheck() {
+            @Override
+            public void check(OrderedCollectionChangeSet changeSet) {
+                checkRanges(changeSet.getChangeRanges(),
+                        0, 1,
+                        2, 3,
+                        8, 2);
+                assertArrayEquals(changeSet.getChanges(), new int[]{0, 2, 3, 4, 8, 9});
+                assertEquals(0, changeSet.getInsertionRanges().length);
+                assertEquals(0, changeSet.getDeletionRanges().length);
+                assertEquals(0, changeSet.getInsertions().length);
+                assertEquals(0, changeSet.getDeletions().length);
+                looperThread.testComplete();
+            }
+        };
+
+        registerCheckListener(realm, changesCheck);
+
+        realm.beginTransaction();
+        modifyChildLinksField(realm,
+                0,
+                2, 3, 4,
+                8, 9);
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changes_causedByChildLinkListsFieldChanges() {
+        Realm realm = looperThread.realm;
+        populateData(realm, 10);
+        ChangesCheck changesCheck = new ChangesCheck() {
+            @Override
+            public void check(OrderedCollectionChangeSet changeSet) {
+                checkRanges(changeSet.getChangeRanges(),
+                        0, 1,
+                        2, 3,
+                        8, 2);
+                assertArrayEquals(changeSet.getChanges(), new int[]{0, 2, 3, 4, 8, 9});
+                assertEquals(0, changeSet.getInsertionRanges().length);
+                assertEquals(0, changeSet.getDeletionRanges().length);
+                assertEquals(0, changeSet.getInsertions().length);
+                assertEquals(0, changeSet.getDeletions().length);
+                looperThread.testComplete();
+            }
+        };
+
+        registerCheckListener(realm, changesCheck);
+
+        realm.beginTransaction();
+        modifyChildLinkListsField(realm,
+                0,
+                2, 3, 4,
+                8, 9);
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changes_causedByGrandchildLinksFieldChanges() {
+        Realm realm = looperThread.realm;
+        populateData(realm, 10);
+        ChangesCheck changesCheck = new ChangesCheck() {
+            @Override
+            public void check(OrderedCollectionChangeSet changeSet) {
+                checkRanges(changeSet.getChangeRanges(),
+                        0, 1,
+                        2, 3,
+                        8, 2);
+                assertArrayEquals(changeSet.getChanges(), new int[]{0, 2, 3, 4, 8, 9});
+                assertEquals(0, changeSet.getInsertionRanges().length);
+                assertEquals(0, changeSet.getDeletionRanges().length);
+                assertEquals(0, changeSet.getInsertions().length);
+                assertEquals(0, changeSet.getDeletions().length);
+                looperThread.testComplete();
+            }
+        };
+
+        registerCheckListener(realm, changesCheck);
+
+        realm.beginTransaction();
+        modifyGrandchildLinksField(realm,
                 0,
                 2, 3, 4,
                 8, 9);
