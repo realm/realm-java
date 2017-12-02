@@ -120,15 +120,9 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache) {
+    public long insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
-        return originalMediator.copyOrUpdate(realm, object, update, cache);
-    }
-
-    @Override
-    public void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
-        checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
-        originalMediator.insert(realm, object, cache);
+        return originalMediator.insert(realm, object, cache);
     }
 
     @Override
@@ -138,9 +132,9 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+    public long insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
-        originalMediator.insertOrUpdate(realm, object, cache);
+        return originalMediator.insertOrUpdate(realm, object, cache);
     }
 
     @Override

@@ -114,19 +114,6 @@ public abstract class RealmProxyMediator {
     public abstract Set<Class<? extends RealmModel>> getModelClasses();
 
     /**
-     * Copies an unmanaged {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied
-     * any changes to the original object will not be persisted.
-     *
-     * @param realm the reference to the {@link Realm} where the object will be copied.
-     * @param object the object to copy properties from.
-     * @param update {@code true} if object has a primary key and should try to update already existing data,
-     * {@code false} otherwise.
-     * @param cache the cache for mapping between unmanaged objects and their {@link RealmObjectProxy} representation.
-     * @return the managed Realm object.
-     */
-    public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
-
-    /**
      * Inserts an unmanaged RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
      * since it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original object will not be persisted.
@@ -135,7 +122,7 @@ public abstract class RealmProxyMediator {
      * @param object {@link RealmObject} to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
      */
-    public abstract void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+    public abstract long insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
      * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
@@ -146,7 +133,7 @@ public abstract class RealmProxyMediator {
      * @param object {@link RealmObject} to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
      */
-    public abstract void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+    public abstract long insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
      * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}

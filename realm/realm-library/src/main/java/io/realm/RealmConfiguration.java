@@ -180,7 +180,7 @@ public class RealmConfiguration {
     }
 
     /**
-     * Returns the transaction instance with initial data.
+     *
      *
      * @return the initial data transaction.
      */

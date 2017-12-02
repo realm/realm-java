@@ -1516,8 +1516,8 @@ public class RealmTests {
                 }
                 fail("Null value as primary key already exists.");
             } catch (RealmPrimaryKeyConstraintException expected) {
-                assertTrue("Exception message is: " + expected.getMessage(),
-                        expected.getMessage().contains("Primary key value already exists: 'null' ."));
+                assertThat(expected.getMessage(),
+                        CoreMatchers.containsString("Primary key value already exists: 'null'."));
             } finally {
                 realm.cancelTransaction();
             }
