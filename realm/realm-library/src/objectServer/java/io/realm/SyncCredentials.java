@@ -98,6 +98,19 @@ public class SyncCredentials {
     }
 
     /**
+     * Creates credentials based on a JSON Web Token (JWT).
+     *
+     * @param jwtToken a JWT token that identifies the user.
+     * @return a set of credentials that can be used to log into the Object Server using
+     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * @throws IllegalArgumentException if the token is either {@code null} or empty.
+     */
+    public static SyncCredentials jwt(String jwtToken) {
+        assertStringNotEmpty(jwtToken, "jwtToken");
+        return new SyncCredentials(jwtToken, IdentityProvider.JWT, null);
+    }
+
+    /**
      * Creates credentials based on a login with username and password. These credentials will only be verified
      * by the Object Server.
      *
@@ -262,6 +275,12 @@ public class SyncCredentials {
          * Credentials will be verified by Google.
          */
         public static final String GOOGLE = "google";
+
+        /**
+         * Credentials are given in the form of a standard JSON Web Token that will be verified
+         * by the Realm Object Server.
+         */
+        public static final String JWT = "jwt";
 
         /**
          * Credentials will be verified by the Object Server.
