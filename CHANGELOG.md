@@ -12,6 +12,8 @@
 
 * Use `OsList` instead of `OsResults` to add notification token on for `RealmList<RealmModel>`.
 * Updated Gralde and plugins to support Android Studio `3.0.0` (#5472).
+* Upgraded to Realm Sync 2.1.8.
+* Upgraded to Realm Core 4.0.4.
 
 ### Credits
 
