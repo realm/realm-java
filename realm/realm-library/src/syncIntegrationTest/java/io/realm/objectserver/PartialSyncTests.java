@@ -10,6 +10,8 @@ import org.junit.runner.RunWith;
 
 import java.util.concurrent.CountDownLatch;
 
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
@@ -18,12 +20,14 @@ import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.TestSyncConfigurationFactory;
+import io.realm.entities.AllTypes;
 import io.realm.exceptions.RealmException;
 import io.realm.objectserver.model.PartialSyncModule;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
+import kotlin.reflect.jvm.internal.impl.descriptors.deserialization.PlatformDependentDeclarationFilter;
 
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
@@ -36,6 +40,43 @@ import static org.junit.Assert.fail;
 public class PartialSyncTests extends StandardIntegrationTest {
     @Rule
     public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
+
+    @Test
+    public void partialSync_idAlreadyExists() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final SyncConfiguration partialSyncConfig = configFactory
+                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .name("partialSync")
+                .modules(new PartialSyncModule())
+                .partialRealm()
+                .build();
+
+        final Realm realm = Realm.getInstance(partialSyncConfig);
+
+        // Create first subscription
+        looperThread.keepStrongReference(realm.where(AllTypes.class).findAllAsync("query1"));
+
+        // Create 2nd subscription with a different query. This should fail
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .equalTo(AllTypes.FIELD_STRING, "")
+                .findAllAsync("query1");
+        looperThread.keepStrongReference(results);
+
+        // Wait for results to come in.
+        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> allTypes, OrderedCollectionChangeSet changeSet) {
+                switch (changeSet.getState()) {
+                    case ERROR:
+                        assertTrue(changeSet.getError() instanceof IllegalArgumentException);
+                        looperThread.testComplete();
+                        break;
+                    default:
+                        // Ignore
+                }
+            }
+        });
+    }
 
     @Test
     public void partialSync() throws InterruptedException {

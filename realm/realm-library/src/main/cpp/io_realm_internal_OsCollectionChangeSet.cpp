@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "collection_changeset_wrapper.hpp"
 #include "io_realm_internal_OsCollectionChangeSet.h"
 
 #include <collection_notifications.hpp>
@@ -21,6 +22,7 @@
 #include "util.hpp"
 
 using namespace realm;
+using namespace _impl;
 
 static void finalize_changeset(jlong ptr);
 static jintArray index_set_to_jint_array(JNIEnv* env, const IndexSet& index_set);
@@ -29,7 +31,7 @@ static jintArray index_set_to_indices_array(JNIEnv* env, const IndexSet& index_s
 static void finalize_changeset(jlong ptr)
 {
     TR_ENTER_PTR(ptr);
-    delete reinterpret_cast<CollectionChangeSet*>(ptr);
+    delete reinterpret_cast<CollectionChangeSetWrapper*>(ptr);
 }
 
 static jintArray index_set_to_jint_array(JNIEnv* env, const IndexSet& index_set)
@@ -91,14 +93,14 @@ JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeG
 {
     TR_ENTER_PTR(native_ptr)
     // no throws
-    auto& change_set = *reinterpret_cast<CollectionChangeSet*>(native_ptr);
+    auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
     switch (type) {
         case io_realm_internal_OsCollectionChangeSet_TYPE_DELETION:
-            return index_set_to_jint_array(env, change_set.deletions);
+            return index_set_to_jint_array(env, change_set.get().deletions);
         case io_realm_internal_OsCollectionChangeSet_TYPE_INSERTION:
-            return index_set_to_jint_array(env, change_set.insertions);
+            return index_set_to_jint_array(env, change_set.get().insertions);
         case io_realm_internal_OsCollectionChangeSet_TYPE_MODIFICATION:
-            return index_set_to_jint_array(env, change_set.modifications_new);
+            return index_set_to_jint_array(env, change_set.get().modifications_new);
         default:
             REALM_UNREACHABLE();
     }
@@ -109,15 +111,27 @@ JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeG
 {
     TR_ENTER_PTR(native_ptr)
     // no throws
-    auto& change_set = *reinterpret_cast<CollectionChangeSet*>(native_ptr);
+    auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
     switch (type) {
         case io_realm_internal_OsCollectionChangeSet_TYPE_DELETION:
-            return index_set_to_indices_array(env, change_set.deletions);
+            return index_set_to_indices_array(env, change_set.get().deletions);
         case io_realm_internal_OsCollectionChangeSet_TYPE_INSERTION:
-            return index_set_to_indices_array(env, change_set.insertions);
+            return index_set_to_indices_array(env, change_set.get().insertions);
         case io_realm_internal_OsCollectionChangeSet_TYPE_MODIFICATION:
-            return index_set_to_indices_array(env, change_set.modifications_new);
+            return index_set_to_indices_array(env, change_set.get().modifications_new);
         default:
             REALM_UNREACHABLE();
     }
+}
+
+JNIEXPORT jobject JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetError(JNIEnv*, jobject, jlong native_ptr) {
+    TR_ENTER_PTR(native_ptr)
+    auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
+    return change_set.get_error();
+}
+
+JNIEXPORT jboolean Java_io_realm_internal_OsCollectionChangeSet_nativeIsRemoteDataLoaded(JNIEnv*, jobject, jlong native_ptr) {
+    TR_ENTER_PTR(native_ptr)
+    auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
+    return change_set.is_remote_data_loaded();
 }

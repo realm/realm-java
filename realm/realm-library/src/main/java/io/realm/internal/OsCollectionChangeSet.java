@@ -28,6 +28,11 @@ import io.realm.OrderedCollectionChangeSet;
  * OsCollectionChangeSet and read from it only when needed. Creating an Java object from JNI when the collection
  * notification arrives, is avoided since we also support the collection listeners without a change set parameter,
  * parsing the change set may not be necessary all the time.
+ * <p>
+ * Warning: This class do not correctly identify the state
+ *
+ * </p>
+ *
  */
 public class OsCollectionChangeSet implements OrderedCollectionChangeSet, NativeObject {
 
@@ -49,6 +54,11 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
     public OsCollectionChangeSet(long nativePtr) {
         this.nativePtr = nativePtr;
         NativeContext.dummyContext.addReference(this);
+    }
+
+    @Override
+    public State getState() {
+        return State.UPDATE; // Should be overriden before being used
     }
 
     /**
@@ -99,17 +109,13 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         return longArrayToRangeArray(nativeGetRanges(nativePtr, TYPE_MODIFICATION));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public long getNativePtr() {
-        return nativePtr;
+    public Throwable getError() {
+        return null; // Should be overriden before being used.
     }
 
-    @Override
-    public long getNativeFinalizerPtr() {
-        return finalizerPtr;
+    public boolean isRemoteDataLoaded() {
+        return nativeIsRemoteDataLoaded(nativePtr);
     }
 
     // Convert long array returned by the nativeGetXxxRanges() to Range array.
@@ -126,14 +132,6 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         }
         return ranges;
     }
-
-    private native static long nativeGetFinalizerPtr();
-
-    // Returns the ranges as an long array. eg.: [startIndex1, length1, startIndex2, length2, ...]
-    private native static int[] nativeGetRanges(long nativePtr, int type);
-
-    // Returns the indices array.
-    private native static int[] nativeGetIndices(long nativePtr, int type);
 
     @Override
     public String toString() {
@@ -152,4 +150,35 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         return string;
 
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getNativePtr() {
+        return nativePtr;
+    }
+
+    @Override
+    public long getNativeFinalizerPtr() {
+        return finalizerPtr;
+    }
+
+    // Returns the underlying error if an error was detected.
+    // The underlying layer will wrap it in an appropropriate exception class.
+    // `null` is returned if no error is present
+    @Nullable
+    private native Object nativeGetError(long nativePtr);
+
+    // Returns true if the data described by the subscription has been downloaded to the device,
+    // false if not. In either case, the query is run against the local dataset.
+    private native boolean nativeIsRemoteDataLoaded(long nativePtr);
+
+    private native static long nativeGetFinalizerPtr();
+
+    // Returns the ranges as an long array. eg.: [startIndex1, length1, startIndex2, length2, ...]
+    private native static int[] nativeGetRanges(long nativePtr, int type);
+
+    // Returns the indices array.
+    private native static int[] nativeGetIndices(long nativePtr, int type);
 }

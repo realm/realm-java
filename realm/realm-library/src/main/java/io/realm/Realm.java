@@ -1768,6 +1768,31 @@ public class Realm extends BaseRealm {
         }
     }
 
+
+    /**
+     * TODO
+     *
+     * @param name
+     * @param onSuccess
+     * @param onError
+     */
+    public void unsubscribeAsync(String name, Transaction.OnSuccess onSuccess, Transaction.OnError onError) {
+        // TODO
+    }
+
+    /**
+     * TODO
+     *
+     *
+     * @param query
+     * @param onSuccess
+     * @param onError
+     * @param <E>
+     */
+    public <E extends RealmModel> void unsubscribeAsync(RealmQuery<E> query, Transaction.OnSuccess onSuccess, Transaction.OnError onError) {
+        // TODO
+    }
+
     /**
      * Returns the current number of open Realm instances across all threads in current process that are using this
      * configuration. This includes both dynamic and normal Realms.
