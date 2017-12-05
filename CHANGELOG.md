@@ -1,3 +1,10 @@
+## 4.3.1 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Fixed kotlin standard library being added to both Java and Kotlin projects (#5587).
+
+
 ## 4.3.0 (2017-12-05)
 
 ### Deprecated
