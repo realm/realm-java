@@ -919,7 +919,7 @@ public class RealmObjectSchemaTests {
             assertTrue(schema.hasPrimaryKey());
             assertTrue(schema.hasIndex(fieldName));
 
-            RealmResults<DynamicRealmObject> results = ((DynamicRealm)realm).where(className).findAllSorted(fieldName);
+            RealmResults<DynamicRealmObject> results = ((DynamicRealm)realm).where(className).sort(fieldName).findAll();
             assertEquals(2, results.size());
             if (fieldType == PrimaryKeyFieldType.STRING) {
                 assertEquals("1", results.get(0).getString(fieldName));

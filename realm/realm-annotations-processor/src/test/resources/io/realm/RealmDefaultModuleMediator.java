@@ -32,8 +32,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
 
     @Override
     public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
-        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
-                    new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>(1);
+        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap = new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>(1);
         infoMap.put(some.test.AllTypes.class, io.realm.AllTypesRealmProxy.getExpectedObjectSchemaInfo());
         return infoMap;
     }

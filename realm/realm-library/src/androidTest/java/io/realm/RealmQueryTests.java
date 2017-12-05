@@ -209,7 +209,6 @@ public class RealmQueryTests extends QueryTests {
         IS_VALID,
         DISTINCT,
         DISTINCT_BY_MULTIPLE_FIELDS,
-        DISTINCT_ASYNC,
 
         SUM,
         AVERAGE,
@@ -221,14 +220,9 @@ public class RealmQueryTests extends QueryTests {
 
         FIND_ALL,
         FIND_ALL_ASYNC,
-        FIND_ALL_SORTED,
-        FIND_ALL_SORTED_ASYNC,
-        FIND_ALL_SORTED_WITH_ORDER,
-        FIND_ALL_SORTED_ASYNC_WITH_ORDER,
-        FIND_ALL_SORTED_WITH_TWO_ORDERS,
-        FIND_ALL_SORTED_ASYNC_WITH_TWO_ORDERS,
-        FIND_ALL_SORTED_WITH_MANY_ORDERS,
-        FIND_ALL_SORTED_ASYNC_WITH_MANY_ORDERS,
+        SORT,
+        SORT_WITH_ORDER,
+        SORT_WITH_MANY_ORDERS,
 
         FIND_FIRST,
         FIND_FIRST_ASYNC,
@@ -324,9 +318,8 @@ public class RealmQueryTests extends QueryTests {
             case IS_NOT_EMPTY: query.isNotEmpty( AllJavaTypes.FIELD_STRING); break;
 
             case IS_VALID: query.isValid(); break;
-            case DISTINCT: query.distinct(                    AllJavaTypes.FIELD_STRING); break;
-            case DISTINCT_BY_MULTIPLE_FIELDS: query.distinct( AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID); break;
-            case DISTINCT_ASYNC: query.distinctAsync(         AllJavaTypes.FIELD_STRING); break;
+            case DISTINCT: query.distinctValues(                    AllJavaTypes.FIELD_STRING); break;
+            case DISTINCT_BY_MULTIPLE_FIELDS: query.distinctValues( AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID); break;
 
             case SUM: query.sum(                  AllJavaTypes.FIELD_INT); break;
             case AVERAGE: query.average(          AllJavaTypes.FIELD_INT); break;
@@ -338,15 +331,9 @@ public class RealmQueryTests extends QueryTests {
 
             case FIND_ALL: query.findAll(); break;
             case FIND_ALL_ASYNC: query.findAllAsync(); break;
-            case FIND_ALL_SORTED: query.findAllSorted(                             AllJavaTypes.FIELD_STRING); break;
-            case FIND_ALL_SORTED_ASYNC: query.findAllSortedAsync(                  AllJavaTypes.FIELD_STRING); break;
-            case FIND_ALL_SORTED_WITH_ORDER: query.findAllSorted(                  AllJavaTypes.FIELD_STRING, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_ASYNC_WITH_ORDER: query.findAllSortedAsync(       AllJavaTypes.FIELD_STRING, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_WITH_TWO_ORDERS: query.findAllSorted(             AllJavaTypes.FIELD_STRING, Sort.DESCENDING, AllJavaTypes.FIELD_ID, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_ASYNC_WITH_TWO_ORDERS: query.findAllSortedAsync(  AllJavaTypes.FIELD_STRING, Sort.DESCENDING, AllJavaTypes.FIELD_ID, Sort.DESCENDING); break;
-            case FIND_ALL_SORTED_WITH_MANY_ORDERS: query.findAllSorted(            new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
-            case FIND_ALL_SORTED_ASYNC_WITH_MANY_ORDERS: query.findAllSortedAsync( new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
-
+            case SORT: query.sort(AllJavaTypes.FIELD_STRING); break;
+            case SORT_WITH_ORDER: query.sort(AllJavaTypes.FIELD_STRING, Sort.ASCENDING); break;
+            case SORT_WITH_MANY_ORDERS: query.sort(new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
             case FIND_FIRST: query.findFirst(); break;
             case FIND_FIRST_ASYNC: query.findFirstAsync(); break;
 
@@ -359,7 +346,6 @@ public class RealmQueryTests extends QueryTests {
     public void callThreadConfinedMethodsFromWrongThread() throws Throwable {
         final RealmQuery<AllJavaTypes> query = realm.where(AllJavaTypes.class);
 
-        final AtomicReference<Throwable> throwableFromThread = new AtomicReference<Throwable>();
         final CountDownLatch testFinished = new CountDownLatch(1);
 
         final String expectedMessage;
@@ -382,13 +368,8 @@ public class RealmQueryTests extends QueryTests {
                         try {
                             callThreadConfinedMethod(query, method);
                             fail("IllegalStateException must be thrown.");
-                        } catch (Throwable e) {
-                            if (e instanceof IllegalStateException && expectedMessage.equals(e.getMessage())) {
-                                // expected exception
-                                continue;
-                            }
-                            throwableFromThread.set(e);
-                            return;
+                        } catch (IllegalStateException e) {
+                            assertEquals(expectedMessage, e.getMessage());
                         }
                     }
                 } finally {
@@ -399,10 +380,6 @@ public class RealmQueryTests extends QueryTests {
         thread.start();
 
         TestHelper.awaitOrFail(testFinished);
-        final Throwable throwable = throwableFromThread.get();
-        if (throwable != null) {
-            throw throwable;
-        }
     }
 
     @Test
@@ -1276,36 +1253,42 @@ public class RealmQueryTests extends QueryTests {
         // Dog.weight has index 4 which is more than the total number of columns in Owner
         // This tests exposes a subtle error where the Owner table spec is used instead of Dog table spec.
         RealmResults<Dog> dogs = realm.where(Owner.class).findFirst().getDogs().where()
-                .findAllSorted("name", Sort.ASCENDING);
+                .sort("name", Sort.ASCENDING)
+                .findAll();
         Dog dog = dogs.where().equalTo("weight", 1d).findFirst();
         assertEquals(dog1, dog);
     }
 
     @Test
-    public void findAllSorted_multiFailures() {
+    public void sort_multiFailures() {
         // Zero fields specified.
         try {
-            realm.where(AllTypes.class).findAllSorted(new String[]{}, new Sort[]{});
+            realm.where(AllTypes.class).sort(new String[]{}, new Sort[]{}).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // Number of fields and sorting orders don't match.
         try {
-            realm.where(AllTypes.class).findAllSorted(new String[]{AllTypes.FIELD_STRING},
-                    new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
+            realm.where(AllTypes.class)
+                    .sort(new String[]{AllTypes.FIELD_STRING},new Sort[]{Sort.ASCENDING, Sort.ASCENDING})
+                    .findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // Null is not allowed.
         try {
-            realm.where(AllTypes.class).findAllSorted((String[]) null, null);
+            realm.where(AllTypes.class)
+                    .sort((String[]) null, null)
+                    .findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            realm.where(AllTypes.class).findAllSorted(new String[]{AllTypes.FIELD_STRING}, null);
+            realm.where(AllTypes.class)
+                    .sort(new String[]{AllTypes.FIELD_STRING}, null)
+                    .findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -1313,15 +1296,24 @@ public class RealmQueryTests extends QueryTests {
         // Non-existing field name.
         try {
             realm.where(AllTypes.class)
-                    .findAllSorted(new String[]{AllTypes.FIELD_STRING, "do-not-exist"},
-                            new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
+                    .sort(new String[]{AllTypes.FIELD_STRING, "do-not-exist"}, new Sort[]{Sort.ASCENDING, Sort.ASCENDING})
+                    .findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
+        }
+
+        // Defining sort multiple times
+        try {
+            realm.where(AllTypes.class)
+                    .sort(AllTypes.FIELD_STRING)
+                    .sort(AllTypes.FIELD_STRING);
+            fail();
+        } catch (IllegalStateException ignored) {
         }
     }
 
     @Test
-    public void findAllSorted_singleField() {
+    public void sort_singleField() {
         realm.beginTransaction();
         for (int i = 0; i < TEST_DATA_SIZE; i++) {
             AllTypes allTypes = realm.createObject(AllTypes.class);
@@ -1330,7 +1322,8 @@ public class RealmQueryTests extends QueryTests {
         realm.commitTransaction();
 
         RealmResults<AllTypes> sortedList = realm.where(AllTypes.class)
-                .findAllSorted(new String[]{AllTypes.FIELD_LONG}, new Sort[]{Sort.DESCENDING});
+                .sort(new String[]{AllTypes.FIELD_LONG}, new Sort[]{Sort.DESCENDING})
+                .findAll();
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
         assertEquals(0, sortedList.last().getColumnLong());
@@ -2893,21 +2886,23 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void findAllSorted_onSubObjectField() {
+    public void sort_onSubObjectField() {
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
-                .findAllSorted(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+                .sort(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE)
+                .findAll();
         assertEquals(0, results.get(0).getColumnRealmObject().getAge());
         assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
     }
 
     @Test
     @RunTestInLooperThread
-    public void findAllSortedAsync_onSubObjectField() {
+    public void sort_async_onSubObjectField() {
         Realm realm = looperThread.getRealm();
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
-                .findAllSortedAsync(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE);
+                .sort(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE)
+                .findAllAsync();
         looperThread.keepStrongReference(results);
         results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override
@@ -2934,7 +2929,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void findAllSorted_listOnSubObjectField() {
+    public void sort_listOnSubObjectField() {
         String[] fieldNames = new String[2];
         fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
         fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
@@ -2945,35 +2940,10 @@ public class RealmQueryTests extends QueryTests {
 
         populateTestRealm(realm, TEST_DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class)
-                .findAllSorted(fieldNames, sorts);
+                .sort(fieldNames, sorts)
+                .findAll();
         assertEquals(0, results.get(0).getColumnRealmObject().getAge());
         assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void findAllSortedAsync_listOnSubObjectField() {
-        Realm realm = looperThread.getRealm();
-        String[] fieldNames = new String[2];
-        fieldNames[0] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
-        fieldNames[1] = AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_AGE;
-
-        Sort[] sorts = new Sort[2];
-        sorts[0] = Sort.ASCENDING;
-        sorts[1] = Sort.ASCENDING;
-
-        populateTestRealm(realm, TEST_DATA_SIZE);
-        RealmResults<AllTypes> results = realm.where(AllTypes.class)
-                .findAllSortedAsync(fieldNames, sorts);
-        looperThread.keepStrongReference(results);
-        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
-            @Override
-            public void onChange(RealmResults<AllTypes> results) {
-                assertEquals(0, results.get(0).getColumnRealmObject().getAge());
-                assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
-                looperThread.testComplete();
-            }
-        });
     }
 
     // RealmQuery.distinct(): requires indexing, and type = boolean, integer, date, string.
@@ -3012,10 +2982,10 @@ public class RealmQueryTests extends QueryTests {
         final long numberOfObjects = 3; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL);
+        RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_BOOL).findAll();
         assertEquals(2, distinctBool.size());
         for (String field : new String[]{AnnotationIndexTypes.FIELD_INDEX_LONG, AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING}) {
-            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinct(field);
+            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinctValues(field).findAll();
             assertEquals(field, numberOfBlocks, distinct.size());
         }
     }
@@ -3027,9 +2997,16 @@ public class RealmQueryTests extends QueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         for (String field : new String[]{AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING}) {
-            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinct(field);
+            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinctValues(field).findAll();
             assertEquals(field, 1, distinct.size());
         }
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void distinct_failIfAppliedMultipleTimes() {
+        realm.where(AnnotationIndexTypes.class)
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_DATE)
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_DATE);
     }
 
     @Test
@@ -3039,11 +3016,12 @@ public class RealmQueryTests extends QueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class)
-                .distinct(AnnotationIndexTypes.FIELD_NOT_INDEX_BOOL);
+                .distinctValues(AnnotationIndexTypes.FIELD_NOT_INDEX_BOOL)
+                .findAll();
         assertEquals(2, distinctBool.size());
         for (String field : new String[]{AnnotationIndexTypes.FIELD_NOT_INDEX_LONG,
                 AnnotationIndexTypes.FIELD_NOT_INDEX_DATE, AnnotationIndexTypes.FIELD_NOT_INDEX_STRING}) {
-            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinct(field);
+            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinctValues(field).findAll();
             assertEquals(field, numberOfBlocks, distinct.size());
         }
     }
@@ -3055,7 +3033,8 @@ public class RealmQueryTests extends QueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         try {
-            realm.where(AnnotationIndexTypes.class).distinct("doesNotExist");
+            realm.where(AnnotationIndexTypes.class).distinctValues("doesNotExist").findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3066,7 +3045,7 @@ public class RealmQueryTests extends QueryTests {
 
         for (String field : new String[]{AllTypes.FIELD_REALMOBJECT, AllTypes.FIELD_REALMLIST, AllTypes.FIELD_DOUBLE, AllTypes.FIELD_FLOAT}) {
             try {
-                realm.where(AllTypes.class).distinct(field);
+                realm.where(AllTypes.class).distinctValues(field).findAll();
                 fail(field);
             } catch (IllegalArgumentException ignored) {
             }
@@ -3081,7 +3060,9 @@ public class RealmQueryTests extends QueryTests {
 
         for (String field : AnnotationIndexTypes.INDEX_FIELDS) {
             try {
-                realm.where(AnnotationIndexTypes.class).distinct(AnnotationIndexTypes.FIELD_OBJECT + "." + field);
+                realm.where(AnnotationIndexTypes.class)
+                        .distinctValues(AnnotationIndexTypes.FIELD_OBJECT + "." + field)
+                        .findAll();
                 fail("Unsupported Index" + field + " linked field");
             } catch (IllegalArgumentException ignored) {
             }
@@ -3096,7 +3077,9 @@ public class RealmQueryTests extends QueryTests {
 
         for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
             try {
-                realm.where(AnnotationIndexTypes.class).distinct(AnnotationIndexTypes.FIELD_OBJECT + "." + field);
+                realm.where(AnnotationIndexTypes.class)
+                        .distinctValues(AnnotationIndexTypes.FIELD_OBJECT + "." + field)
+                        .findAll();
                 fail("Unsupported notIndex" + field + " linked field");
             } catch (IllegalArgumentException ignored) {
             }
@@ -3108,24 +3091,26 @@ public class RealmQueryTests extends QueryTests {
         populateForDistinctInvalidTypesLinked(realm);
 
         try {
-            realm.where(AllJavaTypes.class).distinct(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
+            realm.where(AllJavaTypes.class)
+                    .distinctValues(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY)
+                    .findAll();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync() throws Throwable {
+    public void distinct_async() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(4);
         final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 3;
         final long numberOfObjects = 3; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_BOOL);
-        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_LONG);
-        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
-        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
+        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_BOOL).findAllAsync();
+        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_LONG).findAllAsync();
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_DATE).findAllAsync();
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_STRING).findAllAsync();
 
         assertFalse(distinctBool.isLoaded());
         assertTrue(distinctBool.isValid());
@@ -3191,7 +3176,7 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync_withNullValues() throws Throwable {
+    public void distinct_async_withNullValues() throws Throwable {
         final AtomicInteger changeListenerCalled = new AtomicInteger(2);
         final Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 3;
@@ -3199,9 +3184,11 @@ public class RealmQueryTests extends QueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class)
-                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_DATE);
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_DATE)
+                .findAllAsync();
         final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class)
-                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_STRING)
+                .findAllAsync();
 
         final Runnable endTest = new Runnable() {
             @Override
@@ -3234,13 +3221,13 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync_doesNotExist() {
+    public void distinct_async_doesNotExist() {
         final long numberOfBlocks = 3;
         final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         try {
-            realm.where(AnnotationIndexTypes.class).distinctAsync("doesNotExist");
+            realm.where(AnnotationIndexTypes.class).distinctValues("doesNotExist").findAllAsync();
         } catch (IllegalArgumentException ignored) {
         }
         looperThread.testComplete();
@@ -3248,12 +3235,12 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync_invalidTypes() {
+    public void distinct_async_invalidTypes() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
         for (String field : new String[]{AllTypes.FIELD_REALMOBJECT, AllTypes.FIELD_REALMLIST, AllTypes.FIELD_DOUBLE, AllTypes.FIELD_FLOAT}) {
             try {
-                realm.where(AllTypes.class).distinctAsync(field);
+                realm.where(AllTypes.class).distinctValues(field).findAllAsync();
             } catch (IllegalArgumentException ignored) {
             }
         }
@@ -3262,14 +3249,14 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync_indexedLinkedFields() {
+    public void distinct_async_indexedLinkedFields() {
         final long numberOfBlocks = 3;
         final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         for (String field : AnnotationIndexTypes.INDEX_FIELDS) {
             try {
-                realm.where(AnnotationIndexTypes.class).distinctAsync(AnnotationIndexTypes.FIELD_OBJECT + "." + field);
+                realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_OBJECT + "." + field).findAllAsync();
                 fail("Unsupported " + field + " linked field");
             } catch (IllegalArgumentException ignored) {
             }
@@ -3279,11 +3266,11 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync_notIndexedLinkedFields() {
+    public void distinct_async_notIndexedLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
         try {
-            realm.where(AllJavaTypes.class).distinctAsync(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
+            realm.where(AllJavaTypes.class).distinctValues(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY).findAllAsync();
         } catch (IllegalArgumentException ignored) {
         }
         looperThread.testComplete();
@@ -3296,7 +3283,7 @@ public class RealmQueryTests extends QueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
-        RealmResults<AnnotationIndexTypes> distinctMulti = query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.INDEX_FIELDS);
+        RealmResults<AnnotationIndexTypes> distinctMulti = query.distinctValues(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.INDEX_FIELDS).findAll();
         assertEquals(numberOfBlocks, distinctMulti.size());
     }
 
@@ -3306,9 +3293,8 @@ public class RealmQueryTests extends QueryTests {
         TestHelper.populateForDistinctFieldsOrder(realm, numberOfBlocks);
 
         // Regardless of the block size defined above, the output size is expected to be the same, 4 in this case, due to receiving unique combinations of tuples.
-        RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
-        RealmResults<AnnotationIndexTypes> distinctStringLong = query.distinct(AnnotationIndexTypes.FIELD_INDEX_STRING, AnnotationIndexTypes.FIELD_INDEX_LONG);
-        RealmResults<AnnotationIndexTypes> distinctLongString = query.distinct(AnnotationIndexTypes.FIELD_INDEX_LONG, AnnotationIndexTypes.FIELD_INDEX_STRING);
+        RealmResults<AnnotationIndexTypes> distinctStringLong = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_STRING, AnnotationIndexTypes.FIELD_INDEX_LONG).findAll();
+        RealmResults<AnnotationIndexTypes> distinctLongString = realm.where(AnnotationIndexTypes.class).distinctValues(AnnotationIndexTypes.FIELD_INDEX_LONG, AnnotationIndexTypes.FIELD_INDEX_STRING).findAll();
         assertEquals(4, distinctStringLong.size());
         assertEquals(4, distinctLongString.size());
         assertEquals(distinctStringLong.size(), distinctLongString.size());
@@ -3323,47 +3309,47 @@ public class RealmQueryTests extends QueryTests {
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
         // An empty string field in the middle.
         try {
-            query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, "", AnnotationIndexTypes.FIELD_INDEX_INT);
+            query.distinctValues(AnnotationIndexTypes.FIELD_INDEX_BOOL, "", AnnotationIndexTypes.FIELD_INDEX_INT).findAll();
         } catch (IllegalArgumentException ignored) {
         }
         // An empty string field at the end.
         try {
-            query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, "");
+            query.distinctValues(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, "").findAll();
         } catch (IllegalArgumentException ignored) {
         }
         // A null string field in the middle.
         try {
-            query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String) null, AnnotationIndexTypes.FIELD_INDEX_INT);
+            query.distinctValues(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String) null, AnnotationIndexTypes.FIELD_INDEX_INT).findAll();
         } catch (IllegalArgumentException ignored) {
         }
         // A null string field at the end.
         try {
-            query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, (String) null);
+            query.distinctValues(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, (String) null).findAll();
         } catch (IllegalArgumentException ignored) {
         }
         // (String) Null makes varargs a null array.
         try {
-            query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String) null);
+            query.distinctValues(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String) null).findAll();
         } catch (IllegalArgumentException ignored) {
         }
         // Two (String) null for first and varargs fields.
         try {
-            query.distinct((String) null, (String) null);
+            query.distinctValues((String) null, (String) null).findAll();
         } catch (IllegalArgumentException ignored) {
         }
         // "" & (String) null combination.
         try {
-            query.distinct("", (String) null);
+            query.distinctValues("", (String) null).findAll();
         } catch (IllegalArgumentException ignored) {
         }
         // "" & (String) null combination.
         try {
-            query.distinct((String) null, "");
+            query.distinctValues((String) null, "").findAll();
         } catch (IllegalArgumentException ignored) {
         }
         // Two empty fields tests.
         try {
-            query.distinct("", "");
+            query.distinctValues("", "").findAll();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3375,7 +3361,7 @@ public class RealmQueryTests extends QueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
-        RealmResults<AnnotationIndexTypes> distinctMulti = query.distinct(AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING);
+        RealmResults<AnnotationIndexTypes> distinctMulti = query.distinctValues(AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING).findAll();
         assertEquals(1, distinctMulti.size());
     }
 
@@ -3387,7 +3373,7 @@ public class RealmQueryTests extends QueryTests {
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
         try {
-            query.distinct(AnnotationIndexTypes.FIELD_NOT_INDEX_STRING, AnnotationIndexTypes.NOT_INDEX_FIELDS);
+            query.distinctValues(AnnotationIndexTypes.FIELD_NOT_INDEX_STRING, AnnotationIndexTypes.NOT_INDEX_FIELDS).findAll();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3400,7 +3386,7 @@ public class RealmQueryTests extends QueryTests {
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
         try {
-            query.distinct(AnnotationIndexTypes.FIELD_INDEX_INT, AnnotationIndexTypes.NONEXISTANT_MIX_FIELDS);
+            query.distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT, AnnotationIndexTypes.NONEXISTANT_MIX_FIELDS).findAll();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3411,7 +3397,7 @@ public class RealmQueryTests extends QueryTests {
 
         RealmQuery<AllTypes> query = realm.where(AllTypes.class);
         try {
-            query.distinct(AllTypes.FIELD_REALMOBJECT, AllTypes.INVALID_TYPES_FIELDS_FOR_DISTINCT);
+            query.distinctValues(AllTypes.FIELD_REALMOBJECT, AllTypes.INVALID_TYPES_FIELDS_FOR_DISTINCT).findAll();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3424,7 +3410,7 @@ public class RealmQueryTests extends QueryTests {
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
         try {
-            query.distinct(AnnotationIndexTypes.INDEX_LINKED_FIELD_STRING, AnnotationIndexTypes.INDEX_LINKED_FIELDS);
+            query.distinctValues(AnnotationIndexTypes.INDEX_LINKED_FIELD_STRING, AnnotationIndexTypes.INDEX_LINKED_FIELDS).findAll();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3437,7 +3423,7 @@ public class RealmQueryTests extends QueryTests {
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
         try {
-            query.distinct(AnnotationIndexTypes.NOT_INDEX_LINKED_FILED_STRING, AnnotationIndexTypes.NOT_INDEX_LINKED_FIELDS);
+            query.distinctValues(AnnotationIndexTypes.NOT_INDEX_LINKED_FILED_STRING, AnnotationIndexTypes.NOT_INDEX_LINKED_FIELDS).findAll();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3448,7 +3434,7 @@ public class RealmQueryTests extends QueryTests {
 
         RealmQuery<AllJavaTypes> query = realm.where(AllJavaTypes.class);
         try {
-            query.distinct(AllJavaTypes.INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT, AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT);
+            query.distinctValues(AllJavaTypes.INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT, AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT).findAll();
         } catch (IllegalArgumentException ignored) {
         }
     }

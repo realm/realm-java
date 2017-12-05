@@ -19,11 +19,11 @@ package io.realm.objectserver;
 import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,8 +52,9 @@ public class ProcessCommitTests extends StandardIntegrationTest {
     @Rule
     public RunWithRemoteService remoteService = new RunWithRemoteService();
 
-    @Before
-    public void before() throws Exception {
+    @Override
+    public void setupTest() throws IOException {
+        super.setupTest();
         UserFactory.resetInstance();
     }
 
@@ -191,7 +192,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 .directory(looperThread.getRoot())
                 .build();
         final Realm realm = Realm.getInstance(syncConfig);
-        final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
+        final RealmResults<TestObject> all = realm.where(TestObject.class).sort("intProp").findAll();
         looperThread.keepStrongReference(all);
         final AtomicInteger listenerCalledCounter = new AtomicInteger(0);
         all.addChangeListener(new RealmChangeListener<RealmResults<TestObject>>() {

@@ -53,7 +53,7 @@ class PluginTest {
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:2.2.0'
+                classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
                 classpath "io.realm:realm-gradle-plugin:${currentVersion}"
             }
@@ -78,7 +78,7 @@ class PluginTest {
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:2.2.0'
+                classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
                 classpath "io.realm:realm-gradle-plugin:${currentVersion}"
             }

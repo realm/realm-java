@@ -1,3 +1,4 @@
 // Realm projects
-include 'realm-library'
-include 'realm-annotations-processor'
+include ':realm-library'
+include ':realm-annotations-processor'
+include ':kotlin-extensions'

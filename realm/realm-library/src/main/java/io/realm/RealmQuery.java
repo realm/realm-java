@@ -25,6 +25,7 @@ import java.util.Locale;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.Beta;
 import io.realm.annotations.Required;
 import io.realm.internal.OsResults;
 import io.realm.internal.OsList;
@@ -65,6 +66,8 @@ public class RealmQuery<E> {
     private String className;
     private final boolean forValues;
     private final OsList osList;
+    private SortDescriptor sortDescriptor;
+    private SortDescriptor distinctDescriptor;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
@@ -1606,6 +1609,7 @@ public class RealmQuery<E> {
      * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
      * to linked fields.
      */
+    @Deprecated
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
 
@@ -1626,6 +1630,7 @@ public class RealmQuery<E> {
      * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
      * to linked fields.
      */
+    @Deprecated
     public RealmResults<E> distinctAsync(String fieldName) {
         realm.checkIfValid();
 
@@ -1646,6 +1651,7 @@ public class RealmQuery<E> {
      * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
      * is an unsupported type, or points to a linked field.
      */
+    @Deprecated
     public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
         realm.checkIfValid();
 
@@ -1821,7 +1827,7 @@ public class RealmQuery<E> {
     public RealmResults<E> findAll() {
         realm.checkIfValid();
 
-        return createRealmResults(query, null, null, true);
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, true);
     }
 
     /**
@@ -1839,7 +1845,7 @@ public class RealmQuery<E> {
         realm.checkIfValid();
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, null, null, false);
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, false);
     }
 
     /**
@@ -1918,9 +1924,9 @@ public class RealmQuery<E> {
      * {@link RealmObject} or a child {@link RealmList}.
      */
     @SuppressWarnings("unchecked")
+    @Deprecated
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
         realm.checkIfValid();
-
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldName, sortOrder);
         return createRealmResults(query, sortDescriptor, null, true);
     }
@@ -1934,6 +1940,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
      */
+    @Deprecated
     public RealmResults<E> findAllSortedAsync(final String fieldName, final Sort sortOrder) {
         realm.checkIfValid();
 
@@ -1942,6 +1949,125 @@ public class RealmQuery<E> {
         return createRealmResults(query, sortDescriptor, null, false);
     }
 
+    /**
+     * Sorts the query result by the specific field name in ascending order.
+     * <p>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     *
+     * @param fieldName the field name to sort by.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
+     */
+    public RealmQuery<E> sort(String fieldName) {
+        realm.checkIfValid();
+        return sort(fieldName, Sort.ASCENDING);
+    }
+
+    /**
+     * Sorts the query result by the specified field name and order.
+     * <p>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     *
+     * @param fieldName the field name to sort by.
+     * @param sortOrder how to sort the results.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
+     */
+    public RealmQuery<E> sort(String fieldName, Sort sortOrder) {
+        realm.checkIfValid();
+        return sort(new String[] { fieldName}, new Sort[] { sortOrder});
+    }
+
+    /**
+     * Sorts the query result by the specific field names in the provided orders. {@code fieldName2} is only used
+     * in case of equal values in {@code fieldName1}.
+     * <p>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     *
+     * @param fieldName1 first field name
+     * @param sortOrder1 sort order for first field
+     * @param fieldName2 second field name
+     * @param sortOrder2 sort order for second field
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
+     */
+    public RealmQuery<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
+        realm.checkIfValid();
+        return sort(new String[] { fieldName1, fieldName2 }, new Sort[] { sortOrder1, sortOrder2 });
+    }
+
+    /**
+     * Sorts the query result by the specific field names in the provided orders. Later fields will only be used
+     * if the previous field values are equal.
+     * <p>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     *
+     * @param fieldNames an array of field names to sort by.
+     * @param sortOrders how to sort the field names.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
+     */
+    public RealmQuery<E> sort(String[] fieldNames, Sort[] sortOrders) {
+        realm.checkIfValid();
+        if (sortDescriptor != null) {
+            throw new IllegalStateException("A sorting order was already defined.");
+        }
+        sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
+        return this;
+    }
+
+    /**
+     * BETA API: Will be renamed to {@code distinct} in next major release.
+     *
+     * Selects a distinct set of objects of a specific class. If the result is sorted, the first object will be
+     * returned in case of multiple occurrences, otherwise it is undefined which object is returned.
+     * <p>
+     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
+     *
+     * @param fieldName the field name.
+     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
+     * to linked fields.
+     * @throws IllegalStateException if distinct field names were already defined.
+     */
+    @Beta
+    public RealmQuery<E> distinctValues(String fieldName) {
+        return distinctValues(fieldName, new String[]{});
+    }
+
+    /**
+     * BETA API: Will be renamed to {@code distinct} in next major release.
+     *
+     * Selects a distinct set of objects of a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     * @throws IllegalStateException if distinct field names were already defined.
+     */
+    @Beta
+    public RealmQuery<E> distinctValues(String firstFieldName, String... remainingFieldNames) {
+        realm.checkIfValid();
+        if (distinctDescriptor != null) {
+            throw new IllegalStateException("Distinct fields have already been defined.");
+        }
+        if (remainingFieldNames.length == 0) {
+            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, firstFieldName);
+        } else {
+            String[] fieldNames = new String[1 + remainingFieldNames.length];
+            fieldNames[0] = firstFieldName;
+            System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
+            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
+        }
+        return this;
+    }
 
     /**
      * Finds all objects that fulfill the query conditions and sorted by specific field name in ascending order.
@@ -1955,6 +2081,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
      */
+    @Deprecated
     public RealmResults<E> findAllSorted(String fieldName) {
         return findAllSorted(fieldName, Sort.ASCENDING);
     }
@@ -1968,6 +2095,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
      */
+    @Deprecated
     public RealmResults<E> findAllSortedAsync(String fieldName) {
         return findAllSortedAsync(fieldName, Sort.ASCENDING);
     }
@@ -1985,6 +2113,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
      */
+    @Deprecated
     public RealmResults<E> findAllSorted(String[] fieldNames, Sort[] sortOrders) {
         realm.checkIfValid();
 
@@ -2007,6 +2136,7 @@ public class RealmQuery<E> {
      * {@link RealmObject} or a child {@link RealmList}.
      * @see io.realm.RealmResults
      */
+    @Deprecated
     public RealmResults<E> findAllSortedAsync(String[] fieldNames, final Sort[] sortOrders) {
         realm.checkIfValid();
 
@@ -2030,6 +2160,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
      */
+    @Deprecated
     public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
             String fieldName2, Sort sortOrder2) {
         return findAllSorted(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
@@ -2044,6 +2175,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
      * {@link RealmObject} or a child {@link RealmList}.
      */
+    @Deprecated
     public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
             String fieldName2, Sort sortOrder2) {
         return findAllSortedAsync(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});

@@ -1,5 +1,10 @@
+project.ext.minSdkVersion = 9
+project.ext.compileSdkVersion = 26
+project.ext.buildToolsVersion = '26.0.2'
+
 buildscript {
     ext.kotlin_version = '1.1.51'
+    ext.dokka_version = '0.9.15'
     repositories {
         mavenLocal()
         google()
@@ -9,17 +14,18 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-rc2'
-        classpath 'de.undercouch:gradle-download-task:3.2.0'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+        classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
+        classpath 'de.undercouch:gradle-download-task:3.3.0'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
         classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
         classpath 'com.github.skhatri:gradle-s3-plugin:1.0.4'
-        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.1'
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.2'
+        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.2'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.4'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath "io.realm:realm-transformer:${file('../version.txt').text.trim()}"
-        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.11'
+        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.13'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
     }
 }
 

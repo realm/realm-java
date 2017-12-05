@@ -40,12 +40,12 @@ ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE
 ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false //FIXME Use 'false' as default until https://github.com/realm/realm-java/issues/5354 is fixed
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion rootProject.compileSdkVersion
+    buildToolsVersion rootProject.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 9
-        targetSdkVersion 25
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.compileSdkVersion
         versionName version
         project.archivesBaseName = "realm-android-library"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -90,13 +90,14 @@ android {
 
     buildTypes {
         debug {
-            testCoverageEnabled = true
+            // FIXME: If enabled, crashes with https://issuetracker.google.com/issues/37116868
+            testCoverageEnabled = false
         }
     }
 
     sourceSets {
         androidTest {
-            java.srcDirs += 'src/androidTest/kotlin'
+            java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java']
         }
         androidTestObjectServer {
             java.srcDirs += 'src/syncIntegrationTest/java'
@@ -105,8 +106,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     packagingOptions {
@@ -168,7 +169,7 @@ project.afterEvaluate {
     }
 }
 
-// enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/08/kotlin-1-1-4-is-out/
+// enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/09/kotlin-1-1-50-is-out/
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
         freeCompilerArgs = ["-Xjsr305=strict"]
@@ -188,7 +189,7 @@ repositories {
 
 dependencies {
 
-    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.4'
+    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.5'
     compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
     api "io.realm:realm-annotations:${version}"
@@ -200,7 +201,7 @@ dependencies {
 
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
-    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.4'
+    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test:rules:1.0.1'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
@@ -210,7 +211,7 @@ dependencies {
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
     // specify error prone version to prevent sudden failure
-    errorprone 'com.google.errorprone:error_prone_core:2.0.21'
+    errorprone 'com.google.errorprone:error_prone_core:2.1.2'
 }
 
 task sourcesJar(type: Jar) {
@@ -612,7 +613,7 @@ android.productFlavors.all { flavor ->
     def librarySuffix = flavor.name == 'base' ? '' : '-object-server'
     def userName = project.findProperty('bintrayUser') ?: 'noUser'
     def accessKey = project.findProperty('bintrayKey') ?: 'noKey'
-
+    def artifactId = "realm-android-library${librarySuffix}"
     // BINTRAY
 
     task("bintrayAar${flavor.name.capitalize()}", type: Exec) {
@@ -625,7 +626,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/outputs/aar/realm-android-library-${flavor.name}-release.aar",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.aar?publish=0"
+                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}.aar?publish=0"
     }
 
     task("bintraySources${flavor.name.capitalize()}", type: Exec) {
@@ -638,7 +639,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/libs/realm-android-library-${project.version}-sources.jar",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-sources.jar?publish=0"
+                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}-sources.jar?publish=0"
     }
 
     task("bintrayJavadoc${flavor.name.capitalize()}", type: Exec) {
@@ -651,7 +652,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/libs/realm-android-library-${project.version}-javadoc.jar",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}-javadoc.jar?publish=0"
+                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}-javadoc.jar?publish=0"
     }
 
     task("bintrayPom${flavor.name.capitalize()}", type: Exec) {
@@ -664,7 +665,7 @@ android.productFlavors.all { flavor ->
                 "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
                 '-u',
                 "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/realm-android-library${librarySuffix}/${project.version}/io/realm/realm-android-library${librarySuffix}/${project.version}/realm-android-library${librarySuffix}-${project.version}.pom?publish=0"
+                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}.pom?publish=0"
     }
 
     // OJO

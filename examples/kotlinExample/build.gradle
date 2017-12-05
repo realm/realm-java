@@ -24,7 +24,7 @@ android {
         applicationId 'io.realm.examples.kotlin'
         //noinspection GroovyAssignabilityCheck
         targetSdkVersion rootProject.sdkVersion
-        minSdkVersion 15
+        minSdkVersion rootProject.minSdkVersion
         versionCode 1
         versionName "1.0"
     }
@@ -44,10 +44,17 @@ android {
     }
 }
 
-// enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/08/kotlin-1-1-4-is-out/
+// This is added automatically if Kotlin is registered in the project, but Kotlin extension functions
+// for Realm can be excluded if needed.
+realm {
+    kotlinExtensionsEnabled = true
+}
+
+
+// enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/09/kotlin-1-1-50-is-out/
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
-        freeCompilerArgs = ["-Xjsr305-annotations=enable"]
+        freeCompilerArgs = ["-Xjsr305=strict"]
     }
 }
 
