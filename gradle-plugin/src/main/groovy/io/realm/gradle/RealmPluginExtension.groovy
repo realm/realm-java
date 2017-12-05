@@ -59,10 +59,7 @@ class RealmPluginExtension {
         // then add again
         def syncArtifactName = "realm-android-library${syncEnabled ? '-object-server' : ''}"
         project.dependencies.add(dependencyConfigurationName, "io.realm:${syncArtifactName}:${Version.VERSION}")
-
-        if (kotlinExtensionsEnabled) {
-            def kotlinExtArtifactName = "realm-android-kotlin-extensions${syncEnabled ? '-object-server' : ''}"
-            project.dependencies.add(dependencyConfigurationName, "io.realm:${kotlinExtArtifactName}:${Version.VERSION}")
-        }
+        def kotlinExtArtifactName = "realm-android-kotlin-extensions${kotlinExtensionsEnabled ? '-object-server' : ''}"
+        project.dependencies.add(dependencyConfigurationName, "io.realm:${kotlinExtArtifactName}:${Version.VERSION}")
     }
 }
