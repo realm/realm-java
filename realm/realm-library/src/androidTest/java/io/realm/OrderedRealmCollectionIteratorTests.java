@@ -99,7 +99,9 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
             case UNMANAGED_REALMLIST:
                 populateRealm(realm, sampleSize);
-                RealmResults<AllJavaTypes> objects = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                RealmResults<AllJavaTypes> objects = realm.where(AllJavaTypes.class)
+                        .sort(AllJavaTypes.FIELD_LONG, Sort.ASCENDING)
+                        .findAll();
                 RealmList<AllJavaTypes> inMemoryList = new RealmList<AllJavaTypes>();
                 inMemoryList.addAll(objects);
                 return inMemoryList;
@@ -108,7 +110,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             case REALMRESULTS:
                 populateRealm(realm, sampleSize);
                 orderedCollection = realm.where(AllJavaTypes.class)
-                        .findAllSorted(AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                        .sort(AllJavaTypes.FIELD_LONG, Sort.ASCENDING)
+                        .findAll();
                 break;
 
             default:

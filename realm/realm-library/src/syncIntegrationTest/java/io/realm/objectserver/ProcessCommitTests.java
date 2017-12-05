@@ -192,7 +192,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 .directory(looperThread.getRoot())
                 .build();
         final Realm realm = Realm.getInstance(syncConfig);
-        final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
+        final RealmResults<TestObject> all = realm.where(TestObject.class).sort("intProp").findAll();
         looperThread.keepStrongReference(all);
         final AtomicInteger listenerCalledCounter = new AtomicInteger(0);
         all.addChangeListener(new RealmChangeListener<RealmResults<TestObject>>() {

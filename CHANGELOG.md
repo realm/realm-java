@@ -1,3 +1,28 @@
+## 4.3.0 (YYYY-MM-DD)
+
+### Deprecated
+
+* Support for mips devices are deprecated.
+* `RealmQuery.findAllSorted()` and `RealmQuery.findAllSortedAsync()` variants in favor of predicate `RealmQuery.sort().findAll()`.
+* `RealmQuery.distinct()` and `RealmQuery.distinctAsync()` variants in favor of predicate `RealmQuery.distinctValues().findAll()`
+
+### Enhancements
+
+* [ObjectServer] Added explicit support for JSON Web Tokens (JWT) using `SyncCredentials.jwt(String token)`. It requires Object Server 2.0.23+ (#5580).
+* Projects using Kotlin now include additional extension functions that make working with Kotlin easier. See [docs](https://realm.io/docs/java/latest/#kotlin) for more info (#4684).
+* New query predicate: `sort()`.
+* New query predicate: `distinctValues()`. Will be renamed to `distinct` in next major version.
+* The Realm annotation processor now has a stable output when there are no changes to model classes, improving support for incremental compilers (#5567).
+
+### Bug Fixes
+
+### Internal
+
+### Credits
+
+* Thanks to @madisp for adding better support for incremental compilers (#5567).
+
+
 ## 4.2.1 (YYYY-MM-DD)
 
 ### Enhancements
@@ -18,7 +43,7 @@
 ### Credits
 
 * Thanks to @tbsandee for fixing a typo (#5548).
-* Thanks to @vivekkiran for updating Gralde and plugins to support Android Studio `3.0.0` (#5472).
+* Thanks to @vivekkiran for updating Gradle and plugins to support Android Studio `3.0.0` (#5472).
 
 
 ## 4.2.0 (2017-11-17)

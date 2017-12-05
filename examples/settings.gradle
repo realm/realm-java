@@ -1,3 +1,4 @@
+rootProject.name = 'realm-examples'
 include 'secureTokenAndroidKeyStore'
 include 'encryptionExample'
 include 'gridViewExample'
@@ -13,5 +14,3 @@ include 'newsreaderExample'
 include 'rxJavaExample'
 include 'objectServerExample'
 include 'multiprocessExample'
-
-rootProject.name = 'realm-examples'

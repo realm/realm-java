@@ -197,7 +197,7 @@ public class OrderedCollectionChangeSetTests {
     private void registerCheckListener(Realm realm, final ChangesCheck changesCheck) {
         switch (type) {
             case REALM_RESULTS:
-                RealmResults<Dog> results = realm.where(Dog.class).findAllSorted(Dog.FIELD_AGE);
+                RealmResults<Dog> results = realm.where(Dog.class).sort(Dog.FIELD_AGE).findAll();
                 looperThread.keepStrongReference(results);
                 results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
                     @Override
@@ -453,7 +453,7 @@ public class OrderedCollectionChangeSetTests {
 
         Realm realm = looperThread.getRealm();
         populateData(realm, 10);
-        final RealmResults<Dog> results = realm.where(Dog.class).findAllSortedAsync(Dog.FIELD_AGE);
+        final RealmResults<Dog> results = realm.where(Dog.class).sort(Dog.FIELD_AGE).findAllAsync();
         looperThread.keepStrongReference(results);
         results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
             @Override

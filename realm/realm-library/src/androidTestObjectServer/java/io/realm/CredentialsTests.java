@@ -87,6 +87,27 @@ public class CredentialsTests {
     }
 
     @Test
+    public void jwt() {
+        SyncCredentials creds = SyncCredentials.jwt("foo");
+
+        assertEquals(SyncCredentials.IdentityProvider.JWT, creds.getIdentityProvider());
+        assertEquals("foo", creds.getUserIdentifier());
+        assertTrue(creds.getUserInfo().isEmpty());
+    }
+
+    @Test
+    public void jwt_invalidInput() {
+        String[] invalidInput = {null, ""};
+        for (String input : invalidInput) {
+            try {
+                SyncCredentials.jwt(input);
+                fail(input + " should have failed");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
     public void usernamePassword_register() {
         SyncCredentials creds = SyncCredentials.usernamePassword("foo", "bar", true);
         assertUsernamePassword(creds, "foo", "bar", true);

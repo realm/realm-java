@@ -125,7 +125,10 @@ public class RealmModelTests {
     public void copyFromRealm() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
-        AllTypesRealmModel realmObject = realm.where(AllTypesRealmModel.class).findAllSorted(AllTypesRealmModel.FIELD_LONG).first();
+        AllTypesRealmModel realmObject = realm.where(AllTypesRealmModel.class)
+                .sort(AllTypesRealmModel.FIELD_LONG)
+                .findAll()
+                .first();
         AllTypesRealmModel unmanagedObject = realm.copyFromRealm(realmObject);
         assertArrayEquals(realmObject.columnBinary, unmanagedObject.columnBinary);
         assertEquals(realmObject.columnString, unmanagedObject.columnString);
@@ -198,7 +201,7 @@ public class RealmModelTests {
         Realm realm = looperThread.getRealm();
         populateTestRealm(realm, TEST_DATA_SIZE);
 
-        final RealmResults<AllTypesRealmModel> allTypesRealmModels = realm.where(AllTypesRealmModel.class).distinctAsync(AllTypesRealmModel.FIELD_STRING);
+        final RealmResults<AllTypesRealmModel> allTypesRealmModels = realm.where(AllTypesRealmModel.class).distinctValues(AllTypesRealmModel.FIELD_STRING).findAllAsync();
         looperThread.keepStrongReference(allTypesRealmModels);
         allTypesRealmModels.addChangeListener(new RealmChangeListener<RealmResults<AllTypesRealmModel>>() {
             @Override
