@@ -102,8 +102,7 @@ public class SyncCredentials {
      *
      * @param jwtToken a JWT token that identifies the user.
      * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)} or 
-     * {@link SyncUser#loginAsync(SyncCredentials, String)}.
+     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if the token is either {@code null} or empty.
      */
     public static SyncCredentials jwt(String jwtToken) {

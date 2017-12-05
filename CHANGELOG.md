@@ -1,4 +1,4 @@
-## 4.3.0 (YYYY-MM-DD)
+## 4.3.0 (2017-12-05)
 
 ### Deprecated
 
@@ -16,19 +16,6 @@
 
 ### Bug Fixes
 
-### Internal
-
-### Credits
-
-* Thanks to @madisp for adding better support for incremental compilers (#5567).
-
-
-## 4.2.1 (YYYY-MM-DD)
-
-### Enhancements
-
-### Bug Fixes
-
 * Added missing `toString()` for the implementation of `OrderedCollectionChangeSet`.
 * Sync queries are evaluated immediately to solve the performance issue when the query results are huge, `RealmResults.size()` takes too long time (#5387).
 * Correctly close the Realm instance if an exception was thrown while opening it. This avoids `IllegalStateException` when deleting the Realm in the catch block (#5570).
@@ -37,7 +24,7 @@
 ### Internal
 
 * Use `OsList` instead of `OsResults` to add notification token on for `RealmList<RealmModel>`.
-* Updated Gralde and plugins to support Android Studio `3.0.0` (#5472).
+* Updated Gradle and plugins to support Android Studio `3.0.0` (#5472).
 * Upgraded to Realm Sync 2.1.8.
 * Upgraded to Realm Core 4.0.4.
 
@@ -45,6 +32,7 @@
 
 * Thanks to @tbsandee for fixing a typo (#5548).
 * Thanks to @vivekkiran for updating Gradle and plugins to support Android Studio `3.0.0` (#5472).
+* Thanks to @madisp for adding better support for incremental compilers (#5567).
 
 
 ## 4.2.0 (2017-11-17)
