@@ -8,6 +8,7 @@
 
 ### Enhancements
 
+* [ObjectServer] Added explicit support for JSON Web Tokens (JWT) using `SyncCredentials.jwt(String token)`. It requires Object Server 2.0.23+ (#5580).
 * Projects using Kotlin now include additional extension functions that make working with Kotlin easier. See [docs](https://realm.io/docs/java/latest/#kotlin) for more info (#4684).
 * New query predicate: `sort()`.
 * New query predicate: `distinctValues()`. Will be renamed to `distinct` in next major version.
