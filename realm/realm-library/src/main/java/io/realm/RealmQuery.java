@@ -1528,7 +1528,7 @@ public class RealmQuery<E> {
         this.query.or();
         return this;
     }
-    
+
     /**
      * Logical-and two conditions
      * Realm automatically applies logical-and between all query statements, so this is intended only as a mean to increase readability.
@@ -1537,7 +1537,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> and() {
     	realm.checkIfValid();
-    	
+
     	return this;
     }
 
@@ -1588,6 +1588,8 @@ public class RealmQuery<E> {
     }
 
     /**
+     * @deprecated Since 4.3.0, now use {@link RealmQuery#distinctValues(String)} then {@link RealmQuery#findAll()}
+     *
      * Returns a distinct set of objects of a specific class. If the result is sorted, the first
      * object will be returned in case of multiple occurrences, otherwise it is undefined which
      * object is returned.
@@ -1608,6 +1610,8 @@ public class RealmQuery<E> {
     }
 
     /**
+     * @deprecated Since 4.3.0, now use {@link RealmQuery#distinctValues(String)} then {@link RealmQuery#findAllAsync()}
+     *
      * Asynchronously returns a distinct set of objects of a specific class. If the result is
      * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
      * undefined which object is returned.
@@ -1630,6 +1634,8 @@ public class RealmQuery<E> {
     }
 
     /**
+     * @deprecated Since 4.3.0, now use {@link RealmQuery#distinctValues(String, String[])} then {@link RealmQuery#findAll()}
+     *
      * Returns a distinct set of objects from a specific class. When multiple distinct fields are
      * given, all unique combinations of values in the fields will be returned. In case of multiple
      * matches, it is undefined which object is returned. Unless the result is sorted, then the
@@ -1835,6 +1841,8 @@ public class RealmQuery<E> {
     }
 
     /**
+     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String, Sort)} then {@link RealmQuery#findAll()}
+     *
      * Finds all objects that fulfill the query conditions and sorted by specific field name.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
@@ -1856,6 +1864,8 @@ public class RealmQuery<E> {
     }
 
     /**
+     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String, Sort)} then {@link RealmQuery#findAllAsync()}
+     *
      * Similar to {@link #findAllSorted(String, Sort)} but runs asynchronously on a worker thread
      * (need a Realm opened from a looper thread to work).
      *
@@ -1994,6 +2004,8 @@ public class RealmQuery<E> {
     }
 
     /**
+     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String)} then {@link RealmQuery#findAll()}
+     *
      * Finds all objects that fulfill the query conditions and sorted by specific field name in ascending order.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
@@ -2011,6 +2023,8 @@ public class RealmQuery<E> {
     }
 
     /**
+     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String)} then {@link RealmQuery#findAllAsync()}
+     *
      * Similar to {@link #findAllSorted(String)} but runs asynchronously on a worker thread.
      * This method is only available from a Looper thread.
      *
@@ -2025,6 +2039,8 @@ public class RealmQuery<E> {
     }
 
     /**
+     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String[], Sort[])} then {@link RealmQuery#findAll()}
+     *
      * Finds all objects that fulfill the query conditions and sorted by specific field names.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
@@ -2050,6 +2066,8 @@ public class RealmQuery<E> {
     }
 
     /**
+     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String[], Sort[])} then {@link RealmQuery#findAllAsync()}
+     *
      * Similar to {@link #findAllSorted(String[], Sort[])} but runs asynchronously.
      * from a worker thread.
      * This method is only available from a Looper thread.
@@ -2070,6 +2088,8 @@ public class RealmQuery<E> {
     }
 
     /**
+     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String, Sort, String, Sort)} then {@link RealmQuery#findAll()}
+     *
      * Finds all objects that fulfill the query conditions and sorted by specific field names in ascending order.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
@@ -2091,6 +2111,8 @@ public class RealmQuery<E> {
     }
 
     /**
+     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String, Sort, String, Sort)} then {@link RealmQuery#findAllAsync()}
+     *
      * Similar to {@link #findAllSorted(String, Sort, String, Sort)} but runs asynchronously on a worker thread
      * This method is only available from a Looper thread.
      *

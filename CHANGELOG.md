@@ -1,3 +1,16 @@
+## 4.4.0 (YYYY-MM-DD)
+
+### Deprecated
+
+### Enhancements
+
+### Bug Fixes
+
+### Internal
+
+### Credits
+
+
 ## 4.3.0 (2017-12-05)
 
 ### Deprecated
