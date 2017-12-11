@@ -15,7 +15,7 @@ interface ObservableCollection {
             super(observer, listener);
         }
 
-        public void onChange(T observer, @Nullable OsCollectionChangeSet changes) {
+        public void onChange(T observer, OsCollectionChangeSet changes) {
             if (listener instanceof OrderedRealmCollectionChangeListener) {
                 //noinspection unchecked
                 ((OrderedRealmCollectionChangeListener<T>) listener).onChange(observer, new StatefulCollectionChangeSet(changes, called));
@@ -56,7 +56,7 @@ interface ObservableCollection {
     class Callback implements ObserverPairList.Callback<CollectionObserverPair> {
         private final OsCollectionChangeSet changeSet;
 
-        Callback(@Nullable OsCollectionChangeSet changeSet) {
+        Callback(OsCollectionChangeSet changeSet) {
             this.changeSet = changeSet;
         }
 

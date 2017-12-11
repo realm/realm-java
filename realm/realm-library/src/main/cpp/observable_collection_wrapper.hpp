@@ -74,7 +74,7 @@ void ObservableCollectionWrapper<T>::start_listening(JNIEnv* env, jobject j_coll
         if (env->ExceptionCheck())
             return;
 
-        std::string error_message = nullptr;
+        std::string error_message = "";
         if (err) {
             try {
                 std::rethrow_exception(err);
@@ -87,7 +87,7 @@ void ObservableCollectionWrapper<T>::start_listening(JNIEnv* env, jobject j_coll
         m_collection_weak_ref.call_with_local_ref(env, [&](JNIEnv* local_env, jobject collection_obj) {
             local_env->CallVoidMethod(
                 collection_obj, notify_change_listeners,
-                reinterpret_cast<jlong>(changes.empty() ? 0 : new CollectionChangeSetWrapper(changes, error_message)));
+                reinterpret_cast<jlong>(new CollectionChangeSetWrapper(changes, error_message)));
         });
     };
 

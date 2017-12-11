@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
  */
 public interface OrderedCollectionChangeSet {
 
-    enum State {
+    public enum State {
         /**
          * This state is used first time the callback is invoked. The query will have completed and
          * data is ready for the UI.

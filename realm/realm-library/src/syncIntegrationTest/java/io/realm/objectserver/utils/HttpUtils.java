@@ -37,6 +37,7 @@ public class HttpUtils {
     // FIXME re-adjust timeout after https://github.com/realm/realm-object-server-private/issues/697 is fixed
     private final static OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(2, TimeUnit.MINUTES)
+            .readTimeout(30, TimeUnit.SECONDS)
             .build();
 
     // adb reverse tcp:8888 tcp:8888

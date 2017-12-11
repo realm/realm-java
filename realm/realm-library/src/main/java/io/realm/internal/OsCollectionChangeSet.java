@@ -118,6 +118,14 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         return nativeIsRemoteDataLoaded(nativePtr);
     }
 
+    public int getOldStatusCode() {
+        return nativeGetOldStatusCode(nativePtr);
+    }
+
+    public int getNewStatusCode() {
+        return nativeGetNewStatusCode(nativePtr);
+    }
+
     // Convert long array returned by the nativeGetXxxRanges() to Range array.
     private Range[] longArrayToRangeArray(int[] longArray) {
         //noinspection ConstantConditions
@@ -169,6 +177,10 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
     // `null` is returned if no error is present
     @Nullable
     private native Object nativeGetError(long nativePtr);
+
+    private native int nativeGetOldStatusCode(long nativePtr);
+
+    private native int nativeGetNewStatusCode(long nativePtr);
 
     // Returns true if the data described by the subscription has been downloaded to the device,
     // false if not. In either case, the query is run against the local dataset.

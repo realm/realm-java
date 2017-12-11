@@ -437,10 +437,8 @@ public class OsResults implements NativeObject, ObservableCollection {
         boolean wasLoaded = loaded;
         loaded = true;
         // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
-        // So it is possible it deliver a non-empty change set for the first async query returns. In this case, we
-        // return an empty change set to user since it is considered as the first time async query returns.
-        observerPairs.foreach(new Callback(nativeChangeSetPtr == 0 || !wasLoaded ?
-                null : new OsCollectionChangeSet(nativeChangeSetPtr)));
+        // So it is possible it deliver a non-empty change set for the first async query returns.
+        observerPairs.foreach(new Callback(new OsCollectionChangeSet(nativeChangeSetPtr)));
     }
 
     public Mode getMode() {
