@@ -136,8 +136,8 @@ public abstract class RealmObjectSchema {
      * @param attributes set of attributes for this field.
      * @return the updated schema.
      * @throws IllegalArgumentException if the type isn't supported, field name is illegal or a field with that name
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      * already exists.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
     public abstract RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes);
 
