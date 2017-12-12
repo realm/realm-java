@@ -3,6 +3,7 @@
 ### Bug Fixes
 
 * Throws a better exception message when calling `RealmObjectSchema.addField()` with a `RealmModel` class (#3388).
+* Use https for Realm version checker (#4043).
 
 
 ## 4.3.1 (2017-12-06)
