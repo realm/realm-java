@@ -87,6 +87,10 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         if (metadata == null) {
             if (SUPPORTED_LINKED_FIELDS.containsKey(fieldType)) {
                 throw new IllegalArgumentException("Use addRealmObjectField() instead to add fields that link to other RealmObjects: " + fieldName);
+            } else if (RealmModel.class.isAssignableFrom(fieldType)) {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "Use 'addRealmObjectField()' instead to add fields that link to other RealmObjects: %s(%s)",
+                        fieldName, fieldType));
             } else {
                 throw new IllegalArgumentException(String.format(Locale.US,
                         "Realm doesn't support this field type: %s(%s)",
