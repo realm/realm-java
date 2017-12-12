@@ -234,5 +234,5 @@ def gradle(String commands) {
 }
 
 def gradle(String relativePath, String commands) {
-  sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
+  sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --info"
 }
