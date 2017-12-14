@@ -31,6 +31,9 @@ import javax.annotation.Nullable;
  */
 public interface OrderedCollectionChangeSet {
 
+    /**
+     * State describing the nature of the changeset.
+     */
     public enum State {
         /**
          * This state is used first time the callback is invoked. The query will have completed and
@@ -38,7 +41,7 @@ public interface OrderedCollectionChangeSet {
          */
         INITIAL,
         /**
-         * This state is used for every subsequent update after the first which is marked {@link #INITIAL}.
+         * This state is used for every subsequent update after the first.
          */
         UPDATE,
         /**
@@ -51,19 +54,27 @@ public interface OrderedCollectionChangeSet {
          * In those cases, where all data have not been downloaded yet, this state is used instead of
          * {@link #INITIAL}. This makes it possible to distinguishes between a fully consistent dataset
          * and one that isn't.
-         * <p>
-         * An example:
-         *
          */
         INITIAL_INCOMPLETE,
         /**
-         * This state is used for every subsequent update after the first which is marked {@link #INITIAL_INCOMPLETE}.
-         * It is only used if a Realm is marked as partially incomplete
+         * This state is used for every subsequent update after the first {@link #INITIAL_INCOMPLETE}.
+         * It is only triggered if a local action changed the Realm while changes are still being
+         * downloaded from the server.
+         * <p>
+         * It is only possible to get into this state if {@link #INITIAL_INCOMPLETE} was triggered first.
          */
         UPDATE_INCOMPLETE,
         /**
-         * If an error happened while evaluating the query. In this state, only {@link #getError()}
-         * has a meaningful value. The return value of all other methods are undefined.
+         * It is only possible to get into this state if an error happened while evaluating the query
+         * on the server or some other error prevented data from being downloaded. In this state,
+         * only {@link #getError()} has a meaningful value. The return value of all other methods are
+         * undefined.
+         * <p>
+         * For synced Realms, only errors relevant for the query is returned here, all other session
+         * level errors are still returned using the normal error handler.
+         * <p>
+         * For local Realms, the only way this state can be encountered is if something went wrong
+         * when trying to open the Realm on the background thread calculating notifications.
          */
         ERROR;
     }
@@ -123,7 +134,7 @@ public interface OrderedCollectionChangeSet {
     Range[] getChangeRanges();
 
     /**
-     * Returns any error that happened. If an error has happened, the state of the Collection and other
+     * Returns any error that happened. If an error has happened, the state of the collection and other
      * changeset information is undefined. It is is possible for a collection to go into an error state
      * after being created and starting to send updates.
      *

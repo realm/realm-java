@@ -17,6 +17,7 @@
 #ifndef REALM_JNI_IMPL_COLLECTION_CHANGESET_WRAPPER_HPP
 #define REALM_JNI_IMPL_COLLECTION_CHANGESET_WRAPPER_HPP
 
+#include "collection_notifications.hpp"
 #include "util.hpp"
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_global_weak_ref.hpp"
@@ -26,8 +27,6 @@
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
 #include "sync/partial_sync.hpp"
-#include "object-store/src/collection_notifications.hpp"
-#include <collection_notifications.hpp>
 
 using namespace realm::jni_util;
 
@@ -59,13 +58,13 @@ public:
 
     jthrowable get_error() {
         JNIEnv* env = JniUtils::get_env(false);
-        if (m_error_message != nullptr) {
+        if (m_error_message != "") {
             static JavaClass realm_exception_class(env, "io/realm/exceptions/RealmException");
             static JavaMethod realm_exception_constructor(env, realm_exception_class, "<init>", "(Ljava/lang/String;)V");
             return (jthrowable) env->NewObject(realm_exception_class, realm_exception_constructor, to_jstring(env, m_error_message));
-        } else if (m_changeset.partial_sync_error_message != nullptr) {
+        } else if (m_changeset.partial_sync_error_message != "") {
             // Indicates a soft error, i.e. illegal name of query.
-            static JavaClass illegal_argument_class(env, "java/lang/IllegalArgument");
+            static JavaClass illegal_argument_class(env, "java/lang/IllegalArgumentException");
             static JavaMethod illegal_argument_constructor(env, illegal_argument_class, "<init>", "(Ljava/lang/String;)V");
             return (jthrowable) env->NewObject(illegal_argument_class, illegal_argument_constructor, to_jstring(env, m_changeset.partial_sync_error_message));
         } else {

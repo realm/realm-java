@@ -28,11 +28,6 @@ import io.realm.OrderedCollectionChangeSet;
  * OsCollectionChangeSet and read from it only when needed. Creating an Java object from JNI when the collection
  * notification arrives, is avoided since we also support the collection listeners without a change set parameter,
  * parsing the change set may not be necessary all the time.
- * <p>
- * Warning: This class do not correctly identify the state
- *
- * </p>
- *
  */
 public class OsCollectionChangeSet implements OrderedCollectionChangeSet, NativeObject {
 
@@ -58,7 +53,7 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
 
     @Override
     public State getState() {
-        return State.UPDATE; // Should be overriden before being used
+        throw new UnsupportedOperationException("This method should be overridden in a subclass");
     }
 
     /**
@@ -111,7 +106,7 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
 
     @Override
     public Throwable getError() {
-        return null; // Should be overriden before being used.
+        return (Throwable) nativeGetError(nativePtr);
     }
 
     public boolean isRemoteDataLoaded() {

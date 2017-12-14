@@ -17,8 +17,6 @@
 package io.realm;
 
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
@@ -37,6 +35,7 @@ import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.fields.FieldDescriptor;
 import io.realm.log.RealmLog;
+
 
 /**
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults} using the Builder
@@ -72,15 +71,6 @@ public class RealmQuery<E> {
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
     private static final String ASYNC_QUERY_WRONG_THREAD_MESSAGE = "Async query cannot be created on current thread.";
-    private static final java.security.MessageDigest MD5;
-
-    static {
-        try {
-            MD5 = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("Could not create MD5 MessageDigest", e);
-        }
-    }
 
     /**
      * Creates a query for objects of a given class from a {@link Realm}.
@@ -1538,7 +1528,7 @@ public class RealmQuery<E> {
         this.query.or();
         return this;
     }
-    
+
     /**
      * Logical-and two conditions
      * Realm automatically applies logical-and between all query statements, so this is intended only as a mean to increase readability.
@@ -1546,9 +1536,9 @@ public class RealmQuery<E> {
      * @return the query object
      */
     public RealmQuery<E> and() {
-    	realm.checkIfValid();
-    	
-    	return this;
+        realm.checkIfValid();
+
+        return this;
     }
 
     /**
@@ -1832,10 +1822,6 @@ public class RealmQuery<E> {
 
     /**
      * Finds all objects that fulfill the query conditions. This method is only available from a Looper thread.
-     * <p>
-     * If the Realm being queried is marked as a partially synchronized Realm, creating an async query will
-     * also create a named subscription that starts downloading the objects defined by the query. See
-     * {@link SyncConfiguration.Builder#partialRealm()} for more details.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
@@ -1847,68 +1833,6 @@ public class RealmQuery<E> {
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         return createRealmResults(query, sortDescriptor, distinctDescriptor, false);
     }
-
-    /**
-     * Finds all objects that fulfill the query conditions. This method is only available from a Looper thread.
-     * <p>
-     * If the Realm being queried is marked as a partially synchronized Realm, creating an async query will
-     * also create a named subscription that starts downloading the objects defined by the query. See
-     * {@link SyncConfiguration.Builder#partialRealm()} for more details.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @see io.realm.RealmResults
-     */
-    public RealmResults<E> findAllAsync(String name) {
-        realm.checkIfValid();
-
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, null, null, false);
-    }
-
-
-//    /**
-//     * Subscribes to the server side objects that matches this query and returns the query result
-//     * against the local Realm.
-//     * <p>
-//     * Subscribing means that Realm will start downloading the objects on the server that matches
-//     * the query. These will be put into the local Realm, on which the query runs. This is the
-//     * equivalent of how a normal synced Realm works, except that only the objects specified by
-//     * a query is actually downloaded.
-//     * <p>
-//     * Register a {@link RealmChangeListener} to be notified about when the query completes and when
-//     * the server side data have been downloaded. Use {@link RealmResults#isLoaded()} and
-//     * {@code RealmResults#isRemoteLoaded()} to identify when a local query has run and when the result
-//     * is updated with the server side objects downloaded.
-//     * <p>
-//     * It is also possible to use {@link SyncSession#addDownloadProgressListener(ProgressMode, ProgressListener)}
-//     * in order know when the objects have been downloaded.
-//     * </p>
-//     * Subscribing multiple times to the same query is allowed, but has no effect.
-//     * <p>
-//     * If a subscription is created without a specific name, a random one will be assigned to it.
-//     *
-//     * @throws IllegalStateException if the query is run against a Realm that isn't a partially synced Realm.
-//     * @see io.realm.RealmResults
-//     * @see SyncConfiguration.Builder#partialRealm()
-//     */
-//    public RealmAsyncTask subscribeAsync(Realm.SubscriptionCallback<RealmResults<E>> callback) {
-//        realm.checkIfValid();
-//        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-//        return subscribe(null, query, null, null, callback);
-//    }
-//
-//    /**
-//     *
-//     * @param name
-//     * @return
-//     */
-//    public RealmAsyncTask subscribeAsync(String name, Realm.SubscriptionCallback<RealmResults<E>> callback) {
-//        realm.checkIfValid();
-//
-//        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-//        return subscribe(name, query, null, null, callback);
-//    }
 
     /**
      * Finds all objects that fulfill the query conditions and sorted by specific field name.
@@ -2162,7 +2086,7 @@ public class RealmQuery<E> {
      */
     @Deprecated
     public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
+                                         String fieldName2, Sort sortOrder2) {
         return findAllSorted(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
@@ -2177,7 +2101,7 @@ public class RealmQuery<E> {
      */
     @Deprecated
     public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
+                                              String fieldName2, Sort sortOrder2) {
         return findAllSortedAsync(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
@@ -2255,9 +2179,9 @@ public class RealmQuery<E> {
     }
 
     private RealmResults<E> createRealmResults(TableQuery query,
-            @Nullable SortDescriptor sortDescriptor,
-            @Nullable SortDescriptor distinctDescriptor,
-            boolean loadResults) {
+                                               @Nullable SortDescriptor sortDescriptor,
+                                               @Nullable SortDescriptor distinctDescriptor,
+                                               boolean loadResults) {
         RealmResults<E> results;
         OsResults osResults = OsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
         if (isDynamicQuery()) {
@@ -2271,64 +2195,6 @@ public class RealmQuery<E> {
         return results;
     }
 
-//    /**
-//     * Attempts to create a subscription for a query. If successfully, the query will be executed
-//     * and returned.
-//     *
-//     * @param name  Optional name for the subscription. If a name isn't provided one will be generated.
-//     * @param query Query to subscribe, part #1
-//     * @param sortDescriptor  Query to subscribe, part #2
-//     * @param distinctDescriptor Query to subscribe, part #3
-//     * @param callback Callback to use when notifying user when query succeed or of any error.
-//     */
-//    private RealmAsyncTask subscribe(@Nullable final String name,
-//                                     final TableQuery query,
-//                                     @Nullable SortDescriptor sortDescriptor,
-//                                     @Nullable SortDescriptor distinctDescriptor,
-//                                     final Realm.SubscriptionCallback<RealmResults<E>> callback) {
-//        // FIXME: Add support for sorting/distinct
-//        // Optimistic write of the underlying __ResultSet. If the app crashes before this completes
-//        // the user will come back, and if they don't, the data wasn't relevant in the first place.
-//
-//        // When the subscription completes, run a normal asynchronous query
-//        Realm.Transaction.OnSuccess onSuccess = new Realm.Transaction.OnSuccess() {
-//            @Override
-//            public void onSuccess() {
-//                callback.onSuccess(createRealmResults(query, null, null, false));
-//            }
-//        };
-//
-//        // If the subscription fails, parse the error back
-//        Realm.Transaction.OnError onError = new Realm.Transaction.OnError() {
-//            @Override
-//            public void onError(Throwable error) {
-//                callback.onError(error);
-//            }
-//        };
-//
-//        if (realm instanceof Realm) {
-//            Realm normalRealm = (Realm) realm;
-//            return normalRealm.executeTransactionAsync(new Realm.Transaction() {
-//                @Override
-//                public void execute(Realm realm) {
-//                    nativeCreatePartialSyncSubscription(name, query.getNativePtr());
-//                }
-//            }, onSuccess, onError);
-//
-//        } else if (realm instanceof DynamicRealm) {
-//            Realm dynamicRealm = (Realm) realm;
-//            return dynamicRealm.executeTransactionAsync(new Realm.Transaction() {
-//                @Override
-//                public void execute(Realm realm) {
-//                    nativeCreatePartialSyncSubscription(name, query.getNativePtr());
-//                }
-//            }, onSuccess, onError);
-//
-//        } else {
-//            throw new IllegalStateException("Unsupported Realm type: " + realm.getClass());
-//        }
-//    }
-
     private long getSourceRowIndexForFirstObject() {
         return this.query.find();
     }
@@ -2336,6 +2202,4 @@ public class RealmQuery<E> {
     private SchemaConnector getSchemaConnector() {
         return new SchemaConnector(realm.getSchema());
     }
-
-//    private static native void nativeCreatePartialSyncSubscription(String name, long nativeTableQueryPointer);
 }
