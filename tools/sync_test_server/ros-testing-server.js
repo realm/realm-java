@@ -51,7 +51,9 @@ function waitForRosToInitialize(attempts, onSuccess, onError, startSequence) {
     http.get("http://0.0.0.0:9080/health", function(res) {
         if (res.statusCode != 200) {
             winston.info("ROS /health/ returned: " + res.statusCode)
-            waitForRosToInitialize(attempts - 1, onSuccess, onError, startSequence)
+            setTimeout(function() {
+                waitForRosToInitialize(attempts - 1, onSuccess, onError, startSequence);
+            }, 500);
         } else {
             onSuccess(startSequence);
         }
@@ -61,7 +63,7 @@ function waitForRosToInitialize(attempts, onSuccess, onError, startSequence) {
         // Wait a little before trying again (common startup is ~1 second).
         setTimeout(function() {
             waitForRosToInitialize(attempts - 1, onSuccess, onError, startSequence);
-        }, 200);
+        }, 500);
     });
 }
 
@@ -112,7 +114,8 @@ function doStartRealmObjectServer(onSuccess, onError) {
                 winston.info(`${data}`);
             });
 
-            waitForRosToInitialize(100, onSuccess, onError, Date.now());
+            // The interval between every health check is 0.5 second. Give the ROS 15 seconds to get fully initialized.
+            waitForRosToInitialize(30, onSuccess, onError, Date.now());
         }
     });
 }
