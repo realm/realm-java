@@ -52,7 +52,7 @@ dependencies {
      and this https://www.littlerobots.nl/blog/Whats-next-for-android-apt/ for more info.
    */
     compile 'com.neenbedankt.gradle.plugins:android-apt:1.8' //TODO: https://www.littlerobots.nl/blog/Whats-next-for-android-apt/
-    provided 'com.android.tools.build:gradle:3.1.0-alpha03'
+    provided 'com.android.tools.build:gradle:3.1.0-alpha05'
 
     testCompile gradleTestKit()
     testCompile 'junit:junit:4.12'

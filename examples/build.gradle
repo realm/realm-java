@@ -1,6 +1,6 @@
 project.ext.sdkVersion = 27
 project.ext.minSdkVersion = 15
-project.ext.buildTools = '27.0.1'
+project.ext.buildTools = '27.0.2'
 
 // Don't cache SNAPSHOT (changing) dependencies.
 configurations.all {
@@ -33,7 +33,7 @@ allprojects {
             maven { url 'https://jitpack.io' }
         }
         dependencies {
-            classpath 'com.android.tools.build:gradle:3.0.0'
+            classpath 'com.android.tools.build:gradle:3.0.1'
             classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
             classpath "io.realm:realm-gradle-plugin:${currentVersion}"
         }

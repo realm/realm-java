@@ -1,9 +1,9 @@
 project.ext.minSdkVersion = 9
 project.ext.compileSdkVersion = 26
-project.ext.buildToolsVersion = '26.0.2'
+project.ext.buildToolsVersion = '27.0.2'
 
 buildscript {
-    ext.kotlin_version = '1.1.51'
+    ext.kotlin_version = '1.2.10'
     ext.dokka_version = '0.9.15'
     repositories {
         mavenLocal()
@@ -14,7 +14,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
+        classpath 'com.android.tools.build:gradle:3.1.0-alpha05'
         classpath 'de.undercouch:gradle-download-task:3.3.0'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
         classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
