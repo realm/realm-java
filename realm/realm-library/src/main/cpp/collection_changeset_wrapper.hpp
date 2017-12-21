@@ -27,6 +27,7 @@
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
 #include "sync/partial_sync.hpp"
+#include "object-store/src/subscription_state.hpp"
 
 using namespace realm::jni_util;
 
@@ -73,7 +74,7 @@ public:
     }
 
     bool is_remote_data_loaded() {
-        return m_changeset.partial_sync_new_state == partial_sync::SubscriptionState::INITIALIZED;
+        return m_changeset.partial_sync_new_state == partial_sync::SubscriptionState::Initialized;
     }
 
 

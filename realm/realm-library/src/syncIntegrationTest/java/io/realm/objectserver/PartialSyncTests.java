@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.DynamicRealm;
 import io.realm.OrderedCollectionChangeSet;
@@ -23,7 +24,6 @@ import io.realm.TestHelper;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.exceptions.RealmException;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PartialSyncModule;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
@@ -44,37 +44,39 @@ public class PartialSyncTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void invalidQuery() {
+        AtomicInteger callbacks = new AtomicInteger(0);
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        final SyncConfiguration partialSyncConfig = configurationFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .partialRealm()
                 .build();
 
         final Realm realm = Realm.getInstance(partialSyncConfig);
         looperThread.closeAfterTest(realm);
 
-        // FIXME: Currently all queries are invalid
         RealmResults<AllTypes> query = realm.where(AllTypes.class).findAllAsync();
         query.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
             @Override
             public void onChange(RealmResults<AllTypes> allTypes, OrderedCollectionChangeSet changeSet) {
-                // TODO It is a bit undeterministic what is returned. If Sync is fast enough,
-                // the error message will return before the first notification is delivered.
-                // For some reason this causes the first notification to not be delivered, resulting
-                // in the first state here either being `INITIAL_INCOMPLETE` or `ERROR`
-                if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
-                    assertTrue(changeSet.getError() instanceof IllegalArgumentException);
-                    Throwable iae = changeSet.getError();
-                    assertTrue(iae.getMessage().contains("ERROR: realm::_impl::QueryTokenizer: Unrecognized token"));
-                    looperThread.testComplete();
-                } else {
-                    RealmLog.debug("State: " + changeSet.getState());
+                switch (callbacks.incrementAndGet()) {
+                    case 1:
+                        assertEquals(OrderedCollectionChangeSet.State.INITIAL_INCOMPLETE, changeSet.getState());
+                        break;
+
+                    case 2:
+                        assertEquals(OrderedCollectionChangeSet.State.ERROR, OrderedCollectionChangeSet.State.ERROR);
+                        assertTrue(changeSet.getError() instanceof IllegalArgumentException);
+                        Throwable iae = changeSet.getError();
+                        assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Comparison operator missing"));
+                        looperThread.testComplete();
+                        break;
+
+                    default:
+                        fail("Unexpected state: " + changeSet.getState());
                 }
             }
         });
         looperThread.keepStrongReference(query);
     }
-
 
     // List queries are operating on data that are always up to date as data in a list will
     // always be fetched as part of another top-level subscription. Thus `remoteDataLoaded` is
@@ -83,8 +85,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     public void listQueries_doNotCreateSubscriptions() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        final SyncConfiguration partialSyncConfig = configurationFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .partialRealm()
                 .build();
 
@@ -116,14 +117,12 @@ public class PartialSyncTests extends StandardIntegrationTest {
     public void partialSync() throws InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
 
-        final SyncConfiguration syncConfig = configurationFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .waitForInitialRemoteData()
                 .modules(new PartialSyncModule())
                 .build();
 
-        final SyncConfiguration partialSyncConfig = configurationFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .name("partialSync")
                 .modules(new PartialSyncModule())
                 .partialRealm()

@@ -140,11 +140,11 @@ JNIEXPORT jboolean Java_io_realm_internal_OsCollectionChangeSet_nativeIsRemoteDa
 JNIEXPORT jint JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetOldStatusCode(JNIEnv*, jobject, jlong native_ptr) {
     TR_ENTER_PTR(native_ptr)
     auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
-    return realm::partial_sync::state_to_status_code(change_set.get().partial_sync_old_state);
+    return (int8_t) change_set.get().partial_sync_old_state;
 }
 
 JNIEXPORT jint JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetNewStatusCode(JNIEnv*, jobject, jlong native_ptr) {
     TR_ENTER_PTR(native_ptr)
     auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
-    return realm::partial_sync::state_to_status_code(change_set.get().partial_sync_new_state);
+    return (int8_t) change_set.get().partial_sync_new_state;
 }
