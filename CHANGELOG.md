@@ -11,7 +11,7 @@
 
 ### Internal
 
-* Upgraded to Realm Sync 2.2.1.
+* Upgraded to Realm Sync 2.2.2.
 
 
 ## 4.3.2 (YYYY-MM-DD)
