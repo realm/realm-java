@@ -31,8 +31,7 @@
 #include <realm/timestamp.hpp>
 #include <realm/table.hpp>
 #include <realm/util/safe_int_ops.hpp>
-
-#include <util/format.hpp>
+#include <realm/util/to_string.hpp>
 
 #include "io_realm_internal_Util.h"
 

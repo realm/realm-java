@@ -20,12 +20,12 @@
 #include "io_realm_internal_Property.h"
 #include "io_realm_internal_Table.h"
 
-#include "shared_realm.hpp"
-#include "util/format.hpp"
-
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"
+#include "shared_realm.hpp"
 #include "jni_util/java_exception_thrower.hpp"
+
+#include <realm/util/to_string.hpp>
 
 using namespace std;
 using namespace realm;

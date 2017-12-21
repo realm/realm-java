@@ -4,12 +4,14 @@
 
 * The `OrderedCollectionChangeSet` parameter in `OrderedRealmCollectionChangeListener.onChange()` is no longer nullable. Use `changeSet.getState()` instead (#5619).
 
-
 ### Enhancements
 
 * Added support for partial Realms. Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
 * Added two new methods to `OrderedCollectionChangeSet`: `getState()` and `getError()` (#5619).
 
+### Internal
+
+* Upgraded to Realm Sync 2.2.1.
 
 
 ## 4.3.2 (YYYY-MM-DD)
