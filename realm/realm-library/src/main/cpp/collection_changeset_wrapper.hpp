@@ -29,6 +29,8 @@
 #include "sync/partial_sync.hpp"
 #include "object-store/src/subscription_state.hpp"
 
+#include <realm/string_data.hpp>
+
 using namespace realm::jni_util;
 
 namespace realm {
@@ -57,19 +59,19 @@ public:
         return m_changeset;
     };
 
-    jthrowable get_error() {
+    JavaGlobalRef get_error() {
         JNIEnv* env = JniUtils::get_env(false);
-        if (m_error_message != "") {
+        if (!m_error_message.empty()) {
             static JavaClass realm_exception_class(env, "io/realm/exceptions/RealmException");
             static JavaMethod realm_exception_constructor(env, realm_exception_class, "<init>", "(Ljava/lang/String;)V");
-            return (jthrowable) env->NewObject(realm_exception_class, realm_exception_constructor, to_jstring(env, m_error_message));
-        } else if (m_changeset.partial_sync_error_message != "") {
+            return JavaGlobalRef(env, env->NewObject(realm_exception_class, realm_exception_constructor, to_jstring(env, StringData(m_error_message))));
+        } else if (!m_changeset.partial_sync_error_message.empty()) {
             // Indicates a soft error, i.e. illegal name of query.
             static JavaClass illegal_argument_class(env, "java/lang/IllegalArgumentException");
             static JavaMethod illegal_argument_constructor(env, illegal_argument_class, "<init>", "(Ljava/lang/String;)V");
-            return (jthrowable) env->NewObject(illegal_argument_class, illegal_argument_constructor, to_jstring(env, m_changeset.partial_sync_error_message));
+            return JavaGlobalRef(env, env->NewObject(illegal_argument_class, illegal_argument_constructor, to_jstring(env, StringData(m_error_message))));
         } else {
-            return nullptr;
+            return JavaGlobalRef();
         }
     }
 

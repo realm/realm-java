@@ -135,7 +135,7 @@ public interface OrderedCollectionChangeSet {
 
     /**
      * Returns any error that happened. If an error has happened, the state of the collection and other
-     * changeset information is undefined. It is is possible for a collection to go into an error state
+     * changeset information is undefined. It is possible for a collection to go into an error state
      * after being created and starting to send updates.
      *
      * @return the error that happened.

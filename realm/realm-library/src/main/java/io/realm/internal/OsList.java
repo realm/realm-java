@@ -18,7 +18,6 @@ public class OsList implements NativeObject, ObservableCollection {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final ObserverPairList<CollectionObserverPair> observerPairs =
             new ObserverPairList<CollectionObserverPair>();
-    private int notificationCount = 0; // Keeps track of how many times a notification has been
 
     public OsList(UncheckedRow row, long columnIndex) {
         OsSharedRealm sharedRealm = row.getTable().getSharedRealm();

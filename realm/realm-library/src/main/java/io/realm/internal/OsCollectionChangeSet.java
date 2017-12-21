@@ -183,7 +183,7 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
 
     private native static long nativeGetFinalizerPtr();
 
-    // Returns the ranges as an long array. eg.: [startIndex1, length1, startIndex2, length2, ...]
+    // Returns the ranges as a long array. eg.: [startIndex1, length1, startIndex2, length2, ...]
     private native static int[] nativeGetRanges(long nativePtr, int type);
 
     // Returns the indices array.

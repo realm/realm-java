@@ -128,7 +128,7 @@ JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeG
 JNIEXPORT jobject JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetError(JNIEnv*, jobject, jlong native_ptr) {
     TR_ENTER_PTR(native_ptr)
     auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
-    return change_set.get_error();
+    return change_set.get_error().get();
 }
 
 JNIEXPORT jboolean Java_io_realm_internal_OsCollectionChangeSet_nativeIsRemoteDataLoaded(JNIEnv*, jobject, jlong native_ptr) {
@@ -140,11 +140,11 @@ JNIEXPORT jboolean Java_io_realm_internal_OsCollectionChangeSet_nativeIsRemoteDa
 JNIEXPORT jint JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetOldStatusCode(JNIEnv*, jobject, jlong native_ptr) {
     TR_ENTER_PTR(native_ptr)
     auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
-    return (int8_t) change_set.get().partial_sync_old_state;
+    return static_cast<int8_t>(change_set.get().partial_sync_old_state);
 }
 
 JNIEXPORT jint JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetNewStatusCode(JNIEnv*, jobject, jlong native_ptr) {
     TR_ENTER_PTR(native_ptr)
     auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
-    return (int8_t) change_set.get().partial_sync_new_state;
+    return static_cast<int8_t>(change_set.get().partial_sync_new_state);
 }
