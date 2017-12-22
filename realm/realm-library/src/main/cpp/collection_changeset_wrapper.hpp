@@ -79,6 +79,9 @@ public:
         return m_changeset.partial_sync_new_state == partial_sync::SubscriptionState::Initialized;
     }
 
+    bool is_empty() {
+        return m_changeset.empty() && m_error_message.empty();
+    }
 
 private:
     CollectionChangeSet m_changeset;

@@ -27,6 +27,8 @@ import java.io.IOException;
 /**
  * The standard base class for integration tests.
  * This class will keep a ROS instance running for all tests to minimize the overhead between each test.
+ *
+ * NOTE: All tests extending this class should use `@RunTestInLooperThread` tests.
  */
 public abstract class StandardIntegrationTest extends BaseIntegrationTest {
 

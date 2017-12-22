@@ -148,3 +148,9 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetNew
     auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
     return static_cast<int8_t>(change_set.get().partial_sync_new_state);
 }
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeIsEmpty(JNIEnv*, jobject, jlong native_ptr) {
+    TR_ENTER_PTR(native_ptr)
+    auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
+    return to_jbool(change_set.is_empty());
+}

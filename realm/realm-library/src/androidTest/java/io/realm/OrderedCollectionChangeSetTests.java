@@ -41,6 +41,7 @@ import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 
 // Tests for the ordered collection fine grained notifications for both RealmResults and RealmList.
@@ -459,7 +460,7 @@ public class OrderedCollectionChangeSetTests {
     // The change set should be empty when the async query returns at the first time.
     @Test
     @RunTestInLooperThread
-    public void emptyChangeSet_findAllAsync() {
+    public void initialChangeSet_findAllAsync() {
         if (type == ObservablesType.REALM_LIST) {
             looperThread.testComplete();
             return;
@@ -471,10 +472,10 @@ public class OrderedCollectionChangeSetTests {
         looperThread.keepStrongReference(results);
         results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
             @Override
-            public void onChange(RealmResults<Dog> collection, @Nullable OrderedCollectionChangeSet changeSet) {
+            public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
                 assertSame(collection, results);
                 assertEquals(10, collection.size());
-                assertNull(changeSet);
+                assertEquals(OrderedCollectionChangeSet.State.INITIAL_INCOMPLETE, changeSet.getState());
                 looperThread.testComplete();
             }
         });
