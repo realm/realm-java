@@ -17,21 +17,18 @@ import io.realm.log.RealmLog;
  */
 public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
 
-    private static final int[] NO_INDEX_CHANGES = new int[0];
-    private static final Range[] NO_RANGE_CHANGES = new Range[0];
     private final OrderedCollectionChangeSet changeset;
     private final Throwable error;
     private final State state;
 
     /**
      * @param backingChangeset Underlying changeset backing this.
-     * @param callbackCount How many times have the listener been called before (
      */
-    public StatefulCollectionChangeSet(OsCollectionChangeSet backingChangeset, int callbackCount) {
+    public StatefulCollectionChangeSet(OsCollectionChangeSet backingChangeset) {
         this.changeset = backingChangeset;
 
         // Calculate the state here since object is immutable
-        boolean isInitial = (callbackCount == 0);
+        boolean isInitial = backingChangeset.isFirstAsyncCallback();
 
         error = backingChangeset.getError();
         if (error != null) {

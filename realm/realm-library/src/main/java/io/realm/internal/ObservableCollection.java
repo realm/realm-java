@@ -10,7 +10,6 @@ import io.realm.RealmChangeListener;
 @Keep
 interface ObservableCollection {
     class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
-        public int called = 0;
         public CollectionObserverPair(T observer, Object listener) {
             super(observer, listener);
         }
@@ -18,14 +17,13 @@ interface ObservableCollection {
         public void onChange(T observer, OsCollectionChangeSet changes) {
             if (listener instanceof OrderedRealmCollectionChangeListener) {
                 //noinspection unchecked
-                ((OrderedRealmCollectionChangeListener<T>) listener).onChange(observer, new StatefulCollectionChangeSet(changes, called));
+                ((OrderedRealmCollectionChangeListener<T>) listener).onChange(observer, new StatefulCollectionChangeSet(changes));
             } else if (listener instanceof RealmChangeListener) {
                 //noinspection unchecked
                 ((RealmChangeListener<T>) listener).onChange(observer);
             } else {
                 throw new RuntimeException("Unsupported listener type: " + listener);
             }
-            called++;
         }
     }
 

@@ -45,9 +45,11 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
 
     private static long finalizerPtr = nativeGetFinalizerPtr();
     private final long nativePtr;
+    private final boolean firstAsyncCallback;
 
-    public OsCollectionChangeSet(long nativePtr) {
+    public OsCollectionChangeSet(long nativePtr, boolean firstAsyncCallback) {
         this.nativePtr = nativePtr;
+        this.firstAsyncCallback = firstAsyncCallback;
         NativeContext.dummyContext.addReference(this);
     }
 
@@ -121,6 +123,18 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         return nativeGetNewStatusCode(nativePtr);
     }
 
+    /**
+     * Returns {@code true} if this changeset is provided is from the first time a
+     * asynchronous callback returns a result.
+     */
+    public boolean isFirstAsyncCallback() {
+        return firstAsyncCallback;
+    }
+
+    public boolean isEmpty() {
+        return nativeIsEmpty(nativePtr);
+    }
+
     // Convert long array returned by the nativeGetXxxRanges() to Range array.
     private Range[] longArrayToRangeArray(int[] longArray) {
         //noinspection ConstantConditions
@@ -180,6 +194,11 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
     // Returns true if the data described by the subscription has been downloaded to the device,
     // false if not. In either case, the query is run against the local dataset.
     private native boolean nativeIsRemoteDataLoaded(long nativePtr);
+
+    /**
+     * Returns {@code true} if this changeset is empty, and doesn't contain any relevant changes.
+     */
+    private native boolean nativeIsEmpty(long nativePtr);
 
     private native static long nativeGetFinalizerPtr();
 
