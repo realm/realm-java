@@ -29,7 +29,7 @@ public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
      */
     public StatefulCollectionChangeSet(OsCollectionChangeSet backingChangeset, int callbackCount) {
         this.changeset = backingChangeset;
-        RealmLog.error(String.format("%s - %s", backingChangeset.getOldStatusCode(), backingChangeset.getNewStatusCode()));
+
         // Calculate the state here since object is immutable
         boolean isInitial = (callbackCount == 0);
 
@@ -55,47 +55,47 @@ public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
 
     @Override
     public int[] getInsertions() {
-        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
-            return NO_INDEX_CHANGES;
-        } else {
+//        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
+//            return NO_INDEX_CHANGES;
+//        } else {
             return changeset.getInsertions();
-        }
+//        }
     }
 
     @Override
     public int[] getChanges() {
-        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
-            return NO_INDEX_CHANGES;
-        } else {
+//        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
+//            return NO_INDEX_CHANGES;
+//        } else {
             return changeset.getChanges();
-        }
+//        }
     }
 
     @Override
     public Range[] getDeletionRanges() {
-        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
-            return NO_RANGE_CHANGES;
-        } else {
+//        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
+//            return NO_RANGE_CHANGES;
+//        } else {
             return changeset.getDeletionRanges();
-        }
+//        }
     }
 
     @Override
     public Range[] getInsertionRanges() {
-        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
-            return NO_RANGE_CHANGES;
-        } else {
+//        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
+//            return NO_RANGE_CHANGES;
+//        } else {
             return changeset.getInsertionRanges();
-        }
+//        }
     }
 
     @Override
     public Range[] getChangeRanges() {
-        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
-            return NO_RANGE_CHANGES;
-        } else {
+//        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
+//            return NO_RANGE_CHANGES;
+//        } else {
             return changeset.getChangeRanges();
-        }
+//        }
     }
 
     @Nullable
