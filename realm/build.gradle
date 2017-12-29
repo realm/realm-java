@@ -37,7 +37,7 @@ allprojects {
     }
 
     group = 'io.realm'
-    version = file("${rootDir}/../version.txt").text.trim();
+    version = file("${rootDir}/../version.txt").text.trim()
     repositories {
         mavenLocal()
         google()

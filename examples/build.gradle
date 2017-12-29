@@ -10,7 +10,7 @@ configurations.all {
 static String getAppId (path) {
     String build = new File(path).text
     def matcher = build =~ 'applicationId.*'
-    def appId = matcher.size() > 0 ? matcher[0].trim() - 'applicationId' - ~/\s/ : '';
+    def appId = matcher.size() > 0 ? matcher[0].trim() - 'applicationId' - ~/\s/ : ''
     String myappId = appId.replaceAll('"', '')
     myappId = myappId.replaceAll('\'', '')
     return myappId
