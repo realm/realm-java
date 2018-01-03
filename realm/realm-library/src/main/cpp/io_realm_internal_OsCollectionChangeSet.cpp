@@ -128,7 +128,7 @@ JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeG
 JNIEXPORT jobject JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetError(JNIEnv*, jobject, jlong native_ptr) {
     TR_ENTER_PTR(native_ptr)
     auto& change_set = *reinterpret_cast<CollectionChangeSetWrapper*>(native_ptr);
-    return change_set.get_error().get();
+    return change_set.get_error();
 }
 
 JNIEXPORT jboolean Java_io_realm_internal_OsCollectionChangeSet_nativeIsRemoteDataLoaded(JNIEnv*, jobject, jlong native_ptr) {

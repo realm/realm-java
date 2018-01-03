@@ -59,19 +59,19 @@ public:
         return m_changeset;
     };
 
-    JavaGlobalRef get_error() {
+    jthrowable get_error() {
         JNIEnv* env = JniUtils::get_env(false);
-        if (!m_error_message.empty()) {
+        if (m_error_message != "") {
             static JavaClass realm_exception_class(env, "io/realm/exceptions/RealmException");
             static JavaMethod realm_exception_constructor(env, realm_exception_class, "<init>", "(Ljava/lang/String;)V");
-            return JavaGlobalRef(env, env->NewObject(realm_exception_class, realm_exception_constructor, to_jstring(env, StringData(m_error_message))));
-        } else if (!m_changeset.partial_sync_error_message.empty()) {
+            return (jthrowable) env->NewObject(realm_exception_class, realm_exception_constructor, to_jstring(env, m_error_message));
+        } else if (m_changeset.partial_sync_error_message != "") {
             // Indicates a soft error, i.e. illegal name of query.
             static JavaClass illegal_argument_class(env, "java/lang/IllegalArgumentException");
             static JavaMethod illegal_argument_constructor(env, illegal_argument_class, "<init>", "(Ljava/lang/String;)V");
-            return JavaGlobalRef(env, env->NewObject(illegal_argument_class, illegal_argument_constructor, to_jstring(env, StringData(m_error_message))));
+            return (jthrowable) env->NewObject(illegal_argument_class, illegal_argument_constructor, to_jstring(env, m_changeset.partial_sync_error_message));
         } else {
-            return JavaGlobalRef();
+            return nullptr;
         }
     }
 

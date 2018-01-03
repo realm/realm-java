@@ -140,6 +140,13 @@ public abstract class BaseIntegrationTest {
 
         ConfigurationWrapper(RunInLooperThread looperThread) {
             this.looperThread = looperThread;
+            try {
+                // The RunInLooperThread rule might not be fully created yet. Do it here.
+                // The `create()` call is idempotent, so should be safe.
+                looperThread.create();
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
         }
 
         public SyncConfiguration.Builder createSyncConfigurationBuilder(SyncUser user, String url) {

@@ -21,9 +21,11 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.exceptions.RealmException;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PartialSyncModule;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
@@ -53,10 +55,11 @@ public class PartialSyncTests extends StandardIntegrationTest {
         final Realm realm = Realm.getInstance(partialSyncConfig);
         looperThread.closeAfterTest(realm);
 
-        RealmResults<AllTypes> query = realm.where(AllTypes.class).findAllAsync();
-        query.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllTypes>>() {
+        // Backlinks not yet supported: https://github.com/realm/realm-core/pull/2947
+        RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).equalTo("objectParents.fieldString", "Foo").findAllAsync();
+        query.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllJavaTypes>>() {
             @Override
-            public void onChange(RealmResults<AllTypes> allTypes, OrderedCollectionChangeSet changeSet) {
+            public void onChange(RealmResults<AllJavaTypes> results, OrderedCollectionChangeSet changeSet) {
                 switch (callbacks.incrementAndGet()) {
                     case 1:
                         assertEquals(OrderedCollectionChangeSet.State.INITIAL_INCOMPLETE, changeSet.getState());
@@ -66,7 +69,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
                         assertEquals(OrderedCollectionChangeSet.State.ERROR, OrderedCollectionChangeSet.State.ERROR);
                         assertTrue(changeSet.getError() instanceof IllegalArgumentException);
                         Throwable iae = changeSet.getError();
-                        assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Comparison operator missing"));
+                        assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
                         looperThread.testComplete();
                         break;
 
