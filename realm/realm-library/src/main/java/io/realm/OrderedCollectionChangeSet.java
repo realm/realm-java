@@ -144,6 +144,16 @@ public interface OrderedCollectionChangeSet {
     Throwable getError();
 
     /**
+     * Returns {@code true} if this change is a "complete" change.
+     * <p>
+     * It is only possible for this value to return {@code false} if the Realm is a partially
+     * synchronized Realm that still have not downloaded all data for this particular query.
+     * <p>
+     * TODO: Add better description
+     */
+    boolean isCompleteResult();
+
+    /**
      *
      */
     class Range {

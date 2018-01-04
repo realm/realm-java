@@ -100,4 +100,9 @@ public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
     public Throwable getError() {
         return error;
     }
+
+    @Override
+    public boolean isCompleteResult() {
+        return state == State.INITIAL || state == State.UPDATE;
+    }
 }

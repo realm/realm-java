@@ -117,7 +117,94 @@ public class PartialSyncTests extends StandardIntegrationTest {
     }
 
     @Test
+    @RunTestInLooperThread
     public void partialSync() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+
+        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .waitForInitialRemoteData()
+                .modules(new PartialSyncModule())
+                .build();
+
+        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .name("partialSync")
+                .modules(new PartialSyncModule())
+                .partialRealm()
+                .build();
+
+        // Create server data
+        Realm realm = Realm.getInstance(syncConfig);
+        realm.beginTransaction();
+        PartialSyncObjectA objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(0);
+        objectA.setString("realm");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(1);
+        objectA.setString("");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(2);
+        objectA.setString("");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(3);
+        objectA.setString("");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(4);
+        objectA.setString("realm");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(5);
+        objectA.setString("sync");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(6);
+        objectA.setString("partial");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(7);
+        objectA.setString("partial");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(8);
+        objectA.setString("partial");
+        objectA = realm.createObject(PartialSyncObjectA.class);
+        objectA.setNumber(9);
+        objectA.setString("partial");
+
+        for (int i = 0; i < 10; i++) {
+            realm.createObject(PartialSyncObjectB.class).setNumber(i);
+        }
+        realm.commitTransaction();
+        SyncManager.getSession(syncConfig).uploadAllLocalChanges();
+        realm.close();
+
+        // Download data in partial Realm
+        final Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
+        assertTrue(partialSyncRealm.isEmpty());
+
+        RealmResults<PartialSyncObjectA> results = partialSyncRealm.where(PartialSyncObjectA.class)
+                .greaterThan("number", 5)
+                .findAllAsync();
+        looperThread.keepStrongReference(results);
+
+        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<PartialSyncObjectA>>() {
+            @Override
+            public void onChange(RealmResults<PartialSyncObjectA> partialSyncObjectAS, OrderedCollectionChangeSet changeSet) {
+                if (changeSet.isCompleteResult()) {
+                    if (results.size() == 4) {
+                        for (PartialSyncObjectA object : results) {
+                            assertThat(object.getNumber(), greaterThan(5));
+                            assertEquals("partial", object.getString());
+                        }
+                        // make sure the Realm contains only PartialSyncObjectA
+                        assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
+                        looperThread.testComplete();
+                    }
+                }
+            }
+        });
+    }
+
+
+    @Test
+    @Deprecated
+    @RunTestInLooperThread
+    public void partialSync_oldApi() throws InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
 
         final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
@@ -223,5 +310,6 @@ public class PartialSyncTests extends StandardIntegrationTest {
         });
 
         TestHelper.awaitOrFail(latch);
+        looperThread.testComplete();
     }
 }
