@@ -45,38 +45,18 @@ public interface OrderedCollectionChangeSet {
          */
         UPDATE,
         /**
-         * This state is only used if the Realm is a partially synchronized Realm, which is defined by
-         * setting {@link SyncConfiguration.Builder#partialRealm()}.
+         * This state is used if some error occurred on the background evaluating the query.
          * <p>
-         * In that case data is only downloaded when queried, but as the query runs against the local
-         * data, that data might not be present when the query completes.
-         * </p>
-         * In those cases, where all data have not been downloaded yet, this state is used instead of
-         * {@link #INITIAL}. This makes it possible to distinguishes between a fully consistent dataset
-         * and one that isn't.
+         * For local and fully synchronized Realms, this state should only be encountered if the
+         * Realm could not be succesfully opened in the background,.
+         * <p>
+         * For partially synchronized Realms, it is only possible to get into this state if an error
+         * happened while evaluating the query on the server or some other error prevented data from
+         * being downloaded.
+         * <p>
+         * In this state, the content of the {@link RealmResults} is undefined.
          */
-        INITIAL_INCOMPLETE,
-        /**
-         * This state is used for every subsequent update after the first {@link #INITIAL_INCOMPLETE}.
-         * It is only triggered if a local action changed the Realm while changes are still being
-         * downloaded from the server.
-         * <p>
-         * It is only possible to get into this state if {@link #INITIAL_INCOMPLETE} was triggered first.
-         */
-        UPDATE_INCOMPLETE,
-        /**
-         * It is only possible to get into this state if an error happened while evaluating the query
-         * on the server or some other error prevented data from being downloaded. In this state,
-         * only {@link #getError()} has a meaningful value. The return value of all other methods are
-         * undefined.
-         * <p>
-         * For synced Realms, only errors relevant for the query is returned here, all other session
-         * level errors are still returned using the normal error handler.
-         * <p>
-         * For local Realms, the only way this state can be encountered is if something went wrong
-         * when trying to open the Realm on the background thread calculating notifications.
-         */
-        ERROR;
+        ERROR
     }
 
     /**
@@ -144,12 +124,32 @@ public interface OrderedCollectionChangeSet {
     Throwable getError();
 
     /**
-     * Returns {@code true} if this change is a "complete" change.
+     * Returns {@code true} if the query result is considered "complete". For all local Realms, or
+     * fully synchronized Realms, this method will always return {@code true}.
+     * <p>>
+     * This method thus only makes sense for partially synchronized Realms (as defined by setting
+     * {@link SyncConfiguration.Builder#partialRealm()}.
      * <p>
-     * It is only possible for this value to return {@code false} if the Realm is a partially
-     * synchronized Realm that still have not downloaded all data for this particular query.
+     * For those Realms, data is only downloaded when queried which means that until the data is
+     * downloaded, a local query might return a query result that would not have been possible on a
+     * fully synchronized Realm.
      * <p>
-     * TODO: Add better description
+     * Consider the following case:
+     * <ol>
+     *   <li>An app is online and makes a query for all messages containing the word "Realm".</li>
+     *   <li>Partial synchronization downloads all those messages.</li>
+     *   <li>The app goes offline.</li>
+     *   <li>The app makes an offline query against all messages containing the word "Database".</li>
+     * </ol>
+     * In this case, the query result will only contain the subset of messages that contains both
+     * words "Realm" and "Database" and not all messages that only contain "Database" but not "Realm".
+     * <p>
+     * If this distinction matters, wait for this method to return {@code true}, before using the
+     * result.
+     *
+     * @return {@code true} if the query result is fully consistent with the server at some point in
+     * time. {@code false} if the query was executed while the device was offline or all data
+     * has not been downloaded yet.
      */
     boolean isCompleteResult();
 

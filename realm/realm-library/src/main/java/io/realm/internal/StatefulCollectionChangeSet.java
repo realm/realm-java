@@ -11,15 +11,14 @@ import io.realm.log.RealmLog;
  *
  * Note that Object Store will calculate the changes between the query was registered and when it
  * completes. This information is not useful and might even be misleading when reporting first
- * result ({@link io.realm.OrderedCollectionChangeSet.State#INITIAL} or
- * {@link io.realm.OrderedCollectionChangeSet.State#INITIAL_INCOMPLETE}. So in those cases
- * we override the result and return empty changeset arrays.
+ * result ({@link io.realm.OrderedCollectionChangeSet.State#INITIAL}.
  */
 public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
 
     private final OrderedCollectionChangeSet changeset;
     private final Throwable error;
     private final State state;
+    private final boolean remoteDataSynchronized;
 
     /**
      * @param backingChangeset Underlying changeset backing this.
@@ -29,14 +28,13 @@ public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
 
         // Calculate the state here since object is immutable
         boolean isInitial = backingChangeset.isFirstAsyncCallback();
+        remoteDataSynchronized = backingChangeset.isRemoteDataLoaded();
 
         error = backingChangeset.getError();
         if (error != null) {
             state = State.ERROR;
-        } else if (backingChangeset.isRemoteDataLoaded()) {
-            state = (isInitial) ? State.INITIAL : State.UPDATE;
         } else {
-            state = (isInitial) ? State.INITIAL_INCOMPLETE : State.UPDATE_INCOMPLETE;
+            state = (isInitial) ? State.INITIAL : State.UPDATE;
         }
     }
 

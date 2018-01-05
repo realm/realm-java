@@ -40,6 +40,7 @@ import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -470,14 +471,38 @@ public class OrderedCollectionChangeSetTests {
         populateData(realm, 10);
         final RealmResults<Dog> results = realm.where(Dog.class).sort(Dog.FIELD_AGE).findAllAsync();
         looperThread.keepStrongReference(results);
-        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
-            @Override
-            public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
-                assertSame(collection, results);
-                assertEquals(10, collection.size());
-                assertEquals(OrderedCollectionChangeSet.State.INITIAL_INCOMPLETE, changeSet.getState());
-                looperThread.testComplete();
-            }
+        results.addChangeListener((collection, changeSet) -> {
+            assertSame(collection, results);
+            assertEquals(10, collection.size());
+            assertTrue(changeSet.isCompleteResult());
+            assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
+            looperThread.testComplete();
+        });
+    }
+
+    // The change set should be empty when the async query returns at the first time.
+    @Test
+    @RunTestInLooperThread
+    public void initialChangeSet_findAll() {
+        if (type == ObservablesType.REALM_LIST) {
+            looperThread.testComplete();
+            return;
+        }
+
+        Realm realm = looperThread.getRealm();
+        populateData(realm, 10);
+        final RealmResults<Dog> results = realm.where(Dog.class).sort(Dog.FIELD_AGE).findAll();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener((collection, changeSet) -> {
+            assertSame(collection, results);
+            assertEquals(11, collection.size());
+            assertTrue(changeSet.isCompleteResult());
+            assertEquals(OrderedCollectionChangeSet.State.UPDATE, changeSet.getState());
+            looperThread.testComplete();
+        });
+
+        realm.executeTransaction(r -> {
+            r.createObject(Dog.class);
         });
     }
 

@@ -62,7 +62,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
             public void onChange(RealmResults<AllJavaTypes> results, OrderedCollectionChangeSet changeSet) {
                 switch (callbacks.incrementAndGet()) {
                     case 1:
-                        assertEquals(OrderedCollectionChangeSet.State.INITIAL_INCOMPLETE, changeSet.getState());
+                        assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
                         break;
 
                     case 2:
@@ -107,8 +107,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
         query.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
             @Override
             public void onChange(RealmResults<Dog> dogs, OrderedCollectionChangeSet changeSet) {
-                // FIXME: Should be INITIAL
-                assertEquals(OrderedCollectionChangeSet.State.INITIAL_INCOMPLETE, changeSet.getState());
+                assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
                 assertEquals(0, dRealm.where("__ResultSets").count());
                 looperThread.testComplete();
             }

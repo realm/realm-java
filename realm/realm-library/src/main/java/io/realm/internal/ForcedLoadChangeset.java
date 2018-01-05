@@ -32,7 +32,7 @@ public class ForcedLoadChangeset extends OsCollectionChangeSet {
 
     @Override
     public State getState() {
-        return State.INITIAL_INCOMPLETE;
+        return State.INITIAL;
     }
 
     @Override
@@ -73,6 +73,11 @@ public class ForcedLoadChangeset extends OsCollectionChangeSet {
     @Override
     public boolean isRemoteDataLoaded() {
         return false;
+    }
+
+    @Override
+    public boolean isCompleteResult() {
+        return isRemoteDataLoaded();
     }
 
     @Override
