@@ -1,18 +1,14 @@
 package io.realm.objectserver;
 
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.DynamicRealm;
 import io.realm.OrderedCollectionChangeSet;
-import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmResults;
@@ -20,12 +16,10 @@ import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
-import io.realm.TestHelper;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.exceptions.RealmException;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PartialSyncModule;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
@@ -57,25 +51,22 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
         // Backlinks not yet supported: https://github.com/realm/realm-core/pull/2947
         RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).equalTo("objectParents.fieldString", "Foo").findAllAsync();
-        query.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllJavaTypes>>() {
-            @Override
-            public void onChange(RealmResults<AllJavaTypes> results, OrderedCollectionChangeSet changeSet) {
-                switch (callbacks.incrementAndGet()) {
-                    case 1:
-                        assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
-                        break;
+        query.addChangeListener((results, changeSet) -> {
+            switch (callbacks.incrementAndGet()) {
+                case 1:
+                    assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
+                    break;
 
-                    case 2:
-                        assertEquals(OrderedCollectionChangeSet.State.ERROR, OrderedCollectionChangeSet.State.ERROR);
-                        assertTrue(changeSet.getError() instanceof IllegalArgumentException);
-                        Throwable iae = changeSet.getError();
-                        assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
-                        looperThread.testComplete();
-                        break;
+                case 2:
+                    assertEquals(OrderedCollectionChangeSet.State.ERROR, OrderedCollectionChangeSet.State.ERROR);
+                    assertTrue(changeSet.getError() instanceof IllegalArgumentException);
+                    Throwable iae = changeSet.getError();
+                    assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
+                    looperThread.testComplete();
+                    break;
 
-                    default:
-                        fail("Unexpected state: " + changeSet.getState());
-                }
+                default:
+                    fail("Unexpected state: " + changeSet.getState());
             }
         });
         looperThread.keepStrongReference(query);
@@ -104,13 +95,10 @@ public class PartialSyncTests extends StandardIntegrationTest {
         realm.commitTransaction();
 
         RealmResults<Dog> query = list.where().sort("name").findAllAsync();
-        query.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
-            @Override
-            public void onChange(RealmResults<Dog> dogs, OrderedCollectionChangeSet changeSet) {
-                assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
-                assertEquals(0, dRealm.where("__ResultSets").count());
-                looperThread.testComplete();
-            }
+        query.addChangeListener((dogs, changeSet) -> {
+            assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
+            assertEquals(0, dRealm.where("__ResultSets").count());
+            looperThread.testComplete();
         });
         looperThread.keepStrongReference(query);
     }
@@ -174,6 +162,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
         // Download data in partial Realm
         final Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
+        looperThread.closeAfterTest(partialSyncRealm);
         assertTrue(partialSyncRealm.isEmpty());
 
         RealmResults<PartialSyncObjectA> results = partialSyncRealm.where(PartialSyncObjectA.class)
@@ -181,19 +170,16 @@ public class PartialSyncTests extends StandardIntegrationTest {
                 .findAllAsync();
         looperThread.keepStrongReference(results);
 
-        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<PartialSyncObjectA>>() {
-            @Override
-            public void onChange(RealmResults<PartialSyncObjectA> partialSyncObjectAS, OrderedCollectionChangeSet changeSet) {
-                if (changeSet.isCompleteResult()) {
-                    if (results.size() == 4) {
-                        for (PartialSyncObjectA object : results) {
-                            assertThat(object.getNumber(), greaterThan(5));
-                            assertEquals("partial", object.getString());
-                        }
-                        // make sure the Realm contains only PartialSyncObjectA
-                        assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
-                        looperThread.testComplete();
+        results.addChangeListener((partialSyncObjectAS, changeSet) -> {
+            if (changeSet.isCompleteResult()) {
+                if (results.size() == 4) {
+                    for (PartialSyncObjectA object : results) {
+                        assertThat(object.getNumber(), greaterThan(5));
+                        assertEquals("partial", object.getString());
                     }
+                    // make sure the Realm contains only PartialSyncObjectA
+                    assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
+                    looperThread.testComplete();
                 }
             }
         });
@@ -258,57 +244,48 @@ public class PartialSyncTests extends StandardIntegrationTest {
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
 
-        final CountDownLatch latch = new CountDownLatch(2);
+        AtomicInteger countdown = new AtomicInteger(2);
+        final Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
+        looperThread.closeAfterTest(partialSyncRealm);
+        assertTrue(partialSyncRealm.isEmpty());
 
-        HandlerThread handlerThread = new HandlerThread("background");
-        handlerThread.start();
-        Handler handler = new Handler(handlerThread.getLooper());
-        handler.post(new Runnable() {
+        partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
+
             @Override
-            public void run() {
-                final Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
-                assertTrue(partialSyncRealm.isEmpty());
+            public void onSuccess(RealmResults<PartialSyncObjectA> results) {
+                assertEquals(4, results.size());
+                for (PartialSyncObjectA object : results) {
+                    assertThat(object.getNumber(), greaterThan(5));
+                    assertEquals("partial", object.getString());
+                }
+                // make sure the Realm contains only PartialSyncObjectA
+                assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
+                if (countdown.decrementAndGet() == 0) {
+                    looperThread.testComplete();
+                }
+            }
 
-                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
-
-                    @Override
-                    public void onSuccess(RealmResults<PartialSyncObjectA> results) {
-                        assertEquals(4, results.size());
-                        for (PartialSyncObjectA object : results) {
-                            assertThat(object.getNumber(), greaterThan(5));
-                            assertEquals("partial", object.getString());
-                        }
-                        // make sure the Realm contains only PartialSyncObjectA
-                        assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
-                        latch.countDown();
-                    }
-
-                    @Override
-                    public void onError(RealmException error) {
-                        fail(error.getMessage());
-                    }
-                });
-
-                // Invalid query
-                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "invalid_property > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
-
-                    @Override
-                    public void onSuccess(RealmResults<PartialSyncObjectA> results) {
-                        fail("Invalid query should not succeed");
-                    }
-
-                    @Override
-                    public void onError(RealmException error) {
-                        assertNotNull(error);
-                        partialSyncRealm.close();
-                        latch.countDown();
-                    }
-                });
-
+            @Override
+            public void onError(RealmException error) {
+                fail(error.getMessage());
             }
         });
 
-        TestHelper.awaitOrFail(latch);
-        looperThread.testComplete();
+        // Invalid query
+        partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "invalid_property > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
+
+            @Override
+            public void onSuccess(RealmResults<PartialSyncObjectA> results) {
+                fail("Invalid query should not succeed");
+            }
+
+            @Override
+            public void onError(RealmException error) {
+                assertNotNull(error);
+                if (countdown.decrementAndGet() == 0) {
+                    looperThread.testComplete();
+                }
+            }
+        });
     }
 }
