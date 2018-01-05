@@ -111,6 +111,11 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         return (Throwable) nativeGetError(nativePtr);
     }
 
+    @Override
+    public boolean isCompleteResult() {
+        throw new UnsupportedOperationException("This method should be overridden in a subclass");
+    }
+
     public boolean isRemoteDataLoaded() {
         return nativeIsRemoteDataLoaded(nativePtr);
     }
