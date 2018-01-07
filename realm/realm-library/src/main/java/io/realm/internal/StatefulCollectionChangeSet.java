@@ -50,47 +50,27 @@ public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
 
     @Override
     public int[] getInsertions() {
-//        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
-//            return NO_INDEX_CHANGES;
-//        } else {
-            return changeset.getInsertions();
-//        }
+        return changeset.getInsertions();
     }
 
     @Override
     public int[] getChanges() {
-//        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
-//            return NO_INDEX_CHANGES;
-//        } else {
-            return changeset.getChanges();
-//        }
+        return changeset.getChanges();
     }
 
     @Override
     public Range[] getDeletionRanges() {
-//        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
-//            return NO_RANGE_CHANGES;
-//        } else {
-            return changeset.getDeletionRanges();
-//        }
+        return changeset.getDeletionRanges();
     }
 
     @Override
     public Range[] getInsertionRanges() {
-//        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
-//            return NO_RANGE_CHANGES;
-//        } else {
-            return changeset.getInsertionRanges();
-//        }
+        return changeset.getInsertionRanges();
     }
 
     @Override
     public Range[] getChangeRanges() {
-//        if (state == State.INITIAL || state == State.INITIAL_INCOMPLETE) {
-//            return NO_RANGE_CHANGES;
-//        } else {
-            return changeset.getChangeRanges();
-//        }
+        return changeset.getChangeRanges();
     }
 
     @Nullable
@@ -101,6 +81,6 @@ public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
 
     @Override
     public boolean isCompleteResult() {
-        return state == State.INITIAL || state == State.UPDATE;
+        return remoteDataSynchronized;
     }
 }

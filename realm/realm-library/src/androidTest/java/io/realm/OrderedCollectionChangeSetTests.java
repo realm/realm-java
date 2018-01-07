@@ -476,6 +476,9 @@ public class OrderedCollectionChangeSetTests {
             assertEquals(10, collection.size());
             assertTrue(changeSet.isCompleteResult());
             assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
+            assertEquals(0, changeSet.getInsertions().length);
+            assertEquals(0, changeSet.getChanges().length);
+            assertEquals(0, changeSet.getDeletions().length);
             looperThread.testComplete();
         });
     }
@@ -498,6 +501,7 @@ public class OrderedCollectionChangeSetTests {
             assertEquals(11, collection.size());
             assertTrue(changeSet.isCompleteResult());
             assertEquals(OrderedCollectionChangeSet.State.UPDATE, changeSet.getState());
+            assertEquals(1, changeSet.getInsertions().length);
             looperThread.testComplete();
         });
 
