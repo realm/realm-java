@@ -41,9 +41,10 @@ namespace _impl {
 // when it comes to states and defining errors.
 class CollectionChangeSetWrapper {
 public:
-    CollectionChangeSetWrapper(CollectionChangeSet const& changeset, std::string error_message)
+    CollectionChangeSetWrapper(CollectionChangeSet const& changeset, std::string error_message, bool partial_sync_realm)
         : m_changeset(changeset)
         , m_error_message(error_message)
+        , m_partial_sync_realm(partial_sync_realm)
     {
     }
 
@@ -58,6 +59,8 @@ public:
     {
         return m_changeset;
     };
+
+
 
     jthrowable get_error() {
         JNIEnv* env = JniUtils::get_env(false);
@@ -76,7 +79,12 @@ public:
     }
 
     bool is_remote_data_loaded() {
-        return m_changeset.partial_sync_new_state == partial_sync::SubscriptionState::Initialized;
+        if (!m_partial_sync_realm) {
+            return true;
+        }
+
+        return m_changeset.partial_sync_new_state == partial_sync::SubscriptionState::Initialized
+        || m_changeset.partial_sync_new_state == partial_sync::SubscriptionState ::NotSupported;
     }
 
     bool is_empty() {
@@ -86,6 +94,7 @@ public:
 private:
     CollectionChangeSet m_changeset;
     std::string m_error_message; // From any exception being thrown that are not reported using Partial Sync
+    bool m_partial_sync_realm; // if true, this Realm supports partial Sync
 };
 
 
