@@ -39,9 +39,9 @@ android {
 
 dependencies {
     //noinspection GradleDependency
-    implementation 'com.android.support:appcompat-v7:27.0.1'
+    implementation 'com.android.support:appcompat-v7:27.0.2'
     //noinspection GradleDependency
-    implementation 'com.android.support:design:27.0.1'
+    implementation 'com.android.support:design:27.0.2'
     implementation 'com.jakewharton.timber:timber:4.5.1'
     implementation 'com.jakewharton:butterknife:8.5.1'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
