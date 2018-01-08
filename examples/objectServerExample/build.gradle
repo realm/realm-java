@@ -3,22 +3,22 @@ apply plugin: 'realm-android'
 
 // Credit: http://jeremie-martinez.com/2015/05/05/inject-host-gradle/
 def getIP() {
-    InetAddress result = null;
-    Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+    InetAddress result = null
+    Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces()
     while (interfaces.hasMoreElements()) {
-        Enumeration<InetAddress> addresses = interfaces.nextElement().getInetAddresses();
+        Enumeration<InetAddress> addresses = interfaces.nextElement().getInetAddresses()
         while (addresses.hasMoreElements()) {
-            InetAddress address = addresses.nextElement();
+            InetAddress address = addresses.nextElement()
             if (!address.isLoopbackAddress()) {
                 if (address.isSiteLocalAddress()) {
-                    return address.getHostAddress();
+                    return address.getHostAddress()
                 } else if (result == null) {
-                    result = address;
+                    result = address
                 }
             }
         }
     }
-    return (result != null ? result : InetAddress.getLocalHost()).getHostAddress();
+    return (result != null ? result : InetAddress.getLocalHost()).getHostAddress()
 }
 
 android {

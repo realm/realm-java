@@ -465,7 +465,7 @@ task downloadCore() {
             return true
         }
         if (project.forceDownloadCore) {
-            return true;
+            return true
         }
         if (!isHashCheckingEnabled()) {
             println "Skipping hash check(empty \'coreSha256Hash\')."
@@ -497,7 +497,7 @@ task downloadCore() {
                     throw new GradleException("Invalid checksum for file '" +
                             "${project.coreArchiveFile.getName()}'. Expected " +
                             "${project.coreSha256Hash.toLowerCase()} but got " +
-                            "${calculatedHash.toLowerCase()}.");
+                            "${calculatedHash.toLowerCase()}.")
                 }
             } else {
                 println 'Skipping hash check (empty \'coreSha256Hash\').'

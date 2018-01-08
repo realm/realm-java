@@ -30,7 +30,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 group = 'io.realm'
-version = file("${projectDir}/../version.txt").text.trim();
+version = file("${projectDir}/../version.txt").text.trim()
 
 configurations {
     provided

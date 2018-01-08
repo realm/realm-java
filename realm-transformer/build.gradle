@@ -25,7 +25,7 @@ apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'com.jfrog.bintray'
 
 group = 'io.realm'
-version = file("${projectDir}/../version.txt").text.trim();
+version = file("${projectDir}/../version.txt").text.trim()
 
 def properties = new Properties()
 properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
