@@ -1,6 +1,6 @@
 project.ext.minSdkVersion = 9
 project.ext.compileSdkVersion = 26
-project.ext.buildToolsVersion = '26.0.2'
+project.ext.buildToolsVersion = '27.0.2'
 
 buildscript {
     ext.kotlin_version = '1.2.10'
