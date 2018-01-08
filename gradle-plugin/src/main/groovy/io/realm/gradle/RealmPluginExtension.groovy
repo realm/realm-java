@@ -32,7 +32,7 @@ class RealmPluginExtension {
     }
 
     void setSyncEnabled(value) {
-        this.syncEnabled = value;
+        this.syncEnabled = value
         setDependencies(syncEnabled, kotlinExtensionsEnabled)
     }
 
@@ -43,7 +43,7 @@ class RealmPluginExtension {
 
     void setDependencies(boolean syncEnabled, boolean kotlinExtensionsEnabled) {
         // remove libraries first
-        def iterator = project.getConfigurations().getByName(dependencyConfigurationName).getDependencies().iterator();
+        def iterator = project.getConfigurations().getByName(dependencyConfigurationName).getDependencies().iterator()
         while (iterator.hasNext()) {
             def item = iterator.next()
             if (item.group == 'io.realm') {

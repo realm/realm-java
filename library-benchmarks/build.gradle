@@ -5,7 +5,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
+        classpath 'com.android.tools.build:gradle:3.1.0-alpha06'
         classpath "io.realm:realm-gradle-plugin:${file("${rootDir}/../version.txt").text.trim()}"
     }
 }
