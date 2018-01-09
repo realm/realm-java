@@ -85,4 +85,16 @@ class Realm implements Plugin<Project> {
             oldDependencyName
         }
     }
+
+    private static boolean shouldApplyAndroidAptPlugin(boolean isKotlinProject,
+                                                       boolean hasAnnotationProcessorConfiguration,
+                                                       boolean preferAptOnKotlinProject) {
+
+        if (isKotlinProject) {
+            // for any Kotlin projects where user did not apply 'kapt' manually.
+            return preferAptOnKotlinProject && !hasAnnotationProcessorConfiguration
+        }
+        // for any Java Projects where user did not apply 'AnnotationProcessor' plugin manually.
+        return !hasAnnotationProcessorConfiguration
+    }
 }
