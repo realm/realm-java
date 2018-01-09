@@ -47,13 +47,7 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
     compile "io.realm:realm-transformer:${version}"
-    /*Note: the latest Android Gradle plugin has now built in support for annotation processors and warns and/or blocks android-apt,
-     see this https://bitbucket.org/hvisser/android-apt/wiki/Migration page on how to migrate
-     and this https://www.littlerobots.nl/blog/Whats-next-for-android-apt/ for more info.
-   */
-    compile 'com.neenbedankt.gradle.plugins:android-apt:1.8' //TODO: https://www.littlerobots.nl/blog/Whats-next-for-android-apt/
-    provided 'com.android.tools.build:gradle:3.1.0-alpha03'
-
+    provided 'com.android.tools.build:gradle:3.1.0-alpha07'
     testCompile gradleTestKit()
     testCompile 'junit:junit:4.12'
 }
@@ -124,7 +118,7 @@ publishing {
                 accessKey project.hasProperty('s3AccessKey') ? s3AccessKey : 'noAccessKey'
                 secretKey project.hasProperty('s3SecretKey') ? s3SecretKey : 'noSecretKey'
             }
-            if(project.version.endsWith('-SNAPSHOT')) {
+            if (project.version.endsWith('-SNAPSHOT')) {
                 url "s3://realm-ci-artifacts/maven/snapshots/"
             } else {
                 url "s3://realm-ci-artifacts/maven/releases/"
@@ -163,7 +157,7 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-            publications ('realmPublication')
+            publications('realmPublication')
         }
     }
 }
