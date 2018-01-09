@@ -184,6 +184,7 @@ android.registerTransform(new RealmTransformer())
 
 repositories {
     jcenter()
+    maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
 }
 
 dependencies {
