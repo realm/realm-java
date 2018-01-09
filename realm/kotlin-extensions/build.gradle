@@ -70,7 +70,7 @@ dependencies {
 }
 
 repositories {
-    mavenCentral()
+    jcenter()
 }
 
 // enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/09/kotlin-1-1-50-is-out/
