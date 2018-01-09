@@ -84,6 +84,14 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                 srcClassName);
     }
 
+    RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz) {
+        this(realm, osResults, clazz, "");
+    }
+
+    RealmResults(BaseRealm realm, OsResults osResults, String className) {
+        this(realm, osResults, className, "");
+    }
+
     RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz, String subscriptionName) {
         super(realm, osResults, clazz);
         this.subscriptionName = subscriptionName;

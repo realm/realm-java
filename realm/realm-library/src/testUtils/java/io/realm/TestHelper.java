@@ -69,7 +69,7 @@ import static junit.framework.Assert.fail;
 
 public class TestHelper {
     public static final int VERY_SHORT_WAIT_SECS = 1;
-    public static final int SHORT_WAIT_SECS = 10;
+    public static final int SHORT_WAIT_SECS = 1000;
     public static final int STANDARD_WAIT_SECS = 100;
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
@@ -991,6 +991,9 @@ public class TestHelper {
             Assert.fail();
         }
     }
+    public class __ResultSets {
+
+    }
 
     /**
      * Creates a {@link RealmResults} instance.
@@ -1006,10 +1009,10 @@ public class TestHelper {
         //noinspection TryWithIdenticalCatches
         try {
             final Constructor<RealmResults> c = RealmResults.class.getDeclaredConstructor(
-                    BaseRealm.class, OsResults.class, Class.class);
+                    BaseRealm.class, OsResults.class, Class.class, String.class);
             c.setAccessible(true);
             //noinspection unchecked
-            return c.newInstance(realm, osResults, tableClass);
+            return c.newInstance(realm, osResults, tableClass, "");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (InstantiationException e) {
