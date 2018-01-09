@@ -105,7 +105,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void partialSync_anonymousSubscription() throws InterruptedException {
+    public void anonymousSubscription() throws InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
 
         final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
@@ -148,7 +148,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void partialSync_namedSubscription() throws InterruptedException {
+    public void namedSubscription() throws InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
 
         final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
