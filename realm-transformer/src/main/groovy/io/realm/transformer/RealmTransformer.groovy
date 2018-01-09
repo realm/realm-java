@@ -84,7 +84,7 @@ class RealmTransformer extends Transform {
         // Find all the class names
         def inputClassNames = getClassNames(inputs)
         def referencedClassNames = getClassNames(referencedInputs)
-        def allClassNames = merge(inputClassNames, referencedClassNames);
+        def allClassNames = merge(inputClassNames, referencedClassNames)
 
         // Create and populate the Javassist class pool
         ClassPool classPool = new ManagedClassPool(inputs, referencedInputs)
@@ -103,7 +103,7 @@ class RealmTransformer extends Transform {
                 .findAll { it.superclass?.equals(baseProxyMediator) }
         logger.debug "Proxy Mediator Classes: ${proxyMediatorClasses*.name}"
         proxyMediatorClasses.each {
-            BytecodeModifier.overrideTransformedMarker(it);
+            BytecodeModifier.overrideTransformedMarker(it)
         }
 
         // Find the model classes
@@ -174,8 +174,8 @@ class RealmTransformer extends Transform {
             it.getPackageName()
         }
 
-        def targetSdk = project?.android?.defaultConfig?.targetSdkVersion?.mApiLevel as String;
-        def minSdk = project?.android?.defaultConfig?.minSdkVersion?.mApiLevel as String;
+        def targetSdk = project?.android?.defaultConfig?.targetSdkVersion?.mApiLevel as String
+        def minSdk = project?.android?.defaultConfig?.minSdkVersion?.mApiLevel as String
 
         def env = System.getenv()
         def disableAnalytics = env["REALM_DISABLE_ANALYTICS"]
@@ -252,7 +252,7 @@ class RealmTransformer extends Transform {
         Set<String> merged = new HashSet<String>()
         merged.addAll(set1)
         merged.addAll(set2)
-        return merged;
+        return merged
     }
 
     // There is no official way to get the path to android.jar for transform.
