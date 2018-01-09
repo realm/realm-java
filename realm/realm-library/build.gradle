@@ -211,7 +211,7 @@ dependencies {
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
     // specify error prone version to prevent sudden failure
-    errorprone 'com.google.errorprone:error_prone_core:2.1.2'
+    errorprone 'com.google.errorprone:error_prone_core:2.2.0'
 }
 
 task sourcesJar(type: Jar) {
