@@ -30,7 +30,6 @@ import org.junit.Before
 import org.junit.Test
 
 import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
 import static org.junit.Assert.fail
 
@@ -53,8 +52,7 @@ class PluginTest {
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
-                classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
+                classpath 'com.android.tools.build:gradle:3.1.0-alpha07'
                 classpath "io.realm:realm-gradle-plugin:${currentVersion}"
             }
         }
@@ -71,7 +69,7 @@ class PluginTest {
     }
 
     @Test
-    public void pluginFailsWithoutAndroidPlugin() {
+    void pluginFailsWithoutAndroidPlugin() {
         project.buildscript {
             repositories {
                 mavenLocal()
@@ -79,7 +77,6 @@ class PluginTest {
             }
             dependencies {
                 classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
-                classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
                 classpath "io.realm:realm-gradle-plugin:${currentVersion}"
             }
         }

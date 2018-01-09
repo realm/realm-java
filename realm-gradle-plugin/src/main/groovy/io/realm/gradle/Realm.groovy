@@ -18,7 +18,6 @@ package io.realm.gradle
 
 import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryPlugin
-import com.neenbedankt.gradle.androidapt.AndroidAptPlugin
 import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -42,30 +41,17 @@ class Realm implements Plugin<Project> {
 
         def syncEnabledDefault = false
         def dependencyConfigurationName = getDependencyConfigurationName(project)
-        def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
         def isKotlinProject = project.plugins.findPlugin('kotlin-android') != null
         def useKotlinExtensionsDefault = isKotlinProject
         def hasAnnotationProcessorConfiguration = project.getConfigurations().findByName('annotationProcessor') != null
-        // TODO add a parameter in 'realm' block if this should be specified by users
-        def preferAptOnKotlinProject = false
-
 
         project.extensions.create('realm', RealmPluginExtension, project, syncEnabledDefault, useKotlinExtensionsDefault, dependencyConfigurationName)
-
-        if (shouldApplyAndroidAptPlugin(usesAptPlugin, isKotlinProject,
-                                        hasAnnotationProcessorConfiguration, preferAptOnKotlinProject)) {
-            project.plugins.apply(AndroidAptPlugin)
-            usesAptPlugin = true
-        }
 
         project.android.registerTransform(new RealmTransformer(project))
 
         project.repositories.add(project.getRepositories().jcenter())
         project.dependencies.add(dependencyConfigurationName, "io.realm:realm-annotations:${Version.VERSION}")
-        if (usesAptPlugin) {
-            project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
-            project.dependencies.add("androidTestApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
-        } else if (isKotlinProject && !preferAptOnKotlinProject) {
+       if (isKotlinProject) {
             project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}")
             project.dependencies.add("kaptAndroidTest", "io.realm:realm-annotations-processor:${Version.VERSION}")
         } else {
@@ -98,20 +84,5 @@ class Realm implements Plugin<Project> {
         } catch (UnknownConfigurationException ignored) {
             oldDependencyName
         }
-    }
-
-    private static boolean shouldApplyAndroidAptPlugin(boolean usesAptPlugin, boolean isKotlinProject,
-                                                       boolean hasAnnotationProcessorConfiguration,
-                                                       boolean preferAptOnKotlinProject) {
-        if (usesAptPlugin) {
-            // for any projects that uses android-apt plugin already. No need to apply it twice.
-            return false
-        }
-        if (isKotlinProject) {
-            // for any Kotlin projects where user did not apply 'android-apt' plugin manually.
-            return preferAptOnKotlinProject && !hasAnnotationProcessorConfiguration
-        }
-        // for any Java Projects where user did not apply 'android-apt' plugin manually.
-        return !hasAnnotationProcessorConfiguration
     }
 }

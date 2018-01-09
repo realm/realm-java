@@ -183,8 +183,8 @@ import io.realm.transformer.RealmTransformer
 android.registerTransform(new RealmTransformer())
 
 repositories {
-    maven { url "https://jitpack.io" }
-    mavenCentral()
+    jcenter()
+    maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
 }
 
 dependencies {
@@ -207,11 +207,11 @@ dependencies {
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
-    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
     // specify error prone version to prevent sudden failure
-    errorprone 'com.google.errorprone:error_prone_core:2.1.2'
+    errorprone 'com.google.errorprone:error_prone_core:2.2.0'
 }
 
 task sourcesJar(type: Jar) {

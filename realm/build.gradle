@@ -9,12 +9,12 @@ buildscript {
         mavenLocal()
         google()
         jcenter()
-        maven { url 'https://jitpack.io' }
+        maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
         maven { url "https://plugins.gradle.org/m2/" }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0-alpha06'
+        classpath 'com.android.tools.build:gradle:3.1.0-alpha07'
         classpath 'de.undercouch:gradle-download-task:3.3.0'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
         classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
@@ -42,6 +42,7 @@ allprojects {
         mavenLocal()
         google()
         jcenter()
+        maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
     }
 }
 

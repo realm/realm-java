@@ -20,8 +20,8 @@ import org.gradle.api.Project
 
 class RealmPluginExtension {
     private Project project
-    def boolean syncEnabled
-    def boolean kotlinExtensionsEnabled
+    boolean syncEnabled
+    boolean kotlinExtensionsEnabled
     private String dependencyConfigurationName
 
     RealmPluginExtension(Project project, boolean syncEnabledDefault, boolean useKotlinExtensionsDefault, String dependencyConfigurationName) {
