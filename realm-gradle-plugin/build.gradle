@@ -47,7 +47,17 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
     compile "io.realm:realm-transformer:${version}"
+<<<<<<< HEAD:realm-gradle-plugin/build.gradle
     provided 'com.android.tools.build:gradle:3.1.0-alpha07'
+=======
+    /*Note: the latest Android Gradle plugin has now built in support for annotation processors and warns and/or blocks android-apt,
+     see this https://bitbucket.org/hvisser/android-apt/wiki/Migration page on how to migrate
+     and this https://www.littlerobots.nl/blog/Whats-next-for-android-apt/ for more info.
+   */
+    compile 'com.neenbedankt.gradle.plugins:android-apt:1.8' //TODO: https://www.littlerobots.nl/blog/Whats-next-for-android-apt/
+    provided 'com.android.tools.build:gradle:3.1.0-alpha06'
+
+>>>>>>> upstream/master:gradle-plugin/build.gradle
     testCompile gradleTestKit()
     testCompile 'junit:junit:4.12'
 }
