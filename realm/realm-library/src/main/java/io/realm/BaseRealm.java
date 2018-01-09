@@ -433,6 +433,18 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    protected void checkIfPartialRealm() {
+        boolean isPartialRealm = false;
+        if (configuration.isSyncConfiguration()) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            isPartialRealm = true;
+        }
+
+        if (!isPartialRealm) {
+            throw new IllegalStateException("This method is only available on partially synchronized Realms.");
+        }
+    }
+
     /**
      * Checks if the Realm is valid and in a transaction.
      */

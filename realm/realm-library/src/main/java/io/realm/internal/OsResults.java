@@ -397,15 +397,23 @@ public class OsResults implements NativeObject, ObservableCollection {
     }
 
     public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
+        addListener(observer, listener, "");
+    }
+
+    public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener, String subscriptionName) {
         if (observerPairs.isEmpty()) {
-            nativeStartListening(nativePtr);
+            nativeStartListening(nativePtr, subscriptionName);
         }
         CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<T>(observer, listener);
         observerPairs.add(collectionObserverPair);
     }
 
     public <T> void addListener(T observer, RealmChangeListener<T> listener) {
-        addListener(observer, new RealmChangeListenerWrapper<T>(listener));
+        addListener(observer, new RealmChangeListenerWrapper<T>(listener), "");
+    }
+
+    public <T> void addListener(T observer, RealmChangeListener<T> listener, String subscriptionName) {
+        addListener(observer, new RealmChangeListenerWrapper<T>(listener), subscriptionName);
     }
 
     public <T> void removeListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
@@ -435,7 +443,7 @@ public class OsResults implements NativeObject, ObservableCollection {
         // So it is possible it deliver a non-empty change set for the first async query returns.
         OsCollectionChangeSet changeset = (nativeChangeSetPtr == 0)
                 ? new ForcedLoadChangeset()
-                : new OsCollectionChangeSet(nativeChangeSetPtr, !isLoaded());
+                : new OsCollectionChangeSet(nativeChangeSetPtr, !loaded);
 
         // Happens e.g. if a synchronous query is created, a change listener is added and then
         // a transaction is started on the same thread. This will trigger all notifications
@@ -506,7 +514,7 @@ public class OsResults implements NativeObject, ObservableCollection {
     private static native void nativeDelete(long nativePtr, long index);
 
     // Non-static, we need this OsResults object in JNI.
-    private native void nativeStartListening(long nativePtr);
+    private native void nativeStartListening(long nativePtr, String subscriptionName);
 
     private native void nativeStopListening(long nativePtr);
 
