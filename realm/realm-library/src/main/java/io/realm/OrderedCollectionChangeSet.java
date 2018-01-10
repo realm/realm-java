@@ -126,7 +126,7 @@ public interface OrderedCollectionChangeSet {
     /**
      * Returns {@code true} if the query result is considered "complete". For all local Realms, or
      * fully synchronized Realms, this method will always return {@code true}.
-     * <p>>
+     * <p>
      * This method thus only makes sense for partially synchronized Realms (as defined by setting
      * {@link SyncConfiguration.Builder#partialRealm()}.
      * <p>
