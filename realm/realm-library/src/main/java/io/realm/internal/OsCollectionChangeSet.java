@@ -129,8 +129,8 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
     }
 
     /**
-     * Returns {@code true} if this changeset is provided is from the first time a
-     * asynchronous callback returns a result.
+     * Returns {@code true} if this is the first time an asynchronous query returns a result, i.e.
+     * the query completed. 
      */
     public boolean isFirstAsyncCallback() {
         return firstAsyncCallback;
