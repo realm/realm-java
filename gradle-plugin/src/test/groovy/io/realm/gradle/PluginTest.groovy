@@ -63,7 +63,7 @@ class PluginTest {
         project.apply plugin: 'com.android.application'
         project.apply plugin: 'realm-android'
 
-        assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-android-library', currentVersion))
+        assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-android-libraryBUG', currentVersion))
         assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-annotations', currentVersion))
 
         assertTrue(containsTransform(project.android.transforms, RealmTransformer.class))
