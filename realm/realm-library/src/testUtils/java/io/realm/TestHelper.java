@@ -991,9 +991,6 @@ public class TestHelper {
             Assert.fail();
         }
     }
-    public class __ResultSets {
-
-    }
 
     /**
      * Creates a {@link RealmResults} instance.
