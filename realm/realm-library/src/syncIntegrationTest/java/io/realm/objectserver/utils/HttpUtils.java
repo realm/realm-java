@@ -56,10 +56,6 @@ public class HttpUtils {
 
         Response response = client.newCall(request).execute();
         if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-
-        // Work around race condition between starting ROS and logging in first user
-        // See https://github.com/realm/ros/issues/389
-        SystemClock.sleep(2000);
     }
 
     /**
