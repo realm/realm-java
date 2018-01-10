@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ import io.realm.RealmResults;
 /**
  * Fake changeset used if {@link RealmResults#load()} is called manually.
  */
-public class ForcedLoadChangeset extends OsCollectionChangeSet {
+public class EmptyLoadChangeSet extends OsCollectionChangeSet {
 
     private static final int[] NO_INDEX_CHANGES = new int[0];
     private static final Range[] NO_RANGE_CHANGES = new Range[0];
 
-    public ForcedLoadChangeset() {
+    public EmptyLoadChangeSet() {
         super(0, true);
         // FIXME Read partial sync status from Realm when creating this
     }

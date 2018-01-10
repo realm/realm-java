@@ -84,7 +84,7 @@ public:
         }
 
         return m_changeset.partial_sync_new_state == partial_sync::SubscriptionState::Initialized
-        || m_changeset.partial_sync_new_state == partial_sync::SubscriptionState ::NotSupported;
+        || m_changeset.partial_sync_new_state == partial_sync::SubscriptionState::NotSupported;
     }
 
     bool is_empty() {

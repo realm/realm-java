@@ -84,3 +84,4 @@ public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
         return remoteDataSynchronized;
     }
 }
+
