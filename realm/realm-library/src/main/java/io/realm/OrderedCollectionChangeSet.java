@@ -141,11 +141,19 @@ public interface OrderedCollectionChangeSet {
      *   <li>The app goes offline.</li>
      *   <li>The app makes an offline query against all messages containing the word "Database".</li>
      * </ol>
-     * In this case, the query result will only contain the subset of messages that contains both
-     * words "Realm" and "Database" and not all messages that only contain "Database" but not "Realm".
+     *
+     * Here there are two situations where the query result might be considered "incomplete".
      * <p>
-     * If this distinction matters, wait for this method to return {@code true}, before using the
-     * result.
+     * The first is when the "Realm" query runs for the first time. The local query will finish
+     * faster than the network can download data so the query will initially report an empty
+     * incomplete query result.
+     * <p>
+     * The second is when the "Database" query is run. The initial query result will not be
+     * empty, but contain all messages that contain both "Realm" and "Database", as they are already
+     * available offline.
+     * <p>
+     * In both cases, a new notification will be triggered as soon as the device is able to download
+     * the data required to produce a "complete" query result.
      *
      * @return {@code true} if the query result is fully consistent with the server at some point in
      * time. {@code false} if the query was executed while the device was offline or all data

@@ -136,6 +136,9 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         return firstAsyncCallback;
     }
 
+    /**
+     * Returns {@code true} if this changeset is empty, and doesn't contain any relevant changes.
+     */
     public boolean isEmpty() {
         return nativeIsEmpty(nativePtr);
     }
