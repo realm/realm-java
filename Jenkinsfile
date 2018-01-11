@@ -69,6 +69,22 @@ try {
                   }
                 }
 
+                stage('Gradle plugin tests') {
+                  try {
+                    gradle('gradle-plugin', 'check')
+                  } finally {
+                    storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
+                  }
+                }
+
+                stage('Realm Transformer tests') {
+                  try {
+                    gradle('realm-transformer', 'check')
+                  } finally {
+                    storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
+                  }
+                }
+
                 stage('Static code analysis') {
                   try {
                     gradle('realm', 'findbugs pmd checkstyle')
