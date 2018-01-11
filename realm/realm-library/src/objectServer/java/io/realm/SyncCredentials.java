@@ -110,6 +110,17 @@ public class SyncCredentials {
         return new SyncCredentials(jwtToken, IdentityProvider.JWT, null);
     }
 
+    public static SyncCredentials anonymous() {
+        return new SyncCredentials("", IdentityProvider.ANONYMOUS, null);
+    }
+
+    public static SyncCredentials nickname(String nickname, boolean isAdmin) {
+        assertStringNotEmpty(nickname, "nickname");
+        Map<String, Object> userInfo = new HashMap<String, Object>();
+        userInfo.put("is_admin", isAdmin);
+        return new SyncCredentials(nickname, IdentityProvider.NICKNAME, userInfo);
+    }
+
     /**
      * Creates credentials based on a login with username and password. These credentials will only be verified
      * by the Object Server.
@@ -281,6 +292,16 @@ public class SyncCredentials {
          * by the Realm Object Server.
          */
         public static final String JWT = "jwt";
+
+        /**
+         * Credentials will be verified anonymously.
+         */
+        public static final String ANONYMOUS = "anonymous";
+
+        /**
+         * Credentials will be verified with a nickname.
+         */
+        public static final String NICKNAME = "nickname";
 
         /**
          * Credentials will be verified by the Object Server.
