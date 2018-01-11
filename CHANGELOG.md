@@ -7,6 +7,11 @@
 * Prevent Realms Gradle plugin from transitively forcing specific versions of Google Build Tools onto downstream projects (#5640).
 * [ObjectServer] logging a warning message instead of throwing an exception, when sync report an unknown error code (#5403).
 
+### Enhancements
+
+* Added explicity support for both Anonymous and Nickname authentication.
+
+
 ### Internal
 
 * Upgraded to Realm Sync 2.2.9

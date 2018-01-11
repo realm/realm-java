@@ -108,6 +108,32 @@ public class CredentialsTests {
     }
 
     @Test
+    public void anonymous() {
+        SyncCredentials creds = SyncCredentials.anonymous();
+        assertEquals(SyncCredentials.IdentityProvider.ANONYMOUS, creds.getIdentityProvider());
+        assertTrue(creds.getUserInfo().isEmpty());
+    }
+
+    @Test
+    public void nickname() {
+        SyncCredentials creds = SyncCredentials.nickname("foo", false);
+        assertEquals(SyncCredentials.IdentityProvider.NICKNAME, creds.getIdentityProvider());
+        assertFalse(creds.getUserInfo().isEmpty());
+    }
+
+    @Test
+    public void nickname_invalidInput() {
+        String[] invalidInput = {null, ""};
+        for (String input : invalidInput) {
+            try {
+                SyncCredentials.nickname(input);
+                fail(input + " should have failed");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
     public void usernamePassword_register() {
         SyncCredentials creds = SyncCredentials.usernamePassword("foo", "bar", true);
         assertUsernamePassword(creds, "foo", "bar", true);

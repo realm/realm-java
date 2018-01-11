@@ -110,10 +110,24 @@ public class SyncCredentials {
         return new SyncCredentials(jwtToken, IdentityProvider.JWT, null);
     }
 
+    /**
+     * Creates credentials anonymously.
+     *
+     * @return a set of credentials that can be used to log into the Object Server using
+     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * @throws IllegalArgumentException if the token is either {@code null} or empty.
+     */
     public static SyncCredentials anonymous() {
         return new SyncCredentials("", IdentityProvider.ANONYMOUS, null);
     }
-
+    /**
+     * Creates credentials anonymously.
+     *
+     * @param nickname that identifies a user
+     * @return a set of credentials that can be used to log into the Object Server using
+     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * @throws IllegalArgumentException if the token is either {@code null} or empty.
+     */
     public static SyncCredentials nickname(String nickname, boolean isAdmin) {
         assertStringNotEmpty(nickname, "nickname");
         Map<String, Object> userInfo = new HashMap<String, Object>();
