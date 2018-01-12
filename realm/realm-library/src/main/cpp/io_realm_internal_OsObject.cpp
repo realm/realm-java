@@ -23,7 +23,7 @@
 #include <object_schema.hpp>
 #include <object.hpp>
 #include <shared_realm.hpp>
-#include <util/format.hpp>
+#include <realm/util/to_string.hpp>
 
 #include "util.hpp"
 #include "java_class_global_def.hpp"

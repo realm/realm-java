@@ -27,7 +27,8 @@
 #include "io_realm_log_LogLevel.h"
 
 #include "realm/util/logger.hpp"
-#include "util/format.hpp"
+
+#include <realm/util/to_string.hpp>
 
 #define TR_ENTER()                                                                                                   \
     if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) {                                              \
@@ -114,32 +115,32 @@ public:
     template <typename... Args>
     inline static void t(const char* fmt, Args&&... args)
     {
-        shared().log(trace, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(trace, REALM_JNI_TAG, nullptr, util::format(fmt, {util::Printable(args)...}).c_str());
     }
     template <typename... Args>
     inline static void d(const char* fmt, Args&&... args)
     {
-        shared().log(debug, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(debug, REALM_JNI_TAG, nullptr, util::format(fmt, {util::Printable(args)...}).c_str());
     }
     template <typename... Args>
     inline static void i(const char* fmt, Args&&... args)
     {
-        shared().log(info, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(info, REALM_JNI_TAG, nullptr, util::format(fmt, {util::Printable(args)...}).c_str());
     }
     template <typename... Args>
     inline static void w(const char* fmt, Args&&... args)
     {
-        shared().log(warn, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(warn, REALM_JNI_TAG, nullptr, util::format(fmt, {util::Printable(args)...}).c_str());
     }
     template <typename... Args>
     inline static void e(const char* fmt, Args&&... args)
     {
-        shared().log(error, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(error, REALM_JNI_TAG, nullptr, util::format(fmt, {util::Printable(args)...}).c_str());
     }
     template <typename... Args>
     inline static void f(const char* fmt, Args&&... args)
     {
-        shared().log(fatal, REALM_JNI_TAG, nullptr, _impl::format(fmt, {_impl::Printable(args)...}).c_str());
+        shared().log(fatal, REALM_JNI_TAG, nullptr, util::format(fmt, {util::Printable(args)...}).c_str());
     }
 
     static realm::util::RootLogger::Level convert_to_core_log_level(Level level);
