@@ -534,6 +534,7 @@ public class AuthTests extends StandardIntegrationTest {
     // The pre-emptive token refresh subsystem should function, and properly refresh the access token.
     // WARNING: this test can fail if there's a difference between the server's and device's clock, causing the
     // refresh access token to be too far in time.
+    @Ignore("Test still times out https://github.com/realm/realm-java/issues/5681")
     @Test(timeout = 30000)
     public void preemptiveTokenRefresh() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
