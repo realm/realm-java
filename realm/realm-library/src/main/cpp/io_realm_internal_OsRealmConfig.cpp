@@ -362,7 +362,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigS
                                                        "(Ljava/lang/String;Ljava/lang/String;I)Z", true);
 
             std::function<sync::Session::SSLVerifyCallback> ssl_verify_callback =
-                [](const std::string server_address, REALM_UNUSED realm::sync::Client::port_type server_port,
+                [](const std::string server_address, REALM_UNUSED realm::sync::Session::port_type server_port,
                    const char* pem_data, size_t pem_size, REALM_UNUSED int preverify_ok, int depth) {
 
                     Log::d("Callback to Java requesting certificate validation for host %1",

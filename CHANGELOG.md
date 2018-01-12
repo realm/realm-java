@@ -5,6 +5,10 @@
 * Throws a better exception message when calling `RealmObjectSchema.addField()` with a `RealmModel` class (#3388).
 * Use https for Realm version checker (#4043).
 
+### Internal
+
+* Upgraded to Realm Sync 2.2.9
+* Upgraded to Realm Core 5.1.2
 
 ## 4.3.1 (2017-12-06)
 

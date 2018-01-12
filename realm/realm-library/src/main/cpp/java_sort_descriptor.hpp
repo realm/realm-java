@@ -19,8 +19,6 @@
 
 #include <jni.h>
 
-#include "descriptor_ordering.hpp"
-
 namespace realm {
 
 namespace jni_util {
