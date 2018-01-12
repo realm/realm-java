@@ -26,8 +26,7 @@
 #include <realm/table.hpp>
 
 #include <object_accessor.hpp>
-#include <util/any.hpp>
-#include <util/format.hpp>
+#include <realm/util/any.hpp>
 
 #include "java_class_global_def.hpp"
 #include "java_exception_def.hpp"
