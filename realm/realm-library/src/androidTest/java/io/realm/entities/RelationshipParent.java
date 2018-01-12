@@ -17,17 +17,16 @@ package io.realm.entities;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
-import io.realm.annotations.Relationship;
-import io.realm.annotations.RelationshipType;
+import io.realm.annotations.StrongRelationship;
 
 public class RelationshipParent extends RealmObject {
 
-    @Relationship(RelationshipType.STRONG)
+    @StrongRelationship
     public RelationshipChild strongObjectRef;
 
     public RelationshipChild weakObjectRef;
 
-    @Relationship(RelationshipType.STRONG)
+    @StrongRelationship
     public RealmList<RelationshipChild> strongListRef = new RealmList<>();
 
     public RealmList<RelationshipChild> weakListRef = new RealmList<>();

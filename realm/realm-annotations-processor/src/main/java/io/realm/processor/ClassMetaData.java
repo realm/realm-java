@@ -44,9 +44,8 @@ import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.Relationship;
-import io.realm.annotations.RelationshipType;
 import io.realm.annotations.Required;
+import io.realm.annotations.StrongRelationship;
 
 
 /**
@@ -494,16 +493,12 @@ public class ClassMetaData {
         }
 
         // Check that @RealmField is used on the correct fields.
-        if (field.getAnnotation(Relationship.class) != null) {
+        if (field.getAnnotation(StrongRelationship.class) != null) {
             if (!Utils.isRealmModel(field) && !Utils.isRealmModelList(field)) {
                 Utils.error("@RealmField is only allowed on fields that reference either other Realm model classes or lists of model classes.");
                 return false;
             }
-
-            RelationshipType relationship = field.getAnnotation(Relationship.class).value();
-            if (relationship == RelationshipType.STRONG) {
-                strongReferences.add(field);
-            }
+            strongReferences.add(field);
         }
 
         if (field.getAnnotation(PrimaryKey.class) != null) {
