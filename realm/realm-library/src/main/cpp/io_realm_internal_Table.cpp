@@ -21,7 +21,6 @@
 #include "io_realm_internal_Table.h"
 
 #include "shared_realm.hpp"
-#include <realm/util/to_string.hpp>
 
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"
