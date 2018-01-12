@@ -70,7 +70,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedPro
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedLinkProperty(JNIEnv* env, jclass,
                                                                                           jstring j_name_str,
                                                                                           jint type,
-                                                                                          jstring j_target_class_name)
+                                                                                          jstring j_target_class_name,
+                                                                                          jboolean is_strong_reference)
 {
     TR_ENTER()
     try {
