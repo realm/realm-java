@@ -77,7 +77,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedLin
         JStringAccessor name(env, j_name_str);
         JStringAccessor link_name(env, j_target_class_name);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
-        return reinterpret_cast<jlong>(new Property(name, p_type, link_name));
+        Relationship relationship = (is_strong_reference) ? Relationship::Strong : Relationship::Weak;
+        return reinterpret_cast<jlong>(new Property(name, p_type, link_name, relationship));
     }
     CATCH_STD()
     return 0;

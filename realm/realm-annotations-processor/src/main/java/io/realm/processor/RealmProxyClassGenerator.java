@@ -748,15 +748,15 @@ public class RealmProxyClassGenerator {
 
                 case OBJECT:
                     String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.OBJECT, \"%s\")",
-                            fieldName, fieldTypeSimpleName);
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.OBJECT, \"%s\", %s)",
+                            fieldName, fieldTypeSimpleName, metadata.isStrongReference(field));
                     break;
 
                 case LIST:
                     // only for model list.
                     String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
-                            fieldName, genericTypeSimpleName);
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\", %s)",
+                            fieldName, genericTypeSimpleName, metadata.isStrongReference(field));
                     break;
 
                 case INTEGER_LIST:

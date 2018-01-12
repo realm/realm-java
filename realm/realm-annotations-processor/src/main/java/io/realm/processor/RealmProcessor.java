@@ -119,6 +119,7 @@ import io.realm.annotations.RealmModule;
  */
 @SupportedAnnotationTypes({
         "io.realm.annotations.RealmClass",
+        "io.realm.annotations.RealmField",
         "io.realm.annotations.Ignore",
         "io.realm.annotations.Index",
         "io.realm.annotations.PrimaryKey",
