@@ -28,8 +28,6 @@
 
 #include "realm/util/logger.hpp"
 
-#include <realm/util/to_string.hpp>
-
 #define TR_ENTER()                                                                                                   \
     if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) {                                              \
         realm::jni_util::Log::t(" --> %1", __FUNCTION__);                                                            \
