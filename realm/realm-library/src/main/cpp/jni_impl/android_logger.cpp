@@ -16,7 +16,7 @@
 
 #include <cstring>
 
-#include "util/format.hpp"
+#include <realm/util/to_string.hpp>
 
 #include "android_logger.hpp"
 

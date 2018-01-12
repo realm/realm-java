@@ -17,7 +17,7 @@
 #include "java_exception_thrower.hpp"
 #include "log.hpp"
 
-#include <util/format.hpp>
+#include <realm/util/to_string.hpp>
 
 using namespace realm::util;
 using namespace realm::jni_util;
