@@ -19,7 +19,6 @@ package io.realm.internal;
 import javax.annotation.Nullable;
 
 import io.realm.RealmFieldType;
-import io.realm.annotations.Relationship;
 
 /**
  * Immutable Java wrapper for Object Store ObjectSchema.
