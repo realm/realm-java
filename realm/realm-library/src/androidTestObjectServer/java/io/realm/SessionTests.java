@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -424,8 +425,16 @@ public class SessionTests {
                 .build();
         Realm realm = Realm.getInstance(configuration);
         SyncSession session = SyncManager.getSession(configuration);
+
+        TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+        RealmLog.add(testLogger);
+
         session.notifySessionError(3, "Unknown Error");
+        RealmLog.remove(testLogger);
+
         assertTrue(errorHandlerCalled.get());
+        assertEquals("Unknown error code: 3", testLogger.message);
+
         realm.close();
     }
 }
