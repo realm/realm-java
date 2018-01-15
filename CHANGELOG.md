@@ -5,6 +5,7 @@
 * Throws a better exception message when calling `RealmObjectSchema.addField()` with a `RealmModel` class (#3388).
 * Use https for Realm version checker (#4043).
 * Prevent Realms Gradle plugin from transitively forcing specific versions of Google Build Tools onto downstream projects (#5640).
+* [ObjectServer] logging a warning message instead of throwing an exception, when sync report an unknown error code (#5403).
 
 ### Internal
 
