@@ -25,8 +25,8 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
 import io.realm.annotations.Required;
-import io.realm.internal.OsResults;
 import io.realm.internal.OsList;
+import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -34,7 +34,6 @@ import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.fields.FieldDescriptor;
-import io.realm.log.RealmLog;
 
 
 /**
@@ -45,7 +44,7 @@ import io.realm.log.RealmLog;
  * RealmObject class is refactored care has to be taken to not break any queries.
  * <p>
  * A {@link io.realm.Realm} is unordered, which means that there is no guarantee that querying a Realm will return the
- * objects in the order they where inserted. Use {@link #findAllSorted(String)} and similar methods if a specific order
+ * objects in the order they where inserted. Use {@link #sort(String)} (String)} and similar methods if a specific order
  * is required.
  * <p>
  * A RealmQuery cannot be passed between different threads.
@@ -1588,78 +1587,6 @@ public class RealmQuery<E> {
     }
 
     /**
-     * @deprecated Since 4.3.0, now use {@link RealmQuery#distinctValues(String)} then {@link RealmQuery#findAll()}
-     *
-     * Returns a distinct set of objects of a specific class. If the result is sorted, the first
-     * object will be returned in case of multiple occurrences, otherwise it is undefined which
-     * object is returned.
-     * <p>
-     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
-     *
-     * @param fieldName the field name.
-     * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
-     * to linked fields.
-     */
-    @Deprecated
-    public RealmResults<E> distinct(String fieldName) {
-        realm.checkIfValid();
-
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
-        return createRealmResults(query, null, distinctDescriptor, true);
-    }
-
-    /**
-     * @deprecated Since 4.3.0, now use {@link RealmQuery#distinctValues(String)} then {@link RealmQuery#findAllAsync()}
-     *
-     * Asynchronously returns a distinct set of objects of a specific class. If the result is
-     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
-     * undefined which object is returned.
-     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
-     *
-     * @param fieldName the field name.
-     * @return immediately a {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
-     * query completes.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
-     * to linked fields.
-     */
-    @Deprecated
-    public RealmResults<E> distinctAsync(String fieldName) {
-        realm.checkIfValid();
-
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
-        return createRealmResults(query, null, distinctDescriptor, false);
-    }
-
-    /**
-     * @deprecated Since 4.3.0, now use {@link RealmQuery#distinctValues(String, String[])} then {@link RealmQuery#findAll()}
-     *
-     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
-     * given, all unique combinations of values in the fields will be returned. In case of multiple
-     * matches, it is undefined which object is returned. Unless the result is sorted, then the
-     * first object will be returned.
-     *
-     * @param firstFieldName first field name to use when finding distinct objects.
-     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
-     * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
-     * is an unsupported type, or points to a linked field.
-     */
-    @Deprecated
-    public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
-        realm.checkIfValid();
-
-        String[] fieldNames = new String[1 + remainingFieldNames.length];
-
-        fieldNames[0] = firstFieldName;
-        System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
-        return createRealmResults(query, null, distinctDescriptor, true);
-    }
-
-    /**
      * Calculates the sum of a given field.
      *
      * @param fieldName the field to sum. Only number fields are supported.
@@ -1955,8 +1882,6 @@ public class RealmQuery<E> {
     }
 
     /**
-     * BETA API: Will be renamed to {@code distinct} in next major release.
-     *
      * Selects a distinct set of objects of a specific class. If the result is sorted, the first object will be
      * returned in case of multiple occurrences, otherwise it is undefined which object is returned.
      * <p>
@@ -1968,13 +1893,11 @@ public class RealmQuery<E> {
      * @throws IllegalStateException if distinct field names were already defined.
      */
     @Beta
-    public RealmQuery<E> distinctValues(String fieldName) {
-        return distinctValues(fieldName, new String[]{});
+    public RealmQuery<E> distinct(String fieldName) {
+        return distinct(fieldName, new String[]{});
     }
 
     /**
-     * BETA API: Will be renamed to {@code distinct} in next major release.
-     *
      * Selects a distinct set of objects of a specific class. When multiple distinct fields are
      * given, all unique combinations of values in the fields will be returned. In case of multiple
      * matches, it is undefined which object is returned. Unless the result is sorted, then the
@@ -1987,7 +1910,7 @@ public class RealmQuery<E> {
      * @throws IllegalStateException if distinct field names were already defined.
      */
     @Beta
-    public RealmQuery<E> distinctValues(String firstFieldName, String... remainingFieldNames) {
+    public RealmQuery<E> distinct(String firstFieldName, String... remainingFieldNames) {
         realm.checkIfValid();
         if (distinctDescriptor != null) {
             throw new IllegalStateException("Distinct fields have already been defined.");
@@ -2003,128 +1926,8 @@ public class RealmQuery<E> {
         return this;
     }
 
-    /**
-     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String)} then {@link RealmQuery#findAll()}
-     *
-     * Finds all objects that fulfill the query conditions and sorted by specific field name in ascending order.
-     * <p>
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
-     *
-     * @param fieldName the field name to sort by.
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    @Deprecated
-    public RealmResults<E> findAllSorted(String fieldName) {
-        return findAllSorted(fieldName, Sort.ASCENDING);
-    }
-
-    /**
-     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String)} then {@link RealmQuery#findAllAsync()}
-     *
-     * Similar to {@link #findAllSorted(String)} but runs asynchronously on a worker thread.
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    @Deprecated
-    public RealmResults<E> findAllSortedAsync(String fieldName) {
-        return findAllSortedAsync(fieldName, Sort.ASCENDING);
-    }
-
-    /**
-     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String[], Sort[])} then {@link RealmQuery#findAll()}
-     *
-     * Finds all objects that fulfill the query conditions and sorted by specific field names.
-     * <p>
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
-     *
-     * @param fieldNames an array of field names to sort by.
-     * @param sortOrders how to sort the field names.
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    @Deprecated
-    public RealmResults<E> findAllSorted(String[] fieldNames, Sort[] sortOrders) {
-        realm.checkIfValid();
-
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
-        return createRealmResults(query, sortDescriptor, null, true);
-    }
-
     private boolean isDynamicQuery() {
         return className != null;
-    }
-
-    /**
-     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String[], Sort[])} then {@link RealmQuery#findAllAsync()}
-     *
-     * Similar to {@link #findAllSorted(String[], Sort[])} but runs asynchronously.
-     * from a worker thread.
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     * @see io.realm.RealmResults
-     */
-    @Deprecated
-    public RealmResults<E> findAllSortedAsync(String[] fieldNames, final Sort[] sortOrders) {
-        realm.checkIfValid();
-
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
-        return createRealmResults(query, sortDescriptor, null, false);
-    }
-
-    /**
-     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String, Sort, String, Sort)} then {@link RealmQuery#findAll()}
-     *
-     * Finds all objects that fulfill the query conditions and sorted by specific field names in ascending order.
-     * <p>
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
-     *
-     * @param fieldName1 first field name
-     * @param sortOrder1 sort order for first field
-     * @param fieldName2 second field name
-     * @param sortOrder2 sort order for second field
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    @Deprecated
-    public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
-        return findAllSorted(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
-    }
-
-    /**
-     * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String, Sort, String, Sort)} then {@link RealmQuery#findAllAsync()}
-     *
-     * Similar to {@link #findAllSorted(String, Sort, String, Sort)} but runs asynchronously on a worker thread
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    @Deprecated
-    public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
-        return findAllSortedAsync(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
     /**
