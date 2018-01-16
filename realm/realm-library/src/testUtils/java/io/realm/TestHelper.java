@@ -69,7 +69,7 @@ import static junit.framework.Assert.fail;
 
 public class TestHelper {
     public static final int VERY_SHORT_WAIT_SECS = 1;
-    public static final int SHORT_WAIT_SECS = 1000;
+    public static final int SHORT_WAIT_SECS = 10;
     public static final int STANDARD_WAIT_SECS = 100;
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
