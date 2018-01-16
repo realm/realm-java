@@ -1535,9 +1535,8 @@ public class RealmQuery<E> {
      * @return the query object
      */
     public RealmQuery<E> and() {
-    	realm.checkIfValid();
-
-    	return this;
+        realm.checkIfValid();
+        return this;
     }
 
     /**
@@ -2004,9 +2003,9 @@ public class RealmQuery<E> {
     }
 
     private RealmResults<E> createRealmResults(TableQuery query,
-            @Nullable SortDescriptor sortDescriptor,
-            @Nullable SortDescriptor distinctDescriptor,
-            boolean loadResults) {
+                                               @Nullable SortDescriptor sortDescriptor,
+                                               @Nullable SortDescriptor distinctDescriptor,
+                                               boolean loadResults) {
         RealmResults<E> results;
         OsResults osResults = OsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
         if (isDynamicQuery()) {
