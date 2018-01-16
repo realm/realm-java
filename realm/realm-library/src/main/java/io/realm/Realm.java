@@ -66,6 +66,7 @@ import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
+import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
@@ -1733,22 +1734,16 @@ public class Realm extends BaseRealm {
         return executeTransactionAsync(new Transaction() {
             @Override
             public void execute(Realm realm) {
-                DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
-                try  {
-                    RealmResults<DynamicRealmObject> results = dynamicRealm.where("__ResultSets")
-                            .equalTo("name", subscriptionName)
-                            .findAll();
-
-                    if (results.isEmpty()) {
-                        throw new IllegalArgumentException("No active subscription named '"+ subscriptionName +"' exists.");
-                    }
-                    if (results.size() > 1) {
-                        RealmLog.warn("Multiple subscriptions named '" + subscriptionName +  "' exists. This should not be possible. They will all be deleted");
-                    }
-                    results.deleteAllFromRealm();
-                } finally {
-                    dynamicRealm.close();
+                RealmResults results = RealmQuery.createDynamicQuery(realm, "__ResultSets")
+                        .equalTo("name", subscriptionName)
+                        .findAll();
+                if (results.isEmpty()) {
+                    throw new IllegalArgumentException("No active subscription named '"+ subscriptionName +"' exists.");
                 }
+                if (results.size() > 1) {
+                    RealmLog.warn("Multiple subscriptions named '" + subscriptionName +  "' exists. This should not be possible. They will all be deleted");
+                }
+                results.deleteAllFromRealm();
             }
         }, new Transaction.OnSuccess() {
             @Override
