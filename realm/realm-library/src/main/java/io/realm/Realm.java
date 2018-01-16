@@ -49,7 +49,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
-import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -58,7 +57,6 @@ import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsObjectStore;
-import io.realm.internal.OsResults;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmCore;
@@ -1695,44 +1693,6 @@ public class Realm extends BaseRealm {
             throw new UnsupportedOperationException("Compacting is not supported yet on synced Realms. See https://github.com/realm/realm-core/issues/2345");
         }
         return BaseRealm.compactRealm(configuration);
-    }
-
-    /**
-     * If the Realm is a partially synchronized Realm, fetch and synchronize the objects of a given
-     * object type that match the given query (in string format).
-     *
-     * The results will be returned asynchronously in the callback.
-     *
-     * @param clazz the class to query.
-     * @param query string query.
-     * @param callback A callback used to vend the results of a partial sync fetch.
-     * @throws IllegalStateException if it is called from a non-Looper or {@link IntentService} thread.
-     * @throws IllegalStateException if called from a non-synchronized (Realm Object Server) Realm.
-     */
-    @Beta
-    public <E extends RealmModel> void subscribeToObjects(final Class<E> clazz, String query, final PartialSyncCallback<E> callback) {
-        checkIfValid();
-        if (!configuration.isSyncConfiguration()) {
-            throw new IllegalStateException("Partial sync is only available for synchronized Realm (Realm Object Server)");
-        }
-
-        sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
-
-        String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
-        OsSharedRealm.PartialSyncCallback internalCallback = new OsSharedRealm.PartialSyncCallback(className) {
-            @Override
-            public void onSuccess(OsResults osResults) {
-                RealmResults<E> results = new RealmResults<>(Realm.this, osResults, clazz);
-                callback.onSuccess(results);
-            }
-
-            @Override
-            public void onError(RealmException error) {
-                callback.onError(error);
-            }
-        };
-
-        sharedRealm.registerPartialSyncQuery(query, internalCallback);
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {
