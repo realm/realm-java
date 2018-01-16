@@ -63,6 +63,42 @@ private:
 };
 
 template <typename T>
+void ObservableCollectionWrapper<T>::start_listening(JNIEnv* env, jobject j_collection_object)
+{
+    static jni_util::JavaClass os_results_class(env, "io/realm/internal/ObservableCollection");
+    static jni_util::JavaMethod notify_change_listeners(env, os_results_class, "notifyChangeListeners", "(J)V");
+
+    if (!m_collection_weak_ref) {
+        m_collection_weak_ref = jni_util::JavaGlobalWeakRef(env, j_collection_object);
+    }
+
+    bool partial_sync_realm = m_collection.get_realm()->is_partial();
+    auto cb = [=](CollectionChangeSet const& changes, std::exception_ptr err) {
+        // OS will call all notifiers' callback in one run, so check the Java exception first!!
+        if (env->ExceptionCheck())
+            return;
+
+        std::string error_message = "";
+        if (err) {
+            try {
+                std::rethrow_exception(err);
+            }
+            catch (const std::exception& e) {
+                error_message = e.what();
+            }
+        }
+
+        m_collection_weak_ref.call_with_local_ref(env, [&](JNIEnv* local_env, jobject collection_obj) {
+            local_env->CallVoidMethod(
+                collection_obj, notify_change_listeners,
+                reinterpret_cast<jlong>(new CollectionChangeSetWrapper(changes, error_message, partial_sync_realm)));
+        });
+    };
+
+    m_notification_token = m_collection.add_notification_callback(cb);
+}
+
+template <typename T>
 void ObservableCollectionWrapper<T>::stop_listening()
 {
     m_notification_token = {};

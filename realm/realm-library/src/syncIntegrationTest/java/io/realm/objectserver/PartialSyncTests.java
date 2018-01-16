@@ -58,6 +58,21 @@ public class PartialSyncTests extends StandardIntegrationTest {
                 Throwable iae = changeSet.getError();
                 assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
                 looperThread.testComplete();
+            switch (callbacks.incrementAndGet()) {
+                case 1:
+                    assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
+                    break;
+
+                case 2:
+                    assertEquals(OrderedCollectionChangeSet.State.ERROR, OrderedCollectionChangeSet.State.ERROR);
+                    assertTrue(changeSet.getError() instanceof IllegalArgumentException);
+                    Throwable iae = changeSet.getError();
+                    assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
+                    looperThread.testComplete();
+                    break;
+
+                default:
+                    fail("Unexpected state: " + changeSet.getState());
             }
         });
         looperThread.keepStrongReference(query);
@@ -301,6 +316,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
     private void createServerData(SyncConfiguration syncConfig) throws InterruptedException {
         // Create server data
+        // Create server data
         Realm realm = Realm.getInstance(syncConfig);
         realm.beginTransaction();
         PartialSyncObjectA objectA = realm.createObject(PartialSyncObjectA.class);
@@ -340,6 +356,5 @@ public class PartialSyncTests extends StandardIntegrationTest {
         realm.commitTransaction();
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
-    }
-
+   }
 }
