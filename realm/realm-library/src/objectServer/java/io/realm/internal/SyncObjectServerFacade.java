@@ -175,4 +175,14 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public boolean wasDownloadInterrupted(Throwable throwable) {
         return (throwable instanceof DownloadingRealmInterruptedException);
     }
+
+    @Override
+    public boolean isPartialRealm(RealmConfiguration configuration) {
+        if (configuration instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            return syncConfig.isPartialRealm();
+        }
+        
+        return false;
+    }
 }
