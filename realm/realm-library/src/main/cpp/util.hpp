@@ -451,6 +451,10 @@ class JStringAccessor {
 public:
     JStringAccessor(JNIEnv*, jstring); // throws
 
+    bool is_null_or_empty() {
+        return m_is_null || m_size == 0;
+    }
+
     operator realm::StringData() const
     {
         // To solve the link issue by directly using Table::max_string_size

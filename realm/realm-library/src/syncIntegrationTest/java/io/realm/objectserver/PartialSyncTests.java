@@ -20,6 +20,7 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.exceptions.RealmException;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PartialSyncModule;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
@@ -52,21 +53,11 @@ public class PartialSyncTests extends StandardIntegrationTest {
         // Backlinks not yet supported: https://github.com/realm/realm-core/pull/2947
         RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).equalTo("objectParents.fieldString", "Foo").findAllAsync();
         query.addChangeListener((results, changeSet) -> {
-            switch (callbacks.incrementAndGet()) {
-                case 1:
-                    assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
-                    break;
-
-                case 2:
-                    assertEquals(OrderedCollectionChangeSet.State.ERROR, OrderedCollectionChangeSet.State.ERROR);
-                    assertTrue(changeSet.getError() instanceof IllegalArgumentException);
-                    Throwable iae = changeSet.getError();
-                    assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
-                    looperThread.testComplete();
-                    break;
-
-                default:
-                    fail("Unexpected state: " + changeSet.getState());
+            if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
+                assertTrue(changeSet.getError() instanceof IllegalArgumentException);
+                Throwable iae = changeSet.getError();
+                assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
+                looperThread.testComplete();
             }
         });
         looperThread.keepStrongReference(query);
@@ -194,24 +185,24 @@ public class PartialSyncTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     public void partialSync_namedSubscriptionThrowsOnNonPartialRealms() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+        final SyncConfiguration fullSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .name("fullySynchronizedRealm")
                 .build();
 
-        Realm realm = Realm.getInstance(partialSyncConfig);
+        Realm realm = Realm.getInstance(fullSyncConfig);
         looperThread.closeAfterTest(realm);
 
-        RealmResults<PartialSyncObjectA> results1 = realm.where(PartialSyncObjectA.class).findAllAsync("my-id");
-        results1.addChangeListener((results, changeSet) -> {
-            assertEquals(OrderedCollectionChangeSet.State.ERROR, changeSet.getState());
-            assertTrue(changeSet.getError() instanceof IllegalStateException);
+        try {
+           realm.where(PartialSyncObjectA.class).findAllAsync("my-id");
+           fail();
+        } catch (IllegalStateException ignore) {
             looperThread.testComplete();
-        });
+        }
     }
 
     @Test
     @RunTestInLooperThread
-    public void partialSync_namedSubscription_namedConflictThrows() throws InterruptedException {
+    public void partialSync_namedSubscription_namedConflictThrows() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .name("partialSync")
@@ -222,17 +213,26 @@ public class PartialSyncTests extends StandardIntegrationTest {
         Realm realm = Realm.getInstance(partialSyncConfig);
         looperThread.closeAfterTest(realm);
 
-        RealmResults<PartialSyncObjectA> results1 = realm.where(PartialSyncObjectA.class).findAllAsync("my-id");
+        RealmResults<PartialSyncObjectA> results1 = realm.where(PartialSyncObjectA.class)
+                .greaterThan("number", 0) // Work-around Query serializer not accepting empty query for now
+                .findAllAsync("my-id");
         results1.addChangeListener((results, changeSet) -> {
             // Ignore. Just used to trigger partial sync path
         });
 
-        RealmResults<PartialSyncObjectB> results2 = realm.where(PartialSyncObjectB.class).findAllAsync("my-id");
+        RealmResults<PartialSyncObjectB> results2 = realm.where(PartialSyncObjectB.class)
+                .greaterThan("number", 0) // Work-around Query serializer not accepting empty query for now
+                .findAllAsync("my-id");
         results2.addChangeListener((results, changeSet) -> {
-            assertEquals(OrderedCollectionChangeSet.State.ERROR, changeSet.getState());
-            assertTrue(changeSet.getError() instanceof IllegalArgumentException);
-            looperThread.testComplete();
+            if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
+                assertEquals(OrderedCollectionChangeSet.State.ERROR, changeSet.getState());
+                assertTrue(changeSet.getError() instanceof IllegalArgumentException);
+                looperThread.testComplete();
+            }
         });
+
+        looperThread.keepStrongReference(results1);
+        looperThread.keepStrongReference(results2);
     }
 
     @Test
