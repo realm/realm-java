@@ -44,5 +44,11 @@ void ObservableCollectionWrapper<Results>::start_listening(JNIEnv *env, jobject 
     m_notification_token = m_collection.add_notification_callback(cb, subscription_name);
 }
 
+template <typename T>
+void ObservableCollectionWrapper<T>::start_listening(JNIEnv*, jobject, util::Optional<std::string>)
+{
+    // Ignore
+}
+
 } // end _impl namespace
 } // end realm namespace

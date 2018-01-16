@@ -53,28 +53,13 @@ public class PartialSyncTests extends StandardIntegrationTest {
         // Backlinks not yet supported: https://github.com/realm/realm-core/pull/2947
         RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).equalTo("objectParents.fieldString", "Foo").findAllAsync();
         query.addChangeListener((results, changeSet) -> {
-            if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
-                assertTrue(changeSet.getError() instanceof IllegalArgumentException);
-                Throwable iae = changeSet.getError();
-                assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
-                looperThread.testComplete();
-            switch (callbacks.incrementAndGet()) {
-                case 1:
-                    assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
-                    break;
-
-                case 2:
-                    assertEquals(OrderedCollectionChangeSet.State.ERROR, OrderedCollectionChangeSet.State.ERROR);
-                    assertTrue(changeSet.getError() instanceof IllegalArgumentException);
-                    Throwable iae = changeSet.getError();
-                    assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
-                    looperThread.testComplete();
-                    break;
-
-                default:
-                    fail("Unexpected state: " + changeSet.getState());
-            }
-        });
+                    if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
+                        assertTrue(changeSet.getError() instanceof IllegalArgumentException);
+                        Throwable iae = changeSet.getError();
+                        assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
+                        looperThread.testComplete();
+                    }
+                });
         looperThread.keepStrongReference(query);
     }
 

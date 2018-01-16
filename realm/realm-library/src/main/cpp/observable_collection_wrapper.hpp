@@ -53,6 +53,7 @@ public:
     {
         return m_collection;
     };
+
     void start_listening(JNIEnv* env, jobject j_collection_object, util::Optional<std::string> subscription_name = util::none);
     void stop_listening();
 
@@ -103,12 +104,6 @@ CollectionChangeCallback ObservableCollectionWrapper<T>::create_callback(JNIEnv 
     };
 
     return cb;
-}
-
-template <typename T>
-void ObservableCollectionWrapper<T>::start_listening(JNIEnv*, jobject, util::Optional<std::string>)
-{
-    throw std::logic_error("Only template overrides for Results/List are supported");
 }
 
 template <typename T>
