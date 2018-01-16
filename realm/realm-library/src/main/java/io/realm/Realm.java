@@ -1811,9 +1811,4 @@ public class Realm extends BaseRealm {
             super.onError(exception);
         }
     }
-
-    public static abstract class PartialSyncCallback<T extends RealmModel> {
-        public abstract void onSuccess(RealmResults<T> results);
-        public abstract void onError(RealmException error);
-    }
 }
