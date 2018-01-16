@@ -22,6 +22,7 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.exceptions.RealmException;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PartialSyncModule;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
@@ -103,6 +104,14 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
         // Download data in partial Realm
         final Realm partialSyncRealm = getPartialRealm(user);
+        looperThread.closeAfterTest(partialSyncRealm);
+        assertTrue(partialSyncRealm.isEmpty());
+
+
+        createServerData(syncConfig);
+
+        // Download data in partial Realm
+        final Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
         looperThread.closeAfterTest(partialSyncRealm);
         assertTrue(partialSyncRealm.isEmpty());
 
