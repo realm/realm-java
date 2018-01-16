@@ -1847,7 +1847,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Finds all objects that fulfill the query conditions. This method is only available from a Looper thread.
+     * Finds all objects that fulfill the query condition(s). This method is only available from a Looper thread.
      * <p>
      * This method is only available on partially synchronized Realms and will also create a named subscription
      * that will synchronize all server data matching the query. Named subscriptions can be removed again by

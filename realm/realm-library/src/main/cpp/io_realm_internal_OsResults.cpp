@@ -248,7 +248,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeStartListening(JNI
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         JStringAccessor subscription_name(env, j_subscription_name);
-        auto key = subscription_name.is_null_or_empty() ? util::Optional<std::string>() : util::Optional<std::string>(subscription_name);
+        auto key = subscription_name.is_null_or_empty() ? util::none : util::Optional<std::string>(subscription_name);
         wrapper->start_listening(env, instance, key);
     }
     CATCH_STD()

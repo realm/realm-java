@@ -54,13 +54,13 @@ public class PartialSyncTests extends StandardIntegrationTest {
         // Backlinks not yet supported: https://github.com/realm/realm-core/pull/2947
         RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).equalTo("objectParents.fieldString", "Foo").findAllAsync();
         query.addChangeListener((results, changeSet) -> {
-            if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
-                assertTrue(changeSet.getError() instanceof IllegalArgumentException);
-                Throwable iae = changeSet.getError();
-                assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
-                looperThread.testComplete();
-            }
-        });
+                    if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
+                        assertTrue(changeSet.getError() instanceof IllegalArgumentException);
+                        Throwable iae = changeSet.getError();
+                        assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
+                        looperThread.testComplete();
+                    }
+                });
         looperThread.keepStrongReference(query);
     }
 
@@ -185,14 +185,14 @@ public class PartialSyncTests extends StandardIntegrationTest {
         looperThread.closeAfterTest(realm);
 
         RealmResults<PartialSyncObjectA> results1 = realm.where(PartialSyncObjectA.class)
-                .greaterThan("number", 0) // Work-around Query serializer not accepting empty query for now
+                .greaterThan("number", 0) // FIXME: Work-around Query serializer not accepting empty query for now
                 .findAllAsync("my-id");
         results1.addChangeListener((results, changeSet) -> {
             // Ignore. Just used to trigger partial sync path
         });
 
         RealmResults<PartialSyncObjectB> results2 = realm.where(PartialSyncObjectB.class)
-                .greaterThan("number", 0) // Work-around Query serializer not accepting empty query for now
+                .greaterThan("number", 0) // FIXME: Work-around Query serializer not accepting empty query for now
                 .findAllAsync("my-id");
         results2.addChangeListener((results, changeSet) -> {
             if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
@@ -344,6 +344,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
                 .build();
 
         // Create server data
+        // Create server data
         Realm realm = Realm.getInstance(syncConfig);
         realm.beginTransaction();
         PartialSyncObjectA objectA = realm.createObject(PartialSyncObjectA.class);
@@ -383,6 +384,5 @@ public class PartialSyncTests extends StandardIntegrationTest {
         realm.commitTransaction();
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
-    }
-
+   }
 }
