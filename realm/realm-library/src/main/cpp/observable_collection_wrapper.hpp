@@ -17,6 +17,7 @@
 #ifndef REALM_JNI_IMPL_OBSERVABLE_COLLECTION_WRAPPER_HPP
 #define REALM_JNI_IMPL_OBSERVABLE_COLLECTION_WRAPPER_HPP
 
+#include "collection_changeset_wrapper.hpp"
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
@@ -68,25 +69,26 @@ void ObservableCollectionWrapper<T>::start_listening(JNIEnv* env, jobject j_coll
         m_collection_weak_ref = jni_util::JavaGlobalWeakRef(env, j_collection_object);
     }
 
+    bool partial_sync_realm = m_collection.get_realm()->is_partial();
     auto cb = [=](CollectionChangeSet const& changes, std::exception_ptr err) {
         // OS will call all notifiers' callback in one run, so check the Java exception first!!
         if (env->ExceptionCheck())
             return;
 
+        std::string error_message = "";
         if (err) {
             try {
                 std::rethrow_exception(err);
             }
             catch (const std::exception& e) {
-                realm::jni_util::Log::e("Caught exception in collection change callback %1", e.what());
-                return;
+                error_message = e.what();
             }
         }
 
         m_collection_weak_ref.call_with_local_ref(env, [&](JNIEnv* local_env, jobject collection_obj) {
             local_env->CallVoidMethod(
                 collection_obj, notify_change_listeners,
-                reinterpret_cast<jlong>(changes.empty() ? 0 : new CollectionChangeSet(changes)));
+                reinterpret_cast<jlong>(new CollectionChangeSetWrapper(changes, error_message, partial_sync_realm)));
         });
     };
 

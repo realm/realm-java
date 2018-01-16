@@ -31,7 +31,6 @@
 #include <realm/timestamp.hpp>
 #include <realm/table.hpp>
 #include <realm/util/safe_int_ops.hpp>
-
 #include "io_realm_internal_Util.h"
 
 #include "java_exception_def.hpp"

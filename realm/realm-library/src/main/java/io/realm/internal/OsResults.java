@@ -431,16 +431,20 @@ public class OsResults implements NativeObject, ObservableCollection {
     // Called by JNI
     @Override
     public void notifyChangeListeners(long nativeChangeSetPtr) {
-        if (nativeChangeSetPtr == 0 && isLoaded()) {
+        // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
+        // So it is possible it deliver a non-empty change set for the first async query returns.
+        OsCollectionChangeSet changeset = (nativeChangeSetPtr == 0)
+                ? new EmptyLoadChangeSet()
+                : new OsCollectionChangeSet(nativeChangeSetPtr, !isLoaded());
+
+        // Happens e.g. if a synchronous query is created, a change listener is added and then
+        // a transaction is started on the same thread. This will trigger all notifications
+        // and deliver an empty changeset.
+        if (changeset.isEmpty() && isLoaded()) {
             return;
         }
-        boolean wasLoaded = loaded;
         loaded = true;
-        // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
-        // So it is possible it deliver a non-empty change set for the first async query returns. In this case, we
-        // return an empty change set to user since it is considered as the first time async query returns.
-        observerPairs.foreach(new Callback(nativeChangeSetPtr == 0 || !wasLoaded ?
-                null : new OsCollectionChangeSet(nativeChangeSetPtr)));
+        observerPairs.foreach(new Callback(changeset));
     }
 
     public Mode getMode() {

@@ -18,6 +18,8 @@ package io.realm;
 
 import java.util.Locale;
 
+import javax.annotation.Nullable;
+
 /**
  * This interface describes the changes made to a collection during the last update.
  * <p>
@@ -28,6 +30,44 @@ import java.util.Locale;
  * change, or an array of {@link Range}s.
  */
 public interface OrderedCollectionChangeSet {
+
+    /**
+     * State describing the nature of the changeset.
+     */
+    public enum State {
+        /**
+         * This state is used first time the callback is invoked. The query will have completed and
+         * data is ready for the UI.
+         */
+        INITIAL,
+        /**
+         * This state is used for every subsequent update after the first.
+         */
+        UPDATE,
+        /**
+         * This state is used if some error occurred on the background evaluating the query.
+         * <p>
+         * For local and fully synchronized Realms, this state should only be encountered if the
+         * Realm could not be succesfully opened in the background,.
+         * <p>
+         * For partially synchronized Realms, it is only possible to get into this state if an error
+         * happened while evaluating the query on the server or some other error prevented data from
+         * being downloaded.
+         * <p>
+         * In this state, the content of the {@link RealmResults} is undefined.
+         */
+        ERROR
+    }
+
+    /**
+     * Returns the state represented by this change. See {@link State} for a description of the
+     * different states a changeset can be in.
+     *
+     * @return what kind of state is represented by this changeset.
+     * @see State
+     */
+    State getState();
+
     /**
      * The deleted indices in the previous version of the collection.
      *
@@ -72,6 +112,54 @@ public interface OrderedCollectionChangeSet {
      * @return the {@link Range} array. A zero-sized array will be returned if no objects were modified.
      */
     Range[] getChangeRanges();
+
+    /**
+     * Returns any error that happened. If an error has happened, the state of the collection and other
+     * changeset information is undefined. It is possible for a collection to go into an error state
+     * after being created and starting to send updates.
+     *
+     * @return the error that happened.
+     */
+    @Nullable
+    Throwable getError();
+
+    /**
+     * Returns {@code true} if the query result is considered "complete". For all local Realms, or
+     * fully synchronized Realms, this method will always return {@code true}.
+     * <p>
+     * This method thus only makes sense for partially synchronized Realms (as defined by setting
+     * {@link SyncConfiguration.Builder#partialRealm()}.
+     * <p>
+     * For those Realms, data is only downloaded when queried which means that until the data is
+     * downloaded, a local query might return a query result that would not have been possible on a
+     * fully synchronized Realm.
+     * <p>
+     * Consider the following case:
+     * <ol>
+     *   <li>An app is online and makes a query for all messages containing the word "Realm".</li>
+     *   <li>Partial synchronization downloads all those messages.</li>
+     *   <li>The app goes offline.</li>
+     *   <li>The app makes an offline query against all messages containing the word "Database".</li>
+     * </ol>
+     *
+     * Here there are two situations where the query result might be considered "incomplete".
+     * <p>
+     * The first is when the "Realm" query runs for the first time. The local query will finish
+     * faster than the network can download data so the query will initially report an empty
+     * incomplete query result.
+     * <p>
+     * The second is when the "Database" query is run. The initial query result will not be
+     * empty, but contain all messages that contain both "Realm" and "Database", as they are already
+     * available offline.
+     * <p>
+     * In both cases, a new notification will be triggered as soon as the device is able to download
+     * the data required to produce a "complete" query result.
+     *
+     * @return {@code true} if the query result is fully consistent with the server at some point in
+     * time. {@code false} if the query was executed while the device was offline or all data
+     * has not been downloaded yet.
+     */
+    boolean isCompleteResult();
 
     /**
      *

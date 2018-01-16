@@ -1536,9 +1536,8 @@ public class RealmQuery<E> {
      * @return the query object
      */
     public RealmQuery<E> and() {
-    	realm.checkIfValid();
-
-    	return this;
+        realm.checkIfValid();
+        return this;
     }
 
     /**
@@ -2106,7 +2105,7 @@ public class RealmQuery<E> {
      */
     @Deprecated
     public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
+                                         String fieldName2, Sort sortOrder2) {
         return findAllSorted(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
@@ -2123,7 +2122,7 @@ public class RealmQuery<E> {
      */
     @Deprecated
     public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
+                                              String fieldName2, Sort sortOrder2) {
         return findAllSortedAsync(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
@@ -2201,9 +2200,9 @@ public class RealmQuery<E> {
     }
 
     private RealmResults<E> createRealmResults(TableQuery query,
-            @Nullable SortDescriptor sortDescriptor,
-            @Nullable SortDescriptor distinctDescriptor,
-            boolean loadResults) {
+                                               @Nullable SortDescriptor sortDescriptor,
+                                               @Nullable SortDescriptor distinctDescriptor,
+                                               boolean loadResults) {
         RealmResults<E> results;
         OsResults osResults = OsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
         if (isDynamicQuery()) {
