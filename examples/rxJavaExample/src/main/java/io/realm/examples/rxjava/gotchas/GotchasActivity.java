@@ -71,7 +71,7 @@ public class GotchasActivity extends AppCompatActivity {
 
         // Trigger updates
         realm.executeTransaction(r ->
-                r.where(Person.class).findAllSorted( "name", Sort.ASCENDING).get(0).setAge(new Random().nextInt(100)));
+                r.where(Person.class).sort( "name", Sort.ASCENDING).findAll().get(0).setAge(new Random().nextInt(100)));
     }
 
     /**
@@ -79,7 +79,7 @@ public class GotchasActivity extends AppCompatActivity {
      */
     private void testSubscribeOn() {
         Disposable subscribeOnDisposable = realm.asFlowable()
-                .map(realm -> realm.where(Person.class).findAllSorted("name").get(0))
+                .map(realm -> realm.where(Person.class).sort("name").findAll().get(0))
                 // The Realm was created on the UI thread. Accessing it on `Schedulers.io()` will crash.
                 // Avoid using subscribeOn() and use Realms `findAllAsync*()` methods instead.
                 .subscribeOn(Schedulers.io()) //
@@ -90,7 +90,7 @@ public class GotchasActivity extends AppCompatActivity {
         compositeDisposable.add(subscribeOnDisposable);
 
         // Use Realms Async API instead
-        Disposable asyncSubscribeOnDisposable = realm.where(Person.class).findAllSortedAsync("name").get(0).<Person>asFlowable()
+        Disposable asyncSubscribeOnDisposable = realm.where(Person.class).sort("name").findAllAsync().get(0).<Person>asFlowable()
                 .subscribe(
                         person -> showStatus("subscribeOn/async: " + person.getName() + ":" + person.getAge()),
                         throwable -> showStatus("subscribeOn/async: " +throwable.toString())
@@ -103,7 +103,7 @@ public class GotchasActivity extends AppCompatActivity {
      */
     private void testBuffer() {
         Flowable<Person> personFlowable =
-                realm.asFlowable().map(realm -> realm.where(Person.class).findAllSorted("name").get(0));
+                realm.asFlowable().map(realm -> realm.where(Person.class).sort("name").findAll().get(0));
 
         // buffer() caches objects until the buffer is full. Due to Realms auto-update of all objects it means
         // that all objects in the cache will contain the same data.
@@ -122,7 +122,7 @@ public class GotchasActivity extends AppCompatActivity {
      */
     private void testDistinct() {
         Flowable<Person> personFlowable =
-                realm.asFlowable().map(realm -> realm.where(Person.class).findAllSorted("name").get(0));
+                realm.asFlowable().map(realm -> realm.where(Person.class).sort("name").findAll().get(0));
 
         // distinct() and distinctUntilChanged() uses standard equals with older objects stored in a HashMap.
         // Realm objects auto-update which means the objects stored will also auto-update.
