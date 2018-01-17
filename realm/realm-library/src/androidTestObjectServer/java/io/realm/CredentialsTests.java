@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -101,6 +102,33 @@ public class CredentialsTests {
         for (String input : invalidInput) {
             try {
                 SyncCredentials.jwt(input);
+                fail(input + " should have failed");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void anonymous() {
+        SyncCredentials creds = SyncCredentials.anonymous();
+        assertEquals(SyncCredentials.IdentityProvider.ANONYMOUS, creds.getIdentityProvider());
+        assertTrue(creds.getUserInfo().isEmpty());
+    }
+
+    @Test
+    public void nickname() {
+        SyncCredentials creds = SyncCredentials.nickname("foo", false);
+        assertEquals(SyncCredentials.IdentityProvider.NICKNAME, creds.getIdentityProvider());
+        assertFalse(creds.getUserInfo().isEmpty());
+        assertFalse((Boolean) creds.getUserInfo().get("is_admin"));
+    }
+
+    @Test
+    public void nickname_invalidInput() {
+        String[] invalidInput = {null, ""};
+        for (String input : invalidInput) {
+            try {
+                SyncCredentials.nickname(input, false);
                 fail(input + " should have failed");
             } catch (IllegalArgumentException ignored) {
             }
