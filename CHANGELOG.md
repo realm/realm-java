@@ -9,12 +9,8 @@
 * [ObjectServer] Added support for partial Realms. Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
 * Added two new methods to `OrderedCollectionChangeSet`: `getState()` and `getError()` (#5619).
 
-### Internal
 
-* Upgraded to Realm Sync 2.2.2.
-
-
-## 4.3.2 (YYYY-MM-DD)
+## 4.3.2 (2018-01-17)
 
 ### Bug Fixes
 
@@ -22,6 +18,11 @@
 * Use https for Realm version checker (#4043).
 * Prevent Realms Gradle plugin from transitively forcing specific versions of Google Build Tools onto downstream projects (#5640).
 * [ObjectServer] logging a warning message instead of throwing an exception, when sync report an unknown error code (#5403).
+
+### Enhancements
+
+* [ObjectServer] added support for both Anonymous and Nickname authentication.
+
 
 ### Internal
 
