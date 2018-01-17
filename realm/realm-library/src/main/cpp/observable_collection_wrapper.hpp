@@ -17,10 +17,14 @@
 #ifndef REALM_JNI_IMPL_OBSERVABLE_COLLECTION_WRAPPER_HPP
 #define REALM_JNI_IMPL_OBSERVABLE_COLLECTION_WRAPPER_HPP
 
+#include "collection_changeset_wrapper.hpp"
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/log.hpp"
+
+#include <results.hpp>
+#include <realm/util/optional.hpp>
 
 namespace realm {
 namespace _impl {
@@ -49,48 +53,57 @@ public:
     {
         return m_collection;
     };
-    void start_listening(JNIEnv* env, jobject j_collection_object);
+
+    void start_listening(JNIEnv* env, jobject j_collection_object, util::Optional<std::string> subscription_name = util::none);
     void stop_listening();
 
 private:
+    // Shared logic for creating collection callbacks
+    CollectionChangeCallback create_callback(JNIEnv *env, jobject j_collection_object);
+
     jni_util::JavaGlobalWeakRef m_collection_weak_ref;
     NotificationToken m_notification_token;
     T m_collection;
 };
 
 template <typename T>
-void ObservableCollectionWrapper<T>::start_listening(JNIEnv* env, jobject j_collection_object)
+CollectionChangeCallback ObservableCollectionWrapper<T>::create_callback(JNIEnv *env, jobject j_collection_object)
 {
     static jni_util::JavaClass os_results_class(env, "io/realm/internal/ObservableCollection");
-    static jni_util::JavaMethod notify_change_listeners(env, os_results_class, "notifyChangeListeners", "(J)V");
+    static jni_util::JavaMethod notify_change_listeners(env, os_results_class,
+                                                        "notifyChangeListeners", "(J)V");
 
     if (!m_collection_weak_ref) {
         m_collection_weak_ref = jni_util::JavaGlobalWeakRef(env, j_collection_object);
     }
 
-    auto cb = [=](CollectionChangeSet const& changes, std::exception_ptr err) {
+    bool partial_sync_realm = m_collection.get_realm()->is_partial();
+    auto cb = [=](CollectionChangeSet const &changes, std::exception_ptr err) {
         // OS will call all notifiers' callback in one run, so check the Java exception first!!
         if (env->ExceptionCheck())
             return;
 
+        std::string error_message = "";
         if (err) {
             try {
                 std::rethrow_exception(err);
             }
-            catch (const std::exception& e) {
-                realm::jni_util::Log::e("Caught exception in collection change callback %1", e.what());
-                return;
+            catch (const std::exception &e) {
+                error_message = e.what();
             }
         }
 
-        m_collection_weak_ref.call_with_local_ref(env, [&](JNIEnv* local_env, jobject collection_obj) {
+        m_collection_weak_ref.call_with_local_ref(env, [&](JNIEnv *local_env,
+                                                           jobject collection_obj) {
             local_env->CallVoidMethod(
-                collection_obj, notify_change_listeners,
-                reinterpret_cast<jlong>(changes.empty() ? 0 : new CollectionChangeSet(changes)));
+                    collection_obj, notify_change_listeners,
+                    reinterpret_cast<jlong>(new CollectionChangeSetWrapper(changes,
+                                                                           error_message,
+                                                                           partial_sync_realm)));
         });
     };
 
-    m_notification_token = m_collection.add_notification_callback(cb);
+    return cb;
 }
 
 template <typename T>

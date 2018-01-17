@@ -129,6 +129,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      * Callback function to be called from JNI by Object Store when the partial sync results returned.
      */
     @Keep
+    @Deprecated
     public abstract static class PartialSyncCallback {
         private final String className;
 

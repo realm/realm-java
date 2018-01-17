@@ -247,11 +247,12 @@ public class OsList implements NativeObject, ObservableCollection {
     // Called by JNI
     @Override
     public void notifyChangeListeners(long nativeChangeSetPtr) {
-        if (nativeChangeSetPtr == 0) {
+        OsCollectionChangeSet changeset = new OsCollectionChangeSet(nativeChangeSetPtr, false);
+        if (changeset.isEmpty()) {
             // First time "query" returns. Do nothing.
             return;
         }
-        observerPairs.foreach(new Callback(new OsCollectionChangeSet(nativeChangeSetPtr)));
+        observerPairs.foreach(new Callback(changeset));
     }
 
     private static native long nativeGetFinalizerPtr();

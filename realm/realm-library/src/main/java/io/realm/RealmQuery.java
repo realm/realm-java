@@ -33,6 +33,7 @@ import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
+import io.realm.internal.Util;
 import io.realm.internal.fields.FieldDescriptor;
 import io.realm.log.RealmLog;
 
@@ -1536,9 +1537,8 @@ public class RealmQuery<E> {
      * @return the query object
      */
     public RealmQuery<E> and() {
-    	realm.checkIfValid();
-
-    	return this;
+        realm.checkIfValid();
+        return this;
     }
 
     /**
@@ -1606,7 +1606,7 @@ public class RealmQuery<E> {
         realm.checkIfValid();
 
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
-        return createRealmResults(query, null, distinctDescriptor, true);
+        return createRealmResults(query, null, distinctDescriptor, true, "");
     }
 
     /**
@@ -1630,7 +1630,7 @@ public class RealmQuery<E> {
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
-        return createRealmResults(query, null, distinctDescriptor, false);
+        return createRealmResults(query, null, distinctDescriptor, false, "");
     }
 
     /**
@@ -1656,7 +1656,7 @@ public class RealmQuery<E> {
         fieldNames[0] = firstFieldName;
         System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
-        return createRealmResults(query, null, distinctDescriptor, true);
+        return createRealmResults(query, null, distinctDescriptor, true, "");
     }
 
     /**
@@ -1823,11 +1823,17 @@ public class RealmQuery<E> {
     public RealmResults<E> findAll() {
         realm.checkIfValid();
 
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, true);
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, true, "");
     }
 
     /**
      * Finds all objects that fulfill the query conditions. This method is only available from a Looper thread.
+     * <p>
+     * On partially synchronized Realms, defined by setting {@link SyncConfiguration.Builder#partialRealm()},
+     * this method will also create an anonymous subscription that will download all server data matching
+     * the query.
+     * </p>
+     *
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
@@ -1837,8 +1843,32 @@ public class RealmQuery<E> {
         realm.checkIfValid();
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, false);
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, "");
     }
+
+    /**
+     * Finds all objects that fulfill the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on partially synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
+     *
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a partially synchronized Realm.
+     */
+    public RealmResults<E> findAllAsync(String subscriptionName) {
+        realm.checkIfValid();
+        realm.checkIfPartialRealm();
+        if (Util.isEmptyString(subscriptionName)) {
+            throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
+        }
+
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, subscriptionName);
+    }
+
 
     /**
      * @deprecated Since 4.3.0, now use {@link RealmQuery#sort(String, Sort)} then {@link RealmQuery#findAll()}
@@ -1860,7 +1890,7 @@ public class RealmQuery<E> {
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
         realm.checkIfValid();
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldName, sortOrder);
-        return createRealmResults(query, sortDescriptor, null, true);
+        return createRealmResults(query, sortDescriptor, null, true, "");
     }
 
     /**
@@ -1880,7 +1910,7 @@ public class RealmQuery<E> {
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldName, sortOrder);
-        return createRealmResults(query, sortDescriptor, null, false);
+        return createRealmResults(query, sortDescriptor, null, false, "");
     }
 
     /**
@@ -2058,7 +2088,7 @@ public class RealmQuery<E> {
         realm.checkIfValid();
 
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
-        return createRealmResults(query, sortDescriptor, null, true);
+        return createRealmResults(query, sortDescriptor, null, true, "");
     }
 
     private boolean isDynamicQuery() {
@@ -2084,7 +2114,7 @@ public class RealmQuery<E> {
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
-        return createRealmResults(query, sortDescriptor, null, false);
+        return createRealmResults(query, sortDescriptor, null, false, "");
     }
 
     /**
@@ -2106,7 +2136,7 @@ public class RealmQuery<E> {
      */
     @Deprecated
     public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
+                                         String fieldName2, Sort sortOrder2) {
         return findAllSorted(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
@@ -2123,7 +2153,7 @@ public class RealmQuery<E> {
      */
     @Deprecated
     public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
+                                              String fieldName2, Sort sortOrder2) {
         return findAllSortedAsync(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
@@ -2201,15 +2231,16 @@ public class RealmQuery<E> {
     }
 
     private RealmResults<E> createRealmResults(TableQuery query,
-            @Nullable SortDescriptor sortDescriptor,
-            @Nullable SortDescriptor distinctDescriptor,
-            boolean loadResults) {
+                                               @Nullable SortDescriptor sortDescriptor,
+                                               @Nullable SortDescriptor distinctDescriptor,
+                                               boolean loadResults,
+                                               String subscriptionName) {
         RealmResults<E> results;
         OsResults osResults = OsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
         if (isDynamicQuery()) {
-            results = new RealmResults<>(realm, osResults, className);
+            results = new RealmResults<>(realm, osResults, className, subscriptionName);
         } else {
-            results = new RealmResults<>(realm, osResults, clazz);
+            results = new RealmResults<>(realm, osResults, clazz, subscriptionName);
         }
         if (loadResults) {
             results.load();
