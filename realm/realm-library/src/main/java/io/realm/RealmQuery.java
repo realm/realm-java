@@ -93,7 +93,7 @@ public class RealmQuery<E> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
-    static <E extends RealmModel> RealmQuery<E> createDynamicQuery(BaseRealm realm, String className) {
+    static <E extends RealmModel> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
         return new RealmQuery<>(realm, className);
     }
 

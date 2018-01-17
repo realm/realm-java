@@ -54,6 +54,7 @@ import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.NativeObject;
 import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
@@ -1734,16 +1735,22 @@ public class Realm extends BaseRealm {
         return executeTransactionAsync(new Transaction() {
             @Override
             public void execute(Realm realm) {
-                RealmResults results = RealmQuery.createDynamicQuery(realm, "__ResultSets")
-                        .equalTo("name", subscriptionName)
-                        .findAll();
-                if (results.isEmpty()) {
+
+                // Need to manually run a dynamic query here.
+                // TODO Add support for DynamicRealm.executeTransactionAsync()
+                Table table = realm.sharedRealm.getTable("class___ResultSets");
+                TableQuery query = table.where()
+                        .equalTo(new long[]{table.getColumnIndex("name")}, new long[]{NativeObject.NULLPTR}, subscriptionName);
+
+                OsResults result = OsResults.createFromQuery(realm.sharedRealm, query);
+                long count = result.size();
+                if (count == 0) {
                     throw new IllegalArgumentException("No active subscription named '"+ subscriptionName +"' exists.");
                 }
-                if (results.size() > 1) {
+                if (count > 1) {
                     RealmLog.warn("Multiple subscriptions named '" + subscriptionName +  "' exists. This should not be possible. They will all be deleted");
                 }
-                results.deleteAllFromRealm();
+                result.clear();
             }
         }, new Transaction.OnSuccess() {
             @Override
