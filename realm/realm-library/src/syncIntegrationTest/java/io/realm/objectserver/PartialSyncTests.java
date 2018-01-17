@@ -1,29 +1,34 @@
 package io.realm.objectserver;
 
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.DynamicRealm;
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
-import io.realm.TestHelper;
-import io.realm.TestSyncConfigurationFactory;
+import io.realm.entities.AllJavaTypes;
+import io.realm.entities.AllTypes;
+import io.realm.entities.Dog;
 import io.realm.exceptions.RealmException;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PartialSyncModule;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.rule.RunTestInLooperThread;
 
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
@@ -34,26 +39,312 @@ import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class PartialSyncTests extends StandardIntegrationTest {
-    @Rule
-    public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
+
+    private static final int TEST_SIZE = 10;
 
     @Test
-    public void partialSync() throws InterruptedException {
+    @RunTestInLooperThread
+    public void invalidQuery() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .partialRealm()
+                .build();
+        final Realm realm = Realm.getInstance(partialSyncConfig);
+        looperThread.closeAfterTest(realm);
 
-        final SyncConfiguration syncConfig = configFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .waitForInitialRemoteData()
-                .modules(new PartialSyncModule())
+        // Backlinks not yet supported: https://github.com/realm/realm-core/pull/2947
+        RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).equalTo("objectParents.fieldString", "Foo").findAllAsync();
+        query.addChangeListener((results, changeSet) -> {
+                    if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
+                        assertTrue(changeSet.getError() instanceof IllegalArgumentException);
+                        Throwable iae = changeSet.getError();
+                        assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
+                        looperThread.testComplete();
+                    }
+                });
+        looperThread.keepStrongReference(query);
+    }
+
+    // List queries are operating on data that are always up to date as data in a list will
+    // always be fetched as part of another top-level subscription. Thus `remoteDataLoaded` is
+    // always true and no queries on them can fail.
+    @Test
+    @RunTestInLooperThread
+    public void listQueries_doNotCreateSubscriptions() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .partialRealm()
                 .build();
 
-        final SyncConfiguration partialSyncConfig = configFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+        final DynamicRealm dRealm = DynamicRealm.getInstance(partialSyncConfig);
+        final Realm realm = Realm.getInstance(partialSyncConfig);
+        looperThread.closeAfterTest(dRealm);
+        looperThread.closeAfterTest(realm);
+
+        realm.beginTransaction();
+        RealmList<Dog> list = realm.createObject(AllTypes.class).getColumnRealmList();
+        list.add(new Dog("Fido"));
+        list.add(new Dog("Eido"));
+        realm.commitTransaction();
+
+        RealmResults<Dog> query = list.where().sort("name").findAllAsync();
+        query.addChangeListener((dogs, changeSet) -> {
+            assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
+            assertEquals(0, dRealm.where("__ResultSets").count());
+            looperThread.testComplete();
+        });
+        looperThread.keepStrongReference(query);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void anonymousSubscription() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        createServerData(user, Constants.SYNC_SERVER_URL);
+
+        // Download data in partial Realm
+        final Realm partialSyncRealm = getPartialRealm(user);
+        looperThread.closeAfterTest(partialSyncRealm);
+        assertTrue(partialSyncRealm.isEmpty());
+
+        RealmResults<PartialSyncObjectA> results = partialSyncRealm.where(PartialSyncObjectA.class)
+                .greaterThan("number", 5)
+                .findAllAsync();
+        looperThread.keepStrongReference(results);
+
+        results.addChangeListener((partialSyncObjectAS, changeSet) -> {
+            if (changeSet.isCompleteResult()) {
+                if (results.size() == 4) {
+                    for (PartialSyncObjectA object : results) {
+                        assertThat(object.getNumber(), greaterThan(5));
+                        assertEquals("partial", object.getString());
+                    }
+                    // make sure the Realm contains only PartialSyncObjectA
+                    assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
+                    looperThread.testComplete();
+                }
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void namedSubscription() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        createServerData(user, Constants.SYNC_SERVER_URL);
+
+        // Download data in partial Realm
+        final Realm partialSyncRealm = getPartialRealm(user);
+        looperThread.closeAfterTest(partialSyncRealm);
+        assertTrue(partialSyncRealm.isEmpty());
+
+        RealmResults<PartialSyncObjectA> results = partialSyncRealm.where(PartialSyncObjectA.class)
+                .greaterThan("number", 5)
+                .findAllAsync("my-subscription-id");
+        looperThread.keepStrongReference(results);
+
+        results.addChangeListener((partialSyncObjectAS, changeSet) -> {
+            if (changeSet.isCompleteResult()) {
+                if (results.size() == 4) {
+                    for (PartialSyncObjectA object : results) {
+                        assertThat(object.getNumber(), greaterThan(5));
+                        assertEquals("partial", object.getString());
+                    }
+                    // make sure the Realm contains only PartialSyncObjectA
+                    assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
+                    looperThread.testComplete();
+                }
+            }
+        });
+
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void partialSync_namedSubscriptionThrowsOnNonPartialRealms() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final SyncConfiguration fullSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .name("fullySynchronizedRealm")
+                .build();
+
+        Realm realm = Realm.getInstance(fullSyncConfig);
+        looperThread.closeAfterTest(realm);
+
+        try {
+           realm.where(PartialSyncObjectA.class).findAllAsync("my-id");
+           fail();
+        } catch (IllegalStateException ignore) {
+            looperThread.testComplete();
+        }
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void partialSync_namedSubscription_namedConflictThrows() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        Realm realm = getPartialRealm(user);
+        looperThread.closeAfterTest(realm);
+
+        RealmResults<PartialSyncObjectA> results1 = realm.where(PartialSyncObjectA.class)
+                .greaterThan("number", 0) // FIXME: Work-around Query serializer not accepting empty query for now
+                .findAllAsync("my-id");
+        results1.addChangeListener((results, changeSet) -> {
+            // Ignore. Just used to trigger partial sync path
+        });
+
+        RealmResults<PartialSyncObjectB> results2 = realm.where(PartialSyncObjectB.class)
+                .greaterThan("number", 0) // FIXME: Work-around Query serializer not accepting empty query for now
+                .findAllAsync("my-id");
+        results2.addChangeListener((results, changeSet) -> {
+            if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
+                assertEquals(OrderedCollectionChangeSet.State.ERROR, changeSet.getState());
+                assertTrue(changeSet.getError() instanceof IllegalArgumentException);
+                looperThread.testComplete();
+            }
+        });
+
+        looperThread.keepStrongReference(results1);
+        looperThread.keepStrongReference(results2);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void unsubscribeAsync() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        createServerData(user, Constants.SYNC_SERVER_URL);
+        Realm realm = getPartialRealm(user);
+        looperThread.closeAfterTest(realm);
+
+        final String subscriptionName = "my-objects";
+        RealmResults<PartialSyncObjectB> r = realm.where(PartialSyncObjectB.class)
+                .greaterThan("number", 0)
+                .findAllAsync(subscriptionName);
+
+        r.addChangeListener((results, changeSet) -> {
+            if (changeSet.isCompleteResult()) {
+                // 1. Partial sync downloaded all expected objects
+                assertEquals(TEST_SIZE - 1, results.size());
+                r.removeAllChangeListeners();
+
+                // 2. Attempt to remove them again
+                realm.unsubscribeAsync(subscriptionName, new Realm.UnsubscribeCallback() {
+                    @Override
+                    public void onSuccess(String subscriptionName) {
+                        assertEquals(subscriptionName, subscriptionName);
+
+                        // Use global Realm change listener to avoid re-subscribing
+                        realm.addChangeListener(new RealmChangeListener<Realm>() {
+                            @Override
+                            public void onChange(Realm realm) {
+                                // Eventually they should be removed
+                                if (realm.where(PartialSyncObjectB.class).count() == 0) {
+                                    looperThread.testComplete();
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String subscriptionName, Throwable error) {
+                        fail(error.toString());
+                    }
+                });
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void unsubscribeAsync_nonExistingIdThrows() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        Realm realm = getPartialRealm(user);
+        looperThread.closeAfterTest(realm);
+
+        realm.unsubscribeAsync("i-dont-exist", new Realm.UnsubscribeCallback() {
+            @Override
+            public void onSuccess(String subscriptionName) {
+                fail();
+            }
+
+            @Override
+            public void onError(String subscriptionName, Throwable error) {
+                assertEquals("i-dont-exist", subscriptionName);
+                assertTrue(error instanceof IllegalArgumentException);
+                assertTrue(error.getMessage().contains("No active subscription named"));
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @Deprecated
+    @RunTestInLooperThread
+    public void partialSync_oldApi() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        createServerData(user, Constants.SYNC_SERVER_URL);
+
+        AtomicInteger countdown = new AtomicInteger(2);
+        final Realm partialSyncRealm = getPartialRealm(user);
+        looperThread.closeAfterTest(partialSyncRealm);
+        assertTrue(partialSyncRealm.isEmpty());
+
+        partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
+
+            @Override
+            public void onSuccess(RealmResults<PartialSyncObjectA> results) {
+                assertEquals(4, results.size());
+                for (PartialSyncObjectA object : results) {
+                    assertThat(object.getNumber(), greaterThan(5));
+                    assertEquals("partial", object.getString());
+                }
+                // make sure the Realm contains only PartialSyncObjectA
+                assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
+                if (countdown.decrementAndGet() == 0) {
+                    looperThread.testComplete();
+                }
+            }
+
+            @Override
+            public void onError(RealmException error) {
+                fail(error.getMessage());
+            }
+        });
+
+        // Invalid query
+        partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "invalid_property > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
+
+            @Override
+            public void onSuccess(RealmResults<PartialSyncObjectA> results) {
+                fail("Invalid query should not succeed");
+            }
+
+            @Override
+            public void onError(RealmException error) {
+                assertNotNull(error);
+                if (countdown.decrementAndGet() == 0) {
+                    looperThread.testComplete();
+                }
+            }
+        });
+    }
+
+    private Realm getPartialRealm(SyncUser user) {
+        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .name("partialSync")
                 .modules(new PartialSyncModule())
                 .partialRealm()
                 .build();
+        return Realm.getInstance(partialSyncConfig);
+    }
 
+    private void createServerData(SyncUser user, String url) throws InterruptedException {
+        final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, url)
+                .waitForInitialRemoteData()
+                .modules(new PartialSyncModule())
+                .build();
+
+        // Create server data
+        // Create server data
         Realm realm = Realm.getInstance(syncConfig);
         realm.beginTransaction();
         PartialSyncObjectA objectA = realm.createObject(PartialSyncObjectA.class);
@@ -87,64 +378,11 @@ public class PartialSyncTests extends StandardIntegrationTest {
         objectA.setNumber(9);
         objectA.setString("partial");
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < TEST_SIZE; i++) {
             realm.createObject(PartialSyncObjectB.class).setNumber(i);
         }
         realm.commitTransaction();
-
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
-
-        final CountDownLatch latch = new CountDownLatch(2);
-
-        HandlerThread handlerThread = new HandlerThread("background");
-        handlerThread.start();
-        Handler handler = new Handler(handlerThread.getLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                final Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
-                assertTrue(partialSyncRealm.isEmpty());
-
-                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
-
-                    @Override
-                    public void onSuccess(RealmResults<PartialSyncObjectA> results) {
-                        assertEquals(4, results.size());
-                        for (PartialSyncObjectA object : results) {
-                            assertThat(object.getNumber(), greaterThan(5));
-                            assertEquals("partial", object.getString());
-                        }
-                        // make sure the Realm contains only PartialSyncObjectA
-                        assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
-                        latch.countDown();
-                    }
-
-                    @Override
-                    public void onError(RealmException error) {
-                        fail(error.getMessage());
-                    }
-                });
-
-                // Invalid query
-                partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "invalid_property > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
-
-                    @Override
-                    public void onSuccess(RealmResults<PartialSyncObjectA> results) {
-                        fail("Invalid query should not succeed");
-                    }
-
-                    @Override
-                    public void onError(RealmException error) {
-                        assertNotNull(error);
-                        partialSyncRealm.close();
-                        latch.countDown();
-                    }
-                });
-
-            }
-        });
-
-        TestHelper.awaitOrFail(latch);
-    }
+   }
 }
