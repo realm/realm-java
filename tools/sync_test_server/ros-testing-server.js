@@ -50,7 +50,7 @@ function waitForRosToInitialize(attempts, onSuccess, onError, startSequence) {
     }
     http.get("http://0.0.0.0:9080/health", function(res) {
         if (res.statusCode != 200) {
-            winston.info("ROS /health/ returned: " + res.statusCode)
+            winston.warn("ROS /health/ returned: " + res.statusCode)
             setTimeout(function() {
                 waitForRosToInitialize(attempts - 1, onSuccess, onError, startSequence);
             }, 500);
@@ -58,6 +58,7 @@ function waitForRosToInitialize(attempts, onSuccess, onError, startSequence) {
             onSuccess(startSequence);
         }
     }).on('error', function(err) {
+        winston.warn("ROS /health/ returned an error: " + err)
         // ROS not accepting any connections yet.
         // Errors like ECONNREFUSED 0.0.0.0:9080 will be reported here.
         // Wait a little before trying again (common startup is ~1 second).
@@ -114,8 +115,8 @@ function doStartRealmObjectServer(onSuccess, onError) {
                 winston.info(`${data}`);
             });
 
-            // The interval between every health check is 0.5 second. Give the ROS 15 seconds to get fully initialized.
-            waitForRosToInitialize(30, onSuccess, onError, Date.now());
+            // The interval between every health check is 0.5 second. Give the ROS 30 seconds to get fully initialized.
+            waitForRosToInitialize(60, onSuccess, onError, Date.now());
         }
     });
 }
