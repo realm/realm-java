@@ -115,4 +115,8 @@ public class ObjectServerFacade {
     public boolean wasDownloadInterrupted(Throwable throwable) {
         return false;
     }
+
+    public boolean isPartialRealm(RealmConfiguration configuration) {
+        return false;
+    }
 }

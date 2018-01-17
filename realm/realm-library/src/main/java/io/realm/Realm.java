@@ -49,14 +49,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
+import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.NativeObject;
 import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmCore;
@@ -64,6 +67,8 @@ import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
+import io.realm.internal.TableQuery;
+import io.realm.internal.Util;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
 
@@ -1695,6 +1700,71 @@ public class Realm extends BaseRealm {
         return BaseRealm.compactRealm(configuration);
     }
 
+    /**
+     * Cancel a named subscription that was created by calling {@link RealmQuery#findAllAsync(String)}.
+     * If after this, some objects are no longer part of any active subscription they will be removed
+     * locally from the device (but not on the server).
+     *
+     * The effect of unsubscribing is not immediate. The local Realm must coordinate with the Object
+     * Server before this can happen. A successful callback just indicate that the request was
+     * succesfully enqueued and any data will be removed as soon as possible. When the data is
+     * actually removed locally, a standard change notification will be triggered and from the
+     * perspective of the device it will look like the data was deleted.
+     *
+     * @param subscriptionName name of the subscription to remove
+     * @param callback callback reporting back if the intent to unsubscribe was enqueued successfully or failed.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if no {@code subscriptionName} or {@code callback} was provided.
+     * @throws IllegalStateException if called on a non-looper thread.
+     * @throws UnsupportedOperationException if the Realm is not a partially synchronized Realm.
+     */
+    @Beta
+    public RealmAsyncTask unsubscribeAsync(String subscriptionName, Realm.UnsubscribeCallback callback) {
+        if (Util.isEmptyString(subscriptionName)) {
+            throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
+        }
+        //noinspection ConstantConditions
+        if (callback == null) {
+            throw new IllegalArgumentException("'callback' required.");
+        }
+        sharedRealm.capabilities.checkCanDeliverNotification("This method is only available from a Looper thread.");
+        if (!ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration)) {
+            throw new UnsupportedOperationException("Realm is not a partially synchronized Realm: " + configuration.getPath());
+        }
+
+        return executeTransactionAsync(new Transaction() {
+            @Override
+            public void execute(Realm realm) {
+
+                // Need to manually run a dynamic query here.
+                // TODO Add support for DynamicRealm.executeTransactionAsync()
+                Table table = realm.sharedRealm.getTable("class___ResultSets");
+                TableQuery query = table.where()
+                        .equalTo(new long[]{table.getColumnIndex("name")}, new long[]{NativeObject.NULLPTR}, subscriptionName);
+
+                OsResults result = OsResults.createFromQuery(realm.sharedRealm, query);
+                long count = result.size();
+                if (count == 0) {
+                    throw new IllegalArgumentException("No active subscription named '"+ subscriptionName +"' exists.");
+                }
+                if (count > 1) {
+                    RealmLog.warn("Multiple subscriptions named '" + subscriptionName +  "' exists. This should not be possible. They will all be deleted");
+                }
+                result.clear();
+            }
+        }, new Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                callback.onSuccess(subscriptionName);
+            }
+        }, new Transaction.OnError() {
+            @Override
+            public void onError(Throwable error) {
+                callback.onError(subscriptionName, error);
+            }
+        });
+    }
+
     Table getTable(Class<? extends RealmModel> clazz) {
         return schema.getTable(clazz);
     }
@@ -1791,6 +1861,28 @@ public class Realm extends BaseRealm {
         interface OnError {
             void onError(Throwable error);
         }
+    }
+
+    /**
+     * Interface used when canceling partial sync subscriptions.
+     *
+     * @see #unsubscribeAsync(String, UnsubscribeCallback)
+     */
+    public interface UnsubscribeCallback {
+        /**
+         * Callback invoked when the request to unsubscribe was succesfully enqueued.
+         *
+         * @param subscriptionName subscription that was canceled.
+         */
+        void onSuccess(String subscriptionName);
+
+        /**
+         * Callback invoked if an error happened while trying to unsubscribe.
+         *
+         * @param subscriptionName subscription on which the error occurred.
+         * @param error cause of error.
+         */
+        void onError(String subscriptionName, Throwable error);
     }
 
     /**

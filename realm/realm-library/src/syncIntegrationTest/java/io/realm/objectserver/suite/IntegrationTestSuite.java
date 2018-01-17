@@ -21,7 +21,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 import io.realm.SSLConfigurationTests;
-import io.realm.SyncedRealmTests;
+import io.realm.SyncedRealmIntegrationTests;
 import io.realm.objectserver.AuthTests;
 import io.realm.objectserver.EncryptedSynchronizedRealmTests;
 import io.realm.objectserver.ProcessCommitTests;
@@ -32,7 +32,7 @@ import io.realm.SyncSessionTests;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         SSLConfigurationTests.class,
-        SyncedRealmTests.class,
+        SyncedRealmIntegrationTests.class,
         AuthTests.class,
         EncryptedSynchronizedRealmTests.class,
         ProcessCommitTests.class,
