@@ -17,6 +17,7 @@ dependencies {
     testCompile group:'junit', name:'junit', version:'4.12'
     testCompile group:'com.google.testing.compile', name:'compile-testing', version:'0.6'
     testCompile files(file("${System.env.ANDROID_HOME}/platforms/android-27/android.jar"))
+    compile 'com.google.code.findbugs:jsr305:3.0.2'
 }
 
 // for Ant filter
