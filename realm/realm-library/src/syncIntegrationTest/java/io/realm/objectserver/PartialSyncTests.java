@@ -107,14 +107,6 @@ public class PartialSyncTests extends StandardIntegrationTest {
         looperThread.closeAfterTest(partialSyncRealm);
         assertTrue(partialSyncRealm.isEmpty());
 
-
-        createServerData(syncConfig);
-
-        // Download data in partial Realm
-        final Realm partialSyncRealm = Realm.getInstance(partialSyncConfig);
-        looperThread.closeAfterTest(partialSyncRealm);
-        assertTrue(partialSyncRealm.isEmpty());
-
         RealmResults<PartialSyncObjectA> results = partialSyncRealm.where(PartialSyncObjectA.class)
                 .greaterThan("number", 5)
                 .findAllAsync();
