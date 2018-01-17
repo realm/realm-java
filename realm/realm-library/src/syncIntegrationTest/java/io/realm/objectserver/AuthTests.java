@@ -34,6 +34,7 @@ import io.realm.SyncUser;
 import io.realm.SyncUserInfo;
 import io.realm.TestHelper;
 import io.realm.entities.StringOnly;
+import io.realm.internal.Util;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.objectserver.Token;
 import io.realm.objectserver.utils.Constants;
@@ -123,16 +124,89 @@ public class AuthTests extends StandardIntegrationTest {
             public void onSuccess(SyncUser user) {
                 assertTrue(user.isAdmin());
                 final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
-                        .errorHandler(new SyncSession.ErrorHandler() {
-                            @Override
-                            public void onError(SyncSession session, ObjectServerError error) {
-                                fail("Session failed: " + error);
-                            }
-                        })
+                        .errorHandler((session, error) -> fail("Session failed: " + error))
                         .build();
 
                 final Realm realm = Realm.getInstance(config);
                 looperThread.addTestRealm(realm);
+                assertTrue(config.getUser().isValid());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail("Login failed: " + error);
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void login_withAnonymous() {
+        SyncCredentials credentials = SyncCredentials.anonymous();
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                assertFalse(user.isAdmin());
+                final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
+                        .errorHandler((session, error) -> fail("Session failed: " + error))
+                        .build();
+
+                final Realm realm = Realm.getInstance(config);
+                looperThread.addTestRealm(realm);
+                assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
+                assertTrue(config.getUser().isValid());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail("Login failed: " + error);
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void login_withNickname() {
+        SyncCredentials credentials = SyncCredentials.nickname("foo", false);
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                assertFalse(user.isAdmin());
+                final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
+                        .errorHandler((session, error) -> fail("Session failed: " + error))
+                        .build();
+
+                final Realm realm = Realm.getInstance(config);
+                looperThread.addTestRealm(realm);
+                assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
+                assertTrue(config.getUser().isValid());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail("Login failed: " + error);
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void login_withNicknameAsAdmin() {
+        SyncCredentials credentials = SyncCredentials.nickname("foo", true);
+        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                assertTrue(user.isAdmin());
+                final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
+                        .errorHandler((session, error) -> fail("Session failed: " + error))
+                        .build();
+
+                final Realm realm = Realm.getInstance(config);
+                looperThread.addTestRealm(realm);
+                assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
                 assertTrue(config.getUser().isValid());
                 looperThread.testComplete();
             }
@@ -534,6 +608,7 @@ public class AuthTests extends StandardIntegrationTest {
     // The pre-emptive token refresh subsystem should function, and properly refresh the access token.
     // WARNING: this test can fail if there's a difference between the server's and device's clock, causing the
     // refresh access token to be too far in time.
+    @Ignore("Test still times out https://github.com/realm/realm-java/issues/5681")
     @Test(timeout = 30000)
     public void preemptiveTokenRefresh() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);

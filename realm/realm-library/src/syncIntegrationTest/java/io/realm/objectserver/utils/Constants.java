@@ -23,7 +23,7 @@ public class Constants {
     public static final String USER_REALM_2 = "realm://" + HOST + ":9080/~/tests2";
     public static final String USER_REALM_SECURE = "realms://" + HOST + ":9443/~/tests";
     public static final String SYNC_SERVER_URL = "realm://" + HOST + ":9080/~/tests";
-    public static final String SYNC_SERVER_URL_2 = "realm://" + HOST + "/~/tests2";
+    public static final String SYNC_SERVER_URL_2 = "realm://" + HOST + ":9080/~/tests2";
 
     public static final String AUTH_SERVER_URL = "http://" + HOST + ":9080/";
     public static final String AUTH_URL = AUTH_SERVER_URL + "auth";

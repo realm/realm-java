@@ -16,8 +16,6 @@
 
 #include <cstring>
 
-#include "util/format.hpp"
-
 #include "android_logger.hpp"
 
 using namespace realm;

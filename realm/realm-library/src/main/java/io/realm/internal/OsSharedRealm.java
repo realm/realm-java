@@ -160,6 +160,14 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     // JNI will only hold a weak global ref to this.
     public final RealmNotifier realmNotifier;
     public final Capabilities capabilities;
+    // For the Java callbacks during constructing in Object Store, some temporary OsSharedRealm objects need to be
+    // created as the parameter of the callback. The native pointers of those temp OsSharedRealm objects have to be
+    // valid during the whole life cycle of the Java object. The living native pointers still hold a ref-count to the
+    // SharedRealm which means the SharedRealm won't be closed automatically if there is any exception throws during
+    // construction. GC will clear them later, but that would be too late. So we are tracking the temp OsSharedRealm
+    // during the construction stage and manually close them if exception throws.
+    private final static List<OsSharedRealm> sharedRealmsUnderConstruction = new CopyOnWriteArrayList<OsSharedRealm>();
+    private final List<OsSharedRealm> tempSharedRealmsForCallback = new ArrayList<OsSharedRealm>();
 
     private final List<WeakReference<PendingRow>> pendingRows = new CopyOnWriteArrayList<>();
     // Package protected for testing
@@ -169,10 +177,25 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         Capabilities capabilities = new AndroidCapabilities();
         RealmNotifier realmNotifier = new AndroidRealmNotifier(this, capabilities);
 
-        this.nativePtr = nativeGetSharedRealm(osRealmConfig.getNativePtr(), realmNotifier);
+        // SharedRealms under constructions are identified by the Context.
+        this.context = osRealmConfig.getContext();
+        sharedRealmsUnderConstruction.add(this);
+        try {
+            this.nativePtr = nativeGetSharedRealm(osRealmConfig.getNativePtr(), realmNotifier);
+        } catch (Throwable t) {
+            // The SharedRealm instances have to be closed before throw.
+            for (OsSharedRealm sharedRealm: tempSharedRealmsForCallback) {
+                if (!sharedRealm.isClosed()) {
+                    sharedRealm.close();
+                }
+            }
+            throw t;
+        } finally {
+            tempSharedRealmsForCallback.clear();
+            sharedRealmsUnderConstruction.remove(this);
+        }
         this.osRealmConfig = osRealmConfig;
         this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
-        this.context = osRealmConfig.getContext();
         this.context.addReference(this);
 
         this.capabilities = capabilities;
@@ -198,6 +221,18 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         // This instance should never need notifications.
         this.realmNotifier = null;
         nativeSetAutoRefresh(nativePtr, false);
+
+        boolean foundParentSharedRealm = false;
+        for (OsSharedRealm sharedRealm : sharedRealmsUnderConstruction) {
+            if (sharedRealm.context == osRealmConfig.getContext())  {
+                foundParentSharedRealm = true;
+                sharedRealm.tempSharedRealmsForCallback.add(this);
+                break;
+            }
+        }
+        if (!foundParentSharedRealm) {
+            throw new IllegalStateException("Cannot find the parent 'OsSharedRealm' which is under construction.");
+        }
     }
 
 
@@ -511,7 +546,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         } else {
             @SuppressWarnings("ConstantConditions")
             Table table = getTable(Table.getTableNameForClass(callback.className));
-            OsResults results = new OsResults(this, table, nativeResultsPtr, true);
+            OsResults results = new OsResults(this, table, nativeResultsPtr);
             callback.onSuccess(results);
         }
     }

@@ -1791,7 +1791,7 @@ public class Realm extends BaseRealm {
      * dynamic and normal Realms.
      *
      * @param configuration the {@link io.realm.RealmConfiguration} for the Realm.
-     * @return number of open Realm instances across all threads.
+     * @return number of open Realm instances on the caller thread.
      */
     public static int getLocalInstanceCount(RealmConfiguration configuration) {
         return RealmCache.getLocalThreadCount(configuration);

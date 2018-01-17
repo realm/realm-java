@@ -32,8 +32,6 @@
 #include <realm/table.hpp>
 #include <realm/util/safe_int_ops.hpp>
 
-#include <util/format.hpp>
-
 #include "io_realm_internal_Util.h"
 
 #include "java_exception_def.hpp"

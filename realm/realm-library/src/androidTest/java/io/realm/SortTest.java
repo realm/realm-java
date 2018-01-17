@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
+import io.realm.entities.Dog;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
@@ -72,18 +73,22 @@ public class SortTest {
         AllTypes object1 = realm.createObject(AllTypes.class);
         object1.setColumnLong(5);
         object1.setColumnString("Adam");
+        object1.setColumnRealmObject(realm.copyToRealm(new Dog("D")));
 
         AllTypes object2 = realm.createObject(AllTypes.class);
         object2.setColumnLong(4);
         object2.setColumnString("Brian");
+        object2.setColumnRealmObject(realm.copyToRealm(new Dog("C")));
 
         AllTypes object3 = realm.createObject(AllTypes.class);
         object3.setColumnLong(4);
         object3.setColumnString("Adam");
+        object3.setColumnRealmObject(realm.copyToRealm(new Dog("B")));
 
         AllTypes object4 = realm.createObject(AllTypes.class);
         object4.setColumnLong(5);
         object4.setColumnString("Adam");
+        object4.setColumnRealmObject(realm.copyToRealm(new Dog("A")));
 
         realm.delete(AnnotationIndexTypes.class);
         AnnotationIndexTypes obj1 = realm.createObject(AnnotationIndexTypes.class);
@@ -112,10 +117,10 @@ public class SortTest {
     @Before
     public void setUp() {
         // Creates a Realm with the following objects:
-        // 0: (5, "Adam")
-        // 1: (4, "Brian")
-        // 2: (4, "Adam")
-        // 3: (5, "Adam")
+        // 0: (5, "Adam", Dog("D"))
+        // 1: (4, "Brian", Dog("C"))
+        // 2: (4, "Adam", Dog("B"))
+        // 3: (5, "Adam", Dog("A"))
 
         // Injecting the Instrumentation instance is required
         // for your test to run with AndroidJUnitRunner.
@@ -472,7 +477,7 @@ public class SortTest {
 
         populateDates(realm, TEST_SIZE);
 
-        RealmResults<AllTypes> objectsAscending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.ASCENDING);
+        RealmResults<AllTypes> objectsAscending = realm.where(AllTypes.class).sort(AllTypes.FIELD_DATE, Sort.ASCENDING).findAll();
         assertEquals(TEST_SIZE, objectsAscending.size());
         int i = 0;
         for (AllTypes allTypes : objectsAscending) {
@@ -480,7 +485,7 @@ public class SortTest {
             i++;
         }
 
-        RealmResults<AllTypes> objectsDescending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.DESCENDING);
+        RealmResults<AllTypes> objectsDescending = realm.where(AllTypes.class).sort(AllTypes.FIELD_DATE, Sort.DESCENDING).findAll();
         assertEquals(TEST_SIZE, objectsDescending.size());
         i = TEST_SIZE - 1;
         for (AllTypes allTypes : objectsDescending) {
@@ -509,7 +514,7 @@ public class SortTest {
             }
         };
 
-        RealmResults<AllTypes> objectsAscending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.ASCENDING);
+        RealmResults<AllTypes> objectsAscending = realm.where(AllTypes.class).sort(AllTypes.FIELD_DATE, Sort.ASCENDING).findAll();
         assertEquals(TEST_SIZE, objectsAscending.size());
         looperThread.keepStrongReference(objectsAscending);
         objectsAscending.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -525,7 +530,7 @@ public class SortTest {
             }
         });
 
-        RealmResults<AllTypes> objectsDescending = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_DATE, Sort.DESCENDING);
+        RealmResults<AllTypes> objectsDescending = realm.where(AllTypes.class).sort(AllTypes.FIELD_DATE, Sort.DESCENDING).findAll();
         assertEquals(TEST_SIZE, objectsDescending.size());
         looperThread.keepStrongReference(objectsDescending);
         objectsDescending.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
@@ -559,16 +564,68 @@ public class SortTest {
         // (2, 1, "B")
         // (1, 1, "A)
         RealmResults<AnnotationIndexTypes> results1 = realm.where(AnnotationIndexTypes.class)
-                .findAllSorted(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING);
+                .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING)
+                .findAll();
         assertEquals(3, results1.size());
         assertEquals(3, results1.get(0).getIndexLong());
 
         // After distinct:
         // (3, 1, "C")
-        RealmResults<AnnotationIndexTypes> results2 =  results1.where().distinct(AnnotationIndexTypes.FIELD_INDEX_INT);
+        RealmResults<AnnotationIndexTypes> results2 =  results1.where().distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT).findAll();
         assertEquals(1, results2.size());
         assertEquals("C", results2.get(0).getIndexString());
         assertEquals(3, results2.get(0).getIndexLong());
+    }
+
+    @Test
+    public void sortAndDistinctMixed() {
+        // Dataset:
+        // (FIELD_INDEX_LONG, FIELD_INDEX_INT, FIELD_INDEX_STRING)
+        // (1, 1, "A")
+        // (2, 1, "B")
+        // (3, 1, "C")
+        // Depending on the sorting, distinct should pick the first element encountered.
+        // The order of sort/distinct in the query should not matter
+
+        // Case 1: Selecting highest numbers
+        RealmResults<AnnotationIndexTypes> results1a = realm.where(AnnotationIndexTypes.class)
+                .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING)
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT)
+                .findAll();
+        assertEquals(1, results1a.size());
+        assertEquals(3, results1a.get(0).getIndexLong());
+
+        RealmResults<AnnotationIndexTypes> results1b = realm.where(AnnotationIndexTypes.class)
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT)
+                .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING)
+                .findAll();
+        assertEquals(1, results1b.size());
+        assertEquals(3, results1b.get(0).getIndexLong());
+
+        // Case 1: Selecting lowest number numbers
+        RealmResults<AnnotationIndexTypes> results2a = realm.where(AnnotationIndexTypes.class)
+                .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.ASCENDING)
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT)
+                .findAll();
+        assertEquals(1, results2a.size());
+        assertEquals(1, results2a.get(0).getIndexLong());
+
+        RealmResults<AnnotationIndexTypes> results2b = realm.where(AnnotationIndexTypes.class)
+                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT)
+                .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.ASCENDING)
+                .findAll();
+        assertEquals(1, results2b.size());
+        assertEquals(1, results2b.get(0).getIndexLong());
+    }
+
+    @Test
+    public void sortByChildValue() {
+        RealmResults<AllTypes> result = realm.where(AllTypes.class)
+                .sort(AllTypes.FIELD_REALMOBJECT + "." + Dog.FIELD_NAME, Sort.ASCENDING)
+                .findAll();
+
+        assertEquals("A", result.first().getColumnRealmObject().getName());
+        assertEquals("D", result.last().getColumnRealmObject().getName());
     }
 
     private void createAndTest(String str) {
@@ -579,7 +636,7 @@ public class SortTest {
             stringOnly.setChars(str.substring(i, i + 1));
         }
         realm.commitTransaction();
-        RealmResults<StringOnly> stringOnlies = realm.where(StringOnly.class).findAllSorted("chars");
+        RealmResults<StringOnly> stringOnlies = realm.where(StringOnly.class).sort("chars").findAll();
         for (int i = 0; i < chars.length(); i++) {
             assertEquals(chars.substring(i, i + 1), stringOnlies.get(i).getChars());
         }
@@ -619,7 +676,7 @@ public class SortTest {
     @Test
     public void sortCaseSensitive() {
         chars = "'- !\"#$%&()*,./:;?_+<=>123aAbBcCxXyYzZ";
-        createAndTest(new StringBuffer(chars).reverse().toString());
+        createAndTest(new StringBuilder(chars).reverse().toString());
 
         // try all permutations - keep the list short
         chars = "12aAbB";

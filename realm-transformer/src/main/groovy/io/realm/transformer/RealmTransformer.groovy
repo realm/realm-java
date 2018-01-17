@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Sets
 import com.google.common.io.Files
 import groovy.io.FileType
-import io.realm.annotations.Ignore
 import io.realm.annotations.RealmClass
 import javassist.ClassPool
 import javassist.CtClass
@@ -30,7 +29,6 @@ import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import java.lang.reflect.Modifier
 import java.util.jar.JarFile
 import java.util.regex.Pattern
 
@@ -86,10 +84,10 @@ class RealmTransformer extends Transform {
         // Find all the class names
         def inputClassNames = getClassNames(inputs)
         def referencedClassNames = getClassNames(referencedInputs)
-        def allClassNames = merge(inputClassNames, referencedClassNames);
+        def allClassNames = merge(inputClassNames, referencedClassNames)
 
         // Create and populate the Javassist class pool
-        ClassPool classPool = createClassPool(inputs, referencedInputs)
+        ClassPool classPool = new ManagedClassPool(inputs, referencedInputs)
         // Append android.jar to class pool. We don't need the class names of them but only the class in the pool for
         // javassist. See https://github.com/realm/realm-java/issues/2703.
         addBootClassesToClassPool(classPool)
@@ -105,7 +103,7 @@ class RealmTransformer extends Transform {
                 .findAll { it.superclass?.equals(baseProxyMediator) }
         logger.debug "Proxy Mediator Classes: ${proxyMediatorClasses*.name}"
         proxyMediatorClasses.each {
-            BytecodeModifier.overrideTransformedMarker(it);
+            BytecodeModifier.overrideTransformedMarker(it)
         }
 
         // Find the model classes
@@ -148,6 +146,7 @@ class RealmTransformer extends Transform {
         logger.debug "Realm Transform time: ${toc-tic} milliseconds"
 
         this.sendAnalytics(inputs, inputModelClasses)
+        classPool.close()
     }
 
     /**
@@ -175,8 +174,8 @@ class RealmTransformer extends Transform {
             it.getPackageName()
         }
 
-        def targetSdk = project?.android?.defaultConfig?.targetSdkVersion?.mApiLevel as String;
-        def minSdk = project?.android?.defaultConfig?.minSdkVersion?.mApiLevel as String;
+        def targetSdk = project?.android?.defaultConfig?.targetSdkVersion?.mApiLevel as String
+        def minSdk = project?.android?.defaultConfig?.minSdkVersion?.mApiLevel as String
 
         def env = System.getenv()
         def disableAnalytics = env["REALM_DISABLE_ANALYTICS"]
@@ -185,42 +184,6 @@ class RealmTransformer extends Transform {
             def analytics = new RealmAnalytics(packages as Set, containsKotlin, sync, targetSdk, minSdk)
             analytics.execute()
         }
-    }
-
-    /**
-     * Creates and populates the Javassist class pool.
-     *
-     * @param inputs the inputs provided by the Transform API
-     * @param referencedInputs the referencedInputs provided by the Transform API
-     * @return the populated ClassPool instance
-     */
-    private ClassPool createClassPool(Collection<TransformInput> inputs, Collection<TransformInput> referencedInputs) {
-        // Don't use ClassPool.getDefault(). Doing consecutive builds in the same run (e.g. debug+release)
-        // will use a cached object and all the classes will be frozen.
-        ClassPool classPool = new ClassPool(null)
-        classPool.appendSystemPath()
-
-        inputs.each {
-            it.directoryInputs.each {
-                classPool.appendClassPath(it.file.absolutePath)
-            }
-
-            it.jarInputs.each {
-                classPool.appendClassPath(it.file.absolutePath)
-            }
-        }
-
-        referencedInputs.each {
-            it.directoryInputs.each {
-                classPool.appendClassPath(it.file.absolutePath)
-            }
-
-            it.jarInputs.each {
-                classPool.appendClassPath(it.file.absolutePath)
-            }
-        }
-
-        return classPool
     }
 
     private static Set<String> getClassNames(Collection<TransformInput> inputs) {
@@ -255,6 +218,7 @@ class RealmTransformer extends Transform {
                             .replace('\\' as char , '.' as char)
                     classNames.add(className)
                 }
+                jarFile.close() // Crash transformer if this fails
             }
         }
         return classNames
@@ -288,7 +252,7 @@ class RealmTransformer extends Transform {
         Set<String> merged = new HashSet<String>()
         merged.addAll(set1)
         merged.addAll(set2)
-        return merged;
+        return merged
     }
 
     // There is no official way to get the path to android.jar for transform.

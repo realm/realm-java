@@ -356,6 +356,20 @@ public class RealmObjectSchemaTests {
         }
     }
 
+    @Test
+    public void addField_realmModelThrows() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
+        try {
+            schema.addField("test", Dog.class);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), CoreMatchers.containsString(
+                    "Use 'addRealmObjectField()' instead to add fields that link to other RealmObjects:"));
+        }
+    }
+
     private void checkAddFieldTwice(String fieldName, FieldRunnable runnable) {
         runnable.run(fieldName);
         try {
@@ -919,7 +933,7 @@ public class RealmObjectSchemaTests {
             assertTrue(schema.hasPrimaryKey());
             assertTrue(schema.hasIndex(fieldName));
 
-            RealmResults<DynamicRealmObject> results = ((DynamicRealm)realm).where(className).findAllSorted(fieldName);
+            RealmResults<DynamicRealmObject> results = ((DynamicRealm)realm).where(className).sort(fieldName).findAll();
             assertEquals(2, results.size());
             if (fieldType == PrimaryKeyFieldType.STRING) {
                 assertEquals("1", results.get(0).getString(fieldName));

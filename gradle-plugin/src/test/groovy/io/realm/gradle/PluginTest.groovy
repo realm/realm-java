@@ -16,6 +16,8 @@
 
 package io.realm.gradle
 
+import io.realm.transformer.RealmTransformer
+
 import com.android.build.api.transform.Transform
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -30,7 +32,6 @@ import org.junit.Before
 import org.junit.Test
 
 import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
 import static org.junit.Assert.fail
 
@@ -40,20 +41,20 @@ class PluginTest {
     private String currentVersion
 
     @Before
-    public void setUp() {
+    void setUp() {
         project = ProjectBuilder.builder().build()
         currentVersion = new File("../version.txt").text.trim()
     }
 
     @Test
-    public void pluginAddsRightDependencies() {
+    void pluginAddsRightDependencies() {
         project.buildscript {
             repositories {
                 mavenLocal()
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:2.2.0'
+                classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
                 classpath "io.realm:realm-gradle-plugin:${currentVersion}"
             }
@@ -62,8 +63,6 @@ class PluginTest {
         project.apply plugin: 'com.android.application'
         project.apply plugin: 'realm-android'
 
-        assertTrue(containsUrl(project.repositories, 'https://jitpack.io'))
-
         assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-android-library', currentVersion))
         assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-annotations', currentVersion))
 
@@ -71,14 +70,14 @@ class PluginTest {
     }
 
     @Test
-    public void pluginFailsWithoutAndroidPlugin() {
+    void pluginFailsWithoutAndroidPlugin() {
         project.buildscript {
             repositories {
                 mavenLocal()
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:2.2.0'
+                classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
                 classpath "io.realm:realm-gradle-plugin:${currentVersion}"
             }
@@ -107,7 +106,7 @@ class PluginTest {
         def configurationContainerField = DefaultDependencyHandler.class.getDeclaredField("configurationContainer")
         configurationContainerField.setAccessible(true)
         def configurationContainer = configurationContainerField.get(dependencies)
-        def compileConfiguration = configurationContainer.findByName("compile")
+        def compileConfiguration = configurationContainer.findByName("api")
 
         def DependencySet dependencySet = compileConfiguration.getDependencies()
         for (Dependency dependency in dependencySet) {

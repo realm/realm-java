@@ -19,7 +19,7 @@ package io.realm;
 /**
  * This class describes the sorting order used in Realm queries.
  *
- * @see io.realm.RealmQuery#findAllSorted(String, Sort)
+ * @see io.realm.RealmQuery#sort(String, Sort)
  */
 public enum Sort {
     ASCENDING(true),

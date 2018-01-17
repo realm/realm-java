@@ -10,6 +10,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ReferenceType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -218,7 +219,7 @@ public class Utils {
     // get the fully-qualified type name for the generic type of a RealmResults
     public static String getRealmResultsType(VariableElement field) {
         if (!Utils.isRealmResults(field)) { return null; }
-        DeclaredType type = getGenericTypeForContainer(field);
+        ReferenceType type = getGenericTypeForContainer(field);
         if (null == type) { return null; }
         return type.toString();
     }
@@ -226,14 +227,14 @@ public class Utils {
     // get the fully-qualified type name for the generic type of a RealmList
     public static String getRealmListType(VariableElement field) {
         if (!Utils.isRealmList(field)) { return null; }
-        DeclaredType type = getGenericTypeForContainer(field);
+        ReferenceType type = getGenericTypeForContainer(field);
         if (null == type) { return null; }
         return type.toString();
     }
 
     // Note that, because subclassing subclasses of RealmObject is forbidden,
     // there is no need to deal with constructs like:  <code>RealmResults&lt;? extends Foos&lt;</code>.
-    public static DeclaredType getGenericTypeForContainer(VariableElement field) {
+    public static ReferenceType getGenericTypeForContainer(VariableElement field) {
         TypeMirror fieldType = field.asType();
         TypeKind kind = fieldType.getKind();
         if (kind != TypeKind.DECLARED) { return null; }
@@ -243,9 +244,10 @@ public class Utils {
 
         fieldType = args.get(0);
         kind = fieldType.getKind();
-        if (kind != TypeKind.DECLARED) { return null; }
+        // We also support RealmList<byte[]>
+        if (kind != TypeKind.DECLARED && kind != TypeKind.ARRAY) { return null; }
 
-        return (DeclaredType) fieldType;
+        return (ReferenceType) fieldType;
     }
 
     /**
@@ -265,7 +267,7 @@ public class Utils {
     /**
      * @return the simple type name for a field.
      */
-    public static String getFieldTypeSimpleName(DeclaredType type) {
+    public static String getFieldTypeSimpleName(ReferenceType type) {
         return (null == type) ? null : getFieldTypeSimpleName(type.toString());
     }
 

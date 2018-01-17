@@ -27,9 +27,9 @@ import javax.tools.Diagnostic;
 
 
 public class RealmVersionChecker {
-    public static final String REALM_ANDROID_DOWNLOAD_URL = "http://static.realm.io/downloads/java/latest";
+    public static final String REALM_ANDROID_DOWNLOAD_URL = "https://static.realm.io/downloads/java/latest";
 
-    private static final String VERSION_URL = "http://static.realm.io/update/java?";
+    private static final String VERSION_URL = "https://static.realm.io/update/java?";
     private static final String REALM_VERSION = Version.VERSION;
     private static final String REALM_VERSION_PATTERN = "\\d+\\.\\d+\\.\\d+";
     private static final int READ_TIMEOUT = 2000;

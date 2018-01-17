@@ -68,7 +68,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         Table srcTable = realm.getSchema().getTable(srcTableType);
         return new RealmResults<>(
                 realm,
-                OsResults.createBacklinksCollection(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
+                OsResults.createForBacklinks(realm.sharedRealm, uncheckedRow, srcTable, srcFieldName),
                 srcTableType);
     }
 
@@ -78,7 +78,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         //noinspection ConstantConditions
         return new RealmResults<>(
                 realm,
-                OsResults.createBacklinksCollection(realm.sharedRealm, row, srcTable, srcFieldName),
+                OsResults.createForBacklinks(realm.sharedRealm, row, srcTable, srcFieldName),
                 srcClassName);
     }
 

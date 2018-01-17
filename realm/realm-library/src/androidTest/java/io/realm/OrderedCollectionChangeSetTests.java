@@ -26,6 +26,8 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.rule.RunInLooperThread;
@@ -38,9 +40,11 @@ import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertNotEquals;
 
 
 // Tests for the ordered collection fine grained notifications for both RealmResults and RealmList.
+@SuppressWarnings("ConstantConditions") // Suppress the null return value warnings for RealmList.get()
 @RunWith(Parameterized.class)
 public class OrderedCollectionChangeSetTests {
 
@@ -110,16 +114,6 @@ public class OrderedCollectionChangeSetTests {
         }
     }
 
-    // Re-adds the dogs so they would be sorted by age in the list.
-    private void reorderRealmList(Realm realm) {
-        RealmResults<Dog> dogs = realm.where(Dog.class).findAllSorted(Dog.FIELD_AGE);
-        Owner owner = realm.where(Owner.class).findFirst();
-        owner.getDogs().clear();
-        for (Dog dog : dogs) {
-            owner.getDogs().add(dog);
-        }
-    }
-
     // Deletes Dogs objects which's columnLong is in the indices array.
     private void deleteObjects(Realm realm, int... indices) {
         for (int index : indices) {
@@ -130,10 +124,25 @@ public class OrderedCollectionChangeSetTests {
     // Creates Dogs objects with columnLong set to the value elements in indices array.
     private void createObjects(Realm realm, int... indices) {
         for (int index : indices) {
-            realm.createObject(Dog.class).setAge(index);
-        }
-        if (type == ObservablesType.REALM_LIST) {
-            reorderRealmList(realm);
+            Dog dog = realm.createObject(Dog.class);
+            dog.setAge(index);
+            if (type == ObservablesType.REALM_LIST) {
+                Owner owner = realm.where(Owner.class).findFirst();
+                assertNotNull(owner);
+                RealmList<Dog> dogs = owner.getDogs();
+                boolean added = false;
+                // Insert the newly created dog to the RealmList by the order of age.
+                for (int i = 0; i < dogs.size(); i++) {
+                    if (dog.getAge() <= dogs.get(i).getAge()) {
+                        dogs.add(i, dog);
+                        added = true;
+                        break;
+                    }
+                }
+                if (!added) {
+                    dogs.add(dog);
+                }
+            }
         }
     }
 
@@ -147,30 +156,76 @@ public class OrderedCollectionChangeSetTests {
     }
 
     private void moveObjects(Realm realm, int originAge, int newAge) {
-        realm.where(Dog.class).equalTo(Dog.FIELD_AGE, originAge).findFirst().setAge(newAge);
         if (type == ObservablesType.REALM_LIST) {
-            reorderRealmList(realm);
+            // For RealmList we need to:
+            // 1. Find the object by the original age and move it to the new place where it should be with the new age
+            //    set -- the RealmList is sorted by age.
+            // 2. Set the object's age with new value.
+            RealmList<Dog> dogs = realm.where(Owner.class).findFirst().getDogs();
+            int originIdx = -1;
+            int newIdx = -1;
+            for (int i = 0; i < dogs.size(); i++) {
+                Dog dog = dogs.get(i);
+                assertNotNull(dog);
+                if (dog.getAge() == originAge) {
+                    originIdx = i;
+                    break;
+                }
+            }
+            assertNotEquals(-1, originIdx);
+            for (int i = 0; i < dogs.size(); i++) {
+                if (i == originIdx) {
+                    // not precise code, but good enough for testing.
+                    continue;
+                }
+                if (newAge <= dogs.get(i).getAge()) {
+                    newIdx = i;
+                    break;
+                }
+            }
+            if (newIdx == -1) {
+                newIdx = dogs.size() - 1;
+            }
+            dogs.get(originIdx).setAge(newAge);
+            dogs.move(originIdx, newIdx);
+        } else {
+            // Since the RealmResults is sorted by age, just simply set the object's age with new value.
+            realm.where(Dog.class).equalTo(Dog.FIELD_AGE, originAge).findFirst().setAge(newAge);
         }
+    }
+
+    private OrderedRealmCollection<Dog> getTestingCollection(Realm realm) {
+        switch (type) {
+            case REALM_RESULTS:
+                RealmResults<Dog> results = realm.where(Dog.class).sort(Dog.FIELD_AGE).findAll();
+                looperThread.keepStrongReference(results);
+                return results;
+            case REALM_LIST:
+                RealmList<Dog> list = realm.where(Owner.class).findFirst().getDogs();
+                looperThread.keepStrongReference(list);
+                return list;
+        }
+        fail();
+        return null;
     }
 
     private void registerCheckListener(Realm realm, final ChangesCheck changesCheck) {
         switch (type) {
             case REALM_RESULTS:
-                RealmResults<Dog> results = realm.where(Dog.class).findAllSorted(Dog.FIELD_AGE);
-                looperThread.keepStrongReference(results);
+                RealmResults<Dog> results = (RealmResults<Dog>) getTestingCollection(realm);
                 results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
                     @Override
-                    public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
+                    public void onChange(RealmResults<Dog> collection, @Nullable OrderedCollectionChangeSet changeSet) {
                         changesCheck.check(changeSet);
                     }
                 });
                 break;
             case REALM_LIST:
-                RealmList<Dog> list = realm.where(Owner.class).findFirst().getDogs();
+                RealmList<Dog> list = (RealmList<Dog>) getTestingCollection(realm);
                 looperThread.keepStrongReference(list);
                 list.addChangeListener(new OrderedRealmCollectionChangeListener<RealmList<Dog>>() {
                     @Override
-                    public void onChange(RealmList<Dog> collection, OrderedCollectionChangeSet changeSet) {
+                    public void onChange(RealmList<Dog> collection, @Nullable OrderedCollectionChangeSet changeSet) {
                         changesCheck.check(changeSet);
                     }
                 });
@@ -412,16 +467,92 @@ public class OrderedCollectionChangeSetTests {
 
         Realm realm = looperThread.getRealm();
         populateData(realm, 10);
-        final RealmResults<Dog> results = realm.where(Dog.class).findAllSortedAsync(Dog.FIELD_AGE);
+        final RealmResults<Dog> results = realm.where(Dog.class).sort(Dog.FIELD_AGE).findAllAsync();
         looperThread.keepStrongReference(results);
         results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<Dog>>() {
             @Override
-            public void onChange(RealmResults<Dog> collection, OrderedCollectionChangeSet changeSet) {
+            public void onChange(RealmResults<Dog> collection, @Nullable OrderedCollectionChangeSet changeSet) {
                 assertSame(collection, results);
                 assertEquals(10, collection.size());
                 assertNull(changeSet);
                 looperThread.testComplete();
             }
         });
+    }
+
+    // To reproduce https://github.com/realm/realm-java/issues/5507
+    // 1. Add listener to a collection
+    // A. change the collection in a background thread
+    // 2. Remove the listener
+    // 3. Add another listener
+    // 4. the listener added in step 3 should be triggered with change set in step A
+    @Test
+    @RunTestInLooperThread
+    public void addChangeListener_bug5507() throws InterruptedException {
+        // FIXME: See https://github.com/realm/realm-object-store/issues/605
+        if (type == ObservablesType.REALM_RESULTS) {
+            looperThread.testComplete();
+            return;
+        }
+
+        Realm realm = looperThread.getRealm();
+        populateData(realm, 1);
+
+        OrderedRealmCollectionChangeListener<OrderedRealmCollection<Dog>> listener1 =
+                new OrderedRealmCollectionChangeListener<OrderedRealmCollection<Dog>>() {
+            @Override
+            public void onChange(OrderedRealmCollection<Dog> dogs, @Nullable OrderedCollectionChangeSet changeSet) {
+                fail();
+            }
+        };
+
+        OrderedRealmCollection<Dog> dogs = getTestingCollection(realm);
+        assertEquals(1, dogs.size());
+
+        if (type == ObservablesType.REALM_LIST) {
+            //noinspection unchecked
+            ((RealmList) dogs).addChangeListener(listener1);
+        } else {
+            //noinspection unchecked
+            ((RealmResults) dogs).addChangeListener(listener1);
+        }
+
+        Thread bgThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(looperThread.getConfiguration());
+                realm.beginTransaction();
+                createObjects(realm, 2);
+                realm.commitTransaction();
+                realm.close();
+            }
+        });
+        bgThread.start();
+        bgThread.join();
+
+        if (type == ObservablesType.REALM_LIST) {
+            //noinspection unchecked
+            ((RealmList) dogs).removeChangeListener(listener1);
+        } else {
+            //noinspection unchecked
+            ((RealmResults) dogs).removeChangeListener(listener1);
+        }
+
+        OrderedRealmCollectionChangeListener<OrderedRealmCollection<Dog>> listener2 =
+                new OrderedRealmCollectionChangeListener<OrderedRealmCollection<Dog>>() {
+                    @Override
+                    public void onChange(OrderedRealmCollection<Dog> dogs, @Nullable OrderedCollectionChangeSet changeSet) {
+                        assertEquals(2, dogs.size());
+                        looperThread.testComplete();
+                    }
+                };
+
+        if (type == ObservablesType.REALM_LIST) {
+            //noinspection unchecked
+            ((RealmList) dogs).addChangeListener(listener2);
+        } else {
+            //noinspection unchecked
+            ((RealmResults) dogs).addChangeListener(listener2);
+        }
     }
 }

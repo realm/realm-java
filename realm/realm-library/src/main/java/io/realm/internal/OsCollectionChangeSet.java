@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import java.util.Arrays;
+
 import javax.annotation.Nullable;
 
 import io.realm.OrderedCollectionChangeSet;
@@ -132,4 +134,22 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
 
     // Returns the indices array.
     private native static int[] nativeGetIndices(long nativePtr, int type);
+
+    @Override
+    public String toString() {
+        if (nativePtr == 0)  {
+            return "Change set is empty.";
+        }
+
+        String string = "Deletion Ranges: " +
+                Arrays.toString(getDeletionRanges()) +
+                "\n" +
+                "Insertion Ranges: " +
+                Arrays.toString(getInsertionRanges()) +
+                "\n" +
+                "Change Ranges: " +
+                Arrays.toString(getChangeRanges());
+        return string;
+
+    }
 }

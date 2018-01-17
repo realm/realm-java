@@ -21,28 +21,48 @@ import org.gradle.api.Project
 class RealmPluginExtension {
     private Project project
     def boolean syncEnabled
+    def boolean kotlinExtensionsEnabled
     private String dependencyConfigurationName
 
-    RealmPluginExtension(Project project, boolean syncEnabledDefault, String dependencyConfigurationName) {
+    RealmPluginExtension(Project project, boolean syncEnabledDefault, boolean useKotlinExtensionsDefault, String dependencyConfigurationName) {
         this.project = project
         this.dependencyConfigurationName = dependencyConfigurationName
         setSyncEnabled(syncEnabledDefault)
+        setKotlinExtensionsEnabled(useKotlinExtensionsDefault)
     }
 
     void setSyncEnabled(value) {
-        this.syncEnabled = value;
+        this.syncEnabled = value
+        setDependencies(syncEnabled, kotlinExtensionsEnabled)
+    }
 
-        // remove realm android library first
-        def iterator = project.getConfigurations().getByName(dependencyConfigurationName).getDependencies().iterator();
+    void setKotlinExtensionsEnabled(value) {
+        this.kotlinExtensionsEnabled = value
+        setDependencies(syncEnabled, kotlinExtensionsEnabled)
+    }
+
+    void setDependencies(boolean syncEnabled, boolean kotlinExtensionsEnabled) {
+        // remove libraries first
+        def iterator = project.getConfigurations().getByName(dependencyConfigurationName).getDependencies().iterator()
         while (iterator.hasNext()) {
             def item = iterator.next()
-            if (item.group == 'io.realm' && item.name.startsWith('realm-android-library')) {
-                iterator.remove()
+            if (item.group == 'io.realm') {
+                if (item.name.startsWith('realm-android-library')) {
+                    iterator.remove()
+                }
+                if (item.name.startsWith('realm-android-kotlin-extensions')) {
+                    iterator.remove()
+                }
             }
         }
 
         // then add again
-        def artifactName = "realm-android-library${syncEnabled ? '-object-server' : ''}"
-        project.dependencies.add(dependencyConfigurationName, "io.realm:${artifactName}:${Version.VERSION}")
+        def syncArtifactName = "realm-android-library${syncEnabled ? '-object-server' : ''}"
+        project.dependencies.add(dependencyConfigurationName, "io.realm:${syncArtifactName}:${Version.VERSION}")
+
+        if (kotlinExtensionsEnabled) {
+            def kotlinExtArtifactName = "realm-android-kotlin-extensions${syncEnabled ? '-object-server' : ''}"
+            project.dependencies.add(dependencyConfigurationName, "io.realm:${kotlinExtArtifactName}:${Version.VERSION}")
+        }
     }
 }

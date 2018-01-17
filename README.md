@@ -1,14 +1,17 @@
 ![Realm](logo.png)
 
+[![bintray](https://api.bintray.com/packages/realm/maven/realm-gradle-plugin/images/download.svg) ](https://bintray.com/realm/maven/realm-gradle-plugin/_latestVersion)
+[![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/realm/realm-java/blob/master/LICENSE)
+
 Realm is a mobile database that runs directly inside phones, tablets or wearables.
 This repository holds the source code for the Java version of Realm, which currently runs only on Android.
 
 ## Features
 
-* **Mobile-first:** Realm is the first database built from the ground up to run directly inside phones, tablets and wearables.
+* **Mobile-first:** Realm is the first database built from the ground up to run directly inside phones, tablets, and wearables.
 * **Simple:** Data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance & maintenance issues. Plus, we've worked hard to [keep our API down to very few classes](https://realm.io/docs/java/): most of our users pick it up intuitively, getting simple apps up & running in minutes.
 * **Modern:** Realm supports easy thread-safety, relationships & encryption.
-* **Fast:** Realm is faster than even raw SQLite on common operations, while maintaining an extremely rich feature set.
+* **Fast:** Realm is faster than even raw SQLite on common operations while maintaining an extremely rich feature set.
 
 ## Getting Started
 
@@ -21,18 +24,20 @@ The API reference is located at [realm.io/docs/java/api](https://realm.io/docs/j
 
 ## Getting Help
 
-- **Need help with your code?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](http://stackoverflow.com/questions/ask?tags=realm). We activtely monitor & answer questions on SO!
+- **Need help with your code?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](http://stackoverflow.com/questions/ask?tags=realm). We actively monitor & answer questions on StackOverflow!
 - **Have a bug to report?** [Open an issue](https://github.com/realm/realm-java/issues/new). If possible, include the version of Realm, a full log, the Realm file, and a project that shows the issue.
 - **Have a feature request?** [Open an issue](https://github.com/realm/realm-java/issues/new). Tell us what the feature should do, and why you want the feature.
 - Sign up for our [**Community Newsletter**](https://go.pardot.com/l/210132/2017-04-26/3j74l) to get regular tips, learn about other use-cases and get alerted of blogposts and tutorials about Realm.
 
 ## Using Snapshots
 
-If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [Jfrog OSS](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-gradle-plugin/)
+If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [JFrog OSS](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-gradle-plugin/)
 
-```gradle
+```
 buildscript {
     repositories {
+        jcenter()
+        google()
         maven {
             url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
         }
@@ -44,6 +49,8 @@ buildscript {
 
 allprojects {
     repositories {
+        jcenter()
+        google()
         maven {
             url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
         }
@@ -59,15 +66,15 @@ In case you don't want to use the precompiled version, you can build Realm yours
 
 ### Prerequisites
 
- * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * Download & install the Android SDK **Build-Tools 26.0.2**, **Android O (API 26)** (for example through Android Studio’s **Android SDK Manager**).
+ * Download the [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
+ * Download & install the Android SDK **Build-Tools 27.0.2**, **Android Oreo (API 27)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
- * If you use Android Studio, Android Studio 3.0 or later is required.
+ * If you use Android Studio, Android Studio 3.0 or higher is required.
 
  * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
 You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
 
- * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full path name of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
+ * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
     ```
     ndk.dir=/Users/brian/Library/Android/android-ndk-r10e/r10e
@@ -81,7 +88,7 @@ You may unzip the file wherever you choose.  For macOS, a suggested location is 
     export ANDROID_NDK_HOME=~/Library/Android/android-ndk-r10e
     ```
 
- * If you will be launching Android Studio from the macOS Finder, you should also run the following two commands:
+ * If you are launching Android Studio from the macOS Finder, you should also run the following two commands:
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
@@ -94,7 +101,7 @@ You may unzip the file wherever you choose.  For macOS, a suggested location is 
    export REALM_CORE_DOWNLOAD_DIR=~/.realmCore
    ```
 
-   macOS users must also run the following command in order for Android Studio to see this environment variable..
+   macOS users must also run the following command for Android Studio to see this environment variable.
 
    ```
    launchctl setenv REALM_CORE_DOWNLOAD_DIR "$REALM_CORE_DOWNLOAD_DIR"
@@ -102,10 +109,10 @@ You may unzip the file wherever you choose.  For macOS, a suggested location is 
 
 It would be a good idea to add all of the symbol definitions (and their accompanying `launchctl` commands, if you are using macOS) to your `~/.profile` (or `~/.zprofile` if the login shell is `zsh`)
 
- * If you develop Realm Java with Android Studio, we recommend you to exclude some directories from indexing target by executing following steps on Android Studio. It really speeds up indexing phase after build.
+ * If you develop Realm Java with Android Studio, we recommend you to exclude some directories from indexing target by executing following steps on Android Studio. It really speeds up indexing phase after the build.
 
     - Under `/realm/realm-library/`, select `build`, `.externalNativeBuild` and `distribution` folders in `Project` view.
-    - Press `Command + Shift + A` to open `Find action` dialog. If you are not using defaut keymap nor using macOS, you can find your shortcut key in `Keymap` preference by searching `Find action`.
+    - Press `Command + Shift + A` to open `Find action` dialog. If you are not using default keymap nor using macOS, you can find your shortcut key in `Keymap` preference by searching `Find action`.
     - Search `Excluded` (not `Exclude`) action and select it. Selected folder icons should become orange (in default theme).
     - Restart Android Studio.
 
@@ -125,7 +132,7 @@ git clone https://github.com/realm/realm-java.git --recursive
 
 ### Build
 
-Once you have completed all the pre-requisites building Realm is done with a simple command
+Once you have completed all the pre-requisites building Realm is done with a simple command.
 
 ```
 ./gradlew assemble
@@ -154,8 +161,7 @@ Generating the Javadoc using the command above may generate warnings. The Javado
 
 ### Upgrading Gradle Wrappers
 
- All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer `gradleVersion` propertiy defined in `/realm.properties` in order to determine Geadle Version of generating wrappers. After generating Gradle Wrappers, we need to modify `gradle/wrapper/gradle-wrapper.properties` to use `*-all.zip` distribution instead of `*-bin.zip` distribution.
-
+ All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradleVersion` property defined in `/realm.properties` to determine Gradle Version of generating wrappers.
 We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. When you update Gradle Wrappers, please obey the following steps.
 
  1. Edit `gradleVersion` property in defined in `/realm.properties` to new Gradle Wrapper version.
@@ -163,7 +169,7 @@ We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. Whe
 
 ### Gotchas
 
-The repository is organized in six Gradle projects:
+The repository is organized into six Gradle projects:
 
  * `realm`: it contains the actual library (including the JNI layer) and the annotations processor.
  * `realm-annotations`: it contains the annotations defined by Realm.
@@ -182,28 +188,28 @@ that you can run `./gradlew :realm:realm-library:compileBaseDebugAndroidTestSour
 
 ## Examples
 
-The `./examples` folder contain a number of example projects showing how Realm can be used. If this is the first time you checkout or pull a new version of this repository to try the examples, you must call `./gradlew installRealmJava` from the top-level directory first. Otherwise the examples will not compile as they depend on all Realm artifacts being installed in `mavenLocal()`.
+The `./examples` folder contains many example projects showing how Realm can be used. If this is the first time you checkout or pull a new version of this repository to try the examples, you must call `./gradlew installRealmJava` from the top-level directory first. Otherwise, the examples will not compile as they depend on all Realm artifacts being installed in `mavenLocal()`.
 
 Standalone examples can be [downloaded from website](https://realm.io/docs/java/latest/#getting-started).
 
 ## Running Tests on a Device
 
-To run these tests you must have a device connected to the build computer and the `adb` command must be in your `PATH`
+To run these tests, you must have a device connected to the build computer, and the `adb` command must be in your `PATH`
 
-1. Connect an Android device and verify that that the command `adb devices` shows a connected device:
+1. Connect an Android device and verify that the command `adb devices` shows a connected device:
 
-	```sh
-	adb devices
-	List of devices attached
-	004c03eb5615429f device
-	```
-   
+    ```sh
+    adb devices
+    List of devices attached
+    004c03eb5615429f device
+    ```
+
 2. Run instrumentation tests:
 
-	```sh
-	cd realm
-	./gradlew connectedBaseDebugAndroidTest
-	```
+    ```sh
+    cd realm
+    ./gradlew connectedBaseDebugAndroidTest
+    ```
 
 These tests may take as much as half an hour to complete.
 
@@ -228,12 +234,12 @@ To run a testing server locally:
 
 3. Run instrumentation tests
 
-	In a new terminal window, run:
+    In a new terminal window, run:
 
-	```sh
-	cd realm
-	./gradlew connectedObjectServerDebugAndroidTest
-	```
+    ```sh
+    cd realm
+    ./gradlew connectedObjectServerDebugAndroidTest
+    ```
 
 Note that if using VirtualBox (Genymotion), the network needs to be bridged for the tests to work.
 This is done in `VirtualBox > Network`. Set "Adapter 2" to "Bridged Adapter".
@@ -266,7 +272,7 @@ not eligible to receive the product under U.S. law.**
 
 ## Feedback
 
-**_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm) to share your thoughts!_**
+**_If you use Realm and are happy with it, all we ask is that you, please consider sending out a tweet mentioning [@realm](http://twitter.com/realm) to share your thoughts!_**
 
 **_And if you don't like it, please let us know what you would like improved, so we can fix it!_**
 

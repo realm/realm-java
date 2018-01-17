@@ -69,9 +69,25 @@ try {
                   }
                 }
 
+                stage('Gradle plugin tests') {
+                  try {
+                    gradle('gradle-plugin', 'check')
+                  } finally {
+                    storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
+                  }
+                }
+
+                stage('Realm Transformer tests') {
+                  try {
+                    gradle('realm-transformer', 'check')
+                  } finally {
+                    storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
+                  }
+                }
+
                 stage('Static code analysis') {
                   try {
-                    gradle('realm', 'findbugs pmd checkstyle')
+                    gradle('realm', 'findbugs pmd checkstyle -PbuildTargetABIs=${ABIs}')
                   } finally {
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
@@ -87,16 +103,15 @@ try {
 
                 stage('Run instrumented tests') {
                   lock("${env.NODE_NAME}-android") {
-                    boolean archiveLog = true
                     String backgroundPid
                     try {
                       backgroundPid = startLogCatCollector()
                       forwardAdbPorts()
                       gradle('realm', "${instrumentationTestTarget}")
-                      archiveLog = false;
                     } finally {
-                      stopLogCatCollector(backgroundPid, archiveLog)
+                      stopLogCatCollector(backgroundPid)
                       storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+                      storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
                     }
                   }
                 }
@@ -162,15 +177,13 @@ def String startLogCatCollector() {
   return readFile("pid").trim()
 }
 
-def stopLogCatCollector(String backgroundPid, boolean archiveLog) {
+def stopLogCatCollector(String backgroundPid) {
   sh "kill ${backgroundPid}"
-  if (archiveLog) {
-    zip([
-	  'zipFile': 'logcat.zip',
-	 'archive': true,
-	 'glob' : 'logcat.txt'
-	])
-  }
+  zip([
+    'zipFile': 'logcat.zip',
+    'archive': true,
+    'glob' : 'logcat.txt'
+  ])
   sh 'rm logcat.txt'
 }
 
@@ -199,8 +212,9 @@ def getTagsString(Map<String, String> tags) {
 def storeJunitResults(String path) {
   step([
 	 $class: 'JUnitResultArchiver',
-	testResults: path
-       ])
+     allowEmptyResults: true,
+     testResults: path
+   ])
 }
 
 def collectAarMetrics() {
