@@ -131,7 +131,7 @@ public class RealmProcessor extends AbstractProcessor {
     private static final boolean CONSUME_ANNOTATIONS = false;
     private static final boolean ABORT = true; // Abort the annotation processor by consuming all annotations
 
-    // List of all fields maintained by Realm
+    // List of all modules
     private final ClassCollection classCollection = new ClassCollection();
     private ModuleMetaData moduleMetaData;
 
@@ -160,7 +160,7 @@ public class RealmProcessor extends AbstractProcessor {
             Utils.initialize(processingEnv);
             TypeMirrors typeMirrors = new TypeMirrors(processingEnv);
 
-            // Build up internal metadata
+            // Build up internal metadata.
             if (!processModules(roundEnv)) { return ABORT; }
             if (!processClassAnnotations(roundEnv, typeMirrors)) { return ABORT; }
             hasProcessedModules = true;
@@ -209,6 +209,7 @@ public class RealmProcessor extends AbstractProcessor {
 
     // Returns true if modules was processed successfully, false otherwise
     private boolean processModules(RoundEnvironment roundEnv) {
+        // FIXME: Figure out the chicken and egg problem of module/class verification
         moduleMetaData = new ModuleMetaData(classCollection);
         return moduleMetaData.generate(roundEnv.getElementsAnnotatedWith(RealmModule.class));
     }

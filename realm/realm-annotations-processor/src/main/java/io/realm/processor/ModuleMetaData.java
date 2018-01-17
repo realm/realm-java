@@ -122,7 +122,7 @@ public class ModuleMetaData {
         // is NO_POLICY
         if (modules.size() > 1 || libraryModules.size() > 1) {
             Map<String, Set<ClassMetaData>> testModules = (modules.size() > 1) ? modules : libraryModules;
-
+            // FIXME
 
         }
 

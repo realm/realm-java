@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Wrapper around {@link ClassMetaData} that also enables easy lookup for other types.
+ * Wrapper around all {@link ClassMetaData} that also enables easy lookup of class data.
  */
 public class ClassCollection {
 
