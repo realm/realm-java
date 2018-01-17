@@ -22,6 +22,8 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.Util;
+
 
 /**
  * Credentials represent a login with a 3rd party login provider in an OAuth2 login flow, and are used by the Realm
@@ -115,18 +117,17 @@ public class SyncCredentials {
      *
      * @return a set of credentials that can be used to log into the Object Server using
      * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
-     * @throws IllegalArgumentException if the token is either {@code null} or empty.
      */
     public static SyncCredentials anonymous() {
         return new SyncCredentials("", IdentityProvider.ANONYMOUS, null);
     }
     /**
-     * Creates credentials anonymously.
+     * Creates credentials using a nickname.
      *
      * @param nickname that identifies a user
      * @return a set of credentials that can be used to log into the Object Server using
      * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
-     * @throws IllegalArgumentException if the token is either {@code null} or empty.
+     * @throws IllegalArgumentException if the nickname is either {@code null} or empty.
      */
     public static SyncCredentials nickname(String nickname, boolean isAdmin) {
         assertStringNotEmpty(nickname, "nickname");
@@ -232,7 +233,7 @@ public class SyncCredentials {
 
     private static void assertStringNotEmpty(String string, String message) {
         //noinspection ConstantConditions
-        if (string == null || "".equals(string)) {
+        if (Util.isEmptyString(string)) {
             throw new IllegalArgumentException("Non-null '" + message + "' required.");
         }
     }

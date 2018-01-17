@@ -9,7 +9,7 @@
 
 ### Enhancements
 
-* Added explicity support for both Anonymous and Nickname authentication.
+* Added explicit support for both Anonymous and Nickname authentication.
 
 
 ### Internal
