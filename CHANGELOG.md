@@ -9,7 +9,7 @@
 
 ### Enhancements
 
-* Added explicit support for both Anonymous and Nickname authentication.
+* [ObjectServer] added support for both Anonymous and Nickname authentication.
 
 
 ### Internal

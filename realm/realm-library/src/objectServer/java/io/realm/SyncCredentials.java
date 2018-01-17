@@ -115,14 +115,22 @@ public class SyncCredentials {
     /**
      * Creates credentials anonymously.
      *
+     *  Note: logging the user out again means that data is lost with no means of recovery
+     *  and it isn't possible to share the user details across devices.
+     *
      * @return a set of credentials that can be used to log into the Object Server using
      * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
      */
     public static SyncCredentials anonymous() {
         return new SyncCredentials("", IdentityProvider.ANONYMOUS, null);
     }
+
     /**
      * Creates credentials using a nickname.
+     *
+     * Note: This is mainly intended for demo/test, since it's ie. possible to log user
+     * in by just knowing their "nickname" (no password required).
+     * This provider should not be used in production.
      *
      * @param nickname that identifies a user
      * @return a set of credentials that can be used to log into the Object Server using
@@ -309,7 +317,7 @@ public class SyncCredentials {
         public static final String JWT = "jwt";
 
         /**
-         * Credentials will be verified anonymously.
+         * Credentials do not require user/password (anonymous user).
          */
         public static final String ANONYMOUS = "anonymous";
 
