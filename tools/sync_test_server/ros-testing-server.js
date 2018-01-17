@@ -115,8 +115,8 @@ function doStartRealmObjectServer(onSuccess, onError) {
                 winston.info(`${data}`);
             });
 
-            // The interval between every health check is 0.5 second. Give the ROS 15 seconds to get fully initialized.
-            waitForRosToInitialize(30, onSuccess, onError, Date.now());
+            // The interval between every health check is 0.5 second. Give the ROS 30 seconds to get fully initialized.
+            waitForRosToInitialize(60, onSuccess, onError, Date.now());
         }
     });
 }
