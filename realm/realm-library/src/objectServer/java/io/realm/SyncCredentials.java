@@ -22,6 +22,8 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.Util;
+
 
 /**
  * Credentials represent a login with a 3rd party login provider in an OAuth2 login flow, and are used by the Realm
@@ -108,6 +110,38 @@ public class SyncCredentials {
     public static SyncCredentials jwt(String jwtToken) {
         assertStringNotEmpty(jwtToken, "jwtToken");
         return new SyncCredentials(jwtToken, IdentityProvider.JWT, null);
+    }
+
+    /**
+     * Creates credentials anonymously.
+     *
+     *  Note: logging the user out again means that data is lost with no means of recovery
+     *  and it isn't possible to share the user details across devices.
+     *
+     * @return a set of credentials that can be used to log into the Object Server using
+     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     */
+    public static SyncCredentials anonymous() {
+        return new SyncCredentials("", IdentityProvider.ANONYMOUS, null);
+    }
+
+    /**
+     * Creates credentials using a nickname.
+     *
+     * Note: This is mainly intended for demo/test, since it's ie. possible to log user
+     * in by just knowing their "nickname" (no password required).
+     * This provider should not be used in production.
+     *
+     * @param nickname that identifies a user
+     * @return a set of credentials that can be used to log into the Object Server using
+     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * @throws IllegalArgumentException if the nickname is either {@code null} or empty.
+     */
+    public static SyncCredentials nickname(String nickname, boolean isAdmin) {
+        assertStringNotEmpty(nickname, "nickname");
+        Map<String, Object> userInfo = new HashMap<String, Object>();
+        userInfo.put("is_admin", isAdmin);
+        return new SyncCredentials(nickname, IdentityProvider.NICKNAME, userInfo);
     }
 
     /**
@@ -207,7 +241,7 @@ public class SyncCredentials {
 
     private static void assertStringNotEmpty(String string, String message) {
         //noinspection ConstantConditions
-        if (string == null || "".equals(string)) {
+        if (Util.isEmptyString(string)) {
             throw new IllegalArgumentException("Non-null '" + message + "' required.");
         }
     }
@@ -281,6 +315,16 @@ public class SyncCredentials {
          * by the Realm Object Server.
          */
         public static final String JWT = "jwt";
+
+        /**
+         * Credentials do not require user/password (anonymous user).
+         */
+        public static final String ANONYMOUS = "anonymous";
+
+        /**
+         * Credentials will be verified with a nickname.
+         */
+        public static final String NICKNAME = "nickname";
 
         /**
          * Credentials will be verified by the Object Server.
