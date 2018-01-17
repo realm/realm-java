@@ -47,10 +47,6 @@ public class SyncedRealmTests {
 
     private Realm realm;
 
-    @Before
-    public void setUp() {
-    }
-
     @After
     public void tearDown() {
         if (realm != null && !realm.isClosed()) {

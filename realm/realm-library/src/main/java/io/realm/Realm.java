@@ -1701,12 +1701,12 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Cancel a named subscription that was created by calling
-     * {@link RealmQuery#findAllAsync(String)}. If after this, some objects are no longer part of
-     * any active  subscription they will be removed from the device (but not deleted on the server).
+     * Cancel a named subscription that was created by calling {@link RealmQuery#findAllAsync(String)}.
+     * If after this, some objects are no longer part of any active subscription they will be removed
+     * locally from the device (but not on the server).
      *
      * The effect of unsubscribing is not immediate. The local Realm must coordinate with the Object
-     * Server before this can happen. So a successful callback just indicate that the request was
+     * Server before this can happen. A successful callback just indicate that the request was
      * succesfully enqueued and any data will be removed as soon as possible. When the data is
      * actually removed locally, a standard change notification will be triggered and from the
      * perspective of the device it will look like the data was deleted.

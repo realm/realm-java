@@ -260,7 +260,6 @@ public class PartialSyncTests extends StandardIntegrationTest {
         Realm realm = getPartialRealm(user);
         looperThread.closeAfterTest(realm);
 
-
         realm.unsubscribeAsync("i-dont-exist", new Realm.UnsubscribeCallback() {
             @Override
             public void onSuccess(String subscriptionName) {
