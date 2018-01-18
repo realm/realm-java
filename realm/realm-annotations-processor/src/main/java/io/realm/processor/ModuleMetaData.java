@@ -68,19 +68,10 @@ public class ModuleMetaData {
 
     // Post-processing
     // <FullyQualifiedModuleClassName, X>
-    private final ClassCollection availableClasses;
-    private Map<String, ClassMetaData> classMetaData = new HashMap<String, ClassMetaData>();
     private Map<String, Set<ClassMetaData>> modules = new HashMap<String, Set<ClassMetaData>>();
     private Map<String, Set<ClassMetaData>> libraryModules = new HashMap<String, Set<ClassMetaData>>();
 
     private boolean shouldCreateDefaultModule;
-
-    public ModuleMetaData(ClassCollection availableClasses) {
-        this.availableClasses = availableClasses;
-        for (ClassMetaData classMetaData : availableClasses.getClasses()) {
-            this.classMetaData.put(classMetaData.getFullyQualifiedClassName(), classMetaData);
-        }
-    }
 
     /**
      * Builds all meta data structures that can be calculated before processing any model classes.
@@ -246,10 +237,10 @@ public class ModuleMetaData {
         // Create default Realm module if needed.
         // Note: Kotlin will trigger the annotation processor even if no Realm annotations are used.
         // The DefaultRealmModule should not be created in this case either.
-        if (libraryModules.size() == 0 && availableClasses.size() > 0) {
+        if (libraryModules.size() == 0 && modelClasses.size() > 0) {
             shouldCreateDefaultModule = true;
             String defaultModuleName = Constants.REALM_PACKAGE_NAME + "." + Constants.DEFAULT_MODULE_CLASS_NAME;
-            modules.put(defaultModuleName, availableClasses.getClasses());
+            modules.put(defaultModuleName, modelClasses.getClasses());
         }
 
         return true;

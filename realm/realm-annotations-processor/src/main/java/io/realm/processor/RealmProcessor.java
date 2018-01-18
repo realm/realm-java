@@ -205,8 +205,7 @@ public class RealmProcessor extends AbstractProcessor {
 
     // Returns true if modules were processed successfully, false otherwise
     private boolean preProcessModules(RoundEnvironment roundEnv) {
-        // FIXME: Figure out the chicken and egg problem of module/class verification
-        moduleMetaData = new ModuleMetaData(classCollection);
+        moduleMetaData = new ModuleMetaData();
         return moduleMetaData.preProcess(roundEnv.getElementsAnnotatedWith(RealmModule.class));
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package some.test;
 
-import io.realm.annotations.RealmModule;
+import io.realm.annotations.RealmClass;
+import io.realm.RealmObject;
+import io.realm.annotations.RealmField;
 import io.realm.annotations.RealmNamingPolicy;
-import some.test.AllTypes;
 
-public class NamingPolicyAllClassesConflictingModules {
+/**
+ * Class with only a custom name
+ */
+@RealmClass(name = "customName")
+public class NamePolicyClassOnly extends RealmObject {
 
-    @RealmModule(allClasses = true,
-            classNamingPolicy = RealmNamingPolicy.IDENTITY,
-            fieldNamingPolicy = RealmNamingPolicy.IDENTITY)
-    public class MyModule1 {
-
-    }
-
-    @RealmModule(allClasses = true,
-            classNamingPolicy = RealmNamingPolicy.CAMEL_CASE,
-            fieldNamingPolicy = RealmNamingPolicy.CAMEL_CASE)
-    public class MyModule2 {
-
-    }
-
-
-
+    public String firstName;
+    public String lastName;
 }
