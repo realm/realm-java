@@ -1,3 +1,10 @@
+## 4.3.3 (YYYY-MM-DD)
+
+### Internal
+
+* Downgrade JavaAssist to 3.21.0-GA to fix an issue with a `ClassNotFoundException` at runtime (#5641).
+
+
 ## 4.3.2 (2018-01-17)
 
 ### Bug Fixes
