@@ -947,7 +947,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.String item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldStringListNotNull' is not allowed by the schema.");
+                osList.addNull();
             } else {
                 osList.addString(item);
             }
@@ -986,7 +986,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.String item : value) {
             if (item == null) {
-                osList.addNull();
+                throw new IllegalArgumentException("Storing 'null' into fieldStringListNull' is not allowed by the schema.");
             } else {
                 osList.addString(item);
             }
@@ -1025,7 +1025,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (byte[] item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldBinaryListNotNull' is not allowed by the schema.");
+                osList.addNull();
             } else {
                 osList.addBinary(item);
             }
@@ -1064,7 +1064,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (byte[] item : value) {
             if (item == null) {
-                osList.addNull();
+                throw new IllegalArgumentException("Storing 'null' into fieldBinaryListNull' is not allowed by the schema.");
             } else {
                 osList.addBinary(item);
             }
@@ -1103,7 +1103,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Boolean item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldBooleanListNotNull' is not allowed by the schema.");
+                osList.addNull();
             } else {
                 osList.addBoolean(item);
             }
@@ -1142,7 +1142,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Boolean item : value) {
             if (item == null) {
-                osList.addNull();
+                throw new IllegalArgumentException("Storing 'null' into fieldBooleanListNull' is not allowed by the schema.");
             } else {
                 osList.addBoolean(item);
             }
@@ -1181,7 +1181,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Long item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldLongListNotNull' is not allowed by the schema.");
+                osList.addNull();
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1220,7 +1220,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Long item : value) {
             if (item == null) {
-                osList.addNull();
+                throw new IllegalArgumentException("Storing 'null' into fieldLongListNull' is not allowed by the schema.");
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1259,7 +1259,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Integer item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldIntegerListNotNull' is not allowed by the schema.");
+                osList.addNull();
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1298,7 +1298,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Integer item : value) {
             if (item == null) {
-                osList.addNull();
+                throw new IllegalArgumentException("Storing 'null' into fieldIntegerListNull' is not allowed by the schema.");
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1337,7 +1337,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Short item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldShortListNotNull' is not allowed by the schema.");
+                osList.addNull();
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1376,7 +1376,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Short item : value) {
             if (item == null) {
-                osList.addNull();
+                throw new IllegalArgumentException("Storing 'null' into fieldShortListNull' is not allowed by the schema.");
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1415,7 +1415,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Byte item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldByteListNotNull' is not allowed by the schema.");
+                osList.addNull();
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1454,7 +1454,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Byte item : value) {
             if (item == null) {
-                osList.addNull();
+                throw new IllegalArgumentException("Storing 'null' into fieldByteListNull' is not allowed by the schema.");
             } else {
                 osList.addLong(item.longValue());
             }
@@ -1493,7 +1493,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Double item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldDoubleListNotNull' is not allowed by the schema.");
+                osList.addNull();
             } else {
                 osList.addDouble(item.doubleValue());
             }
@@ -1532,7 +1532,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Double item : value) {
             if (item == null) {
-                osList.addNull();
+                throw new IllegalArgumentException("Storing 'null' into fieldDoubleListNull' is not allowed by the schema.");
             } else {
                 osList.addDouble(item.doubleValue());
             }
@@ -1571,7 +1571,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Float item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldFloatListNotNull' is not allowed by the schema.");
+                osList.addNull();
             } else {
                 osList.addFloat(item.floatValue());
             }
@@ -1610,7 +1610,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.lang.Float item : value) {
             if (item == null) {
-                osList.addNull();
+                throw new IllegalArgumentException("Storing 'null' into fieldFloatListNull' is not allowed by the schema.");
             } else {
                 osList.addFloat(item.floatValue());
             }
@@ -1649,7 +1649,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.util.Date item : value) {
             if (item == null) {
-                throw new IllegalArgumentException("Storing 'null' into fieldDateListNotNull' is not allowed by the schema.");
+                osList.addNull();
             } else {
                 osList.addDate(item);
             }
@@ -1688,7 +1688,7 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         }
         for (java.util.Date item : value) {
             if (item == null) {
-                osList.addNull();
+                throw new IllegalArgumentException("Storing 'null' into fieldDateListNull' is not allowed by the schema.");
             } else {
                 osList.addDate(item);
             }
@@ -1718,26 +1718,26 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         builder.addPersistedProperty("fieldDateNotNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("fieldDateNull", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedLinkProperty("fieldObjectNull", RealmFieldType.OBJECT, "NullTypes");
-        builder.addPersistedValueListProperty("fieldStringListNotNull", RealmFieldType.STRING_LIST, Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldStringListNull", RealmFieldType.STRING_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldBinaryListNotNull", RealmFieldType.BINARY_LIST, Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldBinaryListNull", RealmFieldType.BINARY_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldBooleanListNotNull", RealmFieldType.BOOLEAN_LIST, Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldBooleanListNull", RealmFieldType.BOOLEAN_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldLongListNotNull", RealmFieldType.INTEGER_LIST, Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldLongListNull", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldIntegerListNotNull", RealmFieldType.INTEGER_LIST, Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldIntegerListNull", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldShortListNotNull", RealmFieldType.INTEGER_LIST, Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldShortListNull", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldByteListNotNull", RealmFieldType.INTEGER_LIST, Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldByteListNull", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldDoubleListNotNull", RealmFieldType.DOUBLE_LIST, Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldDoubleListNull", RealmFieldType.DOUBLE_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldFloatListNotNull", RealmFieldType.FLOAT_LIST, Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldFloatListNull", RealmFieldType.FLOAT_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldDateListNotNull", RealmFieldType.DATE_LIST, Property.REQUIRED);
-        builder.addPersistedValueListProperty("fieldDateListNull", RealmFieldType.DATE_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldStringListNotNull", RealmFieldType.STRING_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldStringListNull", RealmFieldType.STRING_LIST, Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldBinaryListNotNull", RealmFieldType.BINARY_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldBinaryListNull", RealmFieldType.BINARY_LIST, Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldBooleanListNotNull", RealmFieldType.BOOLEAN_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldBooleanListNull", RealmFieldType.BOOLEAN_LIST, Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldLongListNotNull", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldLongListNull", RealmFieldType.INTEGER_LIST, Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldIntegerListNotNull", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldIntegerListNull", RealmFieldType.INTEGER_LIST, Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldShortListNotNull", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldShortListNull", RealmFieldType.INTEGER_LIST, Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldByteListNotNull", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldByteListNull", RealmFieldType.INTEGER_LIST, Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldDoubleListNotNull", RealmFieldType.DOUBLE_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldDoubleListNull", RealmFieldType.DOUBLE_LIST, Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldFloatListNotNull", RealmFieldType.FLOAT_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldFloatListNull", RealmFieldType.FLOAT_LIST, Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldDateListNotNull", RealmFieldType.DATE_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("fieldDateListNull", RealmFieldType.DATE_LIST, Property.REQUIRED);
         return builder.build();
     }
 

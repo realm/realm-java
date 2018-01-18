@@ -510,23 +510,33 @@ public class ClassMetaData {
             if (!categorizeIndexField(element, field)) { return false; }
         }
 
-        // @Required annotation of RealmList field only affects its value type, not field itself.
-        if (Utils.isRealmList(field)) {
-            // We only check @Required annotation. @org.jetbrains.annotations.NotNull annotation should not affect nullability of the list values.
-            if (!hasRequiredAnnotation(field)) {
+        // Categorize @Required/Nullable fields
+        if (isRequiredField(field)) {
+
+            // Check that @Required is used correctly on non-collection fields
+            if (!checkBasicRequiredAnnotationUsage(element, field)) {
+                return false;
+            }
+
+            // @Required annotation of RealmList field only affects its value type, not field itself.
+            if (Utils.isRealmList(field)) {
                 final List<? extends TypeMirror> fieldTypeArguments = ((DeclaredType) field.asType()).getTypeArguments();
                 if (fieldTypeArguments.isEmpty() || !Utils.isRealmModel(fieldTypeArguments.get(0))) {
                     nullableValueListFields.add(field);
                 }
+            } else if (Utils.isRealmResults(field)) {
+                Utils.error(String.format(Locale.US,
+                        "@Required or @NotNull annotation is not supported for RealmResults field \"%s\".", element));
+                return false;
             }
-        } else if (isRequiredField(field)) {
-            categorizeRequiredField(element, field);
+
         } else {
             // The field doesn't have the @Required and @org.jetbrains.annotations.NotNull annotation.
             // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
             // nullableFields.
-            // RealmList of models, RealmResults(backlinks) and primitive types are NOT nullable. @Required annotation is not supported.
-            if (!Utils.isPrimitiveType(field) && !Utils.isRealmResults(field)) {
+            // RealmList of models, RealmResults(backlinks) and primitive types are NOT nullable,
+            // but the @Required annotation is not supported.
+            if (!Utils.isPrimitiveType(field) && !Utils.isRealmList(field) && !Utils.isRealmResults(field)) {
                 nullableFields.add(field);
             }
         }
@@ -636,17 +646,18 @@ public class ClassMetaData {
     }
 
     // The field has the @Required annotation
-    private void categorizeRequiredField(Element element, VariableElement variableElement) {
+    // Returns `true` if the field could be correctly validated, `false` if an error was reported.
+    private boolean checkBasicRequiredAnnotationUsage(Element element, VariableElement variableElement) {
         if (Utils.isPrimitiveType(variableElement)) {
             Utils.error(String.format(Locale.US,
                     "@Required or @NotNull annotation is unnecessary for primitive field \"%s\".", element));
-            return;
+            return false;
         }
 
         if (Utils.isRealmModel(variableElement)) {
             Utils.error(String.format(Locale.US,
                     "Field \"%s\" with type \"%s\" cannot be @Required or @NotNull.", element, element.asType()));
-            return;
+            return false;
         }
 
         // Should never get here - user should remove @Required
@@ -655,7 +666,11 @@ public class ClassMetaData {
                     "Field \"%s\" with type \"%s\" appears to be nullable. Consider removing @Required.",
                     element,
                     element.asType()));
+
+            return false;
         }
+
+        return true;
     }
 
     // The field has the @PrimaryKey annotation. It is only valid for

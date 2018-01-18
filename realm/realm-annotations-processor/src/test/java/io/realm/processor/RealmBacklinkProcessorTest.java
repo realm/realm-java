@@ -131,7 +131,7 @@ public class RealmBacklinkProcessorTest {
                 .that(Arrays.asList(backlinksTarget, javaFileObject))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
-                .withErrorContaining("cannot be @Required");
+                .withErrorContaining("@Required or @NotNull annotation is not supported for RealmResults");
     }
 
     @Test

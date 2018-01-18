@@ -16,12 +16,11 @@
 
 package io.realm.processor;
 
-import com.google.common.collect.Sets;
-
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,24 +29,42 @@ import java.util.Set;
  */
 public class ClassCollection {
 
-    // These two collections should always stay in sync
-    Map<String, ClassMetaData> classes = new HashMap<String, ClassMetaData>();
-    Set<ClassMetaData> classSet = new HashSet<ClassMetaData>();
+    // These three collections should always stay in sync
+    private Map<String, ClassMetaData> simpleNameClassMap = new LinkedHashMap<>();
+    private Map<String, ClassMetaData> qualifiedNameClassMap = new LinkedHashMap<>();
+    private Set<ClassMetaData> classSet = new LinkedHashSet<>();
 
     public void addClass(ClassMetaData metadata) {
         classSet.add(metadata);
-        classes.put(metadata.getSimpleJavaClassName(), metadata);
+        simpleNameClassMap.put(metadata.getSimpleJavaClassName(), metadata);
+        qualifiedNameClassMap.put(metadata.getFullyQualifiedClassName(), metadata);
     }
 
     public Set<ClassMetaData> getClasses() {
         return Collections.unmodifiableSet(classSet);
     }
 
-    public ClassMetaData getClass(String simpleJavaClassName) {
-        return classes.get(simpleJavaClassName);
+    public ClassMetaData getClassFromSimpleName(String simpleJavaClassName) {
+        ClassMetaData data = simpleNameClassMap.get(simpleJavaClassName);
+        if (data == null) {
+            throw new NullPointerException(simpleJavaClassName + " was not found");
+        }
+        return data;
+    }
+
+    public ClassMetaData getClassFromQualifiedName(String qualifiedJavaClassName) {
+        ClassMetaData data = qualifiedNameClassMap.get(qualifiedJavaClassName);
+        if (data == null) {
+            throw new NullPointerException(qualifiedJavaClassName + " was not found");
+        }
+        return data;
     }
 
     public int size() {
         return classSet.size();
+    }
+
+    public boolean containsQualifiedClass(String qualifiedClassName) {
+        return qualifiedNameClassMap.containsKey(qualifiedClassName);
     }
 }

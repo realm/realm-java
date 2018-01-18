@@ -753,14 +753,14 @@ public class RealmProxyClassGenerator {
                 }
                 case OBJECT: {
                     String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-                    String internalClassName = classCollection.getClass(fieldTypeSimpleName).getInternalClassName();
+                    String internalClassName = classCollection.getClassFromSimpleName(fieldTypeSimpleName).getInternalClassName();
                     writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.OBJECT, \"%s\")",
                             fieldName, internalClassName);
                     break;
                 }
                 case LIST: {
                     String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-                    String internalClassName = classCollection.getClass(genericTypeSimpleName).getInternalClassName(); // FIXME support for raw data
+                    String internalClassName = classCollection.getClassFromSimpleName(genericTypeSimpleName).getInternalClassName(); // FIXME support for raw data
                     writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
                             fieldName, internalClassName);
                     break;

@@ -23,7 +23,7 @@ import javax.tools.Diagnostic;
  */
 public class Utils {
 
-    public static Types typeUtils;
+    private static Types typeUtils;
     private static Messager messager;
     private static TypeMirror realmInteger;
     private static DeclaredType realmList;
@@ -42,6 +42,7 @@ public class Utils {
                 env.getElementUtils().getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null));
         realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType();
         markerInterface = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmModel"));
+
     }
 
     /**
@@ -209,7 +210,23 @@ public class Utils {
      * @return {@code true} if a given type is {@code RealmModel}, {@code false} otherwise.
      */
     public static boolean isRealmModel(TypeMirror type) {
-        return typeUtils.isAssignable(type, realmModel);
+        // Not sure what is happening here, but typeUtils.isAssignable("Foo", realmModel)
+        // returns true even if Foo doesn't exist. No idea why this is happening.
+        // For now punt on the problem and check the direct supertype which should be either
+        // RealmObject or RealmModel.
+        // Original implementation: `return typeUtils.isAssignable(type, realmModel);`
+        //
+        // Theory: It looks like if `type` has the internal TypeTag.ERROR (internal API) it
+        // automatically translate to being assignable to everything. Possible some Java Specification
+        // rule taking effect. In our case, however we can do better since all Realm classes
+        // must be in the same compilation unit, so we should be able to look the type up.
+        for (TypeMirror typeMirror : typeUtils.directSupertypes(type)) {
+            String supertype = typeMirror.toString();
+            if (supertype.equals("io.realm.RealmObject") || supertype.equals("io.realm.RealmModel")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean isRealmResults(VariableElement field) {
@@ -343,5 +360,4 @@ public class Utils {
     public static String getProxyInterfaceName(String className) {
         return className + Constants.INTERFACE_SUFFIX;
     }
-
 }

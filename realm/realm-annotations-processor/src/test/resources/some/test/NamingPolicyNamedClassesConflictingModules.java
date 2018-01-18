@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package some.test;
 
-import io.realm.annotations.RealmClass;
-import io.realm.RealmObject;
-import io.realm.annotations.RealmField;
+import io.realm.annotations.RealmModule;
 import io.realm.annotations.RealmNamingPolicy;
+import some.test.AllTypes;
 
-/**
- * Class with naming policy
- */
-@RealmClass(fieldNamingPolicy = RealmNamingPolicy.LOWER_CASE_WITH_UNDERSCORES) // Fields become "last_name"
-public class NamingPolicyClass extends RealmObject {
+public class NamingPolicyNamedClassesConflictingModules {
 
-    public String firstName;
-    @RealmField(name = "last-name") // This will take precendence
-    public String lastName;
+    @RealmModule(allClasses = true,
+            classNamingPolicy = RealmNamingPolicy.IDENTITY,
+            fieldNamingPolicy = RealmNamingPolicy.IDENTITY)
+    public class MyModule1 {
+
+    }
+
+    @RealmModule(classes = { Simple.class },
+            classNamingPolicy = RealmNamingPolicy.CAMEL_CASE,
+            fieldNamingPolicy = RealmNamingPolicy.CAMEL_CASE)
+    public class MyModule2 {
+
+    }
+
+
+
 }

@@ -18,6 +18,7 @@ package io.realm.processor;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,7 +44,7 @@ import io.realm.annotations.RealmNamingPolicy;
  * For this reason, processing modules are separated into 3 steps:
  * <ol>
  *  <li>
- *      Pre-processing. Done by calling {@link #preprocess(Set)}, which will do an initial parse
+ *      Pre-processing. Done by calling {@link #preProcess(Set)}, which will do an initial parse
  *      of the modules and build up all information it can before before processing any class.
  *      This e.g. includes default naming policies for classes and fields.
  *  </li>
@@ -51,8 +52,8 @@ import io.realm.annotations.RealmNamingPolicy;
  *      Process model classes. See {@link ClassMetaData#generate()}.
  *  </li>
  *  <li>
- *      Post-processing. Done by calling {@link #postProcess(Set)}. All modules can now be fully
- *      verified, and all metadata required to output module files can be generated.
+ *      Post-processing. Done by calling {@link #postProcess(ClassCollection)}. All modules can now
+ *      be fully verified, and all metadata required to output module files can be generated.
  *  </li>
  * </ol>
  */
@@ -60,9 +61,10 @@ public class ModuleMetaData {
 
     // Pre-processing
     // <FullyQualifiedModuleClassName, X>
-    private Map<String, Set<String>> classesInModule = new HashMap<String, Set<String>>();
+    private Map<String, Set<String>> classesInModule = new HashMap<>();
     private Map<String, RealmNamingPolicy> classNamingPolicy = new HashMap<String, RealmNamingPolicy>();
     private Map<String, RealmNamingPolicy> fieldNamingPolicy = new HashMap<String, RealmNamingPolicy>();
+    private Map<String, RealmModule> moduleAnnotations = new HashMap<>();
 
     // Post-processing
     // <FullyQualifiedModuleClassName, X>
@@ -106,28 +108,74 @@ public class ModuleMetaData {
             }
 
             // Check that allClasses and classes are not set at the same time
-            RealmModule module = classElement.getAnnotation(RealmModule.class);
+            RealmModule moduleAnnoation = classElement.getAnnotation(RealmModule.class);
             Utils.note("Processing module " + classSimpleName);
-            if (module.allClasses() && hasCustomClassList(classElement)) {
+            if (moduleAnnoation.allClasses() && hasCustomClassList(classElement)) {
                 Utils.error("Setting @RealmModule(allClasses=true) will override @RealmModule(classes={...}) in " + classSimpleName);
                 return false;
             }
 
-            // Check that module naming policies do not conflict
-            RealmNamingPolicy classNamePolicy = module.classNamingPolicy();
-            RealmNamingPolicy fieldNamePolicy = module.fieldNamingPolicy();
-            String qualifiedModuleClassName = ((TypeElement) classElement).getQualifiedName().toString();
-            ModulePolicyInfo moduleInfo = new ModulePolicyInfo(qualifiedModuleClassName, classNamePolicy, fieldNamePolicy);
+            // Validate that naming policies are correctly configured.
+            if (!validateNamingPolicies(globalModuleInfo, classSpecificModuleInfo, (TypeElement) classElement, moduleAnnoation)) {
+                return false;
+            }
 
-            // The difference between `allClasses` and a list of classes is a bit tricky at this stage
-            // as we haven't processed the full list of classes yet. We therefore need to treat
-            // each case specifically :(
-            // We do not compare against the default module as it is always configured correctly
-            // with NO_POLICY, meaning it will not trigger any errors anyway.
-            if (module.allClasses()) {
-                // Check for conflicts with other modules with `allClasses` set. Only need to
-                // check the first since other conflicts would have been detected in an earlier
-                // iteration.
+            moduleAnnotations.put(((TypeElement) classElement).getQualifiedName().toString(), moduleAnnoation);
+        }
+
+        return true;
+    }
+
+    /**
+     * Validates that the class/field naming policy for this module is correct.
+     *
+     * @param globalModuleInfo list of all modules with `allClasses` set
+     * @param classSpecificModuleInfo
+     * @param classElement class element currently being validated
+     * @param moduleAnnotation annotation on this class.
+     * @return {@code true} if everything checks out, {@code false} if an error was found and reported.
+     */
+    private boolean validateNamingPolicies(Set<ModulePolicyInfo> globalModuleInfo, Map<String, ModulePolicyInfo> classSpecificModuleInfo, TypeElement classElement, RealmModule moduleAnnotation) {
+        // Check that module naming policies do not conflict
+        RealmNamingPolicy classNamePolicy = moduleAnnotation.classNamingPolicy();
+        RealmNamingPolicy fieldNamePolicy = moduleAnnotation.fieldNamingPolicy();
+        String qualifiedModuleClassName = classElement.getQualifiedName().toString();
+        ModulePolicyInfo moduleInfo = new ModulePolicyInfo(qualifiedModuleClassName, classNamePolicy, fieldNamePolicy);
+
+        // The difference between `allClasses` and a list of classes is a bit tricky at this stage
+        // as we haven't processed the full list of classes yet. We therefore need to treat
+        // each case specifically :(
+        // We do not compare against the default module as it is always configured correctly
+        // with NO_POLICY, meaning it will not trigger any errors anyway.
+        if (moduleAnnotation.allClasses()) {
+            // Check for conflicts with other modules with `allClasses` set. Only need to
+            // check the first since other conflicts would have been detected in an earlier
+            // iteration.
+            if (!globalModuleInfo.isEmpty()) {
+                ModulePolicyInfo otherModuleInfo = globalModuleInfo.iterator().next();
+                if (checkAndReportPolicyConflict(moduleInfo, otherModuleInfo)) {
+                    return false;
+                }
+            }
+
+            // Check for conflicts with specifically named classes. This can happen if another
+            // module are listing specific classes with another policy.
+            for (Map.Entry<String, ModulePolicyInfo> classPolicyInfo : classSpecificModuleInfo.entrySet()) {
+                if (checkAndReportPolicyConflict(moduleInfo, classPolicyInfo.getValue())) {
+                    return false;
+                }
+            }
+
+            // Everything checks out. Add moduleInfo so we can track it for the next module.
+            globalModuleInfo.add(moduleInfo);
+
+        } else {
+            // We need to verify each class in the modules class list
+            Set<String> classNames = getClassListFromModule(classElement);
+            for (String qualifiedClassName : classNames) {
+
+                // Check that no other module with `allClasses` conflict with this specific
+                // class configuration
                 if (!globalModuleInfo.isEmpty()) {
                     ModulePolicyInfo otherModuleInfo = globalModuleInfo.iterator().next();
                     if (checkAndReportPolicyConflict(moduleInfo, otherModuleInfo)) {
@@ -135,57 +183,58 @@ public class ModuleMetaData {
                     }
                 }
 
-                // Check for conflicts with specifically named classes. This can happen if another
-                // module are listing specific classes with another policy.
-                for (Map.Entry<String, ModulePolicyInfo> classPolicyInfo : classSpecificModuleInfo.entrySet()) {
-                    if (checkAndReportPolicyConflict(moduleInfo, classPolicyInfo.getValue())) {
+                // Check that this specific class isn't conflicting with another module
+                // specifically mentioning it using `classes = { ... }`
+                ModulePolicyInfo otherModuleInfo = classSpecificModuleInfo.get(qualifiedClassName);
+                if (otherModuleInfo != null) {
+                    if (checkAndReportPolicyConflict(qualifiedClassName, moduleInfo, otherModuleInfo)) {
                         return false;
                     }
                 }
 
-                // Everything checks out. Add moduleInfo so we can track it for the next module.
-                globalModuleInfo.add(moduleInfo);
-
-            } else {
-                // We need to verify each class in the modules class list
-                Set<String> classNames = getClassListFromModule(classElement);
-                for (String qualifiedClassName : classNames) {
-
-                    // Check that no other module with `allClasses` conflict with this specific
-                    // class configuration
-                    if (!globalModuleInfo.isEmpty()) {
-                        ModulePolicyInfo otherModuleInfo = globalModuleInfo.iterator().next();
-                        if (checkAndReportPolicyConflict(moduleInfo, otherModuleInfo)) {
-                            return false;
-                        }
-                    }
-
-                    // Check that this specific class isn't conflicting with another module
-                    // specifically mentioning it using `classes = { ... }`
-                    ModulePolicyInfo otherModuleInfo = classSpecificModuleInfo.get(qualifiedClassName);
-                    if (otherModuleInfo != null) {
-                        if (checkAndReportPolicyConflict(qualifiedClassName, moduleInfo, otherModuleInfo)) {
-                            return false;
-                        }
-                    }
-
-                    // Keep track of the specific class for other module checks. We only
-                    // need to track the latest module seen as previous errors would have been
-                    // caught in a previous iteration of the loop.
-                    classSpecificModuleInfo.put(qualifiedClassName, moduleInfo);
-                }
-                classesInModule.put(qualifiedModuleClassName, classNames);
+                // Keep track of the specific class for other module checks. We only
+                // need to track the latest module seen as previous errors would have been
+                // caught in a previous iteration of the loop.
+                classSpecificModuleInfo.put(qualifiedClassName, moduleInfo);
             }
-////
-//            RealmNamingPolicy currentClassPolicy = classNamingPolicy.get(qualifiedModuleClassName);
-//            RealmNamingPolicy newClassPolicy = module.classNamingPolicy();
-//            if (currentClassPolicy != null
-//                    && currentClassPolicy != RealmNamingPolicy.NO_POLICY
-//                    && currentClassPolicy != newClassPolicy) {
-//                return false;
-//            }
-            classNamingPolicy.put(qualifiedModuleClassName, module.classNamingPolicy());
-            fieldNamingPolicy.put(qualifiedModuleClassName, module.fieldNamingPolicy());
+            classesInModule.put(qualifiedModuleClassName, classNames);
+        }
+
+        classNamingPolicy.put(qualifiedModuleClassName, classNamePolicy);
+        fieldNamingPolicy.put(qualifiedModuleClassName, fieldNamePolicy);
+        return true;
+    }
+
+    /**
+     * All model classes have now been processed and the final validation of modules can occur.
+     * Any errors or messages will be posted on the provided Messager.
+     *
+     * @param modelClasses all Realm model classes found by the annotation processor.
+     * @return {@code true} if the module is valid, {@code false} otherwise.
+     */
+    public boolean postProcess(ClassCollection modelClasses) {
+
+        for (Map.Entry<String, Set<String>> module : classesInModule.entrySet()) {
+
+            // Find all processed metadata for each class part of this module.
+            Set<ClassMetaData> classData = new LinkedHashSet<>();
+            for (String qualifiedClassName : module.getValue()) {
+                if (!modelClasses.containsQualifiedClass(qualifiedClassName)) {
+                    Utils.error(Utils.stripPackage(qualifiedClassName) + " could not be added to the module. " +
+                            "Only classes extending RealmObject, which are part of this project, can be added.");
+                    return false;
+
+                }
+                classData.add(modelClasses.getClassFromQualifiedName(qualifiedClassName));
+            }
+
+            // Create either a Library or App module
+            String qualifiedModuleClassName = module.getKey();
+            if (moduleAnnotations.get(qualifiedModuleClassName).library()) {
+                libraryModules.put(qualifiedModuleClassName, classData);
+            } else {
+                modules.put(qualifiedModuleClassName, classData);
+            }
         }
 
         // Check that app and library modules are not mixed
@@ -205,18 +254,6 @@ public class ModuleMetaData {
 
         return true;
     }
-
-    /**
-     * All model classes have now been processed and the final validation of modules can occur.
-     * Any errors or messages will be posted on the provided Messager.
-     *
-     * @param moduleClasses all classes part of this module
-     * @return {@code true} if the module is valid, {@code false} otherwise.
-     */
-    public boolean postProgress(Set<ClassMetaData> moduleClasses) {
-        return true; // FIXME
-    }
-
 
     // Checks if two modules have policy conflicts. Returns true if a conflict was found and reported.
     private boolean checkAndReportPolicyConflict(ModulePolicyInfo moduleInfo, ModulePolicyInfo otherModuleInfo) {

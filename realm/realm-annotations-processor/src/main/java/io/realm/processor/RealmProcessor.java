@@ -19,7 +19,6 @@ package io.realm.processor;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -131,9 +130,8 @@ public class RealmProcessor extends AbstractProcessor {
     private static final boolean CONSUME_ANNOTATIONS = false;
     private static final boolean ABORT = true; // Abort the annotation processor by consuming all annotations
 
-    // List of all modules
-    private final ClassCollection classCollection = new ClassCollection();
-    private ModuleMetaData moduleMetaData;
+    private final ClassCollection classCollection = new ClassCollection(); // Metadata for all classes found
+    private ModuleMetaData moduleMetaData; // Metadata for all modules found
 
     // List of backlinks
     private final Set<Backlink> backlinksToValidate = new HashSet<Backlink>();
@@ -160,18 +158,16 @@ public class RealmProcessor extends AbstractProcessor {
             Utils.initialize(processingEnv);
             TypeMirrors typeMirrors = new TypeMirrors(processingEnv);
 
-            // Build up internal metadata.
-            if (!processModules(roundEnv)) { return ABORT; }
+            // Build up internal metadata while validating as much as possible
+            if (!preProcessModules(roundEnv)) { return ABORT; }
             if (!processClassAnnotations(roundEnv, typeMirrors)) { return ABORT; }
+            if (!postProcessModules()) { return ABORT; }
+            if (!validateBacklinks()) { return ABORT; }
             hasProcessedModules = true;
 
             // Create all files
             if (!createProxyClassFiles(typeMirrors)) { return ABORT; }
             if (!createModuleFiles(roundEnv)) { return ABORT; }
-        }
-
-        if (roundEnv.processingOver()) {
-            if (!validateBacklinks()) { return ABORT; }
         }
 
         return CONSUME_ANNOTATIONS;
@@ -207,11 +203,16 @@ public class RealmProcessor extends AbstractProcessor {
         return true;
     }
 
-    // Returns true if modules was processed successfully, false otherwise
-    private boolean processModules(RoundEnvironment roundEnv) {
+    // Returns true if modules were processed successfully, false otherwise
+    private boolean preProcessModules(RoundEnvironment roundEnv) {
         // FIXME: Figure out the chicken and egg problem of module/class verification
         moduleMetaData = new ModuleMetaData(classCollection);
         return moduleMetaData.preProcess(roundEnv.getElementsAnnotatedWith(RealmModule.class));
+    }
+
+    // Returns true of modules where succesfully validated, false otherwise
+    private boolean postProcessModules() {
+        return moduleMetaData.postProcess(classCollection);
     }
 
     private boolean createModuleFiles(RoundEnvironment roundEnv) {
@@ -293,13 +294,8 @@ public class RealmProcessor extends AbstractProcessor {
     private boolean validateBacklinks() {
         boolean allValid = true;
 
-        Map<String, ClassMetaData> realmClasses = new HashMap<String, ClassMetaData>(classCollection.size());
-        for (ClassMetaData classData : classCollection.getClasses()) {
-            realmClasses.put(classData.getFullyQualifiedClassName(), classData);
-        }
-
         for (Backlink backlink : backlinksToValidate) {
-            ClassMetaData clazz = realmClasses.get(backlink.getSourceClass());
+            ClassMetaData clazz = classCollection.getClassFromQualifiedName(backlink.getSourceClass());
 
             // If the class is not here it might be part of some other compilation unit.
             if (clazz == null) { continue; }
