@@ -1764,43 +1764,6 @@ public class Realm extends BaseRealm {
             }
         });
     }
-    /**
-     * If the Realm is a partially synchronized Realm, fetch and synchronize the objects of a given
-     * object type that match the given query (in string format).
-     *
-     * The results will be returned asynchronously in the callback.
-     *
-     * @param clazz the class to query.
-     * @param query string query.
-     * @param callback A callback used to vend the results of a partial sync fetch.
-     * @throws IllegalStateException if it is called from a non-Looper or {@link IntentService} thread.
-     * @throws IllegalStateException if called from a non-synchronized (Realm Object Server) Realm.
-     */
-    @Beta
-    public <E extends RealmModel> void subscribeToObjects(final Class<E> clazz, String query, final PartialSyncCallback<E> callback) {
-        checkIfValid();
-        if (!configuration.isSyncConfiguration()) {
-            throw new IllegalStateException("Partial sync is only available for synchronized Realm (Realm Object Server)");
-        }
-
-        sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
-
-        String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
-        OsSharedRealm.PartialSyncCallback internalCallback = new OsSharedRealm.PartialSyncCallback(className) {
-            @Override
-            public void onSuccess(OsResults osResults) {
-                RealmResults<E> results = new RealmResults<>(Realm.this, osResults, clazz);
-                callback.onSuccess(results);
-            }
-
-            @Override
-            public void onError(RealmException error) {
-                callback.onError(error);
-            }
-        };
-
-        sharedRealm.registerPartialSyncQuery(query, internalCallback);
-    }
 
     Table getTable(Class<? extends RealmModel> clazz) {
         return schema.getTable(clazz);
@@ -1939,10 +1902,5 @@ public class Realm extends BaseRealm {
         public void onError(Throwable exception) {
             super.onError(exception);
         }
-    }
-
-    public static abstract class PartialSyncCallback<T extends RealmModel> {
-        public abstract void onSuccess(RealmResults<T> results);
-        public abstract void onError(RealmException error);
     }
 }

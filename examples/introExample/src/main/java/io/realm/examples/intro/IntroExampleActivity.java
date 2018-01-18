@@ -191,7 +191,7 @@ public class IntroExampleActivity extends Activity {
         }
 
         // Sorting
-        RealmResults<Person> sortedPersons = realm.where(Person.class).findAllSorted("age", Sort.DESCENDING);
+        RealmResults<Person> sortedPersons = realm.where(Person.class).sort("age", Sort.DESCENDING).findAll();
         status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.where(Person.class).findFirst()
                 .getName();
 

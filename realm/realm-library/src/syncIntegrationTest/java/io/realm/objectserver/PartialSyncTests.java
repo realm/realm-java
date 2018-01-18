@@ -276,58 +276,6 @@ public class PartialSyncTests extends StandardIntegrationTest {
         });
     }
 
-    @Test
-    @Deprecated
-    @RunTestInLooperThread
-    public void partialSync_oldApi() throws InterruptedException {
-        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        createServerData(user, Constants.SYNC_SERVER_URL);
-
-        AtomicInteger countdown = new AtomicInteger(2);
-        final Realm partialSyncRealm = getPartialRealm(user);
-        looperThread.closeAfterTest(partialSyncRealm);
-        assertTrue(partialSyncRealm.isEmpty());
-
-        partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "number > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
-
-            @Override
-            public void onSuccess(RealmResults<PartialSyncObjectA> results) {
-                assertEquals(4, results.size());
-                for (PartialSyncObjectA object : results) {
-                    assertThat(object.getNumber(), greaterThan(5));
-                    assertEquals("partial", object.getString());
-                }
-                // make sure the Realm contains only PartialSyncObjectA
-                assertEquals(0, partialSyncRealm.where(PartialSyncObjectB.class).count());
-                if (countdown.decrementAndGet() == 0) {
-                    looperThread.testComplete();
-                }
-            }
-
-            @Override
-            public void onError(RealmException error) {
-                fail(error.getMessage());
-            }
-        });
-
-        // Invalid query
-        partialSyncRealm.subscribeToObjects(PartialSyncObjectA.class, "invalid_property > 5", new Realm.PartialSyncCallback<PartialSyncObjectA>() {
-
-            @Override
-            public void onSuccess(RealmResults<PartialSyncObjectA> results) {
-                fail("Invalid query should not succeed");
-            }
-
-            @Override
-            public void onError(RealmException error) {
-                assertNotNull(error);
-                if (countdown.decrementAndGet() == 0) {
-                    looperThread.testComplete();
-                }
-            }
-        });
-    }
-
     private Realm getPartialRealm(SyncUser user) {
         final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .name("partialSync")
