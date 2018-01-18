@@ -297,33 +297,6 @@ public class ModuleMetaData {
         return foundErrors;
     }
 
-//    public boolean generate2() {
-//
-//        // Check that classes added are proper Realm model classes
-//        for (Map.Entry<String, Set<String>> module : classesInModule.entrySet()) {
-//            for (String fullyQualifiedClassName : module.getValue()) {
-//                ClassMetaData metadata = classMetaData.get(fullyQualifiedClassName);
-//                if (metadata == null) {
-//                    Utils.error(Utils.stripPackage(fullyQualifiedClassName) + " could not be added to the module. " +
-//                            "Only classes extending RealmObject, which are part of this project, can be added.");
-//                    return false;
-//                }
-//                classMetaData.put(module.getKey(), metadata);
-//            }
-//        }
-//
-//
-//        // Create either a Library or App module
-//        if (module.library()) {
-//            libraryModules.put(qualifiedModuleClassName, classes);
-//        } else {
-//            modules.put(qualifiedModuleClassName, classes);
-//        }
-//
-//
-//        return true;
-//    }
-
     // Detour needed to access the class elements in the array
     // See http://blog.retep.org/2009/02/13/getting-class-values-from-annotations-in-an-annotationprocessor/
     @SuppressWarnings("unchecked")

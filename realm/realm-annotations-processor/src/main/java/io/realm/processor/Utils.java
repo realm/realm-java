@@ -42,7 +42,6 @@ public class Utils {
                 env.getElementUtils().getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null));
         realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType();
         markerInterface = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmModel"));
-
     }
 
     /**
