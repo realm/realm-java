@@ -18,7 +18,6 @@ package io.realm.processor;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,17 +35,41 @@ import io.realm.annotations.RealmNamingPolicy;
 
 /**
  * Utility class for holding metadata for the Realm modules.
+ * <p>
+ * Modules are inherently difficult to process because a model class can be part of multiple modules
+ * that contain information required by the model class. At the same time, the module will need the
+ * data from processed model classes to fully complete its analysis (FIXME: Why?)
+ * <p>
+ * For this reason, processing modules are separated into 3 steps:
+ * <ol>
+ *  <li>
+ *      Pre-processing. Done by calling {@link #preprocess(Set)}, which will do an initial parse
+ *      of the modules and build up all information it can before before processing any class.
+ *      This e.g. includes default naming policies for classes and fields.
+ *  </li>
+ *  <li>
+ *      Process model classes. See {@link ClassMetaData#generate()}.
+ *  </li>
+ *  <li>
+ *      Post-processing. Done by calling {@link #postProcess(Set)}. All modules can now be fully
+ *      verified, and all metadata required to output module files can be generated.
+ *  </li>
+ * </ol>
  */
 public class ModuleMetaData {
 
-    private final ClassCollection availableClasses;
-
-    // <FullyQualifiedClassName, X>
-    private Map<String, Set<ClassMetaData>> modules = new HashMap<String, Set<ClassMetaData>>();
-    private Map<String, Set<ClassMetaData>> libraryModules = new HashMap<String, Set<ClassMetaData>>();
-    private Map<String, ClassMetaData> classMetaData = new HashMap<String, ClassMetaData>();
+    // Pre-processing
+    // <FullyQualifiedModuleClassName, X>
+    private Map<String, Set<String>> classesInModule = new HashMap<String, Set<String>>();
     private Map<String, RealmNamingPolicy> classNamingPolicy = new HashMap<String, RealmNamingPolicy>();
     private Map<String, RealmNamingPolicy> fieldNamingPolicy = new HashMap<String, RealmNamingPolicy>();
+
+    // Post-processing
+    // <FullyQualifiedModuleClassName, X>
+    private final ClassCollection availableClasses;
+    private Map<String, ClassMetaData> classMetaData = new HashMap<String, ClassMetaData>();
+    private Map<String, Set<ClassMetaData>> modules = new HashMap<String, Set<ClassMetaData>>();
+    private Map<String, Set<ClassMetaData>> libraryModules = new HashMap<String, Set<ClassMetaData>>();
 
     private boolean shouldCreateDefaultModule;
 
@@ -58,11 +81,19 @@ public class ModuleMetaData {
     }
 
     /**
-     * Builds the meta data structures for this class. Any errors or messages will be posted on the provided Messager.
+     * Builds all meta data structures that can be calculated before processing any model classes.
+     * Any errors or messages will be posted on the provided Messager.
      *
-     * @return True if meta data was correctly created and processing can continue, false otherwise.
+     * @return True if meta data was correctly created and processing of model classes can continue, false otherwise.
      */
-    public boolean generate(Set<? extends Element> moduleClasses) {
+    public boolean preProcess(Set<? extends Element> moduleClasses) {
+
+        // Tracks all module settings with `allClasses` enabled
+        Set<ModulePolicyInfo> globalModuleInfo = new HashSet<>();
+
+        // Tracks which module a class last was mentioned in by name using `classes = { ... }`
+        // <Qualified
+        Map<String, ModulePolicyInfo> classSpecificModuleInfo = new HashMap<String, ModulePolicyInfo>();
 
         // Check that modules are setup correctly
         for (Element classElement : moduleClasses) {
@@ -82,48 +113,85 @@ public class ModuleMetaData {
                 return false;
             }
 
-            // Check that classes added are proper Realm model classes
-            String qualifiedName = ((TypeElement) classElement).getQualifiedName().toString();
-            Set<ClassMetaData> classes;
+            // Check that module naming policies do not conflict
+            RealmNamingPolicy classNamePolicy = module.classNamingPolicy();
+            RealmNamingPolicy fieldNamePolicy = module.fieldNamingPolicy();
+            String qualifiedModuleClassName = ((TypeElement) classElement).getQualifiedName().toString();
+            ModulePolicyInfo moduleInfo = new ModulePolicyInfo(qualifiedModuleClassName, classNamePolicy, fieldNamePolicy);
+
+            // The difference between `allClasses` and a list of classes is a bit tricky at this stage
+            // as we haven't processed the full list of classes yet. We therefore need to treat
+            // each case specifically :(
+            // We do not compare against the default module as it is always configured correctly
+            // with NO_POLICY, meaning it will not trigger any errors anyway.
             if (module.allClasses()) {
-                classes = availableClasses.getClasses();
-            } else {
-                classes = new LinkedHashSet<ClassMetaData>();
-                Set<String> classNames = getClassMetaDataFromModule(classElement);
-                for (String fullyQualifiedClassName : classNames) {
-                    ClassMetaData metadata = classMetaData.get(fullyQualifiedClassName);
-                    if (metadata == null) {
-                        Utils.error(Utils.stripPackage(fullyQualifiedClassName) + " could not be added to the module. " +
-                                "Only classes extending RealmObject, which are part of this project, can be added.");
+                // Check for conflicts with other modules with `allClasses` set. Only need to
+                // check the first since other conflicts would have been detected in an earlier
+                // iteration.
+                if (!globalModuleInfo.isEmpty()) {
+                    ModulePolicyInfo otherModuleInfo = globalModuleInfo.iterator().next();
+                    if (checkAndReportPolicyConflict(moduleInfo, otherModuleInfo)) {
                         return false;
                     }
-                    classes.add(metadata);
                 }
-            }
 
-            classNamingPolicy.put(qualifiedName, module.classNamingPolicy());
-            fieldNamingPolicy.put(qualifiedName, module.fieldNamingPolicy());
+                // Check for conflicts with specifically named classes. This can happen if another
+                // module are listing specific classes with another policy.
+                for (Map.Entry<String, ModulePolicyInfo> classPolicyInfo : classSpecificModuleInfo.entrySet()) {
+                    if (checkAndReportPolicyConflict(moduleInfo, classPolicyInfo.getValue())) {
+                        return false;
+                    }
+                }
 
-            // Create either a Library or App module
-            if (module.library()) {
-                libraryModules.put(qualifiedName, classes);
+                // Everything checks out. Add moduleInfo so we can track it for the next module.
+                globalModuleInfo.add(moduleInfo);
+
             } else {
-                modules.put(qualifiedName, classes);
+                // We need to verify each class in the modules class list
+                Set<String> classNames = getClassListFromModule(classElement);
+                for (String qualifiedClassName : classNames) {
+
+                    // Check that no other module with `allClasses` conflict with this specific
+                    // class configuration
+                    if (!globalModuleInfo.isEmpty()) {
+                        ModulePolicyInfo otherModuleInfo = globalModuleInfo.iterator().next();
+                        if (checkAndReportPolicyConflict(moduleInfo, otherModuleInfo)) {
+                            return false;
+                        }
+                    }
+
+                    // Check that this specific class isn't conflicting with another module
+                    // specifically mentioning it using `classes = { ... }`
+                    ModulePolicyInfo otherModuleInfo = classSpecificModuleInfo.get(qualifiedClassName);
+                    if (otherModuleInfo != null) {
+                        if (checkAndReportPolicyConflict(qualifiedClassName, moduleInfo, otherModuleInfo)) {
+                            return false;
+                        }
+                    }
+
+                    // Keep track of the specific class for other module checks. We only
+                    // need to track the latest module seen as previous errors would have been
+                    // caught in a previous iteration of the loop.
+                    classSpecificModuleInfo.put(qualifiedClassName, moduleInfo);
+                }
+                classesInModule.put(qualifiedModuleClassName, classNames);
             }
+////
+//            RealmNamingPolicy currentClassPolicy = classNamingPolicy.get(qualifiedModuleClassName);
+//            RealmNamingPolicy newClassPolicy = module.classNamingPolicy();
+//            if (currentClassPolicy != null
+//                    && currentClassPolicy != RealmNamingPolicy.NO_POLICY
+//                    && currentClassPolicy != newClassPolicy) {
+//                return false;
+//            }
+            classNamingPolicy.put(qualifiedModuleClassName, module.classNamingPolicy());
+            fieldNamingPolicy.put(qualifiedModuleClassName, module.fieldNamingPolicy());
         }
 
         // Check that app and library modules are not mixed
         if (modules.size() > 0 && libraryModules.size() > 0) {
             Utils.error("Normal modules and library modules cannot be mixed in the same project");
             return false;
-        }
-
-        // Check that policies have not been mixed for classes (ignoring the case where one of them
-        // is NO_POLICY
-        if (modules.size() > 1 || libraryModules.size() > 1) {
-            Map<String, Set<ClassMetaData>> testModules = (modules.size() > 1) ? modules : libraryModules;
-            // FIXME
-
         }
 
         // Create default Realm module if needed.
@@ -138,10 +206,100 @@ public class ModuleMetaData {
         return true;
     }
 
+    /**
+     * All model classes have now been processed and the final validation of modules can occur.
+     * Any errors or messages will be posted on the provided Messager.
+     *
+     * @param moduleClasses all classes part of this module
+     * @return {@code true} if the module is valid, {@code false} otherwise.
+     */
+    public boolean postProgress(Set<ClassMetaData> moduleClasses) {
+        return true; // FIXME
+    }
+
+
+    // Checks if two modules have policy conflicts. Returns true if a conflict was found and reported.
+    private boolean checkAndReportPolicyConflict(ModulePolicyInfo moduleInfo, ModulePolicyInfo otherModuleInfo) {
+        return checkAndReportPolicyConflict(null, moduleInfo, otherModuleInfo);
+    }
+
+    /**
+     * Check for name policy conflicts and report the error if found.
+     *
+     * @param className optional class name if a specific class is being checked.
+     * @param moduleInfo current module.
+     * @param otherModuleInfo already processed module.
+     * @return {@code true} if any errors was reported, {@code false} otherwise.
+     */
+    private boolean checkAndReportPolicyConflict(String className, ModulePolicyInfo moduleInfo, ModulePolicyInfo otherModuleInfo) {
+        boolean foundErrors = false;
+
+        // Check class naming policy
+        RealmNamingPolicy classPolicy = moduleInfo.classNamePolicy;
+        RealmNamingPolicy otherClassPolicy = otherModuleInfo.classNamePolicy;
+        if (classPolicy != RealmNamingPolicy.NO_POLICY
+                && otherClassPolicy != RealmNamingPolicy.NO_POLICY
+                && classPolicy != otherClassPolicy) {
+            Utils.error(String.format("The modules %s and %s disagree on the class naming policy%s: %s vs. %s. " +
+                            "They same policy must be used.",
+                    moduleInfo.qualifiedModuleClassName,
+                    otherModuleInfo.qualifiedModuleClassName,
+                    (className != null) ? " for " + className : "",
+                    classPolicy,
+                    otherClassPolicy));
+            foundErrors = true;
+        }
+
+        // Check field naming policy
+        RealmNamingPolicy fieldPolicy = moduleInfo.fieldNamePolicy;
+        RealmNamingPolicy otherFieldPolicy = otherModuleInfo.fieldNamePolicy;
+        if (fieldPolicy != RealmNamingPolicy.NO_POLICY
+                && otherFieldPolicy != RealmNamingPolicy.NO_POLICY
+                && fieldPolicy != otherFieldPolicy) {
+            Utils.error(String.format("The modules %s and %s disagree on the field naming policy%s: %s vs. %s. " +
+                            "They same policy should be used.",
+                    moduleInfo.qualifiedModuleClassName,
+                    otherModuleInfo.qualifiedModuleClassName,
+                    (className != null) ? " for " + className : "",
+                    fieldPolicy,
+                    otherFieldPolicy));
+            foundErrors = true;
+        }
+
+        return foundErrors;
+    }
+
+//    public boolean generate2() {
+//
+//        // Check that classes added are proper Realm model classes
+//        for (Map.Entry<String, Set<String>> module : classesInModule.entrySet()) {
+//            for (String fullyQualifiedClassName : module.getValue()) {
+//                ClassMetaData metadata = classMetaData.get(fullyQualifiedClassName);
+//                if (metadata == null) {
+//                    Utils.error(Utils.stripPackage(fullyQualifiedClassName) + " could not be added to the module. " +
+//                            "Only classes extending RealmObject, which are part of this project, can be added.");
+//                    return false;
+//                }
+//                classMetaData.put(module.getKey(), metadata);
+//            }
+//        }
+//
+//
+//        // Create either a Library or App module
+//        if (module.library()) {
+//            libraryModules.put(qualifiedModuleClassName, classes);
+//        } else {
+//            modules.put(qualifiedModuleClassName, classes);
+//        }
+//
+//
+//        return true;
+//    }
+
     // Detour needed to access the class elements in the array
     // See http://blog.retep.org/2009/02/13/getting-class-values-from-annotations-in-an-annotationprocessor/
     @SuppressWarnings("unchecked")
-    private Set<String> getClassMetaDataFromModule(Element classElement) {
+    private Set<String> getClassListFromModule(Element classElement) {
         AnnotationMirror annotationMirror = getAnnotationMirror(classElement);
         AnnotationValue annotationValue = getAnnotationValue(annotationMirror);
         Set<String> classes = new HashSet<String>();
@@ -207,5 +365,38 @@ public class ModuleMetaData {
      */
     public boolean shouldCreateDefaultModule() {
         return shouldCreateDefaultModule;
+    }
+
+    // Tuple helper class
+    private class ModulePolicyInfo {
+        public final String qualifiedModuleClassName;
+        public final RealmNamingPolicy classNamePolicy;
+        public final RealmNamingPolicy fieldNamePolicy;
+
+        public ModulePolicyInfo(String qualifiedModuleClassName, RealmNamingPolicy classNamePolicy, RealmNamingPolicy fieldNamePolicy) {
+            this.qualifiedModuleClassName = qualifiedModuleClassName;
+            this.classNamePolicy = classNamePolicy;
+            this.fieldNamePolicy = fieldNamePolicy;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ModulePolicyInfo that = (ModulePolicyInfo) o;
+
+            if (!qualifiedModuleClassName.equals(that.qualifiedModuleClassName)) return false;
+            if (classNamePolicy != that.classNamePolicy) return false;
+            return fieldNamePolicy == that.fieldNamePolicy;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = qualifiedModuleClassName.hashCode();
+            result = 31 * result + classNamePolicy.hashCode();
+            result = 31 * result + fieldNamePolicy.hashCode();
+            return result;
+        }
     }
 }

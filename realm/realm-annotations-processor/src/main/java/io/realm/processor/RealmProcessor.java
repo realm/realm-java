@@ -211,7 +211,7 @@ public class RealmProcessor extends AbstractProcessor {
     private boolean processModules(RoundEnvironment roundEnv) {
         // FIXME: Figure out the chicken and egg problem of module/class verification
         moduleMetaData = new ModuleMetaData(classCollection);
-        return moduleMetaData.generate(roundEnv.getElementsAnnotatedWith(RealmModule.class));
+        return moduleMetaData.preProcess(roundEnv.getElementsAnnotatedWith(RealmModule.class));
     }
 
     private boolean createModuleFiles(RoundEnvironment roundEnv) {
