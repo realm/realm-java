@@ -1857,4 +1857,3 @@ public class Realm extends BaseRealm {
         public abstract void onError(RealmException error);
     }
 }
-

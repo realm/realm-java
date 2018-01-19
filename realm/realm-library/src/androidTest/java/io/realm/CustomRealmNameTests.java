@@ -1,3 +1,18 @@
+/*
+ * Copyright 2018 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
@@ -33,6 +48,10 @@ public class CustomRealmNameTests {
         }
     }
 
+    //
+    // Build checks
+    //
+
     // Check that the module policy is used as the default for class and field names
     @Test
     public void modulePolicy_defaultPolicy() {
@@ -46,8 +65,9 @@ public class CustomRealmNameTests {
         assertTrue(classSchema.hasField("camel-case"));
     }
 
+    // Check that field name policies on classes override those from modules
     @Test
-    public void classFieldPolicy_overrideModulePolicy() {
+    public void classFieldPolicy_overrideModuleFieldPolicy() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .schema(ClassWithPolicy.class)
                 .build();
@@ -60,8 +80,9 @@ public class CustomRealmNameTests {
         }
     }
 
+    // Check that explicit class name override both module and class policies
     @Test
-    public void className_overrideModulePolicy() {
+    public void className_overrideModuleClassPolicy() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .modules(new CustomRealmNamesModule())
                 .build();
@@ -70,6 +91,7 @@ public class CustomRealmNameTests {
         assertTrue(realm.getSchema().contains(ClassNameOverrideModulePolicy.CLASS_NAME));
     }
 
+    // Check that a explicitly setting a field name overrides a class field name policy
     @Test
     public void fieldName_overrideClassPolicy() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
@@ -81,6 +103,7 @@ public class CustomRealmNameTests {
         assertTrue(classSchema.hasField(FieldNameOverrideClassPolicy.FIELD_CAMEL_CASE));
     }
 
+    // Check that a explicitly setting a field name overrides a module field name policy
     @Test
     public void fieldName_overrideModulePolicy() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
@@ -92,6 +115,17 @@ public class CustomRealmNameTests {
         assertTrue(classSchema.hasField(FieldNameOverrideClassPolicy.FIELD_CAMEL_CASE));
     }
 
-    // FIXME Query tests
+    //
+    // FIXME: Query tests
+    // Mostly smoke test, as we only want to test that the query system correctly maps between
+    // Java field names and cores.
+    //
 
+    //
+    // FIXME: Schema tests
+    //
+
+    //
+    // FIXME: DynamicRealm tests
+    //
 }
