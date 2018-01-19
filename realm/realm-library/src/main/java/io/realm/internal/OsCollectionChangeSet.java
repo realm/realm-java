@@ -45,10 +45,17 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
 
     private static long finalizerPtr = nativeGetFinalizerPtr();
     private final long nativePtr;
+    private final boolean firstAsyncCallback;
 
-    public OsCollectionChangeSet(long nativePtr) {
+    public OsCollectionChangeSet(long nativePtr, boolean firstAsyncCallback) {
         this.nativePtr = nativePtr;
+        this.firstAsyncCallback = firstAsyncCallback;
         NativeContext.dummyContext.addReference(this);
+    }
+
+    @Override
+    public State getState() {
+        throw new UnsupportedOperationException("This method should be overridden in a subclass");
     }
 
     /**
@@ -99,17 +106,41 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         return longArrayToRangeArray(nativeGetRanges(nativePtr, TYPE_MODIFICATION));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public long getNativePtr() {
-        return nativePtr;
+    public Throwable getError() {
+        return (Throwable) nativeGetError(nativePtr);
     }
 
     @Override
-    public long getNativeFinalizerPtr() {
-        return finalizerPtr;
+    public boolean isCompleteResult() {
+        throw new UnsupportedOperationException("This method should be overridden in a subclass");
+    }
+
+    public boolean isRemoteDataLoaded() {
+        return nativeIsRemoteDataLoaded(nativePtr);
+    }
+
+    public int getOldStatusCode() {
+        return nativeGetOldStatusCode(nativePtr);
+    }
+
+    public int getNewStatusCode() {
+        return nativeGetNewStatusCode(nativePtr);
+    }
+
+    /**
+     * Returns {@code true} if this is the first time an asynchronous query returns a result, i.e.
+     * the query completed. 
+     */
+    public boolean isFirstAsyncCallback() {
+        return firstAsyncCallback;
+    }
+
+    /**
+     * Returns {@code true} if this changeset is empty, and doesn't contain any relevant changes.
+     */
+    public boolean isEmpty() {
+        return nativeIsEmpty(nativePtr);
     }
 
     // Convert long array returned by the nativeGetXxxRanges() to Range array.
@@ -126,14 +157,6 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         }
         return ranges;
     }
-
-    private native static long nativeGetFinalizerPtr();
-
-    // Returns the ranges as an long array. eg.: [startIndex1, length1, startIndex2, length2, ...]
-    private native static int[] nativeGetRanges(long nativePtr, int type);
-
-    // Returns the indices array.
-    private native static int[] nativeGetIndices(long nativePtr, int type);
 
     @Override
     public String toString() {
@@ -152,4 +175,44 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         return string;
 
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getNativePtr() {
+        return nativePtr;
+    }
+
+    @Override
+    public long getNativeFinalizerPtr() {
+        return finalizerPtr;
+    }
+
+    // Returns the underlying error if an error was detected.
+    // The underlying layer will wrap it in an appropropriate exception class.
+    // `null` is returned if no error is present
+    @Nullable
+    private native Object nativeGetError(long nativePtr);
+
+    private native int nativeGetOldStatusCode(long nativePtr);
+
+    private native int nativeGetNewStatusCode(long nativePtr);
+
+    // Returns true if the data described by the subscription has been downloaded to the device,
+    // false if not. In either case, the query is run against the local dataset.
+    private native boolean nativeIsRemoteDataLoaded(long nativePtr);
+
+    /**
+     * Returns {@code true} if this changeset is empty, and doesn't contain any relevant changes.
+     */
+    private native boolean nativeIsEmpty(long nativePtr);
+
+    private native static long nativeGetFinalizerPtr();
+
+    // Returns the ranges as a long array. eg.: [startIndex1, length1, startIndex2, length2, ...]
+    private native static int[] nativeGetRanges(long nativePtr, int type);
+
+    // Returns the indices array.
+    private native static int[] nativeGetIndices(long nativePtr, int type);
 }
