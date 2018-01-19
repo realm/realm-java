@@ -77,12 +77,6 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public List<String> getFieldNames(Class<? extends RealmModel> clazz) {
-        RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.getFieldNames(clazz);
-    }
-
-    @Override
     protected String getSimpleClassNameImpl(Class<? extends RealmModel> clazz) {
         RealmProxyMediator mediator = getMediator(clazz);
         return mediator.getSimpleClassName(clazz);

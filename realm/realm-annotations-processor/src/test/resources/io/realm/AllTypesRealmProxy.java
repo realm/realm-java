@@ -121,31 +121,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
     }
 
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
-    private static final List<String> FIELD_NAMES;
-    static {
-        List<String> fieldNames = new ArrayList<String>(20);
-        fieldNames.add("columnString");
-        fieldNames.add("columnLong");
-        fieldNames.add("columnFloat");
-        fieldNames.add("columnDouble");
-        fieldNames.add("columnBoolean");
-        fieldNames.add("columnDate");
-        fieldNames.add("columnBinary");
-        fieldNames.add("columnMutableRealmInteger");
-        fieldNames.add("columnObject");
-        fieldNames.add("columnRealmList");
-        fieldNames.add("columnStringList");
-        fieldNames.add("columnBinaryList");
-        fieldNames.add("columnBooleanList");
-        fieldNames.add("columnLongList");
-        fieldNames.add("columnIntegerList");
-        fieldNames.add("columnShortList");
-        fieldNames.add("columnByteList");
-        fieldNames.add("columnDoubleList");
-        fieldNames.add("columnFloatList");
-        fieldNames.add("columnDateList");
-        FIELD_NAMES = Collections.unmodifiableList(fieldNames);
-    }
 
     private AllTypesColumnInfo columnInfo;
     private ProxyState<some.test.AllTypes> proxyState;
@@ -891,10 +866,6 @@ public class AllTypesRealmProxy extends some.test.AllTypes
 
     public static String getSimpleClassName() {
         return "AllTypes";
-    }
-
-    public static List<String> getFieldNames() {
-        return FIELD_NAMES;
     }
 
     @SuppressWarnings("cast")
