@@ -86,7 +86,8 @@ public class Repository implements Closeable {
         // save data in Realm
         return realm.where(NYTimesStory.class)
                 .equalTo(NYTimesStory.API_SECTION, sectionKey)
-                .findAllSortedAsync(NYTimesStory.PUBLISHED_DATE, Sort.DESCENDING)
+                .sort(NYTimesStory.PUBLISHED_DATE, Sort.DESCENDING)
+                .findAllAsync()
                 .asFlowable();
     }
 

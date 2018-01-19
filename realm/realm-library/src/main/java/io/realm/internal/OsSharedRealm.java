@@ -125,22 +125,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         void onSchemaChanged();
     }
 
-    /**
-     * Callback function to be called from JNI by Object Store when the partial sync results returned.
-     */
-    @Keep
-    public abstract static class PartialSyncCallback {
-        private final String className;
-
-        protected PartialSyncCallback(String className) {
-            this.className = className;
-        }
-
-        public abstract void onSuccess(OsResults results);
-
-        public abstract void onError(RealmException error);
-    }
-
     // Const value for RealmFileException conversion
     public static final byte FILE_EXCEPTION_KIND_ACCESS_ERROR = 0;
     public static final byte FILE_EXCEPTION_KIND_BAD_HISTORY = 1;
@@ -399,10 +383,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         return nativeIsAutoRefresh(nativePtr);
     }
 
-    public void registerPartialSyncQuery(String query, PartialSyncCallback callback) {
-        nativeRegisterPartialSyncQuery(nativePtr, callback.className, query, callback);
-    }
-
     public RealmConfiguration getConfiguration() {
         return osRealmConfig.getRealmConfiguration();
     }
@@ -531,27 +511,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         callback.onInit(new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig));
     }
 
-    /**
-     * Called from JNI when the partial sync callback is invoked from the ObjectStore.
-     *
-     * @param error            if the partial sync query failed to register.
-     * @param nativeResultsPtr pointer to the {@code Results} of the partial sync query.
-     * @param callback         the callback registered from the user to notify the success/error of the partial sync query.
-     */
-    @SuppressWarnings("unused")
-    private void runPartialSyncRegistrationCallback(@Nullable String error, long nativeResultsPtr,
-                                                    PartialSyncCallback callback) {
-        if (error != null) {
-            callback.onError(new RealmException(error));
-        } else {
-            @SuppressWarnings("ConstantConditions")
-            Table table = getTable(Table.getTableNameForClass(callback.className));
-            OsResults results = new OsResults(this, table, nativeResultsPtr);
-            callback.onSuccess(results);
-        }
-    }
-
-
     private static native void nativeInit(String temporaryDirectoryPath);
 
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
@@ -613,6 +572,4 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     private static native void nativeRegisterSchemaChangedCallback(long nativePtr, SchemaChangedCallback callback);
 
-    private native void nativeRegisterPartialSyncQuery(
-            long nativeSharedRealmPtr, String className, String query, PartialSyncCallback callback);
 }

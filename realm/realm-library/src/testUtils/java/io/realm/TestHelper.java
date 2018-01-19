@@ -1006,10 +1006,10 @@ public class TestHelper {
         //noinspection TryWithIdenticalCatches
         try {
             final Constructor<RealmResults> c = RealmResults.class.getDeclaredConstructor(
-                    BaseRealm.class, OsResults.class, Class.class);
+                    BaseRealm.class, OsResults.class, Class.class, String.class);
             c.setAccessible(true);
             //noinspection unchecked
-            return c.newInstance(realm, osResults, tableClass);
+            return c.newInstance(realm, osResults, tableClass, "");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         } catch (InstantiationException e) {
