@@ -194,7 +194,7 @@ public class RealmProcessor extends AbstractProcessor {
             if (!metadata.isModelClass()) { continue; }
 
             Utils.note("Processing class " + metadata.getSimpleJavaClassName());
-            if (!metadata.generate()) { return false; }
+            if (!metadata.generate(moduleMetaData)) { return false; }
 
             classCollection.addClass(metadata);
             backlinksToValidate.addAll(metadata.getBacklinkFields());

@@ -17,6 +17,11 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
+import io.realm.annotations.RealmNamingPolicy;
+import io.realm.processor.nameformatter.CaseFormatter;
+import io.realm.processor.nameformatter.GuavaCaseFormatter;
+import io.realm.processor.nameformatter.IdentityFormatter;
+
 
 /**
  * Utility methods working with the Realm processor.
@@ -359,4 +364,21 @@ public class Utils {
     public static String getProxyInterfaceName(String className) {
         return className + Constants.INTERFACE_SUFFIX;
     }
+
+    public static CaseFormatter getNameFormatter(RealmNamingPolicy policy) {
+        if (policy == null) {
+            return new IdentityFormatter();
+        }
+        switch (policy) {
+            case NO_POLICY: return IdentityFormatter.INSTANCE;
+            case IDENTITY: return IdentityFormatter.INSTANCE;
+            case LOWER_CASE_WITH_UNDERSCORES: return GuavaCaseFormatter.INSTANCE_LOWER_WITH_UNDERSCORE;
+            case LOWER_CASE_WITH_DASHES: return GuavaCaseFormatter.INSTANCE_LOWER_WITH_DASHES;
+            case CAMEL_CASE: return GuavaCaseFormatter.INSTANCE_CAMEL_CASE;
+            case PASCAL_CASE: return GuavaCaseFormatter.INSTANCE_PASCAL_CASE;
+            default:
+                throw new IllegalArgumentException("Unknown policy: " + policy);
+        }
+    }
+
 }

@@ -48,8 +48,6 @@ import io.realm.annotations.RealmClass;
 import io.realm.annotations.RealmField;
 import io.realm.annotations.RealmNamingPolicy;
 import io.realm.annotations.Required;
-import io.realm.processor.nameformatter.GuavaCaseFormatter;
-import io.realm.processor.nameformatter.IdentityFormatter;
 import io.realm.processor.nameformatter.CaseFormatter;
 
 
@@ -267,9 +265,10 @@ public class ClassMetaData {
      * Builds the meta data structures for this class. Any errors or messages will be
      * posted on the provided Messager.
      *
+     * @param moduleMetaData pre-processed module meta data.
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
-    public boolean generate() {
+    public boolean generate(ModuleMetaData moduleMetaData) {
         // Get the package of the class
         Element enclosingElement = classType.getEnclosingElement();
         if (!enclosingElement.getKind().equals(ElementKind.PACKAGE)) {
@@ -288,27 +287,22 @@ public class ClassMetaData {
         packageName = packageElement.getQualifiedName().toString();
 
         // Determine naming rules for this class
-        // TODO: Get initial defaultNameFormatter from the module
-        CaseFormatter defaultClassNameFormatter = getNameFormatter(RealmNamingPolicy.NO_POLICY);
-        defaultFieldNameFormatter = getNameFormatter(RealmNamingPolicy.NO_POLICY);
+        String qualifiedClassName = packageName + "." + javaClassName;
+        CaseFormatter moduleClassNameFormatter = moduleMetaData.getClassNameFormatter(qualifiedClassName);
+        defaultFieldNameFormatter = moduleMetaData.getFieldNameFormatter(qualifiedClassName);
+
         RealmClass realmClassAnnotation = classType.getAnnotation(RealmClass.class);
-        if (realmClassAnnotation != null) {
-            // If name has been specifically set. This should take precedence over everything else.
-            // If not, apply the class policy
-            if (!realmClassAnnotation.name().equals("")) {
-                internalClassName = realmClassAnnotation.name();
-            } else {
-                // FIXME: Use the policy from modules (if any)
-                internalClassName = defaultClassNameFormatter.format(javaClassName);
-            }
-
-            // Figure out the naming policy for fields
-            defaultFieldNameFormatter = getNameFormatter(realmClassAnnotation.fieldNamingPolicy());
-
+        // If name has been specifically set, it should override any module policy.
+        if (!realmClassAnnotation.name().equals("")) {
+            internalClassName = realmClassAnnotation.name();
         } else {
-            internalClassName = defaultFieldNameFormatter.format(javaClassName); // Use inherited formatter
+            internalClassName = moduleClassNameFormatter.format(javaClassName);
         }
-        Utils.note("Default field name formatter:" + defaultFieldNameFormatter.toString());
+
+        // If field name policy has been explicitly set, override the module field name policy
+        if (realmClassAnnotation.fieldNamingPolicy() != RealmNamingPolicy.NO_POLICY) {
+            defaultFieldNameFormatter = Utils.getNameFormatter(realmClassAnnotation.fieldNamingPolicy());
+        }
 
         // Categorize and check the rest of the file
         if (!categorizeClassElements()) { return false; }
@@ -728,20 +722,5 @@ public class ClassMetaData {
         return classType;
     }
 
-    private CaseFormatter getNameFormatter(RealmNamingPolicy policy) {
-        if (policy == null) {
-            return new IdentityFormatter();
-        }
-        switch (policy) {
-            case NO_POLICY: return IdentityFormatter.INSTANCE;
-            case IDENTITY: return IdentityFormatter.INSTANCE;
-            case LOWER_CASE_WITH_UNDERSCORES: return GuavaCaseFormatter.INSTANCE_LOWER_WITH_UNDERSCORE;
-            case LOWER_CASE_WITH_DASHES: return GuavaCaseFormatter.INSTANCE_LOWER_WITH_DASHES;
-            case CAMEL_CASE: return GuavaCaseFormatter.INSTANCE_CAMEL_CASE;
-            case PASCAL_CASE: return GuavaCaseFormatter.INSTANCE_PASCAL_CASE;
-            default:
-                throw new IllegalArgumentException("Unknown policy: " + policy);
-        }
-    }
 }
 

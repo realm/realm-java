@@ -32,6 +32,7 @@ import javax.lang.model.element.TypeElement;
 
 import io.realm.annotations.RealmModule;
 import io.realm.annotations.RealmNamingPolicy;
+import io.realm.processor.nameformatter.CaseFormatter;
 
 
 /**
@@ -49,7 +50,7 @@ import io.realm.annotations.RealmNamingPolicy;
  *      This e.g. includes default naming policies for classes and fields.
  *  </li>
  *  <li>
- *      Process model classes. See {@link ClassMetaData#generate()}.
+ *      Process model classes. See {@link ClassMetaData#generate(ModuleMetaData)}.
  *  </li>
  *  <li>
  *      Post-processing. Done by calling {@link #postProcess(ClassCollection)}. All modules can now
@@ -61,7 +62,8 @@ public class ModuleMetaData {
 
     // Pre-processing
     // <FullyQualifiedModuleClassName, X>
-    private Map<String, Set<String>> classesInModule = new HashMap<>();
+    private Set<String> customGlobalModules = new HashSet<>(); // All modules with `allClasses = true` set
+    private Map<String, Set<String>> classesInModule = new HashMap<>(); // Only classes specifically named
     private Map<String, RealmNamingPolicy> classNamingPolicy = new HashMap<String, RealmNamingPolicy>();
     private Map<String, RealmNamingPolicy> fieldNamingPolicy = new HashMap<String, RealmNamingPolicy>();
     private Map<String, RealmModule> moduleAnnotations = new HashMap<>();
@@ -159,6 +161,7 @@ public class ModuleMetaData {
 
             // Everything checks out. Add moduleInfo so we can track it for the next module.
             globalModuleInfo.add(moduleInfo);
+            customGlobalModules.add(qualifiedModuleClassName);
 
         } else {
             // We need to verify each class in the modules class list
@@ -366,6 +369,53 @@ public class ModuleMetaData {
      */
     public boolean shouldCreateDefaultModule() {
         return shouldCreateDefaultModule;
+    }
+
+    /**
+     * Only available after {@link #preProcess(Set)} has run.
+     *
+     * Returns the module name policy the given name.
+     *
+     * @param qualifiedClassName
+     */
+    public CaseFormatter getClassNameFormatter(String qualifiedClassName) {
+        // We already validated that module definitions all agree on the same name policy
+        // so just find first match
+        if (!customGlobalModules.isEmpty()) {
+            return Utils.getNameFormatter(classNamingPolicy.get(customGlobalModules.iterator().next()));
+        }
+
+        for (Map.Entry<String, Set<String>> moduleInfo : classesInModule.entrySet()) {
+            if (moduleInfo.getValue().contains(qualifiedClassName)) {
+                return Utils.getNameFormatter(classNamingPolicy.get(moduleInfo.getKey()));
+            }
+        }
+
+        return Utils.getNameFormatter(RealmNamingPolicy.NO_POLICY);
+    }
+
+
+    /**
+     * Only available after {@link #preProcess(Set)} has run.
+     *
+     * Returns the module name policy the field names.
+     *
+     * @param qualifiedClassName
+     */
+    public CaseFormatter getFieldNameFormatter(String qualifiedClassName) {
+        // We already validated that module definitions all agree on the same name policy
+        // so just find first match
+        if (!customGlobalModules.isEmpty()) {
+            return Utils.getNameFormatter(fieldNamingPolicy.get(customGlobalModules.iterator().next()));
+        }
+
+        for (Map.Entry<String, Set<String>> moduleInfo : classesInModule.entrySet()) {
+            if (moduleInfo.getValue().contains(qualifiedClassName)) {
+                return Utils.getNameFormatter(fieldNamingPolicy.get(moduleInfo.getKey()));
+            }
+        }
+
+        return Utils.getNameFormatter(RealmNamingPolicy.NO_POLICY);
     }
 
     // Tuple helper class
