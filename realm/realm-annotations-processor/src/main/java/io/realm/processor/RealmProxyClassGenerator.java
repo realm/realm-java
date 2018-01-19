@@ -144,7 +144,6 @@ public class RealmProxyClassGenerator {
         emitGetExpectedObjectSchemaInfo(writer);
         emitCreateColumnInfoMethod(writer);
         emitGetSimpleClassNameMethod(writer);
-        emitGetFieldNamesMethod(writer);
         emitCreateOrUpdateUsingJsonObject(writer);
         emitCreateUsingJsonStream(writer);
         emitCopyOrUpdateMethod(writer);
@@ -240,15 +239,6 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine()
                 .emitField("OsObjectSchemaInfo", "expectedObjectSchemaInfo",
                 EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL), "createExpectedObjectSchemaInfo()");
-
-        writer.emitField("List<String>", "FIELD_NAMES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
-        writer.beginInitializer(true)
-            .emitStatement("List<String> fieldNames = new ArrayList<String>(%s)", metadata.getFields().size());
-            for (VariableElement field : metadata.getFields()) {
-                writer.emitStatement("fieldNames.add(\"%s\")", field.getSimpleName().toString());
-            }
-        writer.emitStatement("FIELD_NAMES = Collections.unmodifiableList(fieldNames)")
-            .endInitializer();
     }
     //@formatter:on
 
@@ -835,15 +825,6 @@ public class RealmProxyClassGenerator {
     private void emitGetSimpleClassNameMethod(JavaWriter writer) throws IOException {
         writer.beginMethod("String", "getSimpleClassName", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC))
                 .emitStatement("return \"%s\"", simpleClassName)
-                .endMethod()
-                .emitEmptyLine();
-    }
-    //@formatter:on
-
-    //@formatter:off
-    private void emitGetFieldNamesMethod(JavaWriter writer) throws IOException {
-        writer.beginMethod("List<String>", "getFieldNames", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC))
-                .emitStatement("return FIELD_NAMES")
                 .endMethod()
                 .emitEmptyLine();
     }
