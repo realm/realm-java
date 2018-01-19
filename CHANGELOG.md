@@ -12,7 +12,8 @@
 * [ObjectServer] Added support for partial Realms. Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
 * Added two new methods to `OrderedCollectionChangeSet`: `getState()` and `getError()` (#5619).
 
-## 4.3.3 (YYYY-MM-DD)
+
+## 4.3.3 (2018-01-19)
 
 ### Internal
 
