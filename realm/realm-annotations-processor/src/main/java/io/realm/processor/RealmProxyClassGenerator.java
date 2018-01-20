@@ -191,14 +191,16 @@ public class RealmProxyClassGenerator {
                 internalClassName);
         for (RealmFieldElement field : metadata.getFields()) {
             writer.emitStatement(
-                    "this.%1$sIndex = addColumnDetails(\"%2$s\", objectSchemaInfo)",
+                    "this.%1$sIndex = addColumnDetails(\"%1$s\", \"%2$s\", objectSchemaInfo)",
                     field.getJavaName(),
                     field.getInternalFieldName());
         }
         for (Backlink backlink : metadata.getBacklinkFields()) {
             writer.emitStatement(
                     "addBacklinkDetails(schemaInfo, \"%s\", \"%s\", \"%s\")",
-                    backlink.getTargetField(), Utils.stripPackage(backlink.getSourceClass()), backlink.getSourceField());
+                    backlink.getTargetField(),
+                    classCollection.getClassFromQualifiedName(backlink.getSourceClass()).getInternalClassName(),
+                    backlink.getSourceField());
         }
         writer.endConstructor()
                 .emitEmptyLine();
@@ -804,7 +806,7 @@ public class RealmProxyClassGenerator {
         }
         for (Backlink backlink: metadata.getBacklinkFields()) {
             writer.emitStatement("builder.addComputedLinkProperty(\"%s\", \"%s\", \"%s\")",
-                    backlink.getTargetField(), backlink.getSimpleSourceClass(), backlink.getSourceField());
+                    backlink.getTargetField(), classCollection.getClassFromSimpleName(backlink.getSimpleSourceClass()).getInternalClassName(), backlink.getSourceField());
         }
         writer.emitStatement("return builder.build()");
         writer.endMethod()

@@ -99,7 +99,7 @@ public class RealmProxyMediatorTests {
             if (Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
-            indexSet.add(columnInfo.getColumnIndex(field.getName()));
+            indexSet.add(columnInfo.getColumnIndexFromJavaField(field.getName()));
             indexCount++;
         }
 

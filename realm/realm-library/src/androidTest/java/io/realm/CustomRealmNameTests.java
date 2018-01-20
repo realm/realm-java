@@ -29,8 +29,9 @@ import io.realm.entities.realmname.CustomRealmNamesModule;
 import io.realm.entities.realmname.FieldNameOverrideClassPolicy;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * This class contains tests for checking that changing the internal Realm name
@@ -42,6 +43,7 @@ public class CustomRealmNameTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     private Realm realm;
+    private DynamicRealm dynamicRealm;
 
     @Before
     public void setUp() {
@@ -49,13 +51,17 @@ public class CustomRealmNameTests {
                 .modules(new CustomRealmNamesModule())
                 .build();
         realm = Realm.getInstance(config);
+        dynamicRealm = DynamicRealm.getInstance(config);
     }
 
 
     @After
     public void tearDown() {
-        if (realm != null) {
+        if (realm != null && !realm.isClosed()) {
             realm.close();
+        }
+        if (dynamicRealm != null && !dynamicRealm.isClosed()) {
+            dynamicRealm.close();
         }
     }
 
@@ -109,26 +115,69 @@ public class CustomRealmNameTests {
     //
     @Test
     public void typedQueryWithJavaNames() {
-
-
-
-        fail();
+        RealmResults<ClassWithPolicy> results = realm.where(ClassWithPolicy.class)
+                .equalTo("camelCase", "foo") // Java name in model class
+                .equalTo("parents.PascalCase", 1) // Backlinks also uses java names
+                .sort("mHungarian") // Sorting uses Java names
+                .distinctValues("customName") // Distinct uses Java names
+                .findAll();
+        assertTrue(results.isEmpty());
     }
 
     @Test
     public void typedQueryWithInternalNamesThrows() {
-        fail();
+
+        // Normal predicates
+        try {
+            realm.where(ClassWithPolicy.class).equalTo(ClassWithPolicy.FIELD_CAMEL_CASE, "");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        // Sorting
+        try {
+            realm.where(ClassWithPolicy.class).sort(ClassWithPolicy.FIELD_CAMEL_CASE);
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        // Distinct
+        try {
+            realm.where(ClassWithPolicy.class).distinctValues(ClassWithPolicy.FIELD_CAMEL_CASE);
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        // Backlinks do not exist as internal fields that can be queried
     }
 
 
     @Test
     public void dynamicQueryWithInternalNames() {
-        fail();
+        // Backlink queries not supported on dynamic queries
+        RealmResults<DynamicRealmObject> results = dynamicRealm.where(ClassWithPolicy.CLASS_NAME)
+                .equalTo(ClassWithPolicy.FIELD_CAMEL_CASE, "foo") // Java name in model class
+                .sort(ClassWithPolicy.FIELD_M_HUNGARIAN) // Sorting uses Java names
+                .distinctValues(ClassWithPolicy.FIELD_CUSTOM_NAME) // Distinct uses Java names
+                .findAll();
+        assertTrue(results.isEmpty());
     }
 
     @Test
     public void dynamicQueryWithJavaNamesThrows() {
-        fail();
+        try {
+            dynamicRealm.where(ClassWithPolicy.CLASS_NAME).equalTo("camelCase", "");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        // Sorting
+        try {
+            dynamicRealm.where(ClassWithPolicy.CLASS_NAME).sort("camelCase");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        // Distinct
+        try {
+            dynamicRealm.where(ClassWithPolicy.CLASS_NAME).distinctValues("camelCase");
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
     //
@@ -136,15 +185,36 @@ public class CustomRealmNameTests {
     //
     @Test
     public void typedSchemaReturnsInternalNames() {
-        fail();
+        RealmSchema schema = realm.getSchema();
+        assertTrue(schema.contains(ClassWithPolicy.CLASS_NAME));
+        RealmObjectSchema classSchema = schema.get(ClassWithPolicy.CLASS_NAME);
+        assertEquals(ClassWithPolicy.ALL_FIELDS.size(), classSchema.getFieldNames().size());
+        for (String fieldName : ClassWithPolicy.ALL_FIELDS) {
+            assertTrue(classSchema.hasField(fieldName));
+        }
     }
 
     @Test
     public void dynamicSchemaReturnsInternalNames() {
-        fail();
+        RealmSchema schema = realm.getSchema();
+        assertTrue(schema.contains(ClassWithPolicy.CLASS_NAME));
+        RealmObjectSchema classSchema = schema.get(ClassWithPolicy.CLASS_NAME);
+        assertEquals(ClassWithPolicy.ALL_FIELDS.size(), classSchema.getFieldNames().size());
+        for (String fieldName : ClassWithPolicy.ALL_FIELDS) {
+            assertTrue(classSchema.hasField(fieldName));
+        }
     }
 
     //
-    // FIXME: DynamicRealm tests
+    // Dyn
     //
+    @Test
+    public void createObjects() {
+        dynamicRealm.executeTransaction(r -> {
+            // Use internal name
+            DynamicRealmObject obj = r.createObject(ClassWithPolicy.CLASS_NAME);
+            assertNotNull(obj);
+        });
+    }
+
 }

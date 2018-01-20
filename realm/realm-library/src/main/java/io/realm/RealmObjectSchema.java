@@ -424,9 +424,7 @@ public abstract class RealmObjectSchema {
      * @param validColumnTypes valid field type for the last field in a linked field
      * @return a FieldDescriptor
      */
-    protected final FieldDescriptor getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
-        return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), fieldDescription, validColumnTypes);
-    }
+    abstract FieldDescriptor getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes);
 
     RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         long columnIndex = table.addColumn(type, name, (required) ? Table.NOT_NULLABLE : Table.NULLABLE);
@@ -449,7 +447,7 @@ public abstract class RealmObjectSchema {
     }
 
     long getAndCheckFieldIndex(String fieldName) {
-        long index = columnInfo.getColumnIndex(fieldName);
+        long index = columnInfo.getColumnIndexFromJavaField(fieldName);
         if (index < 0) {
             throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
@@ -464,7 +462,7 @@ public abstract class RealmObjectSchema {
         return SUPPORTED_SIMPLE_FIELDS;
     }
 
-    private SchemaConnector getSchemaConnector() {
+    protected final SchemaConnector getSchemaConnector() {
         return new SchemaConnector(schema);
     }
 
@@ -486,7 +484,7 @@ public abstract class RealmObjectSchema {
      */
     //@VisibleForTesting(otherwise = VisibleForTesting.NONE)
     long getFieldIndex(String fieldName) {
-        return columnInfo.getColumnIndex(fieldName);
+        return columnInfo.getColumnIndexFromJavaField(fieldName);
     }
 
     static void checkLegalName(String fieldName) {
@@ -529,13 +527,13 @@ public abstract class RealmObjectSchema {
         }
 
         @Override
-        public long getColumnIndex(String columnName) {
+        public long getColumnIndexFromJavaField(String columnName) {
             return table.getColumnIndex(columnName);
         }
 
         @Override
-        public ColumnDetails getColumnDetails(String columnName) {
-            throw new UnsupportedOperationException("DynamicColumnIndices do not support 'getColumnDetails'");
+        public ColumnDetails getColumnDetailsFromJavaField(String columnName) {
+            throw new UnsupportedOperationException("DynamicColumnIndices do not support 'getColumnDetailsFromJavaField'");
         }
 
         @Override

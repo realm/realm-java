@@ -20,7 +20,9 @@ import io.realm.internal.ColumnIndices;
 import io.realm.internal.Table;
 
 /**
- * Immutable {@link RealmSchema}.
+ * Immutable {@link RealmSchema} used by {@link Realm}.
+ *
+ * @see MutableRealmSchema for schema support for {@link DynamicRealm}.
  */
 class ImmutableRealmSchema extends RealmSchema {
 

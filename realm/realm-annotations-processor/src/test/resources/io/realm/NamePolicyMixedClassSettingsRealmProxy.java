@@ -41,8 +41,8 @@ public class NamePolicyMixedClassSettingsRealmProxy extends some.test.NamePolicy
         NamePolicyMixedClassSettingsColumnInfo(OsSchemaInfo schemaInfo) {
             super(2);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("customName");
-            this.firstNameIndex = addColumnDetails("first_name", objectSchemaInfo);
-            this.lastNameIndex = addColumnDetails("last-name", objectSchemaInfo);
+            this.firstNameIndex = addColumnDetails("firstName", "first_name", objectSchemaInfo);
+            this.lastNameIndex = addColumnDetails("lastName", "last-name", objectSchemaInfo);
         }
 
         NamePolicyMixedClassSettingsColumnInfo(ColumnInfo src, boolean mutable) {
