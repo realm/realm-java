@@ -109,24 +109,6 @@ public enum RealmNamingPolicy {
     LOWER_CASE_WITH_UNDERSCORES,
 
     /**
-     * The name in the Java model class is converted to all lower case, and each word is separated
-     * by {@code -}.
-     * <p>
-     * Examples:
-     * <ul>
-     *     <li>
-     *         "firstName" becomes "first_name"
-     *     </li>
-     *     <li>
-     *         "FIRSTName" becomes "
-     *     </li>
-     * </ul>
-     *
-     * Only ASCII strings are supported. The conversion on non-ASCII characters are undefined.
-     */
-    LOWER_CASE_WITH_DASHES,
-
-    /**
      * The name in the Java model class is converted to camelCase, treating {@code _} and upper
      * case letter as marking the beginning of a new word.
      * <p>

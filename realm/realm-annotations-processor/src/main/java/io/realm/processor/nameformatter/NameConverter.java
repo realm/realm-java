@@ -16,17 +16,16 @@
 package io.realm.processor.nameformatter;
 
 /**
- * Formatter that doesn't do any conversion when translating from Java to Realm.
+ * Interface for formatters that can implement a given naming policy.
  *
- * @see io.realm.annotations.RealmNamingPolicy#IDENTITY
+ * @see io.realm.annotations.RealmNamingPolicy
  */
-public class IdentityFormatter implements CaseFormatter {
-
-    public static CaseFormatter INSTANCE = new IdentityFormatter();
-
-    @Override
-    public String format(String name) {
-        return name;
-    }
-
+public interface NameConverter {
+    /**
+     * Converts the {@code name} so it matches the {@link io.realm.annotations.RealmNamingPolicy}.
+     *
+     * @param name string to convert.
+     * @return the converted string.
+     */
+    String convert(String name);
 }

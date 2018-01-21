@@ -48,7 +48,7 @@ import io.realm.annotations.RealmClass;
 import io.realm.annotations.RealmField;
 import io.realm.annotations.RealmNamingPolicy;
 import io.realm.annotations.Required;
-import io.realm.processor.nameformatter.CaseFormatter;
+import io.realm.processor.nameformatter.NameConverter;
 
 
 /**
@@ -77,7 +77,7 @@ public class ClassMetaData {
     private final List<TypeMirror> validListValueTypes;
     private final Types typeUtils;
     private final Elements elements;
-    private CaseFormatter defaultFieldNameFormatter;
+    private NameConverter defaultFieldNameFormatter;
 
     private final boolean ignoreKotlinNullability;
 
@@ -288,7 +288,7 @@ public class ClassMetaData {
 
         // Determine naming rules for this class
         String qualifiedClassName = packageName + "." + javaClassName;
-        CaseFormatter moduleClassNameFormatter = moduleMetaData.getClassNameFormatter(qualifiedClassName);
+        NameConverter moduleClassNameFormatter = moduleMetaData.getClassNameFormatter(qualifiedClassName);
         defaultFieldNameFormatter = moduleMetaData.getFieldNameFormatter(qualifiedClassName);
 
         RealmClass realmClassAnnotation = classType.getAnnotation(RealmClass.class);
@@ -296,7 +296,7 @@ public class ClassMetaData {
         if (!realmClassAnnotation.name().equals("")) {
             internalClassName = realmClassAnnotation.name();
         } else {
-            internalClassName = moduleClassNameFormatter.format(javaClassName);
+            internalClassName = moduleClassNameFormatter.convert(javaClassName);
         }
 
         // If field name policy has been explicitly set, override the module field name policy
@@ -548,7 +548,7 @@ public class ClassMetaData {
         return true;
     }
 
-    private String getInternalFieldName(VariableElement field, CaseFormatter defaultFormatter) {
+    private String getInternalFieldName(VariableElement field, NameConverter defaultFormatter) {
         RealmField nameAnnotation = field.getAnnotation(RealmField.class);
         if (nameAnnotation != null) {
             String declaredName = nameAnnotation.name();
@@ -559,7 +559,7 @@ public class ClassMetaData {
                 return field.getSimpleName().toString();
             }
         } else {
-            return defaultFormatter.format(field.getSimpleName().toString());
+            return defaultFormatter.convert(field.getSimpleName().toString());
         }
     }
 

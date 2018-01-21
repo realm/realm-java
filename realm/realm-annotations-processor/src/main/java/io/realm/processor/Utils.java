@@ -18,9 +18,11 @@ import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
 import io.realm.annotations.RealmNamingPolicy;
-import io.realm.processor.nameformatter.CaseFormatter;
-import io.realm.processor.nameformatter.GuavaCaseFormatter;
-import io.realm.processor.nameformatter.IdentityFormatter;
+import io.realm.processor.nameformatter.CamelCaseConverter;
+import io.realm.processor.nameformatter.LowerCaseWithSeparatorConverter;
+import io.realm.processor.nameformatter.NameConverter;
+import io.realm.processor.nameformatter.IdentityConverter;
+import io.realm.processor.nameformatter.PascalCaseConverter;
 
 
 /**
@@ -365,17 +367,16 @@ public class Utils {
         return className + Constants.INTERFACE_SUFFIX;
     }
 
-    public static CaseFormatter getNameFormatter(RealmNamingPolicy policy) {
+    public static NameConverter getNameFormatter(RealmNamingPolicy policy) {
         if (policy == null) {
-            return new IdentityFormatter();
+            return new IdentityConverter();
         }
         switch (policy) {
-            case NO_POLICY: return IdentityFormatter.INSTANCE;
-            case IDENTITY: return IdentityFormatter.INSTANCE;
-            case LOWER_CASE_WITH_UNDERSCORES: return GuavaCaseFormatter.INSTANCE_LOWER_WITH_UNDERSCORE;
-            case LOWER_CASE_WITH_DASHES: return GuavaCaseFormatter.INSTANCE_LOWER_WITH_DASHES;
-            case CAMEL_CASE: return GuavaCaseFormatter.INSTANCE_CAMEL_CASE;
-            case PASCAL_CASE: return GuavaCaseFormatter.INSTANCE_PASCAL_CASE;
+            case NO_POLICY: return IdentityConverter.INSTANCE;
+            case IDENTITY: return IdentityConverter.INSTANCE;
+            case LOWER_CASE_WITH_UNDERSCORES: return LowerCaseWithSeparatorConverter.INSTANCE_UNDERSCORE;
+            case CAMEL_CASE: return CamelCaseConverter.INSTANCE;
+            case PASCAL_CASE: return PascalCaseConverter.INSTANCE;
             default:
                 throw new IllegalArgumentException("Unknown policy: " + policy);
         }

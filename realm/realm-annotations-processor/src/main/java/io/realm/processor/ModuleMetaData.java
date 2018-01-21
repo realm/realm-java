@@ -32,7 +32,7 @@ import javax.lang.model.element.TypeElement;
 
 import io.realm.annotations.RealmModule;
 import io.realm.annotations.RealmNamingPolicy;
-import io.realm.processor.nameformatter.CaseFormatter;
+import io.realm.processor.nameformatter.NameConverter;
 
 
 /**
@@ -378,7 +378,7 @@ public class ModuleMetaData {
      *
      * @param qualifiedClassName
      */
-    public CaseFormatter getClassNameFormatter(String qualifiedClassName) {
+    public NameConverter getClassNameFormatter(String qualifiedClassName) {
         // We already validated that module definitions all agree on the same name policy
         // so just find first match
         if (!customGlobalModules.isEmpty()) {
@@ -402,7 +402,7 @@ public class ModuleMetaData {
      *
      * @param qualifiedClassName
      */
-    public CaseFormatter getFieldNameFormatter(String qualifiedClassName) {
+    public NameConverter getFieldNameFormatter(String qualifiedClassName) {
         // We already validated that module definitions all agree on the same name policy
         // so just find first match
         if (!customGlobalModules.isEmpty()) {
