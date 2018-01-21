@@ -32,8 +32,9 @@ import java.lang.annotation.Target;
 public @interface RealmClass {
 
     /**
-     * Manually set the internal name used by Realm for this class. This will override any {@link RealmNamingPolicy}
-     * otherwise set.
+     * Manually set the internal name used by Realm for this class. If this class is part of
+     * any modules, this will also override any name policy set using
+     * {@link RealmModule#classNamingPolicy()}.
      *
      * @see io.realm.annotations.RealmNamingPolicy for more information about what setting the name means.
      */

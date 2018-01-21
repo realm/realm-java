@@ -112,8 +112,8 @@ public @interface RealmModule {
      * The naming policy applied to all field names in all classes part of this module. The default policy is
      * {@link RealmNamingPolicy#NO_POLICY}. To define a naming policy for class names, use {@link #classNamingPolicy()}.
      * <p>
-     * It is possible to override the naming policy for each field by either using {@link RealmClass} in each class using
-     * the {@link RealmField} annotation.
+     * It is possible to override this naming policy using either {@link RealmClass#fieldNamingPolicy()} or
+     * {@link RealmField#name()}.
      *
      * @see io.realm.annotations.RealmNamingPolicy for more information about what setting this policy means.
      */

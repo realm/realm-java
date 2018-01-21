@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.realm.annotations;
 
 
@@ -24,7 +23,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used for meta data about a field persisted by Realm.
+ * Annotation used on fields in Realm model classes. It describes metadata about the particular
+ * field.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.FIELD)
@@ -32,8 +32,8 @@ import java.lang.annotation.Target;
 public @interface RealmField {
 
     /**
-     * Manually set the internal name used by Realm for this field. This will override any {@link RealmNamingPolicy}
-     * otherwise set.
+     * Manually set the internal name used by Realm for this field. This will override any
+     * {@link RealmNamingPolicy} set on the class or the module.
      *
      * @see io.realm.annotations.RealmNamingPolicy for more information about what setting the name means.
      */
