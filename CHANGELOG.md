@@ -5,6 +5,13 @@
 * Added support for mapping between a Java name and the underlying name in the Realm file using `@RealmModule`, `@RealmClass` and `@RealmField` annotations (#5280).
 
 
+## 4.3.3 (2018-01-19)
+
+### Internal
+
+* Downgrade JavaAssist to 3.21.0-GA to fix an issue with a `ClassNotFoundException` at runtime (#5641).
+
+
 ## 4.3.2 (2018-01-17)
 
 ### Bug Fixes

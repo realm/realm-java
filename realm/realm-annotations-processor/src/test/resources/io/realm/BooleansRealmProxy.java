@@ -71,15 +71,6 @@ public class BooleansRealmProxy extends some.test.Booleans
     }
 
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
-    private static final List<String> FIELD_NAMES;
-    static {
-        List<String> fieldNames = new ArrayList<String>(4);
-        fieldNames.add("done");
-        fieldNames.add("isReady");
-        fieldNames.add("mCompleted");
-        fieldNames.add("anotherBoolean");
-        FIELD_NAMES = Collections.unmodifiableList(fieldNames);
-    }
 
     private BooleansColumnInfo columnInfo;
     private ProxyState<some.test.Booleans> proxyState;
@@ -209,10 +200,6 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     public static String getSimpleClassName() {
         return "Booleans";
-    }
-
-    public static List<String> getFieldNames() {
-        return FIELD_NAMES;
     }
 
     @SuppressWarnings("cast")

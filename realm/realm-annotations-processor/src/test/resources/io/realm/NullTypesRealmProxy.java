@@ -182,52 +182,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
-    private static final List<String> FIELD_NAMES;
-    static {
-        List<String> fieldNames = new ArrayList<String>(41);
-        fieldNames.add("fieldStringNotNull");
-        fieldNames.add("fieldStringNull");
-        fieldNames.add("fieldBooleanNotNull");
-        fieldNames.add("fieldBooleanNull");
-        fieldNames.add("fieldBytesNotNull");
-        fieldNames.add("fieldBytesNull");
-        fieldNames.add("fieldByteNotNull");
-        fieldNames.add("fieldByteNull");
-        fieldNames.add("fieldShortNotNull");
-        fieldNames.add("fieldShortNull");
-        fieldNames.add("fieldIntegerNotNull");
-        fieldNames.add("fieldIntegerNull");
-        fieldNames.add("fieldLongNotNull");
-        fieldNames.add("fieldLongNull");
-        fieldNames.add("fieldFloatNotNull");
-        fieldNames.add("fieldFloatNull");
-        fieldNames.add("fieldDoubleNotNull");
-        fieldNames.add("fieldDoubleNull");
-        fieldNames.add("fieldDateNotNull");
-        fieldNames.add("fieldDateNull");
-        fieldNames.add("fieldObjectNull");
-        fieldNames.add("fieldStringListNotNull");
-        fieldNames.add("fieldStringListNull");
-        fieldNames.add("fieldBinaryListNotNull");
-        fieldNames.add("fieldBinaryListNull");
-        fieldNames.add("fieldBooleanListNotNull");
-        fieldNames.add("fieldBooleanListNull");
-        fieldNames.add("fieldLongListNotNull");
-        fieldNames.add("fieldLongListNull");
-        fieldNames.add("fieldIntegerListNotNull");
-        fieldNames.add("fieldIntegerListNull");
-        fieldNames.add("fieldShortListNotNull");
-        fieldNames.add("fieldShortListNull");
-        fieldNames.add("fieldByteListNotNull");
-        fieldNames.add("fieldByteListNull");
-        fieldNames.add("fieldDoubleListNotNull");
-        fieldNames.add("fieldDoubleListNull");
-        fieldNames.add("fieldFloatListNotNull");
-        fieldNames.add("fieldFloatListNull");
-        fieldNames.add("fieldDateListNotNull");
-        fieldNames.add("fieldDateListNull");
-        FIELD_NAMES = Collections.unmodifiableList(fieldNames);
-    }
 
     private NullTypesColumnInfo columnInfo;
     private ProxyState<some.test.NullTypes> proxyState;
@@ -1751,10 +1705,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     public static String getSimpleClassName() {
         return "NullTypes";
-    }
-
-    public static List<String> getFieldNames() {
-        return FIELD_NAMES;
     }
 
     @SuppressWarnings("cast")

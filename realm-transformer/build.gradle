@@ -61,7 +61,7 @@ dependencies {
     compile gradleApi()
     compile "io.realm:realm-annotations:${version}"
     compileOnly 'com.android.tools.build:gradle:3.1.0-alpha06'
-    compile 'org.javassist:javassist:3.22.0-GA'
+    compile 'org.javassist:javassist:3.21.0-GA'
 
     testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
         exclude module: 'groovy-all'

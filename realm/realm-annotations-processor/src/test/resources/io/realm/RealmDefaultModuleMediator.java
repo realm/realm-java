@@ -48,16 +48,6 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public List<String> getFieldNames(Class<? extends RealmModel> clazz) {
-        checkClass(clazz);
-
-        if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.getFieldNames();
-        }
-        throw getMissingProxyClassException(clazz);
-    }
-
-    @Override
     public String getSimpleClassNameImpl(Class<? extends RealmModel> clazz) {
         checkClass(clazz);
 
