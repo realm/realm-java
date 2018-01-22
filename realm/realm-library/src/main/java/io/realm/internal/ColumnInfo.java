@@ -177,16 +177,27 @@ public abstract class ColumnInfo {
     @Override
     public String toString() {
         StringBuilder buf = new StringBuilder("ColumnInfo[");
-        buf.append(mutable).append(",");
+        buf.append("mutable="+mutable).append(",");
         if (indicesFromJavaFieldNames != null) {
+            buf.append("JavaFieldNames=[");
             boolean commaNeeded = false;
             for (Map.Entry<String, ColumnDetails> entry : indicesFromJavaFieldNames.entrySet()) {
                 if (commaNeeded) { buf.append(","); }
                 buf.append(entry.getKey()).append("->").append(entry.getValue());
                 commaNeeded = true;
             }
+            buf.append("]");
         }
-        // FIXME
+        if (indicesFromColumnNames != null) {
+            buf.append(", InternalFieldNames=[");
+            boolean commaNeeded = false;
+            for (Map.Entry<String, ColumnDetails> entry : indicesFromColumnNames.entrySet()) {
+                if (commaNeeded) { buf.append(","); }
+                buf.append(entry.getKey()).append("->").append(entry.getValue());
+                commaNeeded = true;
+            }
+            buf.append("]");
+        }
         return buf.append("]").toString();
     }
 
