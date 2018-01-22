@@ -40,7 +40,7 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
 
         NamePolicyModuleDefaultsColumnInfo(OsSchemaInfo schemaInfo) {
             super(2);
-            OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("name-policy-module-defaults");
+            OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("NamePolicyModuleDefaults");
             this.firstNameIndex = addColumnDetails("firstName", "FirstName", objectSchemaInfo);
             this.lastNameIndex = addColumnDetails("lastName", "LastName", objectSchemaInfo);
         }
@@ -155,7 +155,7 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("name-policy-module-defaults", 2, 0);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("NamePolicyModuleDefaults", 2, 0);
         builder.addPersistedProperty("FirstName", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty("LastName", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         return builder.build();
@@ -170,7 +170,7 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
     }
 
     public static String getSimpleClassName() {
-        return "name-policy-module-defaults";
+        return "NamePolicyModuleDefaults";
     }
 
     public static List<String> getFieldNames() {

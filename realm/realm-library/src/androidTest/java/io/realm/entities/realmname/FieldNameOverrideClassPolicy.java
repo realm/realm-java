@@ -20,7 +20,7 @@ import io.realm.annotations.RealmClass;
 import io.realm.annotations.RealmField;
 import io.realm.annotations.RealmNamingPolicy;
 
-@RealmClass(fieldNamingPolicy = RealmNamingPolicy.LOWER_CASE_WITH_DASHES)
+@RealmClass(fieldNamingPolicy = RealmNamingPolicy.PASCAL_CASE)
 public class FieldNameOverrideClassPolicy extends RealmObject {
 
     public static final String CLASS_NAME = "field_name_override_class_policy";

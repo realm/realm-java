@@ -190,7 +190,7 @@ public class CustomRealmNameTests {
         RealmObjectSchema classSchema = schema.get(ClassWithPolicy.CLASS_NAME);
         assertEquals(ClassWithPolicy.ALL_FIELDS.size(), classSchema.getFieldNames().size());
         for (String fieldName : ClassWithPolicy.ALL_FIELDS) {
-            assertTrue(classSchema.hasField(fieldName));
+            assertTrue("Could not find: " + fieldName, classSchema.hasField(fieldName));
         }
     }
 
@@ -201,12 +201,12 @@ public class CustomRealmNameTests {
         RealmObjectSchema classSchema = schema.get(ClassWithPolicy.CLASS_NAME);
         assertEquals(ClassWithPolicy.ALL_FIELDS.size(), classSchema.getFieldNames().size());
         for (String fieldName : ClassWithPolicy.ALL_FIELDS) {
-            assertTrue(classSchema.hasField(fieldName));
+            assertTrue("Could not find: " + fieldName, classSchema.hasField(fieldName));
         }
     }
 
     //
-    // Dyn
+    // Dynamic Realm tests
     //
     @Test
     public void createObjects() {

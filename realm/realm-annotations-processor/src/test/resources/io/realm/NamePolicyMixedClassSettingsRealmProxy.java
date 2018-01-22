@@ -42,7 +42,7 @@ public class NamePolicyMixedClassSettingsRealmProxy extends some.test.NamePolicy
             super(2);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("customName");
             this.firstNameIndex = addColumnDetails("firstName", "first_name", objectSchemaInfo);
-            this.lastNameIndex = addColumnDetails("lastName", "last-name", objectSchemaInfo);
+            this.lastNameIndex = addColumnDetails("lastName", "LastName", objectSchemaInfo);
         }
 
         NamePolicyMixedClassSettingsColumnInfo(ColumnInfo src, boolean mutable) {
@@ -69,7 +69,7 @@ public class NamePolicyMixedClassSettingsRealmProxy extends some.test.NamePolicy
     static {
         List<String> fieldNames = new ArrayList<String>(2);
         fieldNames.add("first_name");
-        fieldNames.add("last-name");
+        fieldNames.add("LastName");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
@@ -157,7 +157,7 @@ public class NamePolicyMixedClassSettingsRealmProxy extends some.test.NamePolicy
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
         OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("customName", 2, 0);
         builder.addPersistedProperty("first_name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addPersistedProperty("last-name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("LastName", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         return builder.build();
     }
 
