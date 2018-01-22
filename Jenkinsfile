@@ -29,7 +29,7 @@ try {
         // on PR's for even more throughput.
         def ABIs = ""
         def instrumentationTestTarget = "connectedAndroidTest"
-        if (!['master'].contains(env.BRANCH_NAME)) {
+        if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
             ABIs = "armeabi-v7a"
             instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug more for better error reporting
         }
@@ -118,11 +118,13 @@ try {
 
                 // TODO: add support for running monkey on the example apps
 
-                if (env.BRANCH_NAME == 'master') {
+                if (!['master'].contains(env.BRANCH_NAME)) {
                   stage('Collect metrics') {
                     collectAarMetrics()
                   }
+                }   
 
+                if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
                   stage('Publish to OJO') {
                     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
                       sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
@@ -145,7 +147,7 @@ try {
   buildSuccess = false
   throw e
 } finally {
-  if (['master', 'releases'].contains(env.BRANCH_NAME) && !buildSuccess) {
+  if (['master', 'releases', 'next-major'].contains(env.BRANCH_NAME) && !buildSuccess) {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
