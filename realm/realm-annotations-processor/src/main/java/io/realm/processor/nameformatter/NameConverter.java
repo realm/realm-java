@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package io.realm.processor.nameformatter;
 
 /**
- * Interface for formatters that can implement a given naming policy.
+ * Interface for converters that can implement a given naming policy.
  *
  * @see io.realm.annotations.RealmNamingPolicy
  */

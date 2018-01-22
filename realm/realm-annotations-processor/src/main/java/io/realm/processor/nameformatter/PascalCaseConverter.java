@@ -1,5 +1,8 @@
 package io.realm.processor.nameformatter;
 
+/**
+ * Converter that converts input to "PascalCase".
+ */
 public class PascalCaseConverter implements NameConverter {
 
     public static final PascalCaseConverter INSTANCE = new PascalCaseConverter();

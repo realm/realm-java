@@ -111,7 +111,7 @@ public class NameConverterTests {
             put("camelCase", "camel_case");
             put("PascalCase", "pascal_case");
             put("mHungarianNotation", "hungarian_notation");
-            put("_mHungarianNotation", "m_hungarian_notation");
+            put("_mHungarianNotation", "hungarian_notation");
             put("mHungarian_mNotation", "hungarian_m_notation");
             put("_PascalCaseWithStartingSeparator", "pascal_case_with_starting_separator");
             put("_camelCaseWithStartingSeparator", "camel_case_with_starting_separator");

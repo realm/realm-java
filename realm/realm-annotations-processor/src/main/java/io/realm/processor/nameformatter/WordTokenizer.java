@@ -12,27 +12,27 @@ import java.util.List;
  * In this implementation we treat word separators as any of the following:
  * <ol>
  *     <li>
- *         Any time a {@code _} or {@code $} is encountered.
+ *         Anytime a {@code _} or {@code $} is encountered.
  *         Example is "_FooBar" or "_Foo$Bar" which both becomes "Foo" and "Bar".
  *     </li>
  *     <li>
- *         Any time your switch from a lower case character to a upper case character as
+ *         Anytime your switch from a lower case character to a upper case character as
  *         identified by a Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
- *         Example is "FooBar" which becomes "Foo" and "Bar"
+ *         Example is "FooBar" which becomes "Foo" and "Bar".
  *     </li>
  *     <li>
- *         Any time your switch from more than one uppercase character to a lower case one. As
+ *         Anytime your switch from more than one uppercase character to a lower case one. As
  *         identified by `Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
  *         Example is "FOOBar" which becomes "FOO" and "Bar.
  *     </li>
  *     <li>
  *         Some characters like emojiis are neither uppercase or lowercase characters, so they will
  *         not trigger any of the above rules.
- *
+ *         Examples are "my😁" and "MY😁" which are both treated as one word.
  *     </li>
  *     <li>
  *         Hungarian notation, i.e. Strings starting with lowercase "m" followed by uppercase letter
- *         is stripped.
+ *         is stripped and not considered part of any word.
  *     </li>
  * </ol>
  */
@@ -58,6 +58,10 @@ public class WordTokenizer {
             previousCodepoint = currentCodepoint;
             currentCodepoint = str.codePointAt(offset);
             int currentCharCount = Character.charCount(currentCodepoint);
+            boolean previousCodePointUpperCase = previousCodepoint != null && Character.isUpperCase(previousCodepoint);
+            boolean previousCodePointLowerCase = previousCodepoint != null && Character.isLowerCase(previousCodepoint);
+            boolean currentCodePointUpperCase = Character.isUpperCase(currentCodepoint);
+            boolean currentCodePointLowerCase = Character.isLowerCase(currentCodepoint);
 
             // Separator char encountered not part of any word, but indicate a boundary
             if (currentCodepoint == '_' || currentCodepoint == '$') {
@@ -73,7 +77,7 @@ public class WordTokenizer {
             }
 
             // Change between lower case and upper case indicate a word boundary
-            if ((previousCodepoint != null && Character.isLowerCase(previousCodepoint) && Character.isUpperCase(currentCodepoint))) {
+            if (previousCodePointLowerCase && currentCodePointUpperCase) {
                 if (currentWord.length() > 0) {
                     words.add(currentWord.toString());
                     currentWord.setLength(0);
@@ -86,12 +90,11 @@ public class WordTokenizer {
                 continue;
             }
 
-            // Change between upper case and lower case indicate a word boundary if multiple upper
-            // case characters where encountered previously.
+            // Change between upper case and lower case indicated a word boundary on the previous
+            // char if multiple upper case characters where encountered.
             if (currentWord.length() > 1
-                    && wordAllUpperCase
-                    && previousCodepoint != null
-                    && Character.isUpperCase(previousCodepoint) && Character.isLowerCase(currentCodepoint)) {
+                    && (wordAllUpperCase != null && wordAllUpperCase)
+                    && previousCodePointUpperCase && currentCodePointLowerCase) {
                 words.add(currentWord.substring(0, currentWord.length() - lastCodePointCharLength));
                 currentWord.substring(0, currentWord.length() - lastCodePointCharLength);
                 currentWord.delete(0, currentWord.length() - lastCodePointCharLength);
@@ -103,12 +106,14 @@ public class WordTokenizer {
                 continue;
             }
 
+            // Add codepoint to current word
             currentWord.appendCodePoint(currentCodepoint);
-            wordAllUpperCase = Character.isUpperCase(currentCodepoint) && (wordAllUpperCase == null || wordAllUpperCase);
+            wordAllUpperCase = currentCodePointUpperCase && (wordAllUpperCase == null || wordAllUpperCase);
             offset += currentCharCount;
             lastCodePointCharLength = currentCharCount;
         }
 
+        // Add final word when exiting loop
         if (currentWord.length() > 0) {
             words.add(currentWord.toString());
         }

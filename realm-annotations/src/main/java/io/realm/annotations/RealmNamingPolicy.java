@@ -16,7 +16,6 @@ package io.realm.annotations;
  *          To use a Java class name that is longer than the 57 character limit enforced by Realm.
  *      </li>
  * </ul>
- *
  * Depending on where the policy is applied, it will have slightly different semantics:
  * <ul>
  *     <li>
@@ -34,7 +33,6 @@ package io.realm.annotations;
  *          affected. This will override any field naming policy specified on a module.
  *      </li>
  * </ul>
- *
  * An example of this:
  * <pre>
  * {@code
@@ -45,8 +43,7 @@ package io.realm.annotations;
  * }
  * </pre>
  * <p>
- *
- * Choosing an internal name that differs from the name used in the Java model classes has the
+ ** Choosing an internal name that differs from the name used in the Java model classes has the
  * following implications:
  * <ul>
  *      <li>
@@ -60,6 +57,36 @@ package io.realm.annotations;
  *          Schema errors reported will use the internal names.
  *      </li>
  * </ul>
+ * <p>
+ * When converting Java variable names automatically, each variable name is normalized by splitting
+ * it into a list of words that are then joined using the rules of the target format. The following
+ * heuristics are used when splitting a variable name into individual words:
+ * <ol>
+ *     <li>
+ *         Anytime a {@code _} or {@code $} is encountered.
+ *         Example is "_FirstName" or "_First$Name" which both becomes "First" and "Name".
+ *     </li>
+ *     <li>
+ *         Anytime your switch from a lower case character to a upper case character as
+ *         identified by a Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
+ *         Example is "FirstName" which becomes "First" and "Name".
+ *     </li>
+ *     <li>
+ *         Anytime your switch from more than one uppercase character to a lower case one. As
+ *         identified by `Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
+ *         Example is "FIRSTName" which becomes "FIRST" and "Name.
+ *     </li>
+ *     <li>
+ *         Some characters like emojiis are neither uppercase nor lowercase characters, so they will
+ *         not s
+ *         Examples are "my😁" and "MY😁" which are both treated as one word.
+ *     </li>
+ *     <li>
+ *         Hungarian notation, i.e. Strings starting with lowercase "m" followed by uppercase letter
+ *         is stripped and not considered part of any word.
+ *         Example is "mFirstName" and "mFIRSTName" which becomes "First" and "Name.
+ *     </li>
+ * </ol>
  * <p>
  * Note, that changing the internal name does <i>NOT</i> effect importing data from JSON. The JSON data
  * must still follow the names as defined in the Realm Java class.
@@ -88,59 +115,32 @@ public enum RealmNamingPolicy {
     IDENTITY,
 
     /**
-     * The name in the Java model class is split into words using upper case letters and {@code _}.
-     * Each word is separated by {@code _} and then lower cased.
+     * The name in the Java model class is converted to camelCase, i.e. all words are joined
+     * together with the first letter in the first word lower cased, and the first letter of
+     * all subsequent words upper cased. This is the standard naming schema in Java, Kotlin, Swift
+     * and JavaScript.
      * <p>
-     * Examples:
-     * <ul>
-     *     <li>
-     *         "firstName" and "FirstName" becomes "first_name".
-     *     </li>
-     *     <li>
-     *         "mFirstName" becomes "m_first_name"
-     *     </li>
-     *     <li>
-     *         "FIRST_NAME" becomes "f_i_r_s_t_n_a_m_e"
-     *     </li>
-     * </ul>
-     *
-     * Only ASCII strings are supported. The conversion on non-ASCII characters are undefined.
-     */
-    LOWER_CASE_WITH_UNDERSCORES,
-
-    /**
-     * The name in the Java model class is converted to camelCase, treating {@code _} and upper
-     * case letter as marking the beginning of a new word.
-     * <p>
-     * Examples:
-     * <ul>
-     *     <li>
-     *         "firstName" becomes "first_name"
-     *     </li>
-     *     <li>
-     *         "FIRSTName" becomes "
-     *     </li>
-     * </ul>
-     *
-     * Only ASCII strings are supported. The conversion on non-ASCII characters are undefined.
+     * Examples: "firstName", "FirstName", "mFirstName", "FIRST_NAME", "First$Name" all becomes
+     * "firstName".
      */
     CAMEL_CASE,
 
     /**
-     * The name in the Java model class is converted to PascalCase, treating {@code _} and upper
-     * case letter as marking the beginning of a new word.
+     * The name in the Java model class is converted to PascalCase, i.e. all words are joined
+     * together with the first letter of all words upper cased. This is the default naming scheme
+     * in .NET.
      * <p>
-     * Examples:
-     * <ul>
-     *     <li>
-     *         "firstName" becomes "first_name"
-     *     </li>
-     *     <li>
-     *         "FIRSTName" becomes "
-     *     </li>
-     * </ul>
-     *
-     * Only ASCII strings are supported. The conversion on non-ASCII characters are undefined.
+     * Examples: "firstName", "FirstName", "mFirstName", "FIRST_NAME", "First$Name" all becomes
+     * "FirstName".
      */
-    PASCAL_CASE
+    PASCAL_CASE,
+
+    /**
+     * The name in the Java model class is converted lowercase with each word seperated by {@code _}.
+     * This is the default naming scheme in C++.
+     * <p>
+     * Examples: "firstName", "FirstName", "mFirstName", "FIRST_NAME", "First$Name" all becomes
+     * "first_name".
+     */
+    LOWER_CASE_WITH_UNDERSCORES
 }
