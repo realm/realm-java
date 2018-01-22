@@ -118,13 +118,13 @@ try {
 
                 // TODO: add support for running monkey on the example apps
 
-                if (!['master'].contains(env.BRANCH_NAME)) {
+                if (['master'].contains(env.BRANCH_NAME)) {
                   stage('Collect metrics') {
                     collectAarMetrics()
                   }
                 }   
 
-                if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
+                if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
                   stage('Publish to OJO') {
                     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
                       sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
