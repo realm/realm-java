@@ -65,13 +65,6 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
     }
 
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
-    private static final List<String> FIELD_NAMES;
-    static {
-        List<String> fieldNames = new ArrayList<String>(2);
-        fieldNames.add("FirstName");
-        fieldNames.add("LastName");
-        FIELD_NAMES = Collections.unmodifiableList(fieldNames);
-    }
 
     private NamePolicyModuleDefaultsColumnInfo columnInfo;
     private ProxyState<some.test.NamePolicyModuleDefaults> proxyState;
@@ -171,10 +164,6 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
 
     public static String getSimpleClassName() {
         return "NamePolicyModuleDefaults";
-    }
-
-    public static List<String> getFieldNames() {
-        return FIELD_NAMES;
     }
 
     @SuppressWarnings("cast")

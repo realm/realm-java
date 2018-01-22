@@ -65,13 +65,6 @@ public class NamePolicyMixedClassSettingsRealmProxy extends some.test.NamePolicy
     }
 
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
-    private static final List<String> FIELD_NAMES;
-    static {
-        List<String> fieldNames = new ArrayList<String>(2);
-        fieldNames.add("first_name");
-        fieldNames.add("LastName");
-        FIELD_NAMES = Collections.unmodifiableList(fieldNames);
-    }
 
     private NamePolicyMixedClassSettingsColumnInfo columnInfo;
     private ProxyState<some.test.NamePolicyMixedClassSettings> proxyState;
@@ -171,10 +164,6 @@ public class NamePolicyMixedClassSettingsRealmProxy extends some.test.NamePolicy
 
     public static String getSimpleClassName() {
         return "customName";
-    }
-
-    public static List<String> getFieldNames() {
-        return FIELD_NAMES;
     }
 
     @SuppressWarnings("cast")

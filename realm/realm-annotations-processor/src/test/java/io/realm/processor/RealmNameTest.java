@@ -77,7 +77,7 @@ public class RealmNameTest {
     public void compileModulesWithConflictingPoliciesForAllClassesFails() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(
-                        JavaFileObjects.forResource("some/test/NamePoliceConflictingModuleDefinitionsForAllClasses.java"),
+                        JavaFileObjects.forResource("some/test/NamePolicyConflictingModuleDefinitionsForAllClasses.java"),
                         JavaFileObjects.forResource("some/test/Simple.java")
                 ))
                 .processedWith(new RealmProcessor())
@@ -90,7 +90,7 @@ public class RealmNameTest {
     public void compileModulesWithConflictingPoliciesForNamedClassesFails() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(
-                        JavaFileObjects.forResource("some/test/NamePoliceConflictingModuleDefinitionsForNamedClasses.java"),
+                        JavaFileObjects.forResource("some/test/NamePolicyConflictingModuleDefinitionsForNamedClasses.java"),
                         JavaFileObjects.forResource("some/test/Simple.java")
                 ))
                 .processedWith(new RealmProcessor())
@@ -104,7 +104,7 @@ public class RealmNameTest {
     public void compileModulesWithConflictingPoliciesAndMixedClassDefinitionsFails() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(
-                        JavaFileObjects.forResource("some/test/NamePoliceConflictingModuleDefinitionsForMixedDefinitions.java"),
+                        JavaFileObjects.forResource("some/test/NamePolicyConflictingModuleDefinitionsForMixedDefinitions.java"),
                         JavaFileObjects.forResource("some/test/Simple.java")
                 ))
                 .processedWith(new RealmProcessor())
