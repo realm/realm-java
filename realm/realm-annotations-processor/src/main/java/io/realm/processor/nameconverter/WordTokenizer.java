@@ -31,8 +31,8 @@ import java.util.List;
  *         Example is "_FooBar" or "_Foo$Bar" which both becomes "Foo" and "Bar".
  *     </li>
  *     <li>
- *         Anytime your switch from a lower case character to a upper case character as
- *         identified by a Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
+ *         Anytime you switch from a lower case character to a upper case character as
+ *         identified by a `Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
  *         Example is "FooBar" which becomes "Foo" and "Bar".
  *     </li>
  *     <li>
@@ -46,7 +46,7 @@ import java.util.List;
  *         Examples are "my😁" and "MY😁" which are both treated as one word.
  *     </li>
  *     <li>
- *         Hungarian notation, i.e. Strings starting with lowercase "m" followed by uppercase letter
+ *         Hungarian notation, i.e. strings starting with lowercase "m" followed by uppercase letter
  *         is stripped and not considered part of any word.
  *     </li>
  * </ol>
