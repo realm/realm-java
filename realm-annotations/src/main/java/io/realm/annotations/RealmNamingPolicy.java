@@ -4,7 +4,7 @@ package io.realm.annotations;
  * This enum defines the possible ways class and field names can be mapped from what is used in Java
  * to the name used internally in the Realm file.
  * <p>
- * Examples where this are useful:
+ * Examples where this is useful:
  * <ul>
  *      <li>
  *          To support two model classes with the same simple name but in different packages.
@@ -91,7 +91,7 @@ package io.realm.annotations;
  *     </li>
  * </ol>
  * <p>
- * Note that changing the internal name does <i>NOT</i> effect importing data from JSON. The JSON
+ * Note that changing the internal name does <i>NOT</i> affect importing data from JSON. The JSON
  * data must still follow the names as defined in the Realm Java class.
  *
  * @see RealmModule
