@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * Annotation used on fields in Realm model classes. It describes metadata about the particular
  * field.
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Inherited
 public @interface RealmField {
