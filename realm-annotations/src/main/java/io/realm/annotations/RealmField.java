@@ -23,8 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used on fields in Realm model classes. It describes metadata about the particular
- * field.
+ * Annotation used on fields in Realm model classes. It describes metadata about the field.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

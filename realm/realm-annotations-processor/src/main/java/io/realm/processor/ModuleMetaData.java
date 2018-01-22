@@ -32,22 +32,23 @@ import javax.lang.model.element.TypeElement;
 
 import io.realm.annotations.RealmModule;
 import io.realm.annotations.RealmNamingPolicy;
-import io.realm.processor.nameformatter.NameConverter;
+import io.realm.processor.nameconverter.NameConverter;
 
 
 /**
  * Utility class for holding metadata for the Realm modules.
  * <p>
  * Modules are inherently difficult to process because a model class can be part of multiple modules
- * that contain information required by the model class. At the same time, the module will need the
- * data from processed model classes to fully complete its analysis (FIXME: Why?)
+ * that contain information required by the model class (e.g. class/field naming policies). At the
+ * same time, the module will need the data from processed model classes to fully complete its
+ * analysis (e.g. to ensure that only valid Realm model classes are added to the module).
  * <p>
  * For this reason, processing modules are separated into 3 steps:
  * <ol>
  *  <li>
  *      Pre-processing. Done by calling {@link #preProcess(Set)}, which will do an initial parse
- *      of the modules and build up all information it can before before processing any class.
- *      This e.g. includes default naming policies for classes and fields.
+ *      of the modules and build up all information it can before before processing any model
+ *      classes.
  *  </li>
  *  <li>
  *      Process model classes. See {@link ClassMetaData#generate(ModuleMetaData)}.
@@ -129,7 +130,6 @@ public class ModuleMetaData {
      * @return {@code true} if everything checks out, {@code false} if an error was found and reported.
      */
     private boolean validateNamingPolicies(Set<ModulePolicyInfo> globalModuleInfo, Map<String, ModulePolicyInfo> classSpecificModuleInfo, TypeElement classElement, RealmModule moduleAnnotation) {
-        // Check that module naming policies do not conflict
         RealmNamingPolicy classNamePolicy = moduleAnnotation.classNamingPolicy();
         RealmNamingPolicy fieldNamePolicy = moduleAnnotation.fieldNamingPolicy();
         String qualifiedModuleClassName = classElement.getQualifiedName().toString();
@@ -139,7 +139,7 @@ public class ModuleMetaData {
         // as we haven't processed the full list of classes yet. We therefore need to treat
         // each case specifically :(
         // We do not compare against the default module as it is always configured correctly
-        // with NO_POLICY, meaning it will not trigger any errors anyway.
+        // with NO_POLICY, meaning it will not trigger any errors.
         if (moduleAnnotation.allClasses()) {
             // Check for conflicts with other modules with `allClasses` set. Only need to
             // check the first since other conflicts would have been detected in an earlier
@@ -373,10 +373,7 @@ public class ModuleMetaData {
 
     /**
      * Only available after {@link #preProcess(Set)} has run.
-     *
      * Returns the module name policy the given name.
-     *
-     * @param qualifiedClassName
      */
     public NameConverter getClassNameFormatter(String qualifiedClassName) {
         // We already validated that module definitions all agree on the same name policy
@@ -385,12 +382,15 @@ public class ModuleMetaData {
             return Utils.getNameFormatter(classNamingPolicy.get(customGlobalModules.iterator().next()));
         }
 
+        // No global modules found, so find match in modules specifically listning the class.
+        // We already validated that all modules agree on the converter, so just find first match.
         for (Map.Entry<String, Set<String>> moduleInfo : classesInModule.entrySet()) {
             if (moduleInfo.getValue().contains(qualifiedClassName)) {
                 return Utils.getNameFormatter(classNamingPolicy.get(moduleInfo.getKey()));
             }
         }
 
+        // No policy was provided anywhere for this class
         return Utils.getNameFormatter(RealmNamingPolicy.NO_POLICY);
     }
 

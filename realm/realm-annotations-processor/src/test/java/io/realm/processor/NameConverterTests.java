@@ -5,10 +5,10 @@ import org.junit.Test;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import io.realm.processor.nameformatter.CamelCaseConverter;
-import io.realm.processor.nameformatter.LowerCaseWithSeparatorConverter;
-import io.realm.processor.nameformatter.NameConverter;
-import io.realm.processor.nameformatter.PascalCaseConverter;
+import io.realm.processor.nameconverter.CamelCaseConverter;
+import io.realm.processor.nameconverter.LowerCaseWithSeparatorConverter;
+import io.realm.processor.nameconverter.NameConverter;
+import io.realm.processor.nameconverter.PascalCaseConverter;
 
 import static org.junit.Assert.assertEquals;
 
@@ -16,10 +16,9 @@ public class NameConverterTests {
 
     @Test
     public void camelCase() {
-        NameConverter converter = CamelCaseConverter.INSTANCE;
+        NameConverter converter = new CamelCaseConverter();
         Map<String, String> values = new LinkedHashMap<String, String>() {{
             // <JavaName, InternalName>
-            // Common naming schemes using ASCII chars
             put("camelCase", "camelCase");
             put("PascalCase", "pascalCase");
             put("mHungarianNotation", "hungarianNotation");
@@ -60,10 +59,9 @@ public class NameConverterTests {
 
     @Test
     public void pascalCase() {
-        NameConverter converter = PascalCaseConverter.INSTANCE;
+        NameConverter converter = new PascalCaseConverter();
         Map<String, String> values = new LinkedHashMap<String, String>() {{
             // <JavaName, InternalName>
-            // Common naming schemes using ASCII chars
             put("camelCase", "CamelCase");
             put("PascalCase", "PascalCase");
             put("mHungarianNotation", "HungarianNotation");
@@ -104,7 +102,7 @@ public class NameConverterTests {
 
     @Test
     public void lowerCaseWithDashes() {
-        NameConverter converter = LowerCaseWithSeparatorConverter.INSTANCE_UNDERSCORE;
+        NameConverter converter = new LowerCaseWithSeparatorConverter('_');
         Map<String, String> values = new LinkedHashMap<String, String>() {{
             // <JavaName, InternalName>
             // Common naming schemes using ASCII chars
@@ -147,6 +145,5 @@ public class NameConverterTests {
             assertEquals(entry.getValue(), converter.convert(entry.getKey()));
         }
     }
-
 
 }

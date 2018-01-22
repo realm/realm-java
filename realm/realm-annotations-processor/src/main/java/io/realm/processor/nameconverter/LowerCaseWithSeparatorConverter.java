@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.processor.nameformatter;
+package io.realm.processor.nameconverter;
 
 /**
  * Converter that converts input to lower case with a defined separator character.
  */
 public class LowerCaseWithSeparatorConverter implements NameConverter {
-
-    public static final LowerCaseWithSeparatorConverter INSTANCE_UNDERSCORE = new LowerCaseWithSeparatorConverter('_');
 
     private final WordTokenizer tokenizer = new WordTokenizer();
     private final char separator;

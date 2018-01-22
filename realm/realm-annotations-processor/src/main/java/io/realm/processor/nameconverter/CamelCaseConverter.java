@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.processor.nameformatter;
+package io.realm.processor.nameconverter;
 
 /**
  * Converter that converts input to "camelCase".
  */
 public class CamelCaseConverter implements NameConverter {
-
-    public static final CamelCaseConverter INSTANCE = new CamelCaseConverter();
 
     private final WordTokenizer tokenizer = new WordTokenizer();
 

@@ -18,7 +18,7 @@ import io.realm.annotations.RealmModule;
 import io.realm.annotations.RealmNamingPolicy;
 import some.test.AllTypes;
 
-public class NamePoliceConflictingModuleDefinitionsForAllClasses {
+public class NamePolicyConflictingModuleDefinitionsForAllClasses {
 
     @RealmModule(allClasses = true,
             classNamingPolicy = RealmNamingPolicy.IDENTITY,

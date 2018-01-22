@@ -88,7 +88,7 @@ public final class ColumnIndices {
     }
 
     /**
-     * Returns the {@link ColumnInfo} for the passed class (internal) name.
+     * Returns the {@link ColumnInfo} for the provided internal class name.
      *
      * @param simpleClassName the simple name of the class for which to get the ColumnInfo.
      * @return the corresponding {@link ColumnInfo} object.

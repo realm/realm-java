@@ -447,7 +447,7 @@ public abstract class RealmObjectSchema {
     }
 
     long getAndCheckFieldIndex(String fieldName) {
-        long index = columnInfo.getColumnIndexFromJavaField(fieldName);
+        long index = columnInfo.getColumnIndex(fieldName);
         if (index < 0) {
             throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
@@ -484,7 +484,7 @@ public abstract class RealmObjectSchema {
      */
     //@VisibleForTesting(otherwise = VisibleForTesting.NONE)
     long getFieldIndex(String fieldName) {
-        return columnInfo.getColumnIndexFromJavaField(fieldName);
+        return columnInfo.getColumnIndex(fieldName);
     }
 
     static void checkLegalName(String fieldName) {
@@ -527,13 +527,13 @@ public abstract class RealmObjectSchema {
         }
 
         @Override
-        public long getColumnIndexFromJavaField(String columnName) {
+        public long getColumnIndex(String columnName) {
             return table.getColumnIndex(columnName);
         }
 
         @Override
-        public ColumnDetails getColumnDetailsFromJavaField(String columnName) {
-            throw new UnsupportedOperationException("DynamicColumnIndices do not support 'getColumnDetailsFromJavaField'");
+        public ColumnDetails getColumnDetails(String columnName) {
+            throw new UnsupportedOperationException("DynamicColumnIndices do not support 'getColumnDetails'");
         }
 
         @Override

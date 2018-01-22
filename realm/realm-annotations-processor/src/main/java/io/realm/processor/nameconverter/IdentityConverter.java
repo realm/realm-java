@@ -13,25 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.processor.nameconverter;
 
-import io.realm.annotations.RealmModule;
-import io.realm.annotations.RealmNamingPolicy;
-import some.test.Simple;
+/**
+ * Converter that doesn't do any conversion when translating from Java to Realm.
+ *
+ * @see io.realm.annotations.RealmNamingPolicy#IDENTITY
+ */
+public class IdentityConverter implements NameConverter {
 
-public class NamePoliceConflictingModuleDefinitionsForNamedClasses {
-
-    @RealmModule(classes = { Simple.class },
-            classNamingPolicy = RealmNamingPolicy.IDENTITY,
-            fieldNamingPolicy = RealmNamingPolicy.IDENTITY)
-    public class MyModule1 {
-
-    }
-
-    @RealmModule(classes = { Simple.class },
-            classNamingPolicy = RealmNamingPolicy.CAMEL_CASE,
-            fieldNamingPolicy = RealmNamingPolicy.CAMEL_CASE)
-    public class MyModule2 {
-
+    @Override
+    public String convert(String name) {
+        return name;
     }
 
 }

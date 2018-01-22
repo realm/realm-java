@@ -13,20 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.processor.nameformatter;
+package io.realm.processor.nameconverter;
 
 /**
- * Converter that doesn't do any conversion when translating from Java to Realm.
- *
- * @see io.realm.annotations.RealmNamingPolicy#IDENTITY
+ * Converter that converts input to "PascalCase".
  */
-public class IdentityConverter implements NameConverter {
+public class PascalCaseConverter implements NameConverter {
 
-    public static NameConverter INSTANCE = new IdentityConverter();
+    private final WordTokenizer tokenizer = new WordTokenizer();
 
     @Override
     public String convert(String name) {
-        return name;
-    }
+        String[] words = tokenizer.split(name);
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i].toLowerCase();
+            int codepoint = word.codePointAt(0);
+            output.appendCodePoint(Character.toUpperCase(codepoint));
+            output.append(word.substring(Character.charCount(codepoint)));
+        }
 
+        return output.toString();
+    }
 }

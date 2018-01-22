@@ -137,7 +137,7 @@ public abstract class ColumnInfo {
      *
      * @return column index.
      */
-    public long getColumnIndexFromJavaField(String javaFieldName) {
+    public long getColumnIndex(String javaFieldName) {
         ColumnDetails details = indicesFromJavaFieldNames.get(javaFieldName);
         return (details == null) ? -1 : details.columnIndex;
     }
@@ -148,7 +148,7 @@ public abstract class ColumnInfo {
      * @return {@link ColumnDetails} or {@code null} if not found.
      */
     @Nullable
-    public ColumnDetails getColumnDetailsFromJavaField(String javaFieldName) {
+    public ColumnDetails getColumnDetails(String javaFieldName) {
         return indicesFromJavaFieldNames.get(javaFieldName);
     }
 
@@ -217,14 +217,15 @@ public abstract class ColumnInfo {
      * <p>
      * No validation done here.  Presuming that all necessary validation takes place in {@code Proxy.validateTable}.
      *
-     * @param publicColumnName The name of the column whose index is sought.
+     * @param javaFieldName The name of the java field name.
+     * @param internalColumnName The underlying column name in the Realm file for the Java field name.
      * @param objectSchemaInfo the {@link OsObjectSchemaInfo} for the corresponding {@code RealmObject}.
-     * @return the index of the column in the table
+     * @return the index of the column in the table.
      */
-    protected final long addColumnDetails(String publicColumnName, String internalColumnName, OsObjectSchemaInfo objectSchemaInfo) {
+    protected final long addColumnDetails(String javaFieldName, String internalColumnName, OsObjectSchemaInfo objectSchemaInfo) {
         Property property = objectSchemaInfo.getProperty(internalColumnName);
         ColumnDetails cd = new ColumnDetails(property);
-        indicesFromJavaFieldNames.put(publicColumnName, cd);
+        indicesFromJavaFieldNames.put(javaFieldName, cd);
         indicesFromColumnNames.put(internalColumnName, cd);
         return property.getColumnIndex();
     }
@@ -235,14 +236,13 @@ public abstract class ColumnInfo {
      * Must be called from within the subclass constructor, to maintain the effectively-final contract.
      *
      * @param schemaInfo the {@link OsSchemaInfo} of the corresponding {@code Realm} instance.
-     * @param publicColumnName The name of the backlink column.
+     * @param javaFieldName The name of the backlink column.
      * @param sourceTableName The name of the backlink source class.
-     * @param sourcePublicColumnName The name of the backlink source field.
+     * @param sourceJavaFieldName The name of the backlink source field.
      */
-    protected final void addBacklinkDetails(OsSchemaInfo schemaInfo, String publicColumnName, String sourceTableName, String sourcePublicColumnName) {
-        // FIXME: Figure out exactly what needs to be parsed in here
-        long columnIndex = schemaInfo.getObjectSchemaInfo(sourceTableName).getProperty(sourcePublicColumnName).getColumnIndex();
-        indicesFromJavaFieldNames.put(publicColumnName, new ColumnDetails(columnIndex, RealmFieldType.LINKING_OBJECTS, sourceTableName));
+    protected final void addBacklinkDetails(OsSchemaInfo schemaInfo, String javaFieldName, String sourceTableName, String sourceJavaFieldName) {
+        long columnIndex = schemaInfo.getObjectSchemaInfo(sourceTableName).getProperty(sourceJavaFieldName).getColumnIndex();
+        indicesFromJavaFieldNames.put(javaFieldName, new ColumnDetails(columnIndex, RealmFieldType.LINKING_OBJECTS, sourceTableName));
     }
 
     /**

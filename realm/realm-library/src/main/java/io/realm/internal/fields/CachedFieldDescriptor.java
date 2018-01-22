@@ -74,7 +74,7 @@ class CachedFieldDescriptor extends FieldDescriptor {
                         String.format(Locale.US, "Invalid query: class '%s' not found in this schema.", currentClassName));
             }
 
-            final ColumnInfo.ColumnDetails details = columnInfo.getColumnDetailsFromJavaField(currentColumnName);
+            final ColumnInfo.ColumnDetails details = columnInfo.getColumnDetails(currentColumnName);
             if (details == null) {
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Invalid query: field '%s' not found in class '%s'.", currentColumnName, currentClassName));

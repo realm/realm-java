@@ -116,7 +116,6 @@ class ImmutableRealmObjectSchema extends RealmObjectSchema {
      */
     @Override
     FieldDescriptor getColumnIndices(String publicJavaNameDescription, RealmFieldType... validColumnTypes) {
-        // FIXME: Do we need to create a new constructor FieldDescriptor here?
         return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), publicJavaNameDescription, validColumnTypes);
     }
 }

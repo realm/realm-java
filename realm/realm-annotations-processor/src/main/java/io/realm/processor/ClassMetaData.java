@@ -48,7 +48,7 @@ import io.realm.annotations.RealmClass;
 import io.realm.annotations.RealmField;
 import io.realm.annotations.RealmNamingPolicy;
 import io.realm.annotations.Required;
-import io.realm.processor.nameformatter.NameConverter;
+import io.realm.processor.nameconverter.NameConverter;
 
 
 /**
@@ -548,18 +548,19 @@ public class ClassMetaData {
         return true;
     }
 
-    private String getInternalFieldName(VariableElement field, NameConverter defaultFormatter) {
+    private String getInternalFieldName(VariableElement field, NameConverter defaultConverter) {
         RealmField nameAnnotation = field.getAnnotation(RealmField.class);
         if (nameAnnotation != null) {
             String declaredName = nameAnnotation.name();
             if (!declaredName.equals("")) {
                 return declaredName;
             } else {
-                // FIXME log error instead
+                Utils.note(String.format("Empty internal name defined on @RealmField. " +
+                        "Falling back to named used by Java model class: %s", field.getSimpleName()), field);
                 return field.getSimpleName().toString();
             }
         } else {
-            return defaultFormatter.convert(field.getSimpleName().toString());
+            return defaultConverter.convert(field.getSimpleName().toString());
         }
     }
 

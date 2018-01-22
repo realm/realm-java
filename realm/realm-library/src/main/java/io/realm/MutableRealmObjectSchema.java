@@ -293,7 +293,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     /**
-     * Returns a field descriptor based on Java field names found in model classes.
+     * Returns a field descriptor based on the internal field names found in the Realm file.
      *
      * @param internalColumnNameDescription internal column name or internal linked column name description.
      * @param validColumnTypes valid field type for the last field in a linked field

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.realm.processor;
 
 import java.util.Collections;
@@ -25,7 +24,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Wrapper around all {@link ClassMetaData} that also enables easy lookup of class data.
+ * Wrapper around all Realm model classes metadata found during processing. It also
+ * allows easy lookup for specific class data.
  */
 public class ClassCollection {
 

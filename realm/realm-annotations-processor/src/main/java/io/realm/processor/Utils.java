@@ -18,11 +18,11 @@ import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
 import io.realm.annotations.RealmNamingPolicy;
-import io.realm.processor.nameformatter.CamelCaseConverter;
-import io.realm.processor.nameformatter.LowerCaseWithSeparatorConverter;
-import io.realm.processor.nameformatter.NameConverter;
-import io.realm.processor.nameformatter.IdentityConverter;
-import io.realm.processor.nameformatter.PascalCaseConverter;
+import io.realm.processor.nameconverter.CamelCaseConverter;
+import io.realm.processor.nameconverter.LowerCaseWithSeparatorConverter;
+import io.realm.processor.nameconverter.NameConverter;
+import io.realm.processor.nameconverter.IdentityConverter;
+import io.realm.processor.nameconverter.PascalCaseConverter;
 
 
 /**
@@ -355,6 +355,15 @@ public class Utils {
         messager.printMessage(Diagnostic.Kind.ERROR, message);
     }
 
+    public static void note(String message, Element element) {
+        if (element instanceof RealmFieldElement) {
+            // Element is being cast to Symbol internally which breaks any implementors of the
+            // Element interface. This is a hack to work around that. Bad bad Oracle
+            element = ((RealmFieldElement) element).getFieldReference();
+        }
+        messager.printMessage(Diagnostic.Kind.NOTE, message, element);
+    }
+
     public static void note(String message) {
         messager.printMessage(Diagnostic.Kind.NOTE, message);
     }
@@ -372,11 +381,11 @@ public class Utils {
             return new IdentityConverter();
         }
         switch (policy) {
-            case NO_POLICY: return IdentityConverter.INSTANCE;
-            case IDENTITY: return IdentityConverter.INSTANCE;
-            case LOWER_CASE_WITH_UNDERSCORES: return LowerCaseWithSeparatorConverter.INSTANCE_UNDERSCORE;
-            case CAMEL_CASE: return CamelCaseConverter.INSTANCE;
-            case PASCAL_CASE: return PascalCaseConverter.INSTANCE;
+            case NO_POLICY: return new IdentityConverter();
+            case IDENTITY: return new IdentityConverter();
+            case LOWER_CASE_WITH_UNDERSCORES: return new LowerCaseWithSeparatorConverter('_');
+            case CAMEL_CASE: return new CamelCaseConverter();
+            case PASCAL_CASE: return new PascalCaseConverter();
             default:
                 throw new IllegalArgumentException("Unknown policy: " + policy);
         }

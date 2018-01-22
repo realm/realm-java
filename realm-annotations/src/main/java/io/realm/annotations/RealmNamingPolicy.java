@@ -2,12 +2,12 @@ package io.realm.annotations;
 
 /**
  * This enum defines the possible ways class and field names can be mapped from what is used in Java
- * to the name used internally in Realm.
+ * to the name used internally in the Realm file.
  * <p>
  * Examples where this can be useful is e.g:
  * <ul>
  *      <li>
- *          To support two model classes with the same name in different packages.
+ *          To support two model classes with the same simple name but in different packages.
  *      </li>
  *      <li>
  *          To make it easier to work with cross platform schemas as naming conventions are different.
@@ -16,6 +16,7 @@ package io.realm.annotations;
  *          To use a Java class name that is longer than the 57 character limit enforced by Realm.
  *      </li>
  * </ul>
+ *
  * Depending on where the policy is applied, it will have slightly different semantics:
  * <ul>
  *     <li>
@@ -33,6 +34,7 @@ package io.realm.annotations;
  *          affected. This will override any field naming policy specified on a module.
  *      </li>
  * </ul>
+ * <p>
  * An example of this:
  * <pre>
  * {@code
@@ -43,7 +45,7 @@ package io.realm.annotations;
  * }
  * </pre>
  * <p>
- ** Choosing an internal name that differs from the name used in the Java model classes has the
+ * Choosing an internal name that differs from the name used in the Java model classes has the
  * following implications:
  * <ul>
  *      <li>
@@ -58,9 +60,9 @@ package io.realm.annotations;
  *      </li>
  * </ul>
  * <p>
- * When converting Java variable names automatically, each variable name is normalized by splitting
+ * When automatically converting Java variable names, each variable name is normalized by splitting
  * it into a list of words that are then joined using the rules of the target format. The following
- * heuristics are used when splitting a variable name into individual words:
+ * heuristics are used for determining what constitutes a "word".
  * <ol>
  *     <li>
  *         Anytime a {@code _} or {@code $} is encountered.
@@ -68,28 +70,29 @@ package io.realm.annotations;
  *     </li>
  *     <li>
  *         Anytime your switch from a lower case character to a upper case character as
- *         identified by a Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
+ *         identified by {@link Character#isUpperCase(int)} and {@link Character#isLowerCase(int)}.
  *         Example is "FirstName" which becomes "First" and "Name".
  *     </li>
  *     <li>
- *         Anytime your switch from more than one uppercase character to a lower case one. As
- *         identified by `Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
+ *         Anytime your switch from more than one uppercase character to a lower case one. The last
+ *         upper case letter is assumed to be part of the next word. This is identified by using
+ *         {@link Character#isUpperCase(int)} and {@link Character#isLowerCase(int)}.
  *         Example is "FIRSTName" which becomes "FIRST" and "Name.
  *     </li>
  *     <li>
  *         Some characters like emojiis are neither uppercase nor lowercase characters, so they will
- *         not s
+ *         be part of the current word.
  *         Examples are "my😁" and "MY😁" which are both treated as one word.
  *     </li>
  *     <li>
- *         Hungarian notation, i.e. Strings starting with lowercase "m" followed by uppercase letter
- *         is stripped and not considered part of any word.
+ *         Hungarian notation, i.e. variable names starting with lowercase "m" followed by uppercase
+ *         letter is stripped and not considered part of any word.
  *         Example is "mFirstName" and "mFIRSTName" which becomes "First" and "Name.
  *     </li>
  * </ol>
  * <p>
- * Note, that changing the internal name does <i>NOT</i> effect importing data from JSON. The JSON data
- * must still follow the names as defined in the Realm Java class.
+ * Note, that changing the internal name does <i>NOT</i> effect importing data from JSON. The JSON
+ * data must still follow the names as defined in the Realm Java class.
  *
  * @see RealmModule
  * @see RealmClass
@@ -105,7 +108,7 @@ public enum RealmNamingPolicy {
      * If two modules disagree on the policy and one of them is {@code NO_POLICY}, the other one
      * will be chosen without an error being thrown.
      * <p>
-     * This policy is the default one.
+     * This policy is the default.
      */
     NO_POLICY,
 
@@ -136,7 +139,7 @@ public enum RealmNamingPolicy {
     PASCAL_CASE,
 
     /**
-     * The name in the Java model class is converted lowercase with each word seperated by {@code _}.
+     * The name in the Java model class is converted lowercase with each word separated by {@code _}.
      * This is the default naming scheme in C++.
      * <p>
      * Examples: "firstName", "FirstName", "mFirstName", "FIRST_NAME", "First$Name" all becomes
