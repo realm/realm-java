@@ -233,28 +233,24 @@ public class RealmProcessor extends AbstractProcessor {
     }
 
     private boolean createProxyClassFiles(TypeMirrors typeMirrors) {
-        boolean success = true;
         for (ClassMetaData metadata : classCollection.getClasses()) {
             RealmProxyInterfaceGenerator interfaceGenerator = new RealmProxyInterfaceGenerator(processingEnv, metadata);
             try {
                 interfaceGenerator.generate();
             } catch (IOException e) {
                 Utils.error(e.getMessage(), metadata.getClassElement());
-                success = false;
+                return false;
             }
 
             RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, typeMirrors, metadata, classCollection);
             try {
                 sourceCodeGenerator.generate();
-            } catch (IOException e) {
+            } catch (IOException | UnsupportedOperationException e) {
                 Utils.error(e.getMessage(), metadata.getClassElement());
-                success = false;
-            } catch (UnsupportedOperationException e) {
-                Utils.error(e.getMessage(), metadata.getClassElement());
-                success = false;
+                return false;
             }
         }
-        return success;
+        return true;
     }
 
     private boolean createDefaultModule() {

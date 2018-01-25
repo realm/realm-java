@@ -37,7 +37,7 @@ class DynamicFieldDescriptor extends FieldDescriptor {
      * Build a dynamic field descriptor for the passed field description string.
      *
      * @param table the start table.
-     * @param fieldDescription the field description using internal column columns.
+     * @param fieldDescription the field description using internal columns.
      * @param validInternalColumnTypes valid types for the last field in the field description.
      * @param validFinalColumnTypes valid types for the last field in the field description.
      */

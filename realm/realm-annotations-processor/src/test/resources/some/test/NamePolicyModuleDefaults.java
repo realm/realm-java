@@ -20,7 +20,7 @@ import io.realm.annotations.RealmField;
 import io.realm.annotations.RealmNamingPolicy;
 
 /**
- * Class with only a custom name
+ * Class which inherit all naming policies from the module.
  */
 public class NamePolicyModuleDefaults extends RealmObject {
     public String firstName;

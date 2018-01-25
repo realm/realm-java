@@ -47,8 +47,7 @@ import io.realm.processor.nameconverter.NameConverter;
  * <ol>
  *  <li>
  *      Pre-processing. Done by calling {@link #preProcess(Set)}, which will do an initial parse
- *      of the modules and build up all information it can before before processing any model
- *      classes.
+ *      of the modules and build up all information it can before processing any model classes.
  *  </li>
  *  <li>
  *      Process model classes. See {@link ClassMetaData#generate(ModuleMetaData)}.
@@ -124,7 +123,7 @@ public class ModuleMetaData {
      * Validates that the class/field naming policy for this module is correct.
      *
      * @param globalModuleInfo list of all modules with `allClasses` set
-     * @param classSpecificModuleInfo
+     * @param classSpecificModuleInfo list of explicit class with their latest Policy info.
      * @param classElement class element currently being validated
      * @param moduleAnnotation annotation on this class.
      * @return {@code true} if everything checks out, {@code false} if an error was found and reported.
@@ -152,7 +151,7 @@ public class ModuleMetaData {
             }
 
             // Check for conflicts with specifically named classes. This can happen if another
-            // module are listing specific classes with another policy.
+            // module is listing specific classes with another policy.
             for (Map.Entry<String, ModulePolicyInfo> classPolicyInfo : classSpecificModuleInfo.entrySet()) {
                 if (checkAndReportPolicyConflict(moduleInfo, classPolicyInfo.getValue())) {
                     return false;
@@ -215,7 +214,7 @@ public class ModuleMetaData {
             for (String qualifiedClassName : module.getValue()) {
                 if (!modelClasses.containsQualifiedClass(qualifiedClassName)) {
                     Utils.error(Utils.stripPackage(qualifiedClassName) + " could not be added to the module. " +
-                            "Only classes extending RealmObject, which are part of this project, can be added.");
+                            "Only classes extending RealmObject or implementing RealmModel, which are part of this project, can be added.");
                     return false;
 
                 }
@@ -382,7 +381,7 @@ public class ModuleMetaData {
             return Utils.getNameFormatter(classNamingPolicy.get(customGlobalModules.iterator().next()));
         }
 
-        // No global modules found, so find match in modules specifically listning the class.
+        // No global modules found, so find match in modules specifically listing the class.
         // We already validated that all modules agree on the converter, so just find first match.
         for (Map.Entry<String, Set<String>> moduleInfo : classesInModule.entrySet()) {
             if (moduleInfo.getValue().contains(qualifiedClassName)) {

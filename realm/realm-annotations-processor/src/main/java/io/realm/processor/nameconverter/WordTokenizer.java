@@ -31,12 +31,12 @@ import java.util.List;
  *         Example is "_FooBar" or "_Foo$Bar" which both becomes "Foo" and "Bar".
  *     </li>
  *     <li>
- *         Anytime you switch from a lower case character to a upper case character as
+ *         Anytime you switch from a lower case character to an upper case character as
  *         identified by a `Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
  *         Example is "FooBar" which becomes "Foo" and "Bar".
  *     </li>
  *     <li>
- *         Anytime your switch from more than one uppercase character to a lower case one. As
+ *         Anytime you switch from more than one uppercase character to a lower case one. As
  *         identified by `Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
  *         Example is "FOOBar" which becomes "FOO" and "Bar.
  *     </li>

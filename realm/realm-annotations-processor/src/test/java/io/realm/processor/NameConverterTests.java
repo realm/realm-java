@@ -101,7 +101,7 @@ public class NameConverterTests {
     }
 
     @Test
-    public void lowerCaseWithDashes() {
+    public void lowerCaseWithUnderscore() {
         NameConverter converter = new LowerCaseWithSeparatorConverter('_');
         Map<String, String> values = new LinkedHashMap<String, String>() {{
             // <JavaName, InternalName>

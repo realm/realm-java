@@ -153,9 +153,9 @@ public class CustomRealmNameTests {
     public void dynamicQueryWithInternalNames() {
         // Backlink queries not supported on dynamic queries
         RealmResults<DynamicRealmObject> results = dynamicRealm.where(ClassWithPolicy.CLASS_NAME)
-                .equalTo(ClassWithPolicy.FIELD_CAMEL_CASE, "foo") // Java name in model class
-                .sort(ClassWithPolicy.FIELD_M_HUNGARIAN) // Sorting uses Java names
-                .distinctValues(ClassWithPolicy.FIELD_CUSTOM_NAME) // Distinct uses Java names
+                .equalTo(ClassWithPolicy.FIELD_CAMEL_CASE, "foo") // Normal queries use internal names
+                .sort(ClassWithPolicy.FIELD_M_HUNGARIAN) // Sorting uses internal names
+                .distinctValues(ClassWithPolicy.FIELD_CUSTOM_NAME) // Distinct uses internal names
                 .findAll();
         assertTrue(results.isEmpty());
     }

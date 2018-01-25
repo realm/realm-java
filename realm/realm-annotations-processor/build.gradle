@@ -10,7 +10,6 @@ targetCompatibility = '1.8'
 dependencies {
     compile "com.squareup:javawriter:2.5.1"
     compile "io.realm:realm-annotations:${version}"
-    compile "com.google.guava:guava:17.0" // Must stay at this version
 
     testCompile files('../realm-library/build/intermediates/intermediate-jars/objectServer/release/classes.jar') // Java projects cannot depend on AAR files
     testCompile files("${System.properties['java.home']}/../lib/tools.jar") // This is needed otherwise compile-testing won't be able to find it

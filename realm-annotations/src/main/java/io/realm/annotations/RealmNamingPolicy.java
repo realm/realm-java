@@ -15,6 +15,9 @@ package io.realm.annotations;
  *      <li>
  *          To use a Java class name that is longer than the 57 character limit enforced by Realm.
  *      </li>
+ *      <li>
+ *          To change a field name in Java without forcing app users through a migration process.
+ *      </li>
  * </ul>
  *
  * Depending on where the policy is applied, it will have slightly different semantics:
@@ -50,7 +53,7 @@ package io.realm.annotations;
  * <ul>
  *      <li>
  *          Queries on {@code DynamicRealm} must use the internal name. Queries on normal {@code Realm}
- *          instances should continue to use the name as it is defined in the Java class.
+ *          instances must continue to use the name as it is defined in the Java class.
  *      </li>
  *      <li>
  *          Migrations must use the internal name when creating classes and fields.
@@ -66,15 +69,15 @@ package io.realm.annotations;
  * <ol>
  *     <li>
  *         Anytime a {@code _} or {@code $} is encountered.
- *         Example is "_FirstName" or "_First$Name" which both becomes "First" and "Name".
+ *         Examples are "_FirstName", "_First_Name" and "$First$Name" which all becomes "First" and "Name".
  *     </li>
  *     <li>
- *         Anytime your switch from a lower case character to a upper case character as
+ *         Anytime you switch from a lower case character to an upper case character as
  *         identified by {@link Character#isUpperCase(int)} and {@link Character#isLowerCase(int)}.
  *         Example is "FirstName" which becomes "First" and "Name".
  *     </li>
  *     <li>
- *         Anytime your switch from more than one uppercase character to a lower case one. The last
+ *         Anytime you switch from more than one uppercase character to a lower case one. The last
  *         upper case letter is assumed to be part of the next word. This is identified by using
  *         {@link Character#isUpperCase(int)} and {@link Character#isLowerCase(int)}.
  *         Example is "FIRSTName" which becomes "FIRST" and "Name.
