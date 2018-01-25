@@ -355,15 +355,15 @@ public class RealmProcessorTest {
     @Test
     public void compileInvalidRequiredTypes() throws IOException {
         final String[] invalidRequiredAnnotationFieldTypes = {"byte", "short", "int", "long", "float", "double",
-                "boolean", "RealmList<io.realm.Foo>", "io.realm.Foo"};
+                "boolean", "RealmList<Simple>", "Simple"};
 
         for (String fieldType : invalidRequiredAnnotationFieldTypes) {
             RealmSyntheticTestClass javaFileObject = new RealmSyntheticTestClass.Builder()
                     .name("InvalidRequiredType")
                     .field("testField", fieldType, "Required")
                     .build();
-            ASSERT.about(javaSource())
-                    .that(javaFileObject)
+            ASSERT.about(javaSources())
+                    .that(Arrays.asList(simpleModel, javaFileObject))
                     .processedWith(new RealmProcessor())
                     .failsToCompile();
         }

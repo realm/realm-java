@@ -56,6 +56,7 @@ import io.realm.processor.nameconverter.NameConverter;
  */
 public class ClassMetaData {
     private static final String OPTION_IGNORE_KOTLIN_NULLABILITY = "realm.ignoreKotlinNullability";
+    private static final int MAX_CLASSNAME_LENGTH = 57;
 
     private final TypeElement classType; // Reference to model class.
     private final String javaClassName; // Model class simple name as defined in Java.
@@ -298,6 +299,12 @@ public class ClassMetaData {
         } else {
             internalClassName = moduleClassNameFormatter.convert(javaClassName);
         }
+        if (internalClassName.length() > MAX_CLASSNAME_LENGTH) {
+            Utils.error(String.format(Locale.US, "Internal class name is too long. Class '%s' " +
+                    "is converted to '%s', which is longer than the maximum allowed of %d characters",
+                    javaClassName, internalClassName, 57));
+            return false;
+        }
 
         // If field name policy has been explicitly set, override the module field name policy
         if (realmClassAnnotation.fieldNamingPolicy() != RealmNamingPolicy.NO_POLICY) {
@@ -506,10 +513,20 @@ public class ClassMetaData {
 
         // @Required annotation of RealmList field only affects its value type, not field itself.
         if (Utils.isRealmList(field)) {
+            boolean hasRequiredAnnotation = hasRequiredAnnotation(field);
+            final List<? extends TypeMirror> listGenericType = ((DeclaredType) field.asType()).getTypeArguments();
+            boolean containsRealmModelClasses = (!listGenericType.isEmpty() && Utils.isRealmModel(listGenericType.get(0)));
+
+            // @Required not allowed if the list contains Realm model classes
+            if (hasRequiredAnnotation && containsRealmModelClasses) {
+                Utils.error("@Required not allowed on RealmList's that contain other Realm model classes.");
+                return false;
+            }
+
+            // @Required thus only makes sense for RealmLists with primitive types
             // We only check @Required annotation. @org.jetbrains.annotations.NotNull annotation should not affect nullability of the list values.
-            if (!hasRequiredAnnotation(field)) {
-                final List<? extends TypeMirror> fieldTypeArguments = ((DeclaredType) field.asType()).getTypeArguments();
-                if (fieldTypeArguments.isEmpty() || !Utils.isRealmModel(fieldTypeArguments.get(0))) {
+            if (!hasRequiredAnnotation) {
+                if (!containsRealmModelClasses) {
                     nullableValueListFields.add(field);
                 }
             }

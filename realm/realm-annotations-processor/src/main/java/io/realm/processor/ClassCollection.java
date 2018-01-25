@@ -47,7 +47,7 @@ public class ClassCollection {
     public ClassMetaData getClassFromSimpleName(String simpleJavaClassName) {
         ClassMetaData data = simpleNameClassMap.get(simpleJavaClassName);
         if (data == null) {
-            throw new NullPointerException(simpleJavaClassName + " was not found");
+            throw new NullPointerException("Class " + simpleJavaClassName + " was not found");
         }
         return data;
     }
@@ -55,7 +55,7 @@ public class ClassCollection {
     public ClassMetaData getClassFromQualifiedName(String qualifiedJavaClassName) {
         ClassMetaData data = qualifiedNameClassMap.get(qualifiedJavaClassName);
         if (data == null) {
-            throw new NullPointerException(qualifiedJavaClassName + " was not found");
+            throw new NullPointerException("Class " + qualifiedJavaClassName + " was not found");
         }
         return data;
     }

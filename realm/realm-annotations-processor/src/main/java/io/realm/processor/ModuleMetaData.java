@@ -16,6 +16,7 @@
 
 package io.realm.processor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -86,9 +87,9 @@ public class ModuleMetaData {
         // Tracks all module settings with `allClasses` enabled
         Set<ModulePolicyInfo> globalModuleInfo = new HashSet<>();
 
-        // Tracks which module a class last was mentioned in by name using `classes = { ... }`
+        // Tracks which modules a class was mentioned in by name using `classes = { ... }`
         // <Qualified
-        Map<String, ModulePolicyInfo> classSpecificModuleInfo = new HashMap<String, ModulePolicyInfo>();
+        Map<String, List<ModulePolicyInfo>> classSpecificModuleInfo = new HashMap<>();
 
         // Check that modules are setup correctly
         for (Element classElement : moduleClasses) {
@@ -123,12 +124,12 @@ public class ModuleMetaData {
      * Validates that the class/field naming policy for this module is correct.
      *
      * @param globalModuleInfo list of all modules with `allClasses` set
-     * @param classSpecificModuleInfo list of explicit class with their latest Policy info.
+     * @param classSpecificModuleInfo map of explicit classes and which modules they are explicitly mentioned in.
      * @param classElement class element currently being validated
      * @param moduleAnnotation annotation on this class.
      * @return {@code true} if everything checks out, {@code false} if an error was found and reported.
      */
-    private boolean validateNamingPolicies(Set<ModulePolicyInfo> globalModuleInfo, Map<String, ModulePolicyInfo> classSpecificModuleInfo, TypeElement classElement, RealmModule moduleAnnotation) {
+    private boolean validateNamingPolicies(Set<ModulePolicyInfo> globalModuleInfo, Map<String, List<ModulePolicyInfo>> classSpecificModuleInfo, TypeElement classElement, RealmModule moduleAnnotation) {
         RealmNamingPolicy classNamePolicy = moduleAnnotation.classNamingPolicy();
         RealmNamingPolicy fieldNamePolicy = moduleAnnotation.fieldNamingPolicy();
         String qualifiedModuleClassName = classElement.getQualifiedName().toString();
@@ -140,11 +141,8 @@ public class ModuleMetaData {
         // We do not compare against the default module as it is always configured correctly
         // with NO_POLICY, meaning it will not trigger any errors.
         if (moduleAnnotation.allClasses()) {
-            // Check for conflicts with other modules with `allClasses` set. Only need to
-            // check the first since other conflicts would have been detected in an earlier
-            // iteration.
-            if (!globalModuleInfo.isEmpty()) {
-                ModulePolicyInfo otherModuleInfo = globalModuleInfo.iterator().next();
+            // Check for conflicts with all other modules with `allClasses` set.
+            for (ModulePolicyInfo otherModuleInfo : globalModuleInfo) {
                 if (checkAndReportPolicyConflict(moduleInfo, otherModuleInfo)) {
                     return false;
                 }
@@ -152,9 +150,11 @@ public class ModuleMetaData {
 
             // Check for conflicts with specifically named classes. This can happen if another
             // module is listing specific classes with another policy.
-            for (Map.Entry<String, ModulePolicyInfo> classPolicyInfo : classSpecificModuleInfo.entrySet()) {
-                if (checkAndReportPolicyConflict(moduleInfo, classPolicyInfo.getValue())) {
-                    return false;
+            for (Map.Entry<String, List<ModulePolicyInfo>> classPolicyInfo : classSpecificModuleInfo.entrySet()) {
+                for (ModulePolicyInfo otherModuleInfo : classPolicyInfo.getValue()) {
+                    if (checkAndReportPolicyConflict(moduleInfo, otherModuleInfo)) {
+                        return false;
+                    }
                 }
             }
 
@@ -169,8 +169,7 @@ public class ModuleMetaData {
 
                 // Check that no other module with `allClasses` conflict with this specific
                 // class configuration
-                if (!globalModuleInfo.isEmpty()) {
-                    ModulePolicyInfo otherModuleInfo = globalModuleInfo.iterator().next();
+                for (ModulePolicyInfo otherModuleInfo : globalModuleInfo) {
                     if (checkAndReportPolicyConflict(moduleInfo, otherModuleInfo)) {
                         return false;
                     }
@@ -178,17 +177,22 @@ public class ModuleMetaData {
 
                 // Check that this specific class isn't conflicting with another module
                 // specifically mentioning it using `classes = { ... }`
-                ModulePolicyInfo otherModuleInfo = classSpecificModuleInfo.get(qualifiedClassName);
-                if (otherModuleInfo != null) {
-                    if (checkAndReportPolicyConflict(qualifiedClassName, moduleInfo, otherModuleInfo)) {
-                        return false;
+                List<ModulePolicyInfo> otherModules = classSpecificModuleInfo.get(qualifiedClassName);
+                if (otherModules != null) {
+                    for (ModulePolicyInfo otherModuleInfo : otherModules) {
+                        if (checkAndReportPolicyConflict(qualifiedClassName, moduleInfo, otherModuleInfo)) {
+                            return false;
+                        }
                     }
                 }
 
                 // Keep track of the specific class for other module checks. We only
                 // need to track the latest module seen as previous errors would have been
                 // caught in a previous iteration of the loop.
-                classSpecificModuleInfo.put(qualifiedClassName, moduleInfo);
+                if (!classSpecificModuleInfo.containsKey(qualifiedClassName)) {
+                    classSpecificModuleInfo.put(qualifiedClassName, new ArrayList<>());
+                }
+                classSpecificModuleInfo.get(qualifiedClassName).add(moduleInfo);
             }
             classesInModule.put(qualifiedModuleClassName, classNames);
         }

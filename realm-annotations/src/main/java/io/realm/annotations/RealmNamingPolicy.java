@@ -96,6 +96,24 @@ package io.realm.annotations;
  * <p>
  * Note that changing the internal name does <i>NOT</i> affect importing data from JSON. The JSON
  * data must still follow the names as defined in the Realm Java class.
+ * <p>
+ * When it comes to parsing JSON using standard libraries like Moshi, GSON or Jackson it is
+ * important to keep in mind that these libraries define the transformation from JSON to Java
+ * while setting internal Realm names define the transformation from Java to the Realm file.
+ * <p>
+ * This means that if you want to import data into Realm from JSON using these libraries you still
+ * need to provide the annotations from both the JSON parser library and Realm.
+ * <p>
+ * Using Moshi, it would look something like this:
+ * <pre>
+ * {@code
+ * public class Person extends RealmObject {
+ *     \@Json(name = "first_name") // Name used in JSON input.
+ *     \@RealmField(name = "first_name") // Name used internally in the Realm file.
+ *     public string firstName; // name used in Java
+ * }
+ * }
+ * </pre>
  *
  * @see RealmModule
  * @see RealmClass

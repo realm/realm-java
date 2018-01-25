@@ -61,10 +61,6 @@ public class Utils {
         return false;
     }
 
-    public static String lowerFirstChar(String input) {
-        return input.substring(0, 1).toLowerCase() + input.substring(1);
-    }
-
     public static String getProxyClassSimpleName(VariableElement field) {
         if (typeUtils.isAssignable(field.asType(), realmList)) {
             return getProxyClassName(getGenericTypeSimpleName(field));
@@ -216,23 +212,26 @@ public class Utils {
      * @return {@code true} if a given type is {@code RealmModel}, {@code false} otherwise.
      */
     public static boolean isRealmModel(TypeMirror type) {
-        // Not sure what is happening here, but typeUtils.isAssignable("Foo", realmModel)
-        // returns true even if Foo doesn't exist. No idea why this is happening.
-        // For now punt on the problem and check the direct supertype which should be either
-        // RealmObject or RealmModel.
-        // Original implementation: `return typeUtils.isAssignable(type, realmModel);`
-        //
-        // Theory: It looks like if `type` has the internal TypeTag.ERROR (internal API) it
-        // automatically translate to being assignable to everything. Possible some Java Specification
-        // rule taking effect. In our case, however we can do better since all Realm classes
-        // must be in the same compilation unit, so we should be able to look the type up.
-        for (TypeMirror typeMirror : typeUtils.directSupertypes(type)) {
-            String supertype = typeMirror.toString();
-            if (supertype.equals("io.realm.RealmObject") || supertype.equals("io.realm.RealmModel")) {
-                return true;
-            }
-        }
-        return false;
+        // This will return the wrong result if a model class doesn't exist at all, but
+        // the compiler will catch that eventually.
+        return typeUtils.isAssignable(type, realmModel);
+//        // Not sure what is happening here, but typeUtils.isAssignable("Foo", realmModel)
+//        // returns true even if Foo doesn't exist. No idea why this is happening.
+//        // For now punt on the problem and check the direct supertype which should be either
+//        // RealmObject or RealmModel.
+//        // Original implementation: ``
+//        //
+//        // Theory: It looks like if `type` has the internal TypeTag.ERROR (internal API) it
+//        // automatically translate to being assignable to everything. Possible some Java Specification
+//        // rule taking effect. In our case, however we can do better since all Realm classes
+//        // must be in the same compilation unit, so we should be able to look the type up.
+//        for (TypeMirror typeMirror : typeUtils.directSupertypes(type)) {
+//            String supertype = typeMirror.toString();
+//            if (supertype.equals("io.realm.RealmObject") || supertype.equals("io.realm.RealmModel")) {
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     public static boolean isRealmResults(VariableElement field) {
