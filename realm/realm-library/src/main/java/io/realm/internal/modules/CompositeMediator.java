@@ -60,9 +60,9 @@ public class CompositeMediator extends RealmProxyMediator {
                     String newInternalName = mediator.getSimpleClassName(realmClass);
                     Class existingClass = internalClassNames.get(newInternalName);
                     if (existingClass != null && !existingClass.equals(realmClass)) {
-                         throw new IllegalStateException(String.format("It is not allowed for two different" +
+                         throw new IllegalStateException(String.format("It is not allowed for two different " +
                                  "model classes to share the same internal name in Realm. The " +
-                                 "classes %s and %s are being included from the modules '%s' and '%s'" +
+                                 "classes %s and %s are being included from the modules '%s' and '%s' " +
                                  "and they share the same internal name '%s'.", existingClass, realmClass,
                                  tempMediators.get(existingClass), mediator,
                                  newInternalName));
