@@ -32,6 +32,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * This class contains tests for checking that changing the internal Realm name
@@ -217,4 +218,20 @@ public class CustomRealmNameTests {
         });
     }
 
+
+    //
+    // Realm tests
+    //
+    @Test
+    public void copyOrUpdate() {
+        realm.executeTransaction(r -> {
+            ClassWithPolicy obj = new ClassWithPolicy();
+            try {
+                r.copyToRealmOrUpdate(obj); // Verify that we correctly check that a primary key is missing
+                fail();
+            } catch (IllegalArgumentException e) {
+                assertTrue(e.getMessage().startsWith("A RealmObject with no @PrimaryKey cannot be updated"));
+            }
+        });
+    }
 }
