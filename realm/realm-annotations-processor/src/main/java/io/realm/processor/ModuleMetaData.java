@@ -63,8 +63,8 @@ public class ModuleMetaData {
 
     // Pre-processing
     // <FullyQualifiedModuleClassName, X>
-    private Set<String> customGlobalModules = new HashSet<>(); // All modules with `allClasses = true` set
-    private Map<String, Set<String>> classesInModule = new HashMap<>(); // Only classes specifically named
+    private Set<String> globalModules = new HashSet<>(); // All modules with `allClasses = true` set
+    private Map<String, Set<String>> specificClassesModules = new HashMap<>(); // Modules with classes specifically named
     private Map<String, RealmNamingPolicy> classNamingPolicy = new HashMap<String, RealmNamingPolicy>();
     private Map<String, RealmNamingPolicy> fieldNamingPolicy = new HashMap<String, RealmNamingPolicy>();
     private Map<String, RealmModule> moduleAnnotations = new HashMap<>();
@@ -160,7 +160,7 @@ public class ModuleMetaData {
 
             // Everything checks out. Add moduleInfo so we can track it for the next module.
             globalModuleInfo.add(moduleInfo);
-            customGlobalModules.add(qualifiedModuleClassName);
+            globalModules.add(qualifiedModuleClassName);
 
         } else {
             // We need to verify each class in the modules class list
@@ -194,7 +194,7 @@ public class ModuleMetaData {
                 }
                 classSpecificModuleInfo.get(qualifiedClassName).add(moduleInfo);
             }
-            classesInModule.put(qualifiedModuleClassName, classNames);
+            specificClassesModules.put(qualifiedModuleClassName, classNames);
         }
 
         classNamingPolicy.put(qualifiedModuleClassName, classNamePolicy);
@@ -211,27 +211,27 @@ public class ModuleMetaData {
      */
     public boolean postProcess(ClassCollection modelClasses) {
 
-        for (Map.Entry<String, Set<String>> module : classesInModule.entrySet()) {
-
-            // Find all processed metadata for each class part of this module.
+        // Process all global modules
+        for (String qualifiedModuleClassName : globalModules) {
             Set<ClassMetaData> classData = new LinkedHashSet<>();
-            for (String qualifiedClassName : module.getValue()) {
-                if (!modelClasses.containsQualifiedClass(qualifiedClassName)) {
-                    Utils.error(Utils.stripPackage(qualifiedClassName) + " could not be added to the module. " +
+            classData.addAll(modelClasses.getClasses());
+            defineModule(qualifiedModuleClassName, classData);
+        }
+
+        // Process all modules with specific classes
+        for (Map.Entry<String, Set<String>> module : specificClassesModules.entrySet()) {
+            String qualifiedModuleClassName = module.getKey();
+            Set<ClassMetaData> classData = new LinkedHashSet<>();
+            for (String qualifiedModelClassName : module.getValue()) {
+                if (!modelClasses.containsQualifiedClass(qualifiedModelClassName)) {
+                    Utils.error(Utils.stripPackage(qualifiedModelClassName) + " could not be added to the module. " +
                             "Only classes extending RealmObject or implementing RealmModel, which are part of this project, can be added.");
                     return false;
 
                 }
-                classData.add(modelClasses.getClassFromQualifiedName(qualifiedClassName));
+                classData.add(modelClasses.getClassFromQualifiedName(qualifiedModelClassName));
             }
-
-            // Create either a Library or App module
-            String qualifiedModuleClassName = module.getKey();
-            if (moduleAnnotations.get(qualifiedModuleClassName).library()) {
-                libraryModules.put(qualifiedModuleClassName, classData);
-            } else {
-                modules.put(qualifiedModuleClassName, classData);
-            }
+            defineModule(qualifiedModuleClassName, classData);
         }
 
         // Check that app and library modules are not mixed
@@ -250,6 +250,16 @@ public class ModuleMetaData {
         }
 
         return true;
+    }
+
+    private void defineModule(String qualifiedModuleClassName, Set<ClassMetaData> classData) {
+        if (!classData.isEmpty()) {
+            if (moduleAnnotations.get(qualifiedModuleClassName).library()) {
+                libraryModules.put(qualifiedModuleClassName, classData);
+            } else {
+                modules.put(qualifiedModuleClassName, classData);
+            }
+        }
     }
 
     // Checks if two modules have policy conflicts. Returns true if a conflict was found and reported.
@@ -381,13 +391,13 @@ public class ModuleMetaData {
     public NameConverter getClassNameFormatter(String qualifiedClassName) {
         // We already validated that module definitions all agree on the same name policy
         // so just find first match
-        if (!customGlobalModules.isEmpty()) {
-            return Utils.getNameFormatter(classNamingPolicy.get(customGlobalModules.iterator().next()));
+        if (!globalModules.isEmpty()) {
+            return Utils.getNameFormatter(classNamingPolicy.get(globalModules.iterator().next()));
         }
 
         // No global modules found, so find match in modules specifically listing the class.
         // We already validated that all modules agree on the converter, so just find first match.
-        for (Map.Entry<String, Set<String>> moduleInfo : classesInModule.entrySet()) {
+        for (Map.Entry<String, Set<String>> moduleInfo : specificClassesModules.entrySet()) {
             if (moduleInfo.getValue().contains(qualifiedClassName)) {
                 return Utils.getNameFormatter(classNamingPolicy.get(moduleInfo.getKey()));
             }
@@ -408,11 +418,11 @@ public class ModuleMetaData {
     public NameConverter getFieldNameFormatter(String qualifiedClassName) {
         // We already validated that module definitions all agree on the same name policy
         // so just find first match
-        if (!customGlobalModules.isEmpty()) {
-            return Utils.getNameFormatter(fieldNamingPolicy.get(customGlobalModules.iterator().next()));
+        if (!globalModules.isEmpty()) {
+            return Utils.getNameFormatter(fieldNamingPolicy.get(globalModules.iterator().next()));
         }
 
-        for (Map.Entry<String, Set<String>> moduleInfo : classesInModule.entrySet()) {
+        for (Map.Entry<String, Set<String>> moduleInfo : specificClassesModules.entrySet()) {
             if (moduleInfo.getValue().contains(qualifiedClassName)) {
                 return Utils.getNameFormatter(fieldNamingPolicy.get(moduleInfo.getKey()));
             }

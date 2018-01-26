@@ -6,8 +6,6 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-import javax.tools.JavaFileObject;
-
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 import static org.truth0.Truth.ASSERT;
