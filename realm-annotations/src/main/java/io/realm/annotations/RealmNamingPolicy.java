@@ -42,7 +42,7 @@ package io.realm.annotations;
  * <pre>
  * {@code
  * \@RealmClass(name = "__person", fieldNamingPolicy = RealmNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
- * public class Person extends RealmObject { // is converted to "__person" internally
+ * public class Person implements RealmModel { // is converted to "__person" internally
  *     public string firstName; // Is converted to "first_name" internally
  * }
  * }
