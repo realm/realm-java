@@ -41,8 +41,8 @@ public class SimpleRealmProxy extends some.test.Simple
         SimpleColumnInfo(OsSchemaInfo schemaInfo) {
             super(2);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("Simple");
-            this.nameIndex = addColumnDetails("name", objectSchemaInfo);
-            this.ageIndex = addColumnDetails("age", objectSchemaInfo);
+            this.nameIndex = addColumnDetails("name", "name", objectSchemaInfo);
+            this.ageIndex = addColumnDetails("age", "age", objectSchemaInfo);
         }
 
         SimpleColumnInfo(ColumnInfo src, boolean mutable) {

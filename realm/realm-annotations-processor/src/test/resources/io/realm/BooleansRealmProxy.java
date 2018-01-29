@@ -43,10 +43,10 @@ public class BooleansRealmProxy extends some.test.Booleans
         BooleansColumnInfo(OsSchemaInfo schemaInfo) {
             super(4);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("Booleans");
-            this.doneIndex = addColumnDetails("done", objectSchemaInfo);
-            this.isReadyIndex = addColumnDetails("isReady", objectSchemaInfo);
-            this.mCompletedIndex = addColumnDetails("mCompleted", objectSchemaInfo);
-            this.anotherBooleanIndex = addColumnDetails("anotherBoolean", objectSchemaInfo);
+            this.doneIndex = addColumnDetails("done", "done", objectSchemaInfo);
+            this.isReadyIndex = addColumnDetails("isReady", "isReady", objectSchemaInfo);
+            this.mCompletedIndex = addColumnDetails("mCompleted", "mCompleted", objectSchemaInfo);
+            this.anotherBooleanIndex = addColumnDetails("anotherBoolean", "anotherBoolean", objectSchemaInfo);
         }
 
         BooleansColumnInfo(ColumnInfo src, boolean mutable) {

@@ -1,4 +1,3 @@
-package io.realm.internal.fields;
 /*
  * Copyright 2017 Realm Inc.
  *
@@ -14,6 +13,7 @@ package io.realm.internal.fields;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.internal.fields;
 
 import java.util.List;
 import java.util.Locale;
@@ -23,16 +23,19 @@ import io.realm.RealmFieldType;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.NativeObject;
 
-
 /**
  * Parses the passed field description (@see parseFieldDescription(String) and returns the information
  * necessary for RealmQuery predicates to select the specified records.
  * Because the values returned by this method will, immediately, be handed to native code, they are
- * in coordinated arrays, not a List&lt;ColumnDeatils&gt;
+ * in coordinated arrays, not a List&lt;ColumnDetails&gt;
  * There are two kinds of records.  If return[1][i] is NativeObject.NULLPTR, return[0][i] contains
  * the column index for the i-th element in the dotted field description path.
  * If return[1][i] is *not* NativeObject.NULLPTR, it is a pointer to the source table for a backlink
  * and return[0][i] is the column index of the source column in that table.
+ *
+ * This class only understands how to parse field descriptions consisting of Java field names as
+ * given in the model classes. If a field is specified using internal column names, like e.g.
+ * queries done on a {@link io.realm.DynamicRealm} use {@link DynamicFieldDescriptor} instead.
  */
 class CachedFieldDescriptor extends FieldDescriptor {
     private final SchemaProxy schema;
@@ -41,7 +44,7 @@ class CachedFieldDescriptor extends FieldDescriptor {
     /**
      * @param schema the associated Realm Schema
      * @param className the starting Table: where(Table.class)
-     * @param fieldDescription fieldName or link path to a field name.
+     * @param fieldDescription fieldName or link path to a field name using field names from Java model classes
      */
     CachedFieldDescriptor(SchemaProxy schema, String className, String fieldDescription, Set<RealmFieldType> validInternalColumnTypes, Set<RealmFieldType> validFinalColumnTypes) {
         super(fieldDescription, validInternalColumnTypes, validFinalColumnTypes);

@@ -60,26 +60,26 @@ public class AllTypesRealmProxy extends some.test.AllTypes
         AllTypesColumnInfo(OsSchemaInfo schemaInfo) {
             super(20);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("AllTypes");
-            this.columnStringIndex = addColumnDetails("columnString", objectSchemaInfo);
-            this.columnLongIndex = addColumnDetails("columnLong", objectSchemaInfo);
-            this.columnFloatIndex = addColumnDetails("columnFloat", objectSchemaInfo);
-            this.columnDoubleIndex = addColumnDetails("columnDouble", objectSchemaInfo);
-            this.columnBooleanIndex = addColumnDetails("columnBoolean", objectSchemaInfo);
-            this.columnDateIndex = addColumnDetails("columnDate", objectSchemaInfo);
-            this.columnBinaryIndex = addColumnDetails("columnBinary", objectSchemaInfo);
-            this.columnMutableRealmIntegerIndex = addColumnDetails("columnMutableRealmInteger", objectSchemaInfo);
-            this.columnObjectIndex = addColumnDetails("columnObject", objectSchemaInfo);
-            this.columnRealmListIndex = addColumnDetails("columnRealmList", objectSchemaInfo);
-            this.columnStringListIndex = addColumnDetails("columnStringList", objectSchemaInfo);
-            this.columnBinaryListIndex = addColumnDetails("columnBinaryList", objectSchemaInfo);
-            this.columnBooleanListIndex = addColumnDetails("columnBooleanList", objectSchemaInfo);
-            this.columnLongListIndex = addColumnDetails("columnLongList", objectSchemaInfo);
-            this.columnIntegerListIndex = addColumnDetails("columnIntegerList", objectSchemaInfo);
-            this.columnShortListIndex = addColumnDetails("columnShortList", objectSchemaInfo);
-            this.columnByteListIndex = addColumnDetails("columnByteList", objectSchemaInfo);
-            this.columnDoubleListIndex = addColumnDetails("columnDoubleList", objectSchemaInfo);
-            this.columnFloatListIndex = addColumnDetails("columnFloatList", objectSchemaInfo);
-            this.columnDateListIndex = addColumnDetails("columnDateList", objectSchemaInfo);
+            this.columnStringIndex = addColumnDetails("columnString", "columnString", objectSchemaInfo);
+            this.columnLongIndex = addColumnDetails("columnLong", "columnLong", objectSchemaInfo);
+            this.columnFloatIndex = addColumnDetails("columnFloat", "columnFloat", objectSchemaInfo);
+            this.columnDoubleIndex = addColumnDetails("columnDouble", "columnDouble", objectSchemaInfo);
+            this.columnBooleanIndex = addColumnDetails("columnBoolean", "columnBoolean", objectSchemaInfo);
+            this.columnDateIndex = addColumnDetails("columnDate", "columnDate", objectSchemaInfo);
+            this.columnBinaryIndex = addColumnDetails("columnBinary", "columnBinary", objectSchemaInfo);
+            this.columnMutableRealmIntegerIndex = addColumnDetails("columnMutableRealmInteger", "columnMutableRealmInteger", objectSchemaInfo);
+            this.columnObjectIndex = addColumnDetails("columnObject", "columnObject", objectSchemaInfo);
+            this.columnRealmListIndex = addColumnDetails("columnRealmList", "columnRealmList", objectSchemaInfo);
+            this.columnStringListIndex = addColumnDetails("columnStringList", "columnStringList", objectSchemaInfo);
+            this.columnBinaryListIndex = addColumnDetails("columnBinaryList", "columnBinaryList", objectSchemaInfo);
+            this.columnBooleanListIndex = addColumnDetails("columnBooleanList", "columnBooleanList", objectSchemaInfo);
+            this.columnLongListIndex = addColumnDetails("columnLongList", "columnLongList", objectSchemaInfo);
+            this.columnIntegerListIndex = addColumnDetails("columnIntegerList", "columnIntegerList", objectSchemaInfo);
+            this.columnShortListIndex = addColumnDetails("columnShortList", "columnShortList", objectSchemaInfo);
+            this.columnByteListIndex = addColumnDetails("columnByteList", "columnByteList", objectSchemaInfo);
+            this.columnDoubleListIndex = addColumnDetails("columnDoubleList", "columnDoubleList", objectSchemaInfo);
+            this.columnFloatListIndex = addColumnDetails("columnFloatList", "columnFloatList", objectSchemaInfo);
+            this.columnDateListIndex = addColumnDetails("columnDateList", "columnDateList", objectSchemaInfo);
             addBacklinkDetails(schemaInfo, "parentObjects", "AllTypes", "columnObject");
         }
 

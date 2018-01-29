@@ -93,4 +93,29 @@ public @interface RealmModule {
      * an exception.
      */
     Class<?>[] classes() default {};
+
+    /**
+     * The naming policy applied to all classes part of this module. The default policy is {@link RealmNamingPolicy#NO_POLICY}.
+     * To define a naming policy for all fields in the classes, use {@link #fieldNamingPolicy()}.
+     * <p>
+     * It is possible to override the naming policy specified in the module in each class using the {@link RealmClass}
+     * annotation.
+     * <p>
+     * If a class is part of multiple modules, the same naming policy must be applied to both modules, otherwise
+     * an error will be thrown.
+     *
+     * @see io.realm.annotations.RealmNamingPolicy for more information about what setting this policy means.
+     */
+    RealmNamingPolicy classNamingPolicy() default RealmNamingPolicy.NO_POLICY;
+
+    /**
+     * The naming policy applied to all field names in all classes part of this module. The default policy is
+     * {@link RealmNamingPolicy#NO_POLICY}. To define a naming policy for class names, use {@link #classNamingPolicy()}.
+     * <p>
+     * It is possible to override this naming policy using either {@link RealmClass#fieldNamingPolicy()} or
+     * {@link RealmField#name()}.
+     *
+     * @see io.realm.annotations.RealmNamingPolicy for more information about what setting this policy means.
+     */
+    RealmNamingPolicy fieldNamingPolicy() default RealmNamingPolicy.NO_POLICY;
 }
