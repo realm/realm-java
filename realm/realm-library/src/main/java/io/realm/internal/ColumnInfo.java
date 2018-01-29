@@ -90,7 +90,8 @@ public abstract class ColumnInfo {
     }
 
 
-    private final Map<String, ColumnDetails> indicesMap;
+    private final Map<String, ColumnDetails> indicesFromJavaFieldNames;
+    private final Map<String, ColumnDetails> indicesFromColumnNames;
     private final boolean mutable;
 
     /**
@@ -109,15 +110,16 @@ public abstract class ColumnInfo {
      * @param mutable false to make this instance effectively final
      */
     protected ColumnInfo(@Nullable ColumnInfo src, boolean mutable) {
-        this((src == null) ? 0 : src.indicesMap.size(), mutable);
+        this((src == null) ? 0 : src.indicesFromJavaFieldNames.size(), mutable);
         // ColumnDetails are immutable and may be re-used.
         if (src != null) {
-            indicesMap.putAll(src.indicesMap);
+            indicesFromJavaFieldNames.putAll(src.indicesFromJavaFieldNames);
         }
     }
 
     private ColumnInfo(int mapSize, boolean mutable) {
-        this.indicesMap = new HashMap<>(mapSize);
+        this.indicesFromJavaFieldNames = new HashMap<>(mapSize);
+        this.indicesFromColumnNames = new HashMap<>(mapSize);
         this.mutable = mutable;
     }
 
@@ -135,8 +137,8 @@ public abstract class ColumnInfo {
      *
      * @return column index.
      */
-    public long getColumnIndex(String columnName) {
-        ColumnDetails details = indicesMap.get(columnName);
+    public long getColumnIndex(String javaFieldName) {
+        ColumnDetails details = indicesFromJavaFieldNames.get(javaFieldName);
         return (details == null) ? -1 : details.columnIndex;
     }
 
@@ -146,8 +148,8 @@ public abstract class ColumnInfo {
      * @return {@link ColumnDetails} or {@code null} if not found.
      */
     @Nullable
-    public ColumnDetails getColumnDetails(String columnName) {
-        return indicesMap.get(columnName);
+    public ColumnDetails getColumnDetails(String javaFieldName) {
+        return indicesFromJavaFieldNames.get(javaFieldName);
     }
 
     /**
@@ -165,22 +167,36 @@ public abstract class ColumnInfo {
             throw new NullPointerException("Attempt to copy null ColumnInfo");
         }
 
-        indicesMap.clear();
-        indicesMap.putAll(src.indicesMap);
+        indicesFromJavaFieldNames.clear();
+        indicesFromJavaFieldNames.putAll(src.indicesFromJavaFieldNames);
+        indicesFromColumnNames.clear();
+        indicesFromColumnNames.putAll(src.indicesFromColumnNames);
         copy(src, this);
     }
 
     @Override
     public String toString() {
         StringBuilder buf = new StringBuilder("ColumnInfo[");
-        buf.append(mutable).append(",");
-        if (indicesMap != null) {
+        buf.append("mutable="+mutable).append(",");
+        if (indicesFromJavaFieldNames != null) {
+            buf.append("JavaFieldNames=[");
             boolean commaNeeded = false;
-            for (Map.Entry<String, ColumnDetails> entry : indicesMap.entrySet()) {
+            for (Map.Entry<String, ColumnDetails> entry : indicesFromJavaFieldNames.entrySet()) {
                 if (commaNeeded) { buf.append(","); }
                 buf.append(entry.getKey()).append("->").append(entry.getValue());
                 commaNeeded = true;
             }
+            buf.append("]");
+        }
+        if (indicesFromColumnNames != null) {
+            buf.append(", InternalFieldNames=[");
+            boolean commaNeeded = false;
+            for (Map.Entry<String, ColumnDetails> entry : indicesFromColumnNames.entrySet()) {
+                if (commaNeeded) { buf.append(","); }
+                buf.append(entry.getKey()).append("->").append(entry.getValue());
+                commaNeeded = true;
+            }
+            buf.append("]");
         }
         return buf.append("]").toString();
     }
@@ -212,13 +228,16 @@ public abstract class ColumnInfo {
      * <p>
      * No validation done here.  Presuming that all necessary validation takes place in {@code Proxy.validateTable}.
      *
-     * @param columnName The name of the column whose index is sought.
+     * @param javaFieldName The name of the java field name.
+     * @param internalColumnName The underlying column name in the Realm file for the Java field name.
      * @param objectSchemaInfo the {@link OsObjectSchemaInfo} for the corresponding {@code RealmObject}.
-     * @return the index of the column in the table
+     * @return the index of the column in the table.
      */
-    protected final long addColumnDetails(String columnName, OsObjectSchemaInfo objectSchemaInfo) {
-        Property property = objectSchemaInfo.getProperty(columnName);
-        indicesMap.put(columnName, new ColumnDetails(property));
+    protected final long addColumnDetails(String javaFieldName, String internalColumnName, OsObjectSchemaInfo objectSchemaInfo) {
+        Property property = objectSchemaInfo.getProperty(internalColumnName);
+        ColumnDetails cd = new ColumnDetails(property);
+        indicesFromJavaFieldNames.put(javaFieldName, cd);
+        indicesFromColumnNames.put(internalColumnName, cd);
         return property.getColumnIndex();
     }
 
@@ -228,13 +247,13 @@ public abstract class ColumnInfo {
      * Must be called from within the subclass constructor, to maintain the effectively-final contract.
      *
      * @param schemaInfo the {@link OsSchemaInfo} of the corresponding {@code Realm} instance.
-     * @param columnName The name of the backlink column.
+     * @param javaFieldName The name of the backlink column.
      * @param sourceTableName The name of the backlink source class.
-     * @param sourceColumnName The name of the backlink source field.
+     * @param sourceJavaFieldName The name of the backlink source field.
      */
-    protected final void addBacklinkDetails(OsSchemaInfo schemaInfo, String columnName, String sourceTableName, String sourceColumnName) {
-        long columnIndex = schemaInfo.getObjectSchemaInfo(sourceTableName).getProperty(sourceColumnName).getColumnIndex();
-        indicesMap.put(columnName, new ColumnDetails(columnIndex, RealmFieldType.LINKING_OBJECTS, sourceTableName));
+    protected final void addBacklinkDetails(OsSchemaInfo schemaInfo, String javaFieldName, String sourceTableName, String sourceJavaFieldName) {
+        long columnIndex = schemaInfo.getObjectSchemaInfo(sourceTableName).getProperty(sourceJavaFieldName).getColumnIndex();
+        indicesFromJavaFieldNames.put(javaFieldName, new ColumnDetails(columnIndex, RealmFieldType.LINKING_OBJECTS, sourceTableName));
     }
 
     /**
@@ -245,6 +264,6 @@ public abstract class ColumnInfo {
      */
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public Map<String, ColumnDetails> getIndicesMap() {
-        return indicesMap;
+        return indicesFromJavaFieldNames;
     }
 }

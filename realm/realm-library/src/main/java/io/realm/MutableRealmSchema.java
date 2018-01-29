@@ -22,7 +22,9 @@ import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
 
 /**
- * Mutable {@link RealmSchema}.
+ * Mutable {@link RealmSchema} used by {@link DynamicRealm}.
+ *
+ * @see ImmutableRealmSchema for schema support for {@link Realm}.
  */
 class MutableRealmSchema extends RealmSchema {
 
