@@ -120,7 +120,7 @@ public class CustomRealmNameTests {
                 .equalTo("camelCase", "foo") // Java name in model class
                 .equalTo("parents.PascalCase", 1) // Backlinks also uses java names
                 .sort("mHungarian") // Sorting uses Java names
-                .distinctValues("customName") // Distinct uses Java names
+                .distinct("customName") // Distinct uses Java names
                 .findAll();
         assertTrue(results.isEmpty());
     }
@@ -142,7 +142,7 @@ public class CustomRealmNameTests {
 
         // Distinct
         try {
-            realm.where(ClassWithPolicy.class).distinctValues(ClassWithPolicy.FIELD_CAMEL_CASE);
+            realm.where(ClassWithPolicy.class).distinct(ClassWithPolicy.FIELD_CAMEL_CASE);
         } catch (IllegalArgumentException ignore) {
         }
 
@@ -156,7 +156,7 @@ public class CustomRealmNameTests {
         RealmResults<DynamicRealmObject> results = dynamicRealm.where(ClassWithPolicy.CLASS_NAME)
                 .equalTo(ClassWithPolicy.FIELD_CAMEL_CASE, "foo") // Normal queries use internal names
                 .sort(ClassWithPolicy.FIELD_M_HUNGARIAN) // Sorting uses internal names
-                .distinctValues(ClassWithPolicy.FIELD_CUSTOM_NAME) // Distinct uses internal names
+                .distinct(ClassWithPolicy.FIELD_CUSTOM_NAME) // Distinct uses internal names
                 .findAll();
         assertTrue(results.isEmpty());
     }
@@ -176,7 +176,7 @@ public class CustomRealmNameTests {
 
         // Distinct
         try {
-            dynamicRealm.where(ClassWithPolicy.CLASS_NAME).distinctValues("camelCase");
+            dynamicRealm.where(ClassWithPolicy.CLASS_NAME).distinct("camelCase");
         } catch (IllegalArgumentException ignore) {
         }
     }
