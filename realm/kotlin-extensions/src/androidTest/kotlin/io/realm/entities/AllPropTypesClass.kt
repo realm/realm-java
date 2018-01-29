@@ -17,4 +17,13 @@ open class AllPropTypesClass : RealmModel {
     var booleanVar : Boolean = false
     var dateVar : Date = Date()
 
+    var nullableStringVar: String? = null
+    var nullableByteVar: Byte? = null
+    var nullableShortVar: Short? = null
+    var nullableIntVar: Int? = null
+    var nullableLongVar: Long? = null
+    var nullableDoubleVar: Double? = null
+    var nullableFloatVar: Float? = null
+    var nullableBooleanVar : Boolean? = null
+    var nullableDateVar : Date? = null
 }
