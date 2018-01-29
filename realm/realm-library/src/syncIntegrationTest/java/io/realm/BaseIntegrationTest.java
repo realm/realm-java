@@ -26,6 +26,7 @@ import org.junit.rules.ExpectedException;
 import java.io.File;
 import java.io.IOException;
 
+import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
@@ -44,9 +45,6 @@ public abstract class BaseIntegrationTest {
     private static int originalLogLevel;
 
     @Rule
-    public final TestSyncConfigurationFactory configurationFactory = new TestSyncConfigurationFactory();
-
-    @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
 
     @Rule
@@ -55,8 +53,13 @@ public abstract class BaseIntegrationTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
+    protected ConfigurationWrapper configurationFactory = new ConfigurationWrapper(looperThread);
+
+    static {
+        // Attempt to combat issues with the sync meta data Realm not being correctly cleaned
+    }
+
     protected void prepareEnvironmentForTest() throws IOException {
-        // FIXME Trying to reset the device environment is crashing tests somehow
         deleteRosFiles();
         if (BaseRealm.applicationContext != null) {
             // Realm was already initialized. Reset all internal state
@@ -126,6 +129,34 @@ public abstract class BaseIntegrationTest {
         }
         if (!file.delete()) {
             throw new IllegalStateException("Failed to delete file or directory: " + file.getAbsolutePath());
+        }
+    }
+
+    // Returns a valid SyncConfiguration usable by tests
+    // FIXME: WARNING: Do not use `SyncTestRealmConfigurationFactory`, but use this. Refactor later.
+    protected static class ConfigurationWrapper {
+
+        private final RunInLooperThread looperThread;
+
+        ConfigurationWrapper(RunInLooperThread looperThread) {
+            this.looperThread = looperThread;
+            try {
+                // The RunInLooperThread rule might not be fully created yet. Do it here.
+                // The `create()` call is idempotent, so should be safe.
+                looperThread.create();
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        public SyncConfiguration.Builder createSyncConfigurationBuilder(SyncUser user, String url) {
+            return new SyncConfiguration.Builder(user, url)
+                    .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                    .directory(looperThread.getRoot());
+        }
+
+        public File getRoot() {
+            return looperThread.getRoot();
         }
     }
 }
