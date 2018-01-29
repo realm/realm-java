@@ -55,7 +55,7 @@ public class CompositeMediator extends RealmProxyMediator {
             for (RealmProxyMediator mediator : mediators) {
                 for (Class<? extends RealmModel> realmClass : mediator.getModelClasses()) {
                     // Verify that the module doesn't contain conflicting definitions for the same
-                    // underlying internal name. Can only happen if we add a module from a library and
+                    // underlying internal name. Can only happen if we add a module from a library
                     // and a module from the app at the same time.
                     String newInternalName = mediator.getSimpleClassName(realmClass);
                     Class existingClass = internalClassNames.get(newInternalName);
