@@ -45,8 +45,13 @@ class KotlinRealmQueryTests {
 
         assertEquals(1,
                 realm.where<AllPropTypesClass>()
-                     .oneOf(AllPropTypesClass::stringVar.name, arrayOf<String?>("test"))
+                     .oneOf(AllPropTypesClass::stringVar.name, arrayOf<String?>(null, "test"))
                      .count())
+
+        assertEquals(1,
+                realm.where<AllPropTypesClass>()
+                        .oneOf(AllPropTypesClass::stringVar.name, arrayOf<String>("test"))
+                        .count())
     }
 
     @Test
@@ -58,7 +63,12 @@ class KotlinRealmQueryTests {
 
         assertEquals(1,
                 realm.where<AllPropTypesClass>()
-                        .oneOf(AllPropTypesClass::byteVar.name, arrayOf<Byte?>(3))
+                        .oneOf(AllPropTypesClass::byteVar.name, arrayOf<Byte?>(null, 3))
+                        .count())
+
+        assertEquals(1,
+                realm.where<AllPropTypesClass>()
+                        .oneOf(AllPropTypesClass::byteVar.name, arrayOf<Byte>(3))
                         .count())
     }
 
@@ -71,7 +81,12 @@ class KotlinRealmQueryTests {
 
         assertEquals(1,
                 realm.where<AllPropTypesClass>()
-                        .oneOf(AllPropTypesClass::shortVar.name, arrayOf<Short?>(3))
+                        .oneOf(AllPropTypesClass::shortVar.name, arrayOf<Short?>(null, 3))
+                        .count())
+
+        assertEquals(1,
+                realm.where<AllPropTypesClass>()
+                        .oneOf(AllPropTypesClass::shortVar.name, arrayOf<Short>(3))
                         .count())
     }
 
@@ -84,7 +99,12 @@ class KotlinRealmQueryTests {
 
         assertEquals(1,
                 realm.where<AllPropTypesClass>()
-                        .oneOf(AllPropTypesClass::intVar.name, arrayOf<Int?>(3))
+                        .oneOf(AllPropTypesClass::intVar.name, arrayOf<Int?>(null, 3))
+                        .count())
+
+        assertEquals(1,
+                realm.where<AllPropTypesClass>()
+                        .oneOf(AllPropTypesClass::intVar.name, arrayOf<Int>(3))
                         .count())
     }
 
@@ -97,7 +117,12 @@ class KotlinRealmQueryTests {
 
         assertEquals(1,
                 realm.where<AllPropTypesClass>()
-                        .oneOf(AllPropTypesClass::longVar.name, arrayOf<Long?>(3))
+                        .oneOf(AllPropTypesClass::longVar.name, arrayOf<Long?>(null, 3))
+                        .count())
+
+        assertEquals(1,
+                realm.where<AllPropTypesClass>()
+                        .oneOf(AllPropTypesClass::longVar.name, arrayOf<Long>(3))
                         .count())
     }
 
@@ -110,7 +135,12 @@ class KotlinRealmQueryTests {
 
         assertEquals(1,
                 realm.where<AllPropTypesClass>()
-                        .oneOf(AllPropTypesClass::doubleVar.name, arrayOf<Double?>(3.5))
+                        .oneOf(AllPropTypesClass::doubleVar.name, arrayOf<Double?>(null, 3.5))
+                        .count())
+
+        assertEquals(1,
+                realm.where<AllPropTypesClass>()
+                        .oneOf(AllPropTypesClass::doubleVar.name, arrayOf<Double>(3.5))
                         .count())
     }
 
@@ -123,7 +153,12 @@ class KotlinRealmQueryTests {
 
         assertEquals(1,
                 realm.where<AllPropTypesClass>()
-                        .oneOf(AllPropTypesClass::floatVar.name, arrayOf<Float?>(3.5f))
+                        .oneOf(AllPropTypesClass::floatVar.name, arrayOf<Float?>(null, 3.5f))
+                        .count())
+
+        assertEquals(1,
+                realm.where<AllPropTypesClass>()
+                        .oneOf(AllPropTypesClass::floatVar.name, arrayOf<Float>(3.5f))
                         .count())
     }
 
@@ -133,6 +168,11 @@ class KotlinRealmQueryTests {
         val obj = realm.createObject<AllPropTypesClass>()
         obj.booleanVar = true
         realm.commitTransaction()
+
+        assertEquals(1,
+                realm.where<AllPropTypesClass>()
+                        .oneOf(AllPropTypesClass::booleanVar.name, arrayOf<Boolean?>(null, true))
+                        .count())
 
         assertEquals(1,
                 realm.where<AllPropTypesClass>()
@@ -152,7 +192,12 @@ class KotlinRealmQueryTests {
 
         assertEquals(1,
                 realm.where<AllPropTypesClass>()
-                        .oneOf(AllPropTypesClass::dateVar.name, arrayOf<Date?>(testDate))
+                        .oneOf(AllPropTypesClass::dateVar.name, arrayOf<Date?>(null, testDate))
+                        .count())
+
+        assertEquals(1,
+                realm.where<AllPropTypesClass>()
+                        .oneOf(AllPropTypesClass::dateVar.name, arrayOf<Date>(testDate))
                         .count())
     }
 
