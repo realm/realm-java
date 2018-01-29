@@ -32,7 +32,7 @@ import java.util.*
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
-                                         value: Array<String?>,
+                                         value: Array<out String?>,
                                          casing: Case = Case.SENSITIVE): RealmQuery<T> {
     return this.`in`(propertyName, value, casing)
 }
@@ -48,7 +48,7 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
-                                         value: Array<Byte?>): RealmQuery<T> {
+                                         value: Array<out Byte?>): RealmQuery<T> {
     return this.`in`(propertyName, value)
 }
 
@@ -62,7 +62,7 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
-                                         value: Array<Short?>): RealmQuery<T> {
+                                         value: Array<out Short?>): RealmQuery<T> {
     return this.`in`(propertyName, value)
 }
 
@@ -76,7 +76,7 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * or empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
-                                         value: Array<Int?>): RealmQuery<T> {
+                                         value: Array<out Int?>): RealmQuery<T> {
     return this.`in`(propertyName, value)
 }
 
@@ -90,7 +90,7 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
-                                         value: Array<Long?>): RealmQuery<T> {
+                                         value: Array<out Long?>): RealmQuery<T> {
     return this.`in`(propertyName, value)
 }
 
@@ -104,7 +104,7 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
-                                         value: Array<Double?>): RealmQuery<T> {
+                                         value: Array<out Double?>): RealmQuery<T> {
     return this.`in`(propertyName, value)
 }
 
@@ -119,7 +119,7 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
-                                         value: Array<Float?>): RealmQuery<T> {
+                                         value: Array<out Float?>): RealmQuery<T> {
     return this.`in`(propertyName, value)
 }
 
@@ -134,7 +134,7 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * or empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
-                                         value: Array<Boolean?>): RealmQuery<T> {
+                                         value: Array<out Boolean?>): RealmQuery<T> {
     return this.`in`(propertyName, value)
 }
 
@@ -148,6 +148,6 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
-                                         value: Array<Date?>): RealmQuery<T> {
+                                         value: Array<out Date?>): RealmQuery<T> {
     return this.`in`(propertyName, value)
 }
