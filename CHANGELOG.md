@@ -20,6 +20,13 @@
 * Added support for mapping between a Java name and the underlying name in the Realm file using `@RealmModule`, `@RealmClass` and `@RealmField` annotations (#5280).
 
 
+## 4.3.4 (YYYY-MM-DD)
+
+## Bug Fixes
+
+* Added missing `RealmQuery.oneOf()` for Kotlin that accepts non-nullable types (#5717).
+
+
 ## 4.3.3 (2018-01-19)
 
 ### Internal
