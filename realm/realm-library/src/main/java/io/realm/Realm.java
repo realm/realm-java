@@ -71,6 +71,11 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
+import io.realm.sync.permissions.ClassPermissions;
+import io.realm.sync.permissions.RealmPermissions;
+import io.realm.sync.permissions.RealmPrivileges;
+import io.realm.sync.permissions.Role;
+import io.realm.sync.permissions.User;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
@@ -1763,6 +1768,85 @@ public class Realm extends BaseRealm {
                 callback.onError(subscriptionName, error);
             }
         });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Beta
+    @Override
+    public RealmPermissions getPermissions() {
+        // FIXME checks
+        return where(RealmPermissions.class).findFirst();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Beta
+    @Override
+    public RealmResults<Role> getRoles() {
+        // FIXME checks
+        return where(Role.class).sort("name").findAll();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Beta
+    @Override
+    public RealmResults<User> getUsers() {
+        // FIXME checks
+        return where(User.class).findAll();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Beta
+    @Override
+    public RealmPrivileges getPrivileges() {
+        // FIXME checks
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Beta
+    @Override
+    public RealmPrivileges getPrivileges(RealmModel object) {
+        // FIXME checks
+        return null;
+    }
+
+    /**
+     * Returns the privileges granted to current of this Realm for the given class.
+     *
+     * @param clazz class to get privileges for.
+     * @return the privileges granted the current user for the given class.
+     */
+    @Beta
+    public RealmPrivileges getPrivileges(Class<? extends RealmModel> clazz) {
+        // FIXME checks
+        return null;
+    }
+
+    /**
+     * Returns all permissions associated with the given class. Attach a change listener
+     * using {@link ClassPermissions#addChangeListener(RealmChangeListener)} to be notified about
+     * any future changes.
+     *
+     * @param clazz class to receive permissions for.
+     * @return the permissions for the given class or {@code null} if no permissions where found.
+     * @throws IllegalArgumentException if the class is not part of this Realms schema.
+     */
+    @Beta
+    public ClassPermissions getPermissions(Class<? extends RealmModel> clazz) {
+        // FIXME Checks
+        return where(ClassPermissions.class)
+                .equalTo("name", configuration.getSchemaMediator().getSimpleClassName(clazz))
+                .findFirst();
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {

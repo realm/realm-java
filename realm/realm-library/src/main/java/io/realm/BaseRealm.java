@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.reactivex.Flowable;
 import javax.annotation.Nullable;
 
+import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -47,6 +48,10 @@ import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
+import io.realm.sync.permissions.RealmPermissions;
+import io.realm.sync.permissions.RealmPrivileges;
+import io.realm.sync.permissions.Role;
+import io.realm.sync.permissions.User;
 
 /**
  * Base class for all Realm instances.
@@ -491,6 +496,54 @@ abstract class BaseRealm implements Closeable {
     public long getVersion() {
         return OsObjectStore.getSchemaVersion(sharedRealm);
     }
+
+    /**
+     * Returns the privileges granted to the current user for this Realm.
+     *
+     * @return the privileges granted the current user for this Realm.
+     */
+    @Beta
+    abstract public RealmPrivileges getPrivileges();
+
+    /**
+     * Returns the privileges granted to the current user for the given object.
+     *
+     * @param object Realm object to get privileges for.
+     * @return the privileges granted the current user for the object.
+     * @throws IllegalArgumentException if the object is either unmanaged or not part of this Realm.
+     */
+    @Beta
+    abstract public RealmPrivileges getPrivileges(RealmModel object);
+
+    /**
+     * Returns all permissions associated with the current Realm. Attach a change listener
+     * using {@link RealmPermissions#addChangeListener(RealmChangeListener)} to be notified about
+     * any future changes.
+     *
+     * @return all permissions for the current Realm.
+     */
+    @Beta
+    abstract public RealmPermissions getPermissions();
+
+    /**
+     * Returns all {@link Role} objects available in this Realm. Attach a change listener
+     * using {@link Role#addChangeListener(RealmChangeListener)} to be notified about
+     * any future changes.
+     *
+     * @return all roles available in the current Realm.
+     */
+    @Beta
+    abstract public RealmResults<Role> getRoles();
+
+    /**
+     * Returns all {@link User} objects available in this Realm. Attach a change listener
+     * using {@link User#addChangeListener(RealmChangeListener)} to be notified about
+     * any future changes.
+     *
+     * @return all roles available in the current Realm.
+     */
+    @Beta
+    abstract public RealmResults<User> getUsers();
 
     /**
      * Closes the Realm instance and all its resources.

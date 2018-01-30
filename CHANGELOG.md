@@ -10,6 +10,7 @@
 ### Enhancements
 
 * [ObjectServer] Added support for partial Realms. Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
+* [ObjectServer] Added support for Object Level Permissions (requires partial synchronized Realms). Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
 * Added two new methods to `OrderedCollectionChangeSet`: `getState()` and `getError()` (#5619).
 
 
