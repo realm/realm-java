@@ -52,6 +52,22 @@ public class Permission extends RealmObject {
         /**
          * FIXME
          */
+        public Builder allPrivileges() {
+            // FIXME
+            return this;
+        }
+
+        /**
+         * FIXME
+         */
+        public Builder noPrivileges() {
+            // FIXME
+            return this;
+        }
+
+        /**
+         * FIXME
+         */
         public Builder canRead(boolean canRead) {
             this.canRead = canRead;
             return this;
