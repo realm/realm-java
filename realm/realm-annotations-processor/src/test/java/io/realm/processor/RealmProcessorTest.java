@@ -343,7 +343,7 @@ public class RealmProcessorTest {
 
         for (String fieldType : validPrimaryKeyFieldTypes) {
             RealmSyntheticTestClass javaFileObject =
-                    new RealmSyntheticTestClass.Builder().name("ValidPrimaryKeyType").field("testField", fieldType, "Required").build();
+                    new RealmSyntheticTestClass.Builder().name("ValidRequiredType").field("testField", fieldType, "Required").build();
             ASSERT.about(javaSource())
                     .that(javaFileObject)
                     .processedWith(new RealmProcessor())
@@ -354,14 +354,16 @@ public class RealmProcessorTest {
     // Not supported "Required" annotation types
     @Test
     public void compileInvalidRequiredTypes() throws IOException {
-        final String[] validPrimaryKeyFieldTypes = {"byte", "short", "int", "long", "float", "double",
+        final String[] invalidRequiredAnnotationFieldTypes = {"byte", "short", "int", "long", "float", "double",
                 "boolean", "RealmList<Simple>", "Simple"};
 
-        for (String fieldType : validPrimaryKeyFieldTypes) {
-            RealmSyntheticTestClass javaFileObject =
-                    new RealmSyntheticTestClass.Builder().name("ValidPrimaryKeyType").field("testField", fieldType, "Required").build();
-            ASSERT.about(javaSource())
-                    .that(javaFileObject)
+        for (String fieldType : invalidRequiredAnnotationFieldTypes) {
+            RealmSyntheticTestClass javaFileObject = new RealmSyntheticTestClass.Builder()
+                    .name("InvalidRequiredType")
+                    .field("testField", fieldType, "Required")
+                    .build();
+            ASSERT.about(javaSources())
+                    .that(Arrays.asList(simpleModel, javaFileObject))
                     .processedWith(new RealmProcessor())
                     .failsToCompile();
         }

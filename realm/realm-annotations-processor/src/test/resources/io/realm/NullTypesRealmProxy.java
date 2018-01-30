@@ -80,47 +80,47 @@ public class NullTypesRealmProxy extends some.test.NullTypes
         NullTypesColumnInfo(OsSchemaInfo schemaInfo) {
             super(41);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("NullTypes");
-            this.fieldStringNotNullIndex = addColumnDetails("fieldStringNotNull", objectSchemaInfo);
-            this.fieldStringNullIndex = addColumnDetails("fieldStringNull", objectSchemaInfo);
-            this.fieldBooleanNotNullIndex = addColumnDetails("fieldBooleanNotNull", objectSchemaInfo);
-            this.fieldBooleanNullIndex = addColumnDetails("fieldBooleanNull", objectSchemaInfo);
-            this.fieldBytesNotNullIndex = addColumnDetails("fieldBytesNotNull", objectSchemaInfo);
-            this.fieldBytesNullIndex = addColumnDetails("fieldBytesNull", objectSchemaInfo);
-            this.fieldByteNotNullIndex = addColumnDetails("fieldByteNotNull", objectSchemaInfo);
-            this.fieldByteNullIndex = addColumnDetails("fieldByteNull", objectSchemaInfo);
-            this.fieldShortNotNullIndex = addColumnDetails("fieldShortNotNull", objectSchemaInfo);
-            this.fieldShortNullIndex = addColumnDetails("fieldShortNull", objectSchemaInfo);
-            this.fieldIntegerNotNullIndex = addColumnDetails("fieldIntegerNotNull", objectSchemaInfo);
-            this.fieldIntegerNullIndex = addColumnDetails("fieldIntegerNull", objectSchemaInfo);
-            this.fieldLongNotNullIndex = addColumnDetails("fieldLongNotNull", objectSchemaInfo);
-            this.fieldLongNullIndex = addColumnDetails("fieldLongNull", objectSchemaInfo);
-            this.fieldFloatNotNullIndex = addColumnDetails("fieldFloatNotNull", objectSchemaInfo);
-            this.fieldFloatNullIndex = addColumnDetails("fieldFloatNull", objectSchemaInfo);
-            this.fieldDoubleNotNullIndex = addColumnDetails("fieldDoubleNotNull", objectSchemaInfo);
-            this.fieldDoubleNullIndex = addColumnDetails("fieldDoubleNull", objectSchemaInfo);
-            this.fieldDateNotNullIndex = addColumnDetails("fieldDateNotNull", objectSchemaInfo);
-            this.fieldDateNullIndex = addColumnDetails("fieldDateNull", objectSchemaInfo);
-            this.fieldObjectNullIndex = addColumnDetails("fieldObjectNull", objectSchemaInfo);
-            this.fieldStringListNotNullIndex = addColumnDetails("fieldStringListNotNull", objectSchemaInfo);
-            this.fieldStringListNullIndex = addColumnDetails("fieldStringListNull", objectSchemaInfo);
-            this.fieldBinaryListNotNullIndex = addColumnDetails("fieldBinaryListNotNull", objectSchemaInfo);
-            this.fieldBinaryListNullIndex = addColumnDetails("fieldBinaryListNull", objectSchemaInfo);
-            this.fieldBooleanListNotNullIndex = addColumnDetails("fieldBooleanListNotNull", objectSchemaInfo);
-            this.fieldBooleanListNullIndex = addColumnDetails("fieldBooleanListNull", objectSchemaInfo);
-            this.fieldLongListNotNullIndex = addColumnDetails("fieldLongListNotNull", objectSchemaInfo);
-            this.fieldLongListNullIndex = addColumnDetails("fieldLongListNull", objectSchemaInfo);
-            this.fieldIntegerListNotNullIndex = addColumnDetails("fieldIntegerListNotNull", objectSchemaInfo);
-            this.fieldIntegerListNullIndex = addColumnDetails("fieldIntegerListNull", objectSchemaInfo);
-            this.fieldShortListNotNullIndex = addColumnDetails("fieldShortListNotNull", objectSchemaInfo);
-            this.fieldShortListNullIndex = addColumnDetails("fieldShortListNull", objectSchemaInfo);
-            this.fieldByteListNotNullIndex = addColumnDetails("fieldByteListNotNull", objectSchemaInfo);
-            this.fieldByteListNullIndex = addColumnDetails("fieldByteListNull", objectSchemaInfo);
-            this.fieldDoubleListNotNullIndex = addColumnDetails("fieldDoubleListNotNull", objectSchemaInfo);
-            this.fieldDoubleListNullIndex = addColumnDetails("fieldDoubleListNull", objectSchemaInfo);
-            this.fieldFloatListNotNullIndex = addColumnDetails("fieldFloatListNotNull", objectSchemaInfo);
-            this.fieldFloatListNullIndex = addColumnDetails("fieldFloatListNull", objectSchemaInfo);
-            this.fieldDateListNotNullIndex = addColumnDetails("fieldDateListNotNull", objectSchemaInfo);
-            this.fieldDateListNullIndex = addColumnDetails("fieldDateListNull", objectSchemaInfo);
+            this.fieldStringNotNullIndex = addColumnDetails("fieldStringNotNull", "fieldStringNotNull", objectSchemaInfo);
+            this.fieldStringNullIndex = addColumnDetails("fieldStringNull", "fieldStringNull", objectSchemaInfo);
+            this.fieldBooleanNotNullIndex = addColumnDetails("fieldBooleanNotNull", "fieldBooleanNotNull", objectSchemaInfo);
+            this.fieldBooleanNullIndex = addColumnDetails("fieldBooleanNull", "fieldBooleanNull", objectSchemaInfo);
+            this.fieldBytesNotNullIndex = addColumnDetails("fieldBytesNotNull", "fieldBytesNotNull", objectSchemaInfo);
+            this.fieldBytesNullIndex = addColumnDetails("fieldBytesNull", "fieldBytesNull", objectSchemaInfo);
+            this.fieldByteNotNullIndex = addColumnDetails("fieldByteNotNull", "fieldByteNotNull", objectSchemaInfo);
+            this.fieldByteNullIndex = addColumnDetails("fieldByteNull", "fieldByteNull", objectSchemaInfo);
+            this.fieldShortNotNullIndex = addColumnDetails("fieldShortNotNull", "fieldShortNotNull", objectSchemaInfo);
+            this.fieldShortNullIndex = addColumnDetails("fieldShortNull", "fieldShortNull", objectSchemaInfo);
+            this.fieldIntegerNotNullIndex = addColumnDetails("fieldIntegerNotNull", "fieldIntegerNotNull", objectSchemaInfo);
+            this.fieldIntegerNullIndex = addColumnDetails("fieldIntegerNull", "fieldIntegerNull", objectSchemaInfo);
+            this.fieldLongNotNullIndex = addColumnDetails("fieldLongNotNull", "fieldLongNotNull", objectSchemaInfo);
+            this.fieldLongNullIndex = addColumnDetails("fieldLongNull", "fieldLongNull", objectSchemaInfo);
+            this.fieldFloatNotNullIndex = addColumnDetails("fieldFloatNotNull", "fieldFloatNotNull", objectSchemaInfo);
+            this.fieldFloatNullIndex = addColumnDetails("fieldFloatNull", "fieldFloatNull", objectSchemaInfo);
+            this.fieldDoubleNotNullIndex = addColumnDetails("fieldDoubleNotNull", "fieldDoubleNotNull", objectSchemaInfo);
+            this.fieldDoubleNullIndex = addColumnDetails("fieldDoubleNull", "fieldDoubleNull", objectSchemaInfo);
+            this.fieldDateNotNullIndex = addColumnDetails("fieldDateNotNull", "fieldDateNotNull", objectSchemaInfo);
+            this.fieldDateNullIndex = addColumnDetails("fieldDateNull", "fieldDateNull", objectSchemaInfo);
+            this.fieldObjectNullIndex = addColumnDetails("fieldObjectNull", "fieldObjectNull", objectSchemaInfo);
+            this.fieldStringListNotNullIndex = addColumnDetails("fieldStringListNotNull", "fieldStringListNotNull", objectSchemaInfo);
+            this.fieldStringListNullIndex = addColumnDetails("fieldStringListNull", "fieldStringListNull", objectSchemaInfo);
+            this.fieldBinaryListNotNullIndex = addColumnDetails("fieldBinaryListNotNull", "fieldBinaryListNotNull", objectSchemaInfo);
+            this.fieldBinaryListNullIndex = addColumnDetails("fieldBinaryListNull", "fieldBinaryListNull", objectSchemaInfo);
+            this.fieldBooleanListNotNullIndex = addColumnDetails("fieldBooleanListNotNull", "fieldBooleanListNotNull", objectSchemaInfo);
+            this.fieldBooleanListNullIndex = addColumnDetails("fieldBooleanListNull", "fieldBooleanListNull", objectSchemaInfo);
+            this.fieldLongListNotNullIndex = addColumnDetails("fieldLongListNotNull", "fieldLongListNotNull", objectSchemaInfo);
+            this.fieldLongListNullIndex = addColumnDetails("fieldLongListNull", "fieldLongListNull", objectSchemaInfo);
+            this.fieldIntegerListNotNullIndex = addColumnDetails("fieldIntegerListNotNull", "fieldIntegerListNotNull", objectSchemaInfo);
+            this.fieldIntegerListNullIndex = addColumnDetails("fieldIntegerListNull", "fieldIntegerListNull", objectSchemaInfo);
+            this.fieldShortListNotNullIndex = addColumnDetails("fieldShortListNotNull", "fieldShortListNotNull", objectSchemaInfo);
+            this.fieldShortListNullIndex = addColumnDetails("fieldShortListNull", "fieldShortListNull", objectSchemaInfo);
+            this.fieldByteListNotNullIndex = addColumnDetails("fieldByteListNotNull", "fieldByteListNotNull", objectSchemaInfo);
+            this.fieldByteListNullIndex = addColumnDetails("fieldByteListNull", "fieldByteListNull", objectSchemaInfo);
+            this.fieldDoubleListNotNullIndex = addColumnDetails("fieldDoubleListNotNull", "fieldDoubleListNotNull", objectSchemaInfo);
+            this.fieldDoubleListNullIndex = addColumnDetails("fieldDoubleListNull", "fieldDoubleListNull", objectSchemaInfo);
+            this.fieldFloatListNotNullIndex = addColumnDetails("fieldFloatListNotNull", "fieldFloatListNotNull", objectSchemaInfo);
+            this.fieldFloatListNullIndex = addColumnDetails("fieldFloatListNull", "fieldFloatListNull", objectSchemaInfo);
+            this.fieldDateListNotNullIndex = addColumnDetails("fieldDateListNotNull", "fieldDateListNotNull", objectSchemaInfo);
+            this.fieldDateListNullIndex = addColumnDetails("fieldDateListNull", "fieldDateListNull", objectSchemaInfo);
         }
 
         NullTypesColumnInfo(ColumnInfo src, boolean mutable) {
@@ -182,52 +182,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
     }
 
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
-    private static final List<String> FIELD_NAMES;
-    static {
-        List<String> fieldNames = new ArrayList<String>(41);
-        fieldNames.add("fieldStringNotNull");
-        fieldNames.add("fieldStringNull");
-        fieldNames.add("fieldBooleanNotNull");
-        fieldNames.add("fieldBooleanNull");
-        fieldNames.add("fieldBytesNotNull");
-        fieldNames.add("fieldBytesNull");
-        fieldNames.add("fieldByteNotNull");
-        fieldNames.add("fieldByteNull");
-        fieldNames.add("fieldShortNotNull");
-        fieldNames.add("fieldShortNull");
-        fieldNames.add("fieldIntegerNotNull");
-        fieldNames.add("fieldIntegerNull");
-        fieldNames.add("fieldLongNotNull");
-        fieldNames.add("fieldLongNull");
-        fieldNames.add("fieldFloatNotNull");
-        fieldNames.add("fieldFloatNull");
-        fieldNames.add("fieldDoubleNotNull");
-        fieldNames.add("fieldDoubleNull");
-        fieldNames.add("fieldDateNotNull");
-        fieldNames.add("fieldDateNull");
-        fieldNames.add("fieldObjectNull");
-        fieldNames.add("fieldStringListNotNull");
-        fieldNames.add("fieldStringListNull");
-        fieldNames.add("fieldBinaryListNotNull");
-        fieldNames.add("fieldBinaryListNull");
-        fieldNames.add("fieldBooleanListNotNull");
-        fieldNames.add("fieldBooleanListNull");
-        fieldNames.add("fieldLongListNotNull");
-        fieldNames.add("fieldLongListNull");
-        fieldNames.add("fieldIntegerListNotNull");
-        fieldNames.add("fieldIntegerListNull");
-        fieldNames.add("fieldShortListNotNull");
-        fieldNames.add("fieldShortListNull");
-        fieldNames.add("fieldByteListNotNull");
-        fieldNames.add("fieldByteListNull");
-        fieldNames.add("fieldDoubleListNotNull");
-        fieldNames.add("fieldDoubleListNull");
-        fieldNames.add("fieldFloatListNotNull");
-        fieldNames.add("fieldFloatListNull");
-        fieldNames.add("fieldDateListNotNull");
-        fieldNames.add("fieldDateListNull");
-        FIELD_NAMES = Collections.unmodifiableList(fieldNames);
-    }
 
     private NullTypesColumnInfo columnInfo;
     private ProxyState<some.test.NullTypes> proxyState;
@@ -1751,10 +1705,6 @@ public class NullTypesRealmProxy extends some.test.NullTypes
 
     public static String getSimpleClassName() {
         return "NullTypes";
-    }
-
-    public static List<String> getFieldNames() {
-        return FIELD_NAMES;
     }
 
     @SuppressWarnings("cast")

@@ -41,8 +41,8 @@ public class SimpleRealmProxy extends some.test.Simple
         SimpleColumnInfo(OsSchemaInfo schemaInfo) {
             super(2);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("Simple");
-            this.nameIndex = addColumnDetails("name", objectSchemaInfo);
-            this.ageIndex = addColumnDetails("age", objectSchemaInfo);
+            this.nameIndex = addColumnDetails("name", "name", objectSchemaInfo);
+            this.ageIndex = addColumnDetails("age", "age", objectSchemaInfo);
         }
 
         SimpleColumnInfo(ColumnInfo src, boolean mutable) {
@@ -65,13 +65,6 @@ public class SimpleRealmProxy extends some.test.Simple
     }
 
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
-    private static final List<String> FIELD_NAMES;
-    static {
-        List<String> fieldNames = new ArrayList<String>(2);
-        fieldNames.add("name");
-        fieldNames.add("age");
-        FIELD_NAMES = Collections.unmodifiableList(fieldNames);
-    }
 
     private SimpleColumnInfo columnInfo;
     private ProxyState<some.test.Simple> proxyState;
@@ -163,10 +156,6 @@ public class SimpleRealmProxy extends some.test.Simple
 
     public static String getSimpleClassName() {
         return "Simple";
-    }
-
-    public static List<String> getFieldNames() {
-        return FIELD_NAMES;
     }
 
     @SuppressWarnings("cast")

@@ -26,6 +26,9 @@ import io.realm.internal.Table;
 /**
  * A field descriptor that uses dynamic table lookup.
  * Use when cache cannot be trusted...
+ *
+ * This class only understands how to parse field descriptions consisting of internal column names,
+ * if a field is specified using Java model class names, use {@link CachedFieldDescriptor} instead.
  */
 class DynamicFieldDescriptor extends FieldDescriptor {
     private final Table table;
@@ -34,7 +37,7 @@ class DynamicFieldDescriptor extends FieldDescriptor {
      * Build a dynamic field descriptor for the passed field description string.
      *
      * @param table the start table.
-     * @param fieldDescription the field description.
+     * @param fieldDescription the field description using internal columns.
      * @param validInternalColumnTypes valid types for the last field in the field description.
      * @param validFinalColumnTypes valid types for the last field in the field description.
      */

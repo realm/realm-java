@@ -43,10 +43,10 @@ public class BooleansRealmProxy extends some.test.Booleans
         BooleansColumnInfo(OsSchemaInfo schemaInfo) {
             super(4);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("Booleans");
-            this.doneIndex = addColumnDetails("done", objectSchemaInfo);
-            this.isReadyIndex = addColumnDetails("isReady", objectSchemaInfo);
-            this.mCompletedIndex = addColumnDetails("mCompleted", objectSchemaInfo);
-            this.anotherBooleanIndex = addColumnDetails("anotherBoolean", objectSchemaInfo);
+            this.doneIndex = addColumnDetails("done", "done", objectSchemaInfo);
+            this.isReadyIndex = addColumnDetails("isReady", "isReady", objectSchemaInfo);
+            this.mCompletedIndex = addColumnDetails("mCompleted", "mCompleted", objectSchemaInfo);
+            this.anotherBooleanIndex = addColumnDetails("anotherBoolean", "anotherBoolean", objectSchemaInfo);
         }
 
         BooleansColumnInfo(ColumnInfo src, boolean mutable) {
@@ -71,15 +71,6 @@ public class BooleansRealmProxy extends some.test.Booleans
     }
 
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
-    private static final List<String> FIELD_NAMES;
-    static {
-        List<String> fieldNames = new ArrayList<String>(4);
-        fieldNames.add("done");
-        fieldNames.add("isReady");
-        fieldNames.add("mCompleted");
-        fieldNames.add("anotherBoolean");
-        FIELD_NAMES = Collections.unmodifiableList(fieldNames);
-    }
 
     private BooleansColumnInfo columnInfo;
     private ProxyState<some.test.Booleans> proxyState;
@@ -209,10 +200,6 @@ public class BooleansRealmProxy extends some.test.Booleans
 
     public static String getSimpleClassName() {
         return "Booleans";
-    }
-
-    public static List<String> getFieldNames() {
-        return FIELD_NAMES;
     }
 
     @SuppressWarnings("cast")

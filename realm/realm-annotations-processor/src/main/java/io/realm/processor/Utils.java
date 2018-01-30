@@ -17,13 +17,20 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
+import io.realm.annotations.RealmNamingPolicy;
+import io.realm.processor.nameconverter.CamelCaseConverter;
+import io.realm.processor.nameconverter.LowerCaseWithSeparatorConverter;
+import io.realm.processor.nameconverter.NameConverter;
+import io.realm.processor.nameconverter.IdentityConverter;
+import io.realm.processor.nameconverter.PascalCaseConverter;
+
 
 /**
  * Utility methods working with the Realm processor.
  */
 public class Utils {
 
-    public static Types typeUtils;
+    private static Types typeUtils;
     private static Messager messager;
     private static TypeMirror realmInteger;
     private static DeclaredType realmList;
@@ -52,10 +59,6 @@ public class Utils {
             return ((ExecutableElement) constructor).getParameters().isEmpty();
         }
         return false;
-    }
-
-    public static String lowerFirstChar(String input) {
-        return input.substring(0, 1).toLowerCase() + input.substring(1);
     }
 
     public static String getProxyClassSimpleName(VariableElement field) {
@@ -175,7 +178,7 @@ public class Utils {
     }
 
     /**
-     * @return {@code true} if a given field type is {@code RealmList} and its element type is {@Code RealmObject},
+     * @return {@code true} if a given field type is {@code RealmList} and its element type is {@code RealmObject},
      * {@code false} otherwise.
      */
     public static boolean isRealmModelList(VariableElement field) {
@@ -209,7 +212,26 @@ public class Utils {
      * @return {@code true} if a given type is {@code RealmModel}, {@code false} otherwise.
      */
     public static boolean isRealmModel(TypeMirror type) {
+        // This will return the wrong result if a model class doesn't exist at all, but
+        // the compiler will catch that eventually.
         return typeUtils.isAssignable(type, realmModel);
+//        // Not sure what is happening here, but typeUtils.isAssignable("Foo", realmModel)
+//        // returns true even if Foo doesn't exist. No idea why this is happening.
+//        // For now punt on the problem and check the direct supertype which should be either
+//        // RealmObject or RealmModel.
+//        // Original implementation: ``
+//        //
+//        // Theory: It looks like if `type` has the internal TypeTag.ERROR (internal API) it
+//        // automatically translate to being assignable to everything. Possible some Java Specification
+//        // rule taking effect. In our case, however we can do better since all Realm classes
+//        // must be in the same compilation unit, so we should be able to look the type up.
+//        for (TypeMirror typeMirror : typeUtils.directSupertypes(type)) {
+//            String supertype = typeMirror.toString();
+//            if (supertype.equals("io.realm.RealmObject") || supertype.equals("io.realm.RealmModel")) {
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     public static boolean isRealmResults(VariableElement field) {
@@ -320,11 +342,25 @@ public class Utils {
     }
 
     public static void error(String message, Element element) {
+        if (element instanceof RealmFieldElement) {
+            // Element is being cast to Symbol internally which breaks any implementors of the
+            // Element interface. This is a hack to work around that. Bad bad Oracle
+            element = ((RealmFieldElement) element).getFieldReference();
+        }
         messager.printMessage(Diagnostic.Kind.ERROR, message, element);
     }
 
     public static void error(String message) {
         messager.printMessage(Diagnostic.Kind.ERROR, message);
+    }
+
+    public static void note(String message, Element element) {
+        if (element instanceof RealmFieldElement) {
+            // Element is being cast to Symbol internally which breaks any implementors of the
+            // Element interface. This is a hack to work around that. Bad bad Oracle
+            element = ((RealmFieldElement) element).getFieldReference();
+        }
+        messager.printMessage(Diagnostic.Kind.NOTE, message, element);
     }
 
     public static void note(String message) {
@@ -337,6 +373,21 @@ public class Utils {
 
     public static String getProxyInterfaceName(String className) {
         return className + Constants.INTERFACE_SUFFIX;
+    }
+
+    public static NameConverter getNameFormatter(RealmNamingPolicy policy) {
+        if (policy == null) {
+            return new IdentityConverter();
+        }
+        switch (policy) {
+            case NO_POLICY: return new IdentityConverter();
+            case IDENTITY: return new IdentityConverter();
+            case LOWER_CASE_WITH_UNDERSCORES: return new LowerCaseWithSeparatorConverter('_');
+            case CAMEL_CASE: return new CamelCaseConverter();
+            case PASCAL_CASE: return new PascalCaseConverter();
+            default:
+                throw new IllegalArgumentException("Unknown policy: " + policy);
+        }
     }
 
 }
