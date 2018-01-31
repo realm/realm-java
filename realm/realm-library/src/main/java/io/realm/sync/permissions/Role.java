@@ -20,10 +20,16 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
+import io.realm.internal.annotations.ObjectServer;
 
 /**
- * FIXME
+ * A role describes a function or area of authority in the Realm Object Server permission system.
+ * Multiple users can have the same role and a role can be assigned different permissions.
+ *
+ * @see <a href="FIX">Object Level Permissions</a> for an detailed description of the Realm Object
+ * Server permission system.
  */
+@ObjectServer
 @RealmClass(name = "__Role")
 public class Role extends RealmObject {
     @PrimaryKey
@@ -36,27 +42,27 @@ public class Role extends RealmObject {
     }
 
     /**
-     * FIXME
+     * Creates a new named role. The name must be unique.
      *
-     * @param name
+     * @param name a unique name for the role.
      */
     public Role(String name) {
         this.name = name;
     }
 
     /**
-     * FIXME
+     * Returns the name of this role.
      *
-     * @return
+     * @return name of this role.
      */
     public String getName() {
         return name;
     }
 
     /**
-     * FIXME
+     * Returns all users with this role.
      *
-     * @return
+     * @return all users with the given role.
      */
     public RealmList<User> getMembers() {
         return members;

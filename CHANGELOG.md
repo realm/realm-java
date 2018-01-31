@@ -1,5 +1,9 @@
 ## 5.0.0 (YYYY-MM-DD)
 
+### Known Bugs
+
+* API's marked @ObjectServer are shipped as part of the base binary, they should only be available when enabling synchronized Realms.
+
 ### Breaking Changes
 
 * The `OrderedCollectionChangeSet` parameter in `OrderedRealmCollectionChangeListener.onChange()` is no longer nullable. Use `changeSet.getState()` instead (#5619).

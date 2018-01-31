@@ -69,6 +69,7 @@ import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
+import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
 import io.realm.sync.permissions.ClassPermissions;
@@ -1774,6 +1775,7 @@ public class Realm extends BaseRealm {
      * {@inheritDoc}
      */
     @Beta
+    @ObjectServer
     @Override
     public RealmPermissions getPermissions() {
         // FIXME checks
@@ -1784,6 +1786,7 @@ public class Realm extends BaseRealm {
      * {@inheritDoc}
      */
     @Beta
+    @ObjectServer
     @Override
     public RealmResults<Role> getRoles() {
         // FIXME checks
@@ -1794,6 +1797,7 @@ public class Realm extends BaseRealm {
      * {@inheritDoc}
      */
     @Beta
+    @ObjectServer
     @Override
     public RealmResults<User> getUsers() {
         // FIXME checks
@@ -1804,6 +1808,7 @@ public class Realm extends BaseRealm {
      * {@inheritDoc}
      */
     @Beta
+    @ObjectServer
     @Override
     public RealmPrivileges getPrivileges() {
         // FIXME checks
@@ -1814,6 +1819,7 @@ public class Realm extends BaseRealm {
      * {@inheritDoc}
      */
     @Beta
+    @ObjectServer
     @Override
     public RealmPrivileges getPrivileges(RealmModel object) {
         // FIXME checks
@@ -1827,6 +1833,7 @@ public class Realm extends BaseRealm {
      * @return the privileges granted the current user for the given class.
      */
     @Beta
+    @ObjectServer
     public RealmPrivileges getPrivileges(Class<? extends RealmModel> clazz) {
         // FIXME checks
         return null;
@@ -1842,6 +1849,7 @@ public class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the class is not part of this Realms schema.
      */
     @Beta
+    @ObjectServer
     public ClassPermissions getPermissions(Class<? extends RealmModel> clazz) {
         // FIXME Checks
         return where(ClassPermissions.class)

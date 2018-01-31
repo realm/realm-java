@@ -26,7 +26,7 @@ import io.realm.internal.Util;
 /**
  * This class represents the intent of giving a set of permissions to some users for some Realm(s).
  * <p>
- * If the request is successful, a {@link Permission} entry will be added to each affected users
+ * If the request is successful, a {@link io.realm.sync.permissions.Permission} entry will be added to each affected users
  * {@link PermissionManager}, where it can be fetched using
  * {@link PermissionManager#getPermissions(PermissionManager.PermissionsCallback)}
  *
@@ -114,7 +114,7 @@ public final class PermissionRequest {
      * all Realms, for which the user sending the request, has administrative rights.
      *
      * @return the Realm URL for which the permissions should be granted.
-     * @see Permission#mayManage()
+     * @see io.realm.sync.permissions.Permission#mayManage()
      */
     public String getUrl() {
         return url;

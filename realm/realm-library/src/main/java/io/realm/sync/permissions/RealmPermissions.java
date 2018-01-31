@@ -17,42 +17,36 @@ package io.realm.sync.permissions;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
-import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
+import io.realm.internal.annotations.ObjectServer;
 
 /**
- * FIXME
+ * Class describing all permissions related to a given Realm. Permissions attached to this class
+ * are treated as the default permissions if not otherwise overriden by {@link ClassPermissions}
+ * or object level permissions.
+ *
+ * @see <a href="FIX">Object Level Permissions</a> for an detailed description of the Realm Object
+ * Server permission system.
  */
+@ObjectServer
 @RealmClass(name = "__Realm")
 public class RealmPermissions extends RealmObject {
     @PrimaryKey
     private int id = 0; // Singleton object for the Realm file
     private RealmList<Permission> permissions = new RealmList<>();
 
-    @Ignore
-    private RealmPrivileges cachedPrivileges;
-
     public RealmPermissions() {
         // Required by Realm
     }
 
     /**
-     * FIXME
+     * Returns all Realm level permissions. This is the default set of permissions if not
+     * overwise defined by {@link ClassPermissions} and Object level permissions.
+     *
+     * @returns all Realm level permissions
      */
     public RealmList<Permission> getPermissions() {
         return permissions;
-    }
-
-    /**
-     * FIXME
-     *
-     * @return
-     */
-    public RealmPrivileges getPrivileges() {
-        if (cachedPrivileges == null) {
-            cachedPrivileges = new RealmPrivileges(this);
-        }
-        return null;
     }
 }

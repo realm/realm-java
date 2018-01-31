@@ -37,7 +37,7 @@ import io.realm.internal.permissions.PermissionChange;
 import io.realm.internal.permissions.PermissionModule;
 import io.realm.internal.permissions.PermissionOfferResponse;
 import io.realm.log.RealmLog;
-import io.realm.permissions.Permission;
+import io.realm.sync.permissions.Permission;
 import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionRequest;
 

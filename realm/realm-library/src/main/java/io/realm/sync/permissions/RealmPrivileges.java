@@ -17,6 +17,7 @@ package io.realm.sync.permissions;
 
 import io.realm.RealmModel;
 import io.realm.internal.ManagableObject;
+import io.realm.internal.annotations.ObjectServer;
 
 /**
  * FIXME: Javadoc
@@ -24,6 +25,7 @@ import io.realm.internal.ManagableObject;
  * or individual objects.
  *
  */
+@ObjectServer
 public class RealmPrivileges implements ManagableObject {
 
 

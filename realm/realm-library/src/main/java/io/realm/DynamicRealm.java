@@ -27,9 +27,13 @@ import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.annotations.ObjectServer;
 import io.realm.log.RealmLog;
 import io.realm.sync.permissions.ClassPermissions;
+import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
+import io.realm.sync.permissions.Role;
+import io.realm.sync.permissions.User;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -289,6 +293,39 @@ public class DynamicRealm extends BaseRealm {
         return configuration.getRxFactory().from(this);
     }
 
+    @Override
+    public RealmPrivileges getPrivileges() {
+        return null;
+    }
+
+    @Beta
+    @ObjectServer
+    @Override
+    public RealmPrivileges getPrivileges(RealmModel object) {
+        return null;
+    }
+
+    @Beta
+    @ObjectServer
+    @Override
+    public RealmPermissions getPermissions() {
+        return null;
+    }
+
+    @Beta
+    @ObjectServer
+    @Override
+    public RealmResults<Role> getRoles() {
+        return null;
+    }
+
+    @Beta
+    @ObjectServer
+    @Override
+    public RealmResults<User> getUsers() {
+        return null;
+    }
+
     /**
      * Returns the mutable schema for this Realm.
      *
@@ -306,6 +343,7 @@ public class DynamicRealm extends BaseRealm {
      * @return
      */
     @Beta
+    @ObjectServer
     public RealmPrivileges getPrivileges(String className) {
         return null;
     }
@@ -317,6 +355,7 @@ public class DynamicRealm extends BaseRealm {
      * @return
      */
     @Beta
+    @ObjectServer
     public ClassPermissions getPermissions(String className) {
         return null;
     }

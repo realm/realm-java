@@ -41,7 +41,7 @@ import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.permissions.AccessLevel;
-import io.realm.permissions.Permission;
+import io.realm.sync.permissions.Permission;
 import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionRequest;
 import io.realm.permissions.UserCondition;

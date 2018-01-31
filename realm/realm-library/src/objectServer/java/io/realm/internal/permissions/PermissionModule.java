@@ -17,7 +17,7 @@
 package io.realm.internal.permissions;
 
 import io.realm.annotations.RealmModule;
-import io.realm.permissions.Permission;
+import io.realm.sync.permissions.Permission;
 
 @RealmModule(library = true, classes = { Permission.class })
 public class PermissionModule {

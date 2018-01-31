@@ -46,6 +46,7 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
+import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
 import io.realm.sync.permissions.RealmPermissions;
@@ -503,6 +504,7 @@ abstract class BaseRealm implements Closeable {
      * @return the privileges granted the current user for this Realm.
      */
     @Beta
+    @ObjectServer
     abstract public RealmPrivileges getPrivileges();
 
     /**
@@ -513,6 +515,7 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalArgumentException if the object is either unmanaged or not part of this Realm.
      */
     @Beta
+    @ObjectServer
     abstract public RealmPrivileges getPrivileges(RealmModel object);
 
     /**
@@ -523,6 +526,7 @@ abstract class BaseRealm implements Closeable {
      * @return all permissions for the current Realm.
      */
     @Beta
+    @ObjectServer
     abstract public RealmPermissions getPermissions();
 
     /**
@@ -533,6 +537,7 @@ abstract class BaseRealm implements Closeable {
      * @return all roles available in the current Realm.
      */
     @Beta
+    @ObjectServer
     abstract public RealmResults<Role> getRoles();
 
     /**
@@ -543,6 +548,7 @@ abstract class BaseRealm implements Closeable {
      * @return all roles available in the current Realm.
      */
     @Beta
+    @ObjectServer
     abstract public RealmResults<User> getUsers();
 
     /**

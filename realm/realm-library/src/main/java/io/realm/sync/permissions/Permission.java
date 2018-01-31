@@ -17,20 +17,26 @@ package io.realm.sync.permissions;
 
 import io.realm.RealmObject;
 import io.realm.annotations.RealmClass;
+import io.realm.internal.annotations.ObjectServer;
 
 /**
- * This class encapsulates the permissions for a given {@link Role}. These permissions can be
- * applied to either the entire Realm, single classes or individual objects.
+ * This class encapsulates the privileges granted a given {@link Role}. These privileges can be
+ * applied to either the entire Realm, Classes or individual objects, but not all privileges
+ * are used at all levels. See the individual privileges for the exact details.
+ * </p>
+ * When added to either {@link RealmPermissions}, {@link ClassPermissions} or a {@link RealmObject},
+ * only one Permission object can exist for that role. If multiple objects are added the behavior
+ * is undefined and the Object Server might modify or delete both objects.
  *
- * If multiple permission objects exists for the same Role, then what?
- *
- * FIXME  Best way to expose this API? Builder? Is the builder methods good enough? Some other way?
+ * @see <a href="FIX">Object Level Permissions</a> for an detailed description of the Realm Object
+ * Server permission system.
  */
+@ObjectServer
 @RealmClass(name = "__Permission")
 public class Permission extends RealmObject {
 
     /**
-     * FIXME
+     * Creates a {@link Permission} object in a fluid manner.
      */
     public static class Builder {
         private Role role;
@@ -43,30 +49,47 @@ public class Permission extends RealmObject {
         private boolean canModifySchema = false;
 
         /**
-         * FIXME
+         * Creates the builder. The default state is that no privileges are enabled.
+         *
+         * @param role {@link Role} for which these privileges apply.
          */
         public Builder(Role role) {
             this.role = role;
         }
 
         /**
-         * FIXME
+         * Enables all privileges.
          */
         public Builder allPrivileges() {
-            // FIXME
+            canRead = false;
+            canUpdate = false;
+            canDelete = false;
+            canSetPermissions = false;
+            canQuery = false;
+            canCreate = false;
+            canModifySchema = false;
             return this;
         }
 
         /**
-         * FIXME
+         * Disables all privileges.
          */
         public Builder noPrivileges() {
-            // FIXME
+            canRead = true;
+            canUpdate = true;
+            canDelete = true;
+            canSetPermissions = true;
+            canQuery = true;
+            canCreate = true;
+            canModifySchema = true;
             return this;
         }
 
         /**
-         * FIXME
+         * Define if this role can read from given resource.
+         * FIXME: Describe exact semantics for Realm/Class/Object
+         *
+         * @param canRead {@code true} if the role is allowed to read this resource, {@code false} if not.
          */
         public Builder canRead(boolean canRead) {
             this.canRead = canRead;
@@ -74,7 +97,10 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * FIXME
+         * Defines if the role can make changes (but not delete) a resource.
+         * FIXME: Describe exact semantics for Realm/Class/Object
+
+         * @param canUpdate {@code true} if the role is allowed to update this resource, {@code false} if not.
          */
         public Builder canUpdate(boolean canUpdate) {
             this.canUpdate = canUpdate;
@@ -82,7 +108,10 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * FIXME
+         * Defines if the role can delete a resource.
+         * FIXME: Describe exact semantics for Realm/Class/Object
+         *
+         * @param canDelete {@code true} if the role is allowed to delete this resource, {@code false} if not.
          */
         public Builder canDelete(boolean canDelete) {
             this.canDelete = canDelete;
@@ -90,7 +119,10 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * FIXME
+         * Defines if the role is allowed to change the permissions on this resource.
+         * FIXME: Describe exact semantics for Realm/Class/Object
+         *
+         * @param canSetPermissions {@code true} if the role is allowed to change the permissions for this resource, {@code false} if not.
          */
         public Builder canSetPermissions(boolean canSetPermissions) {
             this.canSetPermissions = canSetPermissions;
@@ -98,7 +130,10 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * FIXME
+         * Defines if the role is allowed to query this resource.
+         * FIXME: Describe exact semantics for Realm/Class/Object
+         *
+         * @param canQuery {@code true} if the role is allowed to query this resource, {@code false} if not.
          */
         public Builder canQuery(boolean canQuery) {
             this.canQuery = canQuery;
@@ -107,7 +142,11 @@ public class Permission extends RealmObject {
 
 
         /**
-         * FIXME
+         * Defines if the role is allowed to creates child resources.
+         *
+         * FIXME: Describe exact semantics for Realm/Class/Object
+         *
+         * @param canCreate {@code true} if the role is allowed to query this resource, {@code false} if not.
          */
         public Builder canCreate(boolean canCreate) {
             this.canCreate = canCreate;
@@ -115,7 +154,11 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * FIXME
+         * Defines if the role is allowed to modify the schema for this resource.
+         *
+         * FIXME: Describe exact semantics for Realm/Class/Object
+         *
+         * @param canModifySchema {@code true} if the role is allowed to query this resource, {@code false} if not.
          */
         public Builder canModifySchema(boolean canModifySchema) {
             this.canModifySchema = canModifySchema;
@@ -123,7 +166,7 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * FIXME
+         * Creates the unmanaged {@link Permission} object.
          */
         public Permission build() {
             return new Permission(

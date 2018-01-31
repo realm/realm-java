@@ -92,6 +92,12 @@ android {
         debug {
             // FIXME: If enabled, crashes with https://issuetracker.google.com/issues/37116868
             testCoverageEnabled = false
+            minifyEnabled = true;
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        release {
+            minifyEnabled = true;
         }
     }
 
@@ -132,7 +138,8 @@ android {
                     arguments "-DREALM_FLAVOR=base"
                 }
             }
-            consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-base.pro'
+            consumerProguardFiles 'proguard-rules-consumer-common.pro', 'proguard-rules-consumer-base.pro'
+            proguardFiles 'proguard-rules-build-common.pro'
         }
         objectServer {
             dimension 'api'
@@ -141,7 +148,8 @@ android {
                     arguments "-DREALM_FLAVOR=objectServer"
                 }
             }
-            consumerProguardFiles 'proguard-rules-common.pro', 'proguard-rules-objectServer.pro'
+            consumerProguardFiles 'proguard-rules-consumer-common.pro', 'proguard-rules-consumer-objectServer.pro'
+            proguardFiles 'proguard-rules-build-common.pro', 'proguard-rules-build-objectServer.pro'
         }
     }
 

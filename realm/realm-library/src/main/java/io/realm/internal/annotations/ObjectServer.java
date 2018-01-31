@@ -13,37 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.sync.permissions;
 
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.RealmClass;
-import io.realm.annotations.Required;
+package io.realm.internal.annotations;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * FIXME
+ * This annotation is used to mark the classes as being specific to the Realm Object Server.
+ * They will be stripped in the Base variant.
  */
-@RealmClass(name = "__User")
-public class User extends RealmObject {
-    @PrimaryKey
-    @Required
-    private String id;
+@Retention(RetentionPolicy.CLASS)
+@Target({ElementType.TYPE, ElementType.METHOD})
 
-    public User() {
-        // Required by Realm
-    }
-
-    /**
-     * FIXME
-     */
-    public User(String id) {
-        this.id = id;
-    }
-
-    /**
-     * FIXME
-     */
-    public String getId() {
-        return id;
-    }
+public @interface ObjectServer {
 }
