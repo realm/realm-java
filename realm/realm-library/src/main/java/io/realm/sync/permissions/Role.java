@@ -15,6 +15,7 @@
  */
 package io.realm.sync.permissions;
 
+import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -35,7 +36,7 @@ public class Role extends RealmObject {
     @PrimaryKey
     @Required
     private String name;
-    private RealmList<User> members = new RealmList<>();
+    private RealmList<PermissionUser> members = new RealmList<>();
 
     public Role() {
         // Required by Realm;
@@ -59,12 +60,35 @@ public class Role extends RealmObject {
         return name;
     }
 
-    /**
-     * Returns all users with this role.
-     *
-     * @return all users with the given role.
-     */
-    public RealmList<User> getMembers() {
-        return members;
+    public void addMember(String userId) {
+        getRealm().executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                PermissionUser user = realm.createObject(PermissionUser.class, userId);
+                Role role = realm.where(Role.class).equalTo("name", name).findFirst();
+                if (role != null) {
+                    role.members.add(user);
+                }
+            }
+        });
+    }
+
+    public void removeMember(String userId) {
+        getRealm().executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                PermissionUser user = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
+                Role role = realm.where(Role.class).equalTo("name", name).findFirst();
+                if (user != null && role != null) {
+                    role.members.remove(user);
+                }
+            }
+        });
+    }
+
+
+    // Relatively small list, it should be ok to query from main
+    public boolean hasMemeber(String userId) {
+        return members.where().equalTo("id", userId).count() > 0;
     }
 }

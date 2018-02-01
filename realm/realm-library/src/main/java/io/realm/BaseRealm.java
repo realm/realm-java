@@ -26,9 +26,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.reactivex.Flowable;
 import javax.annotation.Nullable;
 
+import io.reactivex.Flowable;
 import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
@@ -52,7 +52,6 @@ import io.realm.log.RealmLog;
 import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
-import io.realm.sync.permissions.User;
 
 /**
  * Base class for all Realm instances.
@@ -540,16 +539,16 @@ abstract class BaseRealm implements Closeable {
     @ObjectServer
     abstract public RealmResults<Role> getRoles();
 
-    /**
-     * Returns all {@link User} objects available in this Realm. Attach a change listener
-     * using {@link User#addChangeListener(RealmChangeListener)} to be notified about
-     * any future changes.
-     *
-     * @return all roles available in the current Realm.
-     */
-    @Beta
-    @ObjectServer
-    abstract public RealmResults<User> getUsers();
+//    /**
+//     * Returns all users (i.e {@link SyncUser#identity}) available in this Realm. Attach a change listener
+//     * using {@link RealmResults#addChangeListener(RealmChangeListener)} to be notified about
+//     * any future changes.
+//     *
+//     * @return all roles available in the current Realm.
+//     */
+//    @Beta
+//    @ObjectServer
+//    abstract public RealmResults<String> getPermissionUsers();
 
     /**
      * Closes the Realm instance and all its resources.

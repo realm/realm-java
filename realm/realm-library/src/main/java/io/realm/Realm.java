@@ -78,7 +78,6 @@ import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
-import io.realm.sync.permissions.User;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
@@ -1793,17 +1792,6 @@ public class Realm extends BaseRealm {
     public RealmResults<Role> getRoles() {
         // FIXME checks
         return where(Role.class).sort("name").findAll();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Beta
-    @ObjectServer
-    @Override
-    public RealmResults<User> getUsers() {
-        // FIXME checks
-        return where(User.class).findAll();
     }
 
     /**
