@@ -4128,8 +4128,8 @@ public class RealmTests {
                 .name("schemaChangeTest")
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
-        StringOnlyRealmProxy.StringOnlyColumnInfo columnInfo
-                = (StringOnlyRealmProxy.StringOnlyColumnInfo) realm.getSchema().getColumnInfo(StringOnly.class);
+        io_realm_entities_StringOnlyRealmProxy.StringOnlyColumnInfo columnInfo
+                = (io_realm_entities_StringOnlyRealmProxy.StringOnlyColumnInfo) realm.getSchema().getColumnInfo(StringOnly.class);
         assertEquals(0, columnInfo.charsIndex);
 
         realm.beginTransaction();

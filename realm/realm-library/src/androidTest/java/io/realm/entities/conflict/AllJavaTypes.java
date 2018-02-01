@@ -22,4 +22,5 @@ import io.realm.annotations.RealmClass;
 // using the internal name (Which do not conflict)
 @RealmClass(name = "!AllJavaTypes")
 public class AllJavaTypes extends RealmObject {
+    public String name;
 }

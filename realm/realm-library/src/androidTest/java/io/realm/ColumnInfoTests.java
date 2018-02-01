@@ -59,10 +59,10 @@ public class ColumnInfoTests {
 
     @Test
     public void copyColumnInfoFrom_checkIndex() {
-        CatRealmProxy.CatColumnInfo sourceColumnInfo
-                = (CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
-        CatRealmProxy.CatColumnInfo targetColumnInfo
-                = (CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
+        io_realm_entities_CatRealmProxy.CatColumnInfo sourceColumnInfo
+                = (io_realm_entities_CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
+        io_realm_entities_CatRealmProxy.CatColumnInfo targetColumnInfo
+                = (io_realm_entities_CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
 
         // Checks precondition.
         assertNotSame(sourceColumnInfo, targetColumnInfo);
@@ -100,8 +100,8 @@ public class ColumnInfoTests {
 
     @Test
     public void copy_differentInstanceSameValues() {
-        final CatRealmProxy.CatColumnInfo columnInfo
-                = (CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
+        final io_realm_entities_CatRealmProxy.CatColumnInfo columnInfo
+                = (io_realm_entities_CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
 
         columnInfo.nameIndex = 1;
         columnInfo.ageIndex = 2;
@@ -112,7 +112,7 @@ public class ColumnInfoTests {
         columnInfo.ownerIndex = 7;
         columnInfo.scaredOfDogIndex = 8;
 
-        CatRealmProxy.CatColumnInfo copy = (CatRealmProxy.CatColumnInfo) columnInfo.copy(true);
+        io_realm_entities_CatRealmProxy.CatColumnInfo copy = (io_realm_entities_CatRealmProxy.CatColumnInfo) columnInfo.copy(true);
 
         // verify that the copy is identical
         assertNotSame(columnInfo, copy);
@@ -149,10 +149,10 @@ public class ColumnInfoTests {
 
     @Test
     public void copy_immutableThrows() {
-        final CatRealmProxy.CatColumnInfo original
-                = (CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
+        final io_realm_entities_CatRealmProxy.CatColumnInfo original
+                = (io_realm_entities_CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
 
-        CatRealmProxy.CatColumnInfo copy = (CatRealmProxy.CatColumnInfo) original.copy(false);
+        io_realm_entities_CatRealmProxy.CatColumnInfo copy = (io_realm_entities_CatRealmProxy.CatColumnInfo) original.copy(false);
         try {
             copy.copyFrom(original);
             fail("Attempt to copy to an immutable ColumnInfo should throwS");
