@@ -51,9 +51,8 @@ public class RealmProxyMediatorGenerator {
         this.className = className;
 
         for (ClassMetaData metadata : classesToValidate) {
-            String simpleName = metadata.getSimpleJavaClassName();
             qualifiedModelClasses.add(metadata.getFullyQualifiedClassName());
-            qualifiedProxyClasses.add(REALM_PACKAGE_NAME + "." + getProxyClassName(simpleName));
+            qualifiedProxyClasses.add(REALM_PACKAGE_NAME + "." + Utils.getProxyClassName(metadata.getFullyQualifiedClassName()));
             internalClassNames.add(metadata.getInternalClassName());
         }
     }
@@ -474,10 +473,6 @@ public class RealmProxyMediatorGenerator {
         writer.emitStatement("throw getMissingProxyClassException(clazz)");
     }
 
-
-    private String getProxyClassName(String clazz) {
-        return clazz + Constants.PROXY_SUFFIX;
-    }
 
     private interface ProxySwitchStatement {
         void emitStatement(int i, JavaWriter writer) throws IOException;

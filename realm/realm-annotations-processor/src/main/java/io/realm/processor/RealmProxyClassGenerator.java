@@ -94,9 +94,9 @@ public class RealmProxyClassGenerator {
         this.simpleJavaClassName = metadata.getSimpleJavaClassName();
         this.qualifiedJavaClassName = metadata.getFullyQualifiedClassName();
         this.internalClassName = metadata.getInternalClassName();
-        this.interfaceName = Utils.getProxyInterfaceName(simpleJavaClassName);
+        this.interfaceName = Utils.getProxyInterfaceName(qualifiedJavaClassName);
         this.qualifiedGeneratedClassName = String.format(Locale.US, "%s.%s",
-                Constants.REALM_PACKAGE_NAME, Utils.getProxyClassName(simpleJavaClassName));
+                Constants.REALM_PACKAGE_NAME, Utils.getProxyClassName(qualifiedJavaClassName));
 
         // See the configuration for the debug build type,
         //  in the realm-library project, for an example of how to set this flag.
@@ -1868,7 +1868,7 @@ public class RealmProxyClassGenerator {
         if (metadata.containsEquals()) {
             return;
         }
-        String proxyClassName = Utils.getProxyClassName(simpleJavaClassName);
+        String proxyClassName = Utils.getProxyClassName(qualifiedJavaClassName);
         String otherObjectVarName = "a" + simpleJavaClassName;
         writer.emitAnnotation("Override")
                 .beginMethod("boolean", "equals", EnumSet.of(Modifier.PUBLIC), "Object", "o")

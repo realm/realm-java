@@ -63,17 +63,17 @@ public class Utils {
 
     public static String getProxyClassSimpleName(VariableElement field) {
         if (typeUtils.isAssignable(field.asType(), realmList)) {
-            return getProxyClassName(getGenericTypeSimpleName(field));
+            return getProxyClassName(getGenericTypeQualifiedName(field));
         } else {
-            return getProxyClassName(getFieldTypeSimpleName(field));
+            return getProxyClassName(getFieldTypeQualifiedName(field));
         }
     }
 
     /**
      * @return the proxy class name for a given clazz
      */
-    public static String getProxyClassName(String clazz) {
-        return clazz + Constants.PROXY_SUFFIX;
+    public static String getProxyClassName(String qualifiedClassName) {
+        return qualifiedClassName.replace(".", "_") + Constants.PROXY_SUFFIX;
     }
 
     /**
@@ -371,8 +371,11 @@ public class Utils {
         return typeUtils.asElement(classType.getSuperclass());
     }
 
-    public static String getProxyInterfaceName(String className) {
-        return className + Constants.INTERFACE_SUFFIX;
+    /**
+     * Returns the interface name for proxy class interfaces
+     */
+    public static String getProxyInterfaceName(String qualifiedClassName) {
+        return qualifiedClassName.replace(".", "_") + Constants.INTERFACE_SUFFIX;
     }
 
     public static NameConverter getNameFormatter(RealmNamingPolicy policy) {

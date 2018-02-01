@@ -33,13 +33,13 @@ import static org.truth0.Truth.ASSERT;
 
 public class RealmProcessorTest {
     private final JavaFileObject simpleModel = JavaFileObjects.forResource("some/test/Simple.java");
-    private final JavaFileObject simpleProxy = JavaFileObjects.forResource("io/realm/SimpleRealmProxy.java");
+    private final JavaFileObject simpleProxy = JavaFileObjects.forResource("io/realm/some_test_SimpleRealmProxy.java");
     private final JavaFileObject allTypesModel = JavaFileObjects.forResource("some/test/AllTypes.java");
-    private final JavaFileObject allTypesProxy = JavaFileObjects.forResource("io/realm/AllTypesRealmProxy.java");
+    private final JavaFileObject allTypesProxy = JavaFileObjects.forResource("io/realm/some_test_AllTypesRealmProxy.java");
     private final JavaFileObject allTypesDefaultModule = JavaFileObjects.forResource("io/realm/RealmDefaultModule.java");
     private final JavaFileObject allTypesDefaultMediator = JavaFileObjects.forResource("io/realm/RealmDefaultModuleMediator.java");
     private final JavaFileObject booleansModel = JavaFileObjects.forResource("some/test/Booleans.java");
-    private final JavaFileObject booleansProxy = JavaFileObjects.forResource("io/realm/BooleansRealmProxy.java");
+    private final JavaFileObject booleansProxy = JavaFileObjects.forResource("io/realm/some_test_BooleansRealmProxy.java");
     private final JavaFileObject emptyModel = JavaFileObjects.forResource("some/test/Empty.java");
     private final JavaFileObject finalModel = JavaFileObjects.forResource("some/test/Final.java");
     private final JavaFileObject transientModel = JavaFileObjects.forResource("some/test/Transient.java");
@@ -47,7 +47,7 @@ public class RealmProcessorTest {
     private final JavaFileObject fieldNamesModel = JavaFileObjects.forResource("some/test/FieldNames.java");
     private final JavaFileObject customAccessorModel = JavaFileObjects.forResource("some/test/CustomAccessor.java");
     private final JavaFileObject nullTypesModel = JavaFileObjects.forResource("some/test/NullTypes.java");
-    private final JavaFileObject nullTypesProxy = JavaFileObjects.forResource("io/realm/NullTypesRealmProxy.java");
+    private final JavaFileObject nullTypesProxy = JavaFileObjects.forResource("io/realm/some_test_NullTypesRealmProxy.java");
     private final JavaFileObject missingGenericTypeModel = JavaFileObjects.forResource("some/test/MissingGenericType.java");
     private final JavaFileObject conflictingFieldNameModel = JavaFileObjects.forResource("some/test/ConflictingFieldName.java");
     private final JavaFileObject invalidRealmModelModel_1 = JavaFileObjects.forResource("some/test/InvalidModelRealmModel_1.java");

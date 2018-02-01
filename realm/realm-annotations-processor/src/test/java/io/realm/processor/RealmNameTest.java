@@ -53,7 +53,7 @@ public class RealmNameTest {
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError()
                 .and()
-                .generatesSources(JavaFileObjects.forResource("io/realm/NamePolicyMixedClassSettingsRealmProxy.java"));
+                .generatesSources(JavaFileObjects.forResource("io/realm/some_test_NamePolicyMixedClassSettingsRealmProxy.java"));
     }
 
     // Check the effect of module default on a class with no settings itself
@@ -67,7 +67,7 @@ public class RealmNameTest {
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError()
                 .and()
-                .generatesSources(JavaFileObjects.forResource("io/realm/NamePolicyModuleDefaultsRealmProxy.java"));
+                .generatesSources(JavaFileObjects.forResource("io/realm/some_test_NamePolicyModuleDefaultsRealmProxy.java"));
     }
 
     // Check that trying to compile two modules with different policies using `allClasses = true` will fail.
