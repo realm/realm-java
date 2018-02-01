@@ -93,12 +93,12 @@ android {
         debug {
             // FIXME: If enabled, crashes with https://issuetracker.google.com/issues/37116868
             testCoverageEnabled = false
-            minifyEnabled = true;
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // minifyEnabled = true;
+            // proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
         release {
-            minifyEnabled = true;
+            // minifyEnabled = true;
         }
     }
 
