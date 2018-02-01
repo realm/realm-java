@@ -16,9 +16,9 @@
 
 package io.realm;
 
-import io.reactivex.Flowable;
 import java.util.Locale;
 
+import io.reactivex.Flowable;
 import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
@@ -33,7 +33,6 @@ import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
-import io.realm.sync.permissions.User;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -316,13 +315,6 @@ public class DynamicRealm extends BaseRealm {
     @ObjectServer
     @Override
     public RealmResults<Role> getRoles() {
-        return null;
-    }
-
-    @Beta
-    @ObjectServer
-    @Override
-    public RealmResults<User> getUsers() {
         return null;
     }
 

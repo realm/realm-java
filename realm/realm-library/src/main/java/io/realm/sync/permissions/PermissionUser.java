@@ -19,7 +19,6 @@ import javax.annotation.Nullable;
 
 import io.realm.RealmObject;
 import io.realm.RealmResults;
-import io.realm.SyncUser;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
@@ -35,7 +34,7 @@ import io.realm.internal.annotations.ObjectServer;
  */
 @ObjectServer
 @RealmClass(name = "__User")
-public class User extends RealmObject {
+public class PermissionUser extends RealmObject {
     @PrimaryKey
     @Required
     private String id;
@@ -43,7 +42,7 @@ public class User extends RealmObject {
     @LinkingObjects
     RealmResults<Role> roles = null;
 
-    public User() {
+    public PermissionUser() {
         // Required by Realm
     }
 
@@ -52,7 +51,7 @@ public class User extends RealmObject {
      *
      * @param id identify of the user. Should be identitical to {@link SyncUser#getIdentity()}.
      */
-    public User(String id) {
+    public PermissionUser(String id) {
         this.id = id;
     }
 
