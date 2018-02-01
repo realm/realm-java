@@ -15,8 +15,6 @@
  */
 package io.realm.sync.permissions;
 
-import io.realm.RealmModel;
-import io.realm.internal.ManagableObject;
 import io.realm.internal.annotations.ObjectServer;
 
 /**
@@ -26,20 +24,12 @@ import io.realm.internal.annotations.ObjectServer;
  *
  */
 @ObjectServer
-public class RealmPrivileges implements ManagableObject {
+public final class RealmPrivileges {
 
+    private final long privileges;
 
-    public static RealmPrivileges fromObject(RealmModel model) {
-        return null;
-    }
-
-    RealmPrivileges(ClassPermissions realmPermissions) {
-
-    }
-
-
-    RealmPrivileges(RealmPermissions realmPermissions) {
-
+    public RealmPrivileges(long privileges) {
+        this.privileges = privileges;
     }
 
     /**
@@ -107,14 +97,25 @@ public class RealmPrivileges implements ManagableObject {
         return false;
     }
 
-
     @Override
-    public boolean isManaged() {
-        return false;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RealmPrivileges that = (RealmPrivileges) o;
+
+        return privileges == that.privileges;
     }
 
     @Override
-    public boolean isValid() {
-        return false;
+    public int hashCode() {
+        return (int) (privileges ^ (privileges >>> 32));
+    }
+
+    @Override
+    public String toString() {
+        return "RealmPrivileges{" +
+                "privileges=" + privileges +
+                '}';
     }
 }

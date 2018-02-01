@@ -39,8 +39,8 @@ public class ClassPermissions extends RealmObject {
     @PrimaryKey
     @Required
     private String name; // Name of the class in the schema
-    private RealmList<Permission> permissions = new RealmList<>();
-    private RealmList<Permission> defaultObjectPermissions = new RealmList<>();
+    private RealmList<RealmPermission> permissions = new RealmList<>();
+    private RealmList<RealmPermission> defaultObjectPermissions = new RealmList<>();
 
     @Ignore
     Class<? extends RealmModel> modelClassRef;
@@ -77,7 +77,7 @@ public class ClassPermissions extends RealmObject {
      * FIXME
      * @return
      */
-    public RealmList<Permission> getPermissions() {
+    public RealmList<RealmPermission> getPermissions() {
         return permissions;
     }
 
@@ -85,7 +85,7 @@ public class ClassPermissions extends RealmObject {
      * Returns the default permissions that apply to all objects instantiated from this class.
      * If any object has defined its own permissions they will override any set here.
      */
-    public RealmList<Permission> getDefaultObjectPermissions() {
+    public RealmList<RealmPermission> getDefaultObjectPermissions() {
         return defaultObjectPermissions;
     }
 }

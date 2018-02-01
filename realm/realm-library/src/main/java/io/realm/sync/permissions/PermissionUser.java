@@ -27,7 +27,7 @@ import io.realm.internal.annotations.ObjectServer;
 
 /**
  * Class describes a user in the Realm Object Servers Permission system.
- * The Id should be identical to the value from {@link SyncUser#getIdentity()}
+ * The Id should be identical to the value from {@code SyncUser.getIdentity()}
  *
  * @see <a href="FIX">Object Level Permissions</a> for an detailed description of the Realm Object
  * Server permission system.
@@ -39,8 +39,8 @@ public class PermissionUser extends RealmObject {
     @Required
     private String id;
 
-    @LinkingObjects
-    RealmResults<Role> roles = null;
+    @LinkingObjects("members")
+    final RealmResults<Role> roles = null;
 
     public PermissionUser() {
         // Required by Realm
@@ -49,7 +49,7 @@ public class PermissionUser extends RealmObject {
     /**
      * Creates a new user.
      *
-     * @param id identify of the user. Should be identitical to {@link SyncUser#getIdentity()}.
+     * @param id identify of the user. Should be identitical to {@code SyncUser.getIdentity()}.
      */
     public PermissionUser(String id) {
         this.id = id;
