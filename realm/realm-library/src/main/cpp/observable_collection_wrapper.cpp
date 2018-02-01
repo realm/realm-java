@@ -41,7 +41,8 @@ template<>
 void ObservableCollectionWrapper<Results>::start_listening(JNIEnv *env, jobject j_collection_object,
                                                            util::Optional<std::string> subscription_name) {
     auto cb = create_callback(env, j_collection_object);
-    m_notification_token = m_collection.add_notification_callback(cb, subscription_name);
+    m_notification_token = m_collection.add_notification_callback(cb);
+    m_collection.subscribe(subscription_name);
 }
 
 template <typename T>

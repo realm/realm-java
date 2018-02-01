@@ -236,7 +236,22 @@ public class ModuleMetaData {
 
         // Check that app and library modules are not mixed
         if (modules.size() > 0 && libraryModules.size() > 0) {
-            Utils.error("Normal modules and library modules cannot be mixed in the same project");
+            StringBuilder sb = new StringBuilder();
+            sb.append("Normal modules and library modules cannot be mixed in the same project.");
+            sb.append('\n');
+            sb.append("Normal module(s):\n");
+            for (String module : modules.keySet()) {
+                sb.append("  ");
+                sb.append(module);
+                sb.append('\n');
+            }
+            sb.append("Library module(s):\n");
+            for (String module : libraryModules.keySet()) {
+                sb.append("  ");
+                sb.append(module);
+                sb.append('\n');
+            }
+            Utils.error(sb.toString());
             return false;
         }
 

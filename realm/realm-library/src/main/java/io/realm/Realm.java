@@ -66,8 +66,10 @@ import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
@@ -1811,8 +1813,8 @@ public class Realm extends BaseRealm {
     @ObjectServer
     @Override
     public RealmPrivileges getPrivileges() {
-        // FIXME checks
-        return null;
+        // FIXME Checks
+        return new RealmPrivileges(sharedRealm.getPrivileges());
     }
 
     /**
@@ -1822,8 +1824,9 @@ public class Realm extends BaseRealm {
     @ObjectServer
     @Override
     public RealmPrivileges getPrivileges(RealmModel object) {
-        // FIXME checks
-        return null;
+        // FIXME Checks
+        UncheckedRow row = (UncheckedRow) ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm();
+        return new RealmPrivileges(sharedRealm.getObjectPrivileges(row));
     }
 
     /**
@@ -1835,8 +1838,9 @@ public class Realm extends BaseRealm {
     @Beta
     @ObjectServer
     public RealmPrivileges getPrivileges(Class<? extends RealmModel> clazz) {
-        // FIXME checks
-        return null;
+        // FIXME Checks
+        String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
+        return new RealmPrivileges(sharedRealm.getClassPrivileges(className));
     }
 
     /**
