@@ -23,7 +23,7 @@ import io.realm.internal.annotations.ObjectServer;
  * This class encapsulates the privileges granted a given {@link Role}. These privileges can be
  * applied to either the entire Realm, Classes or individual objects, but not all privileges
  * are used at all levels. See the individual privileges for the exact details.
- * </p>
+ * <p>
  * When added to either {@link RealmPermissions}, {@link ClassPermissions} or a {@link RealmObject},
  * only one Permission object can exist for that role. If multiple objects are added the behavior
  * is undefined and the Object Server might modify or delete both objects.

@@ -44,7 +44,7 @@ public class RealmPermissions extends RealmObject {
      * Returns all Realm level permissions. This is the default set of permissions if not
      * overwise defined by {@link ClassPermissions} and Object level permissions.
      *
-     * @returns all Realm level permissions
+     * @return all Realm level permissions
      */
     public RealmList<RealmPermission> getPermissions() {
         return permissions;
