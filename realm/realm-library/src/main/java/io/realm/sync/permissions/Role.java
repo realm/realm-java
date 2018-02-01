@@ -15,6 +15,7 @@
  */
 package io.realm.sync.permissions;
 
+import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -60,21 +61,27 @@ public class Role extends RealmObject {
     }
 
     public void addMember(String userId) {
-        getRealm().executeTransactionAsync(realm -> {
-            PermissionUser user = realm.createObject(PermissionUser.class, userId);
-            Role role = realm.where(Role.class).equalTo("name", this.name).findFirst();
-            if (role != null) {
-                role.members.add(user);
+        getRealm().executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                PermissionUser user = realm.createObject(PermissionUser.class, userId);
+                Role role = realm.where(Role.class).equalTo("name", name).findFirst();
+                if (role != null) {
+                    role.members.add(user);
+                }
             }
         });
     }
 
     public void removeMember(String userId) {
-        getRealm().executeTransactionAsync(realm ->  {
-            PermissionUser user = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
-            Role role = realm.where(Role.class).equalTo("name", this.name).findFirst();
-            if (user != null && role != null) {
-                role.members.remove(user);
+        getRealm().executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                PermissionUser user = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
+                Role role = realm.where(Role.class).equalTo("name", name).findFirst();
+                if (user != null && role != null) {
+                    role.members.remove(user);
+                }
             }
         });
     }
