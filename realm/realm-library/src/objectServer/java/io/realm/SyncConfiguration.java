@@ -974,19 +974,22 @@ public class SyncConfiguration extends RealmConfiguration {
 
                 // FIXME: Temporary work-around for User not being added automatically to the "everyone" role
                 final Realm.Transaction originalInitialData = initialDataTransaction;
-                initialDataTransaction = realm -> {
-                    if (originalInitialData != null) {
-                        originalInitialData.execute(realm);
-                    }
+                initialDataTransaction = new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        if (originalInitialData != null) {
+                            originalInitialData.execute(realm);
+                        }
 
-                    String userId = user.getIdentity();
-                    PermissionUser existingUser = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
-                    if (existingUser == null) {
-                        existingUser = realm.createObject(PermissionUser.class, userId);
-                    }
-                    Role role = realm.where(Role.class).equalTo("name", "everyone").findFirst();
-                    if (role != null && !role.hasMember(userId)) {
-                        role.addMember(userId);
+                        String userId = user.getIdentity();
+                        PermissionUser existingUser = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
+                        if (existingUser == null) {
+                            existingUser = realm.createObject(PermissionUser.class, userId);
+                        }
+                        Role role = realm.where(Role.class).equalTo("name", "everyone").findFirst();
+                        if (role != null && !role.hasMember(userId)) {
+                            role.addMember(userId);
+                        }
                     }
                 };
             }
