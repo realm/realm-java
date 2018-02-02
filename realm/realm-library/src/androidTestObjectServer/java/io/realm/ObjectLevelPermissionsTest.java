@@ -23,13 +23,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.realm.annotations.RealmModule;
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.AllTypes;
+import io.realm.entities.Dog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.sync.permissions.RealmPrivileges;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class ObjectLevelPermissionsTest {
@@ -46,11 +50,16 @@ public class ObjectLevelPermissionsTest {
     public final RunInLooperThread looperThread = new RunInLooperThread();
     private Realm realm;
 
+    @RealmModule(classes = { AllJavaTypes.class })
+    public static class TestModule {
+    }
+
     @Before
     public void setUp() {
         user = createTestUser();
         configuration = new SyncConfiguration.Builder(user, REALM_URI)
                 .partialRealm()
+                .modules(new TestModule())
                 .build();
         realm = Realm.getInstance(configuration);
     }
@@ -67,7 +76,6 @@ public class ObjectLevelPermissionsTest {
         RealmPrivileges privileges = realm.getPrivileges();
         assertFullAccess(privileges);
     }
-
 
     @Test
     public void getPrivileges_class_localDefaults() {
@@ -104,4 +112,91 @@ public class ObjectLevelPermissionsTest {
     }
 
 
+    @Test
+    public void getPrivileges_closedRealmThrows() {
+        realm.close();
+        try {
+            realm.getPrivileges();
+            fail();
+        } catch(IllegalStateException ignored) {
+        }
+
+        try {
+            realm.getPrivileges(AllJavaTypes.class);
+            fail();
+        } catch(IllegalStateException ignored) {
+        }
+
+        try {
+            //noinspection ConstantConditions
+            realm.getPrivileges((RealmModel) null);
+            fail();
+        } catch(IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void getPrivileges_wrongThreadThrows() throws InterruptedException {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    realm.getPrivileges();
+                    fail();
+                } catch(IllegalStateException ignored) {
+                }
+
+                try {
+                    realm.getPrivileges(AllJavaTypes.class);
+                    fail();
+                } catch(IllegalStateException ignored) {
+                }
+
+                try {
+                    //noinspection ConstantConditions
+                    realm.getPrivileges((RealmModel) null);
+                    fail();
+                } catch(IllegalStateException ignored) {
+                }
+            }
+        });
+        thread.start();
+        thread.join(TestHelper.STANDARD_WAIT_SECS * 1000);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getPrivileges_class_notPartofSchemaThrows() {
+        realm.getPrivileges(Dog.class);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getPrivileges_class_nullThrows() {
+        //noinspection ConstantConditions
+        realm.getPrivileges((Class<? extends RealmModel>) null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getPrivileges_object_nullThrows() {
+        //noinspection ConstantConditions
+        realm.getPrivileges((RealmModel) null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getPrivileges_object_unmanagedThrows() {
+        realm.getPrivileges(new AllJavaTypes(0));
+    }
+
+    @Test
+    public void getPrivileges_object_wrongRealmThrows() {
+        Realm otherRealm = Realm.getInstance(configFactory.createConfiguration("other"));
+        otherRealm.beginTransaction();
+        AllJavaTypes obj = otherRealm.createObject(AllJavaTypes.class, 0);
+        try {
+            realm.getPrivileges(obj);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            otherRealm.close();
+        }
+    }
 }

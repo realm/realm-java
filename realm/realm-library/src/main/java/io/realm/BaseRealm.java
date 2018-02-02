@@ -501,6 +501,7 @@ abstract class BaseRealm implements Closeable {
      * Returns the privileges granted to the current user for this Realm.
      *
      * @return the privileges granted the current user for this Realm.
+     * @throws
      */
     @Beta
     @ObjectServer
@@ -511,7 +512,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @param object Realm object to get privileges for.
      * @return the privileges granted the current user for the object.
-     * @throws IllegalArgumentException if the object is either unmanaged or not part of this Realm.
+     * @throws IllegalArgumentException if the object is either null, unmanaged or not part of this Realm.
      */
     @Beta
     @ObjectServer

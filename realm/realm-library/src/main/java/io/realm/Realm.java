@@ -1779,7 +1779,7 @@ public class Realm extends BaseRealm {
     @ObjectServer
     @Override
     public RealmPermissions getPermissions() {
-        // FIXME checks
+        checkIfValid();
         return where(RealmPermissions.class).findFirst();
     }
 
@@ -1790,7 +1790,7 @@ public class Realm extends BaseRealm {
     @ObjectServer
     @Override
     public RealmResults<Role> getRoles() {
-        // FIXME checks
+        checkIfValid();
         return where(Role.class).sort("name").findAll();
     }
 
@@ -1801,7 +1801,7 @@ public class Realm extends BaseRealm {
     @ObjectServer
     @Override
     public RealmPrivileges getPrivileges() {
-        // FIXME Checks
+        checkIfValid();
         return new RealmPrivileges(sharedRealm.getPrivileges());
     }
 
@@ -1812,7 +1812,17 @@ public class Realm extends BaseRealm {
     @ObjectServer
     @Override
     public RealmPrivileges getPrivileges(RealmModel object) {
-        // FIXME Checks
+        checkIfValid();
+        //noinspection ConstantConditions
+        if (object == null) {
+            throw new IllegalArgumentException("Non-null 'object' required.");
+        }
+        if (!RealmObject.isManaged(object)) {
+            throw new IllegalArgumentException("Only managed objects have privileges. This is a an unmanaged object: " + object.toString());
+        }
+        if (!((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(getPath())) {
+            throw new IllegalArgumentException("Object belongs to a different Realm.");
+        }
         UncheckedRow row = (UncheckedRow) ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm();
         return new RealmPrivileges(sharedRealm.getObjectPrivileges(row));
     }
@@ -1826,7 +1836,11 @@ public class Realm extends BaseRealm {
     @Beta
     @ObjectServer
     public RealmPrivileges getPrivileges(Class<? extends RealmModel> clazz) {
-        // FIXME Checks
+        checkIfValid();
+        //noinspection ConstantConditions
+        if (clazz == null) {
+            throw new IllegalArgumentException("Non-null 'clazz' required.");
+        }
         String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
         return new RealmPrivileges(sharedRealm.getClassPrivileges(className));
     }
@@ -1843,7 +1857,11 @@ public class Realm extends BaseRealm {
     @Beta
     @ObjectServer
     public ClassPermissions getPermissions(Class<? extends RealmModel> clazz) {
-        // FIXME Checks
+        checkIfValid();
+        //noinspection ConstantConditions
+        if (clazz == null) {
+            throw new IllegalArgumentException("Non-null 'clazz' required.");
+        }
         return where(ClassPermissions.class)
                 .equalTo("name", configuration.getSchemaMediator().getSimpleClassName(clazz))
                 .findFirst();
