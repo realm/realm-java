@@ -75,7 +75,7 @@ public final class RealmPrivileges {
      *
      * @return
      */
-    boolean canQuery() {
+    public boolean canQuery() {
         return false;
     }
 
@@ -84,7 +84,7 @@ public final class RealmPrivileges {
      *
      * @return
      */
-    boolean canCreate() {
+    public boolean canCreate() {
         return false;
     }
 
@@ -93,7 +93,7 @@ public final class RealmPrivileges {
      *
      * @return
      */
-    boolean canModifySchema() {
+    public boolean canModifySchema() {
         return false;
     }
 

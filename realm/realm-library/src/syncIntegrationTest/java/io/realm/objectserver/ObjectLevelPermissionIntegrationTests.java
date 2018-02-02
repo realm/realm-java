@@ -36,7 +36,7 @@ import io.realm.sync.permissions.RealmPermissions;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class ObjectLevelPermissionTests extends StandardIntegrationTest {
+public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTest {
 
     private Realm realm;
     private SyncConfiguration syncConfig;
@@ -55,28 +55,10 @@ public class ObjectLevelPermissionTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void realmPermissions_localDefaults() {
-        // Default permissions (before they can be loaded from the server)
-        RealmPermissions permissions = realm.getPermissions();
-        fail("FIXME");
-        looperThread.testComplete();
-    }
-
-    @Test
-    @RunTestInLooperThread
     public void realmPermissions_serverDefaults() throws InterruptedException {
         SyncManager.getSession(syncConfig).downloadAllServerChanges();
         realm.refresh();
         RealmPermissions permissions = realm.getPermissions();
-        fail("FIXME");
-        looperThread.testComplete();
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void classPermissions_localDefaults() {
-        // Default permissions (before they can be loaded from the server)
-        ClassPermissions permissions = realm.getPermissions(AllTypes.class);
         fail("FIXME");
         looperThread.testComplete();
     }
