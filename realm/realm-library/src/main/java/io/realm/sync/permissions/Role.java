@@ -60,35 +60,40 @@ public class Role extends RealmObject {
         return name;
     }
 
+    /**
+     * Adds a member to this Role. Must be done from within a write transaction.
+     *
+     * @param userId userid of the SyncUser.
+     * @throws IllegalStateException if not in a write transaction.
+     */
     public void addMember(String userId) {
-        getRealm().executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                PermissionUser user = realm.createObject(PermissionUser.class, userId);
-                Role role = realm.where(Role.class).equalTo("name", name).findFirst();
-                if (role != null) {
-                    role.members.add(user);
-                }
-            }
-        });
+        Realm realm = getRealm();
+        PermissionUser user = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
+        if (user == null) {
+            user = realm.createObject(PermissionUser.class, userId);
+        }
+        Role role = realm.where(Role.class).equalTo("name", name).findFirst();
+        members.add(user);
     }
 
-    public void removeMember(String userId) {
-        getRealm().executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                PermissionUser user = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
-                Role role = realm.where(Role.class).equalTo("name", name).findFirst();
-                if (user != null && role != null) {
-                    role.members.remove(user);
-                }
-            }
-        });
+    /**
+     * Removes a member from this Role. Must be done from within a write transaction.
+     *
+     * @param userId userid of the SyncUser to remove.
+     * @return {@code true} if the user could be removed, {@code false} if not.
+     * @throws IllegalStateException if not in a write transaction.
+     */
+    public boolean removeMember(String userId) {
+        PermissionUser user = getRealm().where(PermissionUser.class).equalTo("id", userId).findFirst();
+        if (user != null) {
+            return members.remove(user);
+        } else {
+            return false;
+        }
     }
-
 
     // Relatively small list, it should be ok to query from main
-    public boolean hasMemeber(String userId) {
+    public boolean hasMember(String userId) {
         return members.where().equalTo("id", userId).count() > 0;
     }
 }

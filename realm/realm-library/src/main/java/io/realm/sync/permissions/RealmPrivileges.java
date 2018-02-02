@@ -26,10 +26,22 @@ import io.realm.internal.annotations.ObjectServer;
 @ObjectServer
 public final class RealmPrivileges {
 
-    private final long privileges;
+    private boolean canRead;
+    private boolean canUpdate;
+    private boolean canDelete;
+    private boolean canSetPermissions;
+    private boolean canQuery;
+    private boolean canCreate;
+    private boolean canModifySchema;
 
     public RealmPrivileges(long privileges) {
-        this.privileges = privileges;
+        this.canRead = (privileges & (1 << 0)) != 0;
+        this.canUpdate = (privileges & (1 << 1)) != 0;
+        this.canDelete = (privileges & (1 << 2)) != 0;
+        this.canSetPermissions = (privileges & (1 << 3)) != 0;
+        this.canQuery = (privileges & (1 << 4)) != 0;
+        this.canCreate = (privileges & (1 << 5)) != 0;
+        this.canModifySchema = (privileges & (1 << 6)) != 0;
     }
 
     /**
@@ -38,7 +50,7 @@ public final class RealmPrivileges {
      * @return
      */
     public boolean canRead() {
-        return false;
+        return canRead;
     }
 
     /**
@@ -47,7 +59,7 @@ public final class RealmPrivileges {
      * @return
      */
     public boolean canUpdate() {
-        return false;
+        return canUpdate;
     };
 
 
@@ -57,7 +69,7 @@ public final class RealmPrivileges {
      * @return
      */
     public boolean canDelete() {
-        return false;
+        return canDelete;
     }
 
     /**
@@ -66,7 +78,7 @@ public final class RealmPrivileges {
      * @return
      */
     public boolean canSetPermissions() {
-        return false;
+        return canSetPermissions;
     };
 
 
@@ -76,7 +88,7 @@ public final class RealmPrivileges {
      * @return
      */
     public boolean canQuery() {
-        return false;
+        return canQuery;
     }
 
     /**
@@ -85,7 +97,7 @@ public final class RealmPrivileges {
      * @return
      */
     public boolean canCreate() {
-        return false;
+        return canCreate;
     }
 
     /**
@@ -94,7 +106,7 @@ public final class RealmPrivileges {
      * @return
      */
     public boolean canModifySchema() {
-        return false;
+        return canModifySchema;
     }
 
     @Override
@@ -104,18 +116,37 @@ public final class RealmPrivileges {
 
         RealmPrivileges that = (RealmPrivileges) o;
 
-        return privileges == that.privileges;
+        if (canRead != that.canRead) return false;
+        if (canUpdate != that.canUpdate) return false;
+        if (canDelete != that.canDelete) return false;
+        if (canSetPermissions != that.canSetPermissions) return false;
+        if (canQuery != that.canQuery) return false;
+        if (canCreate != that.canCreate) return false;
+        return canModifySchema == that.canModifySchema;
     }
 
     @Override
     public int hashCode() {
-        return (int) (privileges ^ (privileges >>> 32));
+        int result = (canRead ? 1 : 0);
+        result = 31 * result + (canUpdate ? 1 : 0);
+        result = 31 * result + (canDelete ? 1 : 0);
+        result = 31 * result + (canSetPermissions ? 1 : 0);
+        result = 31 * result + (canQuery ? 1 : 0);
+        result = 31 * result + (canCreate ? 1 : 0);
+        result = 31 * result + (canModifySchema ? 1 : 0);
+        return result;
     }
 
     @Override
     public String toString() {
         return "RealmPrivileges{" +
-                "privileges=" + privileges +
+                "canRead=" + canRead +
+                ", canUpdate=" + canUpdate +
+                ", canDelete=" + canDelete +
+                ", canSetPermissions=" + canSetPermissions +
+                ", canQuery=" + canQuery +
+                ", canCreate=" + canCreate +
+                ", canModifySchema=" + canModifySchema +
                 '}';
     }
 }
