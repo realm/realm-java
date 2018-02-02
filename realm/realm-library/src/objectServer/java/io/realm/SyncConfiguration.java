@@ -38,9 +38,12 @@ import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
+import io.realm.sync.permissions.PermissionUser;
+import io.realm.sync.permissions.Role;
 
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
@@ -963,6 +966,29 @@ public class SyncConfiguration extends RealmConfiguration {
                 } else {
                     RealmLog.warn("SSL Verification is disabled, the provided server certificate will not be used.");
                 }
+            }
+
+            // If partial sync is enabled, also add support for Object Level Permissions
+            if (isPartial) {
+                addModule(new ObjectPermissionsModule());
+
+                // FIXME: Temporary work-around for User not being added automatically to the "everyone" role
+                final Realm.Transaction originalInitialData = initialDataTransaction;
+                initialDataTransaction = realm -> {
+                    if (originalInitialData != null) {
+                        originalInitialData.execute(realm);
+                    }
+
+                    String userId = user.getIdentity();
+                    PermissionUser existingUser = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
+                    if (existingUser == null) {
+                        existingUser = realm.createObject(PermissionUser.class, userId);
+                    }
+                    Role role = realm.where(Role.class).equalTo("name", "everyone").findFirst();
+                    if (role != null && !role.hasMember(userId)) {
+                        role.addMember(userId);
+                    }
+                };
             }
 
             return new SyncConfiguration(

@@ -15,7 +15,6 @@
  */
 package io.realm;
 
-import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -24,16 +23,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.entities.AllTypes;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.RunTestInLooperThread;
-import io.realm.sync.permissions.ClassPermissions;
-import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class ObjectLevelPermissionsTest {
@@ -68,15 +62,13 @@ public class ObjectLevelPermissionsTest {
 
     @Test
     public void getPrivileges_realm_localDefaults() {
-        RealmPrivileges privs = realm.getPrivileges();
-        // FIXME Not sure about the semantics here
-        assertTrue(privs.canCreate());
-        assertTrue(privs.canRead());
-        assertTrue(privs.canUpdate());
-        assertTrue(privs.canDelete());
-        assertTrue(privs.canQuery());
-        assertTrue(privs.canSetPermissions());
-        assertTrue(privs.canModifySchema());
+        RealmPrivileges privileges = realm.getPrivileges();assertTrue(privileges.canCreate());
+        assertTrue(privileges.canRead());
+        assertTrue(privileges.canUpdate());
+        assertTrue(privileges.canDelete());
+        assertTrue(privileges.canQuery());
+        assertTrue(privileges.canSetPermissions());
+        assertTrue(privileges.canModifySchema());
     }
 
     @Test
