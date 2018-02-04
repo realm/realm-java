@@ -30,13 +30,11 @@ import java.util.Set;
 public class ClassCollection {
 
     // These three collections should always stay in sync
-    private Map<String, ClassMetaData> simpleNameClassMap = new LinkedHashMap<>();
     private Map<String, ClassMetaData> qualifiedNameClassMap = new LinkedHashMap<>();
     private Set<ClassMetaData> classSet = new LinkedHashSet<>();
 
     public void addClass(ClassMetaData metadata) {
         classSet.add(metadata);
-        simpleNameClassMap.put(metadata.getSimpleJavaClassName(), metadata);
         qualifiedNameClassMap.put(metadata.getFullyQualifiedClassName(), metadata);
     }
 
@@ -44,18 +42,10 @@ public class ClassCollection {
         return Collections.unmodifiableSet(classSet);
     }
 
-    public ClassMetaData getClassFromSimpleName(String simpleJavaClassName) {
-        ClassMetaData data = simpleNameClassMap.get(simpleJavaClassName);
-        if (data == null) {
-            throw new NullPointerException("Class " + simpleJavaClassName + " was not found");
-        }
-        return data;
-    }
-
     public ClassMetaData getClassFromQualifiedName(String qualifiedJavaClassName) {
         ClassMetaData data = qualifiedNameClassMap.get(qualifiedJavaClassName);
         if (data == null) {
-            throw new NullPointerException("Class " + qualifiedJavaClassName + " was not found");
+            throw new IllegalArgumentException("Class " + qualifiedJavaClassName + " was not found");
         }
         return data;
     }

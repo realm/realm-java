@@ -94,9 +94,9 @@ public class RealmProxyClassGenerator {
         this.simpleJavaClassName = metadata.getSimpleJavaClassName();
         this.qualifiedJavaClassName = metadata.getFullyQualifiedClassName();
         this.internalClassName = metadata.getInternalClassName();
-        this.interfaceName = Utils.getProxyInterfaceName(simpleJavaClassName);
+        this.interfaceName = Utils.getProxyInterfaceName(qualifiedJavaClassName);
         this.qualifiedGeneratedClassName = String.format(Locale.US, "%s.%s",
-                Constants.REALM_PACKAGE_NAME, Utils.getProxyClassName(simpleJavaClassName));
+                Constants.REALM_PACKAGE_NAME, Utils.getProxyClassName(qualifiedJavaClassName));
 
         // See the configuration for the debug build type,
         //  in the realm-library project, for an example of how to set this flag.
@@ -744,15 +744,15 @@ public class RealmProxyClassGenerator {
                     break;
                 }
                 case OBJECT: {
-                    String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-                    String internalClassName = classCollection.getClassFromSimpleName(fieldTypeSimpleName).getInternalClassName();
+                    String fieldTypeQualifiedName = Utils.getFieldTypeQualifiedName(field);
+                    String internalClassName = classCollection.getClassFromQualifiedName(fieldTypeQualifiedName).getInternalClassName();
                     writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.OBJECT, \"%s\")",
                             fieldName, internalClassName);
                     break;
                 }
                 case LIST: {
-                    String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
-                    String internalClassName = classCollection.getClassFromSimpleName(genericTypeSimpleName).getInternalClassName(); // FIXME support for raw data
+                    String genericTypeQualifiedName = Utils.getGenericTypeQualifiedName(field);
+                    String internalClassName = classCollection.getClassFromQualifiedName(genericTypeQualifiedName).getInternalClassName(); // FIXME support for raw data
                     writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
                             fieldName, internalClassName);
                     break;
@@ -795,8 +795,11 @@ public class RealmProxyClassGenerator {
             }
         }
         for (Backlink backlink: metadata.getBacklinkFields()) {
+            ClassMetaData sourceClass = classCollection.getClassFromQualifiedName(backlink.getSourceClass());
+            String targetField = backlink.getTargetField(); // Only in the model, so no internal name exists
+            String internalSourceField = sourceClass.getInternalFieldName(backlink.getSourceField());
             writer.emitStatement("builder.addComputedLinkProperty(\"%s\", \"%s\", \"%s\")",
-                    backlink.getTargetField(), classCollection.getClassFromSimpleName(backlink.getSimpleSourceClass()).getInternalClassName(), backlink.getSourceField());
+                    targetField, sourceClass.getInternalClassName(), internalSourceField);
         }
         writer.emitStatement("return builder.build()");
         writer.endMethod()
@@ -1801,14 +1804,14 @@ public class RealmProxyClassGenerator {
 
             writer.emitStatement("stringBuilder.append(\"{%s:\")", fieldName);
             if (Utils.isRealmModel(field)) {
-                String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
+                String fieldTypeSimpleName = Utils.stripPackage(Utils.getFieldTypeQualifiedName(field));
                 writer.emitStatement(
                         "stringBuilder.append(%s() != null ? \"%s\" : \"null\")",
                         metadata.getInternalGetter(fieldName),
                         fieldTypeSimpleName
                 );
             } else if (Utils.isRealmList(field)) {
-                String genericTypeSimpleName = Utils.getGenericTypeSimpleName(field);
+                String genericTypeSimpleName = Utils.stripPackage(Utils.getGenericTypeQualifiedName(field));
                 writer.emitStatement("stringBuilder.append(\"RealmList<%s>[\").append(%s().size()).append(\"]\")",
                         genericTypeSimpleName,
                         metadata.getInternalGetter(fieldName));
@@ -1868,7 +1871,7 @@ public class RealmProxyClassGenerator {
         if (metadata.containsEquals()) {
             return;
         }
-        String proxyClassName = Utils.getProxyClassName(simpleJavaClassName);
+        String proxyClassName = Utils.getProxyClassName(qualifiedJavaClassName);
         String otherObjectVarName = "a" + simpleJavaClassName;
         writer.emitAnnotation("Override")
                 .beginMethod("boolean", "equals", EnumSet.of(Modifier.PUBLIC), "Object", "o")
