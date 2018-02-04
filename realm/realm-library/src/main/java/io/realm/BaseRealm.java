@@ -501,7 +501,6 @@ abstract class BaseRealm implements Closeable {
      * Returns the privileges granted to the current user for this Realm.
      *
      * @return the privileges granted the current user for this Realm.
-     * @throws
      */
     @Beta
     @ObjectServer

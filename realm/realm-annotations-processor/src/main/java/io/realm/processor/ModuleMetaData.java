@@ -102,19 +102,19 @@ public class ModuleMetaData {
             }
 
             // Check that allClasses and classes are not set at the same time
-            RealmModule moduleAnnoation = classElement.getAnnotation(RealmModule.class);
+            RealmModule moduleAnnotation = classElement.getAnnotation(RealmModule.class);
             Utils.note("Processing module " + classSimpleName);
-            if (moduleAnnoation.allClasses() && hasCustomClassList(classElement)) {
+            if (moduleAnnotation.allClasses() && hasCustomClassList(classElement)) {
                 Utils.error("Setting @RealmModule(allClasses=true) will override @RealmModule(classes={...}) in " + classSimpleName);
                 return false;
             }
 
             // Validate that naming policies are correctly configured.
-            if (!validateNamingPolicies(globalModuleInfo, classSpecificModuleInfo, (TypeElement) classElement, moduleAnnoation)) {
+            if (!validateNamingPolicies(globalModuleInfo, classSpecificModuleInfo, (TypeElement) classElement, moduleAnnotation)) {
                 return false;
             }
 
-            moduleAnnotations.put(((TypeElement) classElement).getQualifiedName().toString(), moduleAnnoation);
+            moduleAnnotations.put(((TypeElement) classElement).getQualifiedName().toString(), moduleAnnotation);
         }
 
         return true;

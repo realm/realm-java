@@ -70,6 +70,7 @@ public class Role extends RealmObject {
         Realm realm = getRealm();
         PermissionUser user = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
         if (user == null) {
+            // FIXME this can still throw, if by the time Sync/OS create the user
             user = realm.createObject(PermissionUser.class, userId);
         }
         Role role = realm.where(Role.class).equalTo("name", name).findFirst();
