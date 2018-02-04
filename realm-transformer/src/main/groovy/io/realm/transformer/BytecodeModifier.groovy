@@ -85,7 +85,7 @@ class BytecodeModifier {
      * @param classPool the Javassist class pool
      */
     public static void addRealmProxyInterface(CtClass clazz, ClassPool classPool) {
-        def proxyInterface = classPool.get("io.realm.${clazz.getSimpleName()}RealmProxyInterface")
+        def proxyInterface = classPool.get("io.realm.${clazz.getName().replace(".", "_")}RealmProxyInterface")
         clazz.addInterface(proxyInterface)
     }
 

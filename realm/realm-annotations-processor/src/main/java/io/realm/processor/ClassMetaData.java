@@ -143,6 +143,18 @@ public class ClassMetaData {
         return internalClassName;
     }
 
+    /**
+     * Returns the internal field name that matches the one in the Java model class.
+     */
+    public String getInternalFieldName(String javaFieldName) {
+        for (RealmFieldElement field : fields) {
+            if (field.getJavaName().equals(javaFieldName)) {
+                return field.getInternalFieldName();
+            }
+        }
+        throw new IllegalArgumentException("Could not find fieldname: " + javaFieldName);
+    }
+
     public String getPackageName() {
         return packageName;
     }

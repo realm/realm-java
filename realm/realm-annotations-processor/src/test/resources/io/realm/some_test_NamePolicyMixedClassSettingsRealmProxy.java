@@ -31,34 +31,34 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 @SuppressWarnings("all")
-public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModuleDefaults
-        implements RealmObjectProxy, NamePolicyModuleDefaultsRealmProxyInterface {
+public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.NamePolicyMixedClassSettings
+        implements RealmObjectProxy, some_test_NamePolicyMixedClassSettingsRealmProxyInterface {
 
-    static final class NamePolicyModuleDefaultsColumnInfo extends ColumnInfo {
+    static final class NamePolicyMixedClassSettingsColumnInfo extends ColumnInfo {
         long firstNameIndex;
         long lastNameIndex;
 
-        NamePolicyModuleDefaultsColumnInfo(OsSchemaInfo schemaInfo) {
+        NamePolicyMixedClassSettingsColumnInfo(OsSchemaInfo schemaInfo) {
             super(2);
-            OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("NamePolicyModuleDefaults");
-            this.firstNameIndex = addColumnDetails("firstName", "FirstName", objectSchemaInfo);
+            OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("customName");
+            this.firstNameIndex = addColumnDetails("firstName", "first_name", objectSchemaInfo);
             this.lastNameIndex = addColumnDetails("lastName", "LastName", objectSchemaInfo);
         }
 
-        NamePolicyModuleDefaultsColumnInfo(ColumnInfo src, boolean mutable) {
+        NamePolicyMixedClassSettingsColumnInfo(ColumnInfo src, boolean mutable) {
             super(src, mutable);
             copy(src, this);
         }
 
         @Override
         protected final ColumnInfo copy(boolean mutable) {
-            return new NamePolicyModuleDefaultsColumnInfo(this, mutable);
+            return new NamePolicyMixedClassSettingsColumnInfo(this, mutable);
         }
 
         @Override
         protected final void copy(ColumnInfo rawSrc, ColumnInfo rawDst) {
-            final NamePolicyModuleDefaultsColumnInfo src = (NamePolicyModuleDefaultsColumnInfo) rawSrc;
-            final NamePolicyModuleDefaultsColumnInfo dst = (NamePolicyModuleDefaultsColumnInfo) rawDst;
+            final NamePolicyMixedClassSettingsColumnInfo src = (NamePolicyMixedClassSettingsColumnInfo) rawSrc;
+            final NamePolicyMixedClassSettingsColumnInfo dst = (NamePolicyMixedClassSettingsColumnInfo) rawDst;
             dst.firstNameIndex = src.firstNameIndex;
             dst.lastNameIndex = src.lastNameIndex;
         }
@@ -66,10 +66,10 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
 
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
 
-    private NamePolicyModuleDefaultsColumnInfo columnInfo;
-    private ProxyState<some.test.NamePolicyModuleDefaults> proxyState;
+    private NamePolicyMixedClassSettingsColumnInfo columnInfo;
+    private ProxyState<some.test.NamePolicyMixedClassSettings> proxyState;
 
-    NamePolicyModuleDefaultsRealmProxy() {
+    some_test_NamePolicyMixedClassSettingsRealmProxy() {
         proxyState.setConstructionFinished();
     }
 
@@ -79,8 +79,8 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
             return;
         }
         final BaseRealm.RealmObjectContext context = BaseRealm.objectContext.get();
-        this.columnInfo = (NamePolicyModuleDefaultsColumnInfo) context.getColumnInfo();
-        this.proxyState = new ProxyState<some.test.NamePolicyModuleDefaults>(this);
+        this.columnInfo = (NamePolicyMixedClassSettingsColumnInfo) context.getColumnInfo();
+        this.proxyState = new ProxyState<some.test.NamePolicyMixedClassSettings>(this);
         proxyState.setRealm$realm(context.getRealm());
         proxyState.setRow$realm(context.getRow());
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
@@ -148,8 +148,8 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("NamePolicyModuleDefaults", 2, 0);
-        builder.addPersistedProperty("FirstName", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("customName", 2, 0);
+        builder.addPersistedProperty("first_name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty("LastName", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         return builder.build();
     }
@@ -158,21 +158,21 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
         return expectedObjectSchemaInfo;
     }
 
-    public static NamePolicyModuleDefaultsColumnInfo createColumnInfo(OsSchemaInfo schemaInfo) {
-        return new NamePolicyModuleDefaultsColumnInfo(schemaInfo);
+    public static NamePolicyMixedClassSettingsColumnInfo createColumnInfo(OsSchemaInfo schemaInfo) {
+        return new NamePolicyMixedClassSettingsColumnInfo(schemaInfo);
     }
 
     public static String getSimpleClassName() {
-        return "NamePolicyModuleDefaults";
+        return "customName";
     }
 
     @SuppressWarnings("cast")
-    public static some.test.NamePolicyModuleDefaults createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
+    public static some.test.NamePolicyMixedClassSettings createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         final List<String> excludeFields = Collections.<String> emptyList();
-        some.test.NamePolicyModuleDefaults obj = realm.createObjectInternal(some.test.NamePolicyModuleDefaults.class, true, excludeFields);
+        some.test.NamePolicyMixedClassSettings obj = realm.createObjectInternal(some.test.NamePolicyMixedClassSettings.class, true, excludeFields);
 
-        final NamePolicyModuleDefaultsRealmProxyInterface objProxy = (NamePolicyModuleDefaultsRealmProxyInterface) obj;
+        final some_test_NamePolicyMixedClassSettingsRealmProxyInterface objProxy = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) obj;
         if (json.has("firstName")) {
             if (json.isNull("firstName")) {
                 objProxy.realmSet$firstName(null);
@@ -192,10 +192,10 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
 
     @SuppressWarnings("cast")
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static some.test.NamePolicyModuleDefaults createUsingJsonStream(Realm realm, JsonReader reader)
+    public static some.test.NamePolicyMixedClassSettings createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        final some.test.NamePolicyModuleDefaults obj = new some.test.NamePolicyModuleDefaults();
-        final NamePolicyModuleDefaultsRealmProxyInterface objProxy = (NamePolicyModuleDefaultsRealmProxyInterface) obj;
+        final some.test.NamePolicyMixedClassSettings obj = new some.test.NamePolicyMixedClassSettings();
+        final some_test_NamePolicyMixedClassSettingsRealmProxyInterface objProxy = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) obj;
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -222,7 +222,7 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
         return realm.copyToRealm(obj);
     }
 
-    public static some.test.NamePolicyModuleDefaults copyOrUpdate(Realm realm, some.test.NamePolicyModuleDefaults object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.NamePolicyMixedClassSettings copyOrUpdate(Realm realm, some.test.NamePolicyMixedClassSettings object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
@@ -235,44 +235,44 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         RealmObjectProxy cachedRealmObject = cache.get(object);
         if (cachedRealmObject != null) {
-            return (some.test.NamePolicyModuleDefaults) cachedRealmObject;
+            return (some.test.NamePolicyMixedClassSettings) cachedRealmObject;
         }
 
         return copy(realm, object, update, cache);
     }
 
-    public static some.test.NamePolicyModuleDefaults copy(Realm realm, some.test.NamePolicyModuleDefaults newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.NamePolicyMixedClassSettings copy(Realm realm, some.test.NamePolicyMixedClassSettings newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
-            return (some.test.NamePolicyModuleDefaults) cachedRealmObject;
+            return (some.test.NamePolicyMixedClassSettings) cachedRealmObject;
         }
 
         // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
-        some.test.NamePolicyModuleDefaults realmObject = realm.createObjectInternal(some.test.NamePolicyModuleDefaults.class, false, Collections.<String>emptyList());
+        some.test.NamePolicyMixedClassSettings realmObject = realm.createObjectInternal(some.test.NamePolicyMixedClassSettings.class, false, Collections.<String>emptyList());
         cache.put(newObject, (RealmObjectProxy) realmObject);
 
-        NamePolicyModuleDefaultsRealmProxyInterface realmObjectSource = (NamePolicyModuleDefaultsRealmProxyInterface) newObject;
-        NamePolicyModuleDefaultsRealmProxyInterface realmObjectCopy = (NamePolicyModuleDefaultsRealmProxyInterface) realmObject;
+        some_test_NamePolicyMixedClassSettingsRealmProxyInterface realmObjectSource = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) newObject;
+        some_test_NamePolicyMixedClassSettingsRealmProxyInterface realmObjectCopy = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) realmObject;
 
         realmObjectCopy.realmSet$firstName(realmObjectSource.realmGet$firstName());
         realmObjectCopy.realmSet$lastName(realmObjectSource.realmGet$lastName());
         return realmObject;
     }
 
-    public static long insert(Realm realm, some.test.NamePolicyModuleDefaults object, Map<RealmModel,Long> cache) {
+    public static long insert(Realm realm, some.test.NamePolicyMixedClassSettings object, Map<RealmModel,Long> cache) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getIndex();
         }
-        Table table = realm.getTable(some.test.NamePolicyModuleDefaults.class);
+        Table table = realm.getTable(some.test.NamePolicyMixedClassSettings.class);
         long tableNativePtr = table.getNativePtr();
-        NamePolicyModuleDefaultsColumnInfo columnInfo = (NamePolicyModuleDefaultsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyModuleDefaults.class);
+        NamePolicyMixedClassSettingsColumnInfo columnInfo = (NamePolicyMixedClassSettingsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyMixedClassSettings.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
-        String realmGet$firstName = ((NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$firstName();
+        String realmGet$firstName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$firstName();
         if (realmGet$firstName != null) {
             Table.nativeSetString(tableNativePtr, columnInfo.firstNameIndex, rowIndex, realmGet$firstName, false);
         }
-        String realmGet$lastName = ((NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$lastName();
+        String realmGet$lastName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$lastName();
         if (realmGet$lastName != null) {
             Table.nativeSetString(tableNativePtr, columnInfo.lastNameIndex, rowIndex, realmGet$lastName, false);
         }
@@ -280,12 +280,12 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
     }
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
-        Table table = realm.getTable(some.test.NamePolicyModuleDefaults.class);
+        Table table = realm.getTable(some.test.NamePolicyMixedClassSettings.class);
         long tableNativePtr = table.getNativePtr();
-        NamePolicyModuleDefaultsColumnInfo columnInfo = (NamePolicyModuleDefaultsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyModuleDefaults.class);
-        some.test.NamePolicyModuleDefaults object = null;
+        NamePolicyMixedClassSettingsColumnInfo columnInfo = (NamePolicyMixedClassSettingsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyMixedClassSettings.class);
+        some.test.NamePolicyMixedClassSettings object = null;
         while (objects.hasNext()) {
-            object = (some.test.NamePolicyModuleDefaults) objects.next();
+            object = (some.test.NamePolicyMixedClassSettings) objects.next();
             if (cache.containsKey(object)) {
                 continue;
             }
@@ -295,33 +295,33 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
             }
             long rowIndex = OsObject.createRow(table);
             cache.put(object, rowIndex);
-            String realmGet$firstName = ((NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$firstName();
+            String realmGet$firstName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$firstName();
             if (realmGet$firstName != null) {
                 Table.nativeSetString(tableNativePtr, columnInfo.firstNameIndex, rowIndex, realmGet$firstName, false);
             }
-            String realmGet$lastName = ((NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$lastName();
+            String realmGet$lastName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$lastName();
             if (realmGet$lastName != null) {
                 Table.nativeSetString(tableNativePtr, columnInfo.lastNameIndex, rowIndex, realmGet$lastName, false);
             }
         }
     }
 
-    public static long insertOrUpdate(Realm realm, some.test.NamePolicyModuleDefaults object, Map<RealmModel,Long> cache) {
+    public static long insertOrUpdate(Realm realm, some.test.NamePolicyMixedClassSettings object, Map<RealmModel,Long> cache) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getIndex();
         }
-        Table table = realm.getTable(some.test.NamePolicyModuleDefaults.class);
+        Table table = realm.getTable(some.test.NamePolicyMixedClassSettings.class);
         long tableNativePtr = table.getNativePtr();
-        NamePolicyModuleDefaultsColumnInfo columnInfo = (NamePolicyModuleDefaultsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyModuleDefaults.class);
+        NamePolicyMixedClassSettingsColumnInfo columnInfo = (NamePolicyMixedClassSettingsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyMixedClassSettings.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
-        String realmGet$firstName = ((NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$firstName();
+        String realmGet$firstName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$firstName();
         if (realmGet$firstName != null) {
             Table.nativeSetString(tableNativePtr, columnInfo.firstNameIndex, rowIndex, realmGet$firstName, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.firstNameIndex, rowIndex, false);
         }
-        String realmGet$lastName = ((NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$lastName();
+        String realmGet$lastName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$lastName();
         if (realmGet$lastName != null) {
             Table.nativeSetString(tableNativePtr, columnInfo.lastNameIndex, rowIndex, realmGet$lastName, false);
         } else {
@@ -331,12 +331,12 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
     }
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
-        Table table = realm.getTable(some.test.NamePolicyModuleDefaults.class);
+        Table table = realm.getTable(some.test.NamePolicyMixedClassSettings.class);
         long tableNativePtr = table.getNativePtr();
-        NamePolicyModuleDefaultsColumnInfo columnInfo = (NamePolicyModuleDefaultsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyModuleDefaults.class);
-        some.test.NamePolicyModuleDefaults object = null;
+        NamePolicyMixedClassSettingsColumnInfo columnInfo = (NamePolicyMixedClassSettingsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyMixedClassSettings.class);
+        some.test.NamePolicyMixedClassSettings object = null;
         while (objects.hasNext()) {
-            object = (some.test.NamePolicyModuleDefaults) objects.next();
+            object = (some.test.NamePolicyMixedClassSettings) objects.next();
             if (cache.containsKey(object)) {
                 continue;
             }
@@ -346,13 +346,13 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
             }
             long rowIndex = OsObject.createRow(table);
             cache.put(object, rowIndex);
-            String realmGet$firstName = ((NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$firstName();
+            String realmGet$firstName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$firstName();
             if (realmGet$firstName != null) {
                 Table.nativeSetString(tableNativePtr, columnInfo.firstNameIndex, rowIndex, realmGet$firstName, false);
             } else {
                 Table.nativeSetNull(tableNativePtr, columnInfo.firstNameIndex, rowIndex, false);
             }
-            String realmGet$lastName = ((NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$lastName();
+            String realmGet$lastName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$lastName();
             if (realmGet$lastName != null) {
                 Table.nativeSetString(tableNativePtr, columnInfo.lastNameIndex, rowIndex, realmGet$lastName, false);
             } else {
@@ -361,25 +361,25 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
         }
     }
 
-    public static some.test.NamePolicyModuleDefaults createDetachedCopy(some.test.NamePolicyModuleDefaults realmObject, int currentDepth, int maxDepth, Map<RealmModel, CacheData<RealmModel>> cache) {
+    public static some.test.NamePolicyMixedClassSettings createDetachedCopy(some.test.NamePolicyMixedClassSettings realmObject, int currentDepth, int maxDepth, Map<RealmModel, CacheData<RealmModel>> cache) {
         if (currentDepth > maxDepth || realmObject == null) {
             return null;
         }
         CacheData<RealmModel> cachedObject = cache.get(realmObject);
-        some.test.NamePolicyModuleDefaults unmanagedObject;
+        some.test.NamePolicyMixedClassSettings unmanagedObject;
         if (cachedObject == null) {
-            unmanagedObject = new some.test.NamePolicyModuleDefaults();
+            unmanagedObject = new some.test.NamePolicyMixedClassSettings();
             cache.put(realmObject, new RealmObjectProxy.CacheData<RealmModel>(currentDepth, unmanagedObject));
         } else {
             // Reuse cached object or recreate it because it was encountered at a lower depth.
             if (currentDepth >= cachedObject.minDepth) {
-                return (some.test.NamePolicyModuleDefaults) cachedObject.object;
+                return (some.test.NamePolicyMixedClassSettings) cachedObject.object;
             }
-            unmanagedObject = (some.test.NamePolicyModuleDefaults) cachedObject.object;
+            unmanagedObject = (some.test.NamePolicyMixedClassSettings) cachedObject.object;
             cachedObject.minDepth = currentDepth;
         }
-        NamePolicyModuleDefaultsRealmProxyInterface unmanagedCopy = (NamePolicyModuleDefaultsRealmProxyInterface) unmanagedObject;
-        NamePolicyModuleDefaultsRealmProxyInterface realmSource = (NamePolicyModuleDefaultsRealmProxyInterface) realmObject;
+        some_test_NamePolicyMixedClassSettingsRealmProxyInterface unmanagedCopy = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) unmanagedObject;
+        some_test_NamePolicyMixedClassSettingsRealmProxyInterface realmSource = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) realmObject;
         unmanagedCopy.realmSet$firstName(realmSource.realmGet$firstName());
         unmanagedCopy.realmSet$lastName(realmSource.realmGet$lastName());
 
@@ -392,7 +392,7 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
         if (!RealmObject.isValid(this)) {
             return "Invalid object";
         }
-        StringBuilder stringBuilder = new StringBuilder("NamePolicyModuleDefaults = proxy[");
+        StringBuilder stringBuilder = new StringBuilder("NamePolicyMixedClassSettings = proxy[");
         stringBuilder.append("{firstName:");
         stringBuilder.append(realmGet$firstName() != null ? realmGet$firstName() : "null");
         stringBuilder.append("}");
@@ -426,17 +426,17 @@ public class NamePolicyModuleDefaultsRealmProxy extends some.test.NamePolicyModu
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        NamePolicyModuleDefaultsRealmProxy aNamePolicyModuleDefaults = (NamePolicyModuleDefaultsRealmProxy)o;
+        some_test_NamePolicyMixedClassSettingsRealmProxy aNamePolicyMixedClassSettings = (some_test_NamePolicyMixedClassSettingsRealmProxy)o;
 
         String path = proxyState.getRealm$realm().getPath();
-        String otherPath = aNamePolicyModuleDefaults.proxyState.getRealm$realm().getPath();
+        String otherPath = aNamePolicyMixedClassSettings.proxyState.getRealm$realm().getPath();
         if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
 
         String tableName = proxyState.getRow$realm().getTable().getName();
-        String otherTableName = aNamePolicyModuleDefaults.proxyState.getRow$realm().getTable().getName();
+        String otherTableName = aNamePolicyMixedClassSettings.proxyState.getRow$realm().getTable().getName();
         if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
 
-        if (proxyState.getRow$realm().getIndex() != aNamePolicyModuleDefaults.proxyState.getRow$realm().getIndex()) return false;
+        if (proxyState.getRow$realm().getIndex() != aNamePolicyMixedClassSettings.proxyState.getRow$realm().getIndex()) return false;
 
         return true;
     }
