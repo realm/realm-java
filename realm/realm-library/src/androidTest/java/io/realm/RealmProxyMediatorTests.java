@@ -60,7 +60,7 @@ public class RealmProxyMediatorTests {
     @Test
     public void createColumnInfo_noDuplicateIndexInIndexFields() {
         RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
-        CatRealmProxy.CatColumnInfo columnInfo = (CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
+        io_realm_entities_CatRealmProxy.CatColumnInfo columnInfo = (io_realm_entities_CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
 
         final Set<Long> indexSet = new HashSet<Long>();
         int indexCount = 0;
@@ -88,8 +88,8 @@ public class RealmProxyMediatorTests {
     @Test
     public void createColumnInfo_noDuplicateIndexInIndicesMap() {
         RealmProxyMediator mediator = realm.getConfiguration().getSchemaMediator();
-        CatRealmProxy.CatColumnInfo columnInfo;
-        columnInfo = (CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
+        io_realm_entities_CatRealmProxy.CatColumnInfo columnInfo;
+        columnInfo = (io_realm_entities_CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
 
         final Set<Long> indexSet = new HashSet<Long>();
         int indexCount = 0;

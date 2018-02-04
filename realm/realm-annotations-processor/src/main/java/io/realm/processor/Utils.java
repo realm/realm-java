@@ -63,17 +63,17 @@ public class Utils {
 
     public static String getProxyClassSimpleName(VariableElement field) {
         if (typeUtils.isAssignable(field.asType(), realmList)) {
-            return getProxyClassName(getGenericTypeSimpleName(field));
+            return getProxyClassName(getGenericTypeQualifiedName(field));
         } else {
-            return getProxyClassName(getFieldTypeSimpleName(field));
+            return getProxyClassName(getFieldTypeQualifiedName(field));
         }
     }
 
     /**
      * @return the proxy class name for a given clazz
      */
-    public static String getProxyClassName(String clazz) {
-        return clazz + Constants.PROXY_SUFFIX;
+    public static String getProxyClassName(String qualifiedClassName) {
+        return qualifiedClassName.replace(".", "_") + Constants.PROXY_SUFFIX;
     }
 
     /**
@@ -84,7 +84,7 @@ public class Utils {
         if (field == null) {
             throw new IllegalArgumentException("Argument 'field' cannot be null.");
         }
-        return getFieldTypeSimpleName(field).equals("String");
+        return getFieldTypeQualifiedName(field).equals("java.lang.String");
     }
 
     /**
@@ -133,7 +133,7 @@ public class Utils {
         if (field == null) {
             throw new IllegalArgumentException("Argument 'field' cannot be null.");
         }
-        return getFieldTypeSimpleName(field).equals("byte[]");
+        return getFieldTypeQualifiedName(field).equals("byte[]");
     }
 
     /**
@@ -280,30 +280,6 @@ public class Utils {
     }
 
     /**
-     * @return the simple type name for a field.
-     */
-    public static String getFieldTypeSimpleName(VariableElement field) {
-        return (null == field) ? null : getFieldTypeSimpleName(getFieldTypeQualifiedName(field));
-    }
-
-    /**
-     * @return the simple type name for a field.
-     */
-    public static String getFieldTypeSimpleName(ReferenceType type) {
-        return (null == type) ? null : getFieldTypeSimpleName(type.toString());
-    }
-
-    /**
-     * @return the simple type name for a field.
-     */
-    public static String getFieldTypeSimpleName(String fieldTypeQualifiedName) {
-        if ((null != fieldTypeQualifiedName) && (fieldTypeQualifiedName.contains("."))) {
-            fieldTypeQualifiedName = fieldTypeQualifiedName.substring(fieldTypeQualifiedName.lastIndexOf('.') + 1);
-        }
-        return fieldTypeQualifiedName;
-    }
-
-    /**
      * @return the generic type for Lists of the form {@code List<type>}
      */
     public static String getGenericTypeQualifiedName(VariableElement field) {
@@ -313,20 +289,6 @@ public class Utils {
             return null;
         }
         return typeArguments.get(0).toString();
-    }
-
-    /**
-     * @return the generic type for Lists of the form {@code List<type>}
-     */
-    public static String getGenericTypeSimpleName(VariableElement field) {
-        final String genericTypeName = getGenericTypeQualifiedName(field);
-        if (genericTypeName == null) {
-            return null;
-        }
-        if (!genericTypeName.contains(".")) {
-            return genericTypeName;
-        }
-        return genericTypeName.substring(genericTypeName.lastIndexOf('.') + 1);
     }
 
     /**
@@ -371,8 +333,11 @@ public class Utils {
         return typeUtils.asElement(classType.getSuperclass());
     }
 
-    public static String getProxyInterfaceName(String className) {
-        return className + Constants.INTERFACE_SUFFIX;
+    /**
+     * Returns the interface name for proxy class interfaces
+     */
+    public static String getProxyInterfaceName(String qualifiedClassName) {
+        return qualifiedClassName.replace(".", "_") + Constants.INTERFACE_SUFFIX;
     }
 
     public static NameConverter getNameFormatter(RealmNamingPolicy policy) {

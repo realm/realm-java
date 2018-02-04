@@ -33,7 +33,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     @Override
     public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
         Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap = new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>(1);
-        infoMap.put(some.test.AllTypes.class, io.realm.AllTypesRealmProxy.getExpectedObjectSchemaInfo());
+        infoMap.put(some.test.AllTypes.class, io.realm.some_test_AllTypesRealmProxy.getExpectedObjectSchemaInfo());
         return infoMap;
     }
 
@@ -42,7 +42,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return io.realm.AllTypesRealmProxy.createColumnInfo(schemaInfo);
+            return io.realm.some_test_AllTypesRealmProxy.createColumnInfo(schemaInfo);
         }
         throw getMissingProxyClassException(clazz);
     }
@@ -65,7 +65,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
             checkClass(clazz);
 
             if (clazz.equals(some.test.AllTypes.class)) {
-                return clazz.cast(new io.realm.AllTypesRealmProxy());
+                return clazz.cast(new io.realm.some_test_AllTypesRealmProxy());
             }
             throw getMissingProxyClassException(clazz);
         } finally {
@@ -85,7 +85,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         @SuppressWarnings("unchecked") Class<E> clazz = (Class<E>) ((obj instanceof RealmObjectProxy) ? obj.getClass().getSuperclass() : obj.getClass());
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return clazz.cast(io.realm.AllTypesRealmProxy.copyOrUpdate(realm, (some.test.AllTypes) obj, update, cache));
+            return clazz.cast(io.realm.some_test_AllTypesRealmProxy.copyOrUpdate(realm, (some.test.AllTypes) obj, update, cache));
         }
         throw getMissingProxyClassException(clazz);
     }
@@ -97,7 +97,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         @SuppressWarnings("unchecked") Class<RealmModel> clazz = (Class<RealmModel>) ((object instanceof RealmObjectProxy) ? object.getClass().getSuperclass() : object.getClass());
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            io.realm.AllTypesRealmProxy.insert(realm, (some.test.AllTypes) object, cache);
+            io.realm.some_test_AllTypesRealmProxy.insert(realm, (some.test.AllTypes) object, cache);
         } else {
             throw getMissingProxyClassException(clazz);
         }
@@ -116,13 +116,13 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
             @SuppressWarnings("unchecked") Class<RealmModel> clazz = (Class<RealmModel>) ((object instanceof RealmObjectProxy) ? object.getClass().getSuperclass() : object.getClass());
 
             if (clazz.equals(some.test.AllTypes.class)) {
-                io.realm.AllTypesRealmProxy.insert(realm, (some.test.AllTypes) object, cache);
+                io.realm.some_test_AllTypesRealmProxy.insert(realm, (some.test.AllTypes) object, cache);
             } else {
                 throw getMissingProxyClassException(clazz);
             }
             if (iterator.hasNext()) {
                 if (clazz.equals(some.test.AllTypes.class)) {
-                    io.realm.AllTypesRealmProxy.insert(realm, iterator, cache);
+                    io.realm.some_test_AllTypesRealmProxy.insert(realm, iterator, cache);
                 } else {
                     throw getMissingProxyClassException(clazz);
                 }
@@ -137,7 +137,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         @SuppressWarnings("unchecked") Class<RealmModel> clazz = (Class<RealmModel>) ((obj instanceof RealmObjectProxy) ? obj.getClass().getSuperclass() : obj.getClass());
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            io.realm.AllTypesRealmProxy.insertOrUpdate(realm, (some.test.AllTypes) obj, cache);
+            io.realm.some_test_AllTypesRealmProxy.insertOrUpdate(realm, (some.test.AllTypes) obj, cache);
         } else {
             throw getMissingProxyClassException(clazz);
         }
@@ -156,13 +156,13 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
             @SuppressWarnings("unchecked") Class<RealmModel> clazz = (Class<RealmModel>) ((object instanceof RealmObjectProxy) ? object.getClass().getSuperclass() : object.getClass());
 
             if (clazz.equals(some.test.AllTypes.class)) {
-                io.realm.AllTypesRealmProxy.insertOrUpdate(realm, (some.test.AllTypes) object, cache);
+                io.realm.some_test_AllTypesRealmProxy.insertOrUpdate(realm, (some.test.AllTypes) object, cache);
             } else {
                 throw getMissingProxyClassException(clazz);
             }
             if (iterator.hasNext()) {
                 if (clazz.equals(some.test.AllTypes.class)) {
-                    io.realm.AllTypesRealmProxy.insertOrUpdate(realm, iterator, cache);
+                    io.realm.some_test_AllTypesRealmProxy.insertOrUpdate(realm, iterator, cache);
                 } else {
                     throw getMissingProxyClassException(clazz);
                 }
@@ -176,7 +176,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return clazz.cast(io.realm.AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json, update));
+            return clazz.cast(io.realm.some_test_AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json, update));
         }
         throw getMissingProxyClassException(clazz);
     }
@@ -187,7 +187,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         checkClass(clazz);
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return clazz.cast(io.realm.AllTypesRealmProxy.createUsingJsonStream(realm, reader));
+            return clazz.cast(io.realm.some_test_AllTypesRealmProxy.createUsingJsonStream(realm, reader));
         }
         throw getMissingProxyClassException(clazz);
     }
@@ -199,7 +199,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         @SuppressWarnings("unchecked") Class<E> clazz = (Class<E>) realmObject.getClass().getSuperclass();
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return clazz.cast(io.realm.AllTypesRealmProxy.createDetachedCopy((some.test.AllTypes) realmObject, 0, maxDepth, cache));
+            return clazz.cast(io.realm.some_test_AllTypesRealmProxy.createDetachedCopy((some.test.AllTypes) realmObject, 0, maxDepth, cache));
         }
         throw getMissingProxyClassException(clazz);
     }

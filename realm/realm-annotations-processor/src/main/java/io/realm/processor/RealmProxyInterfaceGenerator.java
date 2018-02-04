@@ -38,7 +38,7 @@ public class RealmProxyInterfaceGenerator {
     public RealmProxyInterfaceGenerator(ProcessingEnvironment processingEnvironment, ClassMetaData metaData) {
         this.processingEnvironment = processingEnvironment;
         this.metaData = metaData;
-        this.className = metaData.getSimpleJavaClassName();
+        this.className = metaData.getFullyQualifiedClassName();
     }
 
     public void generate() throws IOException {

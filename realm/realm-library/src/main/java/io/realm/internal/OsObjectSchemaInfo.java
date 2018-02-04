@@ -103,13 +103,13 @@ public class OsObjectSchemaInfo implements NativeObject {
          * information in the Realm file's schema. This property type will always be
          * {@link RealmFieldType#LINKING_OBJECTS}.
          *
-         * @param name the name of the link property.
-         * @param targetClassname The class name of the property links to.
-         * @param targetFieldName The field name of the property links to.
+         * @param name the name of the property .
+         * @param sourceClass The class name of the the class linking to this class, ie. the source class.
+         * @param sourceClassName The field name in the source class that links to this class.
          * @return this {@code OsObjectSchemaInfo.Builder}.
          */
-        public Builder addComputedLinkProperty(String name, String targetClassname, String targetFieldName) {
-            long propertyPtr = Property.nativeCreateComputedLinkProperty(name, targetClassname, targetFieldName);
+        public Builder addComputedLinkProperty(String name, String sourceClass, String sourceClassName) {
+            long propertyPtr = Property.nativeCreateComputedLinkProperty(name, sourceClass, sourceClassName);
             computedPropertyPtrArray[computedPropertyPtrCurPos] = propertyPtr;
             computedPropertyPtrCurPos++;
             return this;
