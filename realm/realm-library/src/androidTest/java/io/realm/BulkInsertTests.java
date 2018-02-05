@@ -171,7 +171,7 @@ public class BulkInsertTests {
         try {
             realm.insert(invalidRealmModel);
             fail("Expected Missing Proxy Class Exception");
-        } catch (RealmException ignored) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm.cancelTransaction();
         }

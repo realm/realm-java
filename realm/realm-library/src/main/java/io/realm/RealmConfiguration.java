@@ -39,6 +39,7 @@ import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -804,6 +805,11 @@ public class RealmConfiguration {
             if (rxFactory == null && isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory();
             }
+
+            // FIXME: Adding here to prevent breaking integration tests as they include
+            // a class with references to `Permission` (See PermissionObject), thus it needs
+            // to be added to the default schema. Done correctly, our test setup should do this.
+            addModule(new ObjectPermissionsModule());
 
             return new RealmConfiguration(directory,
                     fileName,

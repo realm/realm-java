@@ -188,7 +188,7 @@ public class ObjectLevelPermissionsTest {
 
     @Test
     public void getPrivileges_object_wrongRealmThrows() {
-        Realm otherRealm = Realm.getInstance(configFactory.createConfiguration("other"));
+        Realm otherRealm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(createTestUser(), "other").build());
         otherRealm.beginTransaction();
         AllJavaTypes obj = otherRealm.createObject(AllJavaTypes.class, 0);
         try {
