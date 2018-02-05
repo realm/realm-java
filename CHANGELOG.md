@@ -10,7 +10,7 @@
 ## Bug Fixes
 
 * Added missing `RealmQuery.oneOf()` for Kotlin that accepts non-nullable types (#5717).
-
+* [ObjectServer] Fixed an issue preventing sync to resume when the network is back (#5677).
 
 ## 4.3.3 (2018-01-19)
 

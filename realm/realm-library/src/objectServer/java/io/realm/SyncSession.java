@@ -70,7 +70,6 @@ public class SyncSession {
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
     private RealmAsyncTask networkRequest;
-    private NetworkStateReceiver.ConnectionListener networkListener;
     private RealmAsyncTask refreshTokenTask;
     private RealmAsyncTask refreshTokenNetworkRequest;
     private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
@@ -516,30 +515,11 @@ public class SyncSession {
                         getUser().setRefreshToken(newRefreshToken);
                     }
                 } catch (JSONException e) {
-                    RealmLog.error(e,"Session[%s]: Can not parse the refresh_token into a valid JSONObject: ", configuration.getPath());
+                    RealmLog.error(e, "Session[%s]: Can not parse the refresh_token into a valid JSONObject: ", configuration.getPath());
                 }
             }
-            if (!onGoingAccessTokenQuery.getAndSet(true)) {
-                if (NetworkStateReceiver.isOnline(SyncObjectServerFacade.getApplicationContext())) {
-                    authenticateRealm(authServer);
-
-                } else {
-                    // Wait for connection to become available, before trying again.
-                    // The Session might potentially stay in this state for the lifetime of the application.
-                    // This is acceptable.
-                    networkListener = new NetworkStateReceiver.ConnectionListener() {
-                        @Override
-                        public void onChange(boolean connectionAvailable) {
-                            if (connectionAvailable) {
-                                if (!onGoingAccessTokenQuery.getAndSet(true)) {
-                                    authenticateRealm(authServer);
-                                }
-                                NetworkStateReceiver.removeListener(this);
-                            }
-                        }
-                    };
-                    NetworkStateReceiver.addListener(networkListener);
-                }
+            if (!onGoingAccessTokenQuery.get() && NetworkStateReceiver.isOnline(SyncObjectServerFacade.getApplicationContext())) {
+                authenticateRealm(authServer);
             }
         }
         return null;
@@ -552,6 +532,7 @@ public class SyncSession {
         }
         clearScheduledAccessTokenRefresh();
 
+        onGoingAccessTokenQuery.set(true);
         // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
         Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
             @Override
@@ -601,6 +582,7 @@ public class SyncSession {
     }
 
     private void scheduleRefreshAccessToken(final AuthenticationServer authServer, long expireDateInMs) {
+        onGoingAccessTokenQuery.set(true);
         // calculate the delay time before which we should refresh the access_token,
         // we adjust to 10 second to proactively refresh the access_token before the session
         // hit the expire date on the token
