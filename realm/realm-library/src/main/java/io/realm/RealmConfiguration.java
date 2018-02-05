@@ -39,7 +39,6 @@ import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
-import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -660,6 +659,22 @@ public class RealmConfiguration {
         }
 
         /**
+         * FIXME: Temporary visible
+         * DEBUG method. Will add a module unconditionally.
+         *
+         * Adds a module to already defined modules.
+         */
+        public final Builder addModule(Object module) {
+            //noinspection ConstantConditions
+            if (module != null) {
+                checkModule(module);
+                modules.add(module);
+            }
+
+            return this;
+        }
+
+        /**
          * Sets the {@link RxObservableFactory} used to create Rx Observables from Realm objects.
          * The default factory is {@link RealmObservableFactory}.
          *
@@ -750,14 +765,6 @@ public class RealmConfiguration {
             return this;
         }
 
-        private void addModule(Object module) {
-            //noinspection ConstantConditions
-            if (module != null) {
-                checkModule(module);
-                modules.add(module);
-            }
-        }
-
         /**
          * DEBUG method. This restricts the Realm schema to only consist of the provided classes without having to
          * create a module. These classes must be available in the default module. Calling this will remove any
@@ -806,10 +813,6 @@ public class RealmConfiguration {
                 rxFactory = new RealmObservableFactory();
             }
 
-            // FIXME: Adding here to prevent breaking integration tests as they include
-            // a class with references to `Permission` (See PermissionObject), thus it needs
-            // to be added to the default schema. Done correctly, our test setup should do this.
-            addModule(new ObjectPermissionsModule());
 
             return new RealmConfiguration(directory,
                     fileName,

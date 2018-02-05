@@ -23,6 +23,7 @@ import java.net.URI;
 
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 
 
 /**
@@ -118,5 +119,10 @@ public class ObjectServerFacade {
 
     public boolean isPartialRealm(RealmConfiguration configuration) {
         return false;
+    }
+
+    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
+        builder.addModule(new ObjectPermissionsModule());
+        // Do nothing
     }
 }

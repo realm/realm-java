@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.internal.ObjectServerFacade;
 
 import static org.junit.Assert.assertTrue;
 
@@ -168,6 +169,8 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
         if (module != null) {
             builder.modules(module);
+        } else {
+            ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
         }
 
         if (key != null) {
