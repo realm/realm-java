@@ -27,6 +27,7 @@ import io.realm.annotations.RealmModule;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.exceptions.RealmException;
 import io.realm.rule.RunInLooperThread;
 import io.realm.sync.permissions.RealmPrivileges;
 
@@ -79,7 +80,7 @@ public class ObjectLevelPermissionsTest {
 
     @Test
     public void getPrivileges_class_localDefaults() {
-        assertFullAccess(realm.getPrivileges(AllJavaTypes.class));
+        assertNoAccess(realm.getPrivileges(AllJavaTypes.class));
     }
 
     @Test
@@ -164,7 +165,7 @@ public class ObjectLevelPermissionsTest {
         thread.join(TestHelper.STANDARD_WAIT_SECS * 1000);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = RealmException.class)
     public void getPrivileges_class_notPartofSchemaThrows() {
         realm.getPrivileges(Dog.class);
     }
@@ -188,7 +189,7 @@ public class ObjectLevelPermissionsTest {
 
     @Test
     public void getPrivileges_object_wrongRealmThrows() {
-        Realm otherRealm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(createTestUser(), "other").build());
+        Realm otherRealm = Realm.getInstance(configFactory.createConfiguration("other"));
         otherRealm.beginTransaction();
         AllJavaTypes obj = otherRealm.createObject(AllJavaTypes.class, 0);
         try {
