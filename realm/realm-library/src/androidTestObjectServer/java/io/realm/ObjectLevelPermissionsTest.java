@@ -80,7 +80,15 @@ public class ObjectLevelPermissionsTest {
 
     @Test
     public void getPrivileges_class_localDefaults() {
-        assertNoAccess(realm.getPrivileges(AllJavaTypes.class));
+        RealmPrivileges privileges = realm.getPrivileges(AllJavaTypes.class);
+        assertFalse(privileges.canCreate());
+        assertTrue(privileges.canRead());
+        assertTrue(privileges.canUpdate());
+        assertFalse(privileges.canDelete());
+        assertTrue(privileges.canQuery());
+        assertTrue(privileges.canSetPermissions());
+        assertTrue(privileges.canModifySchema());
+
     }
 
     @Test
