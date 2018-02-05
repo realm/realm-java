@@ -19,11 +19,9 @@ package io.realm.internal;
 import android.content.Context;
 
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
-import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 
 
 /**
@@ -122,7 +120,6 @@ public class ObjectServerFacade {
     }
 
     public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
-        builder.addModule(new ObjectPermissionsModule());
-        // Do nothing
+≤œ        // Do nothing
     }
 }
