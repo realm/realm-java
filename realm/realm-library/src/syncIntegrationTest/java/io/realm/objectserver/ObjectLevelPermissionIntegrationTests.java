@@ -34,7 +34,7 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.sync.permissions.ClassPermissions;
-import io.realm.sync.permissions.RealmPermission;
+import io.realm.sync.permissions.Permission;
 import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.Role;
 
@@ -138,7 +138,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         ClassPermissions classPermissions = new ClassPermissions(PermissionObject.class);
         realmAdmin.beginTransaction();
 
-        RealmPermission permission = new RealmPermission();
+        Permission permission = new Permission();
         permission.setCanRead(true);
         permission.setCanQuery(true);
         permission.setCanCreate(true);
@@ -157,7 +157,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         // TODO what happen if we don't add a permission to the instance? can we still read the object
         PermissionObject userObject = realm.createObject(PermissionObject.class, "user_1_instance1");
         // add permission so this will be only writable from user1
-        RealmPermission userPermission = new RealmPermission();
+        Permission userPermission = new Permission();
         userPermission.setCanRead(true);
         userPermission.setCanQuery(true);
         userPermission.setCanCreate(true);

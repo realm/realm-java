@@ -292,11 +292,17 @@ public class DynamicRealm extends BaseRealm {
         return configuration.getRxFactory().from(this);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public RealmPrivileges getPrivileges() {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Beta
     @ObjectServer
     @Override
@@ -304,6 +310,9 @@ public class DynamicRealm extends BaseRealm {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Beta
     @ObjectServer
     @Override
@@ -311,6 +320,9 @@ public class DynamicRealm extends BaseRealm {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Beta
     @ObjectServer
     @Override

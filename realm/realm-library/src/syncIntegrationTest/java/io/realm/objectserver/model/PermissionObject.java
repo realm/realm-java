@@ -4,13 +4,13 @@ import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
-import io.realm.sync.permissions.RealmPermission;
+import io.realm.sync.permissions.Permission;
 
 public class PermissionObject extends RealmObject {
     @PrimaryKey
     @Required
     private String name;
-    private RealmList<RealmPermission> permissions = new RealmList<>();
+    private RealmList<Permission> permissions = new RealmList<>();
 
     public String getName() {
         return name;
@@ -20,7 +20,7 @@ public class PermissionObject extends RealmObject {
         this.name = name;
     }
 
-    public RealmList<RealmPermission> getPermissions() {
+    public RealmList<Permission> getPermissions() {
         return permissions;
     }
 }

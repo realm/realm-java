@@ -34,7 +34,7 @@ import io.realm.internal.annotations.ObjectServer;
 public class RealmPermissions extends RealmObject {
     @PrimaryKey
     private int id = 0; // Singleton object for the Realm file
-    private RealmList<RealmPermission> permissions = new RealmList<>();
+    private RealmList<Permission> permissions = new RealmList<>();
 
     public RealmPermissions() {
         // Required by Realm
@@ -46,7 +46,7 @@ public class RealmPermissions extends RealmObject {
      *
      * @return all Realm level permissions
      */
-    public RealmList<RealmPermission> getPermissions() {
+    public RealmList<Permission> getPermissions() {
         return permissions;
     }
 }

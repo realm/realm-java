@@ -33,12 +33,10 @@ import io.realm.internal.annotations.ObjectServer;
  */
 @ObjectServer
 @RealmClass(name = "__Permission")
-// FIXME: Temporary work-around renaming this RealmPermission instead of Permission
-// Annotation processor does not yet fully support conflicting Class names after all :(
-public class RealmPermission extends RealmObject {
+public class Permission extends RealmObject {
 
     /**
-     * Creates a {@link RealmPermission} object in a fluid manner.
+     * Creates a {@link Permission} object in a fluid manner.
      */
     public static class Builder {
         private Role role;
@@ -168,10 +166,10 @@ public class RealmPermission extends RealmObject {
         }
 
         /**
-         * Creates the unmanaged {@link RealmPermission} object.
+         * Creates the unmanaged {@link Permission} object.
          */
-        public RealmPermission build() {
-            return new RealmPermission(
+        public Permission build() {
+            return new Permission(
                     role,
                     canRead,
                     canUpdate,
@@ -193,11 +191,11 @@ public class RealmPermission extends RealmObject {
     private boolean canCreate;
     private boolean canModifySchema;
 
-    public RealmPermission() {
+    public Permission() {
         // Required by Realm
     }
 
-    private RealmPermission(Role role, boolean canRead, boolean canUpdate, boolean canDelete, boolean canSetPermissions, boolean canQuery, boolean canCreate, boolean canModifySchema) {
+    private Permission(Role role, boolean canRead, boolean canUpdate, boolean canDelete, boolean canSetPermissions, boolean canQuery, boolean canCreate, boolean canModifySchema) {
         this.role = role;
         this.canRead = canRead;
         this.canUpdate = canUpdate;

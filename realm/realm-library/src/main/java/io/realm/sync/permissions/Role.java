@@ -21,6 +21,7 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
+import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 
 /**
@@ -65,15 +66,17 @@ public class Role extends RealmObject {
      *
      * @param userId userid of the SyncUser.
      * @throws IllegalStateException if not in a write transaction.
+     * @throws IllegalArgumentException if {@code null} or empty {@code userId} is provided.
      */
     public void addMember(String userId) {
+        if (Util.isEmptyString(userId)) {
+            throw new IllegalArgumentException("Non-empty 'userId' required");
+        }
         Realm realm = getRealm();
         PermissionUser user = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
         if (user == null) {
-            // FIXME this can still throw, if by the time Sync/OS create the user
             user = realm.createObject(PermissionUser.class, userId);
         }
-        Role role = realm.where(Role.class).equalTo("name", name).findFirst();
         members.add(user);
     }
 
@@ -93,7 +96,12 @@ public class Role extends RealmObject {
         }
     }
 
-    // Relatively small list, it should be ok to query from main
+    /**
+     * Checks if the provided user has this role.
+     *
+     * @param userId user to check
+     * @return {@code true} if the user has this role, {@code false} if not.
+     */
     public boolean hasMember(String userId) {
         return members.where().equalTo("id", userId).count() > 0;
     }
