@@ -120,6 +120,6 @@ public class ObjectServerFacade {
     }
 
     public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
-≤œ        // Do nothing
+        // Do nothing
     }
 }
