@@ -5,7 +5,7 @@
 * Added support for mapping between a Java name and the underlying name in the Realm file using `@RealmModule`, `@RealmClass` and `@RealmField` annotations (#5280).
 
 
-## 4.3.4 (YYYY-MM-DD)
+## 4.3.4 (2018-02-06)
 
 ## Bug Fixes
 
