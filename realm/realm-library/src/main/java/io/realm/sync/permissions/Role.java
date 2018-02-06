@@ -69,15 +69,20 @@ public class Role extends RealmObject {
      * @throws IllegalArgumentException if {@code null} or empty {@code userId} is provided.
      */
     public void addMember(String userId) {
-        if (Util.isEmptyString(userId)) {
-            throw new IllegalArgumentException("Non-empty 'userId' required");
+        if (isManaged()) {
+            if (Util.isEmptyString(userId)) {
+                throw new IllegalArgumentException("Non-empty 'userId' required");
+            }
+            Realm realm = getRealm();
+            PermissionUser user = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
+            if (user == null) {
+                user = realm.createObject(PermissionUser.class, userId);
+            }
+            members.add(user);
+
+        } else {
+            throw new IllegalStateException("Can not add a member to a non managed Role");
         }
-        Realm realm = getRealm();
-        PermissionUser user = realm.where(PermissionUser.class).equalTo("id", userId).findFirst();
-        if (user == null) {
-            user = realm.createObject(PermissionUser.class, userId);
-        }
-        members.add(user);
     }
 
     /**

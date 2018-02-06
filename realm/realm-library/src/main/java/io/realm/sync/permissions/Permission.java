@@ -258,7 +258,7 @@ public class Permission extends RealmObject {
     /**
      * FIXME
      */
-    public void canDelete(boolean canDelete) {
+    public void setCanDelete(boolean canDelete) {
         this.canDelete = canDelete;
     }
 
@@ -272,7 +272,7 @@ public class Permission extends RealmObject {
     /**
      * FIXME
      */
-    public void canSetPermissions(boolean canSetPermissions) {
+    public void setCanSetPermissions(boolean canSetPermissions) {
         this.canSetPermissions = canSetPermissions;
     }
 

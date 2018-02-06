@@ -18,10 +18,11 @@ package io.realm.objectserver.utils;
 
 public class Constants {
 
-    public static String HOST = "127.0.0.1";
+//    public static String HOST = "127.0.0.1";
+    public static String HOST = "172.19.216.106";
     public static final String USER_REALM = "realm://" + HOST + ":9080/~/tests";
     public static final String USER_REALM_2 = "realm://" + HOST + ":9080/~/tests2";
-    public static final String USER_REALM_PUBLIC = "realm://" + HOST + ":9080/tests";
+    public static final String GLOBAL_REALM = "realm://" + HOST + ":9080/tests";
     public static final String USER_REALM_SECURE = "realms://" + HOST + ":9443/~/tests";
     public static final String SYNC_SERVER_URL = "realm://" + HOST + ":9080/~/tests";
     public static final String SYNC_SERVER_URL_2 = "realm://" + HOST + ":9080/~/tests2";
