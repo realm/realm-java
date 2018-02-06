@@ -35,6 +35,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
@@ -430,6 +431,17 @@ abstract class BaseRealm implements Closeable {
     protected void checkIfInTransaction() {
         if (!sharedRealm.isInTransaction()) {
             throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
+        }
+    }
+
+    protected void checkIfPartialRealm() {
+        boolean isPartialRealm = false;
+        if (configuration.isSyncConfiguration()) {
+            isPartialRealm = ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration);
+        }
+
+        if (!isPartialRealm) {
+            throw new IllegalStateException("This method is only available on partially synchronized Realms.");
         }
     }
 

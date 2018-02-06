@@ -1,3 +1,18 @@
+## 5.0.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+* The `OrderedCollectionChangeSet` parameter in `OrderedRealmCollectionChangeListener.onChange()` is no longer nullable. Use `changeSet.getState()` instead (#5619).
+* `realm.subscribeForObjects()` have been removed. Use `RealmQuery.findAllAsync(String subscriptionName)` and `RealmQuery.findAllAsync()` instead.
+* Removed previously deprecated `RealmQuery.findAllSorted()`, `RealmQuery.findAllSortedAsync()` `RealmQuery.distinct() and `RealmQuery.distinctAsync()`.
+* Renamed `RealmQuery.distinctValues()` to `RealmQuery.distinct()`
+
+### Enhancements
+
+* [ObjectServer] Added support for partial Realms. Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
+* Added two new methods to `OrderedCollectionChangeSet`: `getState()` and `getError()` (#5619).
+
+
 ## 4.4.0 (YYYY-MM-DD)
 
 ### Enhancements

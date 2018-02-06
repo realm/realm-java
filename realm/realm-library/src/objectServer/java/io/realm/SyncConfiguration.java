@@ -364,14 +364,12 @@ public class SyncConfiguration extends RealmConfiguration {
 
     /**
      * Whether this configuration is for a partial synchronization Realm.
+     * <p>
      * Partial synchronization allows a synchronized Realm to be opened in such a way that
-     * only objects requested by the user are synchronized to the device. You can use it by setting
-     * the {@link Builder#partialRealm()}, opening the Realm, and then calling
-     * {@link Realm#subscribeToObjects(Class, String, Realm.PartialSyncCallback)} with the type of
-     * object you're interested in, a string containing a query determining which objects you want
-     * to subscribe to, and a callback which will report the results.
+     * only objects queried by the user are synchronized to the device.
      *
      * @return {@code true} to open a partial synchronization Realm {@code false} otherwise.
+     * @see Builder#partialRealm() for more details.
      */
     public boolean isPartialRealm() {
         return isPartial;
