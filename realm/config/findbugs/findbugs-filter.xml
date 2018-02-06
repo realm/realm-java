@@ -13,16 +13,16 @@
 
     <!-- Generated code -->
     <Match>
-        <Class name="io.realm.PermissionChangeRealmProxy"/>
+        <Class name="io.realm.io_realm_internal_permissions_PermissionChangeRealmProxy"/>
     </Match>
     <Match>
-        <Class name="io.realm.PermissionOfferRealmProxy"/>
+        <Class name="io.realm.io_realm_permissions_PermissionOfferRealmProxy"/>
     </Match>
     <Match>
-        <Class name="io.realm.PermissionOfferResponseRealmProxy"/>
+        <Class name="io.realm.io_realm_internal_permissions_PermissionOfferResponseRealmProxy"/>
     </Match>
     <Match>
-        <Class name="io.realm.PermissionRealmProxy"/>
+        <Class name="io.realm.io_realm_permissions_PermissionRealmProxy"/>
     </Match>
 
 </FindBugsFilter>

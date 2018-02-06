@@ -61,14 +61,6 @@ public abstract class RealmProxyMediator {
     public abstract ColumnInfo createColumnInfo(Class<? extends RealmModel> clazz, OsSchemaInfo osSchemaInfo);
 
     /**
-     * Returns a map of non-obfuscated object field names to their internal Realm name.
-     *
-     * @param clazz the {@link RealmObject} class reference.
-     * @return The simple name of an RealmObject class (before it has been obfuscated).
-     */
-    public abstract List<String> getFieldNames(Class<? extends RealmModel> clazz);
-
-    /**
      * Returns the name that Realm should use for all its internal tables. This is the un-obfuscated simple name of the
      * class.
      *

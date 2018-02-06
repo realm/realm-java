@@ -97,7 +97,14 @@ public abstract class FieldDescriptor {
             Table table,
             String fieldDescription,
             RealmFieldType... validFinalColumnTypes) {
-        return createFieldDescriptor(schema, table, fieldDescription, null, new HashSet<>(Arrays.asList(validFinalColumnTypes)));
+
+        return createFieldDescriptor(
+                schema,
+                table,
+                fieldDescription,
+                null,
+                new HashSet<>(Arrays.asList(validFinalColumnTypes))
+        );
     }
 
     /**

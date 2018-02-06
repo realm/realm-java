@@ -424,9 +424,7 @@ public abstract class RealmObjectSchema {
      * @param validColumnTypes valid field type for the last field in a linked field
      * @return a FieldDescriptor
      */
-    protected final FieldDescriptor getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
-        return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), fieldDescription, validColumnTypes);
-    }
+    abstract FieldDescriptor getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes);
 
     RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         long columnIndex = table.addColumn(type, name, (required) ? Table.NOT_NULLABLE : Table.NULLABLE);
@@ -464,7 +462,7 @@ public abstract class RealmObjectSchema {
         return SUPPORTED_SIMPLE_FIELDS;
     }
 
-    private SchemaConnector getSchemaConnector() {
+    protected final SchemaConnector getSchemaConnector() {
         return new SchemaConnector(schema);
     }
 
