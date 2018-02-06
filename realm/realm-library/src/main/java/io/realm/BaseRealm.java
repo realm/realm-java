@@ -41,6 +41,7 @@ import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -504,7 +505,10 @@ abstract class BaseRealm implements Closeable {
      */
     @Beta
     @ObjectServer
-    abstract public RealmPrivileges getPrivileges();
+    public RealmPrivileges getPrivileges() {
+        checkIfValid();
+        return new RealmPrivileges(sharedRealm.getPrivileges());
+    }
 
     /**
      * Returns the privileges granted to the current user for the given object.
@@ -513,42 +517,21 @@ abstract class BaseRealm implements Closeable {
      * @return the privileges granted the current user for the object.
      * @throws IllegalArgumentException if the object is either null, unmanaged or not part of this Realm.
      */
-    @Beta
-    @ObjectServer
-    abstract public RealmPrivileges getPrivileges(RealmModel object);
-
-    /**
-     * Returns all permissions associated with the current Realm. Attach a change listener
-     * using {@link RealmPermissions#addChangeListener(RealmChangeListener)} to be notified about
-     * any future changes.
-     *
-     * @return all permissions for the current Realm.
-     */
-    @Beta
-    @ObjectServer
-    abstract public RealmPermissions getPermissions();
-
-    /**
-     * Returns all {@link Role} objects available in this Realm. Attach a change listener
-     * using {@link Role#addChangeListener(RealmChangeListener)} to be notified about
-     * any future changes.
-     *
-     * @return all roles available in the current Realm.
-     */
-    @Beta
-    @ObjectServer
-    abstract public RealmResults<Role> getRoles();
-
-//    /**
-//     * Returns all users (i.e {@link SyncUser#identity}) available in this Realm. Attach a change listener
-//     * using {@link RealmResults#addChangeListener(RealmChangeListener)} to be notified about
-//     * any future changes.
-//     *
-//     * @return all roles available in the current Realm.
-//     */
-//    @Beta
-//    @ObjectServer
-//    abstract public RealmResults<String> getPermissionUsers();
+    public RealmPrivileges getPrivileges(RealmModel object) {
+        checkIfValid();
+        //noinspection ConstantConditions
+        if (object == null) {
+            throw new IllegalArgumentException("Non-null 'object' required.");
+        }
+        if (!RealmObject.isManaged(object)) {
+            throw new IllegalArgumentException("Only managed objects have privileges. This is a an unmanaged object: " + object.toString());
+        }
+        if (!((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(getPath())) {
+            throw new IllegalArgumentException("Object belongs to a different Realm.");
+        }
+        UncheckedRow row = (UncheckedRow) ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm();
+        return new RealmPrivileges(sharedRealm.getObjectPrivileges(row));
+    }
 
     /**
      * Closes the Realm instance and all its resources.

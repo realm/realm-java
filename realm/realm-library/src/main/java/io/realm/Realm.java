@@ -1773,62 +1773,35 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns all permissions associated with the current Realm. Attach a change listener
+     * using {@link RealmPermissions#addChangeListener(RealmChangeListener)} to be notified about
+     * any future changes.
+     *
+     * @return all permissions for the current Realm.
      */
     @Beta
     @ObjectServer
-    @Override
     public RealmPermissions getPermissions() {
         checkIfValid();
         return where(RealmPermissions.class).findFirst();
     }
 
     /**
-     * {@inheritDoc}
+     * Returns all {@link Role} objects available in this Realm. Attach a change listener
+     * using {@link Role#addChangeListener(RealmChangeListener)} to be notified about
+     * any future changes.
+     *
+     * @return all roles available in the current Realm.
      */
     @Beta
     @ObjectServer
-    @Override
     public RealmResults<Role> getRoles() {
         checkIfValid();
         return where(Role.class).sort("name").findAll();
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Beta
-    @ObjectServer
-    @Override
-    public RealmPrivileges getPrivileges() {
-        checkIfValid();
-        return new RealmPrivileges(sharedRealm.getPrivileges());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Beta
-    @ObjectServer
-    @Override
-    public RealmPrivileges getPrivileges(RealmModel object) {
-        checkIfValid();
-        //noinspection ConstantConditions
-        if (object == null) {
-            throw new IllegalArgumentException("Non-null 'object' required.");
-        }
-        if (!RealmObject.isManaged(object)) {
-            throw new IllegalArgumentException("Only managed objects have privileges. This is a an unmanaged object: " + object.toString());
-        }
-        if (!((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(getPath())) {
-            throw new IllegalArgumentException("Object belongs to a different Realm.");
-        }
-        UncheckedRow row = (UncheckedRow) ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm();
-        return new RealmPrivileges(sharedRealm.getObjectPrivileges(row));
-    }
-
-    /**
-     * Returns the privileges granted to current of this Realm for the given class.
+     * Returns the privileges granted the current user for the given class.
      *
      * @param clazz class to get privileges for.
      * @return the privileges granted the current user for the given class.
@@ -1852,7 +1825,7 @@ public class Realm extends BaseRealm {
      *
      * @param clazz class to receive permissions for.
      * @return the permissions for the given class or {@code null} if no permissions where found.
-     * @throws IllegalArgumentException if the class is not part of this Realms schema.
+     * @throws RealmException if the class is not part of this Realms schema.
      */
     @Beta
     @ObjectServer
