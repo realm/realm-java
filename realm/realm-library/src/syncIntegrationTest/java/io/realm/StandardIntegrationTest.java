@@ -34,12 +34,12 @@ public abstract class StandardIntegrationTest extends BaseIntegrationTest {
 
     @BeforeClass
     public static void setupTestClass() throws Exception {
-        startSyncServer();
+//        startSyncServer();
     }
 
     @AfterClass
     public static void tearDownTestClass() throws Exception {
-        stopSyncServer();
+//        stopSyncServer();
     }
 
     @Before
