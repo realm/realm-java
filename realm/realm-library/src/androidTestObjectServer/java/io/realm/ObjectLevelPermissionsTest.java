@@ -81,14 +81,7 @@ public class ObjectLevelPermissionsTest {
     @Test
     public void getPrivileges_class_localDefaults() {
         RealmPrivileges privileges = realm.getPrivileges(AllJavaTypes.class);
-        assertFalse(privileges.canCreate());
-        assertTrue(privileges.canRead());
-        assertTrue(privileges.canUpdate());
-        assertFalse(privileges.canDelete());
-        assertTrue(privileges.canQuery());
-        assertTrue(privileges.canSetPermissions());
-        assertTrue(privileges.canModifySchema());
-
+        assertDefaultAccess(privileges);
     }
 
     @Test
@@ -96,8 +89,17 @@ public class ObjectLevelPermissionsTest {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 0);
         realm.commitTransaction();
-        // FIXME: This seems entirely like the wrong semantics?
-        assertNoAccess(realm.getPrivileges(obj));
+        assertDefaultAccess(realm.getPrivileges(obj));
+    }
+
+    private void assertDefaultAccess(RealmPrivileges privileges) {
+        assertFalse(privileges.canCreate());
+        assertTrue(privileges.canRead());
+        assertTrue(privileges.canUpdate());
+        assertFalse(privileges.canDelete());
+        assertTrue(privileges.canQuery());
+        assertTrue(privileges.canSetPermissions());
+        assertTrue(privileges.canModifySchema());
     }
 
     private void assertFullAccess(RealmPrivileges privileges) {

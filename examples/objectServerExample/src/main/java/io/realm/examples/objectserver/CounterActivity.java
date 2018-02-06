@@ -102,6 +102,7 @@ public class CounterActivity extends AppCompatActivity {
                         realm.createObject(CRDTCounter.class, user.getIdentity());
                     }
                 })
+                .partialRealm()
                 .build();
 
         // This will automatically sync all changes in the background for as long as the Realm is open
