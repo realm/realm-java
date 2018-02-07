@@ -23,91 +23,85 @@ import org.junit.runner.RunWith;
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
+import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
+import io.realm.annotations.RealmModule;
+import io.realm.entities.AllJavaTypes;
 import io.realm.objectserver.model.PermissionObject;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.Permission;
+import io.realm.sync.permissions.RealmPermissions;
+import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTest {
 
-//    private Realm realm;
-//    private SyncConfiguration syncConfig;
-//    private SyncUser user1;
-//    private SyncUser user2;
+    @RealmModule(classes = { AllJavaTypes.class })
+    public static class ObjectLevelTestModule {
+    }
+
+    // Check default privileges after being online for the first time
+    @Test
+    @RunTestInLooperThread
+    public void getPrivileges_serverDefaults() throws InterruptedException {
+        SyncUser user = UserFactory.createNicknameUser(Constants.AUTH_URL, "user1", true);
+        SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.GLOBAL_REALM)
+                .modules(new ObjectLevelTestModule())
+                .partialRealm()
+                .waitForInitialRemoteData()
+                .build();
+        Realm realm = Realm.getInstance(syncConfig);
+        looperThread.closeAfterTest(realm);
+
+        // FIXME: Work-around for class permissions not being setup correctly yet
+        // Remove this once ROS is upgraded to Sync 3.0.0-beta.1
+        realm.beginTransaction();
+        ClassPermissions permissions = realm.where(ClassPermissions.class).equalTo("name", "__Class").findFirst();
+        Permission permission = permissions.getPermissions().first();
+        permission.setCanCreate(true);
+        permission.setCanDelete(true);
+        realm.createObject(ClassPermissions.class, "AllJavaTypes").getPermissions().add(permission);
+        realm.commitTransaction();
+        SyncManager.getSession(syncConfig).uploadAllLocalChanges();
+        SyncManager.getSession(syncConfig).downloadAllServerChanges();
+        // FIXME: Workaround end
+
+        // Check Realm privileges
+        RealmPrivileges realmPrivileges = realm.getPrivileges();
+        assertFullAccess(realmPrivileges);
+
+        // Check Class privileges
+        RealmPrivileges classPrivileges = realm.getPrivileges(AllJavaTypes.class);
+        assertFullAccess(classPrivileges);
+
+        // Check Object privileges
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        realm.commitTransaction();
+        SyncManager.getSession(syncConfig).uploadAllLocalChanges();
+        SyncManager.getSession(syncConfig).downloadAllServerChanges();
+        realm.refresh();
+        RealmPrivileges objectPrivileges = realm.getPrivileges(obj);
+        assertEquals(1, realm.where(AllJavaTypes.class).count()); // Make sure object isn't deleted
+        assertFullAccess(objectPrivileges);
+
+        looperThread.testComplete();
+    }
 
 
-//    @Before
-//    @RunTestInLooperThread
-//    public void setUp() throws IOException {
-//        super.setupTest();
-//        user1 = UserFactory.createNicknameUser(Constants.AUTH_URL, "user1", true);
-//        syncConfig = configurationFactory.createSyncConfigurationBuilder(user1, Constants.GLOBAL_REALM)
-//                .partialRealm()
-//                .build();
-////        realm = Realm.getInstance(syncConfig);
-//        looperThread.closeAfterTest(realm);
-//    }
-//
-//    @Test
-//    @RunTestInLooperThread
-//    public void realmPermissions_serverDefaults() throws InterruptedException {
-//        SyncManager.getSession(syncConfig).downloadAllServerChanges();
-//        realm.refresh();
-//        RealmPermissions permissions = realm.getPermissions();
-//        fail("FIXME");
-//        looperThread.testComplete();
-//    }
-//
-//    @Test
-//    @RunTestInLooperThread
-//    public void classPermissions_serverDefaults() throws InterruptedException {
-//        SyncManager.getSession(syncConfig).downloadAllServerChanges();
-//        realm.refresh();
-//        ClassPermissions permissions = realm.getPermissions(AllTypes.class);
-//        fail("FIXME");
-//        looperThread.testComplete();
-//    }
-//
-//    @Test
-//    @RunTestInLooperThread
-//    public void realmPrivileges() {
-//        fail("FIXME");
-//        looperThread.testComplete();
-//    }
-//
-//    @Test
-//    @RunTestInLooperThread
-//    public void classPrivileges() {
-//        fail("FIXME");
-//        looperThread.testComplete();
-//    }
-//
-//    @Test
-//    @RunTestInLooperThread
-//    public void objectPrivileges() {
-//        fail("FIXME");
-//        looperThread.testComplete();
-//    }
-//
-//    @Test
-//    @RunTestInLooperThread
-//    public void getUsers() {
-//        fail("FIXME");
-//        looperThread.testComplete();
-//    }
-//
 //    @Test
 //    @RunTestInLooperThread
 //    public void getRoles() {
@@ -217,5 +211,25 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
                 }
             }
         });
+    }
+
+    private void assertFullAccess(Permission permission) {
+        assertTrue(permission.canCreate());
+        assertTrue(permission.canRead());
+        assertTrue(permission.canUpdate());
+        assertTrue(permission.canDelete());
+        assertTrue(permission.canQuery());
+        assertTrue(permission.canSetPermissions());
+        assertTrue(permission.canModifySchema());
+    }
+
+    private void assertFullAccess(RealmPrivileges privileges) {
+        assertTrue(privileges.canCreate());
+        assertTrue(privileges.canRead());
+        assertTrue(privileges.canUpdate());
+        assertTrue(privileges.canDelete());
+        assertTrue(privileges.canQuery());
+        assertTrue(privileges.canSetPermissions());
+        assertTrue(privileges.canModifySchema());
     }
 }
