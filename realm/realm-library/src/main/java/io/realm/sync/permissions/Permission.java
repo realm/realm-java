@@ -21,8 +21,16 @@ import io.realm.internal.annotations.ObjectServer;
 
 /**
  * This class encapsulates the privileges granted a given {@link Role}. These privileges can be
- * applied to either the entire Realm, Classes or individual objects, but not all privileges
- * are used at all levels. See the individual privileges for the exact details.
+ * applied to either the entire Realm, Classes or individual objects.
+ * <p>
+ * If no privileges are defined for an individual object, the values for {@link ClassPermissions}
+ * will be inherited, if no values are defined there, the ones from {@link RealmPermissions} will
+ * be used. If no values can be found there, no privileges are granted.
+ * <p>
+ * Not all privileges are meaningful all levels, e.g. `canDelete` is only meaningful when applied to
+ * objects, but it can still be defined at either the class or Realm level, in which case all objects
+ * will inherit the value unless the specifically override it. See the individual privileges for the
+ * details.
  * <p>
  * When added to either {@link RealmPermissions}, {@link ClassPermissions} or a {@link RealmObject},
  * only one Permission object can exist for that role. If multiple objects are added the behavior
@@ -86,8 +94,25 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * Define if this role can read from given resource.
-         * FIXME: Describe exact semantics for Realm/Class/Object
+         * Defines if this role can read from given resource or not.
+         *
+         * <ol>
+         *     <li>
+         *         <b>Realm:</b>
+         *         The role is allowed to read all objects from the Realm. If {@code false}, the
+         *         Realm will appear completely empty to the role, effectively making it inaccessible.
+         *     </li>
+         *     <li>
+         *         <b>Class:</b>
+         *         The role is allowed to read the objects of this type and all referenced objects.
+         *         If {@code false}, the role cannot see any object of this type and all queries
+         *         against the type will return no results.
+         *     </li>
+         *     <li>
+         *         <b>Object:</b>
+         *          Determines if a role is allowed to see the individual object or not.
+         *     </li>
+         * </ol>
          *
          * @param canRead {@code true} if the role is allowed to read this resource, {@code false} if not.
          */
@@ -97,9 +122,24 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * Defines if the role can make changes (but not delete) a resource.
-         * FIXME: Describe exact semantics for Realm/Class/Object
-
+         * Defines if this role can update the given resource or not.
+         *
+         * <ol>
+         *     <li>
+         *         <b>Realm:</b>
+         *         Not applicable.
+         *     </li>
+         *     <li>
+         *         <b>Class:</b>
+         *         Not applicable.
+         *     </li>
+         *     <li>
+         *         <b>Object:</b>
+         *         If {@code true}, the role is allowed to update properties on the object, but not
+         *         set or change permissions.
+         *     </li>
+         * </ol>
+         *
          * @param canUpdate {@code true} if the role is allowed to update this resource, {@code false} if not.
          */
         public Builder canUpdate(boolean canUpdate) {
@@ -108,8 +148,23 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * Defines if the role can delete a resource.
-         * FIXME: Describe exact semantics for Realm/Class/Object
+         * Defines if this role can delete the given resource or not.
+         *
+         * <ol>
+         *     <li>
+         *         <b>Realm:</b>
+         *         Not applicable.
+         *     </li>
+         *     <li>
+         *         <b>Class:</b>
+         *         Not applicable.
+         *     </li>
+         *     <li>
+         *         <b>Object:</b>
+         *         If {@code true}, the role is allowed to update properties on the object, but not
+         *         set or change permissions.
+         *     </li>
+         * </ol>
          *
          * @param canDelete {@code true} if the role is allowed to delete this resource, {@code false} if not.
          */
@@ -119,10 +174,24 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * Defines if the role is allowed to change the permissions on this resource.
-         * FIXME: Describe exact semantics for Realm/Class/Object
+         * Defines if this role is allowed to change permissions on the given resource.
          *
-         * @param canSetPermissions {@code true} if the role is allowed to change the permissions for this resource, {@code false} if not.
+         * <ol>
+         *     <li>
+         *         <b>Realm:</b>
+         *         The role is allowed to modify the {@link RealmPermissions} object.
+         *     </li>
+         *     <li>
+         *         <b>Class:</b>
+         *         The role is allowed the change the {@link ClassPermissions} object.
+         *     </li>
+         *     <li>
+         *         <b>Object:</b>
+         *         The role is allowed to change the permissions on this object.
+         *     </li>
+         * </ol>
+         *
+         * @param canSetPermissions {@code true} if the role is allowed to change the permissions for this resource.
          */
         public Builder canSetPermissions(boolean canSetPermissions) {
             this.canSetPermissions = canSetPermissions;
@@ -130,10 +199,26 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * Defines if the role is allowed to query this resource.
-         * FIXME: Describe exact semantics for Realm/Class/Object
+         * Defines if this role is allowed to query the resource or not.
+         * <p>
+         * Note, that local queries are always possible, but the query result will just be empty.
          *
-         * @param canQuery {@code true} if the role is allowed to query this resource, {@code false} if not.
+         * <ol>
+         *     <li>
+         *         <b>Realm:</b>
+         *         Not applicable.
+         *     </li>
+         *     <li>
+         *         <b>Class:</b>
+         *         The role is allowed to query objects of this type.
+         *     </li>
+         *     <li>
+         *         <b>Object:</b>
+         *         Not applicable.
+         *     </li>
+         * </ol>
+         *
+         * @param canQuery {@code true} if the role is allowed to query objects of this type.
          */
         public Builder canQuery(boolean canQuery) {
             this.canQuery = canQuery;
@@ -142,11 +227,24 @@ public class Permission extends RealmObject {
 
 
         /**
-         * Defines if the role is allowed to creates child resources.
+         * Defines if this role is allowed to create objects of this type.
          *
-         * FIXME: Describe exact semantics for Realm/Class/Object
+         * <ol>
+         *     <li>
+         *         <b>Realm:</b>
+         *         Not applicable.
+         *     </li>
+         *     <li>
+         *         <b>Class:</b>
+         *         If {@code true}, the role is allowed to create objects of this type.
+         *     </li>
+         *     <li>
+         *         <b>Object:</b>
+         *         Not applicable.
+         *     </li>
+         * </ol>
          *
-         * @param canCreate {@code true} if the role is allowed to query this resource, {@code false} if not.
+         * @param canCreate {@code true} if the role is allowed to create objects of this type.
          */
         public Builder canCreate(boolean canCreate) {
             this.canCreate = canCreate;
@@ -154,11 +252,24 @@ public class Permission extends RealmObject {
         }
 
         /**
-         * Defines if the role is allowed to modify the schema for this resource.
+         * Defines if this role is allowed to modify the schema of this resource.
          *
-         * FIXME: Describe exact semantics for Realm/Class/Object
+         * <ol>
+         *     <li>
+         *         <b>Realm:</b>
+         *         If {@code true} the role is allowed to create classes in the Realm.
+         *     </li>
+         *     <li>
+         *         <b>Class:</b>
+         *         If {@code true}, the role is allowed to add properties to the specified class.
+         *     </li>
+         *     <li>
+         *         <b>Object:</b>
+         *         Not applicable.
+         *     </li>
+         * </ol>
          *
-         * @param canModifySchema {@code true} if the role is allowed to query this resource, {@code false} if not.
+         * @param canModifySchema {@code true} if the role is allowed to modify the schema of this resource.
          */
         public Builder canModifySchema(boolean canModifySchema) {
             this.canModifySchema = canModifySchema;
@@ -207,112 +318,234 @@ public class Permission extends RealmObject {
     }
 
     /**
-     * FIXME
+     * Returns the role these privileges apply to.
+     *
+     * @return the role these privileges apply to.
      */
     public Role getRole() {
         return role;
     }
 
     /**
-     * FIXME
-     */
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    /**
-     * FIXME
+     * Returns {@code true} if the role is allowed to read the resource, {@code false} if not.
      */
     public boolean canRead() {
         return canRead;
     }
 
     /**
-     * FIXME
+     * Defines if this role can read from given resource or not.
+     *
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         The role is allowed to read all objects from the Realm. If {@code false}, the
+     *         Realm will appear completely empty to the role, effectively making it inaccessible.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         The role is allowed to read the objects of this type and all referenced objects.
+     *         If {@code false}, the role cannot see any object of this type and all queries
+     *         against the type will return no results.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *          Determines if a role is allowed to see the individual object or not.
+     *     </li>
+     * </ol>
+     *
+     * @param canRead {@code true} if the role is allowed to read this resource, {@code false} if not.
      */
     public void setCanRead(boolean canRead) {
         this.canRead = canRead;
     }
 
     /**
-     * FIXME
+     * Returns {@code true} if the role is allowed to update the resource, {@code false} if not.
      */
     public boolean canUpdate() {
         return canUpdate;
     }
 
     /**
-     * FIXME
+     * Defines if this role can update the given resource or not.
+     *
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         If {@code true}, the role is allowed to update properties on the object, but not
+     *         set or change permissions.
+     *     </li>
+     * </ol>
+     *
+     * @param canUpdate {@code true} if the role is allowed to update this resource, {@code false} if not.
      */
     public void setCanUpdate(boolean canUpdate) {
         this.canUpdate = canUpdate;
     }
 
     /**
-     * FIXME
+     * Returns {@code true} if the role is allowed to delete the object , {@code false} if not.
      */
     public boolean canDelete() {
         return canDelete;
     }
 
     /**
-     * FIXME
+     * Defines if this role can delete the given resource or not.
+     *
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         If {@code true}, the role is allowed to update properties on the object, but not
+     *         set or change permissions.
+     *     </li>
+     * </ol>
+     *
+     * @param canDelete {@code true} if the role is allowed to delete this resource, {@code false} if not.
      */
     public void setCanDelete(boolean canDelete) {
         this.canDelete = canDelete;
     }
 
     /**
-     * FIXME
+     * Returns {@code true} if this this role is allowed to change permissions on the given resource.
      */
     public boolean canSetPermissions() {
         return canSetPermissions;
     }
 
     /**
-     * FIXME
+     * Defines if this role is allowed to change permissions on the given resource.
+     *
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         The role is allowed to modify the {@link RealmPermissions} object.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         The role is allowed the change the {@link ClassPermissions} object.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         The role is allowed to change the permissions on this object.
+     *     </li>
+     * </ol>
+     *
+     * @param canSetPermissions {@code true} if the role is allowed to change the permissions for this resource.
      */
     public void setCanSetPermissions(boolean canSetPermissions) {
         this.canSetPermissions = canSetPermissions;
     }
 
     /**
-     * FIXME
+     * Returns {@code true} if the role is allowed to query the resource, {@code false} if not.
      */
     public boolean canQuery() {
         return canQuery;
     }
 
     /**
-     * FIXME
+     * Defines if this role is allowed to query the resource or not.
+     * <p>
+     * Note, that local queries are always possible, but the query result will just be empty.
+     *
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         The role is allowed to query objects of this type.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         Not applicable.
+     *     </li>
+     * </ol>
+     *
+     * @param canQuery {@code true} if the role is allowed to query objects of this type.
      */
     public void setCanQuery(boolean canQuery) {
         this.canQuery = canQuery;
     }
 
     /**
-     * FIXME
+     * Returns {@code true} if the role is allowed to create objects, {@code false} if not.
      */
     public boolean canCreate() {
         return canCreate;
     }
 
     /**
-     * FIXME
+     * Defines if this role is allowed to create objects of this type.
+     *
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         If {@code true}, the role is allowed to create objects of this type.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         Not applicable.
+     *     </li>
+     * </ol>
+     *
+     * @param canCreate {@code true} if the role is allowed to create objects of this type.
      */
     public void setCanCreate(boolean canCreate) {
         this.canCreate = canCreate;
     }
 
     /**
-     * FIXME
+     * Returns {@code true} if the role is allowed to modify the schema of the resource,
+     * {@code false} if not.
      */
     public boolean canModifySchema() {
         return canModifySchema;
     }
 
     /**
-     * FIXME
+     * Defines if this role is allowed to modify the schema of this resource.
+     *
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         If {@code true} the role is allowed to create classes in the Realm.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         If {@code true}, the role is allowed to add properties to the specified class.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         Not applicable.
+     *     </li>
+     * </ol>
+     *
+     * @param canModifySchema {@code true} if the role is allowed to modify the schema of this resource.
      */
     public void setCanModifySchema(boolean canModifySchema) {
         this.canModifySchema = canModifySchema;
