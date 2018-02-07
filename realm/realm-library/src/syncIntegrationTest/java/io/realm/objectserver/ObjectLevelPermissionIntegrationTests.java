@@ -159,8 +159,12 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         // create object by user1
         realmUser2.beginTransaction();
         PermissionObject userObject = realmUser2.createObject(PermissionObject.class, "user_2_instance1");
+
+        Role role = realmUser2.where(Role.class).equalTo("name", user2Role).findFirst();
+        assertNotNull(role);
+
         // add permission so this will be only writable from user1
-        Permission userPermission = new Permission();
+        Permission userPermission = new Permission(role);
         userPermission.setCanRead(true);
         userPermission.setCanQuery(true);
         userPermission.setCanCreate(true);
@@ -170,10 +174,6 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         //TODO call instead allPrivileges builder instead of setting everything one by one
         // add a builder that start by either given all permissions or restricting all permissions
         // then start tuning
-
-        Role role = realmUser2.where(Role.class).equalTo("name", user2Role).findFirst();
-        assertNotNull(role);
-        userPermission.setRole(role);
 
         userObject.getPermissions().add(userPermission);
         realmUser2.commitTransaction();

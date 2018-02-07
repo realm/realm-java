@@ -25,9 +25,15 @@ import io.realm.annotations.Required;
 import io.realm.internal.annotations.ObjectServer;
 
 /**
- * Class describing all permissions related to a given Realm model class. This class also
- * determines the default set of permissions for any objects instantiated that do not have their
- * own set of permissions.
+ * Class describing all permissions related to a given Realm model class. These permissions will
+ * be inherited by any concrete objects of the given type.
+ * <p>
+ * If a class level permission grants a privilege, it is still possible for individual objects
+ * to revoke them again, i.e. it is possible for the class level permission to grant general read
+ * access, while the individual objects are still able to revoke them.
+ * <p>
+ * The opposite is not true, so if a privilege is not granted at the class level, it can never
+ * be granted at the object level, no matter what kind of permissions are set there.
  *
  * @see <a href="FIX">Object Level Permissions</a> for an detailed description of the Realm Object
  * Server permission system.
@@ -59,6 +65,7 @@ public class ClassPermissions extends RealmObject {
             throw new IllegalArgumentException("Non-null 'clazz' required.");
         }
         modelClassRef = clazz;
+        name = clazz.getSimpleName();
     }
 
     /**
@@ -73,8 +80,11 @@ public class ClassPermissions extends RealmObject {
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns all Class level permissions for the class defined by {@link #getName()}. This is the
+     * default set of permissions for the class unless otherwise re-defined by object level
+     * permissions.
+     *
+     * @return all Class level permissions
      */
     public RealmList<Permission> getPermissions() {
         return permissions;

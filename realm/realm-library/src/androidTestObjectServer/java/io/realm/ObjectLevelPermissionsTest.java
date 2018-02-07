@@ -91,12 +91,40 @@ public class ObjectLevelPermissionsTest {
     }
 
     @Test
+    public void getPrivileges_realm_revokeLocally() {
+        realm.executeTransaction(r -> {
+           Role role = realm.getRoles().where().equalTo("name", "everyone").findFirst();
+           role.removeMember(user.getIdentity());
+        });
+
+        RealmPrivileges privileges = realm.getPrivileges();
+        assertNoAccess(privileges);
+
+        privileges = dynamicRealm.getPrivileges();
+        assertNoAccess(privileges);
+    }
+
+    @Test
     public void getPrivileges_class_localDefaults() {
         RealmPrivileges privileges = realm.getPrivileges(AllJavaTypes.class);
-        assertDefaultAccess(privileges);
+        assertFullAccess(privileges);
 
         privileges = dynamicRealm.getPrivileges(AllJavaTypes.CLASS_NAME);
-        assertDefaultAccess(privileges);
+        assertFullAccess(privileges);
+    }
+
+    @Test
+    public void getPrivileges_class_revokeLocally() {
+        realm.executeTransaction(r -> {
+            Role role = realm.getRoles().where().equalTo("name", "everyone").findFirst();
+            role.removeMember(user.getIdentity());
+        });
+
+        RealmPrivileges privileges = realm.getPrivileges(AllJavaTypes.class);
+        assertNoAccess(privileges);
+
+        privileges = dynamicRealm.getPrivileges(AllJavaTypes.CLASS_NAME);
+        assertNoAccess(privileges);
     }
 
     @Test
@@ -104,12 +132,30 @@ public class ObjectLevelPermissionsTest {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 0);
         realm.commitTransaction();
-        assertDefaultAccess(realm.getPrivileges(obj));
+        assertFullAccess(realm.getPrivileges(obj));
 
         dynamicRealm.beginTransaction();
         DynamicRealmObject dynamicObject = dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 1);
         dynamicRealm.commitTransaction();
-        assertDefaultAccess(dynamicRealm.getPrivileges(dynamicObject));
+        assertFullAccess(dynamicRealm.getPrivileges(dynamicObject));
+    }
+
+    @Test
+    public void getPrivileges_object_revokeLocally() {
+        realm.executeTransaction(r -> {
+            Role role = realm.getRoles().where().equalTo("name", "everyone").findFirst();
+            role.removeMember(user.getIdentity());
+        });
+
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 0);
+        realm.commitTransaction();
+        assertNoAccess(realm.getPrivileges(obj));
+
+        dynamicRealm.beginTransaction();
+        DynamicRealmObject dynamicObject = dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 1);
+        dynamicRealm.commitTransaction();
+        assertNoAccess(dynamicRealm.getPrivileges(dynamicObject));
     }
 
     @Test
@@ -333,7 +379,7 @@ public class ObjectLevelPermissionsTest {
         RealmList<Permission> list = classPermissions.getPermissions();
         assertEquals(1, list.size());
         assertEquals("everyone", list.first().getRole().getName());
-        assertDefaultAccess(list.first());
+        assertFullAccess(list.first());
 
         // FIXME: Dynamic RealmPermissions - Disabled until support is enabled
 //        classPermissions = dynamicRealm.getPermissions(AllJavaTypes.CLASS_NAME);
@@ -421,26 +467,6 @@ public class ObjectLevelPermissionsTest {
 //            fail();
 //        } catch (IllegalStateException ignore) {
 //        }
-    }
-
-    private void assertDefaultAccess(RealmPrivileges privileges) {
-        assertFalse(privileges.canCreate());
-        assertTrue(privileges.canRead());
-        assertTrue(privileges.canUpdate());
-        assertFalse(privileges.canDelete());
-        assertTrue(privileges.canQuery());
-        assertTrue(privileges.canSetPermissions());
-        assertTrue(privileges.canModifySchema());
-    }
-
-    private void assertDefaultAccess(Permission permission) {
-        assertFalse(permission.canCreate());
-        assertTrue(permission.canRead());
-        assertTrue(permission.canUpdate());
-        assertFalse(permission.canDelete());
-        assertTrue(permission.canQuery());
-        assertTrue(permission.canSetPermissions());
-        assertTrue(permission.canModifySchema());
     }
 
     private void assertFullAccess(RealmPrivileges privileges) {

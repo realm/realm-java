@@ -306,6 +306,16 @@ public class Permission extends RealmObject {
         // Required by Realm
     }
 
+    /**
+     * Creates a set of privileges for the given role.
+     */
+    public Permission(Role role) {
+        this.role = role;
+    }
+
+    /**
+     * Creates a set of privileges for the given role.
+     */
     private Permission(Role role, boolean canRead, boolean canUpdate, boolean canDelete, boolean canSetPermissions, boolean canQuery, boolean canCreate, boolean canModifySchema) {
         this.role = role;
         this.canRead = canRead;
