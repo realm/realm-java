@@ -25,12 +25,12 @@
 * Added support for mapping between a Java name and the underlying name in the Realm file using `@RealmModule`, `@RealmClass` and `@RealmField` annotations (#5280).
 
 
-## 4.3.4 (YYYY-MM-DD)
+## 4.3.4 (2018-02-06)
 
 ## Bug Fixes
 
 * Added missing `RealmQuery.oneOf()` for Kotlin that accepts non-nullable types (#5717).
-
+* [ObjectServer] Fixed an issue preventing sync to resume when the network is back (#5677).
 
 ## 4.3.3 (2018-01-19)
 
