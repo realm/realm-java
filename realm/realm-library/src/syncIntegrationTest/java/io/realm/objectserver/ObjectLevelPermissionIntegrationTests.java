@@ -15,7 +15,10 @@
  */
 package io.realm.objectserver;
 
+import android.support.test.runner.AndroidJUnit4;
+
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
@@ -36,6 +39,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+@RunWith(AndroidJUnit4.class)
 public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTest {
 
 //    private Realm realm;
