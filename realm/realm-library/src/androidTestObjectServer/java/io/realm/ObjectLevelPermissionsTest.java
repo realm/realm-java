@@ -32,6 +32,7 @@ import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.Permission;
 import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
+import io.realm.sync.permissions.Role;
 
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
@@ -383,7 +384,11 @@ public class ObjectLevelPermissionsTest {
 
     @Test
     public void getRoles() {
-
+        RealmResults<Role> roles = realm.getRoles();
+        assertEquals(1, roles.size());
+        Role role = roles.first();
+        assertEquals("everyone", role.getName());
+        assertTrue(role.hasMember(user.getIdentity()));
     }
 
     @Test
