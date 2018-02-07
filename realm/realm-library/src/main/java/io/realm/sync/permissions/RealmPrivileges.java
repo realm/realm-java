@@ -15,13 +15,17 @@
  */
 package io.realm.sync.permissions;
 
+import io.realm.Realm;
+import io.realm.RealmModel;
 import io.realm.internal.annotations.ObjectServer;
 
 /**
- * FIXME: Javadoc
- * Thread confined object representing the current level of access to either the Realm, Class
- * or individual objects.
- *
+ * This object describes the privileges granted the currently logged in user for either the Realm,
+ * a specific Realm Model Class or an Object. Some of the privileges are not applicable at the
+ * different levels, so see the individual privileges for the details.
+ * <p>
+ * It is obtained by calling either {@link Realm#getPrivileges()}, {@link Realm#getPrivileges(Class)}
+ * or {@link Realm#getPrivileges(RealmModel)} .
  */
 @ObjectServer
 public final class RealmPrivileges {
@@ -45,18 +49,53 @@ public final class RealmPrivileges {
     }
 
     /**
-     * FIXME
+     * Returns whether or not the user can read the given resource.
      *
-     * @return
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         If {@code true}, the user is allowed to read all objects and classes from the Realm.
+     *         If {@code false}, the Realm will appear completely empty , effectively making it
+     *         inaccessible.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         If {@code true}, the role is allowed read the objects of this type and all referenced
+     *         objects. If {@code false}, the user cannot see any object of this type and all queries
+     *         against the type will return no results.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         If {@code true}, the user can see the object, if {@code false} he/she cannot.
+     *     </li>
+     * </ol>
+     *
+     * @return {@code true} if the user can read the resource, {@code false} if not.
      */
     public boolean canRead() {
         return canRead;
     }
 
     /**
-     * FIXME
+     * Returns whether or not the user can update the given resource.
      *
-     * @return
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         If {@code true}, the role is allowed to update properties on the object, but not
+     *         set or change permissions.
+     *     </li>
+     * </ol>
+     *
+     * @return {@code true} if the user can update the resource, {@code false} if not.
      */
     public boolean canUpdate() {
         return canUpdate;
@@ -64,18 +103,51 @@ public final class RealmPrivileges {
 
 
     /**
-     * FIXME
+     * Returns whether or not the user can delete the given resource.
      *
-     * @return
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         If {@code true}, the role is allowed to delete the object. {@code false} if not.
+     *     </li>
+     * </ol>
+     *
+     * @return {@code true} if the user can delete the resource, {@code false} if not.
      */
     public boolean canDelete() {
         return canDelete;
     }
 
     /**
-     * FIXME
+     * Returns whether or not the user can change permissions on the given resource.
      *
-     * @return
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         If {@code true} the user is allowed to modify the {@link RealmPermissions} object for
+     *         this Realm.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         if {@code true} the user is allowed to modify the {@link ClassPermissions} object
+     *         representing the Realm Model class.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         if {@code true} the user is allowed to modify the custom permissions property
+     *         defined on the object.
+     *     </li>
+     * </ol>
+     *
+     * @return {@code true} if the user can modify the permissions on the resource, {@code false} if not.
      */
     public boolean canSetPermissions() {
         return canSetPermissions;
@@ -83,27 +155,74 @@ public final class RealmPrivileges {
 
 
     /**
-     * FIXME
+     * Returns whether or not the user can query the given resource.
+     * <p>
+     * Note, that local queries are always possible, but the query result will just be empty.
      *
-     * @return
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         If {@code true} the user is allowed to query objects of this type.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         Not applicable.
+     *     </li>
+     * </ol>
+     *
+     * @return {@code true} if the user can query the resource, {@code false} if not.
      */
     public boolean canQuery() {
         return canQuery;
     }
 
     /**
-     * FIXME
+     * Returns whether or not this role is allowed to create objects of this type.
      *
-     * @return
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         Not applicable.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         If {@code true}, the user is allowed to create objects of this type.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         Not applicable.
+     *     </li>
+     * </ol>
+     *
+     * @return {@code true} if the user can create objects, {@code false} if not.
      */
     public boolean canCreate() {
         return canCreate;
     }
 
     /**
-     * FIXME
+     * Returns whether or not the user can modify the schema of the given resource.
      *
-     * @return
+     * <ol>
+     *     <li>
+     *         <b>Realm:</b>
+     *         If {@code true} the user is allowed to create classes in the Realm.
+     *     </li>
+     *     <li>
+     *         <b>Class:</b>
+     *         If {@code true}, the user is allowed to add properties to the given class.
+     *     </li>
+     *     <li>
+     *         <b>Object:</b>
+     *         Not applicable.
+     *     </li>
+     * </ol>
+     *
+     * @return {@code true} if the user can modify the schema of the given resource, {@code false} if not.
      */
     public boolean canModifySchema() {
         return canModifySchema;

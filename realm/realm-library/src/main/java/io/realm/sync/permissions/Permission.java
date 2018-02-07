@@ -423,8 +423,7 @@ public class Permission extends RealmObject {
      *     </li>
      *     <li>
      *         <b>Object:</b>
-     *         If {@code true}, the role is allowed to update properties on the object, but not
-     *         set or change permissions.
+     *         If {@code true}, the role is allowed to delete the object.
      *     </li>
      * </ol>
      *
