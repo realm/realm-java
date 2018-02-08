@@ -969,11 +969,9 @@ public class SyncConfiguration extends RealmConfiguration {
             }
 
             // If partial sync is enabled, also add support for Object Level Permissions
-
-            // FIXME: Adding here to prevent breaking integration tests as they include
-            // a class with references to `Permission` (See PermissionObject), thus it needs
-            // to be added to the default schema. Done correctly, our test setup should do this.
-            addModule(new ObjectPermissionsModule());
+            if (isPartial) {
+                addModule(new ObjectPermissionsModule());
+            }
 
             return new SyncConfiguration(
                     // Realm Configuration options
