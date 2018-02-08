@@ -130,7 +130,9 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     // This builder creates a configuration that is *NOT* managed.
     // You have to delete it yourself.
     public RealmConfiguration.Builder createConfigurationBuilder() {
-        return new RealmConfiguration.Builder().directory(getRoot());
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder().directory(getRoot());
+        ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
+        return builder;
     }
 
     public RealmConfiguration createConfiguration() {
