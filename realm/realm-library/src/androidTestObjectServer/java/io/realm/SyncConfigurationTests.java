@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.entities.StringOnly;
+import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 
 import static io.realm.util.SyncTestUtils.createNamedTestUser;
@@ -446,9 +447,9 @@ public class SyncConfigurationTests {
         SyncUser user1 = createNamedTestUser("user1");
         SyncUser user2 = createNamedTestUser("user2");
         String sharedUrl = "realm://ros.realm.io/42/default";
-        SyncConfiguration config1 = new SyncConfiguration.Builder(user1, sharedUrl).build();
+        SyncConfiguration config1 = new SyncConfiguration.Builder(user1, sharedUrl).modules(new StringOnlyModule()).build();
         Realm realm1 = Realm.getInstance(config1);
-        SyncConfiguration config2 = new SyncConfiguration.Builder(user2, sharedUrl).build();
+        SyncConfiguration config2 = new SyncConfiguration.Builder(user2, sharedUrl).modules(new StringOnlyModule()).build();
         Realm realm2 = null;
 
         // Verify that two different configurations can be used for the same URL

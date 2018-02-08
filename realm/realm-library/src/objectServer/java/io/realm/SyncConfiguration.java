@@ -717,6 +717,19 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Adds a module to the already defined modules.
+         */
+        public Builder addModule(Object module) {
+            //noinspection ConstantConditions
+            if (module != null) {
+                checkModule(module);
+                modules.add(module);
+            }
+
+            return this;
+        }
+
+        /**
          * Sets the {@link RxObservableFactory} used to create Rx Observables from Realm objects.
          * The default factory is {@link RealmObservableFactory}.
          *
@@ -1001,14 +1014,6 @@ public class SyncConfiguration extends RealmConfiguration {
                     sessionStopPolicy,
                     isPartial
             );
-        }
-
-        private void addModule(Object module) {
-            //noinspection ConstantConditions
-            if (module != null) {
-                checkModule(module);
-                modules.add(module);
-            }
         }
 
         private void checkModule(Object module) {

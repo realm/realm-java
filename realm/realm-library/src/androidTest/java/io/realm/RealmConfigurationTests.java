@@ -36,14 +36,13 @@ import java.util.Set;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.realm.annotations.RealmModule;
 import io.realm.entities.AllTypes;
+import io.realm.entities.AllTypesModelModule;
 import io.realm.entities.AnimalModule;
 import io.realm.entities.AssetFileModule;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
-import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
 import io.realm.entities.StringAndInt;
@@ -303,14 +302,11 @@ public class RealmConfigurationTests {
         }
     }
 
-    @RealmModule(classes = { AllTypes.class, Dog.class, Owner.class, Cat.class, DogPrimaryKey.class })
-    public static class ConfigurationTestModule { }
-
     @Test
     public void modules() {
         RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
                 .directory(configFactory.getRoot())
-                .modules(new ConfigurationTestModule(), (Object) null)
+                .modules(new AllTypesModelModule(), (Object) null)
                 .build();
         realm = Realm.getInstance(realmConfig);
         assertNotNull(realm.getTable(AllTypes.class));

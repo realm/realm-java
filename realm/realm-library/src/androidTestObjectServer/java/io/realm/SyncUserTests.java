@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.realm.entities.AllTypesModelModule;
 import io.realm.entities.StringOnly;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
@@ -468,7 +469,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
         assertEquals(0, user.allSessions().size());
 
-        SyncConfiguration configuration1 = new SyncConfiguration.Builder(user, url1).build();
+        SyncConfiguration configuration1 = new SyncConfiguration.Builder(user, url1).modules(new AllTypesModelModule()).build();
         Realm realm1 = Realm.getInstance(configuration1);
         List<SyncSession> allSessions = user.allSessions();
         assertEquals(1, allSessions.size());
@@ -477,7 +478,7 @@ public class SyncUserTests {
         assertEquals(user, session.getUser());
         assertEquals(url1, session.getServerUrl().toString());
 
-        SyncConfiguration configuration2 = new SyncConfiguration.Builder(user, url2).build();
+        SyncConfiguration configuration2 = new SyncConfiguration.Builder(user, url2).modules(new AllTypesModelModule()).build();
         Realm realm2 = Realm.getInstance(configuration2);
         allSessions = user.allSessions();
         assertEquals(2, allSessions.size());
