@@ -50,6 +50,7 @@ import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
+import io.realm.sync.permissions.ObjectPrivileges;
 import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
@@ -517,7 +518,7 @@ abstract class BaseRealm implements Closeable {
      * @return the privileges granted the current user for the object.
      * @throws IllegalArgumentException if the object is either null, unmanaged or not part of this Realm.
      */
-    public RealmPrivileges getPrivileges(RealmModel object) {
+    public ObjectPrivileges getPrivileges(RealmModel object) {
         checkIfValid();
         //noinspection ConstantConditions
         if (object == null) {
@@ -530,7 +531,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("Object belongs to a different Realm.");
         }
         UncheckedRow row = (UncheckedRow) ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm();
-        return new RealmPrivileges(sharedRealm.getObjectPrivileges(row));
+        return new ObjectPrivileges(sharedRealm.getObjectPrivileges(row));
     }
 
     /**

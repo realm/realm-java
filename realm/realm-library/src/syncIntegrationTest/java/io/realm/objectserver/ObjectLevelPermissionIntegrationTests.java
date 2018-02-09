@@ -23,7 +23,6 @@ import org.junit.runner.RunWith;
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
-import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
@@ -36,8 +35,8 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.sync.permissions.ClassPermissions;
+import io.realm.sync.permissions.ClassPrivileges;
 import io.realm.sync.permissions.Permission;
-import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
 
@@ -85,7 +84,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         assertFullAccess(realmPrivileges);
 
         // Check Class privileges
-        RealmPrivileges classPrivileges = realm.getPrivileges(AllJavaTypes.class);
+        ClassPrivileges classPrivileges = realm.getPrivileges(AllJavaTypes.class);
         assertFullAccess(classPrivileges);
 
         // Check Object privileges
@@ -104,7 +103,6 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
 
         looperThread.testComplete();
     }
-
 
 //    @Test
 //    @RunTestInLooperThread
@@ -227,12 +225,18 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         assertTrue(permission.canModifySchema());
     }
 
-    private void assertFullAccess(RealmPrivileges privileges) {
+    private void assertFullAccess(ClassPrivileges privileges) {
         assertTrue(privileges.canCreate());
         assertTrue(privileges.canRead());
         assertTrue(privileges.canUpdate());
-        assertTrue(privileges.canDelete());
         assertTrue(privileges.canQuery());
+        assertTrue(privileges.canSetPermissions());
+        assertTrue(privileges.canModifySchema());
+    }
+
+    private void assertFullAccess(RealmPrivileges privileges) {
+        assertTrue(privileges.canRead());
+        assertTrue(privileges.canUpdate());
         assertTrue(privileges.canSetPermissions());
         assertTrue(privileges.canModifySchema());
     }

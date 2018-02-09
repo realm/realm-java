@@ -20,20 +20,20 @@ import io.realm.RealmModel;
 import io.realm.internal.annotations.ObjectServer;
 
 /**
- * This object combines all privileges granted on the Realm by all Roles which the
+ * This object combines all privileges granted on a Realm object by all Roles which the
  * current User is a member of into the final privileges which will be enforced by
  * the server.
  *
  * The privilege calculation is done locally using cached data, and inherently may
  * be stale. It is possible that this method may indicate that an operation is
  * permitted but the server will still reject it if permission is revoked before
- * the changes have been integrated on the server. If this happens, the server will automatically
- * revoke any illegal operations.
+ * the changes have been integrated on the server. If this happens, the server will
+ * automatically revoke any illegal operations.
  *
  * Non-synchronized Realms always have permission to perform all operations.
  */
 @ObjectServer
-public final class RealmPrivileges {
+public final class ObjectPrivileges {
 
     private boolean canRead;
     private boolean canUpdate;
@@ -43,7 +43,7 @@ public final class RealmPrivileges {
     private boolean canCreate;
     private boolean canModifySchema;
 
-    public RealmPrivileges(long privileges) {
+    public ObjectPrivileges(long privileges) {
         this.canRead = (privileges & (1 << 0)) != 0;
         this.canUpdate = (privileges & (1 << 1)) != 0;
         this.canDelete = (privileges & (1 << 2)) != 0;
@@ -54,74 +54,51 @@ public final class RealmPrivileges {
     }
 
     /**
-     * Returns whether or not can see this Realm. If {@code true}, the user is allowed to read all
-     * objects and classes from the Realm. If {@code false}, the Realm will appear completely empty
-     * (including having no schema), effectively making it inaccessible.
+     * Returns whether or not the user can see/read the object.
      *
-     * @return {@code true} if the user can see the Realm, {@code false} if not.
+     * @return {@code true} if the user can read the object, {@code false} if not.
      */
     public boolean canRead() {
         return canRead;
     }
 
     /**
-     * Returns whether or not the user can update Realm objects. If {@code true}, the user is
-     * allowed to update properties on all objects in the Realm. This does not include updating
-     * permissions nor creating or deleting objects. If {@code false}, the Realm is effectively
-     * read-only.
-     * <p>
-     * This property also in part control if schema updates are possible. If this returns
-     * {@code false}, the user is not allowed to update the schema, if {@code true}, schema updates
-     * are allowed if {@link #canModifySchema()} also returns {@code true}.
+     * Returns whether or not the user can update fields on the object. This does not
+     * include deleting (see {@link #canDelete()} nor if permissions can be updated (see
+     * {@link #canSetPermissions()}).
      *
-     * @return {@code true} if the user can update this Realm, {@code false} if not.
+     * @return {@code true} if the user can update fields on the object, {@code false} if not.
      */
     public boolean canUpdate() {
         return canUpdate;
     };
 
+
     /**
-     * Returns whether or not the user can change {@link RealmPermissions}. See this class for
-     * further information.
+     * Returns whether or not the user can delete the object.
      *
-     * @return {@code true} if the user can modify the {@link RealmPermissions} object,
-     * {@code false} if not.
-     * @see RealmPermissions
+     * @return {@code true} if the user can delete the object, {@code false} if not.
+     */
+    public boolean canDelete() {
+        return canDelete;
+    }
+
+    /**
+     * Returns whether or not the user can change permissions on the object through its custom
+     * permission field (A field of the type {@code RealmList<Permission>}).
+     *
+     * @return {@code true} if the user can modify the permissions on the object, {@code false} if not.
      */
     public boolean canSetPermissions() {
         return canSetPermissions;
     };
-
-    /**
-     * Returns whether or not the user can modify the schema of the given resource.
-     *
-     * <ol>
-     *     <li>
-     *         <b>Realm:</b>
-     *         If {@code true} the user is allowed to create classes in the Realm.
-     *     </li>
-     *     <li>
-     *         <b>Class:</b>
-     *         If {@code true}, the user is allowed to add properties to the given class.
-     *     </li>
-     *     <li>
-     *         <b>Object:</b>
-     *         Not applicable.
-     *     </li>
-     * </ol>
-     *
-     * @return {@code true} if the user can modify the schema of the given resource, {@code false} if not.
-     */
-    public boolean canModifySchema() {
-        return canModifySchema;
-    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RealmPrivileges that = (RealmPrivileges) o;
+        ObjectPrivileges that = (ObjectPrivileges) o;
 
         if (canRead != that.canRead) return false;
         if (canUpdate != that.canUpdate) return false;

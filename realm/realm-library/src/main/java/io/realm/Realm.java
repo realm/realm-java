@@ -75,6 +75,7 @@ import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
 import io.realm.sync.permissions.ClassPermissions;
+import io.realm.sync.permissions.ClassPrivileges;
 import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
@@ -1808,14 +1809,14 @@ public class Realm extends BaseRealm {
      */
     @Beta
     @ObjectServer
-    public RealmPrivileges getPrivileges(Class<? extends RealmModel> clazz) {
+    public ClassPrivileges getPrivileges(Class<? extends RealmModel> clazz) {
         checkIfValid();
         //noinspection ConstantConditions
         if (clazz == null) {
             throw new IllegalArgumentException("Non-null 'clazz' required.");
         }
         String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
-        return new RealmPrivileges(sharedRealm.getClassPrivileges(className));
+        return new ClassPrivileges(sharedRealm.getClassPrivileges(className));
     }
 
     /**

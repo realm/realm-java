@@ -23,20 +23,14 @@ import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.CheckedRow;
-import io.realm.internal.NativeObject;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
-import io.realm.internal.OsResults;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
-import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.log.RealmLog;
-import io.realm.sync.permissions.ClassPermissions;
-import io.realm.sync.permissions.RealmPermissions;
-import io.realm.sync.permissions.RealmPrivileges;
-import io.realm.sync.permissions.Role;
+import io.realm.sync.permissions.ClassPrivileges;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -364,7 +358,7 @@ public class DynamicRealm extends BaseRealm {
      */
     @Beta
     @ObjectServer
-    public RealmPrivileges getPrivileges(String className) {
+    public ClassPrivileges getPrivileges(String className) {
         checkIfValid();
         //noinspection ConstantConditions
         if (Util.isEmptyString(className)) {
@@ -373,7 +367,7 @@ public class DynamicRealm extends BaseRealm {
         if (!schema.contains(className)) {
             throw new RealmException("Class '" + className + "' is not part of the schema for this Realm");
         }
-        return new RealmPrivileges(sharedRealm.getClassPrivileges(className));
+        return new ClassPrivileges(sharedRealm.getClassPrivileges(className));
     }
 
     /**

@@ -29,6 +29,8 @@ import io.realm.entities.Dog;
 import io.realm.exceptions.RealmException;
 import io.realm.rule.RunInLooperThread;
 import io.realm.sync.permissions.ClassPermissions;
+import io.realm.sync.permissions.ClassPrivileges;
+import io.realm.sync.permissions.ObjectPrivileges;
 import io.realm.sync.permissions.Permission;
 import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
@@ -106,7 +108,7 @@ public class ObjectLevelPermissionsTest {
 
     @Test
     public void getPrivileges_class_localDefaults() {
-        RealmPrivileges privileges = realm.getPrivileges(AllJavaTypes.class);
+        ClassPrivileges privileges = realm.getPrivileges(AllJavaTypes.class);
         assertFullAccess(privileges);
 
         privileges = dynamicRealm.getPrivileges(AllJavaTypes.CLASS_NAME);
@@ -120,7 +122,7 @@ public class ObjectLevelPermissionsTest {
             role.removeMember(user.getIdentity());
         });
 
-        RealmPrivileges privileges = realm.getPrivileges(AllJavaTypes.class);
+        ClassPrivileges privileges = realm.getPrivileges(AllJavaTypes.class);
         assertNoAccess(privileges);
 
         privileges = dynamicRealm.getPrivileges(AllJavaTypes.CLASS_NAME);
@@ -470,13 +472,26 @@ public class ObjectLevelPermissionsTest {
     }
 
     private void assertFullAccess(RealmPrivileges privileges) {
+        assertTrue(privileges.canRead());
+        assertTrue(privileges.canUpdate());
+        assertTrue(privileges.canSetPermissions());
+        assertTrue(privileges.canModifySchema());
+    }
+
+    private void assertFullAccess(ClassPrivileges privileges) {
         assertTrue(privileges.canCreate());
         assertTrue(privileges.canRead());
         assertTrue(privileges.canUpdate());
-        assertTrue(privileges.canDelete());
         assertTrue(privileges.canQuery());
         assertTrue(privileges.canSetPermissions());
         assertTrue(privileges.canModifySchema());
+    }
+
+    private void assertFullAccess(ObjectPrivileges privileges) {
+        assertTrue(privileges.canRead());
+        assertTrue(privileges.canUpdate());
+        assertTrue(privileges.canDelete());
+        assertTrue(privileges.canSetPermissions());
     }
 
     private void assertFullAccess(Permission permission) {
@@ -490,12 +505,26 @@ public class ObjectLevelPermissionsTest {
     }
 
     private void assertNoAccess(RealmPrivileges privileges) {
+        assertFalse(privileges.canRead());
+        assertFalse(privileges.canUpdate());
+        assertFalse(privileges.canSetPermissions());
+        assertFalse(privileges.canModifySchema());
+    }
+
+    private void assertNoAccess(ClassPrivileges privileges) {
         assertFalse(privileges.canCreate());
         assertFalse(privileges.canRead());
         assertFalse(privileges.canUpdate());
-        assertFalse(privileges.canDelete());
         assertFalse(privileges.canQuery());
         assertFalse(privileges.canSetPermissions());
         assertFalse(privileges.canModifySchema());
     }
+
+    private void assertNoAccess(ObjectPrivileges privileges) {
+        assertFalse(privileges.canRead());
+        assertFalse(privileges.canUpdate());
+        assertFalse(privileges.canDelete());
+        assertFalse(privileges.canSetPermissions());
+    }
+
 }
