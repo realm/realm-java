@@ -23,13 +23,13 @@ import io.realm.internal.annotations.ObjectServer;
  * This class encapsulates the privileges granted a given {@link Role}. These privileges can be
  * applied to either the entire Realm, Classes or individual objects.
  * <p>
- * If no privileges are defined for an individual object, the values for {@link ClassPermissions}
+ * If no privileges are defined for an individual object, the values {@link ClassPermissions}
  * will be inherited, if no values are defined there, the ones from {@link RealmPermissions} will
  * be used. If no values can be found there, no privileges are granted.
  * <p>
- * Not all privileges are meaningful all levels, e.g. `canDelete` is only meaningful when applied to
- * objects, but it can still be defined at either the class or Realm level, in which case all objects
- * will inherit the value unless the specifically override it. See the individual privileges for the
+ * Not all privileges are meaningful all levels, e.g. `canCreate` is only meaningful when applied to
+ * classes, but it can still be defined at the Realm level. In that case all class permission objects
+ * will inherit the value unless they specifically override it. See the individual privileges for the
  * details.
  * <p>
  * When added to either {@link RealmPermissions}, {@link ClassPermissions} or a {@link RealmObject},
@@ -104,7 +104,8 @@ public class Permission extends RealmObject {
          *     </li>
          *     <li>
          *         <b>Class:</b>
-         *         The role is allowed to read the objects of this type and all referenced objects.
+         *         The role is allowed to read the objects of this type and all referenced objects,
+         *         even if those objects themselves have set this to {@code false}.
          *         If {@code false}, the role cannot see any object of this type and all queries
          *         against the type will return no results.
          *     </li>
@@ -127,16 +128,18 @@ public class Permission extends RealmObject {
          * <ol>
          *     <li>
          *         <b>Realm:</b>
-         *         Not applicable.
+         *         If {@code true}, the role is allowed update properties on all objects in the Realm.
+         *         This does not include updating permissions nor creating or deleting objects.
          *     </li>
          *     <li>
          *         <b>Class:</b>
-         *         Not applicable.
+         *         If {@code true}, the role is allowed update properties on all objects of this type in
+         *         the Realm. This does not include updating permissions nor creating or deleting objects.
          *     </li>
          *     <li>
          *         <b>Object:</b>
-         *         If {@code true}, the role is allowed to update properties on the object, but not
-         *         set or change permissions.
+         *         If {@code true}, the role is allowed to update properties on the object. This
+         *         does not cover updating permissions or deleting the object.
          *     </li>
          * </ol>
          *
@@ -161,8 +164,7 @@ public class Permission extends RealmObject {
          *     </li>
          *     <li>
          *         <b>Object:</b>
-         *         If {@code true}, the role is allowed to update properties on the object, but not
-         *         set or change permissions.
+         *         If {@code true}, the role is allowed to delete the object.
          *     </li>
          * </ol>
          *
@@ -175,6 +177,9 @@ public class Permission extends RealmObject {
 
         /**
          * Defines if this role is allowed to change permissions on the given resource.
+         * Permissions can only be granted at the same permission level or below. E.g. if set on
+         * a Class, it is not possible to change Realm level permissions, but does allow the role to
+         * change object level permissions for objects of that type.
          *
          * <ol>
          *     <li>
@@ -354,7 +359,8 @@ public class Permission extends RealmObject {
      *     </li>
      *     <li>
      *         <b>Class:</b>
-     *         The role is allowed to read the objects of this type and all referenced objects.
+     *         The role is allowed to read the objects of this type and all referenced objects,
+     *         even if those objects themselves have set this to {@code false}.
      *         If {@code false}, the role cannot see any object of this type and all queries
      *         against the type will return no results.
      *     </li>
@@ -383,16 +389,18 @@ public class Permission extends RealmObject {
      * <ol>
      *     <li>
      *         <b>Realm:</b>
-     *         Not applicable.
+     *         If {@code true}, the role is allowed update properties on all objects in the Realm.
+     *         This does not include updating permissions nor creating or deleting objects.
      *     </li>
      *     <li>
      *         <b>Class:</b>
-     *         Not applicable.
+     *         If {@code true}, the role is allowed update properties on all objects of this type in
+     *         the Realm. This does not include updating permissions nor creating or deleting objects.
      *     </li>
      *     <li>
      *         <b>Object:</b>
-     *         If {@code true}, the role is allowed to update properties on the object, but not
-     *         set or change permissions.
+     *         If {@code true}, the role is allowed to update properties on the object. This
+     *         does not cover updating permissions or deleting the object.
      *     </li>
      * </ol>
      *
@@ -442,6 +450,9 @@ public class Permission extends RealmObject {
 
     /**
      * Defines if this role is allowed to change permissions on the given resource.
+     * Permissions can only be granted at the same permission level or below. E.g. if set on
+     * a Class, it is not possible to change Realm level permissions, but does allow the role to
+     * change object level permissions for objects of that type.
      *
      * <ol>
      *     <li>

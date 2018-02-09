@@ -23,7 +23,7 @@ import io.realm.internal.annotations.ObjectServer;
 
 /**
  * Class describing all permissions related to a given Realm. Permissions attached to this class
- * are treated as the default permissions if not otherwise overriden by {@link ClassPermissions}
+ * are treated as the default permissions if not otherwise overridden by {@link ClassPermissions}
  * or object level permissions.
  *
  * @see <a href="FIX">Object Level Permissions</a> for an detailed description of the Realm Object
@@ -41,8 +41,7 @@ public class RealmPermissions extends RealmObject {
     }
 
     /**
-     * Returns all Realm level permissions. This is the default set of permissions if not
-     * otherwise defined by {@link ClassPermissions} and Object level permissions.
+     * Returns all Realm level permissions, i.e. permissions that apply to the Realm as a whole.
      *
      * @return all Realm level permissions
      */

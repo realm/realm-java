@@ -61,8 +61,9 @@ public final class RealmPrivileges {
      *     <li>
      *         <b>Class:</b>
      *         If {@code true}, the role is allowed read the objects of this type and all referenced
-     *         objects. If {@code false}, the user cannot see any object of this type and all queries
-     *         against the type will return no results.
+     *         objects, even if those objects have set this to {@code false}. If {@code false}, the
+     *         user cannot see any object of this type and all queries against the type will return
+     *         no results.
      *     </li>
      *     <li>
      *         <b>Object:</b>
@@ -82,16 +83,18 @@ public final class RealmPrivileges {
      * <ol>
      *     <li>
      *         <b>Realm:</b>
-     *         Not applicable.
+     *         If {@code true}, the user is allowed update properties on all objects in the Realm.
+     *         This does not include updating permissions nor creating or deleting objects.
      *     </li>
      *     <li>
      *         <b>Class:</b>
-     *         Not applicable.
+     *         If {@code true}, the user is allowed update properties on all objects of this type in
+     *         the Realm. This does not include updating permissions nor creating or deleting objects.
      *     </li>
      *     <li>
      *         <b>Object:</b>
-     *         If {@code true}, the role is allowed to update properties on the object, but not
-     *         set or change permissions.
+     *         If {@code true}, the user is allowed to update properties on the object. This
+     *         does not cover updating permissions or deleting the object.
      *     </li>
      * </ol>
      *
