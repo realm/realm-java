@@ -34,6 +34,7 @@ import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.log.RealmLog;
 
 import static org.junit.Assert.fail;
@@ -48,9 +49,12 @@ public class UserFactory {
     // test starts and store it in a Realm. Then it can be retrieved for every process.
     private String userName;
     private static UserFactory instance;
-    private static RealmConfiguration configuration = new RealmConfiguration.Builder()
-            .name("user-factory.realm")
-            .build();
+    private static RealmConfiguration configuration;
+    static {
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder().name("user-factory.realm");
+        ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
+        configuration = builder.build();
+    }
 
     private UserFactory(String userName) {
         this.userName = userName;

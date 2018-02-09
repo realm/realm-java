@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
@@ -152,6 +153,7 @@ public abstract class BaseIntegrationTest {
         public SyncConfiguration.Builder createSyncConfigurationBuilder(SyncUser user, String url) {
             return new SyncConfiguration.Builder(user, url)
                     .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                    .modules(Realm.getDefaultModule(), new ObjectPermissionsModule())
                     .directory(looperThread.getRoot());
         }
 
