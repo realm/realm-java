@@ -20,8 +20,8 @@ import android.support.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.realm.OrderedCollectionChangeSet;
-import io.realm.OrderedRealmCollectionChangeListener;
+import io.realm.ObjectServerError;
+import io.realm.PermissionManager;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
@@ -30,9 +30,14 @@ import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.annotations.RealmModule;
 import io.realm.entities.AllJavaTypes;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.objectserver.model.PermissionObject;
 import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
+import io.realm.permissions.AccessLevel;
+import io.realm.permissions.PermissionRequest;
+import io.realm.permissions.UserCondition;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.ClassPrivileges;
@@ -41,7 +46,6 @@ import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -50,6 +54,10 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
 
     @RealmModule(classes = { AllJavaTypes.class })
     public static class ObjectLevelTestModule {
+    }
+
+    @RealmModule(classes = {PermissionObject.class})
+    public static class OLPermissionModule {
     }
 
     // Check default privileges after being online for the first time
@@ -111,106 +119,100 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
 //        looperThread.testComplete();
 //    }
 
-    // Restrict read/write permission, only the owner of the object can see/modify it
-    // (use case of the ToDo app)
-    // TODO in the ToDo app restrict access to all Items elements directly
-    //      unless they are part of the retrieved Project (i.e remove query permission but give read
-    //      to the Items table
     @Test
-    @RunTestInLooperThread
-    public void restrictAccessToOwner() throws InterruptedException {
-        final SyncUser user2 = UserFactory.createNicknameUser(Constants.AUTH_URL, "user2", true);
-
-        final String user2Role = "role_" + user2.getIdentity();
-
-        SyncConfiguration user2SyncConfig = configurationFactory
-                .createSyncConfigurationBuilder(user2, Constants.GLOBAL_REALM)
-                .initialData(realm -> {
-                    // create a Role for this user
-                    Role role = realm.createObject(Role.class, user2Role);
-                    role.addMember(user2.getIdentity());
-                    realm.insert(role);
-
-                    // TODO add classes specific permissions if necessary (i.e the OS default doesn't work for this use case)
-                })
-                .partialRealm()
+    @RunTestInLooperThread(emulateMainThread = true)
+    public void restrictAccessToOwner() {
+        // Create a reference/global Realm needed for partial sync
+        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
+        SyncConfiguration adminSyncConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, Constants.GLOBAL_REALM)
+                .modules(new StringOnlyModule())// we can't create an empty endpoint (no schema) with the Java API
                 .build();
-
-        Realm realmUser2 = Realm.getInstance(user2SyncConfig);
-
-//        ClassPermissions classPermissions = new ClassPermissions(PermissionObject.class);
-//        realmUser2.beginTransaction();
-//
-//        Permission permission = new Permission();
-//        permission.setCanRead(true);
-//        permission.setCanQuery(true);
-//        permission.setCanCreate(true);
-//        permission.setCanUpdate(true);
-//        Role everyoneRole = realmUser2.where(Role.class).equalTo("name", "everyone").findFirst();
-//        assertNotNull(everyoneRole);//FIXME do we have the guarantee that the role exists
-//        permission.setRole(everyoneRole);
-//
-//        classPermissions.getPermissions().add(permission);
-//
-//        realmUser2.commitTransaction();
-//        SyncManager.getSession(user2SyncConfig).uploadAllLocalChanges();
-//        realmUser2.close();
-
-        // create object by user1
-        realmUser2.beginTransaction();
-        PermissionObject userObject = realmUser2.createObject(PermissionObject.class, "user_2_instance1");
-
-        Role role = realmUser2.where(Role.class).equalTo("name", user2Role).findFirst();
-        assertNotNull(role);
-
-        // add permission so this will be only writable from user1
-        Permission userPermission = new Permission(role);
-        userPermission.setCanRead(true);
-        userPermission.setCanQuery(true);
-        userPermission.setCanCreate(true);
-        userPermission.setCanUpdate(true);
-        userPermission.setCanUpdate(true);
-        userPermission.setCanDelete(true);
-        //TODO call instead allPrivileges builder instead of setting everything one by one
-        // add a builder that start by either given all permissions or restricting all permissions
-        // then start tuning
-
-        userObject.getPermissions().add(userPermission);
-        realmUser2.commitTransaction();
-
-        SyncManager.getSession(user2SyncConfig).uploadAllLocalChanges();
-        realmUser2.close();
-
-        // user1 can't see or edit the object
-        SyncUser user1 = UserFactory.createNicknameUser(Constants.AUTH_URL, "user1", true);
-        SyncConfiguration user1syncConfiguration = configurationFactory
-                .createSyncConfigurationBuilder(user1, Constants.GLOBAL_REALM)
-                .partialRealm()
-                .build();
-        Realm user1Realm = Realm.getInstance(user1syncConfiguration);
-        looperThread.addTestRealm(user1Realm);
-        RealmResults<PermissionObject> all_permission_object = user1Realm
-                .where(PermissionObject.class)
-                .findAllAsync("all_permission_object");
-        looperThread.keepStrongReference(all_permission_object);
-        all_permission_object.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<PermissionObject>>() {
+        final Realm adminRealm = Realm.getInstance(adminSyncConfig);
+        // Grant all users ROS permission to access the reference Realm
+        PermissionManager pm = adminUser.getPermissionManager();
+        PermissionRequest request = new PermissionRequest(UserCondition.noExistingPermissions(), Constants.GLOBAL_REALM, AccessLevel.WRITE);
+        pm.applyPermissions(request, new PermissionManager.ApplyPermissionsCallback() {
             @Override
-            public void onChange(RealmResults<PermissionObject> permissionObjects, OrderedCollectionChangeSet changeSet) {
-                switch (changeSet.getState()) {
-                    case INITIAL: {
-                        assertEquals(0, permissionObjects.size());
-                        looperThread.testComplete();
-                        break;
-                    }
-                    case UPDATE: {
-                        fail("We don't expect updates");
-                        break;
-                    }
-                    case ERROR: {
-                        fail("Error while registering the partial sync query");
-                        break;
-                    }
-                }
+            public void onSuccess() {
+                adminRealm.close();
+                SyncUser user1 = UserFactory.createUniqueUser(Constants.AUTH_URL);
+                SyncUser user2 = UserFactory.createUniqueUser(Constants.AUTH_URL);
+
+                // connect with user1
+                SyncConfiguration user1SyncConfig = configurationFactory
+                        .createSyncConfigurationBuilder(user1, Constants.GLOBAL_REALM)
+                        .modules(new OLPermissionModule(), new ObjectPermissionsModule())
+                        .partialRealm()
+                        .build();
+
+                Realm realmUser1 = Realm.getInstance(user1SyncConfig);
+                realmUser1.beginTransaction();
+                // added a new Role to restrict access to our objects
+                Role role = realmUser1.createObject(Role.class, "role_" + user1.getIdentity());
+                role.addMember(user1.getIdentity());
+                realmUser1.insert(role);
+
+                // add permission so this will be only writable from user1
+                Permission userPermission = new Permission(role);
+                userPermission.setCanRead(true);
+                userPermission.setCanQuery(true);
+                userPermission.setCanCreate(true);
+                userPermission.setCanUpdate(true);
+                userPermission.setCanUpdate(true);
+                userPermission.setCanDelete(true);
+                userPermission.setCanSetPermissions(true);
+                userPermission.setCanModifySchema(true);
+
+                PermissionObject permissionObject1 = realmUser1.createObject(PermissionObject.class, "Foo");
+                permissionObject1.getPermissions().add(userPermission);
+                realmUser1.commitTransaction();
+
+                // open admin Realm with permission module to query for PermissionObject
+                Realm referenceRealm = Realm.getInstance(configurationFactory.createSyncConfigurationBuilder(adminUser, Constants.GLOBAL_REALM)
+                        .modules(new OLPermissionModule(), new ObjectPermissionsModule())
+                        .build());
+                // new object is available in the reference Realm
+                RealmResults<PermissionObject> allPermissionObjects = referenceRealm.where(PermissionObject.class).findAllAsync();
+                allPermissionObjects.addChangeListener(permissionObjects -> {
+                    assertEquals(1, permissionObjects.size());
+                    assertEquals("Foo", permissionObjects.get(0).getName());
+                    assertEquals(1, permissionObjects.get(0).getPermissions().size());
+                    Permission permission = permissionObjects.get(0).getPermissions().get(0);
+                    assertFullAccess(permission);
+                    referenceRealm.close();
+
+                    // Open a partial sync with a different user to make sure the instance is not visible
+                    SyncConfiguration syncConfig2 = configurationFactory
+                            .createSyncConfigurationBuilder(user2, Constants.GLOBAL_REALM)
+                            .modules(new OLPermissionModule(), new ObjectPermissionsModule())
+                            .partialRealm()
+                            .build();
+                    Realm realmUser2 = Realm.getInstance(syncConfig2);
+                    RealmResults<PermissionObject> allAsync = realmUser2.where(PermissionObject.class).findAllAsync();
+                    looperThread.keepStrongReference(allAsync);
+                    allAsync.addChangeListener((permissionObjects2, changeSet) -> {
+                        switch (changeSet.getState()) {
+                            case INITIAL:
+                                assertEquals(0, permissionObjects2.size());
+                                break;
+                            case UPDATE:
+                                assertEquals(0, permissionObjects2.size());
+                                realmUser2.close();
+                                realmUser1.close();
+                                looperThread.testComplete();
+                                break;
+                            case ERROR:
+                                fail("Unexpected error callback");
+                                break;
+                        }
+                    });
+                });
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                adminRealm.close();
+                fail(error.getErrorMessage());
             }
         });
     }
