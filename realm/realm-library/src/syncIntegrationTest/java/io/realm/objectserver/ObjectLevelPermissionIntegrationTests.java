@@ -21,15 +21,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.realm.ObjectServerError;
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.PermissionManager;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
+import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.annotations.RealmModule;
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.StringOnly;
 import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.objectserver.model.PermissionObject;
 import io.realm.objectserver.utils.Constants;
@@ -41,6 +45,7 @@ import io.realm.permissions.UserCondition;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.ClassPrivileges;
+import io.realm.sync.permissions.ObjectPrivileges;
 import io.realm.sync.permissions.Permission;
 import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
@@ -126,10 +131,13 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         // Create a reference/global Realm needed for partial sync
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         SyncConfiguration adminSyncConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, Constants.GLOBAL_REALM)
-                // FIXME create schema with new OLPermissionModule(), new ObjectPermissionsModule()
-                //       once https://github.com/realm/realm-sync/issues/2000 is fixed
-                .modules(new StringOnlyModule())// we can't create an empty endpoint (no schema) with the Java API
+                .modules(new StringOnlyModule(), new OLPermissionModule(), new ObjectPermissionsModule())// we can't create an empty endpoint (no schema) with the Java API
                 .build();
+        // *******************************
+        // *******************************
+        // ************* HEY SIMON this is where we upload the reference Realm with empty permission schema
+        // *******************************
+        // *******************************
         final Realm adminRealm = Realm.getInstance(adminSyncConfig);
         // Grant all users ROS permission to access the reference Realm
         PermissionManager pm = adminUser.getPermissionManager();
@@ -148,7 +156,13 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
                         .partialRealm()
                         .build();
 
+                // *******************************
+                // *******************************
+                // ************* HEY SIMON this is where we upload the partial sync with permission tables populated with defaults
+                // *******************************
+                // *******************************
                 Realm realmUser1 = Realm.getInstance(user1SyncConfig);
+
                 // FIXME remove once https://github.com/realm/realm-sync/issues/1989 is fixed
                 //       register at least one partial sync subscription so the server sends Sync permission data
                 looperThread.keepStrongReference(realmUser1.where(PermissionObject.class).findAllAsync());
@@ -158,6 +172,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
                 Role role = realmUser1.createObject(Role.class, "role_" + user1.getIdentity());
                 role.addMember(user1.getIdentity());
                 realmUser1.insert(role);
+
 
                 // add permission so this will be only visible and modifiable from user1
                 Permission userPermission = new Permission(role);
@@ -178,6 +193,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
                 Realm referenceRealm = Realm.getInstance(configurationFactory.createSyncConfigurationBuilder(adminUser, Constants.GLOBAL_REALM)
                         .modules(new OLPermissionModule(), new ObjectPermissionsModule())
                         .build());
+                looperThread.closeAfterTest(referenceRealm);
                 RealmResults<PermissionObject> allPermissionObjects = referenceRealm.where(PermissionObject.class).findAllAsync();
                 allPermissionObjects.addChangeListener(permissionObjects -> {
                     if (permissionObjects.size() == 1) {
@@ -195,6 +211,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
                                 .partialRealm()
                                 .build();
                         Realm realmUser2 = Realm.getInstance(syncConfig2);
+                        looperThread.closeAfterTest(realmUser2);
                         RealmResults<PermissionObject> allAsync = realmUser2.where(PermissionObject.class).findAllAsync();
                         looperThread.keepStrongReference(allAsync);
                         // new object should not be visible for user2 partial sync
@@ -205,8 +222,6 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
                                     break;
                                 case UPDATE:
                                     assertEquals(0, permissionObjects2.size());
-                                    realmUser2.close();
-                                    realmUser1.close();
                                     looperThread.testComplete();
                                     break;
                                 case ERROR:
