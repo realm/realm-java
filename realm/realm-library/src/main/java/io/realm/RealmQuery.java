@@ -25,16 +25,19 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
 import io.realm.annotations.Required;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
+import io.realm.internal.SubscriptionAwareOsResults;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
 import io.realm.internal.fields.FieldDescriptor;
+import io.realm.internal.sync.SubscriptionAction;
 
 
 /**
@@ -1750,7 +1753,7 @@ public class RealmQuery<E> {
     public RealmResults<E> findAll() {
         realm.checkIfValid();
 
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, true, "");
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, true, SubscriptionAction.NO_SUBSCRIPTION);
     }
 
     /**
@@ -1770,7 +1773,7 @@ public class RealmQuery<E> {
         realm.checkIfValid();
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, "");
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, SubscriptionAction.ANONYMOUS_SUBSCRIPTION);
     }
 
     /**
@@ -1793,7 +1796,7 @@ public class RealmQuery<E> {
         }
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, subscriptionName);
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, SubscriptionAction.create(subscriptionName));
     }
 
     /**
@@ -1989,21 +1992,29 @@ public class RealmQuery<E> {
         return result;
     }
 
+
     private RealmResults<E> createRealmResults(TableQuery query,
                                                @Nullable SortDescriptor sortDescriptor,
                                                @Nullable SortDescriptor distinctDescriptor,
                                                boolean loadResults,
-                                               String subscriptionName) {
+                                               SubscriptionAction subscriptionAction) {
         RealmResults<E> results;
-        OsResults osResults = OsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
-        if (isDynamicQuery()) {
-            results = new RealmResults<>(realm, osResults, className, subscriptionName);
+        OsResults osResults;
+        if (subscriptionAction.shouldCreateSubscriptions()) {
+            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor, subscriptionAction.getName());
         } else {
-            results = new RealmResults<>(realm, osResults, clazz, subscriptionName);
+            osResults = OsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
+        }
+
+        if (isDynamicQuery()) {
+            results = new RealmResults<>(realm, osResults, className);
+        } else {
+            results = new RealmResults<>(realm, osResults, clazz);
         }
         if (loadResults) {
             results.load();
         }
+
         return results;
     }
 

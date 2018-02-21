@@ -16,14 +16,17 @@
 
 package io.realm.internal;
 
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
+import io.realm.internal.sync.OsSubscription;
 
 
 /**
@@ -202,9 +205,10 @@ public class OsResults implements NativeObject, ObservableCollection {
     private final OsSharedRealm sharedRealm;
     private final NativeContext context;
     private final Table table;
-    private boolean loaded;
+    protected boolean loaded;
     private boolean isSnapshot = false;
-    private final ObserverPairList<CollectionObserverPair> observerPairs =
+
+    protected final ObserverPairList<CollectionObserverPair> observerPairs =
             new ObserverPairList<CollectionObserverPair>();
 
     // Public for static checking in JNI
@@ -397,23 +401,15 @@ public class OsResults implements NativeObject, ObservableCollection {
     }
 
     public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
-        addListener(observer, listener, "");
-    }
-
-    public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener, String subscriptionName) {
         if (observerPairs.isEmpty()) {
-            nativeStartListening(nativePtr, subscriptionName);
+            nativeStartListening(nativePtr);
         }
         CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<T>(observer, listener);
         observerPairs.add(collectionObserverPair);
     }
 
     public <T> void addListener(T observer, RealmChangeListener<T> listener) {
-        addListener(observer, new RealmChangeListenerWrapper<T>(listener), "");
-    }
-
-    public <T> void addListener(T observer, RealmChangeListener<T> listener, String subscriptionName) {
-        addListener(observer, new RealmChangeListenerWrapper<T>(listener), subscriptionName);
+        addListener(observer, new RealmChangeListenerWrapper<T>(listener));
     }
 
     public <T> void removeListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
@@ -442,8 +438,8 @@ public class OsResults implements NativeObject, ObservableCollection {
         // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
         // So it is possible it deliver a non-empty change set for the first async query returns.
         OsCollectionChangeSet changeset = (nativeChangeSetPtr == 0)
-                ? new EmptyLoadChangeSet()
-                : new OsCollectionChangeSet(nativeChangeSetPtr, !isLoaded());
+                ? new EmptyLoadChangeSet(null)
+                : new OsCollectionChangeSet(nativeChangeSetPtr, !isLoaded(), null);
 
         // Happens e.g. if a synchronous query is created, a change listener is added and then
         // a transaction is started on the same thread. This will trigger all notifications
@@ -484,8 +480,8 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native long nativeGetFinalizerPtr();
 
-    private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-            @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
+    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
+                                                     @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 
@@ -514,7 +510,7 @@ public class OsResults implements NativeObject, ObservableCollection {
     private static native void nativeDelete(long nativePtr, long index);
 
     // Non-static, we need this OsResults object in JNI.
-    private native void nativeStartListening(long nativePtr, String subscriptionName);
+    private native void nativeStartListening(long nativePtr);
 
     private native void nativeStopListening(long nativePtr);
 
@@ -529,4 +525,5 @@ public class OsResults implements NativeObject, ObservableCollection {
     private static native long nativeCreateResultsFromBacklinks(long sharedRealmNativePtr, long rowNativePtr, long srcTableNativePtr, long srColIndex);
 
     private static native void nativeEvaluateQueryIfNeeded(long nativePtr, boolean wantsNotifications);
+
 }

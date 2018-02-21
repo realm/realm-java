@@ -20,11 +20,10 @@ package io.realm;
 import android.annotation.SuppressLint;
 import android.os.Looper;
 
-import io.reactivex.Flowable;
-import io.reactivex.Observable;
-
 import javax.annotation.Nullable;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsResults;
 import io.realm.internal.Row;
@@ -61,8 +60,6 @@ import io.realm.rx.CollectionChange;
  */
 public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
 
-    private final String subscriptionName;
-
     // Called from Realm Proxy classes
     @SuppressLint("unused")
     static <T extends RealmModel> RealmResults<T> createBacklinkResults(BaseRealm realm, Row row, Class<T> srcTableType, String srcFieldName) {
@@ -85,21 +82,11 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz) {
-        this(realm, osResults, clazz, "");
+        super(realm, osResults, clazz);
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, String className) {
-        this(realm, osResults, className, "");
-    }
-
-    RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz, String subscriptionName) {
-        super(realm, osResults, clazz);
-        this.subscriptionName = subscriptionName;
-    }
-
-    RealmResults(BaseRealm realm, OsResults osResults, String className, String subscriptionName) {
         super(realm, osResults, className);
-        this.subscriptionName = subscriptionName;
     }
 
     /**
@@ -110,7 +97,6 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         realm.checkIfValid();
         return RealmQuery.createQueryFromResult(this);
     }
-
 
     /**
      * {@inheritDoc}
@@ -184,7 +170,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void addChangeListener(RealmChangeListener<RealmResults<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        osResults.addListener(this, listener, subscriptionName);
+        osResults.addListener(this, listener);
     }
 
     /**
@@ -222,7 +208,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmResults<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        osResults.addListener(this, listener, subscriptionName);
+        osResults.addListener(this, listener);
     }
 
     private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {

@@ -119,4 +119,8 @@ public class ObjectServerFacade {
     public boolean isPartialRealm(RealmConfiguration configuration) {
         return false;
     }
+
+    public OsResults createSubscriptionAwareResults(OsSharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor, String name) {
+        throw new IllegalStateException("Should only be called by builds supporting Sync");
+    }
 }

@@ -241,15 +241,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeDistinct(JNIEnv* 
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeStartListening(JNIEnv* env, jobject instance,
-                                                                              jlong native_ptr, jstring j_subscription_name)
+                                                                              jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        JStringAccessor subscription_name(env, j_subscription_name);
-        auto key = subscription_name.is_null_or_empty() ? util::none : util::Optional<std::string>(subscription_name);
-        wrapper->start_listening(env, instance, key);
+        wrapper->start_listening(env, instance);
     }
     CATCH_STD()
 }

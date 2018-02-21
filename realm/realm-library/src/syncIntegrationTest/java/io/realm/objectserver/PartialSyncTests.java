@@ -58,7 +58,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
                     if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
                         assertTrue(changeSet.getError() instanceof IllegalArgumentException);
                         Throwable iae = changeSet.getError();
-                        assertTrue(iae.getMessage().contains("ERROR: realm::QueryParser: Key path resolution failed"));
+                        assertTrue(iae.getMessage().contains("Querying over backlinks is disabled but backlinks were found"));
                         looperThread.testComplete();
                     }
                 });
@@ -186,14 +186,12 @@ public class PartialSyncTests extends StandardIntegrationTest {
         looperThread.closeAfterTest(realm);
 
         RealmResults<PartialSyncObjectA> results1 = realm.where(PartialSyncObjectA.class)
-                .greaterThan("number", 0) // FIXME: Work-around Query serializer not accepting empty query for now
                 .findAllAsync("my-id");
         results1.addChangeListener((results, changeSet) -> {
             // Ignore. Just used to trigger partial sync path
         });
 
         RealmResults<PartialSyncObjectB> results2 = realm.where(PartialSyncObjectB.class)
-                .greaterThan("number", 0) // FIXME: Work-around Query serializer not accepting empty query for now
                 .findAllAsync("my-id");
         results2.addChangeListener((results, changeSet) -> {
             if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {

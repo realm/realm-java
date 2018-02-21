@@ -21,7 +21,7 @@ import java.util.Arrays;
 import javax.annotation.Nullable;
 
 import io.realm.OrderedCollectionChangeSet;
-
+import io.realm.internal.sync.OsSubscription;
 
 /**
  * Implementation of {@link OrderedCollectionChangeSet}. This class holds a pointer to the Object Store's
@@ -46,10 +46,16 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
     private static long finalizerPtr = nativeGetFinalizerPtr();
     private final long nativePtr;
     private final boolean firstAsyncCallback;
+    protected final OsSubscription subscription;
 
     public OsCollectionChangeSet(long nativePtr, boolean firstAsyncCallback) {
+        this(nativePtr, firstAsyncCallback, null);
+    }
+
+    public OsCollectionChangeSet(long nativePtr, boolean firstAsyncCallback, @Nullable OsSubscription subscription) {
         this.nativePtr = nativePtr;
         this.firstAsyncCallback = firstAsyncCallback;
+        this.subscription = subscription;
         NativeContext.dummyContext.addReference(this);
     }
 
@@ -108,7 +114,10 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
 
     @Override
     public Throwable getError() {
-        return (Throwable) nativeGetError(nativePtr);
+        if (subscription != null && subscription.getState() == OsSubscription.SubscriptionState.ERROR) {
+            return subscription.getError();
+        }
+        return null;
     }
 
     @Override
@@ -117,15 +126,14 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
     }
 
     public boolean isRemoteDataLoaded() {
-        return nativeIsRemoteDataLoaded(nativePtr);
-    }
-
-    public int getOldStatusCode() {
-        return nativeGetOldStatusCode(nativePtr);
-    }
-
-    public int getNewStatusCode() {
-        return nativeGetNewStatusCode(nativePtr);
+        // If no subscription status exist, it means that either the Realm is not a partial Realm
+        // or the the query result is a sub query of some kind, which means all data already
+        // has been loaded.
+        if (subscription == null) {
+            return true;
+        } else {
+            return subscription.getState() == OsSubscription.SubscriptionState.COMPLETE;
+        }
     }
 
     /**
@@ -140,7 +148,8 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
      * Returns {@code true} if this changeset is empty, and doesn't contain any relevant changes.
      */
     public boolean isEmpty() {
-        return nativeIsEmpty(nativePtr);
+        // Since this wrap a Object Store changeset, it will always contains changes.
+        return false;
     }
 
     // Convert long array returned by the nativeGetXxxRanges() to Range array.
@@ -188,25 +197,6 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
     public long getNativeFinalizerPtr() {
         return finalizerPtr;
     }
-
-    // Returns the underlying error if an error was detected.
-    // The underlying layer will wrap it in an appropropriate exception class.
-    // `null` is returned if no error is present
-    @Nullable
-    private native Object nativeGetError(long nativePtr);
-
-    private native int nativeGetOldStatusCode(long nativePtr);
-
-    private native int nativeGetNewStatusCode(long nativePtr);
-
-    // Returns true if the data described by the subscription has been downloaded to the device,
-    // false if not. In either case, the query is run against the local dataset.
-    private native boolean nativeIsRemoteDataLoaded(long nativePtr);
-
-    /**
-     * Returns {@code true} if this changeset is empty, and doesn't contain any relevant changes.
-     */
-    private native boolean nativeIsEmpty(long nativePtr);
 
     private native static long nativeGetFinalizerPtr();
 
