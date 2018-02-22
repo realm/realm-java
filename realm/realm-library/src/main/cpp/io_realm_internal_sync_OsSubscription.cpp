@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,18 +100,16 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_sync_OsSubscription_nativeGetEr
         auto err = wrapper->subscription().error();
         if (err) {
             std::string error_message = "";
-            if (err) {
-                try {
-                    std::rethrow_exception(err);
-                }
-                catch (const std::exception &e) {
-                    error_message = e.what();
-                }
+            try {
+                std::rethrow_exception(err);
+            }
+            catch (const std::exception &e) {
+                error_message = e.what();
             }
 
             static JavaClass illegal_argument_class(env, "java/lang/IllegalArgumentException");
             static JavaMethod illegal_argument_constructor(env, illegal_argument_class, "<init>", "(Ljava/lang/String;)V");
-            return (jthrowable) env->NewObject(illegal_argument_class, illegal_argument_constructor, to_jstring(env, error_message));
+            return static_cast<jthrowable>(env->NewObject(illegal_argument_class, illegal_argument_constructor, to_jstring(env, error_message)));
         }
         return nullptr;
     }

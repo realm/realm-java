@@ -28,7 +28,7 @@ import io.realm.internal.sync.OsSubscription;
 public class SubscriptionAwareOsResults extends OsResults {
 
     private final String subscriptionName;
-    // The native ptr to a delayed notification. Since Java group all notifications for each each
+    // The native ptr to a delayed notification. Since Java group all notifications for each
     // RealmResults, only one change from OS will ever be sent.
     private long delayedNotificationPtr = 0;
     // If true, the subscription somehow changed during this round of notifications being sent

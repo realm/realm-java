@@ -21,8 +21,8 @@ import io.realm.RealmResults;
 import io.realm.internal.sync.OsSubscription;
 
 /**
- * Fake changeset used if {@link RealmResults#load()} is called manually or if no collection
- * changeset was available, but the subscription was updated.
+ * Empty changeset used if {@link RealmResults#load()} is called manually or if no collection
+ * changeset was available but the subscription was updated.
  */
 public class EmptyLoadChangeSet extends OsCollectionChangeSet {
 
