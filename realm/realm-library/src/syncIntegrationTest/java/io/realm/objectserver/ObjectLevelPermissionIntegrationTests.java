@@ -17,23 +17,20 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.realm.ObjectServerError;
-import io.realm.OrderedCollectionChangeSet;
-import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.PermissionManager;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
-import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.annotations.RealmModule;
 import io.realm.entities.AllJavaTypes;
-import io.realm.entities.StringOnly;
 import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.objectserver.model.PermissionObject;
 import io.realm.objectserver.utils.Constants;
@@ -43,7 +40,6 @@ import io.realm.permissions.AccessLevel;
 import io.realm.permissions.PermissionRequest;
 import io.realm.permissions.UserCondition;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.ClassPrivileges;
 import io.realm.sync.permissions.ObjectPrivileges;
 import io.realm.sync.permissions.Permission;
@@ -78,20 +74,6 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         Realm realm = Realm.getInstance(syncConfig);
         looperThread.closeAfterTest(realm);
 
-        // FIXME: Work-around for class permissions not being setup correctly yet
-        // Remove this once ROS is upgraded to Sync 3.0.0-beta.1
-        realm.beginTransaction();
-        ClassPermissions permissions = realm.where(ClassPermissions.class).equalTo("name", "__Class").findFirst();
-        Permission permission = permissions.getPermissions().first();
-        permission.setCanCreate(true);
-        permission.setCanDelete(true);
-        permission.setCanModifySchema(true);
-        realm.createObject(ClassPermissions.class, "AllJavaTypes").getPermissions().add(permission);
-        realm.commitTransaction();
-        SyncManager.getSession(syncConfig).uploadAllLocalChanges();
-        SyncManager.getSession(syncConfig).downloadAllServerChanges();
-        // FIXME: Workaround end
-
         // Check Realm privileges
         RealmPrivileges realmPrivileges = realm.getPrivileges();
         assertFullAccess(realmPrivileges);
@@ -107,12 +89,9 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         SyncManager.getSession(syncConfig).downloadAllServerChanges();
         realm.refresh();
-        assertEquals(0, realm.where(AllJavaTypes.class).count()); // Make sure object isn't deleted
-
-        // FIXME: Re-enable when 3.0.0-beta.1 is released in ROS
-//        assertEquals(1, realm.where(AllJavaTypes.class).count()); // Make sure object isn't deleted
-//        RealmPrivileges objectPrivileges = realm.getPrivileges(obj);
-//        assertFullAccess(objectPrivileges);
+        assertEquals(1, realm.where(AllJavaTypes.class).count()); // Make sure object isn't deleted
+        ObjectPrivileges objectPrivileges = realm.getPrivileges(obj);
+        assertFullAccess(objectPrivileges);
 
         looperThread.testComplete();
     }
@@ -127,6 +106,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
     // Restrict read/write permission, only the owner of the object can see/modify it
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    @Ignore
     public void restrictAccessToOwner() {
         // Create a reference/global Realm needed for partial sync
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
@@ -266,4 +246,12 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         assertTrue(privileges.canSetPermissions());
         assertTrue(privileges.canModifySchema());
     }
+
+    private void assertFullAccess(ObjectPrivileges privileges) {
+        assertTrue(privileges.canRead());
+        assertTrue(privileges.canUpdate());
+        assertTrue(privileges.canDelete());
+        assertTrue(privileges.canSetPermissions());
+    }
+
 }
