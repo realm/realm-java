@@ -55,11 +55,15 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
         // Backlinks not yet supported: https://github.com/realm/realm-core/pull/2947
         RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).equalTo("objectParents.fieldString", "Foo").findAllAsync();
-        try {
-            query.addChangeListener((results, changeSet) -> { });
-        } catch (RealmError ignore) {
-        }
-        looperThread.testComplete();
+        query.addChangeListener((results, changeSet) -> {
+                    if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
+                        assertTrue(changeSet.getError() instanceof IllegalArgumentException);
+                        Throwable iae = changeSet.getError();
+                        assertTrue(iae.getMessage().contains("Querying over backlinks is disabled but backlinks were found"));
+                        looperThread.testComplete();
+                    }
+                });
+        looperThread.keepStrongReference(query);
     }
 
     // List queries are operating on data that are always up to date as data in a list will
@@ -183,14 +187,12 @@ public class PartialSyncTests extends StandardIntegrationTest {
         looperThread.closeAfterTest(realm);
 
         RealmResults<PartialSyncObjectA> results1 = realm.where(PartialSyncObjectA.class)
-                .greaterThan("number", 0) // FIXME: Work-around Query serializer not accepting empty query for now
                 .findAllAsync("my-id");
         results1.addChangeListener((results, changeSet) -> {
             // Ignore. Just used to trigger partial sync path
         });
 
         RealmResults<PartialSyncObjectB> results2 = realm.where(PartialSyncObjectB.class)
-                .greaterThan("number", 0) // FIXME: Work-around Query serializer not accepting empty query for now
                 .findAllAsync("my-id");
         results2.addChangeListener((results, changeSet) -> {
             if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {

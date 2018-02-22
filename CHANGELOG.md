@@ -17,6 +17,11 @@
 * [ObjectServer] Added support for Object Level Permissions (requires partial synchronized Realms). Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
 * Added two new methods to `OrderedCollectionChangeSet`: `getState()` and `getError()` (#5619).
 
+### Internal
+
+* Upgraded to Realm Sync 3.0.0-beta.6
+* Upgraded to Realm Core 5.3.0
+
 
 ## 4.4.0 (YYYY-MM-DD)
 
