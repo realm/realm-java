@@ -1773,7 +1773,13 @@ public class RealmQuery<E> {
         realm.checkIfValid();
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, SubscriptionAction.ANONYMOUS_SUBSCRIPTION);
+        SubscriptionAction subscriptionAction;
+        if (ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(realm.getConfiguration())) {
+            subscriptionAction = SubscriptionAction.ANONYMOUS_SUBSCRIPTION;
+        }  else {
+            subscriptionAction = SubscriptionAction.NO_SUBSCRIPTION;
+        }
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, subscriptionAction);
     }
 
     /**

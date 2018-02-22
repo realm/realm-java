@@ -426,6 +426,13 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         nativeRegisterSchemaChangedCallback(nativePtr, callback);
     }
 
+    /**
+     * Returns {@code true} if this Realm is a partially synchronized Realm.
+     */
+    public boolean isPartial() {
+        return nativeIsPartial(nativePtr);
+    }
+
     // addIterator(), detachIterators() and invalidateIterators() are used to make RealmResults stable iterators work.
     // The iterator will iterate on a snapshot Results if it is accessed inside a transaction.
     // See https://github.com/realm/realm-java/issues/3883 for more information.
@@ -571,5 +578,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     private static native long nativeGetSchemaInfo(long nativePtr);
 
     private static native void nativeRegisterSchemaChangedCallback(long nativePtr, SchemaChangedCallback callback);
+
+    private static native boolean nativeIsPartial(long nativePtr);
 
 }

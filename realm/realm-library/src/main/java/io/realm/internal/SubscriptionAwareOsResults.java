@@ -83,9 +83,9 @@ public class SubscriptionAwareOsResults extends OsResults {
         // Only parse on Subscription if it changed
         OsSubscription subscription = (subscriptionChanged) ? this.subscription : null;
         if (delayedNotificationPtr == 0) {
-            changeset = new EmptyLoadChangeSet(subscription);
+            changeset = new EmptyLoadChangeSet(subscription, true);
         } else {
-            changeset = new OsCollectionChangeSet(delayedNotificationPtr, !isLoaded(), subscription);
+            changeset = new OsCollectionChangeSet(delayedNotificationPtr, !isLoaded(), subscription, true);
         }
 
         // Happens e.g. if a synchronous query is created, a change listener is added and then

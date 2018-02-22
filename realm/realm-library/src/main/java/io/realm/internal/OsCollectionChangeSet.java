@@ -47,15 +47,17 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
     private final long nativePtr;
     private final boolean firstAsyncCallback;
     protected final OsSubscription subscription;
+    protected final boolean isPartialRealm;
 
     public OsCollectionChangeSet(long nativePtr, boolean firstAsyncCallback) {
-        this(nativePtr, firstAsyncCallback, null);
+        this(nativePtr, firstAsyncCallback, null, false);
     }
 
-    public OsCollectionChangeSet(long nativePtr, boolean firstAsyncCallback, @Nullable OsSubscription subscription) {
+    public OsCollectionChangeSet(long nativePtr, boolean firstAsyncCallback, @Nullable OsSubscription subscription, boolean isPartialRealm) {
         this.nativePtr = nativePtr;
         this.firstAsyncCallback = firstAsyncCallback;
         this.subscription = subscription;
+        this.isPartialRealm = isPartialRealm;
         NativeContext.dummyContext.addReference(this);
     }
 
@@ -126,11 +128,12 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
     }
 
     public boolean isRemoteDataLoaded() {
-        // If no subscription status exist, it means that either the Realm is not a partial Realm
-        // or the the query result is a sub query of some kind, which means all data already
-        // has been loaded.
-        if (subscription == null) {
+        if (!isPartialRealm) {
             return true;
+        } else if (subscription == null) {
+            // This will in some cases return false positives, like adding change listeners
+            // to synchronous queries. For now this is acceptable.
+            return false;
         } else {
             return subscription.getState() == OsSubscription.SubscriptionState.COMPLETE;
         }
@@ -148,8 +151,9 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
      * Returns {@code true} if this changeset is empty, and doesn't contain any relevant changes.
      */
     public boolean isEmpty() {
-        // Since this wrap a Object Store changeset, it will always contains changes.
-        return false;
+        // Since this wrap a Object Store changeset, it will always contains changes if an
+        // Object Store changeset exists.
+        return nativePtr == 0;
     }
 
     // Convert long array returned by the nativeGetXxxRanges() to Range array.

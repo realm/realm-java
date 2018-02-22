@@ -29,8 +29,8 @@ public class EmptyLoadChangeSet extends OsCollectionChangeSet {
     private static final int[] NO_INDEX_CHANGES = new int[0];
     private static final Range[] NO_RANGE_CHANGES = new Range[0];
 
-    public EmptyLoadChangeSet(@Nullable OsSubscription subscription) {
-        super(0, true, subscription);
+    public EmptyLoadChangeSet(@Nullable OsSubscription subscription, boolean isPartialRealm) {
+        super(0, true, subscription, isPartialRealm);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class EmptyLoadChangeSet extends OsCollectionChangeSet {
 
     @Override
     public boolean isRemoteDataLoaded() {
-        return false;
+        return super.isRemoteDataLoaded();
     }
 
     @Override
