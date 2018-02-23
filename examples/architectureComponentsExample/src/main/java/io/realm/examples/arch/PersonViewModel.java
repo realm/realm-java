@@ -17,6 +17,7 @@
 package io.realm.examples.arch;
 
 import android.arch.lifecycle.ViewModel;
+import android.arch.lifecycle.LiveData;
 
 import io.realm.Realm;
 import io.realm.examples.arch.livemodel.LiveRealmObject;
@@ -26,13 +27,13 @@ import io.realm.examples.arch.model.Person;
 public class PersonViewModel extends ViewModel {
     private final Realm realm;
 
-    private LiveRealmObject<Person> livePerson;
+    private LiveData<Person> livePerson;
 
     public PersonViewModel() {
         realm = Realm.getDefaultInstance();
     }
 
-    public LiveRealmObject<Person> getPerson() {
+    public LiveData<Person> getPerson() {
         return livePerson;
     }
 
