@@ -388,6 +388,15 @@ public class Utils {
         }
 
         // Attempt to lookup internal name in a proxy class using the ClassLoader
+
+        // FIXME: There is indication that loading the class might not work. Most likely because
+        // the compile time classpath for the app is not available to the annotation processor.
+        // This has not been verified yet. For now work around
+        // the case we care about, namely the `__Permission` class.
+        if (qualifiedClassName.equals("io.realm.sync.permissions.Permission")) {
+            return "__Permission";
+        }
+
         try {
             Class<?> c = Class.forName("io.realm." + Utils.getProxyClassName(qualifiedClassName) + "$ClassNameHelper");
             Field field = c.getField("INTERNAL_CLASS_NAME");
