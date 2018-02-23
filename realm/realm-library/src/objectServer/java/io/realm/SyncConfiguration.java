@@ -717,6 +717,30 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
+         * current schema for this Realm with the schema defined by the provided modules.
+         * <p>
+         * A reference to the default Realm module containing all Realm classes in the project (but not dependencies),
+         * can be found using {@link Realm#getDefaultModule()}. Combining the schema from the app project and a library
+         * dependency is thus done using the following code:
+         * <p>
+         * {@code builder.modules(Realm.getDefaultMode(), new MyLibraryModule()); }
+         * <p>
+         * @param modules list of modules tthe first Realm module (required).
+         * @throws IllegalArgumentException if any of the modules don't have the {@link RealmModule} annotation.
+         * @see Realm#getDefaultModule()
+         */
+        public Builder modules(Iterable<Object> modules) {
+            this.modules.clear();
+            if (modules != null) {
+                for (Object module : modules) {
+                    addModule(module);
+                }
+            }
+            return this;
+        }
+
+        /**
          * Adds a module to the already defined modules.
          */
         public Builder addModule(Object module) {

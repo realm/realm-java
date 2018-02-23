@@ -1774,7 +1774,9 @@ public class RealmQuery<E> {
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SubscriptionAction subscriptionAction;
-        if (ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(realm.getConfiguration())) {
+
+        if (realm.sharedRealm.isPartial() && osList == null) {
+            // Don't create subscriptions for list queries.
             subscriptionAction = SubscriptionAction.ANONYMOUS_SUBSCRIPTION;
         }  else {
             subscriptionAction = SubscriptionAction.NO_SUBSCRIPTION;
@@ -1797,6 +1799,9 @@ public class RealmQuery<E> {
     public RealmResults<E> findAllAsync(String subscriptionName) {
         realm.checkIfValid();
         realm.checkIfPartialRealm();
+        if (osList != null) {
+            throw new IllegalStateException("Cannot create subscriptions for queries based on a 'RealmList'");
+        }
         if (Util.isEmptyString(subscriptionName)) {
             throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
         }
