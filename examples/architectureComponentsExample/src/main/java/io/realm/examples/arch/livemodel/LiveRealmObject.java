@@ -18,6 +18,7 @@ package io.realm.examples.arch.livemodel;
 
 import android.arch.lifecycle.LiveData;
 import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
 
 import io.realm.ObjectChangeSet;
 import io.realm.RealmModel;
@@ -26,27 +27,44 @@ import io.realm.RealmObjectChangeListener;
 
 
 public class LiveRealmObject<T extends RealmModel> extends LiveData<T> {
+    // The listener will listen until the object is deleted.
+    // An invalidated object shouldn't be set in LiveData, null is set instead.
     private RealmObjectChangeListener<T> listener = new RealmObjectChangeListener<T>() {
         @Override
-        public void onChange(T object, ObjectChangeSet objectChangeSet) {
-            LiveRealmObject.this.postValue(object);
+        public void onChange(@NonNull T object, ObjectChangeSet objectChangeSet) {
+            if (!objectChangeSet.isDeleted()) {
+                setValue(object);
+            } else {
+                setValue(null);
+            }
         }
     };
 
     @MainThread
-    public LiveRealmObject(T object) {
+    public LiveRealmObject(@NonNull T object) {
+        //noinspection ConstantConditions
+        if (object == null) {
+            throw new IllegalArgumentException("The object cannot be null!");
+        }
         setValue(object);
     }
 
+    // We should start observing and stop observing, depending on whether we have observers.
     @Override
     protected void onActive() {
         super.onActive();
-        RealmObject.addChangeListener(getValue(), listener);
+        T object = getValue();
+        if (object != null && RealmObject.isValid(object)) {
+            RealmObject.addChangeListener(object, listener);
+        }
     }
 
     @Override
     protected void onInactive() {
         super.onInactive();
-        RealmObject.removeChangeListener(getValue(), listener);
+        T object = getValue();
+        if (object != null && RealmObject.isValid(object)) {
+            RealmObject.removeChangeListener(object, listener);
+        }
     }
 }

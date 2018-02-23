@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.realm.examples.arch;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
 
+import java.util.List;
+
 import io.realm.Realm;
-import io.realm.examples.arch.livemodel.LiveRealmObject;
+import io.realm.examples.arch.livemodel.LiveRealmResults;
 import io.realm.examples.arch.model.Person;
 
-
-public class ExampleViewModel extends ViewModel {
+public class PersonListViewModel extends ViewModel {
     private final Realm realm;
+    private final LiveData<List<Person>> persons;
 
-    private final LiveRealmObject<Person> livePerson;
-
-    public ExampleViewModel() {
+    public PersonListViewModel() {
         realm = Realm.getDefaultInstance();
-        livePerson = new LiveRealmObject<>(realm.where(Person.class).findAllSorted("name").first());
+        persons = new LiveRealmResults<>(realm.where(Person.class).sort("age").findAllAsync());
     }
 
-    public LiveRealmObject<Person> getPerson() {
-        return livePerson;
+    public LiveData<List<Person>> getPersons() {
+        return persons;
     }
 
     @Override

@@ -16,12 +16,28 @@
 
 package io.realm.examples.arch.model;
 
-import io.realm.RealmModel;
-import io.realm.annotations.RealmClass;
+import io.realm.RealmObject;
+import io.realm.annotations.Index;
 
+public class Person extends RealmObject {
+    @Index
+    private String name;
 
-@RealmClass
-public class Person implements RealmModel {
-    public String name;
-    public int age;
+    private int age;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
 }

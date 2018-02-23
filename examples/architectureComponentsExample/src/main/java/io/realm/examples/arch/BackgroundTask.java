@@ -16,66 +16,73 @@
 
 package io.realm.examples.arch;
 
-import android.arch.lifecycle.ViewModel;
-import android.os.SystemClock;
+import android.annotation.SuppressLint;
 import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.examples.arch.model.Person;
 
 
-public class Updater extends ViewModel {
+public class BackgroundTask {
+    private static final String TAG = "BackgroundTask";
+
+    private boolean isStarted;
 
     private volatile Thread thread;
 
     @MainThread
+    public boolean isStarted() {
+        return isStarted;
+    }
+
+    @MainThread
     public void start() {
-        if (thread != null) {
-            // already running
+        if (isStarted) {
             return;
         }
-
         thread = new IncrementThread();
         thread.start();
+        isStarted = true;
+        Log.i(TAG, "Background job started.");
     }
 
     @MainThread
     public void stop() {
-        thread = null;
+        if (thread != null) {
+            thread.interrupt();
+            thread = null;
+        }
+        isStarted = false;
     }
 
-   @Override
-    protected void onCleared() {
-       stop();
-    }
-
-    final class IncrementThread extends Thread {
+    private static final class IncrementThread extends Thread {
         IncrementThread() {
-            super("increment thread");
+            super("Aging thread");
         }
 
         @Override
+        @SuppressLint("NewApi")
         public void run() {
-            Realm realm = Realm.getDefaultInstance();
-            //noinspection TryFinallyCanBeTryWithResources
-            try {
-                final RealmResults<Person> all = realm.where(Person.class).findAll();
+            try (Realm realm = Realm.getDefaultInstance()) {
+                final RealmResults<Person> persons = realm.where(Person.class).findAll();
                 Realm.Transaction transaction = new Realm.Transaction() {
                     @Override
-                    public void execute(Realm realm) {
-                        for (Person person : all) {
-                            person.age = person.age + 1;
+                    public void execute(@NonNull Realm realm) {
+                        for (Person person : persons) {
+                            person.setAge(person.getAge() + 1); // updates the Persons in the Realm.
                         }
                     }
                 };
 
-                while (thread == this) {
+                while (!isInterrupted()) {
                     realm.executeTransaction(transaction);
-                    SystemClock.sleep(1000L);
+                    Thread.sleep(1000L);
                 }
-            } finally {
-                realm.close();
+            } catch (InterruptedException e) {
+                Log.i(TAG, "Background job stopped.");
             }
         }
     }
