@@ -390,15 +390,16 @@ public class Utils {
         }
 
         // If we cannot find the name in the current processor round, we have to defer resolving the
-        // name to runtime as we cannot load the content e been obfuscated, which means we have no easy way of finding them.
-        //
+        // name to runtime. The reason being that proxy classes in libraries on the classpath
+        // might already have been obfuscated, which means we have no easy way of finding them.
+        // 
         // Doing it this way unfortunately means that if the class is not on the apps classpath
         // a rather obscure class-not-found exception will be thrown, but since this is probably
         // a very niche use case that is acceptable for now.
         //
         // TODO: We could probably create an internal annotation like `@InternalName("__Permission")`
         // which should make it possible for the annotation processor to read the value from the
-        // proxy class, even for files in other jar files.  
+        // proxy class, even for files in other jar files.
         return "io.realm." + Utils.getProxyClassName(qualifiedClassName) + ".ClassNameHelper.INTERNAL_CLASS_NAME";
     }
 }
