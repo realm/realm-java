@@ -377,32 +377,28 @@ public class Utils {
      * @param qualifiedClassName type to lookup the internal name for.
      * @param classCollection collection of classes found in the current round of annotation processing.
      * @throws IllegalArgumentException If the internal name could not be looked up
-     * @return
+     * @return the statement that evalutes to the internal class name. This will either be a string
+     * constant or a reference to a static field in another class. In both cases, the return result
+     * should not be put in quotes.
      */
-    public static String getReferencedTypeInternalClassName(String qualifiedClassName, ClassCollection classCollection) {
+    public static String getReferencedTypeInternalClassNameStatement(String qualifiedClassName, ClassCollection classCollection) {
 
         // Attempt to lookup internal name in current round
         if (classCollection.containsQualifiedClass(qualifiedClassName)) {
             ClassMetaData metadata = classCollection.getClassFromQualifiedName(qualifiedClassName);
-            return metadata.getInternalClassName();
+            return "\"" + metadata.getInternalClassName() + "\"";
         }
 
-        // Attempt to lookup internal name in a proxy class using the ClassLoader
-
-        // FIXME: There is indication that loading the class might not work. Most likely because
-        // the compile time classpath for the app is not available to the annotation processor.
-        // This has not been verified yet. For now work around
-        // the case we care about, namely the `__Permission` class.
-        if (qualifiedClassName.equals("io.realm.sync.permissions.Permission")) {
-            return "__Permission";
-        }
-
-        try {
-            Class<?> c = Class.forName("io.realm." + Utils.getProxyClassName(qualifiedClassName) + "$ClassNameHelper");
-            Field field = c.getField("INTERNAL_CLASS_NAME");
-            return (String) field.get(null);
-        } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException e) {
-            throw new IllegalStateException("Could not get the internal class name for: " + qualifiedClassName, e);
-        }
+        // If we cannot find the name in the current processor round, we have to defer resolving the
+        // name to runtime as we cannot load the content e been obfuscated, which means we have no easy way of finding them.
+        //
+        // Doing it this way unfortunately means that if the class is not on the apps classpath
+        // a rather obscure class-not-found exception will be thrown, but since this is probably
+        // a very niche use case that is acceptable for now.
+        //
+        // TODO: We could probably create an internal annotation like `@InternalName("__Permission")`
+        // which should make it possible for the annotation processor to read the value from the
+        // proxy class, even for files in other jar files.  
+        return "io.realm." + Utils.getProxyClassName(qualifiedClassName) + ".ClassNameHelper.INTERNAL_CLASS_NAME";
     }
 }

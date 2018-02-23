@@ -16,11 +16,17 @@
 
 package io.realm.examples.appmodules.model;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.examples.librarymodules.model.Dog;
 
 public class Pig extends RealmObject {
 
     private String name;
+
+    // It is possible for model classes to to reference library model classes as long
+    // as they all are included in the schema when opening the Realm.
+    private RealmList<Dog> afraidOf = new RealmList<>();
 
     public String getName() {
         return name;
