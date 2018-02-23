@@ -202,6 +202,10 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         return "Booleans";
     }
 
+    public static final class ClassNameHelper {
+        public static final String INTERNAL_CLASS_NAME = "Booleans";
+    }
+
     @SuppressWarnings("cast")
     public static some.test.Booleans createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {

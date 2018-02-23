@@ -868,6 +868,10 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         return "AllTypes";
     }
 
+    public static final class ClassNameHelper {
+        public static final String INTERNAL_CLASS_NAME = "AllTypes";
+    }
+
     @SuppressWarnings("cast")
     public static some.test.AllTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
