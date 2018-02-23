@@ -17,8 +17,10 @@ package io.realm.objectserver;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -40,7 +42,6 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.permissions.PermissionModule;
 import io.realm.internal.sync.permissions.ObjectPermissionsModule;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PermissionObject;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
@@ -75,7 +76,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
     @Test
     @RunTestInLooperThread()
     public void getPrivileges_serverDefaults() throws InterruptedException {
-        String realmUrl = Constants.GLOBAL_REALM;
+        String realmUrl = Constants.GLOBAL_REALM + "_getPrivileges_serverDefaults";
         List schemaModule = Arrays.asList(new ObjectLevelTestModule());
         createWorldReadableRealm(realmUrl, schemaModule);
 
@@ -114,6 +115,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         ObjectPrivileges objectPrivileges = realm.getPrivileges(obj);
         assertFullAccess(objectPrivileges);
 
+        realm.close();
         looperThread.testComplete();
     }
 
@@ -128,14 +130,14 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
     @Test
     @RunTestInLooperThread()
     public void restrictAccessToOwner() throws InterruptedException {
-        String realmUrl = Constants.GLOBAL_REALM;
+        String realmUrl = Constants.GLOBAL_REALM + "_restrictAccessToOwner";
         List schemaModules = Arrays.asList(new StringOnlyModule(), new OLPermissionModule(), new ObjectPermissionsModule());
         createWorldReadableRealm(realmUrl, schemaModules);
 
         // connect with user1
         SyncUser user1 = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration user1SyncConfig = configurationFactory
-                .createSyncConfigurationBuilder(user1, Constants.GLOBAL_REALM)
+                .createSyncConfigurationBuilder(user1, realmUrl)
                 .modules(schemaModules)
                 .partialRealm()
                 .build();
@@ -192,7 +194,6 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         looperThread.keepStrongReference(allAsync);
         // new object should not be visible for user2 partial sync
         allAsync.addChangeListener((permissionObjects2, changeSet) -> {
-            RealmLog.error(changeSet.getState().toString());
             switch (changeSet.getState()) {
                 case INITIAL:
                     assertEquals(0, permissionObjects2.size());
@@ -262,11 +263,13 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
                     pm.applyPermissions(new PermissionRequest(UserCondition.noExistingPermissions(), realmUrl, AccessLevel.WRITE), new PermissionManager.ApplyPermissionsCallback() {
                         @Override
                         public void onSuccess() {
-                            AndroidCapabilities.EMULATE_MAIN_THREAD = oldValue;
-                            pm.close();
-                            realm.close();
-                            adminUser.logout();
-                            setupRealm.countDown();
+                            handler.post(() -> {
+                                AndroidCapabilities.EMULATE_MAIN_THREAD = oldValue;
+                                pm.close();
+                                realm.close();
+                                adminUser.logout();
+                                setupRealm.countDown();
+                            });
                         }
 
                         @Override
