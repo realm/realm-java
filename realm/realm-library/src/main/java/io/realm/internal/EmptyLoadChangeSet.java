@@ -15,19 +15,22 @@
  */
 package io.realm.internal;
 
+import javax.annotation.Nullable;
+
 import io.realm.RealmResults;
+import io.realm.internal.sync.OsSubscription;
 
 /**
- * Fake changeset used if {@link RealmResults#load()} is called manually.
+ * Empty changeset used if {@link RealmResults#load()} is called manually or if no collection
+ * changeset was available but the subscription was updated.
  */
 public class EmptyLoadChangeSet extends OsCollectionChangeSet {
 
     private static final int[] NO_INDEX_CHANGES = new int[0];
     private static final Range[] NO_RANGE_CHANGES = new Range[0];
 
-    public EmptyLoadChangeSet() {
-        super(0, true);
-        // FIXME Read partial sync status from Realm when creating this
+    public EmptyLoadChangeSet(@Nullable OsSubscription subscription, boolean isPartialRealm) {
+        super(0, true, subscription, isPartialRealm);
     }
 
     @Override
@@ -67,27 +70,20 @@ public class EmptyLoadChangeSet extends OsCollectionChangeSet {
 
     @Override
     public Throwable getError() {
+        if (subscription != null && subscription.getState() == OsSubscription.SubscriptionState.ERROR) {
+            return subscription.getError();
+        }
         return null;
     }
 
     @Override
     public boolean isRemoteDataLoaded() {
-        return false;
+        return super.isRemoteDataLoaded();
     }
 
     @Override
     public boolean isCompleteResult() {
         return isRemoteDataLoaded();
-    }
-
-    @Override
-    public int getOldStatusCode() {
-        return -3; // Undefined
-    }
-
-    @Override
-    public int getNewStatusCode() {
-        return -3; // Undefined
     }
 
     @Override
@@ -97,7 +93,13 @@ public class EmptyLoadChangeSet extends OsCollectionChangeSet {
 
     @Override
     public boolean isEmpty() {
-        return true;
+        // Since this class represents "No collection" changes, it is only considered empty
+        // if no partial sync updates are found
+        if (subscription == null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
