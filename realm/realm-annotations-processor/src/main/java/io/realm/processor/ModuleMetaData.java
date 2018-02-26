@@ -102,19 +102,19 @@ public class ModuleMetaData {
             }
 
             // Check that allClasses and classes are not set at the same time
-            RealmModule moduleAnnoation = classElement.getAnnotation(RealmModule.class);
+            RealmModule moduleAnnotation = classElement.getAnnotation(RealmModule.class);
             Utils.note("Processing module " + classSimpleName);
-            if (moduleAnnoation.allClasses() && hasCustomClassList(classElement)) {
+            if (moduleAnnotation.allClasses() && hasCustomClassList(classElement)) {
                 Utils.error("Setting @RealmModule(allClasses=true) will override @RealmModule(classes={...}) in " + classSimpleName);
                 return false;
             }
 
             // Validate that naming policies are correctly configured.
-            if (!validateNamingPolicies(globalModuleInfo, classSpecificModuleInfo, (TypeElement) classElement, moduleAnnoation)) {
+            if (!validateNamingPolicies(globalModuleInfo, classSpecificModuleInfo, (TypeElement) classElement, moduleAnnotation)) {
                 return false;
             }
 
-            moduleAnnotations.put(((TypeElement) classElement).getQualifiedName().toString(), moduleAnnoation);
+            moduleAnnotations.put(((TypeElement) classElement).getQualifiedName().toString(), moduleAnnotation);
         }
 
         return true;
@@ -236,7 +236,22 @@ public class ModuleMetaData {
 
         // Check that app and library modules are not mixed
         if (modules.size() > 0 && libraryModules.size() > 0) {
-            Utils.error("Normal modules and library modules cannot be mixed in the same project");
+            StringBuilder sb = new StringBuilder();
+            sb.append("Normal modules and library modules cannot be mixed in the same project.");
+            sb.append('\n');
+            sb.append("Normal module(s):\n");
+            for (String module : modules.keySet()) {
+                sb.append("  ");
+                sb.append(module);
+                sb.append('\n');
+            }
+            sb.append("Library module(s):\n");
+            for (String module : libraryModules.keySet()) {
+                sb.append("  ");
+                sb.append(module);
+                sb.append('\n');
+            }
+            Utils.error(sb.toString());
             return false;
         }
 

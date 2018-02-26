@@ -1,5 +1,8 @@
 package io.realm.processor;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import javax.annotation.processing.Messager;
@@ -19,11 +22,10 @@ import javax.tools.Diagnostic;
 
 import io.realm.annotations.RealmNamingPolicy;
 import io.realm.processor.nameconverter.CamelCaseConverter;
+import io.realm.processor.nameconverter.IdentityConverter;
 import io.realm.processor.nameconverter.LowerCaseWithSeparatorConverter;
 import io.realm.processor.nameconverter.NameConverter;
-import io.realm.processor.nameconverter.IdentityConverter;
 import io.realm.processor.nameconverter.PascalCaseConverter;
-
 
 /**
  * Utility methods working with the Realm processor.
@@ -355,4 +357,49 @@ public class Utils {
         }
     }
 
+    /**
+     * Tries to find the internal class name for a referenced type. In model classes this can
+     * happen with either direct object references or using `RealmList` or `RealmResults`.
+     * <p>
+     * This name is required by schema builders that operate on internal names and not the public ones.
+     * <p>
+     * Finding the internal name is easy if the referenced type is included in the current round
+     * of annotation processing. In that case the internal name was also calculated in the same round
+     * <p>
+     * If the referenced type was already compiled, e.g being included from library, then we need
+     * to get the name from the proxy class. Fortunately ProGuard should not have obfuscated any
+     * class files at this point, meaning we can look it up dynamically.
+     * <p>
+     * If a name is looked up using the class loader, it also means that developers need to
+     * combine a library and app module of model classes at runtime in the RealmConfiguration, but
+     * this should be a valid use case.
+     *
+     * @param qualifiedClassName type to lookup the internal name for.
+     * @param classCollection collection of classes found in the current round of annotation processing.
+     * @throws IllegalArgumentException If the internal name could not be looked up
+     * @return the statement that evalutes to the internal class name. This will either be a string
+     * constant or a reference to a static field in another class. In both cases, the return result
+     * should not be put in quotes.
+     */
+    public static String getReferencedTypeInternalClassNameStatement(String qualifiedClassName, ClassCollection classCollection) {
+
+        // Attempt to lookup internal name in current round
+        if (classCollection.containsQualifiedClass(qualifiedClassName)) {
+            ClassMetaData metadata = classCollection.getClassFromQualifiedName(qualifiedClassName);
+            return "\"" + metadata.getInternalClassName() + "\"";
+        }
+
+        // If we cannot find the name in the current processor round, we have to defer resolving the
+        // name to runtime. The reason being that proxy classes in libraries on the classpath
+        // might already have been obfuscated, which means we have no easy way of finding them.
+        // 
+        // Doing it this way unfortunately means that if the class is not on the apps classpath
+        // a rather obscure class-not-found exception will be thrown, but since this is probably
+        // a very niche use case that is acceptable for now.
+        //
+        // TODO: We could probably create an internal annotation like `@InternalName("__Permission")`
+        // which should make it possible for the annotation processor to read the value from the
+        // proxy class, even for files in other jar files.
+        return "io.realm." + Utils.getProxyClassName(qualifiedClassName) + ".ClassNameHelper.INTERNAL_CLASS_NAME";
+    }
 }

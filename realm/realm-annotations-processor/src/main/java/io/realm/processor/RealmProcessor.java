@@ -209,7 +209,7 @@ public class RealmProcessor extends AbstractProcessor {
         return moduleMetaData.preProcess(roundEnv.getElementsAnnotatedWith(RealmModule.class));
     }
 
-    // Returns true of modules where succesfully validated, false otherwise
+    // Returns true of modules where successfully validated, false otherwise
     private boolean postProcessModules() {
         return moduleMetaData.postProcess(classCollection);
     }

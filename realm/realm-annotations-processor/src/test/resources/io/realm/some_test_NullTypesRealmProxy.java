@@ -1707,6 +1707,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         return "NullTypes";
     }
 
+    public static final class ClassNameHelper {
+        public static final String INTERNAL_CLASS_NAME = "NullTypes";
+    }
+
     @SuppressWarnings("cast")
     public static some.test.NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {

@@ -166,6 +166,10 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         return "customName";
     }
 
+    public static final class ClassNameHelper {
+        public static final String INTERNAL_CLASS_NAME = "customName";
+    }
+
     @SuppressWarnings("cast")
     public static some.test.NamePolicyMixedClassSettings createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {

@@ -166,6 +166,10 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         return "NamePolicyModuleDefaults";
     }
 
+    public static final class ClassNameHelper {
+        public static final String INTERNAL_CLASS_NAME = "NamePolicyModuleDefaults";
+    }
+
     @SuppressWarnings("cast")
     public static some.test.NamePolicyModuleDefaults createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
