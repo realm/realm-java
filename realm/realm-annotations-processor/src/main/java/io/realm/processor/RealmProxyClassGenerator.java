@@ -745,15 +745,15 @@ public class RealmProxyClassGenerator {
                 }
                 case OBJECT: {
                     String fieldTypeQualifiedName = Utils.getFieldTypeQualifiedName(field);
-                    String internalClassName = classCollection.getClassFromQualifiedName(fieldTypeQualifiedName).getInternalClassName();
-                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.OBJECT, \"%s\")",
+                    String internalClassName = Utils.getReferencedTypeInternalClassNameStatement(fieldTypeQualifiedName, classCollection);
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.OBJECT, %s)",
                             fieldName, internalClassName);
                     break;
                 }
                 case LIST: {
                     String genericTypeQualifiedName = Utils.getGenericTypeQualifiedName(field);
-                    String internalClassName = classCollection.getClassFromQualifiedName(genericTypeQualifiedName).getInternalClassName(); // FIXME support for raw data
-                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, \"%s\")",
+                    String internalClassName = Utils.getReferencedTypeInternalClassNameStatement(genericTypeQualifiedName, classCollection);
+                    writer.emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, %s)",
                             fieldName, internalClassName);
                     break;
                 }
@@ -795,6 +795,8 @@ public class RealmProxyClassGenerator {
             }
         }
         for (Backlink backlink: metadata.getBacklinkFields()) {
+            // Backlinks can only be created between classes in the current round of annotation processing
+            // as the forward link cannot be created unless you know the type already.
             ClassMetaData sourceClass = classCollection.getClassFromQualifiedName(backlink.getSourceClass());
             String targetField = backlink.getTargetField(); // Only in the model, so no internal name exists
             String internalSourceField = sourceClass.getInternalFieldName(backlink.getSourceField());
@@ -838,6 +840,17 @@ public class RealmProxyClassGenerator {
                 .emitStatement("return \"%s\"", internalClassName)
                 .endMethod()
                 .emitEmptyLine();
+
+        // Helper class for the annotation processor so it can access the internal class name
+        // without needing to load the parent class (which we cannot do as it transitively loads
+        // native code, which cannot be loaded on the JVM).
+        writer.beginType(
+                "ClassNameHelper",                       // full qualified name of the item to generate
+                "class",                                                  // the type of the item
+                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)); // modifiers to apply
+        writer.emitField("String", "INTERNAL_CLASS_NAME", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL), "\""+ internalClassName+"\"");
+        writer.endType();
+        writer.emitEmptyLine();
     }
     //@formatter:on
 
