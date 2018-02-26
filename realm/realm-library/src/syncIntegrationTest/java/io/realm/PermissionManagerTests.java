@@ -54,7 +54,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-@Ignore
+@Ignore // FIXME: Re-enable once Permissions are stable on ROS
 public class PermissionManagerTests extends StandardIntegrationTest {
 
     private SyncUser user;
