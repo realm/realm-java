@@ -1774,9 +1774,9 @@ public class RealmQuery<E> {
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         SubscriptionAction subscriptionAction;
-
+        
+        // Don't create subscriptions for list queries as they are always part of an object covered by another query.
         if (realm.sharedRealm.isPartial() && osList == null) {
-            // Don't create subscriptions for list queries.
             subscriptionAction = SubscriptionAction.ANONYMOUS_SUBSCRIPTION;
         }  else {
             subscriptionAction = SubscriptionAction.NO_SUBSCRIPTION;

@@ -15,7 +15,7 @@ This repository holds the source code for the Java version of Realm, which curre
 
 ## Getting Started
 
-Please see the [detailed instructions in our docs](https://realm.io/docs/java/#installation) to add Realm to your project.
+Please see the [detailed instructions in our docs](https://realm.io/docs/java/latest/#installation) to add Realm to your project.
 
 ## Documentation
 
