@@ -15,7 +15,6 @@
  */
 package io.realm.examples.arch;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
@@ -27,8 +26,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import io.realm.examples.arch.model.Person;
 
 public class PersonFragment extends Fragment {
     private static final String ARG_PERSON_NAME = "personName";
@@ -65,13 +62,10 @@ public class PersonFragment extends Fragment {
             }
         }).get(PersonViewModel.class);
 
-        personViewModel.getPerson().observe(this, new Observer<Person>() {
-            @Override
-            public void onChanged(@Nullable Person person) {
-                if (person != null) { // null would mean the object was deleted.
-                    name.setText(person.getName());
-                    age.setText(String.valueOf(person.getAge()));
-                }
+        personViewModel.getPerson().observe(this, person -> {
+            if (person != null) { // null would mean the object was deleted.
+                name.setText(person.getName());
+                age.setText(String.valueOf(person.getAge()));
             }
         });
     }
