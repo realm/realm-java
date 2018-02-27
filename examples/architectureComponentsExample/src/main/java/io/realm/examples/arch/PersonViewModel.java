@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package io.realm.examples.arch;
 
-import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.ViewModel;
 
 import io.realm.Realm;
 import io.realm.examples.arch.livemodel.LiveRealmObject;
@@ -30,7 +30,7 @@ public class PersonViewModel extends ViewModel {
     private LiveData<Person> livePerson;
 
     public PersonViewModel() {
-        realm = Realm.getDefaultInstance();
+        realm = Realm.getDefaultInstance(); // Realm is bound to the lifecycle of the ViewModel, and stays alive as long as it is needed.
     }
 
     public LiveData<Person> getPerson() {
@@ -39,7 +39,7 @@ public class PersonViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
-        realm.close();
+        realm.close(); // Realm is bound to the lifecycle of the ViewModel, and is destroyed when no longer needed.
         super.onCleared();
     }
 

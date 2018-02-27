@@ -15,7 +15,6 @@
  */
 package io.realm.examples.arch;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -33,8 +32,8 @@ import android.widget.TextView;
 import java.util.Collections;
 import java.util.List;
 
-import io.realm.examples.arch.helper.Helper;
 import io.realm.examples.arch.model.Person;
+import io.realm.examples.arch.utils.ContextUtils;
 
 public class PersonListFragment extends Fragment {
     public static PersonListFragment create() {
@@ -53,13 +52,10 @@ public class PersonListFragment extends Fragment {
         // Fragments should start listening in `onCreate()`
         // to ensure single observer instance, even if detached (for example in FragmentPagerAdapter).
         personListViewModel = ViewModelProviders.of(this).get(PersonListViewModel.class);
-        personListViewModel.getPersons().observe(this, new Observer<List<Person>>() {
-            @Override
-            public void onChanged(@Nullable List<Person> people) {
-                personList = people;
-                if (adapter != null) {
-                    adapter.updateItems(people);
-                }
+        personListViewModel.getPersons().observe(this, people -> {
+            personList = people;
+            if (adapter != null) {
+                adapter.updateItems(people);
             }
         });
     }
@@ -113,21 +109,18 @@ public class PersonListFragment extends Fragment {
 
             Person person;
 
-            private final View.OnClickListener onClick = new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (person == null) {
-                        return;
-                    }
-                    AppCompatActivity activity = Helper.findActivity(view.getContext());
-                    PersonFragment personFragment = PersonFragment.create(person.getName());
-                    activity.getSupportFragmentManager()
-                            .beginTransaction()
-                            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                            .replace(R.id.container, personFragment)
-                            .addToBackStack(null)
-                            .commit();
+            private final View.OnClickListener onClick = (view) -> {
+                if (person == null) {
+                    return;
                 }
+                AppCompatActivity activity = ContextUtils.findActivity(view.getContext());
+                PersonFragment personFragment = PersonFragment.create(person.getName());
+                activity.getSupportFragmentManager()
+                        .beginTransaction()
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .replace(R.id.container, personFragment)
+                        .addToBackStack(null)
+                        .commit();
             };
 
             public ViewHolder(View itemView) {

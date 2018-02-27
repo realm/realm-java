@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package io.realm.examples.arch;
 
 import android.annotation.SuppressLint;
 import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import io.realm.Realm;
@@ -27,6 +26,8 @@ import io.realm.examples.arch.model.Person;
 
 
 public class BackgroundTask {
+    private static final Object lock = new Object();
+
     private static final String TAG = "BackgroundTask";
 
     private boolean isStarted;
@@ -40,22 +41,26 @@ public class BackgroundTask {
 
     @MainThread
     public void start() {
-        if (isStarted) {
-            return;
+        synchronized (lock) {
+            if (isStarted) {
+                return;
+            }
+            thread = new IncrementThread();
+            thread.start();
+            isStarted = true;
+            Log.i(TAG, "Background job started.");
         }
-        thread = new IncrementThread();
-        thread.start();
-        isStarted = true;
-        Log.i(TAG, "Background job started.");
     }
 
     @MainThread
     public void stop() {
-        if (thread != null) {
-            thread.interrupt();
-            thread = null;
+        synchronized (lock) {
+            if (thread != null) {
+                thread.interrupt();
+                thread = null;
+            }
+            isStarted = false;
         }
-        isStarted = false;
     }
 
     private static final class IncrementThread extends Thread {
@@ -68,12 +73,9 @@ public class BackgroundTask {
         public void run() {
             try (Realm realm = Realm.getDefaultInstance()) {
                 final RealmResults<Person> persons = realm.where(Person.class).findAll();
-                Realm.Transaction transaction = new Realm.Transaction() {
-                    @Override
-                    public void execute(@NonNull Realm realm) {
-                        for (Person person : persons) {
-                            person.setAge(person.getAge() + 1); // updates the Persons in the Realm.
-                        }
+                Realm.Transaction transaction = (Realm r) -> {
+                    for (Person person : persons) {
+                        person.setAge(person.getAge() + 1); // updates the Persons in the Realm.
                     }
                 };
 

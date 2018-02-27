@@ -20,8 +20,6 @@ import android.os.Bundle;
 import android.support.annotation.MainThread;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-
 
 public class ArchExampleActivity extends AppCompatActivity {
     private FloatingActionButton backgroundJobStartStop;
@@ -56,6 +54,16 @@ public class ArchExampleActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (isFinishing()) {
+            if(backgroundTask.isStarted()) {
+                backgroundTask.stop(); // make sure job is stopped when exiting the app
+            }
+        }
+    }
+
+    @Override
     public void onBackPressed() {
         if (getSupportFragmentManager().getBackStackEntryCount() <= 1) {
             finish();
@@ -67,16 +75,13 @@ public class ArchExampleActivity extends AppCompatActivity {
     @MainThread
     private void setupViews() {
         backgroundJobStartStop = findViewById(R.id.backgroundJobStartStop);
-        backgroundJobStartStop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!backgroundTask.isStarted()) {
-                    backgroundTask.start();
-                } else {
-                    backgroundTask.stop();
-                }
-                updateJobButton();
+        backgroundJobStartStop.setOnClickListener(v -> {
+            if (!backgroundTask.isStarted()) {
+                backgroundTask.start();
+            } else {
+                backgroundTask.stop();
             }
+            updateJobButton();
         });
     }
 

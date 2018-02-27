@@ -29,6 +29,16 @@ import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmModel;
 import io.realm.RealmResults;
 
+/**
+ * This class represents a RealmResults wrapped inside a LiveData.
+ *
+ * Realm will always keep the RealmResults up-to-date whenever a change occurs on any thread,
+ * and when that happens, the observer will be notified.
+ *
+ * The RealmResults will be observed until it is invalidated - meaning all local Realm instances on this thread are closed.
+ *
+ * @param <T> the type of the RealmModel
+ */
 public class LiveRealmResults<T extends RealmModel> extends LiveData<List<T>> {
     private final RealmResults<T> results;
 
@@ -47,22 +57,38 @@ public class LiveRealmResults<T extends RealmModel> extends LiveData<List<T>> {
         if (results == null) {
             throw new IllegalArgumentException("Results cannot be null!");
         }
+        if (!results.isValid()) {
+            throw new IllegalArgumentException("The provided RealmResults is no longer valid, the Realm instance it belongs to is closed. It can no longer be observed for changes.");
+        }
         this.results = results;
-        if (results.isLoaded()) { // we should not notify observers when results aren't ready yet (async query).
+        if (results.isLoaded()) {
+            // we should not notify observers when results aren't ready yet (async query).
+            // however, synchronous query should be set explicitly.
             setValue(results);
         }
     }
 
     // We should start observing and stop observing, depending on whether we have observers.
+
+    /**
+     * Starts observing the RealmResults, if it is still valid.
+     */
     @Override
     protected void onActive() {
         super.onActive();
-        results.addChangeListener(listener);
+        if (results.isValid()) { // invalidated results can no longer be observed.
+            results.addChangeListener(listener);
+        }
     }
 
+    /**
+     * Stops observing the RealmResults.
+     */
     @Override
     protected void onInactive() {
         super.onInactive();
-        results.removeChangeListener(listener);
+        if (results.isValid()) {
+            results.removeChangeListener(listener);
+        }
     }
 }

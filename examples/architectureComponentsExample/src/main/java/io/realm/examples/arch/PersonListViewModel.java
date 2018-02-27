@@ -29,7 +29,7 @@ public class PersonListViewModel extends ViewModel {
     private final LiveData<List<Person>> persons;
 
     public PersonListViewModel() {
-        realm = Realm.getDefaultInstance();
+        realm = Realm.getDefaultInstance(); // Realm is bound to the lifecycle of the ViewModel, and stays alive as long as it is needed.
         persons = new LiveRealmResults<>(realm.where(Person.class).sort("age").findAllAsync());
     }
 
@@ -39,7 +39,7 @@ public class PersonListViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
-        realm.close();
+        realm.close(); // Realm is bound to the lifecycle of the ViewModel, and is destroyed when no longer needed.
         super.onCleared();
     }
 }

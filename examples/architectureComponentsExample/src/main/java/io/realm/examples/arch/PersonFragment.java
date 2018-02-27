@@ -31,10 +31,12 @@ import android.widget.TextView;
 import io.realm.examples.arch.model.Person;
 
 public class PersonFragment extends Fragment {
+    private static final String ARG_PERSON_NAME = "personName";
+
     public static PersonFragment create(String personName) {
         PersonFragment personFragment = new PersonFragment();
         Bundle bundle = new Bundle();
-        bundle.putString("personName", personName);
+        bundle.putString(ARG_PERSON_NAME, personName);
         personFragment.setArguments(bundle);
         return personFragment;
     }
@@ -47,7 +49,7 @@ public class PersonFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        @SuppressWarnings("ConstantConditions") final String personName = getArguments().getString("personName");
+        @SuppressWarnings("ConstantConditions") final String personName = getArguments().getString(ARG_PERSON_NAME);
         personViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
             @NonNull
             @Override
@@ -66,7 +68,7 @@ public class PersonFragment extends Fragment {
         personViewModel.getPerson().observe(this, new Observer<Person>() {
             @Override
             public void onChanged(@Nullable Person person) {
-                if (person != null) {
+                if (person != null) { // null would mean the object was deleted.
                     name.setText(person.getName());
                     age.setText(String.valueOf(person.getAge()));
                 }

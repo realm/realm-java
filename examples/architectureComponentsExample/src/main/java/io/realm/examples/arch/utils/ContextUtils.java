@@ -13,16 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.examples.arch.helper;
+package io.realm.examples.arch.utils;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 
-public class Helper {
-    private Helper() {
+/**
+ * This is a helper class to look up an Activity inside a View's context chain in a reliable/safe manner.
+ */
+public class ContextUtils {
+    private ContextUtils() {
     }
 
+    /**
+     * Finds the Activity inside the hierarchy of the provided Context.
+     *
+     * @param context the context
+     * @param <T> the expected type of the Activity
+     * @return the activity
+     *
+     * @throws IllegalArgumentException if the context has no Activity in its base context hierarchy
+     */
     public static <T extends Activity> T findActivity(Context context) {
         if (context instanceof Activity) {
             //noinspection unchecked
