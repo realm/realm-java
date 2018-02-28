@@ -261,10 +261,13 @@ public class Table implements NativeObject {
 
     /**
      * Clears the table i.e., deleting all rows in the table.
+     *
+     * WARNING: This method is not supported by Partial Sync, use `findAll().deleteFromRealm`
+     * instead.
      */
-    public void clear() {
+    public void clear(boolean partialRealm) {
         checkImmutable();
-        nativeClear(nativePtr);
+        nativeClear(nativePtr, partialRealm);
     }
 
     // Column Information.
@@ -724,7 +727,7 @@ public class Table implements NativeObject {
 
     private native long nativeSize(long nativeTablePtr);
 
-    private native void nativeClear(long nativeTablePtr);
+    private native void nativeClear(long nativeTablePtr, boolean partialRealm);
 
     private native long nativeGetColumnCount(long nativeTablePtr);
 

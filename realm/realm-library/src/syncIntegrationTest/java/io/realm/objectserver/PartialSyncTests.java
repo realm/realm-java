@@ -5,11 +5,8 @@ import android.support.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import io.realm.DynamicRealm;
 import io.realm.OrderedCollectionChangeSet;
-import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
@@ -21,18 +18,16 @@ import io.realm.SyncUser;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
-import io.realm.exceptions.RealmException;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PartialSyncModule;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.util.SyncTestUtils;
 
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -272,6 +267,30 @@ public class PartialSyncTests extends StandardIntegrationTest {
                 looperThread.testComplete();
             }
         });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void clearTable() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        Realm realm = getPartialRealm(user);
+        looperThread.closeAfterTest(realm);
+
+        // Create test data and make it is uploaded to the server
+        RealmResults<PartialSyncObjectA> result = realm.where(PartialSyncObjectA.class).findAllAsync();
+        realm.executeTransaction(r -> {
+            r.createObject(PartialSyncObjectA.class).setString("ObjectA");
+        });
+        SyncTestUtils.syncRealm(realm);
+        assertEquals(1, result.size());
+
+        // Delete data and make sure it is accepted by the server
+        realm.executeTransaction(r -> {
+            r.delete(PartialSyncObjectA.class);
+        });
+        SyncTestUtils.syncRealm(realm);
+        assertTrue(result.isEmpty());
+        looperThread.testComplete();
     }
 
     private Realm getPartialRealm(SyncUser user) {

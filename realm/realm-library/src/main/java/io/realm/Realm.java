@@ -1586,7 +1586,7 @@ public class Realm extends BaseRealm {
      */
     public void delete(Class<? extends RealmModel> clazz) {
         checkIfValid();
-        schema.getTable(clazz).clear();
+        schema.getTable(clazz).clear(sharedRealm.isPartial());
     }
 
 
