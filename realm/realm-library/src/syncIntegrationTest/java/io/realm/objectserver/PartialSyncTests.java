@@ -286,7 +286,11 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
         // Delete data and make sure it is accepted by the server
         realm.executeTransaction(r -> {
-            r.delete(PartialSyncObjectA.class);
+            // TODO the API's that actual use the clearTable instruction have all been disabled for now
+            // and are throwing IllegalStateException (realm.delete(Class) and realm.deleteAll).
+            // Keep the test for time being, but use the recommend workaround for deleting objects
+            // instead.
+            r.where(PartialSyncObjectA.class).findAll().deleteAllFromRealm();
         });
         SyncTestUtils.syncRealm(realm);
         assertTrue(result.isEmpty());
