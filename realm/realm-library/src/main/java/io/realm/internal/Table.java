@@ -262,8 +262,7 @@ public class Table implements NativeObject {
     /**
      * Clears the table i.e., deleting all rows in the table.
      *
-     * WARNING: This method is not supported by Partial Sync, use `findAll().deleteFromRealm`
-     * instead.
+     * If using partial sync, this method will behave similarly to 'findAll().deleteFromRealm()'.
      */
     public void clear(boolean partialRealm) {
         checkImmutable();

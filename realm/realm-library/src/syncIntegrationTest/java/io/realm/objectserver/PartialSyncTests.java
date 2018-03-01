@@ -276,7 +276,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
         Realm realm = getPartialRealm(user);
         looperThread.closeAfterTest(realm);
 
-        // Create test data and make it is uploaded to the server
+        // Create test data and make sure it is uploaded to the server
         RealmResults<PartialSyncObjectA> result = realm.where(PartialSyncObjectA.class).findAllAsync();
         realm.executeTransaction(r -> {
             r.createObject(PartialSyncObjectA.class).setString("ObjectA");
