@@ -225,7 +225,6 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         assertTrue(privileges.canUpdate());
         assertTrue(privileges.canQuery());
         assertTrue(privileges.canSetPermissions());
-        assertTrue(privileges.canModifySchema());
     }
 
     private void assertFullAccess(RealmPrivileges privileges) {

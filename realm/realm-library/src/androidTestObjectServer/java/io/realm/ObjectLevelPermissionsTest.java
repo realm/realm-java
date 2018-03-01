@@ -484,7 +484,6 @@ public class ObjectLevelPermissionsTest {
         assertTrue(privileges.canUpdate());
         assertTrue(privileges.canQuery());
         assertTrue(privileges.canSetPermissions());
-        assertTrue(privileges.canModifySchema());
     }
 
     private void assertFullAccess(ObjectPrivileges privileges) {
@@ -517,7 +516,6 @@ public class ObjectLevelPermissionsTest {
         assertFalse(privileges.canUpdate());
         assertFalse(privileges.canQuery());
         assertFalse(privileges.canSetPermissions());
-        assertFalse(privileges.canModifySchema());
     }
 
     private void assertNoAccess(ObjectPrivileges privileges) {

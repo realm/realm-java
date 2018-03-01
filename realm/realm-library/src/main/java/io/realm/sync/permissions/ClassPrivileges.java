@@ -115,17 +115,6 @@ public final class ClassPrivileges {
         return canCreate;
     }
 
-    /**
-     * Returns whether or not the user can modify the schema of the given class. If this returns
-     * {@code true} you are still only allowed to add properties to synchronized Realms, never
-     * remove them again.
-     *
-     * @return {@code true} if the user can modify the schema of the given class, {@code false} if not.
-     */
-    public boolean canModifySchema() {
-        return canModifySchema;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
