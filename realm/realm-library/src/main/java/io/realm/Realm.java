@@ -1590,11 +1590,15 @@ public class Realm extends BaseRealm {
      * Deletes all objects of the specified class from the Realm.
      *
      * @param clazz the class which objects should be removed.
-     * @throws IllegalStateException if the corresponding Realm is closed or called from an incorrect thread.
+     * @throws IllegalStateException if the corresponding Realm is a partially synchronized Realm, is
+     * closed or called from an incorrect thread.
      */
     public void delete(Class<? extends RealmModel> clazz) {
         checkIfValid();
-        schema.getTable(clazz).clear();
+        if (sharedRealm.isPartial()) {
+            throw new IllegalStateException(DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC);
+        }
+        schema.getTable(clazz).clear(sharedRealm.isPartial());
     }
 
 

@@ -18,12 +18,12 @@ package io.realm;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
@@ -165,4 +165,35 @@ public class SyncedRealmTests {
 
         looperThread.testComplete();
     }
+
+    @Test
+    public void delete_throws() {
+        realm = getPartialRealm();
+        realm.beginTransaction();
+            try {
+                realm.deleteAll();
+                fail();
+            } catch (IllegalStateException e) {
+            }
+
+            try {
+                realm.delete(PartialSyncObjectA.class);
+                fail();
+            } catch (IllegalStateException e) {
+            }
+        realm.cancelTransaction();
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        try {
+            dynamicRealm.beginTransaction();
+            try {
+                dynamicRealm.delete(PartialSyncObjectA.class.getSimpleName());
+                fail();
+            } catch (IllegalStateException e) {
+            }
+        } finally {
+            dynamicRealm.close();
+        }
+    }
+
 }

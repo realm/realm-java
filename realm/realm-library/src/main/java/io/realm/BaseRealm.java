@@ -71,8 +71,12 @@ abstract class BaseRealm implements Closeable {
             "This Realm instance has already been closed, making it unusable.";
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
-    static final String LISTENER_NOT_ALLOWED_MESSAGE = "Listeners cannot be used on current thread.";
-
+    static final String LISTENER_NOT_ALLOWED_MESSAGE =
+            "Listeners cannot be used on current thread.";
+    static final String DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC =
+            "This API is not supported by partially " +
+            "synchronized Realms. Either unsubscribe using 'Realm.unsubscribeAsync()' or " +
+            "delete the objects using a query and 'RealmResults.deleteAllFromRealm()'";
 
     static volatile Context applicationContext;
 
@@ -648,13 +652,20 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Deletes all objects from this Realm.
+     * <p>
+     * If the Realm is a partially synchronized Realm, all subscriptions will be cleared as well.
      *
-     * @throws IllegalStateException if the corresponding Realm is closed or called from an incorrect thread.
+     * @throws IllegalStateException if the corresponding Realm is a partially synchronized Realm, is
+     * closed or called from an incorrect thread.
      */
     public void deleteAll() {
         checkIfValid();
+        if (sharedRealm.isPartial()) {
+            throw new IllegalStateException(DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC);
+        }
+        boolean isPartialRealm = sharedRealm.isPartial();
         for (RealmObjectSchema objectSchema : getSchema().getAll()) {
-            getSchema().getTable(objectSchema.getClassName()).clear();
+            getSchema().getTable(objectSchema.getClassName()).clear(isPartialRealm);
         }
     }
 
