@@ -1,4 +1,4 @@
-## 5.0.0 (YYYY-MM-DD)
+## 5.0.0-BETA1 (2018-03-01)
 
 ### Known Bugs
 
@@ -19,7 +19,7 @@
 
 ### Internal
 
-* Upgraded to Realm Sync 3.0.0-beta.6
+* Upgraded to Realm Sync 3.0.0-beta.10
 * Upgraded to Realm Core 5.3.0
 
 
