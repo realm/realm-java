@@ -227,7 +227,7 @@ public class DynamicRealm extends BaseRealm {
     public void delete(String className) {
         checkIfValid();
         checkIfInTransaction();
-        schema.getTable(className).clear();
+        schema.getTable(className).clear(sharedRealm.isPartial());
     }
 
     /**

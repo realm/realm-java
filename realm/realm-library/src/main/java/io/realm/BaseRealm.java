@@ -611,8 +611,9 @@ abstract class BaseRealm implements Closeable {
      */
     public void deleteAll() {
         checkIfValid();
+        boolean isPartialRealm = sharedRealm.isPartial();
         for (RealmObjectSchema objectSchema : getSchema().getAll()) {
-            getSchema().getTable(objectSchema.getClassName()).clear();
+            getSchema().getTable(objectSchema.getClassName()).clear(isPartialRealm);
         }
     }
 
