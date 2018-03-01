@@ -27,7 +27,6 @@ import io.realm.internal.sync.OsSubscription;
  */
 public class SubscriptionAwareOsResults extends OsResults {
 
-    private final String subscriptionName;
     // The native ptr to a delayed notification. Since Java group all notifications for each
     // RealmResults, only one change from OS will ever be sent.
     private long delayedNotificationPtr = 0;
@@ -36,6 +35,7 @@ public class SubscriptionAwareOsResults extends OsResults {
     // Reference to a (potential) underlying subscription
     private OsSubscription subscription = null;
     private boolean collectionChanged = false;
+    private boolean firstCallback;
 
     public static SubscriptionAwareOsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query,
                                                              @Nullable SortDescriptor sortDescriptor,
@@ -49,11 +49,11 @@ public class SubscriptionAwareOsResults extends OsResults {
     SubscriptionAwareOsResults(OsSharedRealm sharedRealm, Table table, long nativePtr, String subscriptionName) {
         super(sharedRealm, table, nativePtr);
 
-        this.subscriptionName = subscriptionName;
+        this.firstCallback = true;
         this.subscription = new OsSubscription(this, subscriptionName);
-        this.subscription.addChangeListener(new RealmChangeListener() {
+        this.subscription.addChangeListener(new RealmChangeListener<OsSubscription>() {
             @Override
-            public void onChange(Object o) {
+            public void onChange(OsSubscription o) {
                 subscriptionChanged = true;
             }
         });
@@ -77,15 +77,24 @@ public class SubscriptionAwareOsResults extends OsResults {
     }
 
     private void triggerDelayedChangeListener() {
-        // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
-        // So it is possible it deliver a non-empty change set for the first async query returns.
-        OsCollectionChangeSet changeset;
-        // Only parse on Subscription if it changed
+        // Only parse on the subscription if it actually changed
         OsSubscription subscription = (subscriptionChanged) ? this.subscription : null;
+
+        // In case no collection listener was triggered, only trigger the listener if non-relevant
+        // changes happened to the subscription. In our case this means we only care about the
+        // errors and a completed subscription
+        if (delayedNotificationPtr == 0
+                && subscription != null
+                && subscription.getState() != OsSubscription.SubscriptionState.ERROR
+                && subscription.getState() != OsSubscription.SubscriptionState.COMPLETE) {
+            return;
+        }
+
+        OsCollectionChangeSet changeset;
         if (delayedNotificationPtr == 0) {
-            changeset = new EmptyLoadChangeSet(subscription, true);
+            changeset = new EmptyLoadChangeSet(subscription, firstCallback, true);
         } else {
-            changeset = new OsCollectionChangeSet(delayedNotificationPtr, !isLoaded(), subscription, true);
+            changeset = new OsCollectionChangeSet(delayedNotificationPtr, firstCallback, subscription, true);
         }
 
         // Happens e.g. if a synchronous query is created, a change listener is added and then
@@ -95,6 +104,7 @@ public class SubscriptionAwareOsResults extends OsResults {
             return;
         }
         loaded = true;
+        firstCallback = false;
         observerPairs.foreach(new Callback(changeset));
     }
 

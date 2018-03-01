@@ -32,6 +32,7 @@ import io.realm.SyncUser;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -184,5 +185,10 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         }
         
         return false;
+    }
+
+    @Override
+    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
+        builder.addModule(new ObjectPermissionsModule());
     }
 }

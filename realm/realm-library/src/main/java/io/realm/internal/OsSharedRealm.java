@@ -26,9 +26,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
+import io.realm.RealmModel;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
+import io.realm.internal.annotations.ObjectServer;
+import io.realm.sync.permissions.RealmPrivileges;
 
 @Keep
 public final class OsSharedRealm implements Closeable, NativeObject {
@@ -351,6 +354,21 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         return new OsSharedRealm.VersionID(versionId[0], versionId[1]);
     }
 
+    @ObjectServer
+    public int getPrivileges() {
+        return nativeGetRealmPrivileges(nativePtr);
+    }
+
+    @ObjectServer
+    public int getClassPrivileges(String className) {
+        return nativeGetClassPrivileges(nativePtr, className);
+    }
+
+    @ObjectServer
+    public int getObjectPrivileges(UncheckedRow row) {
+        return nativeGetObjectPrivileges(nativePtr, ((UncheckedRow) row).getNativePtr());
+    }
+
     public boolean isClosed() {
         return nativeIsClosed(nativePtr);
     }
@@ -579,6 +597,11 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     private static native void nativeRegisterSchemaChangedCallback(long nativePtr, SchemaChangedCallback callback);
 
+    private static native int nativeGetRealmPrivileges(long nativePtr);
+
+    private static native int nativeGetClassPrivileges(long nativePtr, String className);
+
+    private static native int nativeGetObjectPrivileges(long nativePtr, long rowNativePtr);
     private static native boolean nativeIsPartial(long nativePtr);
 
 }

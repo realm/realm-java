@@ -510,6 +510,44 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeRegisterSchema
     }
 }
 
+#if REALM_ENABLE_SYNC
+JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetRealmPrivileges(
+    JNIEnv*, jclass, jlong shared_realm_ptr)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    return static_cast<jint>(shared_realm->get_privileges());
+}
+
+JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetClassPrivileges(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring j_class_name)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        JStringAccessor class_name(env, j_class_name);
+        return static_cast<jint>(shared_realm->get_privileges(StringData(class_name)));
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetObjectPrivileges(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong row_ptr)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        auto r = reinterpret_cast<Row*>(row_ptr);
+        RowExpr row = r->get_table()->get(r->get_index());
+
+        return static_cast<jint>(shared_realm->get_privileges(row));
+    }
+    CATCH_STD()
+    return 0;
+}
+#endif
+
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsPartial(JNIEnv*, jclass, jlong shared_realm_ptr)
 {
     TR_ENTER_PTR(shared_realm_ptr)

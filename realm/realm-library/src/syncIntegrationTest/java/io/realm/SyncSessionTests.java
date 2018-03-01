@@ -462,8 +462,8 @@ public class SyncSessionTests extends StandardIntegrationTest {
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
 
         final AtomicReference<SyncConfiguration> configRef = new AtomicReference<>(null);
-        final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM).directory(looperThread.getRoot())
-
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .directory(looperThread.getRoot())
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
