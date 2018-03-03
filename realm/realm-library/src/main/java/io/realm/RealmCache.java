@@ -311,6 +311,7 @@ final class RealmCache {
             if (configuration.isSyncConfiguration() && !fileExists) {
                 try {
                     ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
+                    realm.refresh();
                 } catch (Throwable t) {
                     // If an error happened while downloading initial data, we need to reset the file so we can
                     // download it again on the next attempt.
