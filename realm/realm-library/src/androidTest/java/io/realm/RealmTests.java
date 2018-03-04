@@ -283,21 +283,6 @@ public class RealmTests {
         assertEquals(TEST_DATA_SIZE, resultList.size());
     }
 
-    @Test
-    public void where_throwsIfClassArgIsNotASubtype() {
-        try {
-            realm.where(RealmObject.class);
-            fail();
-        } catch (IllegalArgumentException ignore) {
-        }
-
-        try {
-            realm.where(RealmModel.class);
-            fail();
-        } catch (IllegalArgumentException ignore) {
-        }
-    }
-
     // Note that this test is relying on the values set while initializing the test dataset
     // TODO Move to RealmQueryTests?
     @Test

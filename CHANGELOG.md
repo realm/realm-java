@@ -1,10 +1,3 @@
-## 4.3.5 (YYY-MM-DD)
-
-## Bug Fixes
-
-* Better exception message if a non model class is provided to methods only accepting those (#5779).
-
-
 ## 4.3.4 (2018-02-06)
 
 ## Bug Fixes
