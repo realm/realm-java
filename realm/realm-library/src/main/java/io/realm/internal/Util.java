@@ -49,10 +49,10 @@ public class Util {
     public static Class<? extends RealmModel> getOriginalModelClass(Class<? extends RealmModel> clazz) {
 
         // The compiler would allow these classes to be parsed as arguments, but they are never
-        // valid as an Realm model class
+        // valid as a Realm model class
         if (clazz.equals(RealmModel.class) || clazz.equals(RealmObject.class)) {
             throw new IllegalArgumentException("RealmModel or RealmObject was parsed as an argument. " +
-                    "Only subclasses of these can used as arguments to methods that accept a Realm model class.");
+                    "Only subclasses of these can be used as arguments to methods that accept a Realm model class.");
         }
 
         // This cast is correct because 'clazz' is either the type
