@@ -50,7 +50,6 @@ import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.realm.annotations.Beta;
-import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -144,7 +143,6 @@ import io.realm.sync.permissions.Role;
 public class Realm extends BaseRealm {
 
     private static final String NULL_CONFIG_MSG = "A non-null RealmConfiguration must be provided";
-    private static final String FATAL_ASSERT_MESSAGE = "This should not happen. Please report this to help@realm.io";
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
@@ -341,7 +339,7 @@ public class Realm extends BaseRealm {
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
      * RealmObject classes or version has has changed so a migration is required.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file.
-     * @throws DownloadingRealmInterruptedException if {@link SyncConfiguration.Builder#waitForInitialRemoteData()}
+     * @throws io.realm.exceptions.DownloadingRealmInterruptedException if {@link SyncConfiguration.Builder#waitForInitialRemoteData()}
      * was set and the thread opening the Realm was interrupted while the download was in progress.
      * @throws IllegalStateException if no default configuration is defined or if the default sync
      * configuration was used, but no user is logged in.
