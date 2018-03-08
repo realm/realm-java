@@ -203,14 +203,15 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             currentUser = SyncUser.currentUser();
         } catch (IllegalStateException e ) {
             throw new IllegalStateException("Could not create a default sync configuration as " +
-                    "multiple users are logged in. Use Realm.getInstance() instead of se", e);
+                    "multiple users are logged in. Use 'Realm.getInstance()' instead of 'Realm.getDefaultInstance()' " +
+                    "in order to specify the specific users configuration." , e);
         }
 
         if (currentUser == null) {
             throw new IllegalStateException("No user is logged in. Login a user using SyncUser.login() first.");
         }
 
-        // Check if a new user have become the "default" user. In that case, invalidate any
+        // Check if a new user has become the default user. In that case, invalidate any
         // existing configuration as we need to rebuild it.
         if (cachedDefaultConfiguration != null && !currentUser.equals(cachedDefaultConfiguration.getUser())) {
             cachedDefaultConfiguration = null;
@@ -234,7 +235,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
 
     // Infer the URL to the default Realm based on the server used to login the user
     private String createUrl(SyncUser user) {
-        URL url = user.getAuthenticationUrl();
+        URL url     §= user.getAuthenticationUrl();
         String protocol = url.getProtocol();
         String host = url.getHost();
 

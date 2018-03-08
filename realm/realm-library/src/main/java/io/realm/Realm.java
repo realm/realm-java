@@ -149,7 +149,6 @@ public class Realm extends BaseRealm {
     private final RealmSchema schema;
     private static final Object defaultConfigurationLock = new Object();
     // guarded by `defaultConfigurationLock`
-    private static volatile boolean userClearedConfiguration = false;
     private static volatile RealmConfiguration userDefinedDefaultConfiguration;
 
     /**
@@ -332,7 +331,7 @@ public class Realm extends BaseRealm {
      * If sync is enabled, a sync configuration will be used that automatically infer the URL to the
      * default Realm on the server on which the current user is logged in.
      * <p>
-     * if sync is not enabled, a local realm called {@code default.realm} will be created in
+     * if sync is not enabled, a local Realm called {@code default.realm} will be created in
      * {@link Context#getFilesDir()}.
      *
      * @return an instance of the Realm class.
@@ -357,7 +356,6 @@ public class Realm extends BaseRealm {
                     // create it lazily instead. The Facade is responsible for caching it.
                     // This also re-creates it if `removeDefaultConfiguration` was manually called.
                     configuration = ObjectServerFacade.getSyncFacadeIfPossible().getSystemDefaultSyncConfiguration();
-                    userClearedConfiguration = false;
                 } else {
                     throw new IllegalStateException("The default configuration was manually cleared " +
                             "using 'Realm.removeDefaultConfiguration()'. Add a new default configuration " +
@@ -426,7 +424,6 @@ public class Realm extends BaseRealm {
         }
         synchronized (defaultConfigurationLock) {
             userDefinedDefaultConfiguration = configuration;
-            userClearedConfiguration = false;
         }
     }
 
@@ -455,7 +452,6 @@ public class Realm extends BaseRealm {
         synchronized (defaultConfigurationLock) {
             userDefinedDefaultConfiguration = null;
             ObjectServerFacade.getSyncFacadeIfPossible().removeCachedDefaultSyncConfiguration();
-            userClearedConfiguration = true;
         }
     }
 
