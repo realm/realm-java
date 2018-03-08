@@ -235,7 +235,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
 
     // Infer the URL to the default Realm based on the server used to login the user
     private String createUrl(SyncUser user) {
-        URL url     §= user.getAuthenticationUrl();
+        URL url = user.getAuthenticationUrl();
         String protocol = url.getProtocol();
         String host = url.getHost();
 
