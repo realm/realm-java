@@ -23,7 +23,9 @@ import android.net.ConnectivityManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
@@ -43,6 +45,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @SuppressLint("StaticFieldLeak") //
     private static Context applicationContext;
     private static volatile Method removeSessionMethod;
+    private static volatile SyncConfiguration cachedDefaultConfiguration;
 
     @Override
     public void init(Context context) {
@@ -190,5 +193,58 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @Override
     public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
         builder.addModule(new ObjectPermissionsModule());
+    }
+
+    // Only call this method while under the lock of `Realm.defaultConfigurationLock`
+    @Override
+    public RealmConfiguration getSystemDefaultSyncConfiguration() {
+        SyncUser currentUser;
+        try {
+            currentUser = SyncUser.currentUser();
+        } catch (IllegalStateException e ) {
+            throw new IllegalStateException("Could not create a default sync configuration as " +
+                    "multiple users are logged in. Use 'Realm.getInstance()' instead of 'Realm.getDefaultInstance()' " +
+                    "in order to specify the specific users configuration." , e);
+        }
+
+        if (currentUser == null) {
+            throw new IllegalStateException("No user is logged in. Login a user using SyncUser.login() first.");
+        }
+
+        // Check if a new user has become the default user. In that case, invalidate any
+        // existing configuration as we need to rebuild it.
+        if (cachedDefaultConfiguration != null && !currentUser.equals(cachedDefaultConfiguration.getUser())) {
+            cachedDefaultConfiguration = null;
+        }
+
+        if (cachedDefaultConfiguration == null) {
+            cachedDefaultConfiguration = new SyncConfiguration.Builder(currentUser, createUrl(currentUser))
+                    .partialRealm()
+                    .build();
+        }
+
+        return cachedDefaultConfiguration;
+    }
+
+    // Only call this method while under the lock of `Realm.defaultConfigurationLock`
+    @Override
+    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
+    public void removeCachedDefaultSyncConfiguration() {
+        cachedDefaultConfiguration = null;
+    }
+
+    // Infer the URL to the default Realm based on the server used to login the user
+    private String createUrl(SyncUser user) {
+        URL url = user.getAuthenticationUrl();
+        String protocol = url.getProtocol();
+        String host = url.getHost();
+
+        if (protocol.equalsIgnoreCase("https")) {
+            protocol = "realms";
+        } else {
+            protocol = "realm";
+        }
+
+        return protocol + "://" + host + "/default";
     }
 }

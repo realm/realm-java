@@ -514,7 +514,7 @@ public class SyncConfiguration extends RealmConfiguration {
                         serverUrl.getUserInfo(),
                         host,
                         serverUrl.getPort(),
-                        (path != null) ? path.replace(host + "/", "") : null, // Remove host if it accidentially was interpreted as a path segment
+                        (path != null) ? path.replace(host + "/", "") : null, // Remove host if it accidentally was interpreted as a path segment
                         serverUrl.getQuery(),
                         serverUrl.getRawFragment());
 

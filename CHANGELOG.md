@@ -6,10 +6,12 @@
 
 ### Breaking Changes
 
+* [ObjectServer] `Realm.getDefaultInstance()` now requires a user to be logged in and will automatically connect to the user's remote Realm. This only applies if `syncEnabled = true` is set in Gradle.
 * The `OrderedCollectionChangeSet` parameter in `OrderedRealmCollectionChangeListener.onChange()` is no longer nullable. Use `changeSet.getState()` instead (#5619).
 * `realm.subscribeForObjects()` have been removed. Use `RealmQuery.findAllAsync(String subscriptionName)` and `RealmQuery.findAllAsync()` instead.
 * Removed previously deprecated `RealmQuery.findAllSorted()`, `RealmQuery.findAllSortedAsync()` `RealmQuery.distinct() and `RealmQuery.distinctAsync()`.
 * Renamed `RealmQuery.distinctValues()` to `RealmQuery.distinct()`
+
 
 ### Enhancements
 

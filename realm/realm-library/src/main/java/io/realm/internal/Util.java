@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
+import io.realm.BuildConfig;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
@@ -138,5 +139,9 @@ public class Util {
             realmDeleted = true;
         }
         return realmDeleted;
+    }
+
+    public static boolean isSyncBuild() {
+        return BuildConfig.FLAVOR.equals("objectServer");
     }
 }

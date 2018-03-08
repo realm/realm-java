@@ -66,10 +66,8 @@ import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
@@ -77,7 +75,6 @@ import io.realm.log.RealmLog;
 import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.ClassPrivileges;
 import io.realm.sync.permissions.RealmPermissions;
-import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
 
 /**
@@ -149,10 +146,10 @@ public class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
+    private final RealmSchema schema;
     private static final Object defaultConfigurationLock = new Object();
     // guarded by `defaultConfigurationLock`
-    private static RealmConfiguration defaultConfiguration;
-    private final RealmSchema schema;
+    private static volatile RealmConfiguration userDefinedDefaultConfiguration;
 
     /**
      * The constructor is private to enforce the use of the static one.
@@ -256,7 +253,11 @@ public class Realm extends BaseRealm {
             }
             checkFilesDirAvailable(context);
             RealmCore.loadLibrary(context);
-            setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
+            // Only eagerly create local configurations, default sync configurations are
+            // created lazily as they depend on a user being logged in.
+            if (!Util.isSyncBuild()) {
+                setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
+            }
             ObjectServerFacade.getSyncFacadeIfPossible().init(context);
             if (context.getApplicationContext() != null) {
                 BaseRealm.applicationContext = context.getApplicationContext();
@@ -322,22 +323,45 @@ public class Realm extends BaseRealm {
     /**
      * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
      * by {@link #setDefaultConfiguration(RealmConfiguration)}
+     * <p>
+     * If {@link #setDefaultConfiguration(RealmConfiguration)} was not called, a predefined default
+     * configuration will be used. The behaviour of this default configuration will differ based on
+     * if {@code syncEnabled = true} was enabled in Gradle or not.
+     * </p>
+     * If sync is enabled, a sync configuration will be used that automatically infer the URL to the
+     * default Realm on the server on which the current user is logged in.
+     * <p>
+     * if sync is not enabled, a local Realm called {@code default.realm} will be created in
+     * {@link Context#getFilesDir()}.
      *
      * @return an instance of the Realm class.
-     * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
      * RealmObject classes or version has has changed so a migration is required.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws io.realm.exceptions.DownloadingRealmInterruptedException if {@link SyncConfiguration.Builder#waitForInitialRemoteData()}
      * was set and the thread opening the Realm was interrupted while the download was in progress.
+     * @throws IllegalStateException if no default configuration is defined or if the default sync
+     * configuration was used, but no user is logged in.
      */
     public static Realm getDefaultInstance() {
-        RealmConfiguration configuration = getDefaultConfiguration();
-        if (configuration == null) {
-            if (BaseRealm.applicationContext == null) {
-                throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
-            } else {
-                throw new IllegalStateException("Set default configuration by using `Realm.setDefaultConfiguration(RealmConfiguration)`.");
+        if (BaseRealm.applicationContext == null) {
+            throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
+        }
+        RealmConfiguration configuration;
+        synchronized (defaultConfigurationLock) {
+            configuration = getDefaultConfiguration();
+            if (configuration == null) {
+                if (Util.isSyncBuild()) {
+                    // For sync builds we do not define the default configuration on startup, but
+                    // create it lazily instead. The Facade is responsible for caching it.
+                    // This also re-creates it if `removeDefaultConfiguration` was manually called.
+                    configuration = ObjectServerFacade.getSyncFacadeIfPossible().getSystemDefaultSyncConfiguration();
+                } else {
+                    throw new IllegalStateException("The default configuration was manually cleared " +
+                            "using 'Realm.removeDefaultConfiguration()'. Add a new default configuration " +
+                            "using 'Realm.setDefaultConfiguration()' before calling 'Realm.getDefaultInstance() " +
+                            "again.");
+                }
             }
         }
         return RealmCache.createRealmOrGetFromCache(configuration, Realm.class);
@@ -399,7 +423,7 @@ public class Realm extends BaseRealm {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
         synchronized (defaultConfigurationLock) {
-            defaultConfiguration = configuration;
+            userDefinedDefaultConfiguration = configuration;
         }
     }
 
@@ -411,17 +435,23 @@ public class Realm extends BaseRealm {
     @Nullable
     public static RealmConfiguration getDefaultConfiguration() {
         synchronized (defaultConfigurationLock) {
-            return defaultConfiguration;
+            return userDefinedDefaultConfiguration;
         }
     }
 
     /**
-     * Removes the current default configuration (if any). Any further calls to {@link #getDefaultInstance()} will
-     * fail until a new default configuration has been set using {@link #setDefaultConfiguration(RealmConfiguration)}.
+     * Removes the current default configuration (if any).
+     * <p>
+     * If {@code syncEnabled = true} was not set in Gradle, any further calls to
+     * {@link #getDefaultInstance()} will fail until a new default configuration has been set using
+     * {@link #setDefaultConfiguration(RealmConfiguration)}.
+     * <p>
+     * if sync is enabled, a new default configuration using the existing user will be created
      */
     public static void removeDefaultConfiguration() {
         synchronized (defaultConfigurationLock) {
-            defaultConfiguration = null;
+            userDefinedDefaultConfiguration = null;
+            ObjectServerFacade.getSyncFacadeIfPossible().removeCachedDefaultSyncConfiguration();
         }
     }
 
