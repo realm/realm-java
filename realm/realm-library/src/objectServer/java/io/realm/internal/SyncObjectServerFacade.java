@@ -25,6 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
@@ -226,6 +227,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
 
     // Only call this method while under the lock of `Realm.defaultConfigurationLock`
     @Override
+    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     public void removeCachedDefaultSyncConfiguration() {
         cachedDefaultConfiguration = null;
     }
