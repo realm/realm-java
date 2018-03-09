@@ -40,6 +40,7 @@ import io.realm.util.SyncTestUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 
@@ -67,6 +68,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         SyncManager.getSession(config).uploadAllLocalChanges();
         user.logout();
         realm.close();
+        assertTrue(Realm.deleteRealm(config));
 
         user = SyncUser.login(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM)

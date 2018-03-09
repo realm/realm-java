@@ -235,7 +235,7 @@ public class SyncManager {
                 // access token, however since the Realm might not be open yet, the wrapObjectStoreSessionIfRequired
                 // will not be invoked to wrap the OS store session with the Java session, the Sync client to not resume
                 // syncing.
-                session.getAccessToken(authServer, null);
+                session.getAccessToken(authServer, "");
                 NetworkStateReceiver.addListener(networkListener);
             }
         }
