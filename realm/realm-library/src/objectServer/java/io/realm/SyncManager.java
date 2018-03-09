@@ -19,6 +19,7 @@ package io.realm;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
@@ -209,7 +210,7 @@ public class SyncManager {
      * @return the {@link SyncSession} for the specified Realm.
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
      */
-    public static synchronized SyncSession getSession(SyncConfiguration syncConfiguration) {
+    public static synchronized SyncSession getSession(SyncConfiguration syncConfiguration, URI... resolvedRealmURL) {
         // This will not create a new native (Object Store) session, this will only associate a Realm's path
         // with a SyncSession. Object Store's SyncManager is responsible of the life cycle (including creation)
         // of the native session, the provided Java wrap, helps interact with the native session, when reporting error
@@ -226,6 +227,15 @@ public class SyncManager {
             sessions.put(syncConfiguration.getPath(), session);
             if (sessions.size() == 1) {
                 RealmLog.debug("first session created add network listener");
+                if(resolvedRealmURL.length > 0) {
+                    session.setResolvedRealmURI(resolvedRealmURL[0]);
+                }
+                // Currently when the user login, the Object Store will try to revive it's inactive sessions
+                // (stored previously after a logout). this will cause the OS to call bindSession to obtain an
+                // access token, however since the Realm might not be open yet, the wrapObjectStoreSessionIfRequired
+                // will not be invoked to wrap the OS store session with the Java session, the Sync client to not resume
+                // syncing.
+                session.getAccessToken(authServer, null);
                 NetworkStateReceiver.addListener(networkListener);
             }
         }

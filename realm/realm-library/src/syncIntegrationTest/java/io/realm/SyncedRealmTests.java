@@ -49,6 +49,36 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class SyncedRealmTests extends StandardIntegrationTest {
 
+
+    @Test
+    public void loginLogoutResumeSyncing() throws InterruptedException {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+
+        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+                .schema(StringOnly.class)
+                .build();
+
+        Realm realm = Realm.getInstance(config);
+        realm.beginTransaction();
+        realm.createObject(StringOnly.class).setChars("Foo");
+        realm.commitTransaction();
+        SyncManager.getSession(config).uploadAllLocalChanges();
+        user.logout();
+        realm.close();
+
+        user = SyncUser.login(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
+        SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+                .schema(StringOnly.class)
+                .build();
+
+        Realm realm2 = Realm.getInstance(config2);
+        SyncManager.getSession(config2).downloadAllServerChanges();
+        realm2.refresh();
+        assertEquals(1, realm2.where(StringOnly.class).count());
+    }
+
     @Test
     @UiThreadTest
     public void waitForInitialRemoteData_mainThreadThrows() {
