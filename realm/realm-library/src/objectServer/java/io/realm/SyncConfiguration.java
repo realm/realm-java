@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -181,6 +182,64 @@ public class SyncConfiguration extends RealmConfiguration {
 
         RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
         return forRecovery(canonicalPath, encryptionKey, schemaMediator);
+    }
+
+    /**
+     * Creates an automatic default configuration based on the the currently logged in user.
+     * <p>
+     * This configuration will point to the default Realm on the server where the user was
+     * authenticated.
+     *
+     * @throws IllegalStateException if no user are logged in, or multiple users have. Only one should
+     * be logged in when calling this method.
+     * @return The constructed {@link SyncConfiguration}.
+     */
+    public static SyncConfiguration automatic() {
+        SyncUser user = SyncUser.currentUser();
+        if (user == null) {
+            throw new IllegalStateException("No user was logged in.");
+        }
+        return getDefaultConfig(user);
+    }
+
+    /**
+     * Creates an automatic default configuration for the provided user.
+     * <p>
+     * This configuration will point to the default Realm on the server where the user was
+     * authenticated.
+     *
+     * @throws IllegalArgumentException if no user was provided or the user isn't valid.
+     * @return The constructed {@link SyncConfiguration}.
+     */
+    public static SyncConfiguration automatic(SyncUser user) {
+        if (user == null) {
+            throw new IllegalArgumentException("Non-null 'user' required.");
+        }
+        if (!user.isValid()) {
+            throw new IllegalArgumentException("User is no logger valid.  Log the user in again.");
+        }
+        return getDefaultConfig(user);
+    }
+
+    private static SyncConfiguration getDefaultConfig(SyncUser user) {
+        return new SyncConfiguration.Builder(user, createUrl(user))
+                .partialRealm()
+                .build();
+    }
+
+    // Infer the URL to the default Realm based on the server used to login the user
+    private static String createUrl(SyncUser user) {
+        URL url = user.getAuthenticationUrl();
+        String protocol = url.getProtocol();
+        String host = url.getHost();
+
+        if (protocol.equalsIgnoreCase("https")) {
+            protocol = "realms";
+        } else {
+            protocol = "realm";
+        }
+
+        return protocol + "://" + host + "/default";
     }
 
     /**
