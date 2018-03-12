@@ -75,7 +75,7 @@ public class SessionTests {
 
     @Test
     public void addDownloadProgressListener_nullThrows() {
-        SyncSession session = SyncManager.getSession(configuration);
+        SyncSession session = SyncManager.getOrCreateSession(configuration);
         try {
             session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, null);
             fail();
@@ -85,7 +85,7 @@ public class SessionTests {
 
     @Test
     public void addUploadProgressListener_nullThrows() {
-        SyncSession session = SyncManager.getSession(configuration);
+        SyncSession session = SyncManager.getOrCreateSession(configuration);
         try {
             session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, null);
             fail();
@@ -96,7 +96,7 @@ public class SessionTests {
     @Test
     public void removeProgressListener() {
         Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getSession(configuration);
+        SyncSession session = SyncManager.getOrCreateSession(configuration);
         ProgressListener[] listeners = new ProgressListener[] {
                 null,
                 progress -> {
@@ -143,7 +143,7 @@ public class SessionTests {
         looperThread.addTestRealm(realm);
 
         // Trigger error
-        SyncManager.simulateClientReset(SyncManager.getSession(config));
+        SyncManager.simulateClientReset(SyncManager.getOrCreateSession(config));
     }
 
     // Check that we can manually execute the Client Reset.
@@ -181,7 +181,7 @@ public class SessionTests {
         looperThread.addTestRealm(realm);
 
         // Trigger error
-        SyncManager.simulateClientReset(SyncManager.getSession(config));
+        SyncManager.simulateClientReset(SyncManager.getOrCreateSession(config));
     }
 
     // Check that we can use the backup SyncConfiguration to open the Realm.
@@ -237,7 +237,7 @@ public class SessionTests {
         looperThread.addTestRealm(realm);
 
         // Trigger error
-        SyncManager.simulateClientReset(SyncManager.getSession(config));
+        SyncManager.simulateClientReset(SyncManager.getOrCreateSession(config));
     }
 
     // Check that we can open the backup file without using the provided SyncConfiguration,
@@ -320,7 +320,7 @@ public class SessionTests {
         looperThread.addTestRealm(realm);
 
         // Trigger error
-        SyncManager.simulateClientReset(SyncManager.getSession(config));
+        SyncManager.simulateClientReset(SyncManager.getOrCreateSession(config));
     }
 
     // make sure the backup file Realm is encrypted with the same key as the original synced Realm.
@@ -381,7 +381,7 @@ public class SessionTests {
         looperThread.addTestRealm(realm);
 
         // Trigger error
-        SyncManager.simulateClientReset(SyncManager.getSession(config));
+        SyncManager.simulateClientReset(SyncManager.getOrCreateSession(config));
     }
 
     @Test
@@ -389,7 +389,7 @@ public class SessionTests {
     public void uploadAllLocalChanges_throwsOnUiThread() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
         try {
-            SyncManager.getSession(configuration).uploadAllLocalChanges();
+            SyncManager.getOrCreateSession(configuration).uploadAllLocalChanges();
             fail("Should throw an IllegalStateException on Ui Thread");
         } catch (IllegalStateException ignored) {
         } finally {
@@ -402,7 +402,7 @@ public class SessionTests {
     public void downloadAllServerChanges_throwsOnUiThread() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
         try {
-            SyncManager.getSession(configuration).downloadAllServerChanges();
+            SyncManager.getOrCreateSession(configuration).downloadAllServerChanges();
             fail("Should throw an IllegalStateException on Ui Thread");
         } catch (IllegalStateException ignored) {
         } finally {
@@ -424,7 +424,7 @@ public class SessionTests {
                 })
                 .build();
         Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getSession(configuration);
+        SyncSession session = SyncManager.getOrCreateSession(configuration);
 
         TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
         RealmLog.add(testLogger);

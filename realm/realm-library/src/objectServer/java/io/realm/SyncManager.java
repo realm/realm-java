@@ -43,6 +43,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
 import io.realm.internal.network.AuthenticationServer;
@@ -203,14 +204,43 @@ public class SyncManager {
     }
 
     /**
+     * Gets a cached {@link SyncSession} for the given {@link SyncConfiguration} or throw if no one exists yet.
+     *
+     * A session should exists after your open a Realm with a {@link SyncConfiguration}.
+     *
+     * Note: This is mainly for internal usage, consider using {@link #getSession(SyncConfiguration)} instead.
+     *
+     * @param syncConfiguration configuration object for the synchronized Realm.
+     * @return the {@link SyncSession} for the specified Realm.
+     * @throws IllegalArgumentException if syncConfiguration is {@code null}.
+     * @throws RealmException if the session could not be found using the provided {@code SyncConfiguration}.
+     */
+    public static synchronized SyncSession getSession(SyncConfiguration syncConfiguration) throws RealmException {
+        //noinspection ConstantConditions
+        if (syncConfiguration == null) {
+            throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
+        }
+
+        SyncSession session = sessions.get(syncConfiguration.getPath());
+        if (session == null) {
+            throw new RealmException("No SyncSession found using the path : " + syncConfiguration.getPath()
+            + "\nplease ensure to call this method after you've open the Realm");
+        }
+
+        return session;
+    }
+
+    /**
      * Gets any cached {@link SyncSession} for the given {@link SyncConfiguration} or create a new one if
      * no one exists.
+     *
+     * Note: This is mainly for internal usage, consider using {@link #getSession(SyncConfiguration)} instead.
      *
      * @param syncConfiguration configuration object for the synchronized Realm.
      * @return the {@link SyncSession} for the specified Realm.
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
      */
-    public static synchronized SyncSession getSession(SyncConfiguration syncConfiguration, URI... resolvedRealmURL) {
+    public static synchronized SyncSession getOrCreateSession(SyncConfiguration syncConfiguration, URI... resolvedRealmURL) {
         // This will not create a new native (Object Store) session, this will only associate a Realm's path
         // with a SyncSession. Object Store's SyncManager is responsible of the life cycle (including creation)
         // of the native session, the provided Java wrap, helps interact with the native session, when reporting error

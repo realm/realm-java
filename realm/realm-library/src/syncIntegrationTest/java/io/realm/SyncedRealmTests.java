@@ -79,6 +79,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         SyncManager.getSession(config2).downloadAllServerChanges();
         realm2.refresh();
         assertEquals(1, realm2.where(StringOnly.class).count());
+        realm2.close();
     }
 
     @Test
