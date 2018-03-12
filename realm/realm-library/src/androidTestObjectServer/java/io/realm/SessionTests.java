@@ -20,6 +20,7 @@ import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,6 +40,7 @@ import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -436,5 +438,22 @@ public class SessionTests {
         assertEquals("Unknown error code: 3", testLogger.message);
 
         realm.close();
+    }
+
+    @Test
+    public void getSessionThrowsOnNonExistingSession() {
+        Realm realm = Realm.getInstance(configuration);
+        SyncSession session = SyncManager.getSession(configuration);
+        assertEquals(configuration, session.getConfiguration());
+
+        // Closing the Realm should remove the session
+        realm.close();
+        try {
+            SyncManager.getSession(configuration);
+            fail("getSession should throw an ISE");
+        } catch (IllegalStateException expected) {
+            assertThat(expected.getMessage(), CoreMatchers.containsString(
+                    "No SyncSession found using the path : "));
+        }
     }
 }

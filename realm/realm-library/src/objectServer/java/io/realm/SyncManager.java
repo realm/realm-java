@@ -205,7 +205,7 @@ public class SyncManager {
     /**
      * Gets a cached {@link SyncSession} for the given {@link SyncConfiguration} or throw if no one exists yet.
      *
-     * A session should exists after you open a Realm with a {@link SyncConfiguration}.
+     * A session should exist after you open a Realm with a {@link SyncConfiguration}.
      *
      * @param syncConfiguration configuration object for the synchronized Realm.
      * @return the {@link SyncSession} for the specified Realm.
