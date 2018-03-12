@@ -33,6 +33,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Nullable;
 
+import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
@@ -229,9 +230,13 @@ public class SyncUser {
 
             // invalidate all pending refresh_token queries
             for (SyncConfiguration syncConfiguration : realms.keySet()) {
-                SyncSession session = SyncManager.getSession(syncConfiguration);
-                if (session != null) {
+                try {
+                    SyncSession session = SyncManager.getSession(syncConfiguration);
                     session.clearScheduledAccessTokenRefresh();
+                } catch (IllegalStateException e) {
+                    if (!e.getMessage().contains("No SyncSession found")) {
+                        throw e;
+                    }// else no session, either the Realm was not opened or session was removed.
                 }
             }
 
