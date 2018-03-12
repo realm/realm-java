@@ -43,7 +43,6 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.exceptions.RealmException;
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
 import io.realm.internal.network.AuthenticationServer;
@@ -206,16 +205,14 @@ public class SyncManager {
     /**
      * Gets a cached {@link SyncSession} for the given {@link SyncConfiguration} or throw if no one exists yet.
      *
-     * A session should exists after your open a Realm with a {@link SyncConfiguration}.
-     *
-     * Note: This is mainly for internal usage, consider using {@link #getSession(SyncConfiguration)} instead.
+     * A session should exists after you open a Realm with a {@link SyncConfiguration}.
      *
      * @param syncConfiguration configuration object for the synchronized Realm.
      * @return the {@link SyncSession} for the specified Realm.
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
-     * @throws RealmException if the session could not be found using the provided {@code SyncConfiguration}.
+     * @throws IllegalStateException if the session could not be found using the provided {@code SyncConfiguration}.
      */
-    public static synchronized SyncSession getSession(SyncConfiguration syncConfiguration) throws RealmException {
+    public static synchronized SyncSession getSession(SyncConfiguration syncConfiguration) throws IllegalStateException {
         //noinspection ConstantConditions
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
@@ -223,7 +220,7 @@ public class SyncManager {
 
         SyncSession session = sessions.get(syncConfiguration.getPath());
         if (session == null) {
-            throw new RealmException("No SyncSession found using the path : " + syncConfiguration.getPath()
+            throw new IllegalStateException("No SyncSession found using the path : " + syncConfiguration.getPath()
             + "\nplease ensure to call this method after you've open the Realm");
         }
 
@@ -237,10 +234,11 @@ public class SyncManager {
      * Note: This is mainly for internal usage, consider using {@link #getSession(SyncConfiguration)} instead.
      *
      * @param syncConfiguration configuration object for the synchronized Realm.
+     * @param resolvedRealmURL resolved Realm URL with the user specific part if not a global Realm.
      * @return the {@link SyncSession} for the specified Realm.
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
      */
-    public static synchronized SyncSession getOrCreateSession(SyncConfiguration syncConfiguration, URI... resolvedRealmURL) {
+    public static synchronized SyncSession getOrCreateSession(SyncConfiguration syncConfiguration, @Nullable URI resolvedRealmURL) {
         // This will not create a new native (Object Store) session, this will only associate a Realm's path
         // with a SyncSession. Object Store's SyncManager is responsible of the life cycle (including creation)
         // of the native session, the provided Java wrap, helps interact with the native session, when reporting error
@@ -257,16 +255,16 @@ public class SyncManager {
             sessions.put(syncConfiguration.getPath(), session);
             if (sessions.size() == 1) {
                 RealmLog.debug("first session created add network listener");
-                if(resolvedRealmURL.length > 0) {
-                    session.setResolvedRealmURI(resolvedRealmURL[0]);
-                }
+                NetworkStateReceiver.addListener(networkListener);
+            }
+            if (resolvedRealmURL != null) {
+                session.setResolvedRealmURI(resolvedRealmURL);
                 // Currently when the user login, the Object Store will try to revive it's inactive sessions
                 // (stored previously after a logout). this will cause the OS to call bindSession to obtain an
                 // access token, however since the Realm might not be open yet, the wrapObjectStoreSessionIfRequired
                 // will not be invoked to wrap the OS store session with the Java session, the Sync client to not resume
                 // syncing.
                 session.getAccessToken(authServer, "");
-                NetworkStateReceiver.addListener(networkListener);
             }
         }
 

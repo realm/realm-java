@@ -233,8 +233,10 @@ public class SyncUser {
                 try {
                     SyncSession session = SyncManager.getSession(syncConfiguration);
                     session.clearScheduledAccessTokenRefresh();
-                } catch (RealmException e) {
-                    // No session, either the Realm was not opened or session was removed.
+                } catch (IllegalStateException e) {
+                    if (!e.getMessage().contains("No SyncSession found")) {
+                        throw e;
+                    }// else no session, either the Realm was not opened or session was removed.
                 }
             }
 
