@@ -7,7 +7,7 @@
 ### Breaking Changes
 
 * [ObjectServer] Renamed `SyncUser.currentUser()` to `SyncUser.current()`.
-* [ObjectServer] Renamed `SyncUser.login(...)` and `SyncUser.loginAsync(...) to `SyncUser.logIn(...)` and `SyncUser.logInAsync(...)`.
+* [ObjectServer] Renamed `SyncUser.login(...)` and `SyncUser.loginAsync(...)` to `SyncUser.logIn(...)` and `SyncUser.logInAsync(...)`.
 * [ObjectServer] Renamed `SyncUser.logout()` to `SyncUser.logOut()`.
 * The `OrderedCollectionChangeSet` parameter in `OrderedRealmCollectionChangeListener.onChange()` is no longer nullable. Use `changeSet.getState()` instead (#5619).
 * `realm.subscribeForObjects()` have been removed. Use `RealmQuery.findAllAsync(String subscriptionName)` and `RealmQuery.findAllAsync()` instead.
