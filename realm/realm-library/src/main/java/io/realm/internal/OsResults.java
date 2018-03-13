@@ -16,14 +16,17 @@
 
 package io.realm.internal;
 
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
+import io.realm.internal.sync.OsSubscription;
 
 
 /**
@@ -202,9 +205,10 @@ public class OsResults implements NativeObject, ObservableCollection {
     private final OsSharedRealm sharedRealm;
     private final NativeContext context;
     private final Table table;
-    private boolean loaded;
+    protected boolean loaded;
     private boolean isSnapshot = false;
-    private final ObserverPairList<CollectionObserverPair> observerPairs =
+
+    protected final ObserverPairList<CollectionObserverPair> observerPairs =
             new ObserverPairList<CollectionObserverPair>();
 
     // Public for static checking in JNI
@@ -431,16 +435,20 @@ public class OsResults implements NativeObject, ObservableCollection {
     // Called by JNI
     @Override
     public void notifyChangeListeners(long nativeChangeSetPtr) {
-        if (nativeChangeSetPtr == 0 && isLoaded()) {
+        // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
+        // So it is possible it deliver a non-empty change set for the first async query returns.
+        OsCollectionChangeSet changeset = (nativeChangeSetPtr == 0)
+                ? new EmptyLoadChangeSet(null, sharedRealm.isPartial())
+                : new OsCollectionChangeSet(nativeChangeSetPtr, !isLoaded(), null, sharedRealm.isPartial());
+
+        // Happens e.g. if a synchronous query is created, a change listener is added and then
+        // a transaction is started on the same thread. This will trigger all notifications
+        // and deliver an empty changeset.
+        if (changeset.isEmpty() && isLoaded()) {
             return;
         }
-        boolean wasLoaded = loaded;
         loaded = true;
-        // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
-        // So it is possible it deliver a non-empty change set for the first async query returns. In this case, we
-        // return an empty change set to user since it is considered as the first time async query returns.
-        observerPairs.foreach(new Callback(nativeChangeSetPtr == 0 || !wasLoaded ?
-                null : new OsCollectionChangeSet(nativeChangeSetPtr)));
+        observerPairs.foreach(new Callback(changeset));
     }
 
     public Mode getMode() {
@@ -472,8 +480,8 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native long nativeGetFinalizerPtr();
 
-    private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-            @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
+    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
+                                                     @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 
@@ -517,4 +525,5 @@ public class OsResults implements NativeObject, ObservableCollection {
     private static native long nativeCreateResultsFromBacklinks(long sharedRealmNativePtr, long rowNativePtr, long srcTableNativePtr, long srColIndex);
 
     private static native void nativeEvaluateQueryIfNeeded(long nativePtr, boolean wantsNotifications);
+
 }

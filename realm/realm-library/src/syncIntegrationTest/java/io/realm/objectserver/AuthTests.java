@@ -123,7 +123,7 @@ public class AuthTests extends StandardIntegrationTest {
             @Override
             public void onSuccess(SyncUser user) {
                 assertTrue(user.isAdmin());
-                final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
+                final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                         .errorHandler((session, error) -> fail("Session failed: " + error))
                         .build();
 
@@ -148,7 +148,7 @@ public class AuthTests extends StandardIntegrationTest {
             @Override
             public void onSuccess(SyncUser user) {
                 assertFalse(user.isAdmin());
-                final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
+                final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                         .errorHandler((session, error) -> fail("Session failed: " + error))
                         .build();
 
@@ -174,7 +174,7 @@ public class AuthTests extends StandardIntegrationTest {
             @Override
             public void onSuccess(SyncUser user) {
                 assertFalse(user.isAdmin());
-                final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
+                final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                         .errorHandler((session, error) -> fail("Session failed: " + error))
                         .build();
 
@@ -200,7 +200,7 @@ public class AuthTests extends StandardIntegrationTest {
             @Override
             public void onSuccess(SyncUser user) {
                 assertTrue(user.isAdmin());
-                final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
+                final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                         .errorHandler((session, error) -> fail("Session failed: " + error))
                         .build();
 
@@ -401,7 +401,7 @@ public class AuthTests extends StandardIntegrationTest {
 
         when(user.isValid()).thenReturn(true, false);
 
-        final RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
+        final RealmConfiguration configuration = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM).build();
         Realm realm = Realm.getInstance(configuration);
 
         assertFalse(user.isValid());
@@ -444,7 +444,7 @@ public class AuthTests extends StandardIntegrationTest {
 
         try {
             // We should not be able to build a configuration with an invalid/logged out user
-            new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
+            configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM).build();
             fail("Invalid user, it should not be possible to create a SyncConfiguration");
         } catch (IllegalArgumentException expected) {
             // User not authenticated or authentication expired.
@@ -452,7 +452,7 @@ public class AuthTests extends StandardIntegrationTest {
 
         try {
             // We should not be able to build a configuration with an invalid/logged out user
-            new SyncConfiguration.Builder(currentUser, Constants.USER_REALM).build();
+            configurationFactory.createSyncConfigurationBuilder(currentUser, Constants.USER_REALM).build();
             fail("Invalid currentUser, it should not be possible to create a SyncConfiguration");
         } catch (IllegalArgumentException expected) {
             // User not authenticated or authentication expired.
@@ -467,7 +467,7 @@ public class AuthTests extends StandardIntegrationTest {
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
         SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
+        RealmConfiguration configuration = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM).build();
         user.logout();
         assertFalse(user.isValid());
         Realm instance = Realm.getInstance(configuration);

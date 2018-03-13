@@ -21,7 +21,7 @@ import java.util.Arrays;
 import javax.annotation.Nullable;
 
 import io.realm.OrderedCollectionChangeSet;
-
+import io.realm.internal.sync.OsSubscription;
 
 /**
  * Implementation of {@link OrderedCollectionChangeSet}. This class holds a pointer to the Object Store's
@@ -45,10 +45,25 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
 
     private static long finalizerPtr = nativeGetFinalizerPtr();
     private final long nativePtr;
+    private final boolean firstAsyncCallback;
+    protected final OsSubscription subscription;
+    protected final boolean isPartialRealm;
 
-    public OsCollectionChangeSet(long nativePtr) {
+    public OsCollectionChangeSet(long nativePtr, boolean firstAsyncCallback) {
+        this(nativePtr, firstAsyncCallback, null, false);
+    }
+
+    public OsCollectionChangeSet(long nativePtr, boolean firstAsyncCallback, @Nullable OsSubscription subscription, boolean isPartialRealm) {
         this.nativePtr = nativePtr;
+        this.firstAsyncCallback = firstAsyncCallback;
+        this.subscription = subscription;
+        this.isPartialRealm = isPartialRealm;
         NativeContext.dummyContext.addReference(this);
+    }
+
+    @Override
+    public State getState() {
+        throw new UnsupportedOperationException("This method should be overridden in a subclass");
     }
 
     /**
@@ -99,17 +114,46 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         return longArrayToRangeArray(nativeGetRanges(nativePtr, TYPE_MODIFICATION));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public long getNativePtr() {
-        return nativePtr;
+    public Throwable getError() {
+        if (subscription != null && subscription.getState() == OsSubscription.SubscriptionState.ERROR) {
+            return subscription.getError();
+        }
+        return null;
     }
 
     @Override
-    public long getNativeFinalizerPtr() {
-        return finalizerPtr;
+    public boolean isCompleteResult() {
+        throw new UnsupportedOperationException("This method should be overridden in a subclass");
+    }
+
+    public boolean isRemoteDataLoaded() {
+        if (!isPartialRealm) {
+            return true;
+        } else if (subscription == null) {
+            // This will in some cases return false positives, like adding change listeners
+            // to synchronous queries. For now this is acceptable.
+            return false;
+        } else {
+            return subscription.getState() == OsSubscription.SubscriptionState.COMPLETE;
+        }
+    }
+
+    /**
+     * Returns {@code true} if this is the first time an asynchronous query returns a result, i.e.
+     * the query completed. 
+     */
+    public boolean isFirstAsyncCallback() {
+        return firstAsyncCallback;
+    }
+
+    /**
+     * Returns {@code true} if this changeset is empty, and doesn't contain any relevant changes.
+     */
+    public boolean isEmpty() {
+        // Since this wrap a Object Store changeset, it will always contains changes if an
+        // Object Store changeset exists.
+        return nativePtr == 0;
     }
 
     // Convert long array returned by the nativeGetXxxRanges() to Range array.
@@ -126,14 +170,6 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         }
         return ranges;
     }
-
-    private native static long nativeGetFinalizerPtr();
-
-    // Returns the ranges as an long array. eg.: [startIndex1, length1, startIndex2, length2, ...]
-    private native static int[] nativeGetRanges(long nativePtr, int type);
-
-    // Returns the indices array.
-    private native static int[] nativeGetIndices(long nativePtr, int type);
 
     @Override
     public String toString() {
@@ -152,4 +188,25 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         return string;
 
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getNativePtr() {
+        return nativePtr;
+    }
+
+    @Override
+    public long getNativeFinalizerPtr() {
+        return finalizerPtr;
+    }
+
+    private native static long nativeGetFinalizerPtr();
+
+    // Returns the ranges as a long array. eg.: [startIndex1, length1, startIndex2, length2, ...]
+    private native static int[] nativeGetRanges(long nativePtr, int type);
+
+    // Returns the indices array.
+    private native static int[] nativeGetIndices(long nativePtr, int type);
 }

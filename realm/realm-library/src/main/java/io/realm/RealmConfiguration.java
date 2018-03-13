@@ -659,6 +659,22 @@ public class RealmConfiguration {
         }
 
         /**
+         * FIXME: Temporary visible
+         * DEBUG method. Will add a module unconditionally.
+         *
+         * Adds a module to already defined modules.
+         */
+        public final Builder addModule(Object module) {
+            //noinspection ConstantConditions
+            if (module != null) {
+                checkModule(module);
+                modules.add(module);
+            }
+
+            return this;
+        }
+
+        /**
          * Sets the {@link RxObservableFactory} used to create Rx Observables from Realm objects.
          * The default factory is {@link RealmObservableFactory}.
          *
@@ -749,14 +765,6 @@ public class RealmConfiguration {
             return this;
         }
 
-        private void addModule(Object module) {
-            //noinspection ConstantConditions
-            if (module != null) {
-                checkModule(module);
-                modules.add(module);
-            }
-        }
-
         /**
          * DEBUG method. This restricts the Realm schema to only consist of the provided classes without having to
          * create a module. These classes must be available in the default module. Calling this will remove any
@@ -804,6 +812,7 @@ public class RealmConfiguration {
             if (rxFactory == null && isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory();
             }
+
 
             return new RealmConfiguration(directory,
                     fileName,

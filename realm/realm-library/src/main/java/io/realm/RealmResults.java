@@ -20,11 +20,10 @@ package io.realm;
 import android.annotation.SuppressLint;
 import android.os.Looper;
 
-import io.reactivex.Flowable;
-import io.reactivex.Observable;
-
 import javax.annotation.Nullable;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsResults;
 import io.realm.internal.Row;
@@ -98,7 +97,6 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         realm.checkIfValid();
         return RealmQuery.createQueryFromResult(this);
     }
-
 
     /**
      * {@inheritDoc}

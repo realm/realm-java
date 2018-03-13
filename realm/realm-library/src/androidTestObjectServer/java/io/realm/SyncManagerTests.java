@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 
+import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -159,6 +160,7 @@ public class SyncManagerTests {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .modules(new StringOnlyModule())
                 .build();
         // This will trigger the creation of the session
         Realm realm = Realm.getInstance(config);

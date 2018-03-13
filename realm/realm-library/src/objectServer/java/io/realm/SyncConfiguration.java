@@ -38,9 +38,12 @@ import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
+import io.realm.sync.permissions.PermissionUser;
+import io.realm.sync.permissions.Role;
 
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
@@ -364,14 +367,12 @@ public class SyncConfiguration extends RealmConfiguration {
 
     /**
      * Whether this configuration is for a partial synchronization Realm.
+     * <p>
      * Partial synchronization allows a synchronized Realm to be opened in such a way that
-     * only objects requested by the user are synchronized to the device. You can use it by setting
-     * the {@link Builder#partialRealm()}, opening the Realm, and then calling
-     * {@link Realm#subscribeToObjects(Class, String, Realm.PartialSyncCallback)} with the type of
-     * object you're interested in, a string containing a query determining which objects you want
-     * to subscribe to, and a callback which will report the results.
+     * only objects queried by the user are synchronized to the device.
      *
      * @return {@code true} to open a partial synchronization Realm {@code false} otherwise.
+     * @see Builder#partialRealm() for more details.
      */
     public boolean isPartialRealm() {
         return isPartial;
@@ -716,6 +717,43 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
+         * current schema for this Realm with the schema defined by the provided modules.
+         * <p>
+         * A reference to the default Realm module containing all Realm classes in the project (but not dependencies),
+         * can be found using {@link Realm#getDefaultModule()}. Combining the schema from the app project and a library
+         * dependency is thus done using the following code:
+         * <p>
+         * {@code builder.modules(Realm.getDefaultMode(), new MyLibraryModule()); }
+         * <p>
+         * @param modules list of modules tthe first Realm module (required).
+         * @throws IllegalArgumentException if any of the modules don't have the {@link RealmModule} annotation.
+         * @see Realm#getDefaultModule()
+         */
+        public Builder modules(Iterable<Object> modules) {
+            this.modules.clear();
+            if (modules != null) {
+                for (Object module : modules) {
+                    addModule(module);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Adds a module to the already defined modules.
+         */
+        public Builder addModule(Object module) {
+            //noinspection ConstantConditions
+            if (module != null) {
+                checkModule(module);
+                modules.add(module);
+            }
+
+            return this;
+        }
+
+        /**
          * Sets the {@link RxObservableFactory} used to create Rx Observables from Realm objects.
          * The default factory is {@link RealmObservableFactory}.
          *
@@ -967,6 +1005,11 @@ public class SyncConfiguration extends RealmConfiguration {
                 }
             }
 
+            // If partial sync is enabled, also add support for Object Level Permissions
+            if (isPartial) {
+                addModule(new ObjectPermissionsModule());
+            }
+
             return new SyncConfiguration(
                     // Realm Configuration options
                     realmFileDirectory,
@@ -995,14 +1038,6 @@ public class SyncConfiguration extends RealmConfiguration {
                     sessionStopPolicy,
                     isPartial
             );
-        }
-
-        private void addModule(Object module) {
-            //noinspection ConstantConditions
-            if (module != null) {
-                checkModule(module);
-                modules.add(module);
-            }
         }
 
         private void checkModule(Object module) {

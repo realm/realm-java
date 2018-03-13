@@ -87,7 +87,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetFi
 }
 
 JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetRanges(JNIEnv* env, jclass,
-                                                                                       jlong native_ptr, jint type)
+                                                                                         jlong native_ptr, jint type)
 {
     TR_ENTER_PTR(native_ptr)
     // no throws
@@ -105,7 +105,7 @@ JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeG
 }
 
 JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetIndices(JNIEnv* env, jclass,
-                                                                                        jlong native_ptr, jint type)
+                                                                                          jlong native_ptr, jint type)
 {
     TR_ENTER_PTR(native_ptr)
     // no throws

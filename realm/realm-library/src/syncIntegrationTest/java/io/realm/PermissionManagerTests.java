@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.internal.OsRealmConfig;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
@@ -54,6 +55,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
+@Ignore // FIXME: Temporary disable unit tests due to lates (3.0.0-alpha.2) ROS having issues. Re-enable once ROS is stable again.
 public class PermissionManagerTests extends StandardIntegrationTest {
 
     private SyncUser user;
@@ -117,6 +119,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
                 // Create new Realm, which should create a new Permission entry
                 SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM_2)
+                        .schema(AllJavaTypes.class)
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {
@@ -163,7 +166,9 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 assertInitialPermissions(permissions);
 
                 for (int i = 0; i < TEST_SIZE; i++) {
-                    SyncConfiguration configNew = new SyncConfiguration.Builder(user, "realm://" + Constants.HOST + "/~/test" + i).build();
+                    SyncConfiguration configNew = new SyncConfiguration.Builder(user, "realm://" + Constants.HOST + "/~/test" + i)
+                            .schema(AllJavaTypes.class)
+                            .build();
                     Realm newRealm = Realm.getInstance(configNew);
                     looperThread.closeAfterTest(newRealm);
                 }
@@ -772,6 +777,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 // Default permissions are not recorded in the __permission Realm for user2
                 // Only way to check is by opening the Realm.
                 SyncConfiguration config = new SyncConfiguration.Builder(user2, url)
+                        .schema(AllJavaTypes.class)
                         .waitForInitialRemoteData()
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
@@ -1180,6 +1186,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         String url = Constants.AUTH_SERVER_URL + "~/" + realmName;
         SyncConfiguration config = new SyncConfiguration.Builder(user, url)
                 .name(realmName)
+                .schema(AllJavaTypes.class)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
 

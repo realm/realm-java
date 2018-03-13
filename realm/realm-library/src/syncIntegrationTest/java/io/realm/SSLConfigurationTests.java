@@ -32,6 +32,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
+import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -40,10 +41,15 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class SSLConfigurationTests extends StandardIntegrationTest {
 
+    // TODO: All tests in this class are currently marked @RunTestInLooperThread,
+    // this is strictly not necessary, but currently needed to avoid other issues with setting
+    // up tests.
+
     @Rule
     public Timeout globalTimeout = Timeout.seconds(120);
 
     @Test
+    @RunTestInLooperThread
     public void trustedRootCA() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
@@ -84,9 +90,11 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         } finally {
             realm.close();
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void withoutSSLVerification() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
@@ -127,9 +135,11 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         } finally {
             realm.close();
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void trustedRootCA_syncShouldFailWithoutTrustedCA() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
@@ -168,9 +178,11 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         } finally {
             realm.close();
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void combining_trustedRootCA_and_withoutSSLVerification_willThrow() {
         String username = UUID.randomUUID().toString();
         String password = "password";
@@ -193,9 +205,11 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
                 testLogger.message);
         RealmLog.remove(testLogger);
         RealmLog.setLevel(originalLevel);
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void trustedRootCA_notExisting_certificate_willThrow() {
         String username = UUID.randomUUID().toString();
         String password = "password";
@@ -211,9 +225,11 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
             fail();
         } catch (RealmFileException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
+    @RunTestInLooperThread
     public void combiningTrustedRootCA_and_disableSSLVerification() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
@@ -255,6 +271,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         } finally {
             realm.close();
         }
+        looperThread.testComplete();
     }
 
     // IMPORTANT: Following test assume the root certificate is installed on the test device
@@ -262,6 +279,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
     //            adb push <realm-java>/tools/sync_test_server/keys/android_test_certificate.crt /sdcard/
     //            then import the certificate from the device (Settings/Security/Install from storage)
     @Test
+    @RunTestInLooperThread
     public void sslVerifyCallback_isUsed() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
@@ -301,5 +319,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         } finally {
             realm.close();
         }
+        looperThread.testComplete();
     }
 }
