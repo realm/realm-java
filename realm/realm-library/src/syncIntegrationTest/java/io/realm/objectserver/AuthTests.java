@@ -76,7 +76,7 @@ public class AuthTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     public void loginAsync_userNotExist() {
         SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -95,7 +95,7 @@ public class AuthTests extends StandardIntegrationTest {
     public void login_newUser() {
         String userId = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(userId, "password", true);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertFalse(user.isAdmin());
@@ -119,7 +119,7 @@ public class AuthTests extends StandardIntegrationTest {
     public void login_withAccessToken() {
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         SyncCredentials credentials = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(adminUser).value(), "custom-admin-user", adminUser.isAdmin());
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertTrue(user.isAdmin());
@@ -144,7 +144,7 @@ public class AuthTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     public void login_withAnonymous() {
         SyncCredentials credentials = SyncCredentials.anonymous();
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertFalse(user.isAdmin());
@@ -170,7 +170,7 @@ public class AuthTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     public void login_withNickname() {
         SyncCredentials credentials = SyncCredentials.nickname("foo", false);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertFalse(user.isAdmin());
@@ -196,7 +196,7 @@ public class AuthTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     public void login_withNicknameAsAdmin() {
         SyncCredentials credentials = SyncCredentials.nickname("foo", true);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertTrue(user.isAdmin());
@@ -234,7 +234,7 @@ public class AuthTests extends StandardIntegrationTest {
                         @Override
                         public void run() {
                             SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-                            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+                            SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
                                 @Override
                                 public void onSuccess(SyncUser user) {
                                     fail();

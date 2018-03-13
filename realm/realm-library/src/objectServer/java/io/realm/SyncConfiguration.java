@@ -48,7 +48,7 @@ import io.realm.rx.RxObservableFactory;
  * Object Server.
  * <p>
  * A valid {@link SyncUser} is required to create a {@link SyncConfiguration}. See {@link SyncCredentials} and
- * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)} for more information on
+ * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)} for more information on
  * how to get a user object.
  * <p>
  * A minimal {@link SyncConfiguration} can be found below.

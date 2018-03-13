@@ -188,7 +188,7 @@ public class SyncUser {
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public static RealmAsyncTask loginAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback<SyncUser> callback) {
+    public static RealmAsyncTask logInAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback<SyncUser> callback) {
         checkLooperThread("Asynchronous login is only possible from looper threads.");
         return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
