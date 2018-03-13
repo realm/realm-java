@@ -204,7 +204,7 @@ public class SyncCredentials {
     /**
      * Creates credentials from an existing access token. Since an access token is the proof that a user already
      * has logged in. Credentials created this way are automatically assumed to have successfully logged in.
-     * This means that providing these credentials to {@link SyncUser#login(SyncCredentials, String)} will always
+     * This means that providing these credentials to {@link SyncUser#logIn(SyncCredentials, String)} will always
      * succeed, but accessing any Realm after might fail if the token is no longer valid.
      * <p>
      * It is assumed that this user is not an administrator. Otherwise use {@link #accessToken(String, String, boolean)}.
@@ -221,7 +221,7 @@ public class SyncCredentials {
     /**
      * Creates credentials from an existing access token. Since an access token is the proof that a user already
      * has logged in. Credentials created this way are automatically assumed to have successfully logged in.
-     * This means that providing these credentials to {@link SyncUser#login(SyncCredentials, String)} will always
+     * This means that providing these credentials to {@link SyncUser#logIn(SyncCredentials, String)} will always
      * succeed, but accessing any Realm after might fail if the token is no longer valid.
      *
      * @param accessToken user's access token.

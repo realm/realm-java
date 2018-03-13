@@ -42,8 +42,6 @@ import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
-import io.realm.sync.permissions.PermissionUser;
-import io.realm.sync.permissions.Role;
 
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
@@ -903,7 +901,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Setting this will cause the local Realm file used to synchronize changes to be deleted if the {@link SyncUser}
-         * owning this Realm logs out from the device using {@link SyncUser#logout()}.
+         * owning this Realm logs out from the device using {@link SyncUser#logOut()}.
          * <p>
          * The default behavior is that the Realm file is allowed to stay behind, making it possible for users to log
          * in again and have access to their data faster.

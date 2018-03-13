@@ -17,10 +17,8 @@ package io.realm.objectserver;
 
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -266,7 +264,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
                                 AndroidCapabilities.EMULATE_MAIN_THREAD = oldValue;
                                 pm.close();
                                 realm.close();
-                                adminUser.logout();
+                                adminUser.logOut();
                                 setupRealm.countDown();
                             });
                         }

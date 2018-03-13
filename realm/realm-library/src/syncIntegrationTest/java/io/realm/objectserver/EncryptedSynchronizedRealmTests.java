@@ -43,7 +43,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         // STEP 1: open a synced Realm using a local encryption key
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         final byte[] randomKey = TestHelper.getRandomKey();
 
@@ -69,11 +69,11 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         // STEP 2:  make sure the changes gets to the server
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
         realm.close();
-        user.logout();
+        user.logOut();
 
         // STEP 3: try to open again the same sync Realm but different local name without the encryption key should not
         // fail
-        user = SyncUser.login(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         SyncConfiguration configWithoutEncryption = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .name("newName")
                 .modules(new StringOnlyModule())
@@ -92,7 +92,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         assertEquals("Hi Alice", all.get(0).getChars());
 
         realm.close();
-        user.logout();
+        user.logOut();
     }
 
     // If an encrypted synced Realm is re-opened with the wrong key, throw an exception.
@@ -101,7 +101,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         // STEP 1: open a synced Realm using a local encryption key
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         final byte[] randomKey = TestHelper.getRandomKey();
 
@@ -128,10 +128,10 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         SyncManager.getSession(configWithEncryption).uploadAllLocalChanges();
 
         realm.close();
-        user.logout();
+        user.logOut();
 
         // STEP 3: try to open again the Realm without the encryption key should fail
-        user = SyncUser.login(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         SyncConfiguration configWithoutEncryption = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .modules(new StringOnlyModule())
                 .waitForInitialRemoteData()
@@ -160,7 +160,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         // STEP 1: prepare a synced Realm for client A
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         final byte[] randomKey = TestHelper.getRandomKey();
 
@@ -190,7 +190,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         // STEP 3: prepare a synced Realm for client B (admin user)
         SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
         SyncCredentials credentials = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
-        SyncUser adminUser = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser adminUser = SyncUser.logIn(credentials, Constants.AUTH_URL);
 
         final byte[] adminRandomKey = TestHelper.getRandomKey();
 
@@ -235,9 +235,9 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         assertEquals("Hi Bob", allSortedAdmin.get(1).getChars());
 
         adminRealm.close();
-        adminUser.logout();
+        adminUser.logOut();
 
         realm.close();
-        user.logout();
+        user.logOut();
     }
 }
