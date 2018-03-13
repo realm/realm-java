@@ -17,6 +17,7 @@
 package io.realm.examples.arch;
 
 import android.annotation.SuppressLint;
+import android.os.SystemClock;
 import android.support.annotation.MainThread;
 import android.util.Log;
 
@@ -81,11 +82,10 @@ public class BackgroundTask {
 
                 while (!isInterrupted()) {
                     realm.executeTransaction(transaction);
-                    Thread.sleep(1000L);
+                    SystemClock.sleep(1000L);
                 }
-            } catch (InterruptedException e) {
-                Log.i(TAG, "Background job stopped.");
             }
+            Log.i(TAG, "Background job stopped.");
         }
     }
 }

@@ -38,10 +38,10 @@ public class PersonFragment extends Fragment {
         return personFragment;
     }
 
-    TextView name;
-    TextView age;
+    private PersonViewModel personViewModel;
 
-    PersonViewModel personViewModel;
+    private TextView name;
+    private TextView age;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
