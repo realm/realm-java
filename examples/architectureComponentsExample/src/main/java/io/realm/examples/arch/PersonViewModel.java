@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package io.realm.examples.arch;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
 
 import io.realm.Realm;
@@ -23,23 +24,30 @@ import io.realm.examples.arch.livemodel.LiveRealmObject;
 import io.realm.examples.arch.model.Person;
 
 
-public class ExampleViewModel extends ViewModel {
+public class PersonViewModel extends ViewModel {
     private final Realm realm;
 
-    private final LiveRealmObject<Person> livePerson;
+    private LiveData<Person> livePerson;
 
-    public ExampleViewModel() {
-        realm = Realm.getDefaultInstance();
-        livePerson = new LiveRealmObject<>(realm.where(Person.class).findAllSorted("name").first());
+    public PersonViewModel() {
+        realm = Realm.getDefaultInstance(); // Realm is bound to the lifecycle of the ViewModel, and stays alive as long as it is needed.
     }
 
-    public LiveRealmObject<Person> getPerson() {
+    public LiveData<Person> getPerson() {
         return livePerson;
     }
 
     @Override
     protected void onCleared() {
-        realm.close();
+        realm.close(); // Realm is bound to the lifecycle of the ViewModel, and is destroyed when no longer needed.
         super.onCleared();
+    }
+
+    public void setup(String personName) {
+        Person person = realm.where(Person.class).equalTo("name", personName).findFirst();
+        if (person == null) {
+            throw new IllegalStateException("The person was not found, it shouldn't be deleted!");
+        }
+        livePerson = new LiveRealmObject<>(person);
     }
 }
