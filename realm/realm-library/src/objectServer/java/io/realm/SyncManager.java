@@ -148,7 +148,7 @@ public class SyncManager {
 
     /**
      * Set the {@link UserStore} used by the Realm Object Server to save user information.
-     * If no Userstore is specified {@link SyncUser#currentUser()} will always return {@code null}.
+     * If no Userstore is specified {@link SyncUser#current()} will always return {@code null}.
      *
      * @param userStore {@link UserStore} to use.
      * @throws IllegalArgumentException if {@code userStore} is {@code null}.

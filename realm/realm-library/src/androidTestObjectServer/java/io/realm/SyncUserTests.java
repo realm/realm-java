@@ -141,8 +141,8 @@ public class SyncUserTests {
     public void equals_loggedOutUser() {
         final SyncUser user1 = createFakeUser("id_value");
         final SyncUser user2 = createFakeUser("id_value");
-        user1.logout();
-        user2.logout();
+        user1.logOut();
+        user2.logOut();
         assertTrue(user1.equals(user2));
     }
 
@@ -155,7 +155,7 @@ public class SyncUserTests {
     @Test
     public void hashCode_loggedOutUser() {
         final SyncUser user = createFakeUser("id_value");
-        user.logout();
+        user.logOut();
         assertNotEquals(0, user.hashCode());
     }
 
@@ -174,7 +174,7 @@ public class SyncUserTests {
         userStore.put(SyncTestUtils.createTestUser(Long.MIN_VALUE));
 
         // Invalid users should not be returned when asking the for the current user
-        assertNull(SyncUser.currentUser());
+        assertNull(SyncUser.current());
     }
 
     @Test
@@ -191,12 +191,12 @@ public class SyncUserTests {
                     return getNewRandomUser();
                 }
             });
-            SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
-            SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+            SyncUser.logIn(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+            SyncUser.logIn(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
 
-            // 2. Verify currentUser() now throws
+            // 2. Verify current() now throws
             try {
-                SyncUser.currentUser();
+                SyncUser.current();
                 fail();
             } catch (IllegalStateException ignore) {
             }
@@ -220,11 +220,11 @@ public class SyncUserTests {
         UserStore userStore = SyncManager.getUserStore();
         userStore.put(user);
 
-        SyncUser savedUser = SyncUser.currentUser();
+        SyncUser savedUser = SyncUser.current();
         assertEquals(user, savedUser);
         assertNotNull(savedUser);
-        savedUser.logout();
-        assertNull(SyncUser.currentUser());
+        savedUser.logOut();
+        assertNull(SyncUser.current());
     }
 
     // `all()` returns an empty list if no users are logged in
@@ -275,8 +275,8 @@ public class SyncUserTests {
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
         when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenReturn(SyncTestUtils.createLoginResponse(Long.MAX_VALUE));
 
-        SyncUser user = SyncUser.login(SyncCredentials.facebook("foo"), "http://bar.com/auth");
-        assertEquals(user, SyncUser.currentUser());
+        SyncUser user = SyncUser.logIn(SyncCredentials.facebook("foo"), "http://bar.com/auth");
+        assertEquals(user, SyncUser.current());
     }
 
     @Test
@@ -295,7 +295,7 @@ public class SyncUserTests {
         SyncManager.setAuthServerImpl(authServer);
         try {
             SyncCredentials credentials = SyncCredentials.accessToken("foo", "bar");
-            SyncUser user = SyncUser.login(credentials, "http://ros.realm.io/auth");
+            SyncUser user = SyncUser.logIn(credentials, "http://ros.realm.io/auth");
             assertTrue(user.isValid());
         } finally {
             SyncManager.setAuthServerImpl(originalServer);
@@ -324,9 +324,9 @@ public class SyncUserTests {
                 String input = url[0];
                 String normalizedInput = url[1];
                 SyncCredentials credentials = SyncCredentials.accessToken("token", UUID.randomUUID().toString());
-                SyncUser user = SyncUser.login(credentials, input);
+                SyncUser user = SyncUser.logIn(credentials, input);
                 assertEquals(normalizedInput, user.getAuthenticationUrl().toString());
-                user.logout();
+                user.logOut();
             }
         } finally {
             SyncManager.setAuthServerImpl(originalServer);
@@ -446,8 +446,8 @@ public class SyncUserTests {
         } finally {
             pm1.close();
             pm2.close();
-            user1.logout();
-            user2.logout();
+            user1.logOut();
+            user2.logOut();
         }
     }
 
@@ -553,7 +553,7 @@ public class SyncUserTests {
                 realm.createObject(StringOnly.class).setChars("1");
             }
         });
-        user.logout();
+        user.logOut();
         realm.close();
 
         final File realmPath = new File (syncConfiguration.getPath());
