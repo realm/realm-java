@@ -1,3 +1,9 @@
+## 5.0.0 (YYYY-MM-DD)
+
+## Enhancements
+
+* [ObjectServer] Added `SyncConfiguration.automatic()` and `SyncConfiguration.automatic(SyncUser user)` (#5806).
+
 ## 5.0.0-BETA1 (2018-03-06)
 
 ### Known Bugs
