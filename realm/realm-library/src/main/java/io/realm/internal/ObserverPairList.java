@@ -45,7 +45,7 @@ public class ObserverPairList<T extends ObserverPairList.ObserverPair> {
         // Should only be set by the outer class. To marked it as removed in case it is removed in foreach callback.
         boolean removed = false;
 
-        ObserverPair(T observer, S listener) {
+        public ObserverPair(T observer, S listener) {
             this.listener = listener;
             this.observerRef = new WeakReference<T>(observer);
         }

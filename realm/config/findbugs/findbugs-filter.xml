@@ -24,5 +24,20 @@
     <Match>
         <Class name="io.realm.io_realm_permissions_PermissionRealmProxy"/>
     </Match>
+    <Match>
+        <Class name="io.realm.io_realm_sync_permissions_ClassPermissionsRealmProxy"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.io_realm_sync_permissions_RealmPermissionsRealmProxy"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.io_realm_sync_permissions_PermissionRealmProxy"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.io_realm_sync_permissions_RoleRealmProxy"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.io_realm_sync_permissions_PermissionUserRealmProxy"/>
+    </Match>
 
 </FindBugsFilter>

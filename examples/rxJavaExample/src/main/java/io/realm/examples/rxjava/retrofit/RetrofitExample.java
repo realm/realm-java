@@ -60,7 +60,7 @@ public class RetrofitExample extends AppCompatActivity {
         super.onResume();
 
         // Load all persons and merge them with their latest stats from GitHub (if they have any)
-        disposable = realm.where(Person.class).isNotNull("githubUserName").findAllSortedAsync("name").asFlowable()
+        disposable = realm.where(Person.class).isNotNull("githubUserName").sort("name").findAllAsync().asFlowable()
                 // We only want the list once it is loaded.
                 .filter(people -> people.isLoaded())
                 .switchMap(people -> Flowable.fromIterable(people))

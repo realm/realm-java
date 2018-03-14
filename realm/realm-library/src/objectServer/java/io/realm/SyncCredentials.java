@@ -78,7 +78,7 @@ public class SyncCredentials {
      *
      * @param facebookToken a facebook userIdentifier acquired by logging into Facebook.
      * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static SyncCredentials facebook(String facebookToken) {
@@ -91,7 +91,7 @@ public class SyncCredentials {
      *
      * @param googleToken a google userIdentifier acquired by logging into Google.
      * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static SyncCredentials google(String googleToken) {
@@ -104,7 +104,7 @@ public class SyncCredentials {
      *
      * @param jwtToken a JWT token that identifies the user.
      * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if the token is either {@code null} or empty.
      */
     public static SyncCredentials jwt(String jwtToken) {
@@ -119,7 +119,7 @@ public class SyncCredentials {
      *  and it isn't possible to share the user details across devices.
      *
      * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}.
      */
     public static SyncCredentials anonymous() {
         return new SyncCredentials("", IdentityProvider.ANONYMOUS, null);
@@ -134,7 +134,7 @@ public class SyncCredentials {
      *
      * @param nickname that identifies a user
      * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if the nickname is either {@code null} or empty.
      */
     public static SyncCredentials nickname(String nickname, boolean isAdmin) {
@@ -154,7 +154,7 @@ public class SyncCredentials {
      * create a user twice when logging in, so this flag should only be set to {@code true} the first
      * time a users log in.
      * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static SyncCredentials usernamePassword(String username, String password, boolean createUser) {
@@ -172,7 +172,7 @@ public class SyncCredentials {
      * @param username username of the user.
      * @param password the users password.
      * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static SyncCredentials usernamePassword(String username, String password) {
@@ -189,7 +189,7 @@ public class SyncCredentials {
      * data will be serialized to JSON, so all values must be mappable to a valid JSON data type. Custom
      * classes will be converted using {@code toString()}.
      * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}.
+     * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if any parameter is either {@code null} or empty.
      */
     public static SyncCredentials custom(String userIdentifier, String identityProvider, @Nullable Map<String, Object> userInfo) {
@@ -204,7 +204,7 @@ public class SyncCredentials {
     /**
      * Creates credentials from an existing access token. Since an access token is the proof that a user already
      * has logged in. Credentials created this way are automatically assumed to have successfully logged in.
-     * This means that providing these credentials to {@link SyncUser#login(SyncCredentials, String)} will always
+     * This means that providing these credentials to {@link SyncUser#logIn(SyncCredentials, String)} will always
      * succeed, but accessing any Realm after might fail if the token is no longer valid.
      * <p>
      * It is assumed that this user is not an administrator. Otherwise use {@link #accessToken(String, String, boolean)}.
@@ -212,7 +212,7 @@ public class SyncCredentials {
      * @param accessToken user's access token.
      * @param identifier user identifier.
      * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
+     * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}
      */
     public static SyncCredentials accessToken(String accessToken, String identifier) {
         return accessToken(accessToken, identifier, false);
@@ -221,7 +221,7 @@ public class SyncCredentials {
     /**
      * Creates credentials from an existing access token. Since an access token is the proof that a user already
      * has logged in. Credentials created this way are automatically assumed to have successfully logged in.
-     * This means that providing these credentials to {@link SyncUser#login(SyncCredentials, String)} will always
+     * This means that providing these credentials to {@link SyncUser#logIn(SyncCredentials, String)} will always
      * succeed, but accessing any Realm after might fail if the token is no longer valid.
      *
      * @param accessToken user's access token.
@@ -230,7 +230,7 @@ public class SyncCredentials {
      * non-privileged users. It is to <i>not</i> possible to upgrade a non-admin token to an admin token by setting this
      * value. It is purely informational.
      * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)}
+     * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}
      */
     public static SyncCredentials accessToken(String accessToken, String identifier, boolean isAdmin) {
         HashMap<String, Object> userInfo = new HashMap<String, Object>();

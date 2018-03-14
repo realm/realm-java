@@ -20,11 +20,12 @@
 #include "io_realm_internal_Property.h"
 #include "io_realm_internal_Table.h"
 
-#include "shared_realm.hpp"
-
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"
+#include "shared_realm.hpp"
 #include "jni_util/java_exception_thrower.hpp"
+
+#include <realm/util/to_string.hpp>
 
 using namespace std;
 using namespace realm;
@@ -536,13 +537,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSize(JNIEnv* env, job
     return static_cast<jlong>(TBL(nativeTablePtr)->size()); // noexcept
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClear(JNIEnv* env, jobject, jlong nativeTablePtr)
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClear(JNIEnv* env, jobject, jlong nativeTablePtr, jboolean is_partial_realm)
 {
     if (!TABLE_VALID(env, TBL(nativeTablePtr))) {
         return;
     }
     try {
-        TBL(nativeTablePtr)->clear();
+        if (is_partial_realm) {
+            TBL(nativeTablePtr)->where().find_all().clear(RemoveMode::unordered);
+        } else {
+            TBL(nativeTablePtr)->clear();
+        }
     }
     CATCH_STD()
 }
