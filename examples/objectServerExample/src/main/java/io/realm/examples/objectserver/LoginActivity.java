@@ -103,7 +103,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
 
-        SyncUser.loginAsync(creds, REALM_AUTH_URL, callback);
+        SyncUser.logInAsync(creds, REALM_AUTH_URL, callback);
     }
 
     @Override

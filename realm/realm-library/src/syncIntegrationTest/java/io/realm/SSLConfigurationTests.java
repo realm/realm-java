@@ -53,7 +53,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
     public void trustedRootCA() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server
         //noinspection unchecked
@@ -69,11 +69,11 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         // make sure the changes gets to the server
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
-        user.logout();
+        user.logOut();
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
-        user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         //noinspection unchecked
         SyncConfiguration syncConfigSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .name("useSsl")
@@ -98,7 +98,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
     public void withoutSSLVerification() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server
         //noinspection unchecked
@@ -114,11 +114,11 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         // make sure the changes gets to the server
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
-        user.logout();
+        user.logOut();
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
-        user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         //noinspection unchecked
         SyncConfiguration syncConfigSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .name("useSsl")
@@ -143,7 +143,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
     public void trustedRootCA_syncShouldFailWithoutTrustedCA() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server
         //noinspection unchecked
@@ -159,11 +159,11 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         // make sure the changes gets to the server
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
-        user.logout();
+        user.logOut();
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
-        user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         //noinspection unchecked
         SyncConfiguration syncConfigSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .name("useSsl")
@@ -186,7 +186,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
     public void combining_trustedRootCA_and_withoutSSLVerification_willThrow() {
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
         int originalLevel = RealmLog.getLevel();
@@ -213,7 +213,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
     public void trustedRootCA_notExisting_certificate_willThrow() {
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
         //noinspection unchecked
         SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .schema(StringOnly.class)
@@ -233,7 +233,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
     public void combiningTrustedRootCA_and_disableSSLVerification() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server using ssl_verify_path option
         //noinspection unchecked
@@ -250,11 +250,11 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         // make sure the changes gets to the server
         SyncManager.getSession(syncConfigWithCertificate).uploadAllLocalChanges();
         realm.close();
-        user.logout();
+        user.logOut();
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
-        user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         //noinspection unchecked
         SyncConfiguration syncConfigDisableSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .name("useSsl")
@@ -283,7 +283,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
     public void sslVerifyCallback_isUsed() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server using ssl_verify_path option
         //noinspection unchecked
@@ -299,11 +299,11 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         // make sure the changes gets to the server
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
-        user.logout();
+        user.logOut();
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
-        user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         //noinspection unchecked
         SyncConfiguration syncConfigSecure = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .name("useSsl")

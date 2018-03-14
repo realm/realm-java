@@ -33,7 +33,6 @@ import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
-import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.annotations.RealmModule;
@@ -108,7 +107,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
             @Override
             protected void run() {
                 getService().getRealm().close();
-                user.logout();
+                user.logOut();
             }
         };
     }
@@ -138,7 +137,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 assertEquals(1, all.size());
                 assertEquals("Background_Process1", all.get(0).getName());
                 realm.close();
-                user.logout();
+                user.logOut();
 
                 remoteService.triggerServiceStep(SimpleCommitRemoteService.stepB_closeRealmAndLogOut);
 
@@ -186,7 +185,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
             @Override
             protected void run() {
                 getService().getRealm().close();
-                user.logout();
+                user.logOut();
             }
         };
     }
@@ -228,7 +227,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 if (counter == 10) {
                     remoteService.triggerServiceStep(ALotCommitsRemoteService.stepC_closeRealm);
                     realm.close();
-                    user.logout();
+                    user.logOut();
                     looperThread.testComplete();
                 } else {
                     remoteService.triggerServiceStep(ALotCommitsRemoteService.stepB_createObjects);
