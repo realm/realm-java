@@ -3,6 +3,9 @@
 ### Enhancements
 
 * Added support for mapping between a Java name and the underlying name in the Realm file using `@RealmModule`, `@RealmClass` and `@RealmField` annotations (#5280).
+
+## Bug Fixes
+
 * [ObjectServer] Fixed an issue where login after a logout will not resume Syncing (https://github.com/realm/my-first-realm-app/issues/22).
 
 
