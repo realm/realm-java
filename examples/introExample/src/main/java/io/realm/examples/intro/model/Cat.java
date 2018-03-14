@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,5 +19,6 @@ package io.realm.examples.intro.model;
 import io.realm.RealmObject;
 
 public class Cat extends RealmObject {
-    public  String name;
+    // It is possible to also use public fields, instead of getters/setters.
+    public String name;
 }

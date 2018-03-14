@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,26 +19,38 @@ package io.realm.examples.intro.model;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
+import io.realm.annotations.Index;
+import io.realm.annotations.PrimaryKey;
 
 // Your model just have to extend RealmObject.
 // This will inherit an annotation which produces proxy getters and setters for all fields.
+// It is also possible to use @RealmClass annotation, and implement RealmModel interface.
 public class Person extends RealmObject {
 
     // All fields are by default persisted.
-    private String name;
     private int age;
 
-    // Other objects in a one-to-one relation must also subclass RealmObject
+    // Adding an index makes queries execute faster on that field.
+    @Index
+    private String name;
+
+    // Primary keys are optional, but it allows identifying a specific object
+    // when Realm writes are instructed to update if the object already exists in the Realm
+    @PrimaryKey
+    private long id;
+
+    // Other objects in a one-to-one relation must also implement RealmModel, or extend RealmObject
     private Dog dog;
 
-    // One-to-many relations is simply a RealmList of the objects which also subclass RealmObject
+    // One-to-many relations is simply a RealmList of the objects which also implements RealmModel
     private RealmList<Cat> cats;
+
+    // It is also possible to have list of primitive types (long, String, Date, byte[], etc.)
+    private RealmList<String> phoneNumbers;
 
     // You can instruct Realm to ignore a field and not persist it.
     @Ignore
     private int tempReference;
-
-    private long id;
 
     // Let your IDE generate getters and setters for you!
     // Or if you like you can even have public fields and no accessors! See Dog.java and Cat.java
@@ -56,6 +68,14 @@ public class Person extends RealmObject {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public Dog getDog() {
@@ -82,11 +102,11 @@ public class Person extends RealmObject {
         this.tempReference = tempReference;
     }
 
-    public long getId() {
-        return id;
+    public RealmList<String> getPhoneNumbers() {
+        return phoneNumbers;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setPhoneNumbers(RealmList<String> phoneNumbers) {
+        this.phoneNumbers = phoneNumbers;
     }
 }
