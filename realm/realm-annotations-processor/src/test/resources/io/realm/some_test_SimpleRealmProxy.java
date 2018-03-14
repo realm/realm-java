@@ -31,8 +31,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 @SuppressWarnings("all")
-public class SimpleRealmProxy extends some.test.Simple
-        implements RealmObjectProxy, SimpleRealmProxyInterface {
+public class some_test_SimpleRealmProxy extends some.test.Simple
+        implements RealmObjectProxy, some_test_SimpleRealmProxyInterface {
 
     static final class SimpleColumnInfo extends ColumnInfo {
         long nameIndex;
@@ -41,8 +41,8 @@ public class SimpleRealmProxy extends some.test.Simple
         SimpleColumnInfo(OsSchemaInfo schemaInfo) {
             super(2);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("Simple");
-            this.nameIndex = addColumnDetails("name", objectSchemaInfo);
-            this.ageIndex = addColumnDetails("age", objectSchemaInfo);
+            this.nameIndex = addColumnDetails("name", "name", objectSchemaInfo);
+            this.ageIndex = addColumnDetails("age", "age", objectSchemaInfo);
         }
 
         SimpleColumnInfo(ColumnInfo src, boolean mutable) {
@@ -65,18 +65,11 @@ public class SimpleRealmProxy extends some.test.Simple
     }
 
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
-    private static final List<String> FIELD_NAMES;
-    static {
-        List<String> fieldNames = new ArrayList<String>(2);
-        fieldNames.add("name");
-        fieldNames.add("age");
-        FIELD_NAMES = Collections.unmodifiableList(fieldNames);
-    }
 
     private SimpleColumnInfo columnInfo;
     private ProxyState<some.test.Simple> proxyState;
 
-    SimpleRealmProxy() {
+    some_test_SimpleRealmProxy() {
         proxyState.setConstructionFinished();
     }
 
@@ -165,8 +158,8 @@ public class SimpleRealmProxy extends some.test.Simple
         return "Simple";
     }
 
-    public static List<String> getFieldNames() {
-        return FIELD_NAMES;
+    public static final class ClassNameHelper {
+        public static final String INTERNAL_CLASS_NAME = "Simple";
     }
 
     @SuppressWarnings("cast")
@@ -175,7 +168,7 @@ public class SimpleRealmProxy extends some.test.Simple
         final List<String> excludeFields = Collections.<String> emptyList();
         some.test.Simple obj = realm.createObjectInternal(some.test.Simple.class, true, excludeFields);
 
-        final SimpleRealmProxyInterface objProxy = (SimpleRealmProxyInterface) obj;
+        final some_test_SimpleRealmProxyInterface objProxy = (some_test_SimpleRealmProxyInterface) obj;
         if (json.has("name")) {
             if (json.isNull("name")) {
                 objProxy.realmSet$name(null);
@@ -198,7 +191,7 @@ public class SimpleRealmProxy extends some.test.Simple
     public static some.test.Simple createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
         final some.test.Simple obj = new some.test.Simple();
-        final SimpleRealmProxyInterface objProxy = (SimpleRealmProxyInterface) obj;
+        final some_test_SimpleRealmProxyInterface objProxy = (some_test_SimpleRealmProxyInterface) obj;
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -254,8 +247,8 @@ public class SimpleRealmProxy extends some.test.Simple
         some.test.Simple realmObject = realm.createObjectInternal(some.test.Simple.class, false, Collections.<String>emptyList());
         cache.put(newObject, (RealmObjectProxy) realmObject);
 
-        SimpleRealmProxyInterface realmObjectSource = (SimpleRealmProxyInterface) newObject;
-        SimpleRealmProxyInterface realmObjectCopy = (SimpleRealmProxyInterface) realmObject;
+        some_test_SimpleRealmProxyInterface realmObjectSource = (some_test_SimpleRealmProxyInterface) newObject;
+        some_test_SimpleRealmProxyInterface realmObjectCopy = (some_test_SimpleRealmProxyInterface) realmObject;
 
         realmObjectCopy.realmSet$name(realmObjectSource.realmGet$name());
         realmObjectCopy.realmSet$age(realmObjectSource.realmGet$age());
@@ -271,11 +264,11 @@ public class SimpleRealmProxy extends some.test.Simple
         SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
-        String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
+        String realmGet$name = ((some_test_SimpleRealmProxyInterface) object).realmGet$name();
         if (realmGet$name != null) {
             Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name, false);
         }
-        Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface) object).realmGet$age(), false);
+        Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
         return rowIndex;
     }
 
@@ -295,11 +288,11 @@ public class SimpleRealmProxy extends some.test.Simple
             }
             long rowIndex = OsObject.createRow(table);
             cache.put(object, rowIndex);
-            String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
+            String realmGet$name = ((some_test_SimpleRealmProxyInterface) object).realmGet$name();
             if (realmGet$name != null) {
                 Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name, false);
             }
-            Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface) object).realmGet$age(), false);
+            Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
         }
     }
 
@@ -312,13 +305,13 @@ public class SimpleRealmProxy extends some.test.Simple
         SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
         long rowIndex = OsObject.createRow(table);
         cache.put(object, rowIndex);
-        String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
+        String realmGet$name = ((some_test_SimpleRealmProxyInterface) object).realmGet$name();
         if (realmGet$name != null) {
             Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name, false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.nameIndex, rowIndex, false);
         }
-        Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface) object).realmGet$age(), false);
+        Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
         return rowIndex;
     }
 
@@ -338,13 +331,13 @@ public class SimpleRealmProxy extends some.test.Simple
             }
             long rowIndex = OsObject.createRow(table);
             cache.put(object, rowIndex);
-            String realmGet$name = ((SimpleRealmProxyInterface) object).realmGet$name();
+            String realmGet$name = ((some_test_SimpleRealmProxyInterface) object).realmGet$name();
             if (realmGet$name != null) {
                 Table.nativeSetString(tableNativePtr, columnInfo.nameIndex, rowIndex, realmGet$name, false);
             } else {
                 Table.nativeSetNull(tableNativePtr, columnInfo.nameIndex, rowIndex, false);
             }
-            Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((SimpleRealmProxyInterface) object).realmGet$age(), false);
+            Table.nativeSetLong(tableNativePtr, columnInfo.ageIndex, rowIndex, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
         }
     }
 
@@ -365,8 +358,8 @@ public class SimpleRealmProxy extends some.test.Simple
             unmanagedObject = (some.test.Simple) cachedObject.object;
             cachedObject.minDepth = currentDepth;
         }
-        SimpleRealmProxyInterface unmanagedCopy = (SimpleRealmProxyInterface) unmanagedObject;
-        SimpleRealmProxyInterface realmSource = (SimpleRealmProxyInterface) realmObject;
+        some_test_SimpleRealmProxyInterface unmanagedCopy = (some_test_SimpleRealmProxyInterface) unmanagedObject;
+        some_test_SimpleRealmProxyInterface realmSource = (some_test_SimpleRealmProxyInterface) realmObject;
         unmanagedCopy.realmSet$name(realmSource.realmGet$name());
         unmanagedCopy.realmSet$age(realmSource.realmGet$age());
 

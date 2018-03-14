@@ -32,7 +32,7 @@ import io.realm.annotations.Required;
  * Backlinks are automatically created and destroyed when the forward references to which they correspond are
  * created and destroyed.  This can dramatically reduce the complexity of client code.
  * <p>
- * To expose backinks for use, create a declaration as follows:
+ * To expose backlinks for use, create a declaration as follows:
  * <code>
  * class TargetClass {
  * // ...
@@ -58,11 +58,11 @@ import io.realm.annotations.Required;
  * the field is initialized (typically null).
  */
 final class Backlink {
-    private final VariableElement backlink;
+    private final VariableElement backlinkField;
 
     /**
      * The fully-qualified name of the class containing the <code>targetField</code>,
-     * the field annotated with the {@literal @}LinkingObjects annotation.
+     * which is the field annotated with the {@literal @}LinkingObjects annotation.
      */
     private final String targetClass;
 
@@ -74,12 +74,12 @@ final class Backlink {
 
     /**
      * The fully-qualified name of the class to which the backlinks, from <code>targetField</code>,
-     * point: The generic argument to the type of the <code>targetField</code>.
+     * point.
      */
     private final String sourceClass;
 
     /**
-     * The name of the field, in <code>SourceClass</code> that creates the backlink.
+     * The name of the field, in <code>SourceClass</code> that has a normal link to <code>targetClass</code>.
      * Making this field, in an instance I of <code>SourceClass</code>,
      * a reference to an instance J of <code>TargetClass</code>
      * will cause the <code>targetField</code> of J to contain a backlink to I.
@@ -87,16 +87,16 @@ final class Backlink {
     private final String sourceField;
 
 
-    public Backlink(ClassMetaData clazz, VariableElement backlink) {
-        if ((null == clazz) || (null == backlink)) {
-            throw new NullPointerException(String.format(Locale.US, "null parameter: %s, %s", clazz, backlink));
+    public Backlink(ClassMetaData clazz, VariableElement backlinkField) {
+        if ((null == clazz) || (null == backlinkField)) {
+            throw new NullPointerException(String.format(Locale.US, "null parameter: %s, %s", clazz, backlinkField));
         }
 
-        this.backlink = backlink;
+        this.backlinkField = backlinkField;
         this.targetClass = clazz.getFullyQualifiedClassName();
-        this.targetField = backlink.getSimpleName().toString();
-        this.sourceClass = Utils.getRealmResultsType(backlink);
-        this.sourceField = backlink.getAnnotation(LinkingObjects.class).value();
+        this.targetField = backlinkField.getSimpleName().toString();
+        this.sourceClass = Utils.getRealmResultsType(backlinkField);
+        this.sourceField = backlinkField.getAnnotation(LinkingObjects.class).value();
     }
 
     public String getTargetClass() {
@@ -116,11 +116,7 @@ final class Backlink {
     }
 
     public String getTargetFieldType() {
-        return backlink.asType().toString();
-    }
-
-    public String getSimpleSourceClass() {
-        return Utils.getFieldTypeSimpleName(Utils.getGenericTypeForContainer(backlink));
+        return backlinkField.asType().toString();
     }
 
     /**
@@ -130,7 +126,7 @@ final class Backlink {
      */
     public boolean validateSource() {
         // A @LinkingObjects cannot be @Required
-        if (backlink.getAnnotation(Required.class) != null) {
+        if (backlinkField.getAnnotation(Required.class) != null) {
             Utils.error(String.format(
                     Locale.US,
                     "The @LinkingObjects field \"%s.%s\" cannot be @Required.",
@@ -160,13 +156,13 @@ final class Backlink {
         }
 
         // The annotated element must be a RealmResult
-        if (!Utils.isRealmResults(backlink)) {
+        if (!Utils.isRealmResults(backlinkField)) {
             Utils.error(String.format(
                     Locale.US,
                     "The field \"%s.%s\" is a \"%s\". Fields annotated with @LinkingObjects must be RealmResults.",
                     targetClass,
                     targetField,
-                    backlink.asType()));
+                    backlinkField.asType()));
             return false;
         }
 
@@ -180,7 +176,7 @@ final class Backlink {
         }
 
         // A @LinkingObjects field must be final
-        if (!backlink.getModifiers().contains(Modifier.FINAL)) {
+        if (!backlinkField.getModifiers().contains(Modifier.FINAL)) {
             Utils.error(String.format(
                     Locale.US,
                     "A @LinkingObjects field \"%s.%s\" must be final.",

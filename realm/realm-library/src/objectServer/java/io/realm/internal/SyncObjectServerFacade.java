@@ -106,8 +106,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @Override
     public void wrapObjectStoreSessionIfRequired(OsRealmConfig config) {
         if (config.getRealmConfiguration() instanceof SyncConfiguration) {
-            SyncSession session = SyncManager.getSession((SyncConfiguration) config.getRealmConfiguration());
-            session.setResolvedRealmURI(config.getResolvedRealmURI());
+            SyncManager.getOrCreateSession((SyncConfiguration) config.getRealmConfiguration(), config.getResolvedRealmURI());
         }
     }
 
