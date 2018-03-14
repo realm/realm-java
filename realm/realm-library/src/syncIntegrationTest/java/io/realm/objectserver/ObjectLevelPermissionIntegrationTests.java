@@ -252,6 +252,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
             SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, realmUrl)
                     .modules(modules)
                     .addModule(new PermissionModule())
+                    .partialRealm()
                     .waitForInitialRemoteData()
                     .build();
             Realm.getInstanceAsync(syncConfig, new Realm.Callback() {
