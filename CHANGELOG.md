@@ -1,10 +1,6 @@
 ## 5.0.0 (YYYY-MM-DD)
 
-## Enhancements
-
-* [ObjectServer] Added `SyncConfiguration.automatic()` and `SyncConfiguration.automatic(SyncUser user)` (#5806).
-
-## 5.0.0-BETA1 (2018-03-06)
+This release is compatible with the Realm Object Server 3.0.0-beta.3 or later.
 
 ### Known Bugs
 
@@ -24,11 +20,16 @@
 
 * [ObjectServer] Added support for partial Realms. Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
 * [ObjectServer] Added support for Object Level Permissions (requires partial synchronized Realms). Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
+* [ObjectServer] Added `SyncConfiguration.automatic()` and `SyncConfiguration.automatic(SyncUser user)` (#5806).
 * Added two new methods to `OrderedCollectionChangeSet`: `getState()` and `getError()` (#5619).
+
+## Bug Fixes
+
+* Better exception message if a non model class is provided to methods only accepting those (#5779).
 
 ### Internal
 
-* Upgraded to Realm Sync 3.0.0-beta.10
+* Upgraded to Realm Sync 3.0.0
 * Upgraded to Realm Core 5.3.0
 
 
@@ -38,6 +39,10 @@
 
 * Added support for mapping between a Java name and the underlying name in the Realm file using `@RealmModule`, `@RealmClass` and `@RealmField` annotations (#5280).
 
+## Bug Fixes
+
+* [ObjectServer] Fixed an issue where login after a logout will not resume Syncing (https://github.com/realm/my-first-realm-app/issues/22).
+
 
 ## 4.3.4 (2018-02-06)
 
@@ -45,7 +50,6 @@
 
 * Added missing `RealmQuery.oneOf()` for Kotlin that accepts non-nullable types (#5717).
 * [ObjectServer] Fixed an issue preventing sync to resume when the network is back (#5677).
-* [ObjectServer] Fixed an issue where login after a logout will not resume Syncing (https://github.com/realm/my-first-realm-app/issues/22).
 
 ## 4.3.3 (2018-01-19)
 

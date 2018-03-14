@@ -59,6 +59,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .schema(StringOnly.class)
+                .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
 
         Realm realm = Realm.getInstance(config);
@@ -68,7 +69,18 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         SyncManager.getSession(config).uploadAllLocalChanges();
         user.logOut();
         realm.close();
-        assertTrue(Realm.deleteRealm(config));
+        try {
+            assertTrue(Realm.deleteRealm(config));
+        } catch (IllegalStateException e) {
+            // FIXME: We don't have a way to ensure that the Realm instance on client thread has been
+            //        closed for now.
+            // https://github.com/realm/realm-java/issues/5416
+            if (e.getMessage().contains("It's not allowed to delete the file")) {
+                // retry after 1 second
+                SystemClock.sleep(1000);
+                assertTrue(Realm.deleteRealm(config));
+            }
+        }
 
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM)
