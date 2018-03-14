@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
@@ -194,6 +195,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * be logged in when calling this method.
      * @return The constructed {@link SyncConfiguration}.
      */
+    @Beta
     public static SyncConfiguration automatic() {
         SyncUser user = SyncUser.currentUser();
         if (user == null) {
@@ -211,6 +213,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @throws IllegalArgumentException if no user was provided or the user isn't valid.
      * @return The constructed {@link SyncConfiguration}.
      */
+    @Beta
     public static SyncConfiguration automatic(SyncUser user) {
         if (user == null) {
             throw new IllegalArgumentException("Non-null 'user' required.");
