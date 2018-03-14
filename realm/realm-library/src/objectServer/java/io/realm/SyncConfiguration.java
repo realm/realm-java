@@ -195,7 +195,7 @@ public class SyncConfiguration extends RealmConfiguration {
      */
     @Beta
     public static SyncConfiguration automatic() {
-        SyncUser user = SyncUser.currentUser();
+        SyncUser user = SyncUser.current();
         if (user == null) {
             throw new IllegalStateException("No user was logged in.");
         }

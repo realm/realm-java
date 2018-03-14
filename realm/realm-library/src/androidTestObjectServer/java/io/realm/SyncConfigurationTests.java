@@ -64,7 +64,7 @@ public class SyncConfigurationTests {
     @After
     public void tearDown() {
         for (SyncUser syncUser : SyncUser.all().values()) {
-            syncUser.logout();
+            syncUser.logOut();
         }
         SyncManager.reset();
     }
@@ -503,7 +503,7 @@ public class SyncConfigurationTests {
             assertTrue(e.getMessage().startsWith("Non-null 'user' required."));
         }
         SyncUser user = SyncTestUtils.createTestUser();
-        user.logout();
+        user.logOut();
         try {
             SyncConfiguration.automatic(user);
             fail();
@@ -546,7 +546,7 @@ public class SyncConfigurationTests {
             SyncConfiguration config = SyncConfiguration.automatic();
             URI url = config.getServerUrl();
             assertEquals(realmUrl, url.toString());
-            user.logout();
+            user.logOut();
         }
     }
 }
