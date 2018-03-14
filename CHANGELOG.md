@@ -11,6 +11,10 @@
 
 * Added support for mapping between a Java name and the underlying name in the Realm file using `@RealmModule`, `@RealmClass` and `@RealmField` annotations (#5280).
 
+## Bug Fixes
+
+* [ObjectServer] Fixed an issue where login after a logout will not resume Syncing (https://github.com/realm/my-first-realm-app/issues/22).
+
 
 ## 4.3.4 (2018-02-06)
 
@@ -18,7 +22,6 @@
 
 * Added missing `RealmQuery.oneOf()` for Kotlin that accepts non-nullable types (#5717).
 * [ObjectServer] Fixed an issue preventing sync to resume when the network is back (#5677).
-* [ObjectServer] Fixed an issue where login after a logout will not resume Syncing (https://github.com/realm/my-first-realm-app/issues/22).
 
 ## 4.3.3 (2018-01-19)
 
