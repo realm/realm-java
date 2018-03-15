@@ -52,7 +52,7 @@ public class IntroExampleActivity extends Activity {
         String insertions = changeSet.getInsertions().length == 0 ? "" : "\n - Insertions: " + Arrays.toString(changeSet.getInsertions());
         String deletions = changeSet.getDeletions().length == 0 ? "" : "\n - Deletions: " + Arrays.toString(changeSet.getDeletions());
         String changes = changeSet.getChanges().length == 0 ? "" : "\n - Changes: " + Arrays.toString(changeSet.getChanges());
-        showStatus("Person was written to. " + insertions + deletions + changes);
+        showStatus("Person was loaded, or written to. " + insertions + deletions + changes);
     };
 
     @Override
