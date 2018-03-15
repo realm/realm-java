@@ -48,7 +48,7 @@ public class CityAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return cities == null ? 0 : cities.size();
+        return cities.size();
     }
 
     @Override
