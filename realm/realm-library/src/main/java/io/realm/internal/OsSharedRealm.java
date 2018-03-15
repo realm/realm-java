@@ -26,9 +26,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
+import io.realm.RealmModel;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
+import io.realm.internal.annotations.ObjectServer;
+import io.realm.sync.permissions.RealmPrivileges;
 
 @Keep
 public final class OsSharedRealm implements Closeable, NativeObject {
@@ -123,22 +126,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         // Called from JNI
         @SuppressWarnings("unused")
         void onSchemaChanged();
-    }
-
-    /**
-     * Callback function to be called from JNI by Object Store when the partial sync results returned.
-     */
-    @Keep
-    public abstract static class PartialSyncCallback {
-        private final String className;
-
-        protected PartialSyncCallback(String className) {
-            this.className = className;
-        }
-
-        public abstract void onSuccess(OsResults results);
-
-        public abstract void onError(RealmException error);
     }
 
     // Const value for RealmFileException conversion
@@ -367,6 +354,21 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         return new OsSharedRealm.VersionID(versionId[0], versionId[1]);
     }
 
+    @ObjectServer
+    public int getPrivileges() {
+        return nativeGetRealmPrivileges(nativePtr);
+    }
+
+    @ObjectServer
+    public int getClassPrivileges(String className) {
+        return nativeGetClassPrivileges(nativePtr, className);
+    }
+
+    @ObjectServer
+    public int getObjectPrivileges(UncheckedRow row) {
+        return nativeGetObjectPrivileges(nativePtr, ((UncheckedRow) row).getNativePtr());
+    }
+
     public boolean isClosed() {
         return nativeIsClosed(nativePtr);
     }
@@ -397,10 +399,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     public boolean isAutoRefresh() {
         return nativeIsAutoRefresh(nativePtr);
-    }
-
-    public void registerPartialSyncQuery(String query, PartialSyncCallback callback) {
-        nativeRegisterPartialSyncQuery(nativePtr, callback.className, query, callback);
     }
 
     public RealmConfiguration getConfiguration() {
@@ -444,6 +442,13 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      */
     public void registerSchemaChangedCallback(SchemaChangedCallback callback) {
         nativeRegisterSchemaChangedCallback(nativePtr, callback);
+    }
+
+    /**
+     * Returns {@code true} if this Realm is a partially synchronized Realm.
+     */
+    public boolean isPartial() {
+        return nativeIsPartial(nativePtr);
     }
 
     // addIterator(), detachIterators() and invalidateIterators() are used to make RealmResults stable iterators work.
@@ -531,27 +536,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         callback.onInit(new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig));
     }
 
-    /**
-     * Called from JNI when the partial sync callback is invoked from the ObjectStore.
-     *
-     * @param error            if the partial sync query failed to register.
-     * @param nativeResultsPtr pointer to the {@code Results} of the partial sync query.
-     * @param callback         the callback registered from the user to notify the success/error of the partial sync query.
-     */
-    @SuppressWarnings("unused")
-    private void runPartialSyncRegistrationCallback(@Nullable String error, long nativeResultsPtr,
-                                                    PartialSyncCallback callback) {
-        if (error != null) {
-            callback.onError(new RealmException(error));
-        } else {
-            @SuppressWarnings("ConstantConditions")
-            Table table = getTable(Table.getTableNameForClass(callback.className));
-            OsResults results = new OsResults(this, table, nativeResultsPtr);
-            callback.onSuccess(results);
-        }
-    }
-
-
     private static native void nativeInit(String temporaryDirectoryPath);
 
     private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
@@ -613,6 +597,11 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     private static native void nativeRegisterSchemaChangedCallback(long nativePtr, SchemaChangedCallback callback);
 
-    private native void nativeRegisterPartialSyncQuery(
-            long nativeSharedRealmPtr, String className, String query, PartialSyncCallback callback);
+    private static native int nativeGetRealmPrivileges(long nativePtr);
+
+    private static native int nativeGetClassPrivileges(long nativePtr, String className);
+
+    private static native int nativeGetObjectPrivileges(long nativePtr, long rowNativePtr);
+    private static native boolean nativeIsPartial(long nativePtr);
+
 }

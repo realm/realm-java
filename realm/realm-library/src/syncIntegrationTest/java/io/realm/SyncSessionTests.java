@@ -67,7 +67,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
         SyncSession session = SyncManager.getSession(syncConfiguration);
         realm.close();
-        user.logout();
+        user.logOut();
         thrown.expect(IllegalStateException.class);
         thrown.expectMessage("Could not find session, Realm was probably closed");
         session.getState();
@@ -83,7 +83,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
         SyncSession session = SyncManager.getSession(syncConfiguration);
 
-        user.logout();
+        user.logOut();
 
         SyncSession.State state = session.getState();
         assertEquals(SyncSession.State.INACTIVE, state);
@@ -180,7 +180,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     public void logout_sameSyncUserMultipleSessions() {
         String uniqueName = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
-        SyncUser user =  SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user =  SyncUser.logIn(credentials, Constants.AUTH_URL);
 
         SyncConfiguration syncConfiguration1 = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
@@ -206,13 +206,13 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
         assertEquals(session1.getUser(), session2.getUser());
 
-        user.logout();
+        user.logOut();
 
         assertEquals(SyncSession.State.INACTIVE, session1.getState());
         assertEquals(SyncSession.State.INACTIVE, session2.getState());
 
         credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
-        SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser.logIn(credentials, Constants.AUTH_URL);
 
         // reviving the sessions. The state could be changed concurrently.
         assertTrue(session1.getState() == SyncSession.State.WAITING_FOR_ACCESS_TOKEN ||
@@ -229,7 +229,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     public void logBackResumeUpload() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
         final String uniqueName = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
 
         final SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
@@ -247,7 +247,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
         final SyncSession session = SyncManager.getSession(syncConfiguration);
         session.uploadAllLocalChanges();
 
-        user.logout();
+        user.logOut();
 
         // add a commit while we're still offline
         realm.executeTransaction(new Realm.Transaction() {
@@ -270,7 +270,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 // when the offline commits get synchronized
                 SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
                 SyncCredentials credentialsAdmin = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
-                SyncUser adminUser = SyncUser.login(credentialsAdmin, Constants.AUTH_URL);
+                SyncUser adminUser = SyncUser.logIn(credentialsAdmin, Constants.AUTH_URL);
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
                         .modules(new StringOnlyModule())
@@ -298,7 +298,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 // this login will re-activate the logged out user, and resume all it's pending sessions
                 // the OS will trigger bindSessionWithConfig with the new refresh_token, in order to obtain
                 // a new access_token.
-                SyncUser.login(credentials, Constants.AUTH_URL);
+                SyncUser.logIn(credentials, Constants.AUTH_URL);
             }
         });
 
@@ -313,7 +313,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
         final List<Object> strongRefs = new ArrayList<>();
         final String uniqueName = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
 
         final char[] chars = new char[1_000_000];// 2MB
         Arrays.fill(chars, '.');
@@ -346,7 +346,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 // using an admin user to open the Realm on different path on the device to monitor when all the uploads are done
                 SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
                 SyncCredentials credentialsAdmin = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
-                SyncUser adminUser = SyncUser.login(credentialsAdmin, Constants.AUTH_URL);
+                SyncUser adminUser = SyncUser.logIn(credentialsAdmin, Constants.AUTH_URL);
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
                         .modules(new StringOnlyModule())
@@ -374,7 +374,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
         TestHelper.awaitOrFail(testCompleted, 60);
         handlerThread.join();
 
-        user.logout();
+        user.logOut();
     }
 
     // A Realm that was opened before a user logged out should be able to resume downloading if the user logs back in.
@@ -382,7 +382,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     public void downloadChangesWhenRealmOutOfScope() throws InterruptedException {
         final String uniqueName = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
 
         final SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
@@ -398,11 +398,11 @@ public class SyncSessionTests extends StandardIntegrationTest {
         session.uploadAllLocalChanges();
 
         // Log out the user.
-        user.logout();
+        user.logOut();
 
         // Log the user back in.
         credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
-        SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser.logIn(credentials, Constants.AUTH_URL);
 
         // now let the admin upload some commits
         final CountDownLatch backgroundUpload = new CountDownLatch(1);
@@ -417,7 +417,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 // using an admin user to open the Realm on different path on the device then some commits
                 SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
                 SyncCredentials credentialsAdmin = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
-                SyncUser adminUser = SyncUser.login(credentialsAdmin, Constants.AUTH_URL);
+                SyncUser adminUser = SyncUser.logIn(credentialsAdmin, Constants.AUTH_URL);
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
                         .modules(new StringOnlyModule())
@@ -458,11 +458,11 @@ public class SyncSessionTests extends StandardIntegrationTest {
     public void clientReset_manualTriggerAllowSessionToRestart() {
         final String uniqueName = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
 
         final AtomicReference<SyncConfiguration> configRef = new AtomicReference<>(null);
-        final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM).directory(looperThread.getRoot())
-
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .directory(looperThread.getRoot())
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {

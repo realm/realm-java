@@ -31,6 +31,7 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmModel;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsSchemaInfo;
@@ -176,7 +177,7 @@ public class CompositeMediator extends RealmProxyMediator {
     private RealmProxyMediator getMediator(Class<? extends RealmModel> clazz) {
         RealmProxyMediator mediator = mediators.get(clazz);
         if (mediator == null) {
-            throw new IllegalArgumentException(clazz.getSimpleName() + " is not part of the schema for this Realm");
+            throw new RealmException(clazz.getSimpleName() + " is not part of the schema for this Realm");
         }
         return mediator;
     }

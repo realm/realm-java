@@ -88,6 +88,13 @@ public abstract class RealmNotifier implements Closeable {
     // This list is NOT supposed to be thread safe!
     private List<Runnable> transactionCallbacks = new ArrayList<Runnable>();
 
+    // List of runnables called when Object Store is about to start sending out notifications about
+    // a version update for the current thread.
+    private List<Runnable> startSendingNotificationsCallbacks = new ArrayList<>();
+
+    // List of runnables called when Object Store has finished sending out notifications for the
+    // version of the Realm on this thread.
+    private List<Runnable> finishedSendingNotificationsCallbacks = new ArrayList<>();
 
     // Called from JavaBindingContext::did_change.
     // This will be called in the caller thread when:
@@ -124,16 +131,34 @@ public abstract class RealmNotifier implements Closeable {
         sharedRealm.invalidateIterators();
     }
 
+    // Called from JavaBindingContext::will_send_notifications
+    // This will be called before any change notifications are delivered when updating a
+    // Realm version. This will be triggered even if no change listeners are registered.
+    void willSendNotifications() {
+        for (int i = 0; i < startSendingNotificationsCallbacks.size(); i++) {
+            startSendingNotificationsCallbacks.get(i).run();
+        }
+    }
+
+    // Called from JavaBindingContext::will_send_notifications
+    void didSendNotifications() {
+        for (int i = 0; i < startSendingNotificationsCallbacks.size(); i++) {
+            finishedSendingNotificationsCallbacks.get(i).run();
+        }
+    }
+
     /**
      * Called when close OsSharedRealm to clean up any event left in to queue.
      */
     @Override
     public void close() {
         removeAllChangeListeners();
+        startSendingNotificationsCallbacks.clear();
+        finishedSendingNotificationsCallbacks.clear();
     }
 
     public <T> void addChangeListener(T observer, RealmChangeListener<T> realmChangeListener) {
-        RealmObserverPair observerPair = new RealmObserverPair<T>(observer, realmChangeListener);
+        RealmObserverPair observerPair = new RealmObserverPair<>(observer, realmChangeListener);
         realmObserverPairs.add(observerPair);
     }
 
@@ -164,5 +189,13 @@ public abstract class RealmNotifier implements Closeable {
 
     public int getListenersListSize() {
         return realmObserverPairs.size();
+    }
+
+    public void addBeginSendingNotificationsCallback(Runnable runnable) {
+        startSendingNotificationsCallbacks.add(runnable);
+    }
+
+    public void addFinishedSendingNotificationsCallback(Runnable runnable) {
+        finishedSendingNotificationsCallbacks.add(runnable);
     }
 }

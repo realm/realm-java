@@ -9,16 +9,15 @@ import io.realm.RealmChangeListener;
 // Helper class for supporting add change listeners on OsResults & OsList.
 @Keep
 interface ObservableCollection {
-
     class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
         public CollectionObserverPair(T observer, Object listener) {
             super(observer, listener);
         }
 
-        public void onChange(T observer, @Nullable OrderedCollectionChangeSet changes) {
+        public void onChange(T observer, OsCollectionChangeSet changes) {
             if (listener instanceof OrderedRealmCollectionChangeListener) {
                 //noinspection unchecked
-                ((OrderedRealmCollectionChangeListener<T>) listener).onChange(observer, changes);
+                ((OrderedRealmCollectionChangeListener<T>) listener).onChange(observer, new StatefulCollectionChangeSet(changes));
             } else if (listener instanceof RealmChangeListener) {
                 //noinspection unchecked
                 ((RealmChangeListener<T>) listener).onChange(observer);
@@ -53,9 +52,9 @@ interface ObservableCollection {
     }
 
     class Callback implements ObserverPairList.Callback<CollectionObserverPair> {
-        private final OrderedCollectionChangeSet changeSet;
+        private final OsCollectionChangeSet changeSet;
 
-        Callback(@Nullable OrderedCollectionChangeSet changeSet) {
+        Callback(OsCollectionChangeSet changeSet) {
             this.changeSet = changeSet;
         }
 

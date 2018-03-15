@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2017 Realm Inc.
  *
@@ -24,6 +25,8 @@
 
 #include <realm/binary_data.hpp>
 #include <realm/table.hpp>
+#include <realm/util/any.hpp>
+#include <realm/util/to_string.hpp>
 
 #include <object_accessor.hpp>
 #include <realm/util/any.hpp>

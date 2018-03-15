@@ -571,7 +571,7 @@ public class SortTest {
 
         // After distinct:
         // (3, 1, "C")
-        RealmResults<AnnotationIndexTypes> results2 =  results1.where().distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT).findAll();
+        RealmResults<AnnotationIndexTypes> results2 =  results1.where().distinct(AnnotationIndexTypes.FIELD_INDEX_INT).findAll();
         assertEquals(1, results2.size());
         assertEquals("C", results2.get(0).getIndexString());
         assertEquals(3, results2.get(0).getIndexLong());
@@ -590,13 +590,13 @@ public class SortTest {
         // Case 1: Selecting highest numbers
         RealmResults<AnnotationIndexTypes> results1a = realm.where(AnnotationIndexTypes.class)
                 .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING)
-                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT)
+                .distinct(AnnotationIndexTypes.FIELD_INDEX_INT)
                 .findAll();
         assertEquals(1, results1a.size());
         assertEquals(3, results1a.get(0).getIndexLong());
 
         RealmResults<AnnotationIndexTypes> results1b = realm.where(AnnotationIndexTypes.class)
-                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT)
+                .distinct(AnnotationIndexTypes.FIELD_INDEX_INT)
                 .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING)
                 .findAll();
         assertEquals(1, results1b.size());
@@ -605,13 +605,13 @@ public class SortTest {
         // Case 1: Selecting lowest number numbers
         RealmResults<AnnotationIndexTypes> results2a = realm.where(AnnotationIndexTypes.class)
                 .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.ASCENDING)
-                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT)
+                .distinct(AnnotationIndexTypes.FIELD_INDEX_INT)
                 .findAll();
         assertEquals(1, results2a.size());
         assertEquals(1, results2a.get(0).getIndexLong());
 
         RealmResults<AnnotationIndexTypes> results2b = realm.where(AnnotationIndexTypes.class)
-                .distinctValues(AnnotationIndexTypes.FIELD_INDEX_INT)
+                .distinct(AnnotationIndexTypes.FIELD_INDEX_INT)
                 .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.ASCENDING)
                 .findAll();
         assertEquals(1, results2b.size());

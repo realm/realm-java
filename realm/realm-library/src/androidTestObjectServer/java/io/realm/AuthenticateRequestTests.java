@@ -78,7 +78,7 @@ public class AuthenticateRequestTests {
         SyncManager.setAuthServerImpl(authServer);
 
         try {
-            SyncUser.login(SyncCredentials.facebook("foo"), "http://foo.bar/auth");
+            SyncUser.logIn(SyncCredentials.facebook("foo"), "http://foo.bar/auth");
             fail();
         } catch (ObjectServerError e) {
             assertEquals(ErrorCode.ACCESS_DENIED, e.getErrorCode());

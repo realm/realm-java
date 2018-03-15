@@ -33,7 +33,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Nullable;
 
-import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
@@ -80,7 +79,7 @@ public class SyncUser {
      * expired.
      * @throws IllegalStateException if multiple users are logged in.
      */
-    public static SyncUser currentUser() {
+    public static SyncUser current() {
         SyncUser user = SyncManager.getUserStore().getCurrent();
         if (user != null && user.isValid()) {
             return user;
@@ -135,7 +134,7 @@ public class SyncUser {
      * @throws ObjectServerError if the login failed.
      * @throws IllegalArgumentException if the URL is malformed.
      */
-    public static SyncUser login(final SyncCredentials credentials, final String authenticationUrl) throws ObjectServerError {
+    public static SyncUser logIn(final SyncCredentials credentials, final String authenticationUrl) throws ObjectServerError {
         URL authUrl;
         try {
             authUrl = new URL(authenticationUrl);
@@ -189,12 +188,12 @@ public class SyncUser {
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public static RealmAsyncTask loginAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback<SyncUser> callback) {
+    public static RealmAsyncTask logInAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback<SyncUser> callback) {
         checkLooperThread("Asynchronous login is only possible from looper threads.");
         return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public SyncUser run() throws ObjectServerError {
-                return login(credentials, authenticationUrl);
+                return logIn(credentials, authenticationUrl);
             }
         }.start();
     }
@@ -218,7 +217,7 @@ public class SyncUser {
 //     */
     // this is a fire and forget, end user should not worry about the state of the async query
     @SuppressWarnings("FutureReturnValueIgnored")
-    public void logout() {
+    public void logOut() {
         // Acquire lock to prevent users creating new instances
         synchronized (Realm.class) {
             if (!SyncManager.getUserStore().isActive(identity, authenticationUrl.toString())) {

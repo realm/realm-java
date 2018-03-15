@@ -209,7 +209,7 @@ public class RealmTests {
         assertTrue(realmFile.setWritable(false));
 
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+            Realm.getInstance(configFactory.createConfigurationBuilder()
                     .directory(folder)
                     .name(REALM_FILE)
                     .build());
@@ -229,7 +229,7 @@ public class RealmTests {
         assertTrue(realmFile.setWritable(false));
 
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(context).directory(folder).name(REALM_FILE).build());
+            Realm.getInstance(configFactory.createConfigurationBuilder().directory(folder).name(REALM_FILE).build());
             fail();
         } catch (RealmFileException expected) {
             assertEquals(RealmFileException.Kind.PERMISSION_DENIED, expected.getKind());
@@ -1059,7 +1059,7 @@ public class RealmTests {
     @Test
     public void compactRealm_onExternalStorage() {
         final File externalFilesDir = context.getExternalFilesDir(null);
-        final RealmConfiguration config = new RealmConfiguration.Builder()
+        final RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .directory(externalFilesDir)
                 .name("external.realm")
                 .build();
@@ -2276,7 +2276,7 @@ public class RealmTests {
         File tempDirRenamed = new File(configFactory.getRoot(), "delete_test_dir_2");
         assertTrue(tempDir.mkdir());
 
-        final RealmConfiguration configuration = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+        final RealmConfiguration configuration = configFactory.createConfigurationBuilder()
                 .directory(tempDir)
                 .build();
 
@@ -4247,7 +4247,7 @@ public class RealmTests {
         namedPipeDir.mkdirs();
 
         final File externalFilesDir = context.getExternalFilesDir(null);
-        final RealmConfiguration config = new RealmConfiguration.Builder()
+        final RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .directory(externalFilesDir)
                 .name("external.realm")
                 .build();

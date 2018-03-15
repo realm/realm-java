@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
@@ -64,7 +65,7 @@ public class SessionTests {
     @Before
     public void setUp() {
         user = createTestUser();
-        configuration = new SyncConfiguration.Builder(user, REALM_URI).build();
+        configuration = new SyncConfiguration.Builder(user, REALM_URI).addModule(new ObjectPermissionsModule()).build();
     }
 
     @Test
@@ -193,6 +194,7 @@ public class SessionTests {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .schema(StringOnly.class)
                 .errorHandler((session, error) -> {
                     if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
                         fail("Wrong error " + error.toString());
@@ -275,7 +277,7 @@ public class SessionTests {
                     try {
                         Realm.getInstance(backupRealmConfiguration);
                         fail("Expected to throw a Migration required");
-                    } catch (RealmMigrationNeededException expected) {
+                    } catch (IllegalStateException expected) {
                     }
 
                     // opening a DynamicRealm will work though
@@ -334,6 +336,7 @@ public class SessionTests {
         final byte[] randomKey = TestHelper.getRandomKey();
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
                 .encryptionKey(randomKey)
+                .modules(new StringOnlyModule())
                 .errorHandler((session, error) -> {
                     if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
                         fail("Wrong error " + error.toString());
@@ -372,7 +375,6 @@ public class SessionTests {
 
                     looperThread.testComplete();
                 })
-                .modules(new StringOnlyModule())
                 .build();
 
         Realm realm = Realm.getInstance(config);
@@ -416,8 +418,7 @@ public class SessionTests {
     @UiThreadTest
     public void unrecognizedErrorCode_errorHandler() {
         AtomicBoolean errorHandlerCalled = new AtomicBoolean(false);
-        configuration = new SyncConfiguration
-                .Builder(user, REALM_URI)
+        configuration = configFactory.createSyncConfigurationBuilder(user, REALM_URI)
                 .errorHandler((session, error) -> {
                     errorHandlerCalled.set(true);
                     assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
