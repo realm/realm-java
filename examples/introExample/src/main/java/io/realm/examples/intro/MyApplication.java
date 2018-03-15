@@ -28,8 +28,7 @@ public class MyApplication extends Application {
         // Initialize Realm. Should only be done once when the application starts.
         Realm.init(this);
 
-        // In this example, no default configuration is set, so by default, `RealmConfiguration.Builder().build()` is used.
-        // Please note that while this helps when starting out, you might want to set your own custom default configuration.
-        // Generally, either add a migration to handle schema changes, or specify `deleteIfMigrationNeeded()`.
+        // In this example, no default configuration is set,
+        // so by default, `RealmConfiguration.Builder().build()` is used.
     }
 }

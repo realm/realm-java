@@ -26,6 +26,7 @@ import android.widget.TextView;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.Sort;
@@ -40,6 +41,20 @@ public class IntroExampleActivity extends Activity {
 
     private Realm realm;
 
+    // Results obtained from a Realm are live, and can be observed on looper threads (like the UI thread).
+    // Note that if you want to observe the RealmResults for a long time, then it should be a field reference.
+    // Otherwise, the RealmResults can no longer be notified if the GC has cleared the reference to it.
+    private RealmResults<Person> persons;
+
+    // OrderedRealmCollectionChangeListener receives fine-grained changes - insertions, deletions, and changes.
+    // If the change set isn't needed, then RealmChangeListener can also be used.
+    private final OrderedRealmCollectionChangeListener<RealmResults<Person>> realmChangeListener = (people, changeSet) -> {
+        String insertions = changeSet.getInsertions().length == 0 ? "" : "\n - Insertions: " + Arrays.toString(changeSet.getInsertions());
+        String deletions = changeSet.getDeletions().length == 0 ? "" : "\n - Deletions: " + Arrays.toString(changeSet.getDeletions());
+        String changes = changeSet.getChanges().length == 0 ? "" : "\n - Changes: " + Arrays.toString(changeSet.getChanges());
+        showStatus("Person was written to. " + insertions + deletions + changes);
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +67,15 @@ public class IntroExampleActivity extends Activity {
 
         // Create the Realm instance
         realm = Realm.getDefaultInstance();
+
+        // Asynchronous queries are evaluated on a background thread,
+        // and passed to the registered change listener when it's done.
+        // The change listener is also called on any future writes that change the result set.
+        persons = realm.where(Person.class).findAllAsync();
+
+        // The change listener will be notified when the data is loaded,
+        // or the Realm is written to from any threads (and the result set is modified).
+        persons.addChangeListener(realmChangeListener);
 
         // These operations are small enough that
         // we can generally safely run them on the UI thread.
@@ -66,6 +90,7 @@ public class IntroExampleActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        persons.removeAllChangeListeners(); // Remove the change listener when no longer needed.
         realm.close(); // Remember to close Realm when done.
     }
 
@@ -78,22 +103,6 @@ public class IntroExampleActivity extends Activity {
 
     private void basicCRUD(Realm realm) {
         showStatus("Perform basic Create/Read/Update/Delete (CRUD) operations...");
-
-        // Results obtained from a Realm are live, and can be observed on looper threads (like the UI thread).
-        // Note that if you want to observe the RealmResults for a long time, then it should be a field reference.
-        // Otherwise, the RealmResults can no longer be notified if the GC has cleared the reference to it.
-        RealmResults<Person> persons = realm.where(Person.class).findAll();
-
-        // The change listener will be notified when the Realm is written to from any threads.
-        persons.addChangeListener((people, changeSet) -> {
-            if(changeSet == null) {
-                return;
-            }
-            String insertions = changeSet.getInsertions().length == 0 ? "" : "\n - Insertions: " + Arrays.toString(changeSet.getInsertions());
-            String deletions = changeSet.getDeletions().length == 0 ? "" : "\n - Deletions: " + Arrays.toString(changeSet.getDeletions());
-            String changes = changeSet.getChanges().length == 0 ? "" : "\n - Changes: " + Arrays.toString(changeSet.getChanges());
-            showStatus("Person was written to: " + insertions + deletions + changes + "]");
-        });
 
         // All writes must be wrapped in a transaction to facilitate safe multi threading
         realm.executeTransaction(r -> {
@@ -179,7 +188,7 @@ public class IntroExampleActivity extends Activity {
         @Override
         protected void onPreExecute() {
             IntroExampleActivity activity = weakReference.get();
-            if(activity == null) {
+            if (activity == null) {
                 return;
             }
             activity.showStatus("\n\nBeginning complex operations on background thread.");
@@ -188,7 +197,7 @@ public class IntroExampleActivity extends Activity {
         @Override
         protected String doInBackground(Void... voids) {
             IntroExampleActivity activity = weakReference.get();
-            if(activity == null) {
+            if (activity == null) {
                 return "";
             }
             // Open the default realm. Uses `try-with-resources` to automatically close Realm when done.
@@ -205,7 +214,7 @@ public class IntroExampleActivity extends Activity {
         @Override
         protected void onPostExecute(String result) {
             IntroExampleActivity activity = weakReference.get();
-            if(activity == null) {
+            if (activity == null) {
                 return;
             }
             activity.showStatus(result);
@@ -269,9 +278,9 @@ public class IntroExampleActivity extends Activity {
         RealmResults<Person> results = realm.where(Person.class)
                 .between("age", 7, 9)       // Notice implicit "and" operation
                 .beginsWith("name", "Person").findAll();
-        
+
         status += "\nSize of result set: " + results.size();
-        
+
         return status;
     }
 }
