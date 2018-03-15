@@ -1,4 +1,4 @@
-## 5.0.0 (YYYY-MM-DD)
+## 5.0.0 (2018-03-15)
 
 This release is compatible with the Realm Object Server 3.0.0-beta.3 or later.
 
