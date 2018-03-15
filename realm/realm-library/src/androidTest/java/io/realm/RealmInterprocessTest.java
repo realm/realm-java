@@ -36,6 +36,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.AllTypesModelModule;
 import io.realm.services.RemoteProcessService;
 
 
@@ -52,6 +53,7 @@ import io.realm.services.RemoteProcessService;
 //      B. Open three Realms
 //      2. assertTrue("OK, remote process win. You can open more Realms than I do in the main local process", false);
 public class RealmInterprocessTest extends AndroidTestCase {
+
     private Realm testRealm;
     private Messenger remoteMessenger;
     private Messenger localMessenger;
@@ -155,14 +157,17 @@ public class RealmInterprocessTest extends AndroidTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-
-        Realm.deleteRealm(new RealmConfiguration.Builder(getContext()).build());
+        Realm.deleteRealm(getConfiguration());
 
         // Starts the testing service.
         serviceStartLatch = new CountDownLatch(1);
         Intent intent = new Intent(getContext(), RemoteProcessService.class);
         getContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         assertTrue(serviceStartLatch.await(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS));
+    }
+
+    private RealmConfiguration getConfiguration() {
+        return new RealmConfiguration.Builder(getContext()).modules(new AllTypesModelModule()).build();
     }
 
     @Override
@@ -281,7 +286,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
             @Override
             public void run() {
                 // Step 1
-                testRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).build());
+                testRealm = Realm.getInstance(getConfiguration());
                 assertEquals(0, testRealm.where(AllTypes.class).count());
                 testRealm.beginTransaction();
                 testRealm.createObject(AllTypes.class);

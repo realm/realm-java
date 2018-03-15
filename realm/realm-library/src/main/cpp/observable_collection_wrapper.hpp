@@ -22,6 +22,9 @@
 #include "jni_util/java_method.hpp"
 #include "jni_util/log.hpp"
 
+#include <results.hpp>
+#include <realm/util/optional.hpp>
+
 namespace realm {
 namespace _impl {
 

@@ -25,7 +25,10 @@ import java.util.UUID;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.Realm;
+import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
+import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.UserStore;
 import io.realm.internal.network.AuthenticateResponse;
@@ -124,5 +127,19 @@ public class SyncTestUtils {
         } catch (InvocationTargetException | IllegalAccessException e) {
             throw new AssertionError(e);
         }
+    }
+
+    // Fully synchronize a Realm with the server by making sure that all changes are uploaded
+    // and downloaded again.
+    public static void syncRealm(Realm realm) {
+        SyncConfiguration config = (SyncConfiguration) realm.getConfiguration();
+        SyncSession session = SyncManager.getSession(config);
+        try {
+            session.uploadAllLocalChanges();
+            session.downloadAllServerChanges();
+        } catch (InterruptedException e) {
+            throw new AssertionError(e);
+        }
+        realm.refresh();
     }
 }

@@ -48,14 +48,14 @@ import static org.junit.Assert.fail;
  * Catch all class for tests that not naturally fit anywhere else.
  */
 @RunWith(AndroidJUnit4.class)
-public class SyncedRealmTests extends StandardIntegrationTest {
+public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
 
     @Test
     public void loginLogoutResumeSyncing() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .schema(StringOnly.class)
@@ -67,7 +67,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         realm.createObject(StringOnly.class).setChars("Foo");
         realm.commitTransaction();
         SyncManager.getSession(config).uploadAllLocalChanges();
-        user.logout();
+        user.logOut();
         realm.close();
         try {
             assertTrue(Realm.deleteRealm(config));
@@ -82,7 +82,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
             }
         }
 
-        user = SyncUser.login(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .schema(StringOnly.class)
                 .build();
@@ -120,7 +120,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
     public void waitForInitialRemoteData() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
         final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
@@ -138,11 +138,11 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         });
         SyncManager.getSession(configOld).uploadAllLocalChanges();
         realm.close();
-        user.logout();
+        user.logOut();
 
         // 2. Local state should now be completely reset. Open the same sync Realm but different local name again with
         // a new configuration which should download the uploaded changes (pray it managed to do so within the time frame).
-        user = SyncUser.login(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .name("newRealm")
                 .schema(StringOnly.class)
@@ -173,7 +173,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
             " https://github.com/realm/realm-java/issues/5416")
     public void waitForInitialData_resilientInCaseOfRetries() throws InterruptedException {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .waitForInitialRemoteData()
                 .build();
@@ -210,7 +210,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
     @Ignore("See https://github.com/realm/realm-java/issues/5373")
     public void waitForInitialData_resilientInCaseOfRetriesAsync() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .directory(configurationFactory.getRoot())
@@ -240,7 +240,7 @@ public class SyncedRealmTests extends StandardIntegrationTest {
     public void waitForInitialRemoteData_readOnlyTrue() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
-        SyncUser user = SyncUser.login(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
         final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
@@ -257,11 +257,11 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         });
         SyncManager.getSession(configOld).uploadAllLocalChanges();
         realm.close();
-        user.logout();
+        user.logOut();
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes (pray it managed to do so within the time frame).
-        user = SyncUser.login(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         final SyncConfiguration configNew = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .name("newRealm")
                 .waitForInitialRemoteData()
@@ -273,13 +273,13 @@ public class SyncedRealmTests extends StandardIntegrationTest {
         realm = Realm.getInstance(configNew);
         assertEquals(10, realm.where(StringOnly.class).count());
         realm.close();
-        user.logout();
+        user.logOut();
     }
     
     @Test
     public void waitForInitialRemoteData_readOnlyTrue_throwsIfWrongServerSchema() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         final SyncConfiguration configNew = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .waitForInitialRemoteData()
                 .readOnly()
@@ -298,14 +298,14 @@ public class SyncedRealmTests extends StandardIntegrationTest {
             if (realm != null) {
                 realm.close();
             }
-            user.logout();
+            user.logOut();
         }
     }
 
     @Test
     public void waitForInitialRemoteData_readOnlyFalse_upgradeSchema() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .waitForInitialRemoteData() // Not readonly so Client should be allowed to write schema
                 .schema(StringOnly.class) // This schema should be written when opening the empty Realm.
@@ -318,7 +318,24 @@ public class SyncedRealmTests extends StandardIntegrationTest {
             assertEquals(0, realm.where(StringOnly.class).count());
         } finally {
             realm.close();
-            user.logout();
+            user.logOut();
+        }
+    }
+
+    @Test
+    public void defaultRealm() throws InterruptedException {
+        SyncCredentials credentials = SyncCredentials.nickname("test", true);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
+        SyncConfiguration config = SyncConfiguration.automatic();
+        Realm realm = Realm.getInstance(config);
+        SyncManager.getSession(config).downloadAllServerChanges();
+        realm.refresh();
+
+        try {
+            assertFalse(realm.isEmpty());
+        } finally {
+            realm.close();
+            user.logOut();
         }
     }
 }

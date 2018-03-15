@@ -146,7 +146,7 @@ public class CounterActivity extends AppCompatActivity {
         switch(item.getItemId()) {
             case R.id.action_logout:
                 closeRealm();
-                user.logout();
+                user.logOut();
                 user = getLoggedInUser();
                 return true;
 
@@ -198,7 +198,7 @@ public class CounterActivity extends AppCompatActivity {
     private SyncUser getLoggedInUser() {
         SyncUser user = null;
 
-        try { user = SyncUser.currentUser(); }
+        try { user = SyncUser.current(); }
         catch (IllegalStateException ignore) { }
 
         if (user == null) {

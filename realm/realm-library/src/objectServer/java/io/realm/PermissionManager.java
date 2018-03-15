@@ -205,7 +205,7 @@ public class PermissionManager implements Closeable {
                 })
                 .modules(new PermissionModule())
                 .waitForInitialRemoteData()
-                .readOnly()
+                 // .readOnly() Temporarily disabled due to issues with ROS 3.0.0-alpha.X
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
 

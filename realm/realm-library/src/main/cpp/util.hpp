@@ -31,7 +31,6 @@
 #include <realm/timestamp.hpp>
 #include <realm/table.hpp>
 #include <realm/util/safe_int_ops.hpp>
-
 #include "io_realm_internal_Util.h"
 
 #include "java_exception_def.hpp"
@@ -451,6 +450,10 @@ jstring to_jstring(JNIEnv*, realm::StringData);
 class JStringAccessor {
 public:
     JStringAccessor(JNIEnv*, jstring); // throws
+
+    bool is_null_or_empty() {
+        return m_is_null || m_size == 0;
+    }
 
     operator realm::StringData() const
     {

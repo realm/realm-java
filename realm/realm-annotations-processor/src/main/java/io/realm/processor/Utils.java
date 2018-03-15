@@ -390,12 +390,13 @@ public class Utils {
         }
 
         // If we cannot find the name in the current processor round, we have to defer resolving the
-        // name to runtime. The reason being that proxy classes in libraries on the classpath
-        // might already have been obfuscated, which means we have no easy way of finding them.
-        // 
+        // name to runtime. The reason being that the annotation processor can only access the
+        // compile type class path using Elements and Types which do not allow us to read
+        // field values.
+        //
         // Doing it this way unfortunately means that if the class is not on the apps classpath
-        // a rather obscure class-not-found exception will be thrown, but since this is probably
-        // a very niche use case that is acceptable for now.
+        // a rather obscure class-not-found exception will be thrown when starting the app, but since
+        // this is probably a very niche use case that is acceptable for now.
         //
         // TODO: We could probably create an internal annotation like `@InternalName("__Permission")`
         // which should make it possible for the annotation processor to read the value from the

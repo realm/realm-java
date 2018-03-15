@@ -1,8 +1,36 @@
-## 4.4.1 (YYY-MM-DD)
+## 5.0.0 (2018-03-15)
+
+This release is compatible with the Realm Object Server 3.0.0-beta.3 or later.
+
+### Known Bugs
+
+* API's marked @ObjectServer are shipped as part of the base binary, they should only be available when enabling synchronized Realms.
+
+### Breaking Changes
+
+* [ObjectServer] Renamed `SyncUser.currentUser()` to `SyncUser.current()`.
+* [ObjectServer] Renamed `SyncUser.login(...)` and `SyncUser.loginAsync(...)` to `SyncUser.logIn(...)` and `SyncUser.logInAsync(...)`.
+* [ObjectServer] Renamed `SyncUser.logout()` to `SyncUser.logOut()`.
+* The `OrderedCollectionChangeSet` parameter in `OrderedRealmCollectionChangeListener.onChange()` is no longer nullable. Use `changeSet.getState()` instead (#5619).
+* `realm.subscribeForObjects()` have been removed. Use `RealmQuery.findAllAsync(String subscriptionName)` and `RealmQuery.findAllAsync()` instead.
+* Removed previously deprecated `RealmQuery.findAllSorted()`, `RealmQuery.findAllSortedAsync()` `RealmQuery.distinct() and `RealmQuery.distinctAsync()`.
+* Renamed `RealmQuery.distinctValues()` to `RealmQuery.distinct()`
+
+### Enhancements
+
+* [ObjectServer] Added support for partial Realms. Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
+* [ObjectServer] Added support for Object Level Permissions (requires partial synchronized Realms). Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
+* [ObjectServer] Added `SyncConfiguration.automatic()` and `SyncConfiguration.automatic(SyncUser user)` (#5806).
+* Added two new methods to `OrderedCollectionChangeSet`: `getState()` and `getError()` (#5619).
 
 ## Bug Fixes
 
 * Better exception message if a non model class is provided to methods only accepting those (#5779).
+
+### Internal
+
+* Upgraded to Realm Sync 3.0.0
+* Upgraded to Realm Core 5.3.0
 
 
 ## 4.4.0 (2018-03-13)

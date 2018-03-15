@@ -65,10 +65,11 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         allSortedDots = realm.where(Dot.class)
                 .between("x", 25, 75)
                 .between("y", 0, 50)
-                .findAllSortedAsync(
+                .sort(
                          "x", Sort.ASCENDING,
                          "y", Sort.DESCENDING
-                 );
+                 )
+                .findAllAsync();
         dotAdapter.updateList(allSortedDots);
         allSortedDots.addChangeListener(this);
     }
