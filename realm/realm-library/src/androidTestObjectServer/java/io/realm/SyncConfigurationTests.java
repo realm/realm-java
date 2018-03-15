@@ -528,14 +528,18 @@ public class SyncConfigurationTests {
         Object[][] input = {
                 // AuthUrl -> Expected Realm URL
                 { "http://ros.realm.io/auth", "realm://ros.realm.io/default" },
-                { "http://ros.realm.io:7777", "realm://ros.realm.io/default" },
+                { "http://ros.realm.io:7777", "realm://ros.realm.io:7777/default" },
                 { "http://127.0.0.1/auth", "realm://127.0.0.1/default" },
                 { "HTTP://ros.realm.io" , "realm://ros.realm.io/default" },
 
                 { "https://ros.realm.io/auth", "realms://ros.realm.io/default" },
-                { "https://ros.realm.io:7777", "realms://ros.realm.io/default" },
+                { "https://ros.realm.io:7777", "realms://ros.realm.io:7777/default" },
                 { "https://127.0.0.1/auth", "realms://127.0.0.1/default" },
                 { "HTTPS://ros.realm.io" , "realms://ros.realm.io/default" },
+                // with port
+                { "http://192.168.1.65:9080" , "realm://192.168.1.65:9080/default" },
+                { "http://192.168.1.65:9080/auth" , "realm://192.168.1.65:9080/default" },
+                { "https://192.168.1.65:9080/auth" , "realms://192.168.1.65:9080/default" },
         };
 
         for (Object[] test : input) {
