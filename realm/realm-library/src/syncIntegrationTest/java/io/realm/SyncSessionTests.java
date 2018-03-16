@@ -314,7 +314,9 @@ public class SyncSessionTests extends StandardIntegrationTest {
         final List<Object> strongRefs = new ArrayList<>();
         final String uniqueName = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
+        RealmLog.error("Logging in: " + uniqueName);
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
+        RealmLog.error("Logged in: " + uniqueName);
 
         final char[] chars = new char[1_000_000];// 2MB
         Arrays.fill(chars, '.');
@@ -327,12 +329,20 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 .build();
         Realm realm = Realm.getInstance(syncConfiguration);
 
+        RealmLog.error("Begin transaction");
         realm.beginTransaction();
         // upload 10MB
         for (int i = 0; i < 5; i++) {
             realm.createObject(StringOnly.class).setChars(twoMBString);
         }
         realm.commitTransaction();
+        RealmLog.error("Transaction completed");
+        SyncManager.getSession(syncConfiguration).addUploadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+            @Override
+            public void onChange(Progress progress) {
+               RealmLog.error("Upload: " + progress.toString());
+            }
+        });
         realm.close();
 
         final CountDownLatch testCompleted = new CountDownLatch(1);
@@ -345,11 +355,11 @@ public class SyncSessionTests extends StandardIntegrationTest {
             @Override
             public void run() {
                 // using an admin user to open the Realm on different path on the device to monitor when all the uploads are done
+                RealmLog.error("Logging in admin");
                 SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
-                SyncCredentials credentialsAdmin = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
-                SyncUser adminUser = SyncUser.logIn(credentialsAdmin, Constants.AUTH_URL);
+                RealmLog.error("Admin user logged in");
 
-                SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
+                SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(admin, syncConfiguration.getServerUrl().toString())
                         .modules(new StringOnlyModule())
                         .build();
                 final Realm adminRealm = Realm.getInstance(adminConfig);
