@@ -23,16 +23,21 @@ import java.util.Locale;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.Beta;
 import io.realm.annotations.Required;
-import io.realm.internal.OsResults;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsList;
+import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.SortDescriptor;
+import io.realm.internal.SubscriptionAwareOsResults;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
+import io.realm.internal.Util;
 import io.realm.internal.fields.FieldDescriptor;
+import io.realm.internal.sync.SubscriptionAction;
 
 
 /**
@@ -43,7 +48,7 @@ import io.realm.internal.fields.FieldDescriptor;
  * RealmObject class is refactored care has to be taken to not break any queries.
  * <p>
  * A {@link io.realm.Realm} is unordered, which means that there is no guarantee that querying a Realm will return the
- * objects in the order they where inserted. Use {@link #findAllSorted(String)} and similar methods if a specific order
+ * objects in the order they where inserted. Use {@link #sort(String)} (String)} and similar methods if a specific order
  * is required.
  * <p>
  * A RealmQuery cannot be passed between different threads.
@@ -63,6 +68,8 @@ public class RealmQuery<E> {
     private String className;
     private final boolean forValues;
     private final OsList osList;
+    private SortDescriptor sortDescriptor;
+    private SortDescriptor distinctDescriptor;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
@@ -1526,6 +1533,17 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Logical-and two conditions
+     * Realm automatically applies logical-and between all query statements, so this is intended only as a mean to increase readability.
+     *
+     * @return the query object
+     */
+    public RealmQuery<E> and() {
+        realm.checkIfValid();
+        return this;
+    }
+
+    /**
      * Negate condition.
      *
      * @return the query object.
@@ -1569,69 +1587,6 @@ public class RealmQuery<E> {
         this.query.isNotEmpty(fd.getColumnIndices(), fd.getNativeTablePointers());
 
         return this;
-    }
-
-    /**
-     * Returns a distinct set of objects of a specific class. If the result is sorted, the first
-     * object will be returned in case of multiple occurrences, otherwise it is undefined which
-     * object is returned.
-     * <p>
-     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
-     *
-     * @param fieldName the field name.
-     * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
-     * to linked fields.
-     */
-    public RealmResults<E> distinct(String fieldName) {
-        realm.checkIfValid();
-
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
-        return createRealmResults(query, null, distinctDescriptor, true);
-    }
-
-    /**
-     * Asynchronously returns a distinct set of objects of a specific class. If the result is
-     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
-     * undefined which object is returned.
-     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
-     *
-     * @param fieldName the field name.
-     * @return immediately a {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
-     * query completes.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
-     * to linked fields.
-     */
-    public RealmResults<E> distinctAsync(String fieldName) {
-        realm.checkIfValid();
-
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
-        return createRealmResults(query, null, distinctDescriptor, false);
-    }
-
-    /**
-     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
-     * given, all unique combinations of values in the fields will be returned. In case of multiple
-     * matches, it is undefined which object is returned. Unless the result is sorted, then the
-     * first object will be returned.
-     *
-     * @param firstFieldName first field name to use when finding distinct objects.
-     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
-     * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
-     * is an unsupported type, or points to a linked field.
-     */
-    public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
-        realm.checkIfValid();
-
-        String[] fieldNames = new String[1 + remainingFieldNames.length];
-
-        fieldNames[0] = firstFieldName;
-        System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
-        return createRealmResults(query, null, distinctDescriptor, true);
     }
 
     /**
@@ -1798,11 +1753,17 @@ public class RealmQuery<E> {
     public RealmResults<E> findAll() {
         realm.checkIfValid();
 
-        return createRealmResults(query, null, null, true);
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, true, SubscriptionAction.NO_SUBSCRIPTION);
     }
 
     /**
      * Finds all objects that fulfill the query conditions. This method is only available from a Looper thread.
+     * <p>
+     * On partially synchronized Realms, defined by setting {@link SyncConfiguration.Builder#partialRealm()},
+     * this method will also create an anonymous subscription that will download all server data matching
+     * the query.
+     * </p>
+     *
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
@@ -1812,122 +1773,77 @@ public class RealmQuery<E> {
         realm.checkIfValid();
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, null, null, false);
+        SubscriptionAction subscriptionAction;
+        
+        // Don't create subscriptions for list queries as they are always part of an object covered by another query.
+        if (realm.sharedRealm.isPartial() && osList == null) {
+            subscriptionAction = SubscriptionAction.ANONYMOUS_SUBSCRIPTION;
+        }  else {
+            subscriptionAction = SubscriptionAction.NO_SUBSCRIPTION;
+        }
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, subscriptionAction);
     }
 
     /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field name.
+     * Finds all objects that fulfill the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on partially synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
+     *
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a partially synchronized Realm.
+     */
+    public RealmResults<E> findAllAsync(String subscriptionName) {
+        realm.checkIfValid();
+        realm.checkIfPartialRealm();
+        if (osList != null) {
+            throw new IllegalStateException("Cannot create subscriptions for queries based on a 'RealmList'");
+        }
+        if (Util.isEmptyString(subscriptionName)) {
+            throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
+        }
+
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
+        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, SubscriptionAction.create(subscriptionName));
+    }
+
+    /**
+     * Sorts the query result by the specific field name in ascending order.
+     * <p>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     *
+     * @param fieldName the field name to sort by.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
+     */
+    public RealmQuery<E> sort(String fieldName) {
+        realm.checkIfValid();
+        return sort(fieldName, Sort.ASCENDING);
+    }
+
+    /**
+     * Sorts the query result by the specified field name and order.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName the field name to sort by.
      * @param sortOrder how to sort the results.
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
      */
-    @SuppressWarnings("unchecked")
-    public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
+    public RealmQuery<E> sort(String fieldName, Sort sortOrder) {
         realm.checkIfValid();
-
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldName, sortOrder);
-        return createRealmResults(query, sortDescriptor, null, true);
+        return sort(new String[] { fieldName}, new Sort[] { sortOrder});
     }
 
     /**
-     * Similar to {@link #findAllSorted(String, Sort)} but runs asynchronously on a worker thread
-     * (need a Realm opened from a looper thread to work).
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    public RealmResults<E> findAllSortedAsync(final String fieldName, final Sort sortOrder) {
-        realm.checkIfValid();
-
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldName, sortOrder);
-        return createRealmResults(query, sortDescriptor, null, false);
-    }
-
-
-    /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field name in ascending order.
-     * <p>
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
-     *
-     * @param fieldName the field name to sort by.
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    public RealmResults<E> findAllSorted(String fieldName) {
-        return findAllSorted(fieldName, Sort.ASCENDING);
-    }
-
-    /**
-     * Similar to {@link #findAllSorted(String)} but runs asynchronously on a worker thread.
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    public RealmResults<E> findAllSortedAsync(String fieldName) {
-        return findAllSortedAsync(fieldName, Sort.ASCENDING);
-    }
-
-    /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field names.
-     * <p>
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
-     *
-     * @param fieldNames an array of field names to sort by.
-     * @param sortOrders how to sort the field names.
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    public RealmResults<E> findAllSorted(String[] fieldNames, Sort[] sortOrders) {
-        realm.checkIfValid();
-
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
-        return createRealmResults(query, sortDescriptor, null, true);
-    }
-
-    private boolean isDynamicQuery() {
-        return className != null;
-    }
-
-    /**
-     * Similar to {@link #findAllSorted(String[], Sort[])} but runs asynchronously.
-     * from a worker thread.
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     * @see io.realm.RealmResults
-     */
-    public RealmResults<E> findAllSortedAsync(String[] fieldNames, final Sort[] sortOrders) {
-        realm.checkIfValid();
-
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
-        return createRealmResults(query, sortDescriptor, null, false);
-    }
-
-    /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field names in ascending order.
+     * Sorts the query result by the specific field names in the provided orders. {@code fieldName2} is only used
+     * in case of equal values in {@code fieldName1}.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
@@ -1936,28 +1852,82 @@ public class RealmQuery<E> {
      * @param sortOrder1 sort order for first field
      * @param fieldName2 second field name
      * @param sortOrder2 sort order for second field
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
      */
-    public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
-        return findAllSorted(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
+    public RealmQuery<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
+        realm.checkIfValid();
+        return sort(new String[] { fieldName1, fieldName2 }, new Sort[] { sortOrder1, sortOrder2 });
     }
 
     /**
-     * Similar to {@link #findAllSorted(String, Sort, String, Sort)} but runs asynchronously on a worker thread
-     * This method is only available from a Looper thread.
+     * Sorts the query result by the specific field names in the provided orders. Later fields will only be used
+     * if the previous field values are equal.
+     * <p>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @param fieldNames an array of field names to sort by.
+     * @param sortOrders how to sort the field names.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
      */
-    public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
-        return findAllSortedAsync(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
+    public RealmQuery<E> sort(String[] fieldNames, Sort[] sortOrders) {
+        realm.checkIfValid();
+        if (sortDescriptor != null) {
+            throw new IllegalStateException("A sorting order was already defined.");
+        }
+        sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
+        return this;
+    }
+
+    /**
+     * Selects a distinct set of objects of a specific class. If the result is sorted, the first object will be
+     * returned in case of multiple occurrences, otherwise it is undefined which object is returned.
+     * <p>
+     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
+     *
+     * @param fieldName the field name.
+     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
+     * to linked fields.
+     * @throws IllegalStateException if distinct field names were already defined.
+     */
+    @Beta
+    public RealmQuery<E> distinct(String fieldName) {
+        return distinct(fieldName, new String[]{});
+    }
+
+    /**
+     * Selects a distinct set of objects of a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     * @throws IllegalStateException if distinct field names were already defined.
+     */
+    @Beta
+    public RealmQuery<E> distinct(String firstFieldName, String... remainingFieldNames) {
+        realm.checkIfValid();
+        if (distinctDescriptor != null) {
+            throw new IllegalStateException("Distinct fields have already been defined.");
+        }
+        if (remainingFieldNames.length == 0) {
+            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, firstFieldName);
+        } else {
+            String[] fieldNames = new String[1 + remainingFieldNames.length];
+            fieldNames[0] = firstFieldName;
+            System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
+            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
+        }
+        return this;
+    }
+
+    private boolean isDynamicQuery() {
+        return className != null;
     }
 
     /**
@@ -2002,7 +1972,7 @@ public class RealmQuery<E> {
         if (realm.isInTransaction()) {
             // It is not possible to create async query inside a transaction. So immediately query the first object.
             // See OS Results::prepare_async()
-            row = new OsResults(realm.sharedRealm, query).firstUncheckedRow();
+            row = OsResults.createFromQuery(realm.sharedRealm, query).firstUncheckedRow();
         } else {
             // prepares an empty reference of the RealmObject which is backed by a pending query,
             // then update it once the query complete in the background.
@@ -2033,12 +2003,20 @@ public class RealmQuery<E> {
         return result;
     }
 
+
     private RealmResults<E> createRealmResults(TableQuery query,
-            @Nullable SortDescriptor sortDescriptor,
-            @Nullable SortDescriptor distinctDescriptor,
-            boolean loadResults) {
+                                               @Nullable SortDescriptor sortDescriptor,
+                                               @Nullable SortDescriptor distinctDescriptor,
+                                               boolean loadResults,
+                                               SubscriptionAction subscriptionAction) {
         RealmResults<E> results;
-        OsResults osResults = new OsResults(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
+        OsResults osResults;
+        if (subscriptionAction.shouldCreateSubscriptions()) {
+            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor, subscriptionAction.getName());
+        } else {
+            osResults = OsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
+        }
+
         if (isDynamicQuery()) {
             results = new RealmResults<>(realm, osResults, className);
         } else {
@@ -2047,6 +2025,7 @@ public class RealmQuery<E> {
         if (loadResults) {
             results.load();
         }
+
         return results;
     }
 

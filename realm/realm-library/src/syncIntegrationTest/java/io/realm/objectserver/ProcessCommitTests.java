@@ -19,12 +19,11 @@ package io.realm.objectserver;
 import android.os.Looper;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,7 +32,10 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
+import io.realm.SyncManager;
 import io.realm.SyncUser;
+import io.realm.TestHelper;
+import io.realm.annotations.RealmModule;
 import io.realm.objectserver.model.ProcessInfo;
 import io.realm.objectserver.model.TestObject;
 import io.realm.objectserver.utils.Constants;
@@ -50,11 +52,15 @@ import static org.junit.Assert.assertEquals;
 @RunWith(AndroidJUnit4.class)
 public class ProcessCommitTests extends StandardIntegrationTest {
 
+    @RealmModule(classes = { ProcessInfo.class, TestObject.class })
+    public static class ProcessCommitTestsModule { }
+
     @Rule
     public RunWithRemoteService remoteService = new RunWithRemoteService();
 
-    @Before
-    public void before() throws Exception {
+    @Override
+    public void setupTest() throws IOException {
+        super.setupTest();
         UserFactory.resetInstance();
     }
 
@@ -68,6 +74,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
                 final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
+                        .modules(new ProcessCommitTestsModule())
                         .directory(getService().getRoot())
                         .build();
                 getService().setRealm(Realm.getInstance(syncConfig));
@@ -79,13 +86,20 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 processInfo.setPid(android.os.Process.myPid());
                 processInfo.setThreadId(Thread.currentThread().getId());
                 realm.commitTransaction();
-                // FIXME: If we close the Realm here, the data won't be able to synced to the main process. Is it a bug
-                // in sync client which stops too early?
-                // Realm is currently configured with stop_immediately. This means the sync session is closed as soon as
-                // the last realm instance is closed. Not doing this would make the Realm lifecycle really
-                // unpredictable. We should have an easy way to wait for all changes to be uploaded though.
-                // Perhaps SyncSession.uploadAllLocalChanges() or something similar to
-                // SyncSesson.downloadAllServerChanges()
+                Thread t = new Thread(() -> {
+                    try {
+                        SyncManager.getSession(syncConfig).uploadAllLocalChanges();
+                    } catch (InterruptedException e) {
+                        throw new IllegalStateException("Upload interrupted", e);
+                    }
+                });
+                t.start();
+                try {
+                    t.join(TestHelper.SHORT_WAIT_SECS * 1000);
+                } catch (InterruptedException e) {
+                    throw new IllegalStateException("Waiting for background thread interrupted", e);
+                }
+                realm.close();
             }
         };
 
@@ -93,7 +107,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
             @Override
             protected void run() {
                 getService().getRealm().close();
-                user.logout();
+                user.logOut();
             }
         };
     }
@@ -104,7 +118,6 @@ public class ProcessCommitTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     @RunTestWithRemoteService(remoteService = SimpleCommitRemoteService.class, onLooperThread = true)
-    @Ignore("See https://github.com/realm/realm-java/issues/5376")
     public void expectSimpleCommit() {
         looperThread.runAfterTest(remoteService.afterRunnable);
         remoteService.createHandler(Looper.myLooper());
@@ -112,6 +125,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user,realmUrl)
+                .modules(new ProcessCommitTestsModule())
                 .directory(looperThread.getRoot())
                 .build();
         final Realm realm = Realm.getInstance(syncConfig);
@@ -123,7 +137,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 assertEquals(1, all.size());
                 assertEquals("Background_Process1", all.get(0).getName());
                 realm.close();
-                user.logout();
+                user.logOut();
 
                 remoteService.triggerServiceStep(SimpleCommitRemoteService.stepB_closeRealmAndLogOut);
 
@@ -144,6 +158,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
                 final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
+                        .modules(new ProcessCommitTestsModule())
                         .directory(getService().getRoot())
                         .name(UUID.randomUUID().toString() + ".realm")
                         .build();
@@ -170,7 +185,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
             @Override
             protected void run() {
                 getService().getRealm().close();
-                user.logout();
+                user.logOut();
             }
         };
     }
@@ -190,10 +205,11 @@ public class ProcessCommitTests extends StandardIntegrationTest {
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user,realmUrl)
+                .modules(new ProcessCommitTestsModule())
                 .directory(looperThread.getRoot())
                 .build();
         final Realm realm = Realm.getInstance(syncConfig);
-        final RealmResults<TestObject> all = realm.where(TestObject.class).findAllSorted("intProp");
+        final RealmResults<TestObject> all = realm.where(TestObject.class).sort("intProp").findAll();
         looperThread.keepStrongReference(all);
         final AtomicInteger listenerCalledCounter = new AtomicInteger(0);
         all.addChangeListener(new RealmChangeListener<RealmResults<TestObject>>() {
@@ -211,7 +227,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 if (counter == 10) {
                     remoteService.triggerServiceStep(ALotCommitsRemoteService.stepC_closeRealm);
                     realm.close();
-                    user.logout();
+                    user.logOut();
                     looperThread.testComplete();
                 } else {
                     remoteService.triggerServiceStep(ALotCommitsRemoteService.stepB_createObjects);

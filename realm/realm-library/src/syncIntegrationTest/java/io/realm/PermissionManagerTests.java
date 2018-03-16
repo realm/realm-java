@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.internal.OsRealmConfig;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
@@ -54,6 +55,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
+@Ignore // FIXME: Temporary disable unit tests due to lates (3.0.0-alpha.2) ROS having issues. Re-enable once ROS is stable again.
 public class PermissionManagerTests extends StandardIntegrationTest {
 
     private SyncUser user;
@@ -106,7 +108,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
     public void getPermissions_updatedWithNewRealms() {
         final PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
@@ -118,6 +119,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
                 // Create new Realm, which should create a new Permission entry
                 SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM_2)
+                        .schema(AllJavaTypes.class)
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
                             public void onError(SyncSession session, ObjectServerError error) {
@@ -153,7 +155,6 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
     public void getPermissions_updatedWithNewRealms_stressTest() {
         final int TEST_SIZE = 10;
         final PermissionManager pm = user.getPermissionManager();
@@ -165,7 +166,9 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 assertInitialPermissions(permissions);
 
                 for (int i = 0; i < TEST_SIZE; i++) {
-                    SyncConfiguration configNew = new SyncConfiguration.Builder(user, "realm://" + Constants.HOST + "/~/test" + i).build();
+                    SyncConfiguration configNew = new SyncConfiguration.Builder(user, "realm://" + Constants.HOST + "/~/test" + i)
+                            .schema(AllJavaTypes.class)
+                            .build();
                     Realm newRealm = Realm.getInstance(configNew);
                     looperThread.closeAfterTest(newRealm);
                 }
@@ -289,7 +292,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         });
     }
 
-    @Ignore("See https://github.com/realm/realm-java/issues/5143")
+    @Ignore("The PermissionManager can only be opened from the main thread")
     @Test
     public void clientResetOnMultipleThreads() {
 
@@ -774,6 +777,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 // Default permissions are not recorded in the __permission Realm for user2
                 // Only way to check is by opening the Realm.
                 SyncConfiguration config = new SyncConfiguration.Builder(user2, url)
+                        .schema(AllJavaTypes.class)
                         .waitForInitialRemoteData()
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
@@ -901,7 +905,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore
+    @Ignore("The offer is randomly accepted mostly on docker-02 SHIELD K1")
     public void acceptOffer_expiredThrows() {
         // Trying to guess how long CI is to process this. The offer cannot be created if it
         // already expired.
@@ -1181,6 +1185,8 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     private String createRemoteRealm(SyncUser user, String realmName) {
         String url = Constants.AUTH_SERVER_URL + "~/" + realmName;
         SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+                .name(realmName)
+                .schema(AllJavaTypes.class)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
 
@@ -1205,18 +1211,12 @@ public class PermissionManagerTests extends StandardIntegrationTest {
      * states and fail if neither of these can be verified.
      */
     private void assertInitialPermissions(RealmResults<Permission> permissions) {
-        assertGreaterThan("Unexpected count() for __permission Realm: " + Arrays.toString(permissions.toArray()), 0, permissions.where().endsWith("path", "__permission").count());
-        assertGreaterThan("Unexpected count() for __management Realm: " + Arrays.toString(permissions.toArray()), 0, permissions.where().endsWith("path", "__management").count());
-        // FIXME: Enable these again when https://github.com/realm/ros/issues/549 is fixed
-        // assertEquals("Unexpected count() for __permission Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__permission").count());
-        // assertEquals("Unexpected count() for __management Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__management").count());
+         assertEquals("Unexpected count() for __permission Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__permission").count());
+         assertEquals("Unexpected count() for __management Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__management").count());
     }
 
     private void assertInitialDefaultPermissions(RealmResults<Permission> permissions) {
-        assertGreaterThan("Unexpected count() for __wildcardpermissions Realm: " + Arrays.toString(permissions.toArray()), 0, permissions.where().endsWith("path", "__wildcardpermissions").count());
-
-        // FIXME: Enable these again when https://github.com/realm/ros/issues/549 is fixed
-        // assertEquals("Unexpected count() for __wildcardpermissions Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__wildcardpermissions").count());
+         assertEquals("Unexpected count() for __wildcardpermissions Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__wildcardpermissions").count());
     }
 
     private void assertGreaterThan(String error, int base, long count) {

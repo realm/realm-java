@@ -628,24 +628,28 @@ public class RealmSchemaTests {
 
         try {
             realmSchema.create("Foo");
+            fail();
         } catch (IllegalStateException expected) {
             assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
         }
 
         try {
             realmSchema.createWithPrimaryKeyField("Foo", "PK", String.class);
+            fail();
         } catch (IllegalStateException expected) {
             assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
         }
 
         try {
             realmSchema.remove("Cat");
+            fail();
         } catch (IllegalStateException expected) {
             assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
         }
 
         try {
             realmSchema.rename("Cat", "Foo1");
+            fail();
         } catch (IllegalStateException expected) {
             assertThat(expected.getMessage(), CoreMatchers.containsString("transaction"));
         }

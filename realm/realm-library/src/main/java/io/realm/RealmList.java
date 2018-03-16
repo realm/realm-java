@@ -63,7 +63,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode.";
     static final String ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE = "This feature is available only when the element type is implementing RealmModel.";
-    public static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction.";
+    private static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction.";
 
     @Nullable
     protected Class<E> clazz;
@@ -71,11 +71,9 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     protected String className;
 
     // Always null if RealmList is unmanaged, always non-null if managed.
-    final ManagedListOperator<E> osListOperator;
+    private final ManagedListOperator<E> osListOperator;
     final protected BaseRealm realm;
     private List<E> unmanagedList;
-    // Used for listeners on RealmList<RealmModel>
-    private OsResults osResults;
 
     /**
      * Creates a RealmList in unmanaged mode, where the elements are not controlled by a Realm.
@@ -508,7 +506,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
         if (isManaged()) {
-            return this.where().findAllSorted(fieldName, sortOrder);
+            return this.where().sort(fieldName, sortOrder).findAll();
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
@@ -528,7 +526,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Override
     public RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders) {
         if (isManaged()) {
-            return where().findAllSorted(fieldNames, sortOrders);
+            return where().sort(fieldNames, sortOrders).findAll();
         } else {
             throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
@@ -760,14 +758,14 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new OsResults(realm.sharedRealm, osListOperator.getOsList(), null),
+                    OsResults.createFromQuery(realm.sharedRealm, osListOperator.getOsList().getQuery()),
                     className);
         } else {
             // 'clazz' is non-null when 'dynamicClassName' is null.
             //noinspection ConstantConditions
             return new OrderedRealmCollectionSnapshot<>(
                     realm,
-                    new OsResults(realm.sharedRealm, osListOperator.getOsList(), null),
+                    OsResults.createFromQuery(realm.sharedRealm, osListOperator.getOsList().getQuery()),
                     clazz);
         }
     }
@@ -966,11 +964,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        if (osListOperator.forRealmModel()) {
-            getOrCreateOsResultsForListener().addListener(this, listener);
-        } else {
-            osListOperator.getOsList().addListener(this, listener);
-        }
+        osListOperator.getOsList().addListener(this, listener);
     }
 
     /**
@@ -983,11 +977,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        if (osListOperator.forRealmModel()) {
-            getOrCreateOsResultsForListener().removeListener(this, listener);
-        } else {
-            osListOperator.getOsList().removeListener(this, listener);
-        }
+        osListOperator.getOsList().removeListener(this, listener);
     }
 
     /**
@@ -1025,11 +1015,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     public void addChangeListener(RealmChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        if (osListOperator.forRealmModel()) {
-            getOrCreateOsResultsForListener().addListener(this, listener);
-        } else {
-            osListOperator.getOsList().addListener(this, listener);
-        }
+        osListOperator.getOsList().addListener(this, listener);
     }
 
     /**
@@ -1042,11 +1028,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     public void removeChangeListener(RealmChangeListener<RealmList<E>> listener) {
         checkForAddRemoveListener(listener, true);
-        if (osListOperator.forRealmModel()) {
-            getOrCreateOsResultsForListener().removeListener(this, listener);
-        } else {
-            osListOperator.getOsList().removeListener(this, listener);
-        }
+        osListOperator.getOsList().removeListener(this, listener);
     }
 
     /**
@@ -1057,11 +1039,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     public void removeAllChangeListeners() {
         checkForAddRemoveListener(null, false);
-        if (osListOperator.forRealmModel()) {
-            getOrCreateOsResultsForListener().removeAllListeners();
-        } else {
-            osListOperator.getOsList().removeAllListeners();
-        }
+        osListOperator.getOsList().removeAllListeners();
     }
 
     // Custom RealmList iterator.
@@ -1280,20 +1258,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             return (ManagedListOperator<E>) new DateListOperator(realm, osList, (Class<Date>) clazz);
         }
         throw new IllegalArgumentException("Unexpected value class: " + clazz.getName());
-    }
-
-    // TODO: Object Store is not able to merge change set for links list. Luckily since we were still using LinkView
-    // when ship the fine grain notifications, the listener on RealmList is actually added to a OS Results which is
-    // created from the link view. OS Results is computing the change set by comparing the old/new collection. So it
-    // will give the right results if you remove all elements from a RealmList then add all them back and add one more
-    // new element. By right results it means the change set only include one insertion. But if the listener is on the
-    // OS List, the change set will include all ranges of th list. So we keep the old behaviour for
-    // RealmList<RealmModel> for now. See https://github.com/realm/realm-object-store/issues/541
-    private OsResults getOrCreateOsResultsForListener() {
-        if (osResults == null) {
-            this.osResults = new OsResults(realm.sharedRealm, osListOperator.getOsList(), null);
-        }
-        return osResults;
     }
 }
 

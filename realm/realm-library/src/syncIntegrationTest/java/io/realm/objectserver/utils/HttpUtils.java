@@ -17,18 +17,12 @@
 package io.realm.objectserver.utils;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.log.RealmLog;
-import okhttp3.Headers;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
@@ -40,8 +34,10 @@ import okhttp3.Response;
 public class HttpUtils {
     // TODO If the timeouts are longer than the test timeout you risk getting
     // "Realm could not be deleted errors".
+    // FIXME re-adjust timeout after https://github.com/realm/realm-object-server-private/issues/697 is fixed
     private final static OkHttpClient client = new OkHttpClient.Builder()
-            .retryOnConnectionFailure(true)
+            .connectTimeout(40, TimeUnit.SECONDS)
+            .readTimeout(40, TimeUnit.SECONDS)// since ROS startup timeout is 30s
             .build();
 
     // adb reverse tcp:8888 tcp:8888
@@ -60,10 +56,6 @@ public class HttpUtils {
 
         Response response = client.newCall(request).execute();
         if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-
-        // Work around race condition between starting ROS and logging in first user
-        // See https://github.com/realm/ros/issues/389
-        SystemClock.sleep(2000);
     }
 
     /**

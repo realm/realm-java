@@ -136,8 +136,8 @@ public abstract class RealmObjectSchema {
      * @param attributes set of attributes for this field.
      * @return the updated schema.
      * @throws IllegalArgumentException if the type isn't supported, field name is illegal or a field with that name
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      * already exists.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
     public abstract RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes);
 
@@ -424,9 +424,7 @@ public abstract class RealmObjectSchema {
      * @param validColumnTypes valid field type for the last field in a linked field
      * @return a FieldDescriptor
      */
-    protected final FieldDescriptor getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
-        return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), fieldDescription, validColumnTypes);
-    }
+    abstract FieldDescriptor getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes);
 
     RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         long columnIndex = table.addColumn(type, name, (required) ? Table.NOT_NULLABLE : Table.NULLABLE);
@@ -464,7 +462,7 @@ public abstract class RealmObjectSchema {
         return SUPPORTED_SIMPLE_FIELDS;
     }
 
-    private SchemaConnector getSchemaConnector() {
+    protected final SchemaConnector getSchemaConnector() {
         return new SchemaConnector(schema);
     }
 

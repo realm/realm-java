@@ -220,8 +220,8 @@ public class DynamicRealmObjectTests {
                         try {
                             callThreadConfinedMethod(obj, method);
                             fail("IllegalStateException must be thrown.");
-                        } catch (Throwable e) {
-                            if (e instanceof IllegalStateException && expectedMessage.equals(e.getMessage())) {
+                        } catch (IllegalStateException e) {
+                            if (expectedMessage.equals(e.getMessage())) {
                                 // expected exception
                                 continue;
                             }
@@ -1613,15 +1613,14 @@ public class DynamicRealmObjectTests {
         final DynamicRealmObject object = dynamicRealm.where(AllTypes.CLASS_NAME).findFirst();
 
         final CountDownLatch threadFinished = new CountDownLatch(1);
-        final AtomicReference<Throwable> throwable = new AtomicReference<>();
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     object.getDynamicRealm();
                     fail();
-                } catch (Throwable t) {
-                    throwable.set(t);
+                } catch (IllegalStateException e) {
+                    assertEquals(BaseRealm.INCORRECT_THREAD_MESSAGE, e.getMessage());
                 } finally {
                     threadFinished.countDown();
                 }
@@ -1629,11 +1628,5 @@ public class DynamicRealmObjectTests {
         });
         thread.start();
         TestHelper.awaitOrFail(threadFinished);
-
-        final Throwable thrownInTheThread = throwable.get();
-        if (!(thrownInTheThread instanceof IllegalStateException)) {
-            throw thrownInTheThread;
-        }
-        assertEquals(BaseRealm.INCORRECT_THREAD_MESSAGE, thrownInTheThread.getMessage());
     }
 }

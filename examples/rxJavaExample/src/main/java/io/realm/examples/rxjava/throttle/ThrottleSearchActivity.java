@@ -63,7 +63,8 @@ public class ThrottleSearchActivity extends AppCompatActivity {
                     // Realm currently doesn't support the standard Schedulers.
                     return realm.where(Person.class)
                             .beginsWith("name", textChangeEvent.text().toString())
-                            .findAllSortedAsync("name")
+                            .sort("name")
+                            .findAllAsync()
                             .asFlowable();
                 })
                 // Only continue once data is actually loaded

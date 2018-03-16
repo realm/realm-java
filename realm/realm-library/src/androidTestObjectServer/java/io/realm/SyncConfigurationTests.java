@@ -29,11 +29,14 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.entities.StringOnly;
+import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
+import io.realm.util.SyncTestUtils;
 
 import static io.realm.util.SyncTestUtils.createNamedTestUser;
 import static io.realm.util.SyncTestUtils.createTestUser;
@@ -59,7 +62,10 @@ public class SyncConfigurationTests {
     public final ExpectedException thrown = ExpectedException.none();
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
+        for (SyncUser syncUser : SyncUser.all().values()) {
+            syncUser.logOut();
+        }
         SyncManager.reset();
     }
 
@@ -446,9 +452,9 @@ public class SyncConfigurationTests {
         SyncUser user1 = createNamedTestUser("user1");
         SyncUser user2 = createNamedTestUser("user2");
         String sharedUrl = "realm://ros.realm.io/42/default";
-        SyncConfiguration config1 = new SyncConfiguration.Builder(user1, sharedUrl).build();
+        SyncConfiguration config1 = new SyncConfiguration.Builder(user1, sharedUrl).modules(new StringOnlyModule()).build();
         Realm realm1 = Realm.getInstance(config1);
-        SyncConfiguration config2 = new SyncConfiguration.Builder(user2, sharedUrl).build();
+        SyncConfiguration config2 = new SyncConfiguration.Builder(user2, sharedUrl).modules(new StringOnlyModule()).build();
         Realm realm2 = null;
 
         // Verify that two different configurations can be used for the same URL
@@ -465,4 +471,82 @@ public class SyncConfigurationTests {
         assertNotEquals(config1.getPath(), config2.getPath());
     }
 
+    @Test
+    public void automatic_throwsIfNoUserIsLoggedIn() {
+        try {
+            SyncConfiguration.automatic();
+            fail();
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().startsWith("No user was logged in"));
+        }
+    }
+
+    @Test
+    public void automatic_throwsIfMultipleUsersIsLoggedIn() {
+        SyncTestUtils.createTestUser();
+        SyncTestUtils.createTestUser();
+        try {
+            SyncConfiguration.automatic();
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals("Current user is not valid if more that one valid, logged-in user exists.", e.getMessage());
+        }
+    }
+
+    @Test
+    public void automaticWithUser_throwsIfNullOrInvalid() {
+        try {
+            //noinspection ConstantConditions
+            SyncConfiguration.automatic(null);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().startsWith("Non-null 'user' required."));
+        }
+        SyncUser user = SyncTestUtils.createTestUser();
+        user.logOut();
+        try {
+            SyncConfiguration.automatic(user);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("User is no logger valid.  Log the user in again.", e.getMessage());
+        }
+    }
+
+    @Test
+    public void automatic_isPartial() {
+        SyncUser user = SyncTestUtils.createTestUser();
+
+        SyncConfiguration config = SyncConfiguration.automatic();
+        assertTrue(config.isPartialRealm());
+
+        config = SyncConfiguration.automatic(user);
+        assertTrue(config.isPartialRealm());
+    }
+
+    @Test
+    public void automatic_convertsAuthUrl() {
+        Object[][] input = {
+                // AuthUrl -> Expected Realm URL
+                { "http://ros.realm.io/auth", "realm://ros.realm.io/default" },
+                { "http://ros.realm.io:7777", "realm://ros.realm.io/default" },
+                { "http://127.0.0.1/auth", "realm://127.0.0.1/default" },
+                { "HTTP://ros.realm.io" , "realm://ros.realm.io/default" },
+
+                { "https://ros.realm.io/auth", "realms://ros.realm.io/default" },
+                { "https://ros.realm.io:7777", "realms://ros.realm.io/default" },
+                { "https://127.0.0.1/auth", "realms://127.0.0.1/default" },
+                { "HTTPS://ros.realm.io" , "realms://ros.realm.io/default" },
+        };
+
+        for (Object[] test : input) {
+            String authUrl = (String) test[0];
+            String realmUrl = (String) test[1];
+
+            SyncUser user = SyncTestUtils.createTestUser(authUrl);
+            SyncConfiguration config = SyncConfiguration.automatic();
+            URI url = config.getServerUrl();
+            assertEquals(realmUrl, url.toString());
+            user.logOut();
+        }
+    }
 }

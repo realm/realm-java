@@ -198,8 +198,8 @@ class BytecodeModifierTest extends Specification {
         def codeAttribute = methodInfo.getCodeAttribute()
 
         for (CodeIterator ci = codeAttribute.iterator(); ci.hasNext();) {
-            int index = ci.next();
-            int op = ci.byteAt(index);
+            int index = ci.next()
+            int op = ci.byteAt(index)
             if (op == Opcode.GETFIELD) {
                 return true
             }
@@ -212,8 +212,8 @@ class BytecodeModifierTest extends Specification {
         def codeAttribute = methodInfo.getCodeAttribute()
 
         for (CodeIterator ci = codeAttribute.iterator(); ci.hasNext();) {
-            int index = ci.next();
-            int op = ci.byteAt(index);
+            int index = ci.next()
+            int op = ci.byteAt(index)
             if (op == Opcode.INVOKEVIRTUAL) {
                 return true
             }

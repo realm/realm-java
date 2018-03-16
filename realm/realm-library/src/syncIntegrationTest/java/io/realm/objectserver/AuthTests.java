@@ -34,6 +34,7 @@ import io.realm.SyncUser;
 import io.realm.SyncUserInfo;
 import io.realm.TestHelper;
 import io.realm.entities.StringOnly;
+import io.realm.internal.Util;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.objectserver.Token;
 import io.realm.objectserver.utils.Constants;
@@ -64,7 +65,7 @@ public class AuthTests extends StandardIntegrationTest {
     public void login_userNotExist() {
         SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
         try {
-            SyncUser.login(credentials, Constants.AUTH_URL);
+            SyncUser.logIn(credentials, Constants.AUTH_URL);
             fail();
         } catch (ObjectServerError expected) {
             assertEquals(ErrorCode.INVALID_CREDENTIALS, expected.getErrorCode());
@@ -75,7 +76,7 @@ public class AuthTests extends StandardIntegrationTest {
     @RunTestInLooperThread
     public void loginAsync_userNotExist() {
         SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -94,7 +95,7 @@ public class AuthTests extends StandardIntegrationTest {
     public void login_newUser() {
         String userId = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(userId, "password", true);
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertFalse(user.isAdmin());
@@ -118,21 +119,94 @@ public class AuthTests extends StandardIntegrationTest {
     public void login_withAccessToken() {
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         SyncCredentials credentials = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(adminUser).value(), "custom-admin-user", adminUser.isAdmin());
-        SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 assertTrue(user.isAdmin());
-                final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.SYNC_SERVER_URL)
-                        .errorHandler(new SyncSession.ErrorHandler() {
-                            @Override
-                            public void onError(SyncSession session, ObjectServerError error) {
-                                fail("Session failed: " + error);
-                            }
-                        })
+                final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                        .errorHandler((session, error) -> fail("Session failed: " + error))
                         .build();
 
                 final Realm realm = Realm.getInstance(config);
                 looperThread.addTestRealm(realm);
+                assertTrue(config.getUser().isValid());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail("Login failed: " + error);
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void login_withAnonymous() {
+        SyncCredentials credentials = SyncCredentials.anonymous();
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                assertFalse(user.isAdmin());
+                final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                        .errorHandler((session, error) -> fail("Session failed: " + error))
+                        .build();
+
+                final Realm realm = Realm.getInstance(config);
+                looperThread.addTestRealm(realm);
+                assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
+                assertTrue(config.getUser().isValid());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail("Login failed: " + error);
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void login_withNickname() {
+        SyncCredentials credentials = SyncCredentials.nickname("foo", false);
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                assertFalse(user.isAdmin());
+                final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                        .errorHandler((session, error) -> fail("Session failed: " + error))
+                        .build();
+
+                final Realm realm = Realm.getInstance(config);
+                looperThread.addTestRealm(realm);
+                assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
+                assertTrue(config.getUser().isValid());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail("Login failed: " + error);
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void login_withNicknameAsAdmin() {
+        SyncCredentials credentials = SyncCredentials.nickname("foo", true);
+        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+            @Override
+            public void onSuccess(SyncUser user) {
+                assertTrue(user.isAdmin());
+                final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                        .errorHandler((session, error) -> fail("Session failed: " + error))
+                        .build();
+
+                final Realm realm = Realm.getInstance(config);
+                looperThread.addTestRealm(realm);
+                assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
                 assertTrue(config.getUser().isValid());
                 looperThread.testComplete();
             }
@@ -160,7 +234,7 @@ public class AuthTests extends StandardIntegrationTest {
                         @Override
                         public void run() {
                             SyncCredentials credentials = SyncCredentials.usernamePassword("IWantToHackYou", "GeneralPassword", false);
-                            SyncUser.loginAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
+                            SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
                                 @Override
                                 public void onSuccess(SyncUser user) {
                                     fail();
@@ -190,17 +264,17 @@ public class AuthTests extends StandardIntegrationTest {
         String username = UUID.randomUUID().toString();
         String originalPassword = "password";
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
-        SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser userOld = SyncUser.logIn(credentials, Constants.AUTH_URL);
         assertTrue(userOld.isValid());
 
         // Change password and try to log in with new password
         String newPassword = "new-password";
         userOld.changePassword(newPassword);
-        userOld.logout();
+        userOld.logOut();
 
         // Make sure old password doesn't work
         try {
-            SyncUser.login(SyncCredentials.usernamePassword(username, originalPassword, false), Constants.AUTH_URL);
+            SyncUser.logIn(SyncCredentials.usernamePassword(username, originalPassword, false), Constants.AUTH_URL);
             fail();
         } catch (ObjectServerError e) {
             assertEquals(ErrorCode.INVALID_CREDENTIALS, e.getErrorCode());
@@ -208,7 +282,7 @@ public class AuthTests extends StandardIntegrationTest {
 
         // Then login with new password
         credentials = SyncCredentials.usernamePassword(username, newPassword, false);
-        SyncUser userNew = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser userNew = SyncUser.logIn(credentials, Constants.AUTH_URL);
         assertTrue(userNew.isValid());
         assertEquals(userOld.getIdentity(), userNew.getIdentity());
     }
@@ -218,7 +292,7 @@ public class AuthTests extends StandardIntegrationTest {
         String username = UUID.randomUUID().toString();
         String originalPassword = "password";
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
-        SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser userOld = SyncUser.logIn(credentials, Constants.AUTH_URL);
         assertTrue(userOld.isValid());
 
         // Login an admin user
@@ -231,9 +305,9 @@ public class AuthTests extends StandardIntegrationTest {
         adminUser.changePassword(userOld.getIdentity(), newPassword);
 
         // Try to log in with new password
-        userOld.logout();
+        userOld.logOut();
         credentials = SyncCredentials.usernamePassword(username, newPassword, false);
-        SyncUser userNew = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser userNew = SyncUser.logIn(credentials, Constants.AUTH_URL);
 
         assertTrue(userNew.isValid());
         assertEquals(userOld.getIdentity(), userNew.getIdentity());
@@ -245,7 +319,7 @@ public class AuthTests extends StandardIntegrationTest {
         final String username = UUID.randomUUID().toString();
         final String originalPassword = "password";
         final SyncCredentials credentials = SyncCredentials.usernamePassword(username, originalPassword, true);
-        final SyncUser userOld = SyncUser.login(credentials, Constants.AUTH_URL);
+        final SyncUser userOld = SyncUser.logIn(credentials, Constants.AUTH_URL);
         assertTrue(userOld.isValid());
 
         // Login an admin user
@@ -261,9 +335,9 @@ public class AuthTests extends StandardIntegrationTest {
                 assertEquals(adminUser, administratorUser);
 
                 // Try to log in with new password
-                userOld.logout();
+                userOld.logOut();
                 SyncCredentials credentials = SyncCredentials.usernamePassword(username, newPassword, false);
-                SyncUser userNew = SyncUser.login(credentials, Constants.AUTH_URL);
+                SyncUser userNew = SyncUser.logIn(credentials, Constants.AUTH_URL);
 
                 assertTrue(userNew.isValid());
                 assertEquals(userOld.getIdentity(), userNew.getIdentity());
@@ -284,7 +358,7 @@ public class AuthTests extends StandardIntegrationTest {
         String username = UUID.randomUUID().toString();
         String password = "password";
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         SyncManager.addAuthenticationListener(new AuthenticationListener() {
             @Override
             public void loggedIn(SyncUser user) {
@@ -314,7 +388,7 @@ public class AuthTests extends StandardIntegrationTest {
                 looperThread.testComplete();
             }
         });
-        user.logout();
+        user.logOut();
     }
 
     @Test
@@ -323,11 +397,11 @@ public class AuthTests extends StandardIntegrationTest {
         String password = "password";
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        final SyncUser user = spy(SyncUser.login(credentials, Constants.AUTH_URL));
+        final SyncUser user = spy(SyncUser.logIn(credentials, Constants.AUTH_URL));
 
         when(user.isValid()).thenReturn(true, false);
 
-        final RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
+        final RealmConfiguration configuration = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM).build();
         Realm realm = Realm.getInstance(configuration);
 
         assertFalse(user.isValid());
@@ -353,7 +427,7 @@ public class AuthTests extends StandardIntegrationTest {
 
         realm.close();
         cachedInstance.close();
-        user.logout();
+        user.logOut();
     }
 
     @Test
@@ -362,15 +436,15 @@ public class AuthTests extends StandardIntegrationTest {
         String password = "password";
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        SyncUser currentUser = SyncUser.currentUser();
-        user.logout();
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
+        SyncUser currentUser = SyncUser.current();
+        user.logOut();
 
         assertFalse(user.isValid());
 
         try {
             // We should not be able to build a configuration with an invalid/logged out user
-            new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
+            configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM).build();
             fail("Invalid user, it should not be possible to create a SyncConfiguration");
         } catch (IllegalArgumentException expected) {
             // User not authenticated or authentication expired.
@@ -378,7 +452,7 @@ public class AuthTests extends StandardIntegrationTest {
 
         try {
             // We should not be able to build a configuration with an invalid/logged out user
-            new SyncConfiguration.Builder(currentUser, Constants.USER_REALM).build();
+            configurationFactory.createSyncConfigurationBuilder(currentUser, Constants.USER_REALM).build();
             fail("Invalid currentUser, it should not be possible to create a SyncConfiguration");
         } catch (IllegalArgumentException expected) {
             // User not authenticated or authentication expired.
@@ -392,9 +466,9 @@ public class AuthTests extends StandardIntegrationTest {
         String password = "password";
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        RealmConfiguration configuration = new SyncConfiguration.Builder(user, Constants.USER_REALM).build();
-        user.logout();
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
+        RealmConfiguration configuration = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM).build();
+        user.logOut();
         assertFalse(user.isValid());
         Realm instance = Realm.getInstance(configuration);
         instance.close();
@@ -403,9 +477,9 @@ public class AuthTests extends StandardIntegrationTest {
     @Test
     public void logout_currentUserMoreThanOne() {
         UserFactory.createUniqueUser(Constants.AUTH_URL);
-        SyncUser.currentUser().logout();
+        SyncUser.current().logOut();
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        assertEquals(user, SyncUser.currentUser());
+        assertEquals(user, SyncUser.current());
     }
 
     // logging out 'user' should have the same impact on other instance(s) of the same user
@@ -415,36 +489,36 @@ public class AuthTests extends StandardIntegrationTest {
         String password = "password";
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        SyncUser currentUser = SyncUser.currentUser();
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
+        SyncUser currentUser = SyncUser.current();
 
         assertTrue(user.isValid());
         assertEquals(user, currentUser);
 
-        user.logout();
+        user.logOut();
 
         assertFalse(user.isValid());
         assertFalse(currentUser.isValid());
     }
 
-    // logging out 'currentUser' should have the same impact on other instance(s) of the user
+    // logging out 'current' should have the same impact on other instance(s) of the user
     @Test
     public void loggingOutCurrentUserShouldImpactOtherInstances() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
 
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
-        SyncUser currentUser = SyncUser.currentUser();
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
+        SyncUser currentUser = SyncUser.current();
 
         assertTrue(user.isValid());
         assertEquals(user, currentUser);
 
-        SyncUser.currentUser().logout();
+        SyncUser.current().logOut();
 
         assertFalse(user.isValid());
         assertFalse(currentUser.isValid());
-        assertNull(SyncUser.currentUser());
+        assertNull(SyncUser.current());
     }
 
     // verify that multiple users can be logged in at the same time
@@ -456,7 +530,7 @@ public class AuthTests extends StandardIntegrationTest {
         for (int i = 0; i < users.length; i++) {
             SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), password,
                     true);
-            users[i] = SyncUser.login(credentials, Constants.AUTH_URL);
+            users[i] = SyncUser.logIn(credentials, Constants.AUTH_URL);
         }
 
         for (int i = 0; i < users.length; i++) {
@@ -464,7 +538,7 @@ public class AuthTests extends StandardIntegrationTest {
         }
 
         for (int i = 0; i < users.length; i++) {
-            users[i].logout();
+            users[i].logOut();
         }
 
         for (int i = 0; i < users.length; i++) {
@@ -481,17 +555,17 @@ public class AuthTests extends StandardIntegrationTest {
         // register the user the first time
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
 
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         assertTrue(user.isValid());
-        user.logout();
+        user.logOut();
         assertFalse(user.isValid());
 
         // on subsequent logins, the user is already registered.
         credentials = credentials = SyncCredentials.usernamePassword(username, password, false);
         for (int i = 0; i < 3; i++) {
-            user = SyncUser.login(credentials, Constants.AUTH_URL);
+            user = SyncUser.logIn(credentials, Constants.AUTH_URL);
             assertTrue(user.isValid());
-            user.logout();
+            user.logOut();
             assertFalse(user.isValid());
         }
     }
@@ -502,7 +576,7 @@ public class AuthTests extends StandardIntegrationTest {
         final String uniqueName = UUID.randomUUID().toString();
 
         final SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
-        SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         final Token revokedRefreshToken = SyncTestUtils.getRefreshToken(user);
 
         SyncManager.addAuthenticationListener(new AuthenticationListener() {
@@ -514,7 +588,7 @@ public class AuthTests extends StandardIntegrationTest {
             @Override
             public void loggedOut(SyncUser user) {
                 SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
-                SyncUser loggedInUser = SyncUser.login(credentials, Constants.AUTH_URL);
+                SyncUser loggedInUser = SyncUser.logIn(credentials, Constants.AUTH_URL);
 
                 Token token = SyncTestUtils.getRefreshToken(loggedInUser);
                 // still comparing the same user
@@ -527,13 +601,14 @@ public class AuthTests extends StandardIntegrationTest {
             }
         });
 
-        user.logout();
+        user.logOut();
         TestHelper.awaitOrFail(userLoggedInAgain);
     }
 
     // The pre-emptive token refresh subsystem should function, and properly refresh the access token.
     // WARNING: this test can fail if there's a difference between the server's and device's clock, causing the
     // refresh access token to be too far in time.
+    @Ignore("Test still times out https://github.com/realm/realm-java/issues/5681")
     @Test(timeout = 30000)
     public void preemptiveTokenRefresh() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
@@ -609,7 +684,7 @@ public class AuthTests extends StandardIntegrationTest {
         final String username = UUID.randomUUID().toString();
         final String password = "password";
         final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         assertTrue(user.isValid());
 
         String identity = user.getIdentity();
@@ -633,7 +708,7 @@ public class AuthTests extends StandardIntegrationTest {
         final String username = UUID.randomUUID().toString();
         final String password = "password";
         final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         final String identity = user.getIdentity();
 
         // unless the refresh_token is revoked (via logout) the admin user can still retrieve the user
@@ -671,7 +746,7 @@ public class AuthTests extends StandardIntegrationTest {
 
             }
         });
-        user.logout();
+        user.logOut();
     }
 
     @Test
@@ -687,7 +762,7 @@ public class AuthTests extends StandardIntegrationTest {
         final String username = UUID.randomUUID().toString();
         final String password = "password";
         final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         assertTrue(user.isValid());
 
         SyncUserInfo userInfo = adminUser.retrieveInfoForUser("username", "invalid");
@@ -699,13 +774,13 @@ public class AuthTests extends StandardIntegrationTest {
         final String username1 = UUID.randomUUID().toString();
         final String password1 = "password";
         final SyncCredentials credentials1 = SyncCredentials.usernamePassword(username1, password1, true);
-        final SyncUser user1 = SyncUser.login(credentials1, Constants.AUTH_URL);
+        final SyncUser user1 = SyncUser.logIn(credentials1, Constants.AUTH_URL);
         assertTrue(user1.isValid());
 
         final String username2 = UUID.randomUUID().toString();
         final String password2 = "password";
         final SyncCredentials credentials2 = SyncCredentials.usernamePassword(username2, password2, true);
-        final SyncUser user2 = SyncUser.login(credentials2, Constants.AUTH_URL);
+        final SyncUser user2 = SyncUser.logIn(credentials2, Constants.AUTH_URL);
         assertTrue(user2.isValid());
 
         // trying to lookup user2 using user1 should not work (requires admin token)
@@ -722,7 +797,7 @@ public class AuthTests extends StandardIntegrationTest {
         final String username = UUID.randomUUID().toString();
         final String password = "password";
         final SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
-        final SyncUser user = SyncUser.login(credentials, Constants.AUTH_URL);
+        final SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         assertTrue(user.isValid());
 
         // Login an admin user

@@ -40,7 +40,7 @@ public class PendingRow implements Row {
     public PendingRow(OsSharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor,
                       final boolean returnCheckedRow) {
         this.sharedRealm = sharedRealm;
-        pendingOsResults = new OsResults(sharedRealm, query, sortDescriptor, null);
+        pendingOsResults = OsResults.createFromQuery(sharedRealm, query, sortDescriptor, null);
 
         listener = new RealmChangeListener<PendingRow>() {
             @Override

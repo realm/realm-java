@@ -1,3 +1,4 @@
+rootProject.name = 'realm-examples'
 include 'architectureComponentsExample'
 include 'encryptionExample'
 include 'gridViewExample'
@@ -15,4 +16,3 @@ include 'unitTestExample'
 include 'objectServerExample'
 include 'multiprocessExample'
 
-rootProject.name = 'realm-examples'

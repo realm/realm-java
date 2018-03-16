@@ -21,13 +21,20 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation will mark the field as not nullable. When the field is {@link Required},
- * it cannot be set to {@code null}.
+ * This annotation will mark the field or the element of a primitive {@link io.realm.RealmList} as not nullable.
  * <p>
- * Only {@code Boolean, Byte, Short, Integer, Long, Float, Double, String, byte[], Date} can be annotated
- * with {@link Required}. Compiling will fail when fields with other types have {@link Required} annotation.
- * Fields with primitive types and the {@link io.realm.RealmList} type are required implicitly.
- * Fields with {@link io.realm.RealmObject} type are always nullable.
+ * When a field of type {@code Boolean, Byte, Short, Integer, Long, Float, Double, String, byte[], Date} is annotated
+ * with {@link Required}, it cannot be set to {@code null}.
+ * <p>
+ * Fields with primitive types are implicitly required.
+ * <p>
+ * When a primitive {@link io.realm.RealmList} ({@code RealmList<String>, RealmList<byte[]>, RealmList<Boolean>,
+ * RealmList<Byte>, RealmList<Short>, RealmList<Integer>, RealmList<Long>, RealmList<Float>, RealmList<Double>,
+ * RealmList<Date>}) is annotated with {@link Required}, it cannot contain {@code null} values.
+ * <p>
+ * The {@link io.realm.RealmList} field itself is required always.
+ * <p>
+ * Compiling will fail when fields with other types have {@link Required} annotation.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

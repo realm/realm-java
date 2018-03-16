@@ -79,7 +79,7 @@ public class IOSRealmTests {
             configFactory.copyRealmFromAssets(context,
                     "ios/" + iosVersion + "-alltypes.realm", REALM_NAME);
             realm = Realm.getDefaultInstance();
-            RealmResults<IOSAllTypes> result = realm.where(IOSAllTypes.class).findAllSorted("id", Sort.ASCENDING);
+            RealmResults<IOSAllTypes> result = realm.where(IOSAllTypes.class).sort("id", Sort.ASCENDING).findAll();
             // Verifies metadata.
             Table table = realm.getTable(IOSAllTypes.class);
             assertEquals("id", OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), IOSAllTypes.CLASS_NAME));

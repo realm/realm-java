@@ -18,22 +18,17 @@ package io.realm.objectserver.utils;
 
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.SystemClock;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import io.realm.AuthenticationListener;
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.SyncCredentials;
-import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.log.RealmLog;
 
 import static org.junit.Assert.fail;
@@ -48,9 +43,12 @@ public class UserFactory {
     // test starts and store it in a Realm. Then it can be retrieved for every process.
     private String userName;
     private static UserFactory instance;
-    private static RealmConfiguration configuration = new RealmConfiguration.Builder()
-            .name("user-factory.realm")
-            .build();
+    private static RealmConfiguration configuration;
+    static {
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder().name("user-factory.realm");
+        ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
+        configuration = builder.build();
+    }
 
     private UserFactory(String userName) {
         this.userName = userName;
@@ -58,7 +56,7 @@ public class UserFactory {
 
     public SyncUser loginWithDefaultUser(String authUrl) {
         SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, false);
-        return SyncUser.login(credentials, authUrl);
+        return SyncUser.logIn(credentials, authUrl);
     }
 
     /**
@@ -79,20 +77,25 @@ public class UserFactory {
 
     private static SyncUser createUser(String username, String authUrl) {
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, PASSWORD, true);
-        return SyncUser.login(credentials, authUrl);
+        return SyncUser.logIn(credentials, authUrl);
     }
 
 
     public SyncUser createDefaultUser(String authUrl) {
         SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, true);
-        return SyncUser.login(credentials, authUrl);
+        return SyncUser.logIn(credentials, authUrl);
     }
 
     public static SyncUser createAdminUser(String authUrl) {
         // `admin` required as user identifier to be granted admin rights.
         // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
         SyncCredentials credentials = SyncCredentials.usernamePassword("realm-admin", "", false);
-        return SyncUser.login(credentials, authUrl);
+        return SyncUser.logIn(credentials, authUrl);
+    }
+
+    public static SyncUser createNicknameUser(String authUrl, String nickname, boolean isAdmin) {
+        SyncCredentials credentials = SyncCredentials.nickname(nickname, isAdmin);
+        return SyncUser.logIn(credentials, authUrl);
     }
 
     // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
@@ -147,7 +150,7 @@ public class UserFactory {
             public void run() {
                 Map<String, SyncUser> users = SyncUser.all();
                 for (SyncUser user : users.values()) {
-                    user.logout();
+                    user.logOut();
                 }
                 allUsersLoggedOut.countDown();
 

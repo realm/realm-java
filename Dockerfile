@@ -52,9 +52,9 @@ RUN sdkmanager --update
 # Accept all licenses
 RUN yes y | sdkmanager --licenses
 RUN sdkmanager 'platform-tools'
-RUN sdkmanager 'build-tools;26.0.2'
+RUN sdkmanager 'build-tools;27.0.1'
 RUN sdkmanager 'extras;android;m2repository'
-RUN sdkmanager 'platforms;android-26'
+RUN sdkmanager 'platforms;android-27'
 RUN sdkmanager 'cmake;3.6.4111459'
 
 # Install the NDK

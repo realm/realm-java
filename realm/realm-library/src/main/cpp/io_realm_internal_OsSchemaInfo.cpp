@@ -19,8 +19,6 @@
 #include <schema.hpp>
 #include <object_schema.hpp>
 #include <property.hpp>
-#include <util/format.hpp>
-
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"
 #include "util.hpp"

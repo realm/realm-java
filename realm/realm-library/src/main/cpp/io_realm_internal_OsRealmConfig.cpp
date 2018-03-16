@@ -21,6 +21,7 @@
 #include <sync/sync_config.hpp>
 #include <sync/sync_manager.hpp>
 #include <sync/sync_session.hpp>
+
 #endif
 
 #include "java_accessor.hpp"
@@ -154,10 +155,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
                                               reinterpret_cast<jlong>(new_shared_realm_ptr), config_global.get(), obj,
                                               old_realm->schema_version());
                 });
-                // Close the OsSharedRealm. Otherwise it will only be closed when the Java OsSharedRealm gets GCed. And
-                // that will be too late.
-                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(
-                    env, [&new_shared_realm_ptr]() { (*new_shared_realm_ptr)->close(); });
+                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
             };
         }
         else {
@@ -229,10 +227,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
                                               reinterpret_cast<jlong>(new_shared_realm_ptr), config_global_ref.get(),
                                               obj);
                 });
-                // Close the OsSharedRealm. Otherwise it will only be closed when the Java OsSharedRealm gets GCed. And
-                // that will be too late.
-                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(
-                    env, [&new_shared_realm_ptr]() { (*new_shared_realm_ptr)->close(); });
+                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
             };
         }
         else {
@@ -359,6 +354,32 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigS
         if (j_sync_ssl_trust_certificate_path) {
             JStringAccessor cert_path(env, j_sync_ssl_trust_certificate_path);
             config.sync_config->ssl_trust_certificate_path = realm::util::Optional<std::string>(cert_path);
+        }
+        else if (config.sync_config->client_validate_ssl) {
+            // set default callback to allow Android to check the certificate
+            static JavaClass sync_manager_class(env, "io/realm/SyncManager");
+            static JavaMethod java_ssl_verify_callback(env, sync_manager_class, "sslVerifyCallback",
+                                                       "(Ljava/lang/String;Ljava/lang/String;I)Z", true);
+
+            std::function<sync::Session::SSLVerifyCallback> ssl_verify_callback =
+                [](const std::string server_address, REALM_UNUSED realm::sync::Session::port_type server_port,
+                   const char* pem_data, size_t pem_size, REALM_UNUSED int preverify_ok, int depth) {
+
+                    Log::d("Callback to Java requesting certificate validation for host %1",
+                                            server_address.c_str());
+
+                    JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
+
+                    jstring jserver_address = to_jstring(env, server_address.c_str());
+                    // deep copy the pem_data into a string so DeleteLocalRef delete the local reference not the original const char
+                    std::string pem(pem_data, pem_size);
+                    jstring jpem = to_jstring(env, pem.c_str());
+                    bool isValid = env->CallStaticBooleanMethod(sync_manager_class, java_ssl_verify_callback,
+                                                                jserver_address,
+                                                                jpem, depth) == JNI_TRUE;
+                    return isValid;
+                };
+            config.sync_config->ssl_verify_callback = std::move(ssl_verify_callback);
         }
     }
     CATCH_STD()

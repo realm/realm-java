@@ -20,11 +20,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
@@ -200,7 +200,7 @@ final class RealmCache {
     // are not allowed and an exception will be thrown when trying to add it to the cache list.
     // A weak ref is used to hold the RealmCache instance. The weak ref entry will be cleared if and only if there
     // is no Realm instance holding a strong ref to it and there is no Realm instance associated it is BEING created.
-    private static final List<WeakReference<RealmCache>> cachesList = new LinkedList<WeakReference<RealmCache>>();
+    private static final List<WeakReference<RealmCache>> cachesList = new ArrayList<WeakReference<RealmCache>>();
 
     // See leak()
     // isLeaked flag is used to avoid adding strong ref multiple times without iterating the list.

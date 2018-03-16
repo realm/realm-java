@@ -152,7 +152,7 @@ public class OsResultsTests {
     @Test
     public void constructor_withDistinct() {
         SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(null, table, "firstName");
-        OsResults osResults = new OsResults(sharedRealm, table.where(), null, distinctDescriptor);
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), null, distinctDescriptor);
 
         assertEquals(3, osResults.size());
         assertEquals("John", osResults.getUncheckedRow(0).getString(0));
@@ -164,7 +164,7 @@ public class OsResultsTests {
     @Test(expected = UnsupportedOperationException.class)
     public void constructor_queryIsValidated() {
         // OsResults's constructor should call TableQuery.validateQuery()
-        new OsResults(sharedRealm, table.where().or());
+        OsResults.createFromQuery(sharedRealm, table.where().or());
     }
 
     @Test
@@ -175,20 +175,20 @@ public class OsResultsTests {
         sharedRealm.commitTransaction();
         // Query should be checked before creating OS Results.
         thrown.expect(IllegalStateException.class);
-        new OsResults(sharedRealm, query);
+        OsResults.createFromQuery(sharedRealm, query);
     }
 
     @Test
     public void size() {
-        OsResults osResults = new OsResults(sharedRealm, table.where());
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         assertEquals(4, osResults.size());
     }
 
     @Test
     public void where() {
-        OsResults osResults = new OsResults(sharedRealm, table.where());
-        OsResults osResults2 = new OsResults(sharedRealm, osResults.where().equalTo(new long[] {0}, oneNullTable, "John"));
-        OsResults osResults3 = new OsResults(sharedRealm, osResults2.where().equalTo(new long[] {1}, oneNullTable, "Anderson"));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
+        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo(new long[] {0}, oneNullTable, "John"));
+        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo(new long[] {1}, oneNullTable, "Anderson"));
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
@@ -201,7 +201,7 @@ public class OsResultsTests {
 
     @Test
     public void sort() {
-        OsResults osResults = new OsResults(sharedRealm, table.where().greaterThan(new long[] {2}, oneNullTable, 1));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan(new long[] {2}, oneNullTable, 1));
         SortDescriptor sortDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
 
         OsResults osResults2 = osResults.sort(sortDescriptor);
@@ -218,7 +218,7 @@ public class OsResultsTests {
     @Test
     public void clear() {
         assertEquals(4, table.size());
-        OsResults osResults = new OsResults(sharedRealm, table.where());
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         sharedRealm.beginTransaction();
         osResults.clear();
         sharedRealm.commitTransaction();
@@ -227,7 +227,7 @@ public class OsResultsTests {
 
     @Test
     public void contains() {
-        OsResults osResults = new OsResults(sharedRealm, table.where());
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         UncheckedRow row = table.getUncheckedRow(0);
         assertTrue(osResults.contains(row));
     }
@@ -236,14 +236,14 @@ public class OsResultsTests {
     public void indexOf() {
         SortDescriptor sortDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
 
-        OsResults osResults = new OsResults(sharedRealm, table.where(), sortDescriptor);
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), sortDescriptor, null);
         UncheckedRow row = table.getUncheckedRow(0);
         assertEquals(3, osResults.indexOf(row));
     }
 
     @Test
     public void distinct() {
-        OsResults osResults = new OsResults(sharedRealm, table.where().lessThan(new long[] {2}, oneNullTable, 4));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan(new long[] {2}, oneNullTable, 4));
 
         SortDescriptor distinctDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
         OsResults osResults2 = osResults.distinct(distinctDescriptor);
@@ -266,7 +266,7 @@ public class OsResultsTests {
         populateData(sharedRealm);
         Table table = getTable(sharedRealm);
 
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         looperThread.keepStrongReference(osResults);
         osResults.addListener(osResults, new RealmChangeListener<OsResults>() {
             @Override
@@ -287,7 +287,7 @@ public class OsResultsTests {
         final OsSharedRealm sharedRealm = getSharedRealm();
         Table table = getTable(sharedRealm);
 
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         osResults.addListener(osResults, new RealmChangeListener<OsResults>() {
             @Override
             public void onChange(OsResults osResults1) {
@@ -304,7 +304,7 @@ public class OsResultsTests {
     @Test
     public void addListener_shouldBeCalledWhenRefreshAfterLocalCommit() {
         final CountDownLatch latch = new CountDownLatch(2);
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         assertEquals(4, osResults.size()); // See `populateData()`
         osResults.addListener(osResults, new RealmChangeListener<OsResults>() {
             @Override
@@ -332,7 +332,7 @@ public class OsResultsTests {
     @Test
     public void addListener_triggeredByRefresh() {
         final CountDownLatch latch = new CountDownLatch(1);
-        OsResults osResults = new OsResults(sharedRealm, table.where());
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         osResults.size();
         osResults.addListener(osResults, new RealmChangeListener<OsResults>() {
             @Override
@@ -356,7 +356,7 @@ public class OsResultsTests {
         populateData(sharedRealm);
         Table table = getTable(sharedRealm);
 
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         looperThread.keepStrongReference(osResults);
         osResults.addListener(osResults, new RealmChangeListener<OsResults>() {
             @Override
@@ -378,7 +378,7 @@ public class OsResultsTests {
         populateData(sharedRealm);
         Table table = getTable(sharedRealm);
 
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         looperThread.keepStrongReference(osResults);
         assertEquals(4, osResults.size()); // Trigger the query to run.
         osResults.addListener(osResults, new RealmChangeListener<OsResults>() {
@@ -404,7 +404,7 @@ public class OsResultsTests {
         Table table = getTable(sharedRealm);
         final AtomicInteger listenerCounter = new AtomicInteger(0);
 
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         looperThread.keepStrongReference(osResults);
         osResults.addListener(osResults, new RealmChangeListener<OsResults>() {
             @Override
@@ -451,7 +451,7 @@ public class OsResultsTests {
 
     @Test
     public void collectionIterator_detach_byBeginTransaction() {
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         TestIterator iterator = new TestIterator(osResults);
         assertFalse(iterator.isDetached(sharedRealm));
         sharedRealm.beginTransaction();
@@ -463,14 +463,14 @@ public class OsResultsTests {
     @Test
     public void collectionIterator_detach_createdInTransaction() {
         sharedRealm.beginTransaction();
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         TestIterator iterator = new TestIterator(osResults);
         assertTrue(iterator.isDetached(sharedRealm));
     }
 
     @Test
     public void collectionIterator_invalid_nonLooperThread_byRefresh() {
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         TestIterator iterator = new TestIterator(osResults);
         assertFalse(iterator.isDetached(sharedRealm));
         sharedRealm.refresh();
@@ -484,7 +484,7 @@ public class OsResultsTests {
         final OsSharedRealm sharedRealm = getSharedRealmForLooper();
         populateData(sharedRealm);
         Table table = getTable(sharedRealm);
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         final TestIterator iterator = new TestIterator(osResults);
         looperThread.keepStrongReference(osResults);
         assertFalse(iterator.isDetached(sharedRealm));
@@ -506,7 +506,7 @@ public class OsResultsTests {
 
     @Test
     public void collectionIterator_newInstance_throwsWhenSharedRealmIsClosed() {
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         sharedRealm.close();
         thrown.expect(IllegalStateException.class);
         new TestIterator(osResults);
@@ -514,7 +514,7 @@ public class OsResultsTests {
 
     @Test
     public void getMode() {
-        OsResults osResults = new OsResults(sharedRealm, table.where());
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         assertTrue(OsResults.Mode.QUERY == osResults.getMode());
         osResults.firstUncheckedRow(); // Run the query
         assertTrue(OsResults.Mode.TABLEVIEW == osResults.getMode());
@@ -522,7 +522,7 @@ public class OsResultsTests {
 
     @Test
     public void createSnapshot() {
-        OsResults osResults = new OsResults(sharedRealm, table.where());
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         OsResults snapshot = osResults.createSnapshot();
         assertTrue(OsResults.Mode.TABLEVIEW == snapshot.getMode());
         thrown.expect(IllegalStateException.class);
@@ -539,7 +539,7 @@ public class OsResultsTests {
         final OsSharedRealm sharedRealm = getSharedRealmForLooper();
         looperThread.closeAfterTest(sharedRealm);
         populateData(sharedRealm);
-        final OsResults osResults = new OsResults(sharedRealm, table.where());
+        final OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
         osResults.addListener(osResults, new RealmChangeListener<OsResults>() {
             @Override
             public void onChange(OsResults element) {

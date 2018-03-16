@@ -16,14 +16,17 @@
 
 package io.realm.internal;
 
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
+import io.realm.internal.sync.OsSubscription;
 
 
 /**
@@ -85,8 +88,6 @@ public class OsResults implements NativeObject, ObservableCollection {
 
         /**
          * Not supported by Realm collection iterators.
-         *
-         * @throws UnsupportedOperationException
          */
         @Override
         @Deprecated
@@ -138,8 +139,6 @@ public class OsResults implements NativeObject, ObservableCollection {
 
         /**
          * Unsupported by Realm collection iterators.
-         *
-         * @throws UnsupportedOperationException
          */
         @Override
         @Deprecated
@@ -193,8 +192,6 @@ public class OsResults implements NativeObject, ObservableCollection {
 
         /**
          * Unsupported by RealmResults iterators.
-         *
-         * @throws UnsupportedOperationException
          */
         @Override
         @Deprecated
@@ -208,9 +205,10 @@ public class OsResults implements NativeObject, ObservableCollection {
     private final OsSharedRealm sharedRealm;
     private final NativeContext context;
     private final Table table;
-    private boolean loaded;
+    protected boolean loaded;
     private boolean isSnapshot = false;
-    private final ObserverPairList<CollectionObserverPair> observerPairs =
+
+    protected final ObserverPairList<CollectionObserverPair> observerPairs =
             new ObserverPairList<CollectionObserverPair>();
 
     // Public for static checking in JNI
@@ -276,61 +274,37 @@ public class OsResults implements NativeObject, ObservableCollection {
         }
     }
 
-    public static OsResults createBacklinksCollection(OsSharedRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
+    public static OsResults createForBacklinks(OsSharedRealm realm, UncheckedRow row, Table srcTable,
+                                               String srcFieldName) {
         long backlinksPtr = nativeCreateResultsFromBacklinks(
                 realm.getNativePtr(),
                 row.getNativePtr(),
                 srcTable.getNativePtr(),
                 srcTable.getColumnIndex(srcFieldName));
-        return new OsResults(realm, srcTable, backlinksPtr, true);
+        return new OsResults(realm, srcTable, backlinksPtr);
     }
 
-    public OsResults(OsSharedRealm sharedRealm, TableQuery query,
-                     @Nullable SortDescriptor sortDescriptor, @Nullable SortDescriptor distinctDescriptor) {
+    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query,
+                                            @Nullable SortDescriptor sortDescriptor,
+                                            @Nullable SortDescriptor distinctDescriptor) {
         query.validateQuery();
-
-        this.nativePtr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
+        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
                 sortDescriptor,
                 distinctDescriptor);
-
-        this.sharedRealm = sharedRealm;
-        this.context = sharedRealm.context;
-        this.table = query.getTable();
-        this.context.addReference(this);
-        this.loaded = false;
+        return new OsResults(sharedRealm, query.getTable(), ptr);
     }
 
-    public OsResults(OsSharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor) {
-        this(sharedRealm, query, sortDescriptor, null);
+    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query) {
+        return createFromQuery(sharedRealm, query, null, null);
     }
 
-    public OsResults(OsSharedRealm sharedRealm, TableQuery query) {
-        this(sharedRealm, query, null, null);
-    }
-
-    public OsResults(OsSharedRealm sharedRealm, OsList osList, @Nullable SortDescriptor sortDescriptor) {
-        this.nativePtr = nativeCreateResultsFromList(sharedRealm.getNativePtr(), osList.getNativePtr(), sortDescriptor);
-
-        this.sharedRealm = sharedRealm;
-        this.context = sharedRealm.context;
-        this.table = osList.getTargetTable();
-        this.context.addReference(this);
-        // OsResults created from OsList is loaded by default. So that the listener won't be triggered with empty
-        // change set.
-        this.loaded = true;
-    }
-
-    private OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
-        this(sharedRealm, table, nativePtr, false);
-    }
-
-    OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr, boolean loaded) {
+    OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
         this.table = table;
         this.nativePtr = nativePtr;
         this.context.addReference(this);
-        this.loaded = loaded;
+        this.loaded = getMode() != Mode.QUERY;
     }
 
     public OsResults createSnapshot() {
@@ -461,32 +435,37 @@ public class OsResults implements NativeObject, ObservableCollection {
     // Called by JNI
     @Override
     public void notifyChangeListeners(long nativeChangeSetPtr) {
-        if (nativeChangeSetPtr == 0 && isLoaded()) {
+        // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
+        // So it is possible it deliver a non-empty change set for the first async query returns.
+        OsCollectionChangeSet changeset = (nativeChangeSetPtr == 0)
+                ? new EmptyLoadChangeSet(null, sharedRealm.isPartial())
+                : new OsCollectionChangeSet(nativeChangeSetPtr, !isLoaded(), null, sharedRealm.isPartial());
+
+        // Happens e.g. if a synchronous query is created, a change listener is added and then
+        // a transaction is started on the same thread. This will trigger all notifications
+        // and deliver an empty changeset.
+        if (changeset.isEmpty() && isLoaded()) {
             return;
         }
-        boolean wasLoaded = loaded;
         loaded = true;
-        // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
-        // So it is possible it deliver a non-empty change set for the first async query returns. In this case, we
-        // return an empty change set to user since it is considered as the first time async query returns.
-        observerPairs.foreach(new Callback(nativeChangeSetPtr == 0 || !wasLoaded ?
-                null : new OsCollectionChangeSet(nativeChangeSetPtr)));
+        observerPairs.foreach(new Callback(changeset));
     }
 
     public Mode getMode() {
         return Mode.getByValue(nativeGetMode(nativePtr));
     }
 
-    // The Results of Object Store will be queried asynchronously in nature. But we do have to support "sync" query by
-    // Java like RealmQuery.findAll().
+    // The Results with mode QUERY will be evaluated asynchronously in Object Store. But we do have to support "sync"
+    // query by Java like RealmQuery.findAll().
     // The flag is used for following cases:
-    // 1. For sync query, loaded will be set to true when collection is created. So we will bypass the first trigger of
-    //    listener if it comes with empty change set from Object Store since we assume user already got the query
-    //    result.
-    // 2. For async query, when load() gets called with loaded not set, the listener should be triggered with empty
+    // 1. When Results is created, loaded will be set to false if the mode is QUERY. For other modes, loaded will be set
+    //    to true.
+    // 2. For sync query (RealmQuery.findAll()), load() should be called after the Results creation. Then query will be
+    //    evaluated immediately and then loaded will be set to true (And the mode will be changed to TABLEVIEW in OS).
+    // 3. For async query, when load() gets called with loaded not set, the listener should be triggered with empty
     //    change set since it is considered as query first returned.
-    // 3. If the listener triggered with empty change set after load() called for async queries, it is treated as the
-    //    same case as 1).
+    // 4. If the listener triggered with empty change set after load() called for async queries, it is treated as the
+    //    same case as 2).
     public boolean isLoaded() {
         return loaded;
     }
@@ -495,16 +474,14 @@ public class OsResults implements NativeObject, ObservableCollection {
         if (loaded) {
             return;
         }
+        nativeEvaluateQueryIfNeeded(nativePtr, false);
         notifyChangeListeners(0);
     }
 
     private static native long nativeGetFinalizerPtr();
 
-    private static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-            @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
-
-    private static native long nativeCreateResultsFromList(long sharedRealmPtr, long listPtr,
-                                                           @Nullable SortDescriptor sortDesc);
+    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
+                                                     @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 
@@ -546,4 +523,7 @@ public class OsResults implements NativeObject, ObservableCollection {
     private static native byte nativeGetMode(long nativePtr);
 
     private static native long nativeCreateResultsFromBacklinks(long sharedRealmNativePtr, long rowNativePtr, long srcTableNativePtr, long srColIndex);
+
+    private static native void nativeEvaluateQueryIfNeeded(long nativePtr, boolean wantsNotifications);
+
 }

@@ -31,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
@@ -271,6 +272,7 @@ public class RealmCacheTests {
 
         final RealmConfiguration config1 = configFactory.createConfigurationBuilder()
                 .name("config1.realm")
+                .schema(AllJavaTypes.class)
                 .initialData(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
@@ -282,6 +284,7 @@ public class RealmCacheTests {
 
         RealmConfiguration config2 = configFactory.createConfigurationBuilder()
                 .name("config2.realm")
+                .schema(AllJavaTypes.class)
                 .build();
 
         Thread thread = new Thread(new Runnable() {

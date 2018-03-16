@@ -777,7 +777,8 @@ public class RealmMigrationTests {
         assertNotNull(objectSchema);
         assertEquals(PrimaryKeyAsString.FIELD_PRIMARY_KEY, objectSchema.getPrimaryKey());
         RealmResults<PrimaryKeyAsString> results = realm.where(PrimaryKeyAsString.class)
-                .findAllSorted(PrimaryKeyAsString.FIELD_ID);
+                .sort(PrimaryKeyAsString.FIELD_ID)
+                .findAll();
         assertEquals(2, results.size());
         assertEquals("string0", results.get(0).getName());
         assertEquals("string1", results.get(1).getName());
@@ -822,7 +823,8 @@ public class RealmMigrationTests {
         assertNotNull(objectSchema);
         assertEquals(PrimaryKeyAsInteger.FIELD_ID, objectSchema.getPrimaryKey());
         RealmResults<PrimaryKeyAsInteger> results = realm.where(PrimaryKeyAsInteger.class)
-                .findAllSorted(PrimaryKeyAsInteger.FIELD_ID);
+                .sort(PrimaryKeyAsInteger.FIELD_ID)
+                .findAll();
         assertEquals(2, results.size());
         assertEquals(0, results.get(0).getId());
         assertEquals(1, results.get(1).getId());

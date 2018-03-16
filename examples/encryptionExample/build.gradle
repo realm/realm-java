@@ -6,9 +6,9 @@ android {
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
-        applicationId 'examples.realm.io.encryptionExample'
+        applicationId 'io.realm.examples.encryption'
         targetSdkVersion rootProject.sdkVersion
-        minSdkVersion 14
+        minSdkVersion rootProject.minSdkVersion
         versionCode 1
         versionName '1.0'
     }
