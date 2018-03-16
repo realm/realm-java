@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,18 @@
 
 package io.realm.examples.intro.model;
 
-import io.realm.RealmObject;
+import io.realm.RealmModel;
+import io.realm.RealmResults;
+import io.realm.annotations.LinkingObjects;
+import io.realm.annotations.RealmClass;
 
-public class Dog extends RealmObject {
+// It is possible to use @RealmClass and implement RealmModel, instead of extending RealmObject.
+@RealmClass
+public class Dog implements RealmModel {
+    // It is possible to also use public fields, instead of getters/setters.
     public String name;
+
+    // You can define inverse relationships.
+    @LinkingObjects("dog")
+    public final RealmResults<Person> owners = null;
 }
