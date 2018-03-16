@@ -327,8 +327,8 @@ public class SyncSessionTests extends StandardIntegrationTest {
         Realm realm = Realm.getInstance(syncConfiguration);
 
         realm.beginTransaction();
-        // upload 50MB
-        for (int i = 0; i < 25; i++) {
+        // upload 10MB
+        for (int i = 0; i < 5; i++) {
             realm.createObject(StringOnly.class).setChars(twoMBString);
         }
         realm.commitTransaction();
@@ -357,8 +357,8 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 RealmChangeListener<RealmResults<StringOnly>> realmChangeListener = new RealmChangeListener<RealmResults<StringOnly>>() {
                     @Override
                     public void onChange(RealmResults<StringOnly> stringOnlies) {
-                        if (stringOnlies.size() == 25) {
-                            for (int i = 0; i < 25; i++) {
+                        if (stringOnlies.size() == 5) {
+                            for (int i = 0; i < 5; i++) {
                                 assertEquals(1_000_000, stringOnlies.get(i).getChars().length());
                             }
                             adminRealm.close();
@@ -371,7 +371,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
             }
         });
 
-        TestHelper.awaitOrFail(testCompleted, 60);
+        TestHelper.awaitOrFail(testCompleted, TestHelper.STANDARD_WAIT_SECS);
         handlerThread.join();
 
         user.logOut();
