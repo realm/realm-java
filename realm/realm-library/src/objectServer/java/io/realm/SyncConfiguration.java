@@ -233,6 +233,10 @@ public class SyncConfiguration extends RealmConfiguration {
         URL url = user.getAuthenticationUrl();
         String protocol = url.getProtocol();
         String host = url.getHost();
+        int port = url.getPort();
+        if (port != -1) { // port set
+            host += ":" + port;
+        }
 
         if (protocol.equalsIgnoreCase("https")) {
             protocol = "realms";
