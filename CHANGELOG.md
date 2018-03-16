@@ -1,3 +1,9 @@
+## 5.0.1 (YYYY-MM-DD)
+
+### Enhancements
+
+* [ObjectServer] `SyncConfiguration.automatic()` will make use of the host port to work out the default Realm URL. 
+
 ## 5.0.0 (2018-03-15)
 
 This release is compatible with the Realm Object Server 3.0.0-beta.3 or later.
