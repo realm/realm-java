@@ -1752,7 +1752,6 @@ public class RealmQuery<E> {
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         realm.checkIfValid();
-
         return createRealmResults(query, sortDescriptor, distinctDescriptor, true, SubscriptionAction.NO_SUBSCRIPTION);
     }
 
