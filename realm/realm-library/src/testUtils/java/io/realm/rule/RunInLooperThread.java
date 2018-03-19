@@ -40,6 +40,7 @@ import java.util.concurrent.ThreadFactory;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.android.AndroidCapabilities;
 
 
@@ -285,6 +286,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         // Wait for all async tasks to have completed to ensure a successful deleteRealm call.
         // If it times out, it will throw.
         TestHelper.waitRealmThreadExecutorFinish();
+        ObjectServerFacade.getSyncFacadeIfPossible().waitForNetworkThreadExecutorToFinish();
         AndroidCapabilities.EMULATE_MAIN_THREAD = false;
         super.after();
 

@@ -190,4 +190,21 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
         builder.addModule(new ObjectPermissionsModule());
     }
+
+    @Override
+    public void waitForNetworkThreadExecutorToFinish() {
+        int counter = 50;
+        while (counter > 0) {
+            if (SyncManager.NETWORK_POOL_EXECUTOR.getActiveCount() == 0) {
+                return;
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new AssertionError(e.getMessage());
+            }
+            counter--;
+        }
+        throw new AssertionError("'SyncManager.NETWORK_POOL_EXECUTOR' is not finished in " + counter/10.0D + " seconds");
+    }
 }
