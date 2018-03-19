@@ -205,6 +205,6 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             }
             counter--;
         }
-        throw new AssertionError("'SyncManager.NETWORK_POOL_EXECUTOR' is not finished in " + counter/10.0D + " seconds");
+        throw new AssertionError("'SyncManager.NETWORK_POOL_EXECUTOR' is not finished in " + (counter/10.0D) + " seconds");
     }
 }
