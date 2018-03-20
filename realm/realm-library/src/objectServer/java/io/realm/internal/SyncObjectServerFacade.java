@@ -23,6 +23,9 @@ import android.net.ConnectivityManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
@@ -193,18 +196,19 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
 
     @Override
     public void waitForNetworkThreadExecutorToFinish() {
-        int counter = 50;
-        while (counter > 0) {
-            if (SyncManager.NETWORK_POOL_EXECUTOR.getActiveCount() == 0) {
-                return;
-            }
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                throw new AssertionError(e.getMessage());
-            }
-            counter--;
+        // Since the network pool should only consist of remote logout calls at the point where this
+        // is called. These can be safely interrupted, so just shutdown the pool and create a new
+        // that can be used by future tests.
+        SyncManager.NETWORK_POOL_EXECUTOR.shutdownNow();
+        try {
+            SyncManager.NETWORK_POOL_EXECUTOR.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new AssertionError("NetworkPoolExecutor was not shut down in time:\n" + Util.getStackTrace(e));
+        } finally {
+            // Replace the executor, since the old one is now dead.
+            // The setup of this should mirror what is done in SyncManager.
+            SyncManager.NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
+                    10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
         }
-        throw new AssertionError("'SyncManager.NETWORK_POOL_EXECUTOR' is not finished in " + (counter/10.0D) + " seconds");
     }
 }

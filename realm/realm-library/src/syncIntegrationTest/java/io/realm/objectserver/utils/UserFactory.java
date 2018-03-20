@@ -145,18 +145,20 @@ public class UserFactory {
         final HandlerThread ht = new HandlerThread("LoggingOutUsersThread");
         ht.start();
         Handler handler = new Handler(ht.getLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Map<String, SyncUser> users = SyncUser.all();
-                for (SyncUser user : users.values()) {
-                    user.logOut();
-                }
-                ObjectServerFacade.getSyncFacadeIfPossible().waitForNetworkThreadExecutorToFinish();
-                allUsersLoggedOut.countDown();
+        handler.post(() -> {
+            Map<String, SyncUser> users = SyncUser.all();
+            for (SyncUser user : users.values()) {
+                user.logOut();
             }
+            ObjectServerFacade.getSyncFacadeIfPossible().waitForNetworkThreadExecutorToFinish();
+            allUsersLoggedOut.countDown();
         });
         TestHelper.awaitOrFail(allUsersLoggedOut);
         ht.quit();
+        try {
+            ht.join(5000);
+        } catch (InterruptedException e) {
+            throw new AssertionError("LoggingOutUsersThread failed to finish in time");
+        }
     }
 }
