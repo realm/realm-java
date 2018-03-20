@@ -27,6 +27,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
@@ -195,6 +196,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
+    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     public void waitForNetworkThreadExecutorToFinish() {
         // Since the network pool should only consist of remote logout calls at the point where this
         // is called. These can be safely interrupted, so just shutdown the pool and create a new
