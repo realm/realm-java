@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,50 +16,37 @@
 
 package io.realm.examples.json;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import java.util.Collections;
 import java.util.List;
 
 // This adapter is strictly to interface with the GridView and doesn't
 // particular show much interesting Realm functionality.
-
-// Alternatively from this example,
-// a developer could update the getView() to pull items from the Realm.
-
 public class CityAdapter extends BaseAdapter {
+    public static final String TAG = "CityAdapter";
 
-    public static final String TAG = JsonExampleActivity.class.getName();
+    private List<City> cities = Collections.emptyList();
 
-    private LayoutInflater inflater;
-
-    private List<City> cities = null;
-
-    public CityAdapter(Context context) {
-        inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    public CityAdapter() {
     }
 
     public void setData(List<City> details) {
         this.cities = details;
+        notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-        if (cities == null) {
-            return 0;
-        }
-        return cities.size();
+        return cities == null ? 0 : cities.size();
     }
 
     @Override
-    public Object getItem(int position) {
-        if (cities == null || cities.get(position) == null) {
-            return null;
-        }
+    public City getItem(int position) {
         return cities.get(position);
     }
 
@@ -68,18 +55,36 @@ public class CityAdapter extends BaseAdapter {
         return i;
     }
 
+    private static class ViewHolder {
+        private TextView name;
+        private TextView votes;
+
+        public ViewHolder(View view) {
+            this.name = view.findViewById(R.id.name);
+            this.votes = view.findViewById(R.id.votes);
+        }
+
+        public void bind(City city) {
+            name.setText(city.getName());
+            votes.setText(String.valueOf(city.getVotes()));
+        }
+    }
+
     @Override
     public View getView(int position, View currentView, ViewGroup parent) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        ViewHolder viewHolder;
+
         if (currentView == null) {
             currentView = inflater.inflate(R.layout.city_listitem, parent, false);
+            viewHolder = new ViewHolder(currentView);
+            currentView.setTag(viewHolder);
+        } else {
+            viewHolder = (ViewHolder)currentView.getTag();
         }
 
         City city = cities.get(position);
-
-        if (city != null) {
-            ((TextView) currentView.findViewById(R.id.name)).setText(city.getName());
-            ((TextView) currentView.findViewById(R.id.votes)).setText(String.valueOf(city.getVotes()));
-        }
+        viewHolder.bind(city);
 
         return currentView;
     }

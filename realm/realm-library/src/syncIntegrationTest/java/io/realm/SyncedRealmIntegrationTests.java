@@ -324,7 +324,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
     @Test
     public void defaultRealm() throws InterruptedException {
-        SyncCredentials credentials = SyncCredentials.nickname("test", true);
+        SyncCredentials credentials = SyncCredentials.nickname("test", false);
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         SyncConfiguration config = SyncConfiguration.automatic();
         Realm realm = Realm.getInstance(config);
@@ -332,7 +332,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         realm.refresh();
 
         try {
-            assertFalse(realm.isEmpty());
+            assertTrue(realm.isEmpty());
         } finally {
             realm.close();
             user.logOut();
