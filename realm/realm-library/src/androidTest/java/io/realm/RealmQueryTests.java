@@ -1401,7 +1401,7 @@ public class RealmQueryTests extends QueryTests {
 
         RealmResults<Dog> dogs = realm.where(Dog.class).in("name", new String[] { "Fido", "Bella" }).findAll();
         Dog dog = dogs.where().sort("name", Sort.ASCENDING).findFirst();
-        assertEquals("Bela", dog.getName());
+        assertEquals("Bella", dog.getName());
     }
 
     @Test
