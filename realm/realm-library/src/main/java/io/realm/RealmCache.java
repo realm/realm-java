@@ -299,6 +299,10 @@ final class RealmCache {
             BaseRealm realm;
             boolean fileExists = configuration.realmExists();
 
+            if (configuration.isSyncConfiguration() && !fileExists) {
+                ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
+            }
+
             if (realmClass == Realm.class) {
                 // RealmMigrationNeededException might be thrown here.
                 realm = Realm.createInstance(this);
@@ -306,22 +310,6 @@ final class RealmCache {
                 realm = DynamicRealm.createInstance(this);
             } else {
                 throw new IllegalArgumentException(WRONG_REALM_CLASS_MESSAGE);
-            }
-
-            if (configuration.isSyncConfiguration() && !fileExists) {
-                try {
-                    ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
-                    realm.refresh();
-                } catch (Throwable t) {
-                    // If an error happened while downloading initial data, we need to reset the file so we can
-                    // download it again on the next attempt.
-                    realm.close();
-                    // FIXME: We don't have a way to ensure that the Realm instance on client thread has been
-                    //        closed for now.
-                    // https://github.com/realm/realm-java/issues/5416
-                    BaseRealm.deleteRealm(configuration);
-                    throw t;
-                }
             }
 
             // The Realm instance has been created without exceptions. Cache and reference count can be updated now.

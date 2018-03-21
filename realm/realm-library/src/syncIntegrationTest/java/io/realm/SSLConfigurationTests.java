@@ -263,12 +263,14 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
                 .disableSSLVerification()
                 .build();
         realm = Realm.getInstance(syncConfigDisableSSL);
-        looperThread.closeAfterTest(realm);
 
         RealmResults<StringOnly> all = realm.where(StringOnly.class).findAll();
-        assertEquals(1, all.size());
-        assertEquals("Foo", all.get(0).getChars());
-
+        try {
+            assertEquals(1, all.size());
+            assertEquals("Foo", all.get(0).getChars());
+        } finally {
+            realm.close();
+        }
         looperThread.testComplete();
     }
 

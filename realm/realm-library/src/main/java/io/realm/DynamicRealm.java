@@ -81,6 +81,11 @@ public class DynamicRealm extends BaseRealm {
         this.schema = new MutableRealmSchema(this);
     }
 
+    private DynamicRealm (RealmConfiguration configuration) {
+        super(configuration, null);
+        schema = null;
+    }
+
     private DynamicRealm(OsSharedRealm sharedRealm) {
         super(sharedRealm);
         this.schema = new MutableRealmSchema(this);
@@ -265,6 +270,16 @@ public class DynamicRealm extends BaseRealm {
             }
             throw e;
         }
+    }
+
+    /**
+     * Creates a schemaless {@link DynamicRealm} instance.
+     *
+     * @param configuration {@link RealmConfiguration} used to open the Realm.
+     * @return an empty Realm without any schema.
+     */
+    public static DynamicRealm createSchemalessInstance(RealmConfiguration configuration) {
+        return new DynamicRealm(configuration);
     }
 
     /**

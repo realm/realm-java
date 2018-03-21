@@ -24,6 +24,8 @@ import android.net.ConnectivityManager;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import io.realm.DynamicRealm;
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
@@ -33,6 +35,7 @@ import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.sync.permissions.ObjectPermissionsModule;
+import io.realm.log.RealmLog;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -162,11 +165,27 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             if (syncConfig.shouldWaitForInitialRemoteData()) {
+                // Create an empty schemaless Realm then wait for ROS to populate it
+                // with remote schema and potential data.
+                DynamicRealm emptyRealm = DynamicRealm.createSchemalessInstance(syncConfig);
                 SyncSession session = SyncManager.getSession(syncConfig);
                 try {
                     session.downloadAllServerChanges();
                 } catch (InterruptedException e) {
+                    // If an error happened while downloading initial data, we need to reset the file so we can
+                    // download it again on the next attempt.
+
+                    // FIXME: We don't have a way to ensure that the Realm instance on client thread has been
+                    //        closed for now. so delete may throw
+                    // https://github.com/realm/realm-java/issues/5416
+                    try {
+                        Realm.deleteRealm(config);
+                    } catch (IllegalStateException exception) {
+                        RealmLog.warn(exception);
+                    }
                     throw new DownloadingRealmInterruptedException(syncConfig, e);
+                } finally {
+                    emptyRealm.close();
                 }
             }
         }
