@@ -4,6 +4,11 @@
 
 * [ObjectServer] `SyncConfiguration.automatic()` will make use of the host port to work out the default Realm URL. 
 
+### Bug Fixes
+
+* `RealmQuery.findFirst()` and `RealmQuery.findFirstAsync()` not working correctly with sorting (#5714).
+
+
 ## 5.0.0 (2018-03-15)
 
 This release is compatible with the Realm Object Server 3.0.0-beta.3 or later.
