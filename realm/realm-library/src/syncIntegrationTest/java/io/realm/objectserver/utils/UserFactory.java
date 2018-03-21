@@ -151,7 +151,7 @@ public class UserFactory {
             for (SyncUser user : users.values()) {
                 user.logOut();
             }
-            ObjectServerFacade.getSyncFacadeIfPossible().waitForNetworkThreadExecutorToFinish();
+            TestHelper.waitForNetworkThreadExecutorToFinish();
             allUsersLoggedOut.countDown();
         });
         TestHelper.awaitOrFail(allUsersLoggedOut);

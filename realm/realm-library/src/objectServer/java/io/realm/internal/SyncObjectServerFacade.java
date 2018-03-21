@@ -23,11 +23,7 @@ import android.net.ConnectivityManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
@@ -193,26 +189,5 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @Override
     public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
         builder.addModule(new ObjectPermissionsModule());
-    }
-
-    // Only exposed for testing purposes
-    @Override
-    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-    public void waitForNetworkThreadExecutorToFinish() {
-        // Since this method should only be called when exiting a test, it should be safe to just
-        // cancel all ongoing network requests and shut down the pool as soon as possible.
-        // When shut down we replace it with a new, now empty, pool that can be used by future
-        // tests
-        SyncManager.NETWORK_POOL_EXECUTOR.shutdownNow();
-        try {
-            SyncManager.NETWORK_POOL_EXECUTOR.awaitTermination(5, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            throw new AssertionError("NetworkPoolExecutor was not shut down in time:\n" + Util.getStackTrace(e));
-        } finally {
-            // Replace the executor, since the old one is now dead.
-            // The setup of this should mirror what is done in SyncManager.
-            SyncManager.NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
-                    10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
-        }
     }
 }

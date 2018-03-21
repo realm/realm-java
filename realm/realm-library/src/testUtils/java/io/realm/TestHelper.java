@@ -40,8 +40,10 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -59,6 +61,7 @@ import io.realm.internal.OsResults;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLogger;
@@ -1249,4 +1252,39 @@ public class TestHelper {
         realm.commitTransaction();
     }
 
+    /**
+     * This method will kill all tasks then shutdown and replace the SyncManager.NETWORK_POOL_EXECUTOR
+     * with a fresh and empty instance. This should only be called when exiting tests.
+     *
+     * If the build does not support Sync, this method will do nothing
+     */
+    public static void waitForNetworkThreadExecutorToFinish() {
+        try {
+            Class syncManager = Class.forName("io.realm.SyncManager");
+            Field field = syncManager.getDeclaredField("NETWORK_POOL_EXECUTOR");
+            ThreadPoolExecutor pool = (ThreadPoolExecutor) field.get(null);
+            // Since this method should only be called when exiting a test, it should be safe to just
+            // cancel all ongoing network requests and shut down the pool as soon as possible.
+            // When shut down we replace it with a new, now empty, pool that can be used by future
+            // tests
+            pool.shutdownNow();
+            try {
+                pool.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                throw new AssertionError("NetworkPoolExecutor was not shut down in time:\n" + Util.getStackTrace(e));
+            } finally {
+                // Replace the executor, since the old one is now dead.
+                // The setup of this should mirror what is done in SyncManager.
+                field.set(null, new ThreadPoolExecutor(
+                        10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100)));
+            }
+        } catch (ClassNotFoundException e) {
+            // Ignore and do nothing
+        } catch (NoSuchFieldException e) {
+            throw new AssertionError("Could not find NETWORK_POOL_EXECUTOR field");
+        } catch (IllegalAccessException e) {
+            throw new AssertionError(Util.getStackTrace(e));
+        }
+
+    }
 }
