@@ -40,6 +40,7 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.permissions.PermissionModule;
 import io.realm.internal.sync.permissions.ObjectPermissionsModule;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PermissionObject;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
@@ -192,17 +193,10 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         looperThread.keepStrongReference(allAsync);
         // new object should not be visible for user2 partial sync
         allAsync.addChangeListener((permissionObjects2, changeSet) -> {
-            switch (changeSet.getState()) {
-                case INITIAL:
-                    assertEquals(0, permissionObjects2.size());
-                    break;
-                case UPDATE:
-                    assertEquals(0, permissionObjects2.size());
-                    looperThread.testComplete();
-                    break;
-                case ERROR:
-                    fail("Unexpected error callback");
-                    break;
+            RealmLog.info("State: " + changeSet.getState().toString() + ", complete: " + changeSet.isCompleteResult());
+            if (changeSet.isCompleteResult()) {
+                assertEquals(0, permissionObjects2.size());
+                looperThread.testComplete();
             }
         });
     }
