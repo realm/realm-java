@@ -94,6 +94,7 @@ public class SyncManager {
      * This pool is only exposed for testing purposes and replacing it while the queue is not
      * empty will result in undefined behaviour.
      */
+    @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(100));
 
