@@ -1379,7 +1379,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void findFirst_withConstrictingView() {
+    public void findFirst_withSortedConstrictingView() {
         realm.beginTransaction();
         realm.insert(new Dog("Milo"));
         realm.insert(new Dog("Fido"));
@@ -1392,19 +1392,6 @@ public class RealmQueryTests extends QueryTests {
                 .findAll();
         Dog dog = dogs.where().findFirst();
         assertEquals("Bella", dog.getName());
-    }
-
-    @Test
-    public void findFirst_subQuery() {
-        realm.beginTransaction();
-        realm.insert(new Dog("Milo"));
-        realm.insert(new Dog("Fido"));
-        realm.insert(new Dog("Bella"));
-        realm.commitTransaction();
-
-        RealmResults<Dog> dogs = realm.where(Dog.class).in("name", new String[] { "Fido", "Bella" }).findAll();
-        Dog dog = dogs.where().findFirst();
-        assertEquals("Fido", dog.getName());
     }
 
     @Test
