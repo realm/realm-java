@@ -89,9 +89,9 @@ public class SyncManager {
     public static String APP_ID = null;
 
     /**
-     * Thread pool used when doing network requests against the Realm Authentication Server.
-     *
-     * This pool is only exposed for testing purposes and replacing it while while the queue is not
+     * Thread pool used when doing network requests against the Realm Object Server.
+     * <p>
+     * This pool is only exposed for testing purposes and replacing it while the queue is not
      * empty will result in undefined behaviour.
      */
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
