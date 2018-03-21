@@ -22,6 +22,7 @@ import android.os.HandlerThread;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -156,7 +157,7 @@ public class UserFactory {
         TestHelper.awaitOrFail(allUsersLoggedOut);
         ht.quit();
         try {
-            ht.join(5000);
+            ht.join(TimeUnit.MILLISECONDS.convert(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS));
         } catch (InterruptedException e) {
             throw new AssertionError("LoggingOutUsersThread failed to finish in time");
         }

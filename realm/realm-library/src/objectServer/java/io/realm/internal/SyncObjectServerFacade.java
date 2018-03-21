@@ -195,12 +195,14 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         builder.addModule(new ObjectPermissionsModule());
     }
 
+    // Only exposed for testing purposes
     @Override
     @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     public void waitForNetworkThreadExecutorToFinish() {
-        // Since the network pool should only consist of remote logout calls at the point where this
-        // is called. These can be safely interrupted, so just shutdown the pool and create a new
-        // that can be used by future tests.
+        // Since this method should only be called when exiting a test, it should be safe to just
+        // cancel all ongoing network requests and shut down the pool as soon as possible.
+        // When shut down we replace it with a new, now empty, pool that can be used by future
+        // tests
         SyncManager.NETWORK_POOL_EXECUTOR.shutdownNow();
         try {
             SyncManager.NETWORK_POOL_EXECUTOR.awaitTermination(5, TimeUnit.SECONDS);

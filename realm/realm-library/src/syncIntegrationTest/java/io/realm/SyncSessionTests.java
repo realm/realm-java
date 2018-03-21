@@ -354,7 +354,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 RealmResults<StringOnly> all = adminRealm.where(StringOnly.class).findAll();
                 strongRefs.add(all);
                 OrderedRealmCollectionChangeListener<RealmResults<StringOnly>> realmChangeListener = (results, changeSet) -> {
-                    RealmLog.error("Size: " + results.size() + ", state: " + changeSet.getState().toString());
+                    RealmLog.info("Size: " + results.size() + ", state: " + changeSet.getState().toString());
                     if (results.size() == 5) {
                         for (int i = 0; i < 5; i++) {
                             assertEquals(1_000_000, results.get(i).getChars().length());

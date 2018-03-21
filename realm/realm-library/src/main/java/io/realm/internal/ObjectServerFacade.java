@@ -127,6 +127,7 @@ public class ObjectServerFacade {
         throw new IllegalStateException("Should only be called by builds supporting Sync");
     }
 
+    // Only exposed for testing purposes
     public void waitForNetworkThreadExecutorToFinish() {
         // Do nothing
     }
