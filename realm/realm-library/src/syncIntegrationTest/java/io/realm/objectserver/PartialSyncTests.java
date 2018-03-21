@@ -309,10 +309,10 @@ public class PartialSyncTests extends StandardIntegrationTest {
     private void createServerData(SyncUser user, String url) throws InterruptedException {
         final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, url)
                 .waitForInitialRemoteData()
+                .partialRealm()
                 .modules(new PartialSyncModule())
                 .build();
 
-        // Create server data
         // Create server data
         Realm realm = Realm.getInstance(syncConfig);
         realm.beginTransaction();

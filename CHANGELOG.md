@@ -1,4 +1,17 @@
-## 5.0.0-BETA1 (2018-03-01)
+## 5.0.1 (YYYY-MM-DD)
+
+### Enhancements
+
+* [ObjectServer] `SyncConfiguration.automatic()` will make use of the host port to work out the default Realm URL. 
+
+### Bug Fixes
+
+* `RealmQuery.findFirst()` and `RealmQuery.findFirstAsync()` not working correctly with sorting (#5714).
+
+
+## 5.0.0 (2018-03-15)
+
+This release is compatible with the Realm Object Server 3.0.0-beta.3 or later.
 
 ### Known Bugs
 
@@ -6,6 +19,9 @@
 
 ### Breaking Changes
 
+* [ObjectServer] Renamed `SyncUser.currentUser()` to `SyncUser.current()`.
+* [ObjectServer] Renamed `SyncUser.login(...)` and `SyncUser.loginAsync(...)` to `SyncUser.logIn(...)` and `SyncUser.logInAsync(...)`.
+* [ObjectServer] Renamed `SyncUser.logout()` to `SyncUser.logOut()`.
 * The `OrderedCollectionChangeSet` parameter in `OrderedRealmCollectionChangeListener.onChange()` is no longer nullable. Use `changeSet.getState()` instead (#5619).
 * `realm.subscribeForObjects()` have been removed. Use `RealmQuery.findAllAsync(String subscriptionName)` and `RealmQuery.findAllAsync()` instead.
 * Removed previously deprecated `RealmQuery.findAllSorted()`, `RealmQuery.findAllSortedAsync()` `RealmQuery.distinct() and `RealmQuery.distinctAsync()`.
@@ -16,19 +32,28 @@
 
 * [ObjectServer] Added support for partial Realms. Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
 * [ObjectServer] Added support for Object Level Permissions (requires partial synchronized Realms). Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
+* [ObjectServer] Added `SyncConfiguration.automatic()` and `SyncConfiguration.automatic(SyncUser user)` (#5806).
 * Added two new methods to `OrderedCollectionChangeSet`: `getState()` and `getError()` (#5619).
+
+## Bug Fixes
+
+* Better exception message if a non model class is provided to methods only accepting those (#5779).
 
 ### Internal
 
-* Upgraded to Realm Sync 3.0.0-beta.10
+* Upgraded to Realm Sync 3.0.0
 * Upgraded to Realm Core 5.3.0
 
 
-## 4.4.0 (YYYY-MM-DD)
+## 4.4.0 (2018-03-13)
 
 ### Enhancements
 
 * Added support for mapping between a Java name and the underlying name in the Realm file using `@RealmModule`, `@RealmClass` and `@RealmField` annotations (#5280).
+
+## Bug Fixes
+
+* [ObjectServer] Fixed an issue where login after a logout will not resume Syncing (https://github.com/realm/my-first-realm-app/issues/22).
 
 
 ## 4.3.4 (2018-02-06)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
+import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
 
 /**
  * This example demonstrates how to import RealmObjects as JSON. Realm supports JSON represented
@@ -37,76 +37,69 @@ import io.realm.RealmConfiguration;
  */
 public class JsonExampleActivity extends Activity {
 
-    private GridView mGridView;
-    private CityAdapter mAdapter;
+    private GridView gridView;
+    private CityAdapter adapter;
+
     private Realm realm;
+    private RealmResults<City> cities;
+    private RealmChangeListener<RealmResults<City>> realmChangeListener = (cities) -> {
+        adapter.setData(cities);
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_realm_example);
 
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder().build();
-        Realm.deleteRealm(realmConfiguration);
-        realm = Realm.getInstance(realmConfiguration);
-    }
+        Realm.deleteRealm(Realm.getDefaultConfiguration());
 
-    @Override
-    public void onResume() {
-        super.onResume();
+        realm = Realm.getDefaultInstance();
+
+        gridView = findViewById(R.id.cities_list);
+
+        cities = realm.where(City.class).findAllAsync();
+        cities.addChangeListener(realmChangeListener);
+
+        adapter = new CityAdapter();
+        gridView.setAdapter(adapter);
 
         // Load from file "cities.json" first time
-        if(mAdapter == null) {
-            List<City> cities = null;
-            try {
-                cities = loadCities();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            //This is the GridView adapter
-            mAdapter = new CityAdapter(this);
-            mAdapter.setData(cities);
-
-            //This is the GridView which will display the list of cities
-            mGridView = (GridView) findViewById(R.id.cities_list);
-            mGridView.setAdapter(mAdapter);
-            mAdapter.notifyDataSetChanged();
-            mGridView.invalidate();
-        }
+        loadCities();
     }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        cities.removeAllChangeListeners();
         realm.close();
     }
 
-    public List<City> loadCities() throws IOException {
-
-        loadJsonFromStream();
-        loadJsonFromJsonObject();
-        loadJsonFromString();
-
-        return realm.where(City.class).findAll();
+    public void loadCities() {
+        try {
+            loadJsonFromStream();
+            loadJsonFromJsonObject();
+            loadJsonFromString();
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void loadJsonFromStream() throws IOException {
         // Use streams if you are worried about the size of the JSON whether it was persisted on disk
         // or received from the network.
-        InputStream stream = getAssets().open("cities.json");
-
-        // Open a transaction to store items into the realm
-        realm.beginTransaction();
-        try {
-            realm.createAllFromJson(City.class, stream);
-            realm.commitTransaction();
-        } catch (IOException e) {
-            // Remember to cancel the transaction if anything goes wrong.
-            realm.cancelTransaction();
-        } finally {
-            if (stream != null) {
-                stream.close();
+        try(InputStream stream = getAssets().open("cities.json")) {
+            try {
+                // Open a transaction to store items into the realm
+                realm.beginTransaction();
+                realm.createAllFromJson(City.class, stream);
+                realm.commitTransaction();
+            } catch (IOException e) {
+                // Remember to cancel the transaction if anything goes wrong.
+                if(realm.isInTransaction()) {
+                    realm.cancelTransaction();
+                }
+                throw new RuntimeException(e);
             }
         }
     }
@@ -117,22 +110,12 @@ public class JsonExampleActivity extends Activity {
         city.put("votes", "9");
         final JSONObject json = new JSONObject(city);
 
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.createObjectFromJson(City.class, json);
-            }
-        });
+        realm.executeTransaction(realm -> realm.createObjectFromJson(City.class, json));
     }
 
     private void loadJsonFromString() {
         final String json = "{ name: \"Aarhus\", votes: 99 }";
 
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.createObjectFromJson(City.class, json);
-            }
-        });
+        realm.executeTransaction(realm -> realm.createObjectFromJson(City.class, json));
     }
 }

@@ -378,7 +378,7 @@ public class SyncSession {
         }
     }
 
-    public void setResolvedRealmURI(URI resolvedRealmURI) {
+    void setResolvedRealmURI(URI resolvedRealmURI) {
         this.resolvedRealmURI = resolvedRealmURI;
     }
 

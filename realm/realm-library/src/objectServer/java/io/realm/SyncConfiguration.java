@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -33,6 +34,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
@@ -42,15 +44,13 @@ import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
-import io.realm.sync.permissions.PermissionUser;
-import io.realm.sync.permissions.Role;
 
 /**
  * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
  * Object Server.
  * <p>
  * A valid {@link SyncUser} is required to create a {@link SyncConfiguration}. See {@link SyncCredentials} and
- * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)} for more information on
+ * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)} for more information on
  * how to get a user object.
  * <p>
  * A minimal {@link SyncConfiguration} can be found below.
@@ -181,6 +181,70 @@ public class SyncConfiguration extends RealmConfiguration {
 
         RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
         return forRecovery(canonicalPath, encryptionKey, schemaMediator);
+    }
+
+    /**
+     * Creates an automatic default configuration based on the the currently logged in user.
+     * <p>
+     * This configuration will point to the default Realm on the server where the user was
+     * authenticated.
+     *
+     * @throws IllegalStateException if no user are logged in, or multiple users have. Only one should
+     * be logged in when calling this method.
+     * @return The constructed {@link SyncConfiguration}.
+     */
+    @Beta
+    public static SyncConfiguration automatic() {
+        SyncUser user = SyncUser.current();
+        if (user == null) {
+            throw new IllegalStateException("No user was logged in.");
+        }
+        return getDefaultConfig(user);
+    }
+
+    /**
+     * Creates an automatic default configuration for the provided user.
+     * <p>
+     * This configuration will point to the default Realm on the server where the user was
+     * authenticated.
+     *
+     * @throws IllegalArgumentException if no user was provided or the user isn't valid.
+     * @return The constructed {@link SyncConfiguration}.
+     */
+    @Beta
+    public static SyncConfiguration automatic(SyncUser user) {
+        if (user == null) {
+            throw new IllegalArgumentException("Non-null 'user' required.");
+        }
+        if (!user.isValid()) {
+            throw new IllegalArgumentException("User is no logger valid.  Log the user in again.");
+        }
+        return getDefaultConfig(user);
+    }
+
+    private static SyncConfiguration getDefaultConfig(SyncUser user) {
+        return new SyncConfiguration.Builder(user, createUrl(user))
+                .partialRealm()
+                .build();
+    }
+
+    // Infer the URL to the default Realm based on the server used to login the user
+    private static String createUrl(SyncUser user) {
+        URL url = user.getAuthenticationUrl();
+        String protocol = url.getProtocol();
+        String host = url.getHost();
+        int port = url.getPort();
+        if (port != -1) { // port set
+            host += ":" + port;
+        }
+
+        if (protocol.equalsIgnoreCase("https")) {
+            protocol = "realms";
+        } else {
+            protocol = "realm";
+        }
+
+        return protocol + "://" + host + "/default";
     }
 
     /**
@@ -903,7 +967,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Setting this will cause the local Realm file used to synchronize changes to be deleted if the {@link SyncUser}
-         * owning this Realm logs out from the device using {@link SyncUser#logout()}.
+         * owning this Realm logs out from the device using {@link SyncUser#logOut()}.
          * <p>
          * The default behavior is that the Realm file is allowed to stay behind, making it possible for users to log
          * in again and have access to their data faster.

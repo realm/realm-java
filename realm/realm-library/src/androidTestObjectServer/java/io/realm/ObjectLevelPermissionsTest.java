@@ -433,10 +433,17 @@ public class ObjectLevelPermissionsTest {
     @Test
     public void getRoles() {
         RealmResults<Role> roles = realm.getRoles();
-        assertEquals(1, roles.size());
-        Role role = roles.first();
+        assertEquals(2, roles.size());
+
+        roles = roles.where().sort("name").findAll();
+        Role role = roles.get(0);
+        assertEquals("__User:" + user.getIdentity(), role.getName());
+        assertTrue(role.hasMember(user.getIdentity()));
+
+        role = roles.get(1);
         assertEquals("everyone", role.getName());
         assertTrue(role.hasMember(user.getIdentity()));
+
     }
 
     @Test

@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         final String urlAuth = "http://objectserver.realm.io:9080/auth";
         final String url = "realm://objectserver.realm.io/default";
 
-        SyncUser.loginAsync(credentials, urlAuth, new SyncUser.Callback<SyncUser>() {
+        SyncUser.logInAsync(credentials, urlAuth, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 SyncConfiguration secureConfig = new SyncConfiguration.Builder(user, url).build();
