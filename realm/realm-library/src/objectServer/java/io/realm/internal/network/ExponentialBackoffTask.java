@@ -65,10 +65,7 @@ public abstract class ExponentialBackoffTask<T extends AuthServerResponse> imple
     @Override
     public void run() {
         int attempt = 0;
-        while (true) {
-            if (Thread.interrupted()) {
-                return;
-            }
+        while (!Thread.interrupted()) {
             attempt++;
             long sleep = calculateExponentialDelay(attempt - 1, TimeUnit.MINUTES.toMillis(5));
             if (sleep > 0) {

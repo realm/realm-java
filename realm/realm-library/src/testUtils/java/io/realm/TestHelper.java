@@ -1258,11 +1258,22 @@ public class TestHelper {
      *
      * If the build does not support Sync, this method will do nothing
      */
-    public static void waitForNetworkThreadExecutorToFinish() {
+    private static final Field networkPoolExecutorField;
+    static {
         try {
             Class syncManager = Class.forName("io.realm.SyncManager");
-            Field field = syncManager.getDeclaredField("NETWORK_POOL_EXECUTOR");
-            ThreadPoolExecutor pool = (ThreadPoolExecutor) field.get(null);
+            networkPoolExecutorField = syncManager.getDeclaredField("NETWORK_POOL_EXECUTOR");
+        } catch (ClassNotFoundException | NoSuchFieldException e) {
+            networkPoolExecutorField = null;
+        }
+    }
+
+    public static void waitForNetworkThreadExecutorToFinish() {
+        if (networkPoolExecutorField == null) {
+            return; // This build do not support Sync
+        }
+        try {
+            ThreadPoolExecutor pool = (ThreadPoolExecutor) networkPoolExecutorField.get(null);
             // Since this method should only be called when exiting a test, it should be safe to just
             // cancel all ongoing network requests and shut down the pool as soon as possible.
             // When shut down we replace it with a new, now empty, pool that can be used by future
@@ -1275,16 +1286,12 @@ public class TestHelper {
             } finally {
                 // Replace the executor, since the old one is now dead.
                 // The setup of this should mirror what is done in SyncManager.
-                field.set(null, new ThreadPoolExecutor(
+                networkPoolExecutorField.set(null, new ThreadPoolExecutor(
                         10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100)));
             }
-        } catch (ClassNotFoundException e) {
-            // Ignore and do nothing
-        } catch (NoSuchFieldException e) {
-            throw new AssertionError("Could not find NETWORK_POOL_EXECUTOR field");
         } catch (IllegalAccessException e) {
             throw new AssertionError(Util.getStackTrace(e));
         }
-
     }
+    
 }

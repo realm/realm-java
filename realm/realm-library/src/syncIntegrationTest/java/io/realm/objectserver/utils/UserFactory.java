@@ -157,7 +157,7 @@ public class UserFactory {
         TestHelper.awaitOrFail(allUsersLoggedOut);
         ht.quit();
         try {
-            ht.join(TimeUnit.MILLISECONDS.convert(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS));
+            ht.join(TimeUnit.SECONDS.toMillis(TestHelper.SHORT_WAIT_SECS));
         } catch (InterruptedException e) {
             throw new AssertionError("LoggingOutUsersThread failed to finish in time");
         }
