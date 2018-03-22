@@ -15,8 +15,6 @@
  */
 package io.realm.objectserver;
 
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
@@ -24,29 +22,21 @@ import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
-import io.realm.ObjectServerError;
-import io.realm.PermissionManager;
+import io.realm.IsolatedIntegrationTests;
 import io.realm.Realm;
 import io.realm.RealmResults;
-import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncUser;
-import io.realm.TestHelper;
 import io.realm.annotations.RealmModule;
 import io.realm.entities.AllJavaTypes;
-import io.realm.internal.android.AndroidCapabilities;
-import io.realm.internal.permissions.PermissionModule;
 import io.realm.internal.sync.permissions.ObjectPermissionsModule;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PermissionObject;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.permissions.AccessLevel;
-import io.realm.permissions.PermissionRequest;
-import io.realm.permissions.UserCondition;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.sync.permissions.ClassPrivileges;
 import io.realm.sync.permissions.ObjectPrivileges;
@@ -55,12 +45,16 @@ import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
+/**
+ * Integration tests for Object Level Permissions.
+ * Each test is run in isolation as we use the the global default Realm for each test.
+ * It is currently not possible to manually create a world readable Realm as
+ * {@link io.realm.PermissionManager} is unstable on CI.
+ */
 @RunWith(AndroidJUnit4.class)
-public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTest {
+public class ObjectLevelPermissionIntegrationTests extends IsolatedIntegrationTests {
 
     @RealmModule(classes = {AllJavaTypes.class})
     public static class ObjectLevelTestModule {
@@ -74,12 +68,9 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
     @Test
     @RunTestInLooperThread()
     public void getPrivileges_serverDefaults() throws InterruptedException {
-        String realmUrl = Constants.GLOBAL_REALM + "_getPrivileges_serverDefaults";
         List schemaModule = Arrays.asList(new ObjectLevelTestModule());
-        createWorldReadableRealm(realmUrl, schemaModule);
-
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, realmUrl)
+        SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM)
                 .modules(schemaModule)
                 .partialRealm()
                 .build();
@@ -117,25 +108,16 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         looperThread.testComplete();
     }
 
-//    @Test
-//    @RunTestInLooperThread
-//    public void getRoles() {
-//        fail("FIXME");
-//        looperThread.testComplete();
-//    }
-
     // Restrict read/write permission, only the owner of the object can see/modify it
     @Test
     @RunTestInLooperThread()
     public void restrictAccessToOwner() throws InterruptedException {
-        String realmUrl = Constants.GLOBAL_REALM + "_restrictAccessToOwner";
         List schemaModules = Arrays.asList(new StringOnlyModule(), new OLPermissionModule(), new ObjectPermissionsModule());
-        createWorldReadableRealm(realmUrl, schemaModules);
 
         // connect with user1
         SyncUser user1 = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration user1SyncConfig = configurationFactory
-                .createSyncConfigurationBuilder(user1, realmUrl)
+                .createSyncConfigurationBuilder(user1, Constants.DEFAULT_REALM)
                 .modules(schemaModules)
                 .partialRealm()
                 .build();
@@ -166,7 +148,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
 
         // Connect with admin user and verify that user1 object is visible (non-partial Realm)
         SyncUser adminUser = UserFactory.createNicknameUser(Constants.AUTH_URL, "admin2", true);
-        SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, realmUrl)
+        SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, Constants.DEFAULT_REALM)
                 .modules(schemaModules)
                 .waitForInitialRemoteData()
                 .build();
@@ -182,7 +164,7 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
 
         // Connect with user 2 and verify that user1 object is not visible
         SyncUser user2 = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        SyncConfiguration syncConfig2 = configurationFactory.createSyncConfigurationBuilder(user2, realmUrl)
+        SyncConfiguration syncConfig2 = configurationFactory.createSyncConfigurationBuilder(user2, Constants.DEFAULT_REALM)
                 .modules(schemaModules)
                 .partialRealm()
                 .build();
@@ -192,17 +174,10 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         looperThread.keepStrongReference(allAsync);
         // new object should not be visible for user2 partial sync
         allAsync.addChangeListener((permissionObjects2, changeSet) -> {
-            switch (changeSet.getState()) {
-                case INITIAL:
-                    assertEquals(0, permissionObjects2.size());
-                    break;
-                case UPDATE:
-                    assertEquals(0, permissionObjects2.size());
-                    looperThread.testComplete();
-                    break;
-                case ERROR:
-                    fail("Unexpected error callback");
-                    break;
+            RealmLog.info("State: " + changeSet.getState().toString() + ", complete: " + changeSet.isCompleteResult());
+            if (changeSet.isCompleteResult()) {
+                assertEquals(0, permissionObjects2.size());
+                looperThread.testComplete();
             }
         });
     }
@@ -239,52 +214,4 @@ public class ObjectLevelPermissionIntegrationTests extends StandardIntegrationTe
         assertTrue(privileges.canSetPermissions());
     }
 
-    private void createWorldReadableRealm(String realmUrl, List modules) {
-        HandlerThread t = new HandlerThread("create-realm-thread");
-        t.start();
-        Handler handler = new Handler(t.getLooper());
-        CountDownLatch setupRealm = new CountDownLatch(1);
-        handler.post(() -> {
-            final boolean oldValue = AndroidCapabilities.EMULATE_MAIN_THREAD;
-            SyncUser adminUser = UserFactory.createNicknameUser(Constants.AUTH_URL, "admin", true);
-            SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, realmUrl)
-                    .modules(modules)
-                    .addModule(new PermissionModule())
-                    .partialRealm()
-                    .waitForInitialRemoteData()
-                    .build();
-            Realm.getInstanceAsync(syncConfig, new Realm.Callback() {
-                @Override
-                public void onSuccess(Realm realm) {
-                    AndroidCapabilities.EMULATE_MAIN_THREAD = true;
-                    PermissionManager pm = adminUser.getPermissionManager();
-                    pm.applyPermissions(new PermissionRequest(UserCondition.noExistingPermissions(), realmUrl, AccessLevel.WRITE), new PermissionManager.ApplyPermissionsCallback() {
-                        @Override
-                        public void onSuccess() {
-                            handler.post(() -> {
-                                AndroidCapabilities.EMULATE_MAIN_THREAD = oldValue;
-                                pm.close();
-                                realm.close();
-                                adminUser.logOut();
-                                setupRealm.countDown();
-                            });
-                        }
-
-                        @Override
-                        public void onError(ObjectServerError error) {
-                            fail(error.toString());
-                        }
-                    });
-                }
-
-                @Override
-                public void onError(Throwable exception) {
-                    fail(exception.toString());
-                }
-            });
-        });
-        TestHelper.awaitOrFail(setupRealm);
-    }
-
 }
-
