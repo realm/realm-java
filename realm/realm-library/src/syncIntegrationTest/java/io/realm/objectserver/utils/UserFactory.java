@@ -22,6 +22,7 @@ import android.os.HandlerThread;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -145,18 +146,20 @@ public class UserFactory {
         final HandlerThread ht = new HandlerThread("LoggingOutUsersThread");
         ht.start();
         Handler handler = new Handler(ht.getLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Map<String, SyncUser> users = SyncUser.all();
-                for (SyncUser user : users.values()) {
-                    user.logOut();
-                }
-                allUsersLoggedOut.countDown();
-
+        handler.post(() -> {
+            Map<String, SyncUser> users = SyncUser.all();
+            for (SyncUser user : users.values()) {
+                user.logOut();
             }
+            TestHelper.waitForNetworkThreadExecutorToFinish();
+            allUsersLoggedOut.countDown();
         });
         TestHelper.awaitOrFail(allUsersLoggedOut);
         ht.quit();
+        try {
+            ht.join(TimeUnit.SECONDS.toMillis(TestHelper.SHORT_WAIT_SECS));
+        } catch (InterruptedException e) {
+            throw new AssertionError("LoggingOutUsersThread failed to finish in time");
+        }
     }
 }
