@@ -1260,11 +1260,17 @@ public class TestHelper {
      */
     private static final Field networkPoolExecutorField;
     static {
+        Class syncManager = null;
         try {
-            Class syncManager = Class.forName("io.realm.SyncManager");
-            networkPoolExecutorField = syncManager.getDeclaredField("NETWORK_POOL_EXECUTOR");
-        } catch (ClassNotFoundException | NoSuchFieldException e) {
-            networkPoolExecutorField = null;
+            syncManager = Class.forName("io.realm.SyncManager");
+        } catch (ClassNotFoundException e) {
+            // Ignore
+        }
+
+        try {
+            networkPoolExecutorField = (syncManager != null) ? syncManager.getDeclaredField("NETWORK_POOL_EXECUTOR") : null;
+        } catch (NoSuchFieldException e) {
+            throw new AssertionError("Could not find field: NETWORK_POOL_EXECUTOR\n" + Util.getStackTrace(e));
         }
     }
 
@@ -1293,5 +1299,5 @@ public class TestHelper {
             throw new AssertionError(Util.getStackTrace(e));
         }
     }
-    
+
 }
