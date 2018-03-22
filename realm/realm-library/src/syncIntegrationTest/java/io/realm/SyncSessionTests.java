@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.OsRealmConfig;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
@@ -327,8 +328,8 @@ public class SyncSessionTests extends StandardIntegrationTest {
         Realm realm = Realm.getInstance(syncConfiguration);
 
         realm.beginTransaction();
-        // upload 50MB
-        for (int i = 0; i < 25; i++) {
+        // upload 10MB
+        for (int i = 0; i < 5; i++) {
             realm.createObject(StringOnly.class).setChars(twoMBString);
         }
         realm.commitTransaction();
@@ -345,33 +346,29 @@ public class SyncSessionTests extends StandardIntegrationTest {
             public void run() {
                 // using an admin user to open the Realm on different path on the device to monitor when all the uploads are done
                 SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
-                SyncCredentials credentialsAdmin = SyncCredentials.accessToken(SyncTestUtils.getRefreshToken(admin).value(), "custom-admin-user");
-                SyncUser adminUser = SyncUser.logIn(credentialsAdmin, Constants.AUTH_URL);
 
-                SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
+                SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(admin, syncConfiguration.getServerUrl().toString())
                         .modules(new StringOnlyModule())
                         .build();
                 final Realm adminRealm = Realm.getInstance(adminConfig);
                 RealmResults<StringOnly> all = adminRealm.where(StringOnly.class).findAll();
                 strongRefs.add(all);
-                RealmChangeListener<RealmResults<StringOnly>> realmChangeListener = new RealmChangeListener<RealmResults<StringOnly>>() {
-                    @Override
-                    public void onChange(RealmResults<StringOnly> stringOnlies) {
-                        if (stringOnlies.size() == 25) {
-                            for (int i = 0; i < 25; i++) {
-                                assertEquals(1_000_000, stringOnlies.get(i).getChars().length());
-                            }
-                            adminRealm.close();
-                            testCompleted.countDown();
-                            handlerThread.quit();
+                OrderedRealmCollectionChangeListener<RealmResults<StringOnly>> realmChangeListener = (results, changeSet) -> {
+                    RealmLog.info("Size: " + results.size() + ", state: " + changeSet.getState().toString());
+                    if (results.size() == 5) {
+                        for (int i = 0; i < 5; i++) {
+                            assertEquals(1_000_000, results.get(i).getChars().length());
                         }
+                        adminRealm.close();
+                        testCompleted.countDown();
+                        handlerThread.quit();
                     }
                 };
                 all.addChangeListener(realmChangeListener);
             }
         });
 
-        TestHelper.awaitOrFail(testCompleted, 60);
+        TestHelper.awaitOrFail(testCompleted, TestHelper.STANDARD_WAIT_SECS);
         handlerThread.join();
 
         user.logOut();

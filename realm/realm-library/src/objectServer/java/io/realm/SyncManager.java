@@ -88,10 +88,15 @@ public class SyncManager {
      */
     public static String APP_ID = null;
 
-    // Thread pool used when doing network requests against the Realm Authentication Server.
-    // FIXME Set proper parameters
-    static final ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
-            10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(100));
+    /**
+     * Thread pool used when doing network requests against the Realm Object Server.
+     * <p>
+     * This pool is only exposed for testing purposes and replacing it while the queue is not
+     * empty will result in undefined behaviour.
+     */
+    @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
+    public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
+            10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(100));
 
     private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
         @Override
