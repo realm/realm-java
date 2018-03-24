@@ -1752,7 +1752,6 @@ public class RealmQuery<E> {
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         realm.checkIfValid();
-
         return createRealmResults(query, sortDescriptor, distinctDescriptor, true, SubscriptionAction.NO_SUBSCRIPTION);
     }
 
@@ -1980,7 +1979,7 @@ public class RealmQuery<E> {
             // TODO: The performance by the pending query will be a little bit worse than directly calling core's
             // Query.find(). The overhead comes with core needs to add all the row indices to the vector. However this
             // can be optimized by adding support of limit in OS's Results which is supported by core already.
-            row = new PendingRow(realm.sharedRealm, query, null, isDynamicQuery());
+            row = new PendingRow(realm.sharedRealm, query, sortDescriptor, isDynamicQuery());
         }
         final E result;
         if (isDynamicQuery()) {
@@ -2030,7 +2029,16 @@ public class RealmQuery<E> {
     }
 
     private long getSourceRowIndexForFirstObject() {
-        return this.query.find();
+        if (sortDescriptor != null || distinctDescriptor != null) {
+            RealmObjectProxy obj = (RealmObjectProxy) findAll().first(null);
+            if (obj != null) {
+                return obj.realmGet$proxyState().getRow$realm().getIndex();
+            } else {
+                return -1;
+            }
+        } else {
+            return this.query.find();
+        }
     }
 
     private SchemaConnector getSchemaConnector() {

@@ -761,6 +761,25 @@ public class RealmAsyncQueryTests {
         });
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void findFirstAsync_withSorting() {
+        Realm realm = looperThread.getRealm();
+        realm.beginTransaction();
+        realm.insert(new Dog("Milo"));
+        realm.insert(new Dog("Fido"));
+        realm.insert(new Dog("Bella"));
+        realm.commitTransaction();
+
+        Dog dog = realm.where(Dog.class).sort("name").findFirstAsync();
+        dog.addChangeListener((Dog d) -> {
+            assertTrue(d.isValid());
+            assertEquals("Bella", d.getName());
+            looperThread.testComplete();
+        });
+        looperThread.keepStrongReference(dog);
+    }
+
     // **************************************
     // *** 'findAllSorted' async queries  ***
     // **************************************
