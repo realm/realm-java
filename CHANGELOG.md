@@ -2,7 +2,8 @@
 
 ### Enhancements
 
-* [ObjectServer] `SyncConfiguration.automatic()` will make use of the host port to work out the default Realm URL. 
+* [ObjectServer] `SyncConfiguration.automatic()` will make use of the host port to work out the default Realm URL.
+* [ObjectServer] A role is now automatically created for each user with that user as its only member. This simplifies the common use case of restricting access to specific objects to a single user. This role can be accessed at `PermissionUser.getRole()`.
 
 ### Bug Fixes
 
