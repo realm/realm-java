@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.realm.entities.inheritence;
 
-public class SubFromInterface extends InterfaceBase {
-    public String name;
+import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
+import io.realm.annotations.PrimaryKey;
+
+public abstract class EmptyBase extends RealmObject {
+    @Ignore
+    public int calculatedValue;
 }

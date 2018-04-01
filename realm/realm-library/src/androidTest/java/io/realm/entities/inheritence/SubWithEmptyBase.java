@@ -16,6 +16,6 @@
 
 package io.realm.entities.inheritence;
 
-public class SubFromInterface extends InterfaceBase {
+public class SubWithEmptyBase extends EmptyBase {
     public String name;
 }

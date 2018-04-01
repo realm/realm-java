@@ -364,7 +364,9 @@ public class ClassMetaData {
 
         // Combine with super class and validate that no illegal combinations exists
         TypeElement superClass = Utils.getSuperClass(classType);
-        if (superClass != null && !superClass.asType().toString().equals("io.realm.RealmObject")) {
+        if (superClass != null
+                && !superClass.asType().toString().equals("java.lang.Object")
+                && !superClass.asType().toString().equals("io.realm.RealmObject")) {
             String qualifiedSuperClassName = superClass.getQualifiedName().toString();
             if (!superClassData.containsQualifiedClass(qualifiedSuperClassName)) {
                 throw new IllegalStateException(qualifiedSuperClassName + " has not been processed yet.");
@@ -504,7 +506,8 @@ public class ClassMetaData {
         }
 
         // Check that abstract base classes are not used
-        if (Utils.isRealmModelSuperClass((TypeElement) typeUtils.asElement(elementTypeMirror))) {
+        TypeElement classType = (TypeElement) typeUtils.asElement(elementTypeMirror);
+        if (classType != null && Utils.isRealmModelSuperClass(classType)) {
             Utils.error("Only concrete Realm model classes can be used as a generic argument", field);
             return false;
         }
