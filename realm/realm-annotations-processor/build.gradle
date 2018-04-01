@@ -8,7 +8,7 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 dependencies {
-    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    compile 'com.google.code.findbugs:jsr305:3.0.2'
 
     compile "com.squareup:javawriter:2.5.1"
     compile "io.realm:realm-annotations:${version}"
