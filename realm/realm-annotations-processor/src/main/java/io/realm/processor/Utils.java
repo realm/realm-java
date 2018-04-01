@@ -3,7 +3,10 @@ package io.realm.processor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -217,23 +220,6 @@ public class Utils {
         // This will return the wrong result if a model class doesn't exist at all, but
         // the compiler will catch that eventually.
         return typeUtils.isAssignable(type, realmModel);
-//        // Not sure what is happening here, but typeUtils.isAssignable("Foo", realmModel)
-//        // returns true even if Foo doesn't exist. No idea why this is happening.
-//        // For now punt on the problem and check the direct supertype which should be either
-//        // RealmObject or RealmModel.
-//        // Original implementation: ``
-//        //
-//        // Theory: It looks like if `type` has the internal TypeTag.ERROR (internal API) it
-//        // automatically translate to being assignable to everything. Possible some Java Specification
-//        // rule taking effect. In our case, however we can do better since all Realm classes
-//        // must be in the same compilation unit, so we should be able to look the type up.
-//        for (TypeMirror typeMirror : typeUtils.directSupertypes(type)) {
-//            String supertype = typeMirror.toString();
-//            if (supertype.equals("io.realm.RealmObject") || supertype.equals("io.realm.RealmModel")) {
-//                return true;
-//            }
-//        }
-//        return false;
     }
 
     public static boolean isRealmResults(VariableElement field) {
@@ -331,8 +317,35 @@ public class Utils {
         messager.printMessage(Diagnostic.Kind.NOTE, message);
     }
 
-    public static Element getSuperClass(TypeElement classType) {
-        return typeUtils.asElement(classType.getSuperclass());
+    public static TypeElement getSuperClass(TypeElement classType) {
+        return (TypeElement) typeUtils.asElement(classType.getSuperclass());
+    }
+
+    /**
+     * Return a list of all super classes from top to bottom, i.e the direct super class
+     * has the last position while the top most class in the class hiearchy is at the first
+     * position. For model classes, this will always be the {@code RealmModel} interface.
+     */
+    public static Stack<TypeElement> getSuperClasses(TypeElement classType) {
+        Stack<TypeElement> superClasses = new Stack<>();
+        TypeElement superClass;
+        // FIXME: What happens if super class is not in the project
+        while ((superClass = Utils.getSuperClass(classType)) != null) {
+            String qualifiedClassName = superClass.asType().toString();
+            if (qualifiedClassName.equals("io.realm.RealmObject") || qualifiedClassName.equals("java.lang.Object")) {
+                break; //
+            }
+            superClasses.push(superClass);
+            classType = superClass;
+        }
+        return superClasses;
+    }
+
+    /**
+     * Returns {@code true} if the class is considered a Realm model base class.
+     */
+    public static boolean isRealmModelSuperClass(TypeElement classType) {
+        return isRealmModel(classType) && classType.getModifiers().contains(Modifier.ABSTRACT);
     }
 
     /**

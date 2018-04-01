@@ -17,10 +17,11 @@
 package io.realm.processor;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -29,6 +30,7 @@ import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
 import io.realm.annotations.RealmClass;
@@ -130,7 +132,8 @@ public class RealmProcessor extends AbstractProcessor {
     private static final boolean CONSUME_ANNOTATIONS = false;
     private static final boolean ABORT = true; // Abort the annotation processor by consuming all annotations
 
-    private final ClassCollection classCollection = new ClassCollection(); // Metadata for all classes found
+    private final ClassCollection modelClassCollection = new ClassCollection(); // Metadata for all classes found
+    private final ClassCollection superClassCollection = new ClassCollection(); // Metadata for all abstract super classes
     private ModuleMetaData moduleMetaData; // Metadata for all modules found
 
     // List of backlinks
@@ -177,29 +180,59 @@ public class RealmProcessor extends AbstractProcessor {
     private boolean processClassAnnotations(RoundEnvironment roundEnv, TypeMirrors typeMirrors) {
 
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
+            // If the model class has super class, we need to process those out of turn first.
+            // These are processed from top to bottom which means we ensure that if several
+            // super classes are in the hierarchy, when they are processed, all _their_ super
+            // classes are already processed
+            Stack<TypeElement> superClasses = Utils.getSuperClasses((TypeElement) classElement);
+            Iterator<TypeElement> it = superClasses.iterator();
+            while (it.hasNext()) {
+                TypeElement el = it.next();
+                // Only abstract super classes are allowed
+                if (!el.getModifiers().contains(Modifier.ABSTRACT)) {
+                    Utils.error(String.format("Only abstract super classes are allowed. %s is non-abstract and a superclass of %s",
+                            el.getSimpleName().toString(), classElement.getSimpleName().toString()));
+                    return false;
+                }
 
-            // The class must either extend RealmObject or implement RealmModel
-            if (!Utils.isImplementingMarkerInterface(classElement)) {
-                Utils.error("A RealmClass annotated object must implement RealmModel or derive from RealmObject.", classElement);
-                return false;
+                if(!createClassMetadata(typeMirrors, el)) {
+                    return false;
+                }
             }
 
-            // Check the annotation was applied to a Class
-            if (!classElement.getKind().equals(ElementKind.CLASS)) {
-                Utils.error("The RealmClass annotation can only be applied to classes.", classElement);
+            // Process the
+            if(!createClassMetadata(typeMirrors, classElement)) {
                 return false;
             }
-
-            ClassMetaData metadata = new ClassMetaData(processingEnv, typeMirrors, (TypeElement) classElement);
-            if (!metadata.isModelClass()) { continue; }
-
-            Utils.note("Processing class " + metadata.getSimpleJavaClassName());
-            if (!metadata.generate(moduleMetaData)) { return false; }
-
-            classCollection.addClass(metadata);
-            backlinksToValidate.addAll(metadata.getBacklinkFields());
         }
 
+        return true;
+    }
+
+    private Boolean createClassMetadata(TypeMirrors typeMirrors, Element classElement) {
+        if (superClassCollection.containsQualifiedClass(classElement.asType().toString())) {
+            // Super classes might be processed out of turn if a previous processed model
+            // class caused it to be processed out of turn. In that case, just ignore it now.
+            return true;
+        }
+        // Check the annotation was applied to a Class
+        if (!classElement.getKind().equals(ElementKind.CLASS)) {
+            Utils.error("The RealmClass annotation can only be applied to classes.", classElement);
+            return false;
+        }
+
+        ClassMetaData metadata = new ClassMetaData(processingEnv, typeMirrors, (TypeElement) classElement);
+        if (!metadata.isModelClass()) { return false; }
+
+        Utils.note("Processing class " + metadata.getSimpleJavaClassName());
+        if (!metadata.generate(moduleMetaData, superClassCollection)) { return false; }
+
+        if (metadata.isSuperClass()) {
+            superClassCollection.addClass(metadata);
+        } else {
+            modelClassCollection.addClass(metadata);
+        }
+        backlinksToValidate.addAll(metadata.getBacklinkFields());
         return true;
     }
 
@@ -211,7 +244,7 @@ public class RealmProcessor extends AbstractProcessor {
 
     // Returns true of modules where successfully validated, false otherwise
     private boolean postProcessModules() {
-        return moduleMetaData.postProcess(classCollection);
+        return moduleMetaData.postProcess(modelClassCollection);
     }
 
     private boolean createModuleFiles(RoundEnvironment roundEnv) {
@@ -233,7 +266,7 @@ public class RealmProcessor extends AbstractProcessor {
     }
 
     private boolean createProxyClassFiles(TypeMirrors typeMirrors) {
-        for (ClassMetaData metadata : classCollection.getClasses()) {
+        for (ClassMetaData metadata : modelClassCollection.getClasses()) {
             RealmProxyInterfaceGenerator interfaceGenerator = new RealmProxyInterfaceGenerator(processingEnv, metadata);
             try {
                 interfaceGenerator.generate();
@@ -242,7 +275,7 @@ public class RealmProcessor extends AbstractProcessor {
                 return false;
             }
 
-            RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, typeMirrors, metadata, classCollection);
+            RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, typeMirrors, metadata, modelClassCollection);
             try {
                 sourceCodeGenerator.generate();
             } catch (IOException | UnsupportedOperationException e) {
@@ -290,7 +323,12 @@ public class RealmProcessor extends AbstractProcessor {
         boolean allValid = true;
 
         for (Backlink backlink : backlinksToValidate) {
-            ClassMetaData clazz = classCollection.getClassFromQualifiedName(backlink.getSourceClass());
+            ClassMetaData clazz = null;
+            if (superClassCollection.containsQualifiedClass(backlink.getSourceClass())) {
+                clazz = superClassCollection.getClassFromQualifiedName(backlink.getSourceClass());
+            } else if (modelClassCollection.containsQualifiedClass(backlink.getSourceClass())) {
+                clazz = modelClassCollection.getClassFromQualifiedName(backlink.getSourceClass());
+            }
 
             // If the class is not here it might be part of some other compilation unit.
             if (clazz == null) { continue; }

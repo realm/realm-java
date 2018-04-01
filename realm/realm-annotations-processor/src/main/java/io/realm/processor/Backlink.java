@@ -20,6 +20,7 @@ import java.util.Locale;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.Elements;
 
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.Required;
@@ -85,9 +86,9 @@ final class Backlink {
      * will cause the <code>targetField</code> of J to contain a backlink to I.
      */
     private final String sourceField;
+    private final boolean sourceClassIsAbstract;
 
-
-    public Backlink(ClassMetaData clazz, VariableElement backlinkField) {
+    public Backlink(ClassMetaData clazz, VariableElement backlinkField, Elements elementsUtils) {
         if ((null == clazz) || (null == backlinkField)) {
             throw new NullPointerException(String.format(Locale.US, "null parameter: %s, %s", clazz, backlinkField));
         }
@@ -96,6 +97,7 @@ final class Backlink {
         this.targetClass = clazz.getFullyQualifiedClassName();
         this.targetField = backlinkField.getSimpleName().toString();
         this.sourceClass = Utils.getRealmResultsType(backlinkField);
+        this.sourceClassIsAbstract = elementsUtils.getTypeElement(sourceClass).getModifiers().contains(Modifier.ABSTRACT);
         this.sourceField = backlinkField.getAnnotation(LinkingObjects.class).value();
     }
 
@@ -183,6 +185,16 @@ final class Backlink {
                     targetClass,
                     targetField));
             return false;
+        }
+
+        // Backlink fields can only reference concrete classes, not abstract super classes.
+        if (sourceClassIsAbstract) {
+            Utils.error(String.format(Locale.US,
+                    "The  @LinkingObject field '%s.%s' can only reference concrete classes as generic parameters and not abstract super classes. " +
+                            "'%s' is an abstract super class.",
+                    targetClass,
+                    targetField,
+                    sourceClass));
         }
 
         return true;
