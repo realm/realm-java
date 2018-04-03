@@ -41,6 +41,7 @@ import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -444,6 +445,19 @@ public class ObjectLevelPermissionsTest {
 
         assertEquals("__User:" + user.getIdentity(), role.getName());
         assertTrue(role.hasMember(user.getIdentity()));
+    }
+
+    @Test
+    public void userPrivateRoleNotAvailableBeforeSyncClientCreated() {
+        realm.beginTransaction();
+        PermissionUser permissionUser = realm.createObject(PermissionUser.class, "id123");
+        realm.commitTransaction();
+
+        Role builtInRole = permissionUser.getRole();
+        assertNull(builtInRole);
+        permissionUser = realm.where(PermissionUser.class).equalTo("id", "id123").findFirst();
+        assertNull(permissionUser.getRole());
+        assertNull(permissionUser.getRoles());
     }
 
     @Test
