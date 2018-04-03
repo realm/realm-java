@@ -986,6 +986,12 @@ public class RealmObjectTests {
         assertTrue(allTypes.isValid());
     }
 
+    @Test
+    public void isValid_null() {
+        //noinspection ConstantConditions
+        assertFalse(RealmObject.isValid(null));
+    }
+
     // Stores and retrieves null values for nullable fields.
     @Test
     public void set_get_nullOnNullableFields() {
