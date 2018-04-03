@@ -1,3 +1,10 @@
+## 5.0.2 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* `RealmList.move()` did not move items correctly for unmanaged lists (#5860).
+
+
 ## 5.0.1 (YYYY-MM-DD)
 
 ### Enhancements
