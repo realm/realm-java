@@ -457,7 +457,7 @@ public class ObjectLevelPermissionsTest {
         assertNull(builtInRole);
         permissionUser = realm.where(PermissionUser.class).equalTo("id", "id123").findFirst();
         assertNull(permissionUser.getRole());
-        assertNull(permissionUser.getRoles());
+        assertTrue(permissionUser.getRoles().isEmpty());
     }
 
     @Test
