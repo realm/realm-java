@@ -3,6 +3,7 @@
 ### Bug Fixes
 
 * `RealmList.move()` did not move items correctly for unmanaged lists (#5860).
+* `RealmObject.isValid()` not correctly returns `false` if `null` is provided as an argument (#5865).
 
 
 ## 5.0.1 (YYYY-MM-DD)
