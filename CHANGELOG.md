@@ -1,3 +1,10 @@
+## 5.0.2 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* `RealmObject.isValid()` not correctly returns `false` if `null` is provided as an argument (#5865).
+
+
 ## 5.0.1 (YYYY-MM-DD)
 
 ### Enhancements
