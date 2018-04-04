@@ -59,6 +59,11 @@ try {
                   "--network container:${rosContainer.id}") {
 
                 // TODO: add support for running monkey on the example apps
+                stage('Build') {
+                  withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
+                    sh "chmod +x gradlew && ./gradlew assembleRelease -Ps3cfg=${env.S3CFG} -PbuildTargetABIs=${ABIs}"
+                  }
+                }
 
                 stage('Collect metrics') {
                   collectAarMetrics()
