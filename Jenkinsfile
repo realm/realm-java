@@ -57,6 +57,8 @@ try {
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
                   "--network container:${rosContainer.id}") {
+
+/* Disable while testing
                 stage('JVM tests') {
                   try {
                     withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
@@ -115,14 +117,15 @@ try {
                     }
                   }
                 }
+*/
 
                 // TODO: add support for running monkey on the example apps
 
-                if (['master'].contains(env.BRANCH_NAME)) {
+//               if (['master'].contains(env.BRANCH_NAME)) {
                   stage('Collect metrics') {
                     collectAarMetrics()
                   }
-                }   
+//                }   
 
                 if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
                   stage('Publish to OJO') {
@@ -200,10 +203,12 @@ def archiveRosLog(String id) {
 }
 
 def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {
+/* Disable while testing
   def tagsString = getTagsString(tags)
   withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
     sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metricName},${tagsString} value=${metricValue}i' --user '${env.influx_user}:${env.influx_pass}'"
   }
+*/  
 }
 
 @NonCPS
@@ -240,8 +245,11 @@ def collectAarMetrics() {
     def soFiles = findFiles(glob: "realm/realm-library/build/outputs/aar/unzipped${flavor}/jni/*/librealm-jni.so")
     for (def j = 0; j < soFiles.size(); j++) {
       def soFile = soFiles[j]
+      sh "echo soFile: ${soFile}"
       def abiName = soFile.path.tokenize('/')[-2]
+      sh "echo abiName: ${abiName}"
       def libSize = soFile.length as String
+      sh "echo Lib size: ${libSize}"
       sendMetrics('abi_size', libSize, ['flavor':flavor, 'type':abiName])
     }
   }
