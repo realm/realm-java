@@ -173,19 +173,19 @@ def collectAarMetrics() {
     """
 
     def methods = readFile("realm/realm-library/build/outputs/aar/methods${flavor}")
+    sh "echo Methods: ${methods}, flavor: ${flavor}"
     sendMetrics('methods', methods, ['flavor':flavor])
 
     def aarFile = findFiles(glob: "realm/realm-library/build/outputs/aar/realm-android-library-${flavor}-release.aar")[0]
+    sh "echo AarSize: ${aarFile.length as String}, flavor: ${flavor}"
     sendMetrics('aar_size', aarFile.length as String, ['flavor':flavor])
 
     def soFiles = findFiles(glob: "realm/realm-library/build/outputs/aar/unzipped${flavor}/jni/*/librealm-jni.so")
     for (def j = 0; j < soFiles.size(); j++) {
       def soFile = soFiles[j]
-      sh "echo soFile: ${soFile}"
       def abiName = soFile.path.tokenize('/')[-2]
-      sh "echo abiName: ${abiName}"
       def libSize = soFile.length as String
-      sh "echo Lib size: ${libSize}"
+      sh "echo soFile: ${soFile}, abiName: ${abiName}, size: ${libSize}"
       sendMetrics('abi_size', libSize, ['flavor':flavor, 'type':abiName])
     }
   }
