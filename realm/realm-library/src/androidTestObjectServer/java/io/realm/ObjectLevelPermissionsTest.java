@@ -32,6 +32,7 @@ import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.ClassPrivileges;
 import io.realm.sync.permissions.ObjectPrivileges;
 import io.realm.sync.permissions.Permission;
+import io.realm.sync.permissions.PermissionUser;
 import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
@@ -39,6 +40,8 @@ import io.realm.sync.permissions.Role;
 import static io.realm.util.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -428,6 +431,33 @@ public class ObjectLevelPermissionsTest {
 //            fail();
 //        } catch (IllegalStateException ignore) {
 //        }
+    }
+
+    @Test
+    public void userPrivateRole() {
+        RealmResults<PermissionUser> permissionUsers = realm.where(PermissionUser.class).findAll();
+        assertEquals(1, permissionUsers.size());
+
+        PermissionUser permissionUser = permissionUsers.get(0);
+        assertNotNull(permissionUser);
+        Role role = permissionUser.getPrivateRole();
+        assertNotNull(role);
+
+        assertEquals("__User:" + user.getIdentity(), role.getName());
+        assertTrue(role.hasMember(user.getIdentity()));
+    }
+
+    @Test
+    public void userPrivateRoleNotAvailableBeforeSyncClientCreated() {
+        realm.beginTransaction();
+        PermissionUser permissionUser = realm.createObject(PermissionUser.class, "id123");
+        realm.commitTransaction();
+
+        Role builtInRole = permissionUser.getPrivateRole();
+        assertNull(builtInRole);
+        permissionUser = realm.where(PermissionUser.class).equalTo("id", "id123").findFirst();
+        assertNull(permissionUser.getPrivateRole());
+        assertTrue(permissionUser.getRoles().isEmpty());
     }
 
     @Test
