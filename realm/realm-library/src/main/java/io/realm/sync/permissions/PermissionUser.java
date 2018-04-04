@@ -81,7 +81,7 @@ public class PermissionUser extends RealmObject {
      *
      * @return User private {@link Role}.
      */
-    public Role getRole() {
+    public Role getPrivateRole() {
         return role;
     }
 }

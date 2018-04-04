@@ -440,7 +440,7 @@ public class ObjectLevelPermissionsTest {
 
         PermissionUser permissionUser = permissionUsers.get(0);
         assertNotNull(permissionUser);
-        Role role = permissionUser.getRole();
+        Role role = permissionUser.getPrivateRole();
         assertNotNull(role);
 
         assertEquals("__User:" + user.getIdentity(), role.getName());
@@ -453,10 +453,10 @@ public class ObjectLevelPermissionsTest {
         PermissionUser permissionUser = realm.createObject(PermissionUser.class, "id123");
         realm.commitTransaction();
 
-        Role builtInRole = permissionUser.getRole();
+        Role builtInRole = permissionUser.getPrivateRole();
         assertNull(builtInRole);
         permissionUser = realm.where(PermissionUser.class).equalTo("id", "id123").findFirst();
-        assertNull(permissionUser.getRole());
+        assertNull(permissionUser.getPrivateRole());
         assertTrue(permissionUser.getRoles().isEmpty());
     }
 
