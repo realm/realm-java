@@ -58,74 +58,11 @@ try {
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
                   "--network container:${rosContainer.id}") {
 
-/* Disable while testing
-                stage('JVM tests') {
-                  try {
-                    withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-                      sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} -PbuildTargetABIs=${ABIs}"
-                    }
-                  } finally {
-                    storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-                    storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-                    step([$class: 'LintPublisher'])
-                  }
-                }
-
-                stage('Gradle plugin tests') {
-                  try {
-                    gradle('gradle-plugin', 'check')
-                  } finally {
-                    storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
-                  }
-                }
-
-                stage('Realm Transformer tests') {
-                  try {
-                    gradle('realm-transformer', 'check')
-                  } finally {
-                    storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
-                  }
-                }
-
-                stage('Static code analysis') {
-                  try {
-                    gradle('realm', 'findbugs pmd checkstyle -PbuildTargetABIs=${ABIs}')
-                  } finally {
-                    publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-                    publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-                    step([$class: 'CheckStylePublisher',
-                  canComputeNew: false,
-                  defaultEncoding: '',
-                  healthy: '',
-                  pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-                  unHealthy: ''
-                 ])
-                  }
-                }
-
-                stage('Run instrumented tests') {
-                  lock("${env.NODE_NAME}-android") {
-                    String backgroundPid
-                    try {
-                      backgroundPid = startLogCatCollector()
-                      forwardAdbPorts()
-                      gradle('realm', "${instrumentationTestTarget}")
-                    } finally {
-                      stopLogCatCollector(backgroundPid)
-                      storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-                      storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-                    }
-                  }
-                }
-*/
-
                 // TODO: add support for running monkey on the example apps
 
-//               if (['master'].contains(env.BRANCH_NAME)) {
-                  stage('Collect metrics') {
-                    collectAarMetrics()
-                  }
-//                }   
+                stage('Collect metrics') {
+                  collectAarMetrics()
+                }
 
                 if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
                   stage('Publish to OJO') {
@@ -203,12 +140,6 @@ def archiveRosLog(String id) {
 }
 
 def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {
-/* Disable while testing
-  def tagsString = getTagsString(tags)
-  withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
-    sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metricName},${tagsString} value=${metricValue}i' --user '${env.influx_user}:${env.influx_pass}'"
-  }
-*/  
 }
 
 @NonCPS
