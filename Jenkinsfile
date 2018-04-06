@@ -181,7 +181,7 @@ def collectAarMetrics() {
     sendMetrics('aar_size', aarFile.length as String, ['flavor':flavor])
 
     def soFiles = findFiles(glob: "realm/realm-library/build/outputs/aar/unzipped${flavor}/jni/**/librealm-jni.so")
-    sho "echo files: ${soFiles.size()}"
+    sh "echo files: ${soFiles.size()}"
     for (def j = 0; j < soFiles.size(); j++) {
       def soFile = soFiles[j]
       def abiName = soFile.path.tokenize('/')[-2]
