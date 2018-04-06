@@ -166,6 +166,7 @@ def collectAarMetrics() {
     def flavor = flavors[i]
     sh """set -xe
       cd realm/realm-library/build/outputs/aar
+      unzip -l realm-android-library-${flavor}-release.aar
       unzip realm-android-library-${flavor}-release.aar -d unzipped${flavor}
       ls -ll unzipped${flavor}
       find \$ANDROID_HOME -name dx | sort -r | head -n 1 > dx
