@@ -45,7 +45,7 @@ try {
           rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_DE_VERSION=${rosDeVersion} tools/sync_test_server"
         }
 
-      rosContainer = rosEnv.run()
+	    rosContainer = rosEnv.run()
 
         try {
               buildEnv.inside("-e HOME=/tmp " +
@@ -122,7 +122,7 @@ try {
                   stage('Collect metrics') {
                     collectAarMetrics()
                   }
-                }   
+                }
 
                 if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
                   stage('Publish to OJO') {
@@ -151,14 +151,14 @@ try {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
-          username: 'Mr. Jenkins',
-          icon_emoji: ':jenkins:',
-          attachments: [[
-            'title': "The ${env.BRANCH_NAME} branch is broken!",
-            'text': "<${env.BUILD_URL}|Click here> to check the build.",
-            'color': "danger"
-          ]]
-        ])
+	    username: 'Mr. Jenkins',
+	    icon_emoji: ':jenkins:',
+	    attachments: [[
+	        'title': "The ${env.BRANCH_NAME} branch is broken!",
+		'text': "<${env.BUILD_URL}|Click here> to check the build.",
+		'color': "danger"
+	    ]]
+	])
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
       }
     }
@@ -202,7 +202,7 @@ def archiveRosLog(String id) {
 def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {
   def tagsString = getTagsString(tags)
   withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '5b8ad2d9-61a4-43b5-b4df-b8ff6b1f16fa', passwordVariable: 'influx_pass', usernameVariable: 'influx_user']]) {
-    sh "echo curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metricName},${tagsString} value=${metricValue}i' --user 'XXX:XXX'"
+    sh "curl -i -XPOST 'https://greatscott-pinheads-70.c.influxdb.com:8086/write?db=realm' --data-binary '${metricName},${tagsString} value=${metricValue}i' --user '${env.influx_user}:${env.influx_pass}'"
   }
 }
 
@@ -213,10 +213,10 @@ def getTagsString(Map<String, String> tags) {
 
 def storeJunitResults(String path) {
   step([
-    $class: 'JUnitResultArchiver',
-      allowEmptyResults: true,
-      testResults: path
-    ])
+	 $class: 'JUnitResultArchiver',
+     allowEmptyResults: true,
+     testResults: path
+   ])
 }
 
 def collectAarMetrics() {
