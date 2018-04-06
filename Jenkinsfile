@@ -167,6 +167,7 @@ def collectAarMetrics() {
     sh """set -xe
       cd realm/realm-library/build/outputs/aar
       unzip realm-android-library-${flavor}-release.aar -d unzipped${flavor}
+      ls -ll unzipped${flavor}
       find \$ANDROID_HOME -name dx | sort -r | head -n 1 > dx
       \$(cat dx) --dex --output=temp${flavor}.dex unzipped${flavor}/classes.jar
       cat temp${flavor}.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 \"%d\"' > methods${flavor}
@@ -180,7 +181,7 @@ def collectAarMetrics() {
     sh "echo AarSize: ${aarFile.length as String}, flavor: ${flavor}"
     sendMetrics('aar_size', aarFile.length as String, ['flavor':flavor])
 
-    def soFiles = findFiles(glob: "realm/realm-library/build/outputs/aar/unzipped${flavor}/jni/**/librealm-jni.so")
+    def soFiles = findFiles(glob: "realm/realm-library/build/outputs/aar/unzipped${flavor}/**/librealm-jni.so")
     sh "echo files: ${soFiles.size()}"
     for (def j = 0; j < soFiles.size(); j++) {
       def soFile = soFiles[j]
