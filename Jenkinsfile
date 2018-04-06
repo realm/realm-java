@@ -29,10 +29,6 @@ try {
         // on PR's for even more throughput.
         def ABIs = ""
         def instrumentationTestTarget = "connectedAndroidTest"
-        if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
-            ABIs = "armeabi-v7a"
-            instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug more for better error reporting
-        }
 
         def buildEnv
         def rosEnv
