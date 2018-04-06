@@ -87,7 +87,7 @@ try {
 
                 stage('Static code analysis') {
                   try {
-                    gradle('realm', 'findbugs pmd checkstyle ${abiFilter}')
+                    gradle('realm', "findbugs pmd checkstyle ${abiFilter}")
                   } finally {
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
@@ -118,7 +118,7 @@ try {
 
                 // TODO: add support for running monkey on the example apps
 
-                if (!['master'].contains(env.BRANCH_NAME)) {
+                if (['master'].contains(env.BRANCH_NAME)) {
                   stage('Collect metrics') {
                     collectAarMetrics()
                   }
@@ -151,14 +151,14 @@ try {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
-      username: 'Mr. Jenkins',
-      icon_emoji: ':jenkins:',
-      attachments: [[
-          'title': "The ${env.BRANCH_NAME} branch is broken!",
-    'text': "<${env.BUILD_URL}|Click here> to check the build.",
-    'color': "danger"
-      ]]
-  ])
+          username: 'Mr. Jenkins',
+          icon_emoji: ':jenkins:',
+          attachments: [[
+            'title': "The ${env.BRANCH_NAME} branch is broken!",
+            'text': "<${env.BUILD_URL}|Click here> to check the build.",
+            'color': "danger"
+          ]]
+        ])
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
       }
     }
@@ -213,10 +213,10 @@ def getTagsString(Map<String, String> tags) {
 
 def storeJunitResults(String path) {
   step([
-   $class: 'JUnitResultArchiver',
-     allowEmptyResults: true,
-     testResults: path
-   ])
+    $class: 'JUnitResultArchiver',
+      allowEmptyResults: true,
+      testResults: path
+    ])
 }
 
 def collectAarMetrics() {
