@@ -57,7 +57,7 @@ try {
                 // TODO: add support for running monkey on the example apps
                 stage('Build') {
                   withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-                    sh "chmod +x gradlew && ./gradlew assemble -Ps3cfg=${env.S3CFG} -PbuildTargetABIs=${ABIs}"
+                    sh "chmod +x gradlew && ./gradlew clean assemble -Ps3cfg=${env.S3CFG} -PbuildTargetABIs=${ABIs}"
                   }
                 }
 
