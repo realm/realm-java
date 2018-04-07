@@ -151,7 +151,8 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
             Row row = proxy.realmGet$proxyState().getRow$realm();
             return row != null && row.isAttached();
         } else {
-            return true;
+            //noinspection ConstantConditions
+            return object != null;
         }
     }
 
