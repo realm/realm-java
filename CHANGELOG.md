@@ -1,20 +1,17 @@
-## 5.0.2 (YYYY-MM-DD)
+## 5.0.1 (YYYY-MM-DD)
+
+### Enhancements
+
+* [ObjectServer] `SyncConfiguration.automatic()` will make use of the host port to work out the default Realm URL.
+* [ObjectServer] A role is now automatically created for each user with that user as its only member. This simplifies the common use case of restricting access to specific objects to a single user. This role can be accessed at `PermissionUser.getRole()`.
+* [ObjectServer] Expose `Role.getMembers()` to access the list of associated `UserPermission`.
 
 ### Bug Fixes
 
 * `RealmList.move()` did not move items correctly for unmanaged lists (#5860).
 * `RealmObject.isValid()` not correctly returns `false` if `null` is provided as an argument (#5865).
-
-
-## 5.0.1 (YYYY-MM-DD)
-
-### Enhancements
-
-* [ObjectServer] `SyncConfiguration.automatic()` will make use of the host port to work out the default Realm URL. 
-
-### Bug Fixes
-
 * `RealmQuery.findFirst()` and `RealmQuery.findFirstAsync()` not working correctly with sorting (#5714).
+* Permission `noPrivileges` and `allPrivileges` were returning opposite privileges.
 
 
 ## 5.0.0 (2018-03-15)

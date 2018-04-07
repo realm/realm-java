@@ -477,6 +477,19 @@ public class ObjectLevelPermissionsTest {
 //        } catch (IllegalStateException ignore) {
 //        }
     }
+    @Test
+    public void noPrivileges() {
+        Role role = new Role("foo");
+        Permission admin = new Permission.Builder(role).allPrivileges().build();
+        assertFullAccess(admin);
+    }
+
+    @Test
+    public void allPrivileges() {
+        Role role = new Role("foo");
+        Permission nobody = new Permission.Builder(role).noPrivileges().build();
+        assertNoAccess(nobody);
+    }
 
     private void assertFullAccess(RealmPrivileges privileges) {
         assertTrue(privileges.canRead());
@@ -508,6 +521,16 @@ public class ObjectLevelPermissionsTest {
         assertTrue(permission.canQuery());
         assertTrue(permission.canSetPermissions());
         assertTrue(permission.canModifySchema());
+    }
+
+    private void assertNoAccess(Permission permission) {
+        assertFalse(permission.canCreate());
+        assertFalse(permission.canRead());
+        assertFalse(permission.canUpdate());
+        assertFalse(permission.canDelete());
+        assertFalse(permission.canQuery());
+        assertFalse(permission.canSetPermissions());
+        assertFalse(permission.canModifySchema());
     }
 
     private void assertNoAccess(RealmPrivileges privileges) {

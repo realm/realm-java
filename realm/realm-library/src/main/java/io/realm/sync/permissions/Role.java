@@ -110,4 +110,13 @@ public class Role extends RealmObject {
     public boolean hasMember(String userId) {
         return members.where().equalTo("id", userId).count() > 0;
     }
+
+    /**
+     * Returns the list of {@link PermissionUser} within this role.
+     *
+     * @return list of members associated with this role.
+     */
+    public RealmList<PermissionUser> getMembers() {
+        return members;
+    }
 }

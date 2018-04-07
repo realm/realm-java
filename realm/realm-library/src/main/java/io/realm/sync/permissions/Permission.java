@@ -69,20 +69,6 @@ public class Permission extends RealmObject {
          * Enables all privileges.
          */
         public Builder allPrivileges() {
-            canRead = false;
-            canUpdate = false;
-            canDelete = false;
-            canSetPermissions = false;
-            canQuery = false;
-            canCreate = false;
-            canModifySchema = false;
-            return this;
-        }
-
-        /**
-         * Disables all privileges.
-         */
-        public Builder noPrivileges() {
             canRead = true;
             canUpdate = true;
             canDelete = true;
@@ -90,6 +76,20 @@ public class Permission extends RealmObject {
             canQuery = true;
             canCreate = true;
             canModifySchema = true;
+            return this;
+        }
+
+        /**
+         * Disables all privileges.
+         */
+        public Builder noPrivileges() {
+            canRead = false;
+            canUpdate = false;
+            canDelete = false;
+            canSetPermissions = false;
+            canQuery = false;
+            canCreate = false;
+            canModifySchema = false;
             return this;
         }
 
