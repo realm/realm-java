@@ -4,13 +4,13 @@
 
 * `RealmList.move()` did not move items correctly for unmanaged lists (#5860).
 * `RealmObject.isValid()` not correctly returns `false` if `null` is provided as an argument (#5865).
-
+* Fixes an issue caused by JNI local table reference overflow (#5880). 
 
 ## 5.0.1 (YYYY-MM-DD)
 
 ### Enhancements
 
-* [ObjectServer] `SyncConfiguration.automatic()` will make use of the host port to work out the default Realm URL. 
+* [ObjectServer] `SyncConfiguration.automatic()` will make use of the host port to work out the default Realm URL.
 
 ### Bug Fixes
 
