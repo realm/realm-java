@@ -12,7 +12,12 @@
 * `RealmObject.isValid()` not correctly returns `false` if `null` is provided as an argument (#5865).
 * `RealmQuery.findFirst()` and `RealmQuery.findFirstAsync()` not working correctly with sorting (#5714).
 * Permission `noPrivileges` and `allPrivileges` were returning opposite privileges.
+* Fixes an issue caused by JNI local table reference overflow (#5880).
 
+### Internal
+
+* Upgraded to Realm Sync 3.0.1
+* Upgraded to Realm Core 5.4.2
 
 ## 5.0.0 (2018-03-15)
 
