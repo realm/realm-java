@@ -5,6 +5,10 @@ android {
     compileSdkVersion rootProject.sdkVersion
     buildToolsVersion rootProject.buildTools
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     defaultConfig {
         applicationId 'io.realm.examples.json'
         targetSdkVersion rootProject.sdkVersion
@@ -27,6 +31,7 @@ android {
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.16.6'
-    annotationProcessor 'org.projectlombok:lombok:1.16.6'
+    compileOnly 'org.projectlombok:lombok:1.16.18'
+    compileOnly 'javax.annotation:javax.annotation-api:1.3.1'
+    annotationProcessor 'org.projectlombok:lombok:1.16.18'
 }
