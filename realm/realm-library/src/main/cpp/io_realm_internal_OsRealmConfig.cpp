@@ -281,8 +281,12 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             }
 
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
-            env->CallStaticVoidMethod(sync_manager_class, java_error_callback_method, error_code,
-                                      to_jstring(env, error_message), to_jstring(env, session.get()->path()));
+            jstring jerror_message = to_jstring(env, error_message);
+            jstring jsession_path = to_jstring(env, session.get()->path());
+            env->CallStaticVoidMethod(sync_manager_class, java_error_callback_method, error_code, jerror_message,
+                                      jsession_path);
+            env->DeleteLocalRef(jerror_message);
+            env->DeleteLocalRef(jsession_path);
         };
 
         // path on disk of the Realm file.
@@ -294,14 +298,18 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
 
+            jstring jpath = to_jstring(env, path.c_str());
+            jstring jrefresh_token = to_jstring(env, session->user()->refresh_token().c_str());
             jstring access_token_string = (jstring)env->CallStaticObjectMethod(
-                sync_manager_class, java_bind_session_method, to_jstring(env, path.c_str()),
-                to_jstring(env, session->user()->refresh_token().c_str()));
+                sync_manager_class, java_bind_session_method, jpath, jrefresh_token);
             if (access_token_string) {
                 // reusing cached valid token
                 JStringAccessor access_token(env, access_token_string);
                 session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url()));
+                env->DeleteLocalRef(access_token_string);
             }
+            env->DeleteLocalRef(jpath);
+            env->DeleteLocalRef(jrefresh_token);
         };
 
         // Get logged in user
@@ -377,6 +385,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigS
                     bool isValid = env->CallStaticBooleanMethod(sync_manager_class, java_ssl_verify_callback,
                                                                 jserver_address,
                                                                 jpem, depth) == JNI_TRUE;
+                    env->DeleteLocalRef(jserver_address);
+                    env->DeleteLocalRef(jpem);
                     return isValid;
                 };
             config.sync_config->ssl_verify_callback = std::move(ssl_verify_callback);
