@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package io.realm.examples.realmgridview;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -33,32 +33,26 @@ import java.util.Locale;
 // a developer could update the getView() to pull items from the Realm.
 
 public class CityAdapter extends BaseAdapter {
+    private List<City> cities = Collections.emptyList();
 
-    private LayoutInflater inflater;
-
-    private List<City> cities = null;
-
-    public CityAdapter(Context context) {
-        inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    public CityAdapter() {
     }
 
     public void setData(List<City> details) {
+        if (details == null) {
+            details = Collections.emptyList();
+        }
         this.cities = details;
+        notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-        if (cities == null) {
-            return 0;
-        }
         return cities.size();
     }
 
     @Override
-    public Object getItem(int position) {
-        if (cities == null || cities.get(position) == null) {
-            return null;
-        }
+    public City getItem(int position) {
         return cities.get(position);
     }
 
@@ -67,18 +61,36 @@ public class CityAdapter extends BaseAdapter {
         return i;
     }
 
+    // ViewHolder caches view resources so that `findViewById` is not called for each row
+    private static class ViewHolder {
+        private TextView name;
+        private TextView vote;
+
+        public ViewHolder(View view) {
+            name = view.findViewById(R.id.name);
+            vote = view.findViewById(R.id.votes);
+        }
+
+        public void bind(City city) {
+            name.setText(city.getName());
+            vote.setText(String.format(Locale.US, "%d", city.getVotes()));
+        }
+    }
+
     @Override
     public View getView(int position, View currentView, ViewGroup parent) {
+        // GridView requires ViewHolder pattern to ensure optimal performance
+        ViewHolder viewHolder;
         if (currentView == null) {
-            currentView = inflater.inflate(R.layout.city_listitem, parent, false);
+            currentView = LayoutInflater.from(parent.getContext()).inflate(R.layout.city_listitem, parent, false);
+            viewHolder = new ViewHolder(currentView);
+            currentView.setTag(viewHolder);
+        } else {
+            viewHolder = (ViewHolder)currentView.getTag();
         }
 
         City city = cities.get(position);
-
-        if (city != null) {
-            ((TextView) currentView.findViewById(R.id.name)).setText(city.getName());
-            ((TextView) currentView.findViewById(R.id.votes)).setText(String.format(Locale.US, "%d",city.getVotes()));
-        }
+        viewHolder.bind(city);
 
         return currentView;
     }
