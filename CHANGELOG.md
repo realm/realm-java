@@ -4,13 +4,15 @@
 
 * [ObjectServer] `SyncConfiguration.automatic()` will make use of the host port to work out the default Realm URL.
 * [ObjectServer] A role is now automatically created for each user with that user as its only member. This simplifies the common use case of restricting access to specific objects to a single user. This role can be accessed at `PermissionUser.getRole()`.
+* [ObjectServer] Expose `Role.getMembers()` to access the list of associated `UserPermission`.
 
 ### Bug Fixes
 
-* Fixes an issue caused by JNI local table reference overflow (#5880).
 * `RealmList.move()` did not move items correctly for unmanaged lists (#5860).
 * `RealmObject.isValid()` not correctly returns `false` if `null` is provided as an argument (#5865).
 * `RealmQuery.findFirst()` and `RealmQuery.findFirstAsync()` not working correctly with sorting (#5714).
+* Permission `noPrivileges` and `allPrivileges` were returning opposite privileges.
+* Fixes an issue caused by JNI local table reference overflow (#5880).
 
 ### Internal
 
