@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@
 package io.realm.examples.realmgridview;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 public class City extends RealmObject {
     // If you are using GSON, field names should not be obfuscated.
     // Add either the proguard rule in proguard-rules.pro or the @SerializedName annotation.
+    @PrimaryKey
     private String name;
     private long votes;
 

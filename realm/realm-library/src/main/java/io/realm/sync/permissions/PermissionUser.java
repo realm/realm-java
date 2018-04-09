@@ -39,6 +39,8 @@ public class PermissionUser extends RealmObject {
     @Required
     private String id;
 
+    private Role role;
+
     @LinkingObjects("members")
     final RealmResults<Role> roles = null;
 
@@ -71,5 +73,15 @@ public class PermissionUser extends RealmObject {
      */
     public @Nullable  RealmResults<Role> getRoles() {
         return roles;
+    }
+
+    /**
+     * The user's private role. This will be initialized to a role named for the user's
+     * identity that contains this user as its only member.
+     *
+     * @return User private {@link Role}.
+     */
+    public Role getPrivateRole() {
+        return role;
     }
 }
