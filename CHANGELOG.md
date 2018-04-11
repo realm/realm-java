@@ -1,3 +1,10 @@
+## 6.0.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+* [ObjectServer] Partial sync is now the default mode of synchronization. `SyncConfiguration.Builder.partialRealm()` has been replaced by `SyncConfiguration.Builder.fullSynchronization()`
+
+
 ## 5.0.1 (2018-04-09)
 
 ### Enhancements

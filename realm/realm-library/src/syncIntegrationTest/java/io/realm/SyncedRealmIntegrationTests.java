@@ -50,7 +50,6 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
-
     @Test
     public void loginLogoutResumeSyncing() throws InterruptedException {
         String username = UUID.randomUUID().toString();
@@ -99,6 +98,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     public void waitForInitialRemoteData_mainThreadThrows() {
         final SyncUser user = SyncTestUtils.createTestUser(Constants.AUTH_URL);
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+                .fullSynchronization()
                 .waitForInitialRemoteData()
                 .build();
 
@@ -124,6 +124,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
         final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .fullSynchronization()
                 .schema(StringOnly.class)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
@@ -145,6 +146,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
                 .name("newRealm")
+                .fullSynchronization()
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .build();
@@ -244,6 +246,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
         final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .fullSynchronization()
                 .schema(StringOnly.class)
                 .build();
         Realm realm = Realm.getInstance(configOld);
@@ -264,6 +267,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         final SyncConfiguration configNew = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .name("newRealm")
+                .fullSynchronization()
                 .waitForInitialRemoteData()
                 .readOnly()
                 .schema(StringOnly.class)

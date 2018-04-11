@@ -224,7 +224,6 @@ public class SyncConfiguration extends RealmConfiguration {
 
     private static SyncConfiguration getDefaultConfig(SyncUser user) {
         return new SyncConfiguration.Builder(user, createUrl(user))
-                .partialRealm()
                 .build();
     }
 
@@ -430,16 +429,12 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Whether this configuration is for a partial synchronization Realm.
-     * <p>
-     * Partial synchronization allows a synchronized Realm to be opened in such a way that
-     * only objects queried by the user are synchronized to the device.
+     * Returns whether this configuration is for a fully synchronized Realm or not.
      *
-     * @return {@code true} to open a partial synchronization Realm {@code false} otherwise.
-     * @see Builder#partialRealm() for more details.
+     * @see Builder#fullSynchronization() for more details.
      */
-    public boolean isPartialRealm() {
-        return isPartial;
+    public boolean isFullySynchronizedRealm() {
+        return !isPartial;
     }
 
     /**
@@ -477,7 +472,7 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable
         private String serverCertificateFilePath;
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
-        private boolean isPartial = false;
+        private boolean isPartial = true; // Partial Synchronization is enabled by default
         /**
          * Creates an instance of the Builder for the SyncConfiguration.
          * <p>
@@ -941,11 +936,16 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Setting this will open a partially synchronized Realm.
-         * @see #isPartialRealm()
+         * Define this Realm as a fully synchronized Realm.
+         * <p>
+         * Full synchronization, unlike the default partial synchronization, will transparently
+         * synchronize the entire Realm without needing to subscribe to the data. This option is
+         * useful if all the data in the Realm is used or if it all belongs to the user.
+         *
+         * @see #isFullySynchronizedRealm() ()
          */
-        public SyncConfiguration.Builder partialRealm() {
-            this.isPartial = true;
+        public SyncConfiguration.Builder fullSynchronization() {
+            this.isPartial = false;
             return this;
         }
 
