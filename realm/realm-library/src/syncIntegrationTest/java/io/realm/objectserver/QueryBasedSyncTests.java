@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class PartialSyncTests extends StandardIntegrationTest {
+public class QueryBasedSyncTests extends StandardIntegrationTest {
 
     private static final int TEST_SIZE = 10;
 

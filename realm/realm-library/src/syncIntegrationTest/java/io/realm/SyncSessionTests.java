@@ -79,6 +79,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .fullSynchronization()
                 .build();
         Realm realm = Realm.getInstance(syncConfiguration);
 
@@ -98,9 +99,11 @@ public class SyncSessionTests extends StandardIntegrationTest {
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         SyncConfiguration userConfig = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .fullSynchronization()
                 .build();
         SyncConfiguration adminConfig = configFactory
                 .createSyncConfigurationBuilder(adminUser, userConfig.getServerUrl().toString())
+                .fullSynchronization()
                 .build();
 
         Realm userRealm = Realm.getInstance(userConfig);
@@ -123,9 +126,11 @@ public class SyncSessionTests extends StandardIntegrationTest {
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         final SyncConfiguration userConfig = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .fullSynchronization()
                 .build();
         final SyncConfiguration adminConfig = configFactory
                 .createSyncConfigurationBuilder(adminUser, userConfig.getServerUrl().toString())
+                .fullSynchronization()
                 .build();
 
         Thread t = new Thread(new Runnable() {
@@ -227,13 +232,14 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
     // A Realm that was opened before a user logged out should be able to resume uploading if the user logs back in.
     @Test
-    public void logBackResumeUpload() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
+    public void logBackResumeUpload() throws InterruptedException {
         final String uniqueName = UUID.randomUUID().toString();
         SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", true);
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
 
         final SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .fullSynchronization()
                 .modules(new StringOnlyModule())
                 .waitForInitialRemoteData()
                 .build();
@@ -275,6 +281,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
                         .modules(new StringOnlyModule())
+                        .fullSynchronization()
                         .waitForInitialRemoteData()
                         .build();
                 final Realm adminRealm = Realm.getInstance(adminConfig);
@@ -322,6 +329,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
         final SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .fullSynchronization()
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED)
                 .modules(new StringOnlyModule())
                 .build();
@@ -348,6 +356,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(admin, syncConfiguration.getServerUrl().toString())
+                        .fullSynchronization()
                         .modules(new StringOnlyModule())
                         .build();
                 final Realm adminRealm = Realm.getInstance(adminConfig);
@@ -383,6 +392,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
         final SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .fullSynchronization()
                 .modules(new StringOnlyModule())
                 .build();
         Realm realm = Realm.getInstance(syncConfiguration);
@@ -417,6 +427,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 SyncUser adminUser = SyncUser.logIn(credentialsAdmin, Constants.AUTH_URL);
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
+                        .fullSynchronization()
                         .modules(new StringOnlyModule())
                         .waitForInitialRemoteData()
                         .build();
@@ -460,6 +471,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
         final AtomicReference<SyncConfiguration> configRef = new AtomicReference<>(null);
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .directory(looperThread.getRoot())
+                .fullSynchronization()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {

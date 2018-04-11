@@ -46,7 +46,7 @@ import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
 /**
- * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
+ * A {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
  * Object Server.
  * <p>
  * A valid {@link SyncUser} is required to create a {@link SyncConfiguration}. See {@link SyncCredentials} and
@@ -56,13 +56,32 @@ import io.realm.rx.RxObservableFactory;
  * A minimal {@link SyncConfiguration} can be found below.
  * <pre>
  * {@code
- * SyncConfiguration config = new SyncConfiguration.Builder(context)
- *   .serverUrl("realm://objectserver.realm.io/~/default")
- *   .user(myUser)
- *   .build();
+ * SyncUser user = SyncUser.current();
+ * String url = "realm://myinstance.cloud.realm.io/default";
+ * SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
  * }
  * </pre>
  *
+ * Synchronized Realms come in two forms:
+ * <ul>
+ *     <li>
+ *         <b>Query-based synchronization:</b>
+ *         This is the default mode. The Realm will only synchronize data you have queried for.
+ *         This means the Realm on the device is initially empty and will gradually fill up as
+ *         you start to query for data. This is useful if the server side Realm is too large
+ *         to fit on the device or contains data from multiple users. Data synchronized this way
+ *         can also be removed from the device again without being deleted on the server.
+ *     </li>
+ *     <li>
+ *         <b>Full synchronization</b></>
+ *         Enable this mode by setting {@link Builder#fullSynchronization()}. In this mode
+ *         the entire Realm is synchronized in the background without having to query for
+ *         data first. This means that data generally will be available quicker but should only
+ *         be used if the server side Realm is small and doesn't contain data the device is not
+ *         allowed to see.
+ *     </li>
+ * </ul>
+ * <p>
  * Synchronized Realms only support additive migrations which can be detected and performed automatically, so
  * the following builder options are not accessible compared to a normal Realm:
  *
@@ -938,9 +957,10 @@ public class SyncConfiguration extends RealmConfiguration {
         /**
          * Define this Realm as a fully synchronized Realm.
          * <p>
-         * Full synchronization, unlike the default partial synchronization, will transparently
-         * synchronize the entire Realm without needing to subscribe to the data. This option is
-         * useful if all the data in the Realm is used or if it all belongs to the user.
+         * Full synchronization, unlike the default query-based synchronization, will transparently
+         * synchronize the entire Realm without needing to query for the data. This option is
+         * useful if the serverside Realm is small and all the data in the Realm should be
+         * available to the user.
          *
          * @see #isFullySynchronizedRealm() ()
          */
@@ -1069,7 +1089,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 }
             }
 
-            // If partial sync is enabled, also add support for Object Level Permissions
+            // If query based sync is enabled, also add support for Object Level Permissions
             if (isPartial) {
                 addModule(new ObjectPermissionsModule());
             }
