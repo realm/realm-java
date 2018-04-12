@@ -5,8 +5,6 @@
 #
 # The location of ndk-stack will be infered from the ndk.dir property in `<root>/realm/local.properties`.
 #
-#
-#
 # Usage: > sh unroll_stacktrace.sh <version> <abi> <stacktrace_file>
 # Example: > sh unroll_stacktrace.sh 5.0.0 armeabi-v7a ./dump.txt
 #
@@ -72,7 +70,7 @@ download_and_unzip_stripped_libs() {
 	# Exact files if needed
 	STRIPPED_LIBS_DIR="$CACHED_LIBS_DIR/realm-java-jni-libs-unstripped-$VERSION"
 	if [ ! -d "$STRIPPED_LIBS_DIR" ]; then
-		echo "Extracting archive file with stripped libraries"
+		echo "Extracting archive file with unstripped libraries"
 		unzip $STRIPPED_LIBS_FILE -d $STRIPPED_LIBS_DIR
 	fi
 }
