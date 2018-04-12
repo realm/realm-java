@@ -117,7 +117,6 @@ public class ObjectLevelPermissionIntegrationTests extends IsolatedIntegrationTe
         SyncUser user1 = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration user1SyncConfig = configurationFactory
                 .createSyncConfigurationBuilder(user1, Constants.DEFAULT_REALM)
-                .fullSynchronization()
                 .modules(schemaModules)
                 .build();
         Realm user1Realm = Realm.getInstance(user1SyncConfig);
@@ -165,7 +164,6 @@ public class ObjectLevelPermissionIntegrationTests extends IsolatedIntegrationTe
         // Connect with user 2 and verify that user1 object is not visible
         SyncUser user2 = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration syncConfig2 = configurationFactory.createSyncConfigurationBuilder(user2, Constants.DEFAULT_REALM)
-                .fullSynchronization()
                 .modules(schemaModules)
                 .build();
         Realm user2Realm = Realm.getInstance(syncConfig2);
