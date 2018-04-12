@@ -92,6 +92,9 @@ import io.realm.rx.RxObservableFactory;
  *
  * Synchronized Realms are created by using {@link Realm#getInstance(RealmConfiguration)} and
  * {@link Realm#getDefaultInstance()} like ordinary unsynchronized Realms.
+ *
+ * @see <a href="https://docs.realm.io/platform/using-synced-realms/syncing-data">The docs</a> for more
+ * information about the two types of synchronization.
  */
 public class SyncConfiguration extends RealmConfiguration {
 
