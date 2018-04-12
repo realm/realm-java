@@ -44,7 +44,7 @@ STRIPPED_LIBS_DIR=""
 
 find_ndkstack() {
 	PROPS_FILE="$REALM_JAVA_TOOLS_DIR/../realm/local.properties"
-	if [ ! -f $PROPS_FILE ]; then
+	if [ ! -f "$PROPS_FILE" ]; then
     	echo "$PROPS_FILE not found! NDK location cannot be determined"
     	exit 1
 	fi
@@ -61,27 +61,27 @@ download_and_unzip_stripped_libs() {
 
 	# Check if we already have the unstripped libs downloaded
 	STRIPPED_LIBS_FILE="$CACHED_LIBS_DIR/realm-java-jni-libs-unstripped-$VERSION.zip"
-	if [ ! -f $STRIPPED_LIBS_FILE ]; then
+	if [ ! -f "$STRIPPED_LIBS_FILE" ]; then
     	echo "$STRIPPED_LIBS_FILE not found! Downloading from S3"
 		STRIPPED_LIBS_DOWNLOAD_LOCATION="https://static.realm.io/downloads/java/realm-java-jni-libs-unstripped-$VERSION.zip"
-		curl -o $STRIPPED_LIBS_FILE $STRIPPED_LIBS_DOWNLOAD_LOCATION 
+		curl -o "$STRIPPED_LIBS_FILE" "$STRIPPED_LIBS_DOWNLOAD_LOCATION" 
 	fi
 
 	# Exact files if needed
 	STRIPPED_LIBS_DIR="$CACHED_LIBS_DIR/realm-java-jni-libs-unstripped-$VERSION"
 	if [ ! -d "$STRIPPED_LIBS_DIR" ]; then
 		echo "Extracting archive file with unstripped libraries"
-		unzip $STRIPPED_LIBS_FILE -d $STRIPPED_LIBS_DIR
+		unzip "$STRIPPED_LIBS_FILE" -d "$STRIPPED_LIBS_DIR"
 	fi
 }
 
 unroll_stacktrace() {
-	DIR=$STRIPPED_LIBS_DIR/$FLAVOR/$ABI
-	if [ ! -d $DIR ]; then
+	DIR="$STRIPPED_LIBS_DIR/$FLAVOR/$ABI"
+	if [ ! -d "$DIR" ]; then
 		echo "Directory containing .so file could not be found: ${DIR}"
 		exit 1
 	fi
-	$NDK_STACK -sym $DIR -dump $STACKTRACE
+	$NDK_STACK -sym "$DIR" -dump "$STACKTRACE"
 }
 
 echo "Unrolling $STACKTRACE from Realm Java $VERSION ($FLAVOR) using ABI $ABI"
