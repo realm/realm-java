@@ -74,6 +74,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
                 final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user, realmUrl)
+                        .fullSynchronization()
                         .modules(new ProcessCommitTestsModule())
                         .directory(getService().getRoot())
                         .build();
@@ -125,6 +126,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user,realmUrl)
+                .fullSynchronization()
                 .modules(new ProcessCommitTestsModule())
                 .directory(looperThread.getRoot())
                 .build();
@@ -205,6 +207,7 @@ public class ProcessCommitTests extends StandardIntegrationTest {
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = new SyncConfiguration.Builder(user,realmUrl)
+                .fullSynchronization()
                 .modules(new ProcessCommitTestsModule())
                 .directory(looperThread.getRoot())
                 .build();
