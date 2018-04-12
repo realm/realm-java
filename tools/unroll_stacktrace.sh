@@ -34,7 +34,7 @@ if [ "$#" -eq 0 ] || [ "$#" -lt 4 ] ; then
 fi
 
 HERE=$(pwd)
-REALM_JAVA_TOOLS_DIR=`dirname "$0"`
+REALM_JAVA_TOOLS_DIR=$(dirname "$0")
 FLAVOR="$1"
 VERSION="$2"
 ABI="$3"
@@ -48,7 +48,7 @@ find_ndkstack() {
     	echo "$PROPS_FILE not found! NDK location cannot be determined"
     	exit 1
 	fi
-	NDK_STACK=$(grep "ndk.dir" $PROPS_FILE | cut -d = -f2)/ndk-stack
+	NDK_STACK=$(grep "ndk.dir" "$PROPS_FILE" | cut -d = -f2)/ndk-stack
 }
 
 download_and_unzip_stripped_libs() {
