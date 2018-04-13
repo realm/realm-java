@@ -164,6 +164,7 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         final SyncUser userWithData = UserFactory.createUniqueUser(Constants.AUTH_URL);
         final SyncConfiguration userWithDataConfig = configFactory.createSyncConfigurationBuilder(userWithData, Constants.USER_REALM)
                 .name("remote")
+                .fullSynchronization()
                 .build();
 
         URI serverUrl = createRemoteData(userWithDataConfig);
@@ -182,6 +183,7 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         final SyncConfiguration adminConfig = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString())
                 .name("local")
+                .fullSynchronization()
                 .build();
         Realm adminRealm = Realm.getInstance(adminConfig);
         SyncSession session = SyncManager.getSession(adminConfig);
