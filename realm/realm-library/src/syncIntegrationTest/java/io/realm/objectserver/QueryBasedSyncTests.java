@@ -157,6 +157,7 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
     public void partialSync_namedSubscriptionThrowsOnNonPartialRealms() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         final SyncConfiguration fullSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .fullSynchronization()
                 .name("fullySynchronizedRealm")
                 .build();
 
