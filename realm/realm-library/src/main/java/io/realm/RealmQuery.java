@@ -521,8 +521,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty is parsed in the query will never
-     *               match any results. and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a String field.
      */
@@ -534,8 +534,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty is parsed in the query will never
-     *               match any results. and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a String field.
@@ -558,8 +558,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty is parsed in the query will never
-     *               match any results. and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Byte field.
      */
@@ -582,8 +582,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty is parsed in the query will never
-     *               match any results. and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Short field.
      */
@@ -606,8 +606,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty is parsed in the query will never
-     *               match any results. and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Integer field.
      */
@@ -630,8 +630,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty is parsed in the query will never
-     *               match any results. and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Long field.
      * empty.
@@ -655,8 +655,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty is parsed in the query will never
-     *               match any results. and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Double field.
      * empty.
@@ -680,8 +680,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty is parsed in the query will never
-     *               match any results. and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Float field.
      */
@@ -704,8 +704,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty is parsed in the query will never
-     *               match any results. and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Boolean.
      * or empty.
@@ -730,8 +730,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty is parsed in the query will never
-     *               match any results. and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Date field.
      */

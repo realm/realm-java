@@ -711,7 +711,7 @@ public class RealmQueryTests extends QueryTests {
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new String[]{"TEST data 14", "test data 118", "test data 31", "test DATA 199"}, Case.INSENSITIVE).findAll();
         assertEquals(196, resultList.size());
 
-        // Empty input always produces zero resultrs
+        // Empty input always produces zero results
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (String[]) null).findAll();
         assertTrue(resultList.isEmpty());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new String[]{}).findAll();
@@ -729,7 +729,7 @@ public class RealmQueryTests extends QueryTests {
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Boolean[]{true, false}).findAll();
         assertEquals(expected4, resultList.size());
 
-        // Empty input always produces zero resultrs
+        // Empty input always produces zero results
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Boolean[]) null).findAll();
         assertTrue(resultList.isEmpty());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Boolean[]{}).findAll();
@@ -747,7 +747,7 @@ public class RealmQueryTests extends QueryTests {
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Date[]{new Date(DECADE_MILLIS * -80), new Date(0)}).findAll();
         assertEquals(198, resultList.size());
 
-        // Empty input always produces zero resultrs
+        // Empty input always produces zero results
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Date[]) null).findAll();
         assertTrue(resultList.isEmpty());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Date[]{}).findAll();
@@ -765,7 +765,7 @@ public class RealmQueryTests extends QueryTests {
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Double[]{Math.PI + 1, Math.PI + 2}).findAll();
         assertEquals(198, resultList.size());
 
-        // Empty input always produces zero resultrs
+        // Empty input always produces zero results
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Double[]) null).findAll();
         assertTrue(resultList.isEmpty());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{}).findAll();
@@ -783,7 +783,7 @@ public class RealmQueryTests extends QueryTests {
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Float[]{1.2345f + 1, 1.2345f + 2}).findAll();
         assertEquals(198, resultList.size());
 
-        // Empty input always produces zero resultrs
+        // Empty input always produces zero results
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Float[]) null).findAll();
         assertTrue(resultList.isEmpty());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{}).findAll();
@@ -801,7 +801,7 @@ public class RealmQueryTests extends QueryTests {
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Byte[]{11, 13, 16, 98}).findAll();
         assertEquals(196, resultList.size());
 
-        // Empty input always produces zero resultrs
+        // Empty input always produces zero results
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Byte[]) null).findAll();
         assertTrue(resultList.isEmpty());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Byte[]{}).findAll();
@@ -819,7 +819,7 @@ public class RealmQueryTests extends QueryTests {
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Short[]{2, 4, 5, 8}).findAll();
         assertEquals(196, resultList.size());
 
-        // Empty input always produces zero resultrs
+        // Empty input always produces zero results
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Float[]) null).findAll();
         assertTrue(resultList.isEmpty());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{}).findAll();
@@ -837,7 +837,7 @@ public class RealmQueryTests extends QueryTests {
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Integer[]{1, 2, 4, 5}).findAll();
         assertEquals(196, resultList.size());
 
-        // Empty input always produces zero resultrs
+        // Empty input always produces zero results
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Integer[]) null).findAll();
         assertTrue(resultList.isEmpty());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Integer[]{}).findAll();
@@ -855,7 +855,7 @@ public class RealmQueryTests extends QueryTests {
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Long[]{13l, 14l, 16l, 98l}).findAll();
         assertEquals(196, resultList.size());
 
-        // Empty input always produces zero resultrs
+        // Empty input always produces zero results
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Long[]) null).findAll();
         assertTrue(resultList.isEmpty());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Long[]{}).findAll();
