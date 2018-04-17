@@ -700,16 +700,6 @@ public class RealmQueryTests extends QueryTests {
 
     private void doTestForInString(String targetField) {
         populateNoPrimaryKeyNullTypesRows();
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (String[]) null).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new String[]{}).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new String[]{"test data 14"}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new String[]{"test data 14", "test data 118", "test data 31", "test data 199"}).findAll();
@@ -720,20 +710,16 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(196, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new String[]{"TEST data 14", "test data 118", "test data 31", "test DATA 199"}, Case.INSENSITIVE).findAll();
         assertEquals(196, resultList.size());
+
+        // Empty input always produces zero results
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (String[]) null).findAll();
+        assertTrue(resultList.isEmpty());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new String[]{}).findAll();
+        assertTrue(resultList.isEmpty());
     }
 
     private void doTestForInBoolean(String targetField, int expected1, int expected2, int expected3, int expected4) {
         populateNoPrimaryKeyNullTypesRows();
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Boolean[]) null).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Boolean[]{}).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Boolean[]{false}).findAll();
         assertEquals(expected1, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Boolean[]{true}).findAll();
@@ -742,20 +728,16 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(expected3, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Boolean[]{true, false}).findAll();
         assertEquals(expected4, resultList.size());
+
+        // Empty input always produces zero results
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Boolean[]) null).findAll();
+        assertTrue(resultList.isEmpty());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Boolean[]{}).findAll();
+        assertTrue(resultList.isEmpty());
     }
 
     private void doTestForInDate(String targetField) {
         populateNoPrimaryKeyNullTypesRows();
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Date[]) null).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Date[]{}).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Date[]{new Date(DECADE_MILLIS * -80)}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Date[]{new Date(0)}).findAll();
@@ -764,20 +746,16 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(2, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Date[]{new Date(DECADE_MILLIS * -80), new Date(0)}).findAll();
         assertEquals(198, resultList.size());
+
+        // Empty input always produces zero results
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Date[]) null).findAll();
+        assertTrue(resultList.isEmpty());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Date[]{}).findAll();
+        assertTrue(resultList.isEmpty());
     }
 
     private void doTestForInDouble(String targetField) {
         populateNoPrimaryKeyNullTypesRows();
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Double[]) null).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{}).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{Math.PI + 1}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{Math.PI + 2}).findAll();
@@ -786,20 +764,16 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(2, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Double[]{Math.PI + 1, Math.PI + 2}).findAll();
         assertEquals(198, resultList.size());
+
+        // Empty input always produces zero results
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Double[]) null).findAll();
+        assertTrue(resultList.isEmpty());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Double[]{}).findAll();
+        assertTrue(resultList.isEmpty());
     }
 
     private void doTestForInFloat(String targetField) {
         populateNoPrimaryKeyNullTypesRows();
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Float[]) null).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{}).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{1.2345f + 1}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{1.2345f + 2}).findAll();
@@ -808,20 +782,16 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(2, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Float[]{1.2345f + 1, 1.2345f + 2}).findAll();
         assertEquals(198, resultList.size());
+
+        // Empty input always produces zero results
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Float[]) null).findAll();
+        assertTrue(resultList.isEmpty());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{}).findAll();
+        assertTrue(resultList.isEmpty());
     }
 
     private void doTestForInByte(String targetField) {
         populateNoPrimaryKeyNullTypesRows();
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Byte[]) null).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Byte[]{}).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Byte[]{11}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Byte[]{13}).findAll();
@@ -830,20 +800,16 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(4, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Byte[]{11, 13, 16, 98}).findAll();
         assertEquals(196, resultList.size());
+
+        // Empty input always produces zero results
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Byte[]) null).findAll();
+        assertTrue(resultList.isEmpty());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Byte[]{}).findAll();
+        assertTrue(resultList.isEmpty());
     }
 
     private void doTestForInShort(String targetField) {
         populateNoPrimaryKeyNullTypesRows();
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Short[]) null).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Short[]{}).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Short[]{11}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Short[]{4}).findAll();
@@ -852,20 +818,16 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(4, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Short[]{2, 4, 5, 8}).findAll();
         assertEquals(196, resultList.size());
+
+        // Empty input always produces zero results
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Float[]) null).findAll();
+        assertTrue(resultList.isEmpty());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Float[]{}).findAll();
+        assertTrue(resultList.isEmpty());
     }
 
     private void doTestForInInteger(String targetField) {
         populateNoPrimaryKeyNullTypesRows();
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Integer[]) null).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Integer[]{}).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Integer[]{11}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Integer[]{1}).findAll();
@@ -874,20 +836,16 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(4, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Integer[]{1, 2, 4, 5}).findAll();
         assertEquals(196, resultList.size());
+
+        // Empty input always produces zero results
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Integer[]) null).findAll();
+        assertTrue(resultList.isEmpty());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Integer[]{}).findAll();
+        assertTrue(resultList.isEmpty());
     }
 
     private void doTestForInLong(String targetField) {
         populateNoPrimaryKeyNullTypesRows();
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Long[]) null).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Long[]{}).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Long[]{11l}).findAll();
         assertEquals(1, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Long[]{13l}).findAll();
@@ -896,6 +854,12 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(4, resultList.size());
         resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(targetField, new Long[]{13l, 14l, 16l, 98l}).findAll();
         assertEquals(196, resultList.size());
+
+        // Empty input always produces zero results
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, (Long[]) null).findAll();
+        assertTrue(resultList.isEmpty());
+        resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new Long[]{}).findAll();
+        assertTrue(resultList.isEmpty());
     }
 
     @Test
@@ -3486,5 +3450,29 @@ public class RealmQueryTests extends QueryTests {
     @Test(expected = UnsupportedOperationException.class)
     public void endGroup_missingBeginGroup() {
         realm.where(AllTypes.class).endGroup().findAll();
+    }
+
+    @Test
+    public void alwaysTrue() {
+        populateTestRealm();
+        assertEquals(TEST_DATA_SIZE, realm.where(AllTypes.class).alwaysTrue().findAll().size());
+    }
+
+    @Test
+    public  void alwaysTrue_inverted() {
+        populateTestRealm();
+        assertEquals(0, realm.where(AllTypes.class).not().alwaysTrue().findAll().size());
+    }
+
+    @Test
+    public void alwaysFalse() {
+        populateTestRealm();
+        assertEquals(0, realm.where(AllTypes.class).alwaysFalse().findAll().size());
+    }
+
+    @Test
+    public void alwaysFalse_inverted() {
+        populateTestRealm();
+        assertEquals(TEST_DATA_SIZE, realm.where(AllTypes.class).not().alwaysFalse().findAll().size());
     }
 }

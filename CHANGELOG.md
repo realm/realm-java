@@ -1,3 +1,11 @@
+## 5.1.0 (YYYY-MM-DD)
+
+### Enhancements
+
+* `RealmQuery.in()` now support `null` which will always return no matches (#4011).
+* Added support for `RealmQuery.alwaysTrue()` and `RealmQuery.alwaysFalse()`.
+
+
 ## 5.0.1 (2018-04-09)
 
 ### Enhancements
