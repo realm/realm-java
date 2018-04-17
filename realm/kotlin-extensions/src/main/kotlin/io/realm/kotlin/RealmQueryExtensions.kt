@@ -25,7 +25,8 @@ import java.util.*
  * In comparison. This allows you to test if objects match any value in an array of values.
  *
  * @param fieldName the field to compare.
- * @param values array of values to compare with and it cannot be null or empty.
+ * @param values array of values to compare with. If `null` or the empty array is provided the query will never
+ *               match any results.
  * @param casing how casing is handled. [Case.INSENSITIVE] works only for the Latin-1 characters.
  * @return the query object.
  * @throws java.lang.IllegalArgumentException if the field isn't a String field or `values` is `null` or
@@ -42,9 +43,10 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * In comparison. This allows you to test if objects match any value in an array of values.
  *
  * @param fieldName the field to compare.
- * @param values array of values to compare with and it cannot be null or empty.
+ * @param values array of values to compare with. If `null` or the empty array is provided the query will never
+ *               match any results.
  * @return the query object.
- * @throws java.lang.IllegalArgumentException if the field isn't a Byte field or `values` is `null` or
+ * @throws java.lang.IllegalArgumentException if the field isn't a Byte field.
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
@@ -56,9 +58,10 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * In comparison. This allows you to test if objects match any value in an array of values.
  *
  * @param fieldName the field to compare.
- * @param values array of values to compare with and it cannot be null or empty.
+ * @param values array of values to compare with. If `null` or the empty array is provided the query will never
+ *               match any results.
  * @return the query object.
- * @throws java.lang.IllegalArgumentException if the field isn't a Short field or `values` is `null` or
+ * @throws java.lang.IllegalArgumentException if the field isn't a Short field.
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
@@ -70,9 +73,10 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * In comparison. This allows you to test if objects match any value in an array of values.
  *
  * @param fieldName the field to compare.
- * @param values array of values to compare with and it cannot be null or empty.
+ * @param values array of values to compare with. If `null` or the empty array is provided the query will never
+ *               match any results.
  * @return the query object.
- * @throws java.lang.IllegalArgumentException if the field isn't a Integer field or `values` is `null`
+ * @throws java.lang.IllegalArgumentException if the field isn't a Integer field.
  * or empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
@@ -84,9 +88,10 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * In comparison. This allows you to test if objects match any value in an array of values.
  *
  * @param fieldName the field to compare.
- * @param values array of values to compare with and it cannot be null or empty.
+ * @param values array of values to compare with. If `null` or the empty array is provided the query will never
+ *               match any results.
  * @return the query object.
- * @throws java.lang.IllegalArgumentException if the field isn't a Long field or `values` is `null` or
+ * @throws java.lang.IllegalArgumentException if the field isn't a Long field.
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
@@ -98,9 +103,10 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * In comparison. This allows you to test if objects match any value in an array of values.
  *
  * @param fieldName the field to compare.
- * @param values array of values to compare with and it cannot be null or empty.
+ * @param values array of values to compare with. If `null` or the empty array is provided the query will never
+ *               match any results.
  * @return the query object.
- * @throws java.lang.IllegalArgumentException if the field isn't a Double field or `values` is `null` or
+ * @throws java.lang.IllegalArgumentException if the field isn't a Double field.
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
@@ -113,9 +119,10 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * In comparison. This allows you to test if objects match any value in an array of values.
  *
  * @param fieldName the field to compare.
- * @param values array of values to compare with and it cannot be null or empty.
+ * @param values array of values to compare with. If `null` or the empty array is provided the query will never
+ *               match any results.
  * @return the query object.
- * @throws java.lang.IllegalArgumentException if the field isn't a Float field or `values` is `null` or
+ * @throws java.lang.IllegalArgumentException if the field isn't a Float field.
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
@@ -128,9 +135,10 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * In comparison. This allows you to test if objects match any value in an array of values.
  *
  * @param fieldName the field to compare.
- * @param values array of values to compare with and it cannot be null or empty.
+ * @param values array of values to compare with. If `null` or the empty array is provided the query will never
+ *               match any results.
  * @return the query object.
- * @throws java.lang.IllegalArgumentException if the field isn't a Boolean field or `values` is `null`
+ * @throws java.lang.IllegalArgumentException if the field isn't a Boolean field.
  * or empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
@@ -142,9 +150,10 @@ fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
  * In comparison. This allows you to test if objects match any value in an array of values.
  *
  * @param fieldName the field to compare.
- * @param values array of values to compare with and it cannot be null or empty.
+ * @param values array of values to compare with. If `null` or the empty array is provided the query will never
+ *               match any results.
  * @return the query object.
- * @throws java.lang.IllegalArgumentException if the field isn't a Date field or `values` is `null` or
+ * @throws java.lang.IllegalArgumentException if the field isn't a Date field.
  * empty.
  */
 fun <T : RealmModel> RealmQuery<T>.oneOf(propertyName: String,
