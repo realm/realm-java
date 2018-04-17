@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class PartialSyncTests extends StandardIntegrationTest {
+public class QueryBasedSyncTests extends StandardIntegrationTest {
 
     private static final int TEST_SIZE = 10;
 
@@ -42,7 +42,6 @@ public class PartialSyncTests extends StandardIntegrationTest {
     public void invalidQuery() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .partialRealm()
                 .build();
         final Realm realm = Realm.getInstance(partialSyncConfig);
         looperThread.closeAfterTest(realm);
@@ -68,7 +67,6 @@ public class PartialSyncTests extends StandardIntegrationTest {
     public void listQueries_doNotCreateSubscriptions() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .partialRealm()
                 .build();
 
         final DynamicRealm dRealm = DynamicRealm.getInstance(partialSyncConfig);
@@ -159,6 +157,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
     public void partialSync_namedSubscriptionThrowsOnNonPartialRealms() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         final SyncConfiguration fullSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .fullSynchronization()
                 .name("fullySynchronizedRealm")
                 .build();
 
@@ -248,7 +247,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void unsubscribeAsync_nonExistingIdThrows() throws InterruptedException {
+    public void unsubscribeAsync_nonExistingIdThrows() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         Realm realm = getPartialRealm(user);
         looperThread.closeAfterTest(realm);
@@ -271,7 +270,7 @@ public class PartialSyncTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void clearTable() throws InterruptedException {
+    public void clearTable() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         Realm realm = getPartialRealm(user);
         looperThread.closeAfterTest(realm);
@@ -301,7 +300,6 @@ public class PartialSyncTests extends StandardIntegrationTest {
         final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
                 .name("partialSync")
                 .modules(new PartialSyncModule())
-                .partialRealm()
                 .build();
         return Realm.getInstance(partialSyncConfig);
     }
@@ -309,7 +307,6 @@ public class PartialSyncTests extends StandardIntegrationTest {
     private void createServerData(SyncUser user, String url) throws InterruptedException {
         final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, url)
                 .waitForInitialRemoteData()
-                .partialRealm()
                 .modules(new PartialSyncModule())
                 .build();
 
