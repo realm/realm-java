@@ -73,7 +73,7 @@ import io.realm.rx.RxObservableFactory;
  *         can also be removed from the device again without being deleted on the server.
  *     </li>
  *     <li>
- *         <b>Full synchronization</b></>
+ *         <b>Full synchronization</b>
  *         Enable this mode by setting {@link Builder#fullSynchronization()}. In this mode
  *         the entire Realm is synchronized in the background without having to query for
  *         data first. This means that data generally will be available quicker but should only
