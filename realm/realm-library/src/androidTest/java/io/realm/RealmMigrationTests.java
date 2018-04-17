@@ -33,6 +33,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllJavaTypes;
@@ -339,7 +340,9 @@ public class RealmMigrationTests {
     public void migratePrimaryKeyNullabilityAndName() {
         // AllJavaTypes have a `@PrimaryKey long fieldId` property.
         // Construct a Realm with a different primary key and nullability and force it to migrate
+        String name = UUID.randomUUID().toString();
         RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .name(name)
                 .schema(AllJavaTypes.class)
                 .schemaVersion(0)
                 .build();
@@ -368,14 +371,17 @@ public class RealmMigrationTests {
 
         // Now migrate to match the Java definition
         Realm realm = Realm.getInstance(configFactory.createConfigurationBuilder()
+            .name(name)
             .schema(AllJavaTypes.class)
             .schemaVersion(1)
             .migration(new RealmMigration() {
                 @Override
                 public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                    realm.getSchema().get(AllJavaTypes.CLASS_NAME)
-                            .renameField("optFieldId", AllJavaTypes.FIELD_ID)
-                            .setRequired(AllJavaTypes.FIELD_ID, true);
+                    RealmObjectSchema schema = realm.getSchema().get(AllJavaTypes.CLASS_NAME);
+                    schema.renameField("optFieldId", AllJavaTypes.FIELD_ID);
+                    assertEquals(5, realm.where(AllJavaTypes.CLASS_NAME).count());
+                    schema.setRequired(AllJavaTypes.FIELD_ID, true);
+                    assertEquals(5, realm.where(AllJavaTypes.CLASS_NAME).count());
                 }
             })
             .build()
