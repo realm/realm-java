@@ -483,6 +483,17 @@ public class SyncConfigurationTests {
     }
 
     @Test
+    public void automatic_isFullySynchronized() {
+        SyncUser user = SyncTestUtils.createTestUser();
+
+        SyncConfiguration config = SyncConfiguration.automatic();
+        assertFalse(config.isFullySynchronizedRealm());
+
+        config = SyncConfiguration.automatic(user);
+        assertFalse(config.isFullySynchronizedRealm());
+    }
+
+    @Test
     public void getDefaultConfiguration_isFullySynchronized() {
         SyncUser user = createTestUser();
         SyncConfiguration config = user.getDefaultConfiguration();
@@ -530,7 +541,7 @@ public class SyncConfigurationTests {
                 .fullSynchronization()
                 .build();
         assertEquals(ClientResyncMode.RECOVER_LOCAL_REALM, config.getClientResyncMode());
-        
+
         // Default mode for query-based Realms
         config = user.createConfiguration(url).build();
         assertEquals(ClientResyncMode.MANUAL, config.getClientResyncMode());

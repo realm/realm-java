@@ -1,3 +1,10 @@
+## 7.0.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+* [ObjectServer] Query-based Sync is now the default mode of synchronization. To enable Full Realm synchronization use `SyncConfiguration.Builder.fullSynchronization()`. `SyncConfiguration.Builder.partialRealm()` has been deprecated.
+* [ObjectServer] `SyncConfiguration.isPartialRealm()` has been replaced by `SyncConfiguration.isFullySynchronizedRealm()`.
+
 ## 6.1.0(YYYY-MM-DD)
 
 ### Enhancements
