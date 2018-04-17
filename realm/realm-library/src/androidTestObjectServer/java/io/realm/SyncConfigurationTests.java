@@ -20,6 +20,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,12 +62,17 @@ public class SyncConfigurationTests {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
+    @Before
+    public void setUp() {
+        Realm.init(InstrumentationRegistry.getTargetContext());
+    }
+
     @After
     public void tearDown() {
-        for (SyncUser syncUser : SyncUser.all().values()) {
-            syncUser.logOut();
+        UserStore userStore = SyncManager.getUserStore();
+        for (SyncUser syncUser : userStore.allUsers()) {
+            userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
         }
-        SyncManager.reset();
     }
 
     @Test
@@ -452,9 +458,13 @@ public class SyncConfigurationTests {
         SyncUser user1 = createNamedTestUser("user1");
         SyncUser user2 = createNamedTestUser("user2");
         String sharedUrl = "realm://ros.realm.io/42/default";
-        SyncConfiguration config1 = new SyncConfiguration.Builder(user1, sharedUrl).modules(new StringOnlyModule()).build();
+        SyncConfiguration config1 = new SyncConfiguration.Builder(user1, sharedUrl)
+                .modules(new StringOnlyModule())
+                .build();
         Realm realm1 = Realm.getInstance(config1);
-        SyncConfiguration config2 = new SyncConfiguration.Builder(user2, sharedUrl).modules(new StringOnlyModule()).build();
+        SyncConfiguration config2 = new SyncConfiguration.Builder(user2, sharedUrl)
+                .modules(new StringOnlyModule())
+                .build();
         Realm realm2 = null;
 
         // Verify that two different configurations can be used for the same URL
@@ -513,14 +523,14 @@ public class SyncConfigurationTests {
     }
 
     @Test
-    public void automatic_isPartial() {
+    public void automatic_isFullySynchronized() {
         SyncUser user = SyncTestUtils.createTestUser();
 
         SyncConfiguration config = SyncConfiguration.automatic();
-        assertTrue(config.isPartialRealm());
+        assertFalse(config.isFullySynchronizedRealm());
 
         config = SyncConfiguration.automatic(user);
-        assertTrue(config.isPartialRealm());
+        assertFalse(config.isFullySynchronizedRealm());
     }
 
     @Test

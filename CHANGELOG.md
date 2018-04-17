@@ -1,8 +1,17 @@
+## 6.0.0 (YYYY-MM-DD)
+
+### Breaking Changes
+
+* [ObjectServer] Partial sync is now the default mode of synchronization. `SyncConfiguration.Builder.partialRealm()` has been replaced by `SyncConfiguration.Builder.fullSynchronization()`.
+* [ObjectServer] `SyncConfiguration.isPartialRealm()` has been replaced by `SyncConfiguration.isFullySynchronizedRealm()`.
+
+
 ## 5.1.1 (YYYY-MM-DD)
 
 ### Enhancements
 
 * Improved speed and allocations when parsing field descriptions in queries (#5547).
+
 
 ## 5.1.0 (2018-04-25)
 
