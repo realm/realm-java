@@ -25,7 +25,6 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
 import io.realm.annotations.Required;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
@@ -522,12 +521,12 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or
-     * empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field.
      */
-    public RealmQuery<E> in(String fieldName, String[] values) {
+    public RealmQuery<E> in(String fieldName, @Nullable String[] values) {
         return in(fieldName, values, Case.SENSITIVE);
     }
 
@@ -535,18 +534,18 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or
-     * empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field.
      */
-    public RealmQuery<E> in(String fieldName, String[] values, Case casing) {
+    public RealmQuery<E> in(String fieldName, @Nullable String[] values, Case casing) {
         realm.checkIfValid();
 
-        //noinspection ConstantConditions
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
+            alwaysFalse();
+            return this;
         }
         beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0], casing);
         for (int i = 1; i < values.length; i++) {
@@ -559,184 +558,196 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Byte field or {@code values} is {@code null} or
-     * empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Byte field.
      */
-    public RealmQuery<E> in(String fieldName, Byte[] values) {
+    public RealmQuery<E> in(String fieldName, @Nullable Byte[] values) {
         realm.checkIfValid();
 
-        //noinspection ConstantConditions
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
         }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Short field or {@code values} is {@code null} or
-     * empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Short field.
      */
-    public RealmQuery<E> in(String fieldName, Short[] values) {
+    public RealmQuery<E> in(String fieldName, @Nullable Short[] values) {
         realm.checkIfValid();
 
-        //noinspection ConstantConditions
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
         }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Integer field or {@code values} is {@code null}
+     * @throws java.lang.IllegalArgumentException if the field isn't a Integer field.
+     */
+    public RealmQuery<E> in(String fieldName, @Nullable Integer[] values) {
+        realm.checkIfValid();
+
+        if (values == null || values.length == 0) {
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
+        }
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Long field.
+     * empty.
+     */
+    public RealmQuery<E> in(String fieldName, @Nullable Long[] values) {
+        realm.checkIfValid();
+
+        if (values == null || values.length == 0) {
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
+        }
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Double field.
+     * empty.
+     */
+    public RealmQuery<E> in(String fieldName, @Nullable Double[] values) {
+        realm.checkIfValid();
+
+        if (values == null || values.length == 0) {
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
+        }
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Float field.
+     */
+    public RealmQuery<E> in(String fieldName, @Nullable Float[] values) {
+        realm.checkIfValid();
+
+        if (values == null || values.length == 0) {
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
+        }
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Boolean.
      * or empty.
      */
-    public RealmQuery<E> in(String fieldName, Integer[] values) {
+    public RealmQuery<E> in(String fieldName, @Nullable Boolean[] values) {
         realm.checkIfValid();
 
         //noinspection ConstantConditions
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
         }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Long field or {@code values} is {@code null} or
-     * empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Date field.
      */
-    public RealmQuery<E> in(String fieldName, Long[] values) {
+    public RealmQuery<E> in(String fieldName, @Nullable Date[] values) {
         realm.checkIfValid();
 
-        //noinspection ConstantConditions
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
         }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
-    }
-
-    /**
-     * In comparison. This allows you to test if objects match any value in an array of values.
-     *
-     * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
-     * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Double field or {@code values} is {@code null} or
-     * empty.
-     */
-    public RealmQuery<E> in(String fieldName, Double[] values) {
-        realm.checkIfValid();
-
-        //noinspection ConstantConditions
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
-        }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
-    }
-
-    /**
-     * In comparison. This allows you to test if objects match any value in an array of values.
-     *
-     * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
-     * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Float field or {@code values} is {@code null} or
-     * empty.
-     */
-    public RealmQuery<E> in(String fieldName, Float[] values) {
-        realm.checkIfValid();
-
-        //noinspection ConstantConditions
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
-        }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
-    }
-
-    /**
-     * In comparison. This allows you to test if objects match any value in an array of values.
-     *
-     * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
-     * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Boolean field or {@code values} is {@code null}
-     * or empty.
-     */
-    public RealmQuery<E> in(String fieldName, Boolean[] values) {
-        realm.checkIfValid();
-
-        //noinspection ConstantConditions
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
-        }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
-    }
-
-    /**
-     * In comparison. This allows you to test if objects match any value in an array of values.
-     *
-     * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
-     * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Date field or {@code values} is {@code null} or
-     * empty.
-     */
-    public RealmQuery<E> in(String fieldName, Date[] values) {
-        realm.checkIfValid();
-
-        //noinspection ConstantConditions
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
-        }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
     }
 
     /**
@@ -1922,6 +1933,24 @@ public class RealmQuery<E> {
             System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
             distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
         }
+        return this;
+    }
+
+    /**
+     * This predicate will always match.
+     */
+    public RealmQuery<E> alwaysTrue() {
+        realm.checkIfValid();
+        query.alwaysTrue();
+        return this;
+    }
+
+    /**
+     * This predicate will never match, resulting in the query always returning 0 results.
+     */
+    public RealmQuery<E> alwaysFalse() {
+        realm.checkIfValid();
+        query.alwaysFalse();
         return this;
     }
 

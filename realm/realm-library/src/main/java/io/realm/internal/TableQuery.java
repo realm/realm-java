@@ -629,6 +629,14 @@ public class TableQuery implements NativeObject {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 
+    public void alwaysTrue() {
+        nativeAlwaysTrue(nativePtr);
+    }
+
+    public void alwaysFalse() {
+        nativeAlwaysFalse(nativePtr);
+    }
+
     private native String nativeValidateQuery(long nativeQueryPtr);
 
     private native void nativeGroup(long nativeQueryPtr);
@@ -716,6 +724,10 @@ public class TableQuery implements NativeObject {
     private native void nativeIsEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
 
     private native void nativeIsNotEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
+
+    private native void nativeAlwaysTrue(long nativeQueryPtr);
+
+    private native void nativeAlwaysFalse(long nativeQueryPtr);
 
     private native long nativeFind(long nativeQueryPtr, long fromTableRow);
 
