@@ -334,64 +334,7 @@ public class RealmMigrationTests {
             }
         }
     }
-
-    // Tests https://github.com/realm/realm-java/issues/5899
-    @Test
-    public void migratePrimaryKeyNullabilityAndName() {
-        // AllJavaTypes have a `@PrimaryKey long fieldId` property.
-        // Construct a Realm with a different primary key and nullability and force it to migrate
-        String name = UUID.randomUUID().toString();
-        RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .name(name)
-                .schema(AllJavaTypes.class)
-                .schemaVersion(0)
-                .build();
-
-        // Build schema on disk
-        Realm.getInstance(config).close();
-
-        // Now modify it so a migration is required to get to the Java class definition
-        // = Primary key field is now optional and named "optFieldId
-        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
-        dynamicRealm.beginTransaction();
-        RealmObjectSchema classSchema = dynamicRealm.getSchema().get(AllJavaTypes.CLASS_NAME);
-        classSchema
-                .removePrimaryKey()
-                .removeField(AllJavaTypes.FIELD_ID)
-                .addField("optFieldId", Long.class)
-                .addPrimaryKey("optFieldId");
-
-        // Add sample data for this schema
-        for (int i = 0; i < 5; i++ ) {
-            dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, i).setString(AllJavaTypes.FIELD_STRING, Long.toString(i));
-        }
-        assertEquals(5, dynamicRealm.where(AllJavaTypes.CLASS_NAME).count());
-        dynamicRealm.commitTransaction();
-        dynamicRealm.close();
-
-        // Now migrate to match the Java definition
-        Realm realm = Realm.getInstance(configFactory.createConfigurationBuilder()
-            .name(name)
-            .schema(AllJavaTypes.class)
-            .schemaVersion(1)
-            .migration(new RealmMigration() {
-                @Override
-                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                    RealmObjectSchema schema = realm.getSchema().get(AllJavaTypes.CLASS_NAME);
-                    schema.renameField("optFieldId", AllJavaTypes.FIELD_ID);
-                    assertEquals(5, realm.where(AllJavaTypes.CLASS_NAME).count());
-                    schema.setRequired(AllJavaTypes.FIELD_ID, true);
-                    assertEquals(5, realm.where(AllJavaTypes.CLASS_NAME).count());
-                }
-            })
-            .build()
-        );
-
-        // Verify that sample data is still present
-        assertEquals(AllJavaTypes.FIELD_ID, realm.getSchema().get(AllJavaTypes.CLASS_NAME).getPrimaryKey());
-        assertEquals(5, realm.where(AllJavaTypes.class).count());
-    }
-
+    
     /**
      * Builds a temporary schema to be modified later in a migration. {@link MigrationPrimaryKey} is
      * the base class when specified.
