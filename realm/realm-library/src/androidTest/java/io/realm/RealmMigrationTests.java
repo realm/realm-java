@@ -33,10 +33,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.CatOwner;
@@ -334,7 +332,7 @@ public class RealmMigrationTests {
             }
         }
     }
-    
+
     /**
      * Builds a temporary schema to be modified later in a migration. {@link MigrationPrimaryKey} is
      * the base class when specified.
