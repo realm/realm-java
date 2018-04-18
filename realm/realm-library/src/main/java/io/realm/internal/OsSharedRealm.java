@@ -445,10 +445,18 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     /**
-     * Returns {@code true} if this Realm is a partially synchronized Realm.
+     * Returns {@code true} if this Realm is a query-based synchronized Realm.
      */
     public boolean isPartial() {
         return nativeIsPartial(nativePtr);
+    }
+
+    /**
+     * Returns {@code true} if this Realm is a synchronized Realm, either query-based or fully
+     * synchronized.
+     */
+    public boolean isSyncRealm() {
+        return osRealmConfig.getResolvedRealmURI() != null;
     }
 
     // addIterator(), detachIterators() and invalidateIterators() are used to make RealmResults stable iterators work.

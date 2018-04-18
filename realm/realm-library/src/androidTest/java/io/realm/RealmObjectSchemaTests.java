@@ -996,42 +996,6 @@ public class RealmObjectSchemaTests {
         setRequired_onIndexedField(false);
     }
 
-    // Tests https://github.com/realm/realm-studio/issues/5899
-    @Test
-    public void setRequired_keepExistingRowsIfPrimaryKey() {
-        if (type == ObjectSchemaType.IMMUTABLE) {
-            return;
-        }
-        DynamicRealm dynRealm = (DynamicRealm) realm;
-        String className = "NewClass";
-        String fieldName = "field";
-
-        // Check all primary key types
-        for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
-            if (fieldType.clazz.equals(String.class)) continue;
-            schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY); // primary key field
-
-            // Hackish way to add sample data, only treat string differently
-            for (int i = 0; i < 5; i++) {
-                Object primaryKeyValue = (fieldType.getType() == String.class) ? Integer.toString(i) : i;
-                dynRealm.createObject(className, primaryKeyValue);
-            }
-
-            // Verify that sample data is intact before swapping nullability state
-            String errMsg = String.format(String.format("Count mismatch for FieldType = %s and Nullable = %s", fieldType.getType(), schema.isNullable(fieldName)));
-            assertEquals(errMsg, 5, dynRealm.where(className).count());
-
-            // Swap nullability state
-            schema.setRequired(fieldName, !schema.isRequired(fieldName));
-            errMsg = String.format(String.format("Count mismatch for FieldType = %s and Nullable = %s", fieldType.getType(), schema.isNullable(fieldName)));
-            assertEquals(errMsg, 5, dynRealm.where(className).count());
-
-            // Cleanup
-            dynRealm.delete(className);
-            schema.removeField(fieldName);
-        }
-    }
-
     @Test
     public void setPrimaryKey_trueAndFalse() {
         if (type == ObjectSchemaType.IMMUTABLE) {
@@ -1384,5 +1348,40 @@ public class RealmObjectSchemaTests {
 
     private interface FieldRunnable {
         void run(String fieldName);
+    }
+
+    // Tests https://github.com/realm/realm-studio/issues/5899
+    @Test
+    public void setRequired_keepExistingRowsIfPrimaryKey() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
+        DynamicRealm dynRealm = (DynamicRealm) realm;
+        String className = "NewClass";
+        String fieldName = "field";
+
+        // Check all primary key types
+        for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
+            schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY); // primary key field
+
+            // Hackish way to add sample data, only treat string differently
+            for (int i = 0; i < 5; i++) {
+                Object primaryKeyValue = (fieldType.getType() == String.class) ? Integer.toString(i) : i;
+                dynRealm.createObject(className, primaryKeyValue);
+            }
+
+            // Verify that sample data is intact before swapping nullability state
+            String errMsg = String.format(String.format("Count mismatch for FieldType = %s and Nullable = %s", fieldType.getType(), schema.isNullable(fieldName)));
+            assertEquals(errMsg, 5, dynRealm.where(className).count());
+
+            // Swap nullability state
+            schema.setRequired(fieldName, !schema.isRequired(fieldName));
+            errMsg = String.format(String.format("Count mismatch for FieldType = %s and Nullable = %s", fieldType.getType(), schema.isNullable(fieldName)));
+            assertEquals(errMsg, 5, dynRealm.where(className).count());
+
+            // Cleanup
+            dynRealm.delete(className);
+            schema.removeField(fieldName);
+        }
     }
 }
