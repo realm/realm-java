@@ -306,7 +306,7 @@ static void create_new_column(Table* table, size_t column_index, bool nullable)
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable(JNIEnv* env, jobject obj,
                                                                                   jlong native_table_ptr,
                                                                                   jlong j_column_index,
-                                                                                  jboolean is_primary_key)
+                                                                                  jboolean)
 {
     Table* table = TBL(native_table_ptr);
     if (!TBL_AND_COL_INDEX_VALID(env, table, j_column_index)) {
