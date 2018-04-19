@@ -73,4 +73,24 @@ public interface AuthenticationServer {
      * what is needed will depend on what type of {@link SyncCredentials} was used.
      */
     LookupUserIdResponse retrieveUser(Token adminToken, String provider, String providerId, URL authenticationUrl);
+
+    /**
+     * Request a password reset for the user identified by the provided email.
+     */
+    UpdateAccountResponse requestPasswordReset(String email, URL authenticationUrl);
+
+    /**
+     * Complete a password reset by sending the one-time token and the new password.
+     */
+    UpdateAccountResponse completePasswordReset(String token, String newPassword, URL authenticationUrl);
+
+    /**
+     * Request an email confirmation.
+     */
+    UpdateAccountResponse requestEmailConfirmation(String email, URL authenticationUrl);
+
+    /**
+     * Complete an email confirmation by sending the token contained in the email.
+     */
+    UpdateAccountResponse confirmEmail(String confirmationToken, URL authenticationUrl);
 }

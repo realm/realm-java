@@ -44,6 +44,8 @@ import io.realm.internal.network.ChangePasswordResponse;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.network.LookupUserIdResponse;
+import io.realm.internal.network.UpdateAccountRequest;
+import io.realm.internal.network.UpdateAccountResponse;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 
@@ -135,16 +137,7 @@ public class SyncUser {
      * @throws IllegalArgumentException if the URL is malformed.
      */
     public static SyncUser logIn(final SyncCredentials credentials, final String authenticationUrl) throws ObjectServerError {
-        URL authUrl;
-        try {
-            authUrl = new URL(authenticationUrl);
-            // If no path segment is provided append `/auth` which is the standard location.
-            if (authUrl.getPath().equals("")) {
-                authUrl = new URL(authUrl.toString() + "/auth");
-            }
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid URL " + authenticationUrl + ".", e);
-        }
+        URL authUrl = getUrl(authenticationUrl);
 
         ObjectServerError error;
         try {
@@ -175,6 +168,27 @@ public class SyncUser {
             throw new ObjectServerError(ErrorCode.UNKNOWN, e);
         }
         throw error;
+    }
+
+    /**
+     * Converts the input URL to a Realm Authentication URL
+     *
+     * @param authenticationUrl user provided url string.
+     *
+     * @return normalized authentication url.
+     * @throws IllegalArgumentException if something was wrong with the URL.
+     */
+    private static URL getUrl(String authenticationUrl) {
+        try {
+            URL authUrl = new URL(authenticationUrl);
+            // If no path segment is provided append `/auth` which is the standard location.
+            if (authUrl.getPath().equals("")) {
+                authUrl = new URL(authUrl.toString() + "/auth");
+            }
+            return authUrl;
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid URL " + authenticationUrl + ".", e);
+        }
     }
 
     /**
@@ -388,6 +402,188 @@ public class SyncUser {
             public SyncUser run() {
                 changePassword(userId, newPassword);
                 return SyncUser.this;
+            }
+        }.start();
+    }
+
+    /**
+     * FIXME
+     *
+     * @param authenticationUrl
+     * @param email
+     * @throws ObjectServerError
+     */
+    public static void requestPasswordReset(String authenticationUrl, String email) throws ObjectServerError {
+        if (Util.isEmptyString(email)) {
+            throw new IllegalArgumentException("Not-null 'email' required.");
+        }
+        URL authUrl = getUrl(authenticationUrl);
+        AuthenticationServer authServer = SyncManager.getAuthServer();
+        UpdateAccountResponse response = authServer.requestPasswordReset(email, authUrl);
+        if (!response.isValid()) {
+            throw response.getError();
+        }
+    }
+
+    /**
+     * FIXME
+     *
+     * @param authenticationUrl
+     * @param email
+     * @param callback
+     * @return
+     */
+    public static RealmAsyncTask requestPasswordResetAsync(final String authenticationUrl, final String email, final Callback<Void> callback) {
+        checkLooperThread("Asynchronous requesting a password reset is only possible from looper threads.");
+        //noinspection ConstantConditions
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
+
+        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Void run() {
+                requestPasswordReset(authenticationUrl, email);
+                return null;
+            }
+        }.start();
+    }
+
+    /**
+     * FIXME
+     *
+     * @param token
+     * @param newPassword
+     * @param authenticationUrl
+     */
+    public static void completePasswordReset(String token, String newPassword, String authenticationUrl) {
+        if (Util.isEmptyString(token)) {
+            throw new IllegalArgumentException("Not-null 'token' required.");
+        }
+        if (Util.isEmptyString(newPassword)) {
+            throw new IllegalArgumentException("Not-null 'newPassword' required.");
+        }
+        URL authUrl = getUrl(authenticationUrl);
+        AuthenticationServer authServer = SyncManager.getAuthServer();
+        UpdateAccountResponse response = authServer.completePasswordReset(token, newPassword, authUrl);
+        if (!response.isValid()) {
+            throw response.getError();
+        }
+    }
+
+    /**
+     * FIXME
+     *
+     * @param token
+     * @param newPassword
+     * @param authenticationUrl
+     * @param callback
+     * @return
+     * @throws ObjectServerError
+     */
+    public static RealmAsyncTask completePasswordResetAsync(final String token,
+                                           final String newPassword,
+                                           final String authenticationUrl,
+                                           final Callback<Void> callback) throws ObjectServerError {
+        checkLooperThread("Asynchronously completing a password reset is only possible from looper threads.");
+        //noinspection ConstantConditions
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
+
+        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Void run() {
+                completePasswordReset(authenticationUrl, token, newPassword);
+                return null;
+            }
+        }.start();
+    }
+
+    /**
+     * FIXME
+     *
+     * @param email
+     * @param authenticationUrl
+     * @throws ObjectServerError
+     */
+    public void requestEmailConfirmation(String email, String authenticationUrl) throws ObjectServerError {
+        if (Util.isEmptyString(email)) {
+            throw new IllegalArgumentException("Not-null 'email' required.");
+        }
+        URL authUrl = getUrl(authenticationUrl);
+        AuthenticationServer authServer = SyncManager.getAuthServer();
+        UpdateAccountResponse response = authServer.requestEmailConfirmation(email, authUrl);
+        if (!response.isValid()) {
+            throw response.getError();
+        }
+    }
+
+    /**
+     * FIXME
+     *
+     * @param authenticationUrl
+     * @param email
+     * @param callback
+     * @return
+     */
+    public RealmAsyncTask requestEmailConfirmationAsync(final String authenticationUrl, final String email, final Callback<Void> callback) {
+        checkLooperThread("Asynchronously requesting an email confirmation is only possible from looper threads.");
+        //noinspection ConstantConditions
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
+
+        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Void run() {
+                requestEmailConfirmation(authenticationUrl, email);
+                return null;
+            }
+        }.start();
+    }
+
+    /**
+     * FIXME
+     *
+     * @param confirmationToken
+     * @param authenticationUrl
+     * @throws ObjectServerError
+     */
+    public void confirmEmail(String confirmationToken, String authenticationUrl) throws ObjectServerError {
+        if (Util.isEmptyString(confirmationToken)) {
+            throw new IllegalArgumentException("Not-null 'confirmationToken' required.");
+        }
+        URL authUrl = getUrl(authenticationUrl);
+        AuthenticationServer authServer = SyncManager.getAuthServer();
+        UpdateAccountResponse response = authServer.confirmEmail(confirmationToken, authUrl);
+        if (!response.isValid()) {
+            throw response.getError();
+        }
+    }
+
+    /**
+     * FIXME
+     *
+     * @param authenticationUrl
+     * @param confirmationToken
+     * @param callback
+     * @return
+     */
+    public RealmAsyncTask confirmEmailAsync(final String authenticationUrl,
+                                            final String confirmationToken,
+                                            final Callback<Void> callback) {
+        checkLooperThread("Asynchronously confirming an email is only possible from looper threads.");
+        //noinspection ConstantConditions
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
+
+        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Void run() {
+                confirmEmail(authenticationUrl, confirmationToken);
+                return null;
             }
         }.start();
     }
