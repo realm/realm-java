@@ -6,17 +6,21 @@ RUN echo "Europe/Copenhagen" >  /etc/timezone
 
 ARG ROS_DE_VERSION
 
-# Install realm object server
-RUN npm install -g realm-object-server@$ROS_DE_VERSION -S
+## Copy ROS node project to image and install and configure it
+# FIXME: Figure out how to set DE_VERSION
+COPY ros /ros
+WORKDIR "/ros"
+RUN npm install
+WORKDIR "/"
 
 # Install test server dependencies
 RUN npm install winston@2.4.0 temp httpdispatcher@1.0.0 fs-extra moment
 
-COPY keys/public.pem keys/private.pem keys/127_0_0_1-server.key.pem keys/127_0_0_1-chain.crt.pem configuration.yml /
-COPY ros-testing-server.js /usr/bin/
+COPY keys/public.pem keys/private.pem keys/127_0_0_1-server.key.pem keys/127_0_0_1-chain.crt.pem /
+COPY integration-test-command-server.js /usr/bin/
 
 #Bypass the ROS license check
 ENV DOCKER_DATA_PATH /
 ENV ROS_TOS_EMAIL_ADDRESS 'ci@realm.io'
 
-CMD /usr/bin/ros-testing-server.js /tmp/ros-testing-server.log
+CMD /usr/bin/integration-test-command-server.js /tmp/integration-test-command-server.log

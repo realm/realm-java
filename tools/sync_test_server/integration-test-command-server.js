@@ -1,9 +1,20 @@
 #!/usr/bin/env nodejs
 
+/**
+ * This script controls the Command Server responsible for starting and stopping
+ * ROS instances. The integration tests running on the device will communicate
+ * with it using a predefined port in order to say when the ROS instance
+ * should be started and stopped.
+ *
+ * This script is responsible for cleaning up any server state after it has been
+ * stopped, so a new integration test will start from a clean slate.
+ */
+
 var winston = require('winston'); //logging
 const temp = require('temp');
 const spawn = require('child_process').spawn;
 const exec = require('child_process').exec;
+const execSync = require('child_process').execSync;
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 var fs = require('fs-extra');
@@ -82,29 +93,34 @@ function doStartRealmObjectServer(onSuccess, onError) {
             winston.info(env.NODE_ENV);
             env.NODE_ENV = 'development';
 
-            // Manually cleanup Global Notifier State
-            // See https://github.com/realm/ros/issues/437#issuecomment-335380095
-            var globalNotifierDir = path + '/realm-object-server';
-            winston.info('Cleaning state in: ' + globalNotifierDir);
-            fs.removeSync(globalNotifierDir)
-            if (fs.existsSync(globalNotifierDir)) {
-                onError("Could not delete the global notifier directory: " + globalNotifierDir);
+
+            // Cleanup any previous server state
+            winston.info("Cleaning old server state");
+            fs.removeSync('/ros/data');
+            fs.removeSync('/ros/realm-object-server');
+            fs.removeSync('/ros/log.txt');
+            execSync('npm', ['run clean']);
+            if (fs.existsSync('/ros/data')) {
+                onError("Could not delete data directory: " + globalNotifierDir);
                 return;
             }
-            fs.mkdirsSync(path + '/realm-object-server/io.realm.object-server-utility/metadata/')
+            if (fs.existsSync('/ros/realm-object-server')) {
+                onError("Could not delete global notifier directory: " + globalNotifierDir);
+                return;
+            }
 
             // Start ROS
-            syncServerChildProcess = spawn('ros',
-                    ['start',
-                        '--data', path,
-                        '--loglevel', 'detail',
-                        '--https',
-                        '--https-key', '/127_0_0_1-server.key.pem',
-                        '--https-cert', '/127_0_0_1-chain.crt.pem',
-                        '--https-port', '9443',
-                        '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
-                    ],
-                    { env: env, cwd: path});
+            syncServerChildProcess = spawn('npm', ['run start'], { env : env, cwd: '/ros'});
+//                    ['start',
+//                        '--data', path,
+//                        '--loglevel', 'detail',
+//                        '--https',
+//                        '--https-key', '/127_0_0_1-server.key.pem',
+//                        '--https-cert', '/127_0_0_1-chain.crt.pem',
+//                        '--https-port', '9443',
+//                        '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
+//                    ],
+//                    { env: env, cwd: path});
 
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
@@ -154,7 +170,7 @@ dispatcher.onGet("/start", function(req, res) {
 
 // stop a previously started sync server
 dispatcher.onGet("/stop", function(req, res) {
-  winston.info("Attempting to stop ROS")
+  winston.info("Attempting to stop ROS");
   stopRealmObjectServer(function() {
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.end('ROS stopped');

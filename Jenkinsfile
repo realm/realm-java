@@ -190,7 +190,7 @@ def stopLogCatCollector(String backgroundPid) {
 }
 
 def archiveRosLog(String id) {
-  sh "docker cp ${id}:/tmp/ros-testing-server.log ./ros.log"
+  sh "docker cp ${id}:/tmp/integration-test-command-server.log ./ros.log"
   zip([
       'zipFile': 'roslog.zip',
       'archive': true,
