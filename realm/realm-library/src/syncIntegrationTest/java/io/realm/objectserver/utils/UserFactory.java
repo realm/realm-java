@@ -39,7 +39,7 @@ import static org.junit.Assert.fail;
 // Must be in `io.realm.objectserver` to work around package protected methods.
 // This require Realm.init() to be called before using this class.
 public class UserFactory {
-    private static final String PASSWORD = "myPassw0rd";
+    public static final String PASSWORD = "myPassw0rd";
     // Since the integration tests need to use the same user for different processes, we create a new user name when the
     // test starts and store it in a Realm. Then it can be retrieved for every process.
     private String userName;

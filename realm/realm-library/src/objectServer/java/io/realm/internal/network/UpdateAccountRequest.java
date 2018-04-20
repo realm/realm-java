@@ -67,17 +67,14 @@ public class UpdateAccountRequest {
      * Converts the request into a JSON payload.
      */
     public String toJson() {
-        JSONObject request = new JSONObject();
-        try {
-            request.put("action", action);
-            request.put("data", new JSONObject(data));
+        Map<String, Object> payload = new HashMap<String, Object>() {{
             if (!Util.isEmptyString(providerId)) {
-                request.put("provider_id", providerId);
+                put("provider_id", providerId);
             }
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+            data.put("action", action);
+            put("data", data);
+        }};
 
-        return request.toString();
+        return new JSONObject(payload).toString();
     }
 }

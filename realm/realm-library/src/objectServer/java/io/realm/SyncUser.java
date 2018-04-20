@@ -413,7 +413,7 @@ public class SyncUser {
      * @param email
      * @throws ObjectServerError
      */
-    public static void requestPasswordReset(String authenticationUrl, String email) throws ObjectServerError {
+    public static void requestPasswordReset(String email, String authenticationUrl) throws ObjectServerError {
         if (Util.isEmptyString(email)) {
             throw new IllegalArgumentException("Not-null 'email' required.");
         }
@@ -433,7 +433,7 @@ public class SyncUser {
      * @param callback
      * @return
      */
-    public static RealmAsyncTask requestPasswordResetAsync(final String authenticationUrl, final String email, final Callback<Void> callback) {
+    public static RealmAsyncTask requestPasswordResetAsync(final String email, final String authenticationUrl, final Callback<Void> callback) {
         checkLooperThread("Asynchronous requesting a password reset is only possible from looper threads.");
         //noinspection ConstantConditions
         if (callback == null) {
@@ -443,7 +443,7 @@ public class SyncUser {
         return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() {
-                requestPasswordReset(authenticationUrl, email);
+                requestPasswordReset(email, authenticationUrl);
                 return null;
             }
         }.start();
@@ -494,7 +494,7 @@ public class SyncUser {
         return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() {
-                completePasswordReset(authenticationUrl, token, newPassword);
+                completePasswordReset(token, newPassword, authenticationUrl);
                 return null;
             }
         }.start();
@@ -537,7 +537,7 @@ public class SyncUser {
         return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() {
-                requestEmailConfirmation(authenticationUrl, email);
+                requestEmailConfirmation(email, authenticationUrl);
                 return null;
             }
         }.start();
@@ -565,13 +565,13 @@ public class SyncUser {
     /**
      * FIXME
      *
-     * @param authenticationUrl
      * @param confirmationToken
+     * @param authenticationUrl
      * @param callback
      * @return
      */
-    public RealmAsyncTask confirmEmailAsync(final String authenticationUrl,
-                                            final String confirmationToken,
+    public RealmAsyncTask confirmEmailAsync(final String confirmationToken,
+                                            final String authenticationUrl,
                                             final Callback<Void> callback) {
         checkLooperThread("Asynchronously confirming an email is only possible from looper threads.");
         //noinspection ConstantConditions
@@ -582,7 +582,7 @@ public class SyncUser {
         return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() {
-                confirmEmail(authenticationUrl, confirmationToken);
+                confirmEmail(confirmationToken, authenticationUrl);
                 return null;
             }
         }.start();

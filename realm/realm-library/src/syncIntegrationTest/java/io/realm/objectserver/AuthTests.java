@@ -824,4 +824,50 @@ public class AuthTests extends StandardIntegrationTest {
             }
         });
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void requestPasswordResetAsync() {
+        String email = "foo@bar.baz";
+        UserFactory.createUser(email).logOut();
+
+        // Currently no easy way to see if we actually get an email.
+        // Just verify that the network request can complete successfully.
+        SyncUser.requestPasswordResetAsync(email, Constants.AUTH_URL, new SyncUser.Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
+    @Test
+    public void requestResetPassword_unknownEmail() {
+
+    }
+
+    @Test
+    public void completeResetPassword_invalidToken() {
+
+    }
+
+    @Test
+    public void requestEmailConfirmation() {
+
+    }
+
+    @Test
+    public void confirmEmail() {
+
+    }
+
+    @Test
+    public void confirmEmail_invalidToken() {
+
+    }
 }
