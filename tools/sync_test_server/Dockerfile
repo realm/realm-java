@@ -6,14 +6,6 @@ RUN echo "Europe/Copenhagen" >  /etc/timezone
 
 ARG ROS_VERSION
 
-# Install netstat (used for debugging)
-RUN apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    net-tools \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
-
-
 ## Copy ROS node project to image and install and configure it
 COPY ros /ros
 WORKDIR "/ros"
