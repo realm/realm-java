@@ -93,13 +93,11 @@ function doStartRealmObjectServer(onSuccess, onError) {
             winston.info(env.NODE_ENV);
             env.NODE_ENV = 'development';
 
-
             // Cleanup any previous server state
             winston.info("Cleaning old server state");
             fs.removeSync('/ros/data');
             fs.removeSync('/ros/realm-object-server');
             fs.removeSync('/ros/log.txt');
-            execSync('npm', ['run clean']);
             if (fs.existsSync('/ros/data')) {
                 onError("Could not delete data directory: " + globalNotifierDir);
                 return;
@@ -110,17 +108,7 @@ function doStartRealmObjectServer(onSuccess, onError) {
             }
 
             // Start ROS
-            syncServerChildProcess = spawn('npm', ['run start'], { env : env, cwd: '/ros'});
-//                    ['start',
-//                        '--data', path,
-//                        '--loglevel', 'detail',
-//                        '--https',
-//                        '--https-key', '/127_0_0_1-server.key.pem',
-//                        '--https-cert', '/127_0_0_1-chain.crt.pem',
-//                        '--https-port', '9443',
-//                        '--access-token-ttl', '20' //WARNING : Changing this value may impact the timeout of the refresh token test (AuthTests#preemptiveTokenRefresh)
-//                    ],
-//                    { env: env, cwd: path});
+            syncServerChildProcess = spawn('npm', ['start'], { env: env, cwd: '/ros' });
 
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
@@ -143,13 +131,21 @@ function stopRealmObjectServer(onSuccess, onError) {
     }
     if (syncServerChildProcess) {
         syncServerChildProcess.on('exit', function(code) {
+            try {
+                // Manually kill sub process started by node.
+                // It is not killed when killing the process running NPM
+                execSync('pkill -f "node dist/index.js"');
+            } catch (err) {
+                // Ignore. For some reason the above always throws "Illegal command" even
+                // though it works.
+            }
             winston.info("ROS server stopped due to process being killed. Exit code: " + code);
             syncServerChildProcess.removeAllListeners('exit');
             syncServerChildProcess = null;
             onSuccess();
         });
 
-        syncServerChildProcess.kill('SIGKILL');
+        syncServerChildProcess.kill('SIGINT');
     }
 }
 

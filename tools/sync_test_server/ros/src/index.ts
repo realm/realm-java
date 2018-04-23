@@ -66,7 +66,7 @@ server.start({
 
         // The path to your HTTPS private key in PEM format. Required if HTTPS is enabled.
         // httpsKeyPath?: string
-        httpsKeyPath: '127_0_0_1-server.key.pem',
+        httpsKeyPath: '/127_0_0_1-server.key.pem',
 
         // The path to your HTTPS certificate chain in PEM format. Required if HTTPS is enabled.
         // httpsCertChainPath?: string
