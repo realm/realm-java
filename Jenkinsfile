@@ -41,8 +41,8 @@ try {
           buildEnv = docker.build 'realm-java:snapshot'
           // Docker image for testing Realm Object Server
           def dependProperties = readProperties file: 'dependencies.list'
-          def rosDeVersion = dependProperties["REALM_OBJECT_SERVER_DE_VERSION"]
-          rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_DE_VERSION=${rosDeVersion} tools/sync_test_server"
+          def rosVersion = dependProperties["REALM_OBJECT_SERVER_VERSION"]
+          rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_VERSION=${rosVersion} tools/sync_test_server"
         }
 
 	    rosContainer = rosEnv.run()

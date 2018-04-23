@@ -4,7 +4,7 @@ FROM node:6.11.4
 RUN cp /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
 RUN echo "Europe/Copenhagen" >  /etc/timezone
 
-ARG ROS_DE_VERSION
+ARG ROS_VERSION
 
 # Install netstat (used for debugging)
 RUN apt-get update \
@@ -15,9 +15,9 @@ RUN apt-get update \
 
 
 ## Copy ROS node project to image and install and configure it
-# FIXME: Figure out how to set DE_VERSION
 COPY ros /ros
 WORKDIR "/ros"
+RUN sed -i -e "s/%ROS_VERSION%/$ROS_VERSION/g" package.json
 RUN npm install
 WORKDIR "/"
 

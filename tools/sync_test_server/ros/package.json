@@ -12,6 +12,6 @@
         "typescript": "2.5.3"
     },
     "dependencies": {
-        "realm-object-server": "3.1.2"
+        "realm-object-server": "%ROS_VERSION%"
     }
 }
