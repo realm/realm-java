@@ -131,20 +131,18 @@ function stopRealmObjectServer(onSuccess, onError) {
     }
     if (syncServerChildProcess) {
         syncServerChildProcess.on('exit', function(code) {
-            try {
-                // Manually kill sub process started by node.
-                // It is not killed when killing the process running NPM
-                execSync('pkill -f "node dist/index.js"');
-            } catch (err) {
-                // Ignore. For some reason the above always throws "Illegal command" even
-                // though it works.
-            }
-            winston.info("ROS server stopped due to process being killed. Exit code: " + code);
-            syncServerChildProcess.removeAllListeners('exit');
-            syncServerChildProcess = null;
-            onSuccess();
+            // Manually kill sub process started by node.
+            // It is not killed when killing the process running NPM
+            exec('pkill -f "node dist/index.js"', (error, stdout, stderr) => {
+                if (error.code) {
+                    onError(error)
+                    return;
+                }
+                syncServerChildProcess.removeAllListeners('exit');
+                syncServerChildProcess = null;
+                onSuccess();
+            });
         });
-
         syncServerChildProcess.kill('SIGINT');
     }
 }
@@ -168,9 +166,11 @@ dispatcher.onGet("/start", function(req, res) {
 dispatcher.onGet("/stop", function(req, res) {
   winston.info("Attempting to stop ROS");
   stopRealmObjectServer(function() {
+        winston.info("ROS stopped");
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.end('ROS stopped');
   }, function(err) {
+        winston.error('Stopping ROS failed: ' + err);
         res.writeHead(500, {'Content-Type': 'text/plain'});
         res.end('Stopping ROS failed: ' + err);
   });
