@@ -663,7 +663,7 @@ public class SyncUser {
      * @return {@code SyncUser} associated with the given identity provider and providerId, or {@code null} in case
      * of an {@code invalid} provider or {@code providerId}.
      * @throws IllegalStateException if this method is called on the UI thread.
-     * @throws IllegalArgumentException if no providerUserIdentity or provider string was provided.
+     * @throws IllegalArgumentException if no {@code providerUserIdentity} or {@code provider} string was provided.
      * @throws ObjectServerError if an error happened on the server.
      */
     public SyncUserInfo retrieveInfoForUser(final String providerUserIdentity, final String provider) throws ObjectServerError {
