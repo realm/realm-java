@@ -406,12 +406,19 @@ public class SyncUser {
         }.start();
     }
 
+
     /**
-     * FIXME
+     * Request a password reset email to be sent to a user's email.
+     * This will not fail, even if the email doesn't belong to a Realm Object Server user.
+     * <p>
+     * This can only be used for users who authenticated with the {@link SyncCredentials.IdentityProvider#USERNAME_PASSWORD}
+     * provider, and passed a valid email address as a username.
      *
-     * @param authenticationUrl
-     * @param email
-     * @throws ObjectServerError
+     * @param email email that corresponds to the user's username.
+     * @param authenticationUrl the url used to authenticate the user.
+     * @throws IllegalStateException if this method is called on the UI thread.
+     * @throws IllegalArgumentException if no email or authenticationUrl was provided.
+     * @throws ObjectServerError if an error happened on the server.
      */
     public static void requestPasswordReset(String email, String authenticationUrl) throws ObjectServerError {
         if (Util.isEmptyString(email)) {
@@ -426,12 +433,17 @@ public class SyncUser {
     }
 
     /**
-     * FIXME
+     * Request a password reset email to be sent to a user's email.
+     * This will not fail, even if the email doesn't belong to a Realm Object Server user.
+     * <p>
+     * This can only be used for users who authenticated with the {@link SyncCredentials.IdentityProvider#USERNAME_PASSWORD}
+     * provider, and passed a valid email address as a username.
      *
-     * @param authenticationUrl
-     * @param email
-     * @param callback
-     * @return
+     * @param email email that corresponds to the user's username.
+     * @param authenticationUrl the url used to authenticate the user.
+     * @return representation of the async task that can be used to cancel it if needed.
+     * @throws IllegalStateException if this method is called on a non-looper thread.
+     * @throws IllegalArgumentException if no email or authenticationUrl was provided.
      */
     public static RealmAsyncTask requestPasswordResetAsync(final String email, final String authenticationUrl, final Callback<Void> callback) {
         checkLooperThread("Asynchronous requesting a password reset is only possible from looper threads.");
@@ -450,14 +462,26 @@ public class SyncUser {
     }
 
     /**
-     * FIXME
+     * Complete the password reset flow by using the reset token sent to the user's email as a one-time authorization
+     * token to change the password.
+     * <p>
+     * This can only be used for users who authenticated with the {@link SyncCredentials.IdentityProvider#USERNAME_PASSWORD}
+     * provider, and passed a valid email address as a username.
+     * <p>
+     * By default, Realm Object Server will send a link to the user's email that will redirect to a webpage where
+     * they can enter their new password. If you wish to provide a native UX, you may wish to modify the password
+     * authentication provider to use a custom URL with deep linking, so you can open the app, extract the token, and
+     * navigate to a view that allows to change the password within the app.
      *
-     * @param token
-     * @param newPassword
-     * @param authenticationUrl
+     * @param resetToken the token that was sent to the user's email address.
+     * @param newPassword the user's new password.
+     * @param authenticationUrl the url used to authenticate the user.
+     * @throws IllegalStateException if this method is called on the UI thread.
+     * @throws IllegalArgumentException if no {@code token} or {@code newPassword} was provided.
+     * @throws ObjectServerError if an error happened on the server.
      */
-    public static void completePasswordReset(String token, String newPassword, String authenticationUrl) {
-        if (Util.isEmptyString(token)) {
+    public static void completePasswordReset(String resetToken, String newPassword, String authenticationUrl) {
+        if (Util.isEmptyString(resetToken)) {
             throw new IllegalArgumentException("Not-null 'token' required.");
         }
         if (Util.isEmptyString(newPassword)) {
@@ -465,23 +489,32 @@ public class SyncUser {
         }
         URL authUrl = getUrl(authenticationUrl);
         AuthenticationServer authServer = SyncManager.getAuthServer();
-        UpdateAccountResponse response = authServer.completePasswordReset(token, newPassword, authUrl);
+        UpdateAccountResponse response = authServer.completePasswordReset(resetToken, newPassword, authUrl);
         if (!response.isValid()) {
             throw response.getError();
         }
     }
 
     /**
-     * FIXME
+     * Complete the password reset flow by using the reset token sent to the user's email as a one-time authorization
+     * token to change the password.
+     * <p>
+     * This can only be used for users who authenticated with the {@link SyncCredentials.IdentityProvider#USERNAME_PASSWORD}
+     * provider, and passed a valid email address as a username.
+     * <p>
+     * By default, Realm Object Server will send a link to the user's email that will redirect to a webpage where
+     * they can enter their new password. If you wish to provide a native UX, you may wish to modify the password
+     * authentication provider to use a custom URL with deep linking, so you can open the app, extract the token, and
+     * navigate to a view that allows to change the password within the app.
      *
-     * @param token
-     * @param newPassword
-     * @param authenticationUrl
-     * @param callback
-     * @return
-     * @throws ObjectServerError
+     * @param resetToken the token that was sent to the user's email address.
+     * @param newPassword the user's new password.
+     * @param authenticationUrl the url used to authenticate the user.
+     * @return representation of the async task that can be used to cancel it if needed.
+     * @throws IllegalStateException if this method is called on a non-looper thread.
+     * @throws IllegalArgumentException if no {@code token} or {@code newPassword} was provided.
      */
-    public static RealmAsyncTask completePasswordResetAsync(final String token,
+    public static RealmAsyncTask completePasswordResetAsync(final String resetToken,
                                            final String newPassword,
                                            final String authenticationUrl,
                                            final Callback<Void> callback) throws ObjectServerError {
@@ -494,20 +527,26 @@ public class SyncUser {
         return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() {
-                completePasswordReset(token, newPassword, authenticationUrl);
+                completePasswordReset(resetToken, newPassword, authenticationUrl);
                 return null;
             }
         }.start();
     }
 
     /**
-     * FIXME
+     * Request an email confirmation email to be sent to a user's email.
+     * This will not fail, even if the email doesn't belong to a Realm Object Server user.
+     * <p>
+     * This can only be used for users who authenticated with the {@link SyncCredentials.IdentityProvider#USERNAME_PASSWORD}
+     * provider, and passed a valid email address as a username.
      *
-     * @param email
-     * @param authenticationUrl
-     * @throws ObjectServerError
+     * @param email the email that corresponds to the user's username.
+     * @param authenticationUrl the url used to authenticate the user.
+     * @throws IllegalStateException if this method is called on the UI thread.
+     * @throws IllegalArgumentException if no {@code email} was provided.
+     * @throws ObjectServerError if an error happened on the server.
      */
-    public void requestEmailConfirmation(String email, String authenticationUrl) throws ObjectServerError {
+    public static void requestEmailConfirmation(String email, String authenticationUrl) throws ObjectServerError {
         if (Util.isEmptyString(email)) {
             throw new IllegalArgumentException("Not-null 'email' required.");
         }
@@ -520,14 +559,19 @@ public class SyncUser {
     }
 
     /**
-     * FIXME
+     * Request an email confirmation email to be sent to a user's email.
+     * This will not fail, even if the email doesn't belong to a Realm Object Server user.
+     * <p>
+     * This can only be used for users who authenticated with the {@link SyncCredentials.IdentityProvider#USERNAME_PASSWORD}
+     * provider, and passed a valid email address as a username.
      *
-     * @param authenticationUrl
-     * @param email
-     * @param callback
-     * @return
+     * @param email the email that corresponds to the user's username.
+     * @param authenticationUrl the url used to authenticate the user.
+     * @return representation of the async task that can be used to cancel it if needed.
+     * @throws IllegalStateException if this method is called on a non-looper thread.
+     * @throws IllegalArgumentException if no {@code email} was provided.
      */
-    public RealmAsyncTask requestEmailConfirmationAsync(final String authenticationUrl, final String email, final Callback<Void> callback) {
+    public static RealmAsyncTask requestEmailConfirmationAsync(final String authenticationUrl, final String email, final Callback<Void> callback) {
         checkLooperThread("Asynchronously requesting an email confirmation is only possible from looper threads.");
         //noinspection ConstantConditions
         if (callback == null) {
@@ -544,13 +588,24 @@ public class SyncUser {
     }
 
     /**
-     * FIXME
+     * Complete the email confirmation flow by using the confirmation token sent to the user's email as a one-time
+     * authorization token to confirm their email.
+     * <p>
+     * This can only be used for users who authenticated with the {@link SyncCredentials.IdentityProvider#USERNAME_PASSWORD}
+     * provider, and passed a valid email address as a username.
+     * <p>
+     * By default, Realm Object Server will send a link to the user's email that will redirect to a webpage where
+     * they can enter their new password. If you wish to provide a native UX, you may wish to modify the password
+     * authentication provider to use a custom URL with deep linking, so you can open the app, extract the token,
+     * and navigate to a view that allows to confirm the email within the app.
      *
-     * @param confirmationToken
-     * @param authenticationUrl
-     * @throws ObjectServerError
+     * @param confirmationToken the token that was sent to the user's email address.
+     * @param authenticationUrl the url used to authenticate the user.
+     * @throws IllegalStateException if this method is called on the UI thread.
+     * @throws IllegalArgumentException if no {@code confirmationToken} was provided.
+     * @throws ObjectServerError if an error happened on the server.
      */
-    public void confirmEmail(String confirmationToken, String authenticationUrl) throws ObjectServerError {
+    public static void confirmEmail(String confirmationToken, String authenticationUrl) throws ObjectServerError {
         if (Util.isEmptyString(confirmationToken)) {
             throw new IllegalArgumentException("Not-null 'confirmationToken' required.");
         }
@@ -563,14 +618,24 @@ public class SyncUser {
     }
 
     /**
-     * FIXME
+     * Complete the email confirmation flow by using the confirmation token sent to the user's email as a one-time
+     * authorization token to confirm their email. This functionalit
+     * <p>
+     * This can only be used for users who authenticated with the {@link SyncCredentials.IdentityProvider#USERNAME_PASSWORD}
+     * provider, and passed a valid email address as a username.
+     * <p>
+     * By default, Realm Object Server will send a link to the user's email that will redirect to a webpage where
+     * they can enter their new password. If you wish to provide a native UX, you may wish to modify the password
+     * authentication provider to use a custom URL with deep linking, so you can open the app, extract the token,
+     * and navigate to a view that allows to confirm the email within the app.
      *
-     * @param confirmationToken
-     * @param authenticationUrl
-     * @param callback
-     * @return
+     * @param confirmationToken the token that was sent to the user's email address.
+     * @param authenticationUrl the url used to authenticate the user.
+     * @return representation of the async task that can be used to cancel it if needed.
+     * @throws IllegalStateException if this method is called on a non-looper thread.
+     * @throws IllegalArgumentException if no {@code confirmationToken} was provided.
      */
-    public RealmAsyncTask confirmEmailAsync(final String confirmationToken,
+    public static RealmAsyncTask confirmEmailAsync(final String confirmationToken,
                                             final String authenticationUrl,
                                             final Callback<Void> callback) {
         checkLooperThread("Asynchronously confirming an email is only possible from looper threads.");
@@ -597,7 +662,9 @@ public class SyncUser {
      *
      * @return {@code SyncUser} associated with the given identity provider and providerId, or {@code null} in case
      * of an {@code invalid} provider or {@code providerId}.
-     * @throws ObjectServerError in case of an error.
+     * @throws IllegalStateException if this method is called on the UI thread.
+     * @throws IllegalArgumentException if no providerUserIdentity or provider string was provided.
+     * @throws ObjectServerError if an error happened on the server.
      */
     public SyncUserInfo retrieveInfoForUser(final String providerUserIdentity, final String provider) throws ObjectServerError {
         if (Util.isEmptyString(providerUserIdentity)) {
@@ -631,9 +698,7 @@ public class SyncUser {
      * @param providerUserIdentity The username or identity of the user as issued by the authentication provider.
      *                             In most cases this is different from the Realm Object Server-issued identity.
      * @param provider The authentication provider {@link io.realm.SyncCredentials.IdentityProvider} that manages the user whose information is desired.
-     *
-     * @return {@code SyncUser} associated with the given identity provider and providerId, or {@code null} in case
-     * of an {@code invalid} provider or {@code providerId}.
+     * @return representation of the async task that can be used to cancel it if needed.
      * @param callback callback when the lookup has completed or failed. The callback will always happen on the same thread
      * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.
