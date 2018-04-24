@@ -571,7 +571,7 @@ public class SyncUser {
      * @throws IllegalStateException if this method is called on a non-looper thread.
      * @throws IllegalArgumentException if no {@code email} was provided.
      */
-    public static RealmAsyncTask requestEmailConfirmationAsync(final String authenticationUrl, final String email, final Callback<Void> callback) {
+    public static RealmAsyncTask requestEmailConfirmationAsync(final String email, final String authenticationUrl, final Callback<Void> callback) {
         checkLooperThread("Asynchronously requesting an email confirmation is only possible from looper threads.");
         //noinspection ConstantConditions
         if (callback == null) {

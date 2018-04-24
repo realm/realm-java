@@ -130,7 +130,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public UpdateAccountResponse requestPasswordReset(String email, URL authenticationUrl) {
         try {
             String requestBody = UpdateAccountRequest.requestPasswordReset(email).toJson();
-            return updateAccount(authenticationUrl, requestBody);
+            return updateAccount(buildActionUrl(authenticationUrl, ACTION_UPDATE_ACCOUNT), requestBody);
         } catch (Exception e) {
             return UpdateAccountResponse.from(e);
         }
@@ -140,7 +140,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public UpdateAccountResponse completePasswordReset(String token, String newPassword, URL authenticationUrl) {
         try {
             String requestBody = UpdateAccountRequest.completePasswordReset(token, newPassword).toJson();
-            return updateAccount(authenticationUrl, requestBody);
+            return updateAccount(buildActionUrl(authenticationUrl, ACTION_UPDATE_ACCOUNT), requestBody);
         } catch (Exception e) {
             return UpdateAccountResponse.from(e);
         }
@@ -150,7 +150,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public UpdateAccountResponse requestEmailConfirmation(String email, URL authenticationUrl) {
         try {
             String requestBody = UpdateAccountRequest.requestEmailConfirmation(email).toJson();
-            return updateAccount(authenticationUrl, requestBody);
+            return updateAccount(buildActionUrl(authenticationUrl, ACTION_UPDATE_ACCOUNT), requestBody);
         } catch (Exception e) {
             return UpdateAccountResponse.from(e);
         }
@@ -160,7 +160,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public UpdateAccountResponse confirmEmail(String confirmationToken, URL authenticationUrl) {
         try {
             String requestBody = UpdateAccountRequest.completeEmailConfirmation(confirmationToken).toJson();
-            return updateAccount(authenticationUrl, requestBody);
+            return updateAccount(buildActionUrl(authenticationUrl, ACTION_UPDATE_ACCOUNT), requestBody);
         } catch (Exception e) {
             return UpdateAccountResponse.from(e);
         }
@@ -222,6 +222,8 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         Request request = newAuthRequest(updateAccountUrl)
                 .post(RequestBody.create(JSON, requestBody))
                 .build();
+        RealmLog.error(updateAccountUrl.toString());
+        RealmLog.error(requestBody);
         Call call = client.newCall(request);
         Response response = call.execute();
         return UpdateAccountResponse.from(response);

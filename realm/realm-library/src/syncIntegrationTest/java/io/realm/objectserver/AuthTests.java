@@ -854,12 +854,12 @@ public class AuthTests extends StandardIntegrationTest {
         SyncUser.requestPasswordResetAsync("unknown@realm.io", Constants.AUTH_URL, new SyncUser.Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
-                fail();
+                // Server will respond with SUCCESS if the email is incorrect (for security reasons).
+                looperThread.testComplete();
             }
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.PERMISSION_DENIED, error.getErrorCode());
                 fail(error.toString());
             }
         });
@@ -877,7 +877,7 @@ public class AuthTests extends StandardIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.PERMISSION_DENIED, error.getErrorCode());
+                assertEquals(ErrorCode.ACCESS_DENIED, error.getErrorCode());
                 looperThread.testComplete();
             }
         });
@@ -904,6 +904,24 @@ public class AuthTests extends StandardIntegrationTest {
             }
         });
     }
+    @Test
+    @RunTestInLooperThread
+    @Ignore("Depends on https://github.com/realm/realm-java/pull/5909")
+    public void requestEmailConfirmation_invalidEmail() {
+        SyncUser.requestEmailConfirmationAsync("unknown@realm.io", Constants.AUTH_URL, new SyncUser.Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                // Server will respond with SUCCESS if the email is incorrect (for security reasons).
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail(error.toString());
+            }
+        });
+    }
+
 
     @Test
     @RunTestInLooperThread
@@ -917,7 +935,7 @@ public class AuthTests extends StandardIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.PERMISSION_DENIED, error.getErrorCode());
+                assertEquals(ErrorCode.ACCESS_DENIED, error.getErrorCode());
                 looperThread.testComplete();
             }
         });
