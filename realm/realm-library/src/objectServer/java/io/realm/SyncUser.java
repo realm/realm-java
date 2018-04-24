@@ -441,6 +441,8 @@ public class SyncUser {
      *
      * @param email email that corresponds to the user's username.
      * @param authenticationUrl the url used to authenticate the user.
+     * @param callback callback when the request has completed or failed. The callback will always happen on the same thread
+     * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalStateException if this method is called on a non-looper thread.
      * @throws IllegalArgumentException if no email or authenticationUrl was provided.
@@ -510,6 +512,8 @@ public class SyncUser {
      * @param resetToken the token that was sent to the user's email address.
      * @param newPassword the user's new password.
      * @param authenticationUrl the url used to authenticate the user.
+     * @param callback callback when the server has accepted the new password or failed. The callback will always happen on the same thread
+     * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalStateException if this method is called on a non-looper thread.
      * @throws IllegalArgumentException if no {@code token} or {@code newPassword} was provided.
@@ -567,6 +571,8 @@ public class SyncUser {
      *
      * @param email the email that corresponds to the user's username.
      * @param authenticationUrl the url used to authenticate the user.
+     * @param callback callback when the request has completed or failed. The callback will always happen on the same thread
+     * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalStateException if this method is called on a non-looper thread.
      * @throws IllegalArgumentException if no {@code email} was provided.
@@ -631,6 +637,8 @@ public class SyncUser {
      *
      * @param confirmationToken the token that was sent to the user's email address.
      * @param authenticationUrl the url used to authenticate the user.
+     * @param callback callback when the server has confirmed the email or failed. The callback will always happen on the same thread
+     * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalStateException if this method is called on a non-looper thread.
      * @throws IllegalArgumentException if no {@code confirmationToken} was provided.

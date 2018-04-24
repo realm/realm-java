@@ -222,8 +222,6 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         Request request = newAuthRequest(updateAccountUrl)
                 .post(RequestBody.create(JSON, requestBody))
                 .build();
-        RealmLog.error(updateAccountUrl.toString());
-        RealmLog.error(requestBody);
         Call call = client.newCall(request);
         Response response = call.execute();
         return UpdateAccountResponse.from(response);
