@@ -39,6 +39,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
     private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
     private static final String ACTION_LOOKUP_USER_ID = "users/:provider:/:providerId:"; // Auth end point for looking up user id
+    private static final String ACTION_UPDATE_ACCOUNT = "password/updateAccount"; // Password reset and email confirmation
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
@@ -125,6 +126,46 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         }
     }
 
+    @Override
+    public UpdateAccountResponse requestPasswordReset(String email, URL authenticationUrl) {
+        try {
+            String requestBody = UpdateAccountRequest.requestPasswordReset(email).toJson();
+            return updateAccount(buildActionUrl(authenticationUrl, ACTION_UPDATE_ACCOUNT), requestBody);
+        } catch (Exception e) {
+            return UpdateAccountResponse.from(e);
+        }
+    }
+
+    @Override
+    public UpdateAccountResponse completePasswordReset(String token, String newPassword, URL authenticationUrl) {
+        try {
+            String requestBody = UpdateAccountRequest.completePasswordReset(token, newPassword).toJson();
+            return updateAccount(buildActionUrl(authenticationUrl, ACTION_UPDATE_ACCOUNT), requestBody);
+        } catch (Exception e) {
+            return UpdateAccountResponse.from(e);
+        }
+    }
+
+    @Override
+    public UpdateAccountResponse requestEmailConfirmation(String email, URL authenticationUrl) {
+        try {
+            String requestBody = UpdateAccountRequest.requestEmailConfirmation(email).toJson();
+            return updateAccount(buildActionUrl(authenticationUrl, ACTION_UPDATE_ACCOUNT), requestBody);
+        } catch (Exception e) {
+            return UpdateAccountResponse.from(e);
+        }
+    }
+
+    @Override
+    public UpdateAccountResponse confirmEmail(String confirmationToken, URL authenticationUrl) {
+        try {
+            String requestBody = UpdateAccountRequest.completeEmailConfirmation(confirmationToken).toJson();
+            return updateAccount(buildActionUrl(authenticationUrl, ACTION_UPDATE_ACCOUNT), requestBody);
+        } catch (Exception e) {
+            return UpdateAccountResponse.from(e);
+        }
+    }
+
     // Builds the URL for a specific auth endpoint
     private static URL buildActionUrl(URL authenticationUrl, String action) {
         final String baseUrlString = authenticationUrl.toExternalForm();
@@ -174,6 +215,16 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         Call call = client.newCall(request);
         Response response = call.execute();
         return LookupUserIdResponse.from(response);
+    }
+
+    private UpdateAccountResponse updateAccount(URL updateAccountUrl, String requestBody) throws Exception {
+        RealmLog.debug("Network request (updateAccount): " + updateAccountUrl);
+        Request request = newAuthRequest(updateAccountUrl)
+                .post(RequestBody.create(JSON, requestBody))
+                .build();
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        return UpdateAccountResponse.from(response);
     }
 
     private Request.Builder newAuthRequest(URL url) {
