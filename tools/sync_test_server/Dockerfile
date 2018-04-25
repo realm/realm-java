@@ -21,7 +21,7 @@ RUN npm install
 WORKDIR "/"
 
 # Install test server dependencies
-RUN npm install winston@2.4.0 temp httpdispatcher@1.0.0 fs-extra moment
+RUN npm install winston@2.4.0 temp httpdispatcher@1.0.0 fs-extra moment is-port-available@0.1.5
 
 COPY keys/public.pem keys/private.pem keys/127_0_0_1-server.key.pem keys/127_0_0_1-chain.crt.pem /
 COPY integration-test-command-server.js /usr/bin/

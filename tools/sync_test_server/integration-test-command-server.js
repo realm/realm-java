@@ -15,6 +15,7 @@ const temp = require('temp');
 const spawn = require('child_process').spawn;
 const exec = require('child_process').exec;
 const execSync = require('child_process').execSync;
+const isPortAvailable = require('is-port-available');
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 var fs = require('fs-extra');
@@ -59,9 +60,10 @@ function waitForRosToInitialize(attempts, onSuccess, onError, startSequence) {
         onError("Could not get ROS to start. See Docker log.");
         return;
     }
+
     http.get("http://0.0.0.0:9080/health", function(res) {
         if (res.statusCode != 200) {
-            winston.warn("ROS /health/ returned: " + res.statusCode)
+            winston.warn("command-server: ROS /health/ returned: " + res.statusCode)
             setTimeout(function() {
                 waitForRosToInitialize(attempts - 1, onSuccess, onError, startSequence);
             }, 500);
@@ -69,7 +71,7 @@ function waitForRosToInitialize(attempts, onSuccess, onError, startSequence) {
             onSuccess(startSequence);
         }
     }).on('error', function(err) {
-        winston.warn("ROS /health/ returned an error: " + err)
+        winston.warn("command-server: ROS /health/ returned an error: " + err)
         // ROS not accepting any connections yet.
         // Errors like ECONNREFUSED 0.0.0.0:9080 will be reported here.
         // Wait a little before trying again (common startup is ~1 second).
@@ -81,20 +83,44 @@ function waitForRosToInitialize(attempts, onSuccess, onError, startSequence) {
 
 function startRealmObjectServer(onSuccess, onError) {
     stopRealmObjectServer(() => {
-        doStartRealmObjectServer(onSuccess, onError)
+        waitForPortToBeReady(20, function() {
+                doStartRealmObjectServer(onSuccess, onError)
+        }, onError);
     }, onError)
+}
+
+// When starting a new server, the old one might still be in the process of being
+// torn down. This can sometimes cause the new server to fail to start due to the
+// port still being used. To prevent that, we wait for the port to be ready
+// before trying to start the server.
+function waitForPortToBeReady(attempts, onSuccess, onError) {
+    if (attempts == 0) {
+        onError("Port failed to become ready in time");
+        return;
+    }
+    // Port 9080 and 9443 are being used by ROS
+    isPortAvailable("9443").then( status => {
+        if (status) {
+            onSuccess();
+        } else {
+            winston.info("command-server: Port still in use. Retrying.")
+            setTimeout(function() {
+                waitForPortToBeReady(attempts - 1, onSuccess, onError);
+            }, 500);
+        }
+    });
 }
 
 function doStartRealmObjectServer(onSuccess, onError) {
     temp.mkdir('ros', function(err, path) {
         if (!err) {
-            winston.info("Starting sync server in ", path);
+            winston.info("command-server: Starting sync server in ", path);
             var env = Object.create( process.env );
             winston.info(env.NODE_ENV);
             env.NODE_ENV = 'development';
 
             // Cleanup any previous server state
-            winston.info("Cleaning old server state");
+            winston.info("command-server: Cleaning old server state");
             fs.removeSync('/ros/data');
             fs.removeSync('/ros/realm-object-server');
             fs.removeSync('/ros/log.txt');
@@ -112,11 +138,11 @@ function doStartRealmObjectServer(onSuccess, onError) {
 
             // local config:
             syncServerChildProcess.stdout.on('data', (data) => {
-                winston.info(`${data}`);
+                winston.info(`ros: ${data}`);
             });
 
             syncServerChildProcess.stderr.on('data', (data) => {
-                winston.info(`${data}`);
+                winston.info(`ros: ${data}`);
             });
 
             // The interval between every health check is 0.5 second. Give the ROS 30 seconds to get fully initialized.
@@ -149,35 +175,35 @@ function stopRealmObjectServer(onSuccess, onError) {
 
 // start sync server
 dispatcher.onGet("/start", function(req, res) {
-    winston.info("Attempting to start ROS");
-    startRealmObjectServer((startSequence) => {
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        let response = `ROS started after ${Date.now() - startSequence} ms`;
-        winston.info(response);
-        res.end(response);
-    }, function (err) {
-        winston.error('Starting ROS failed: ' + err);
-        res.writeHead(500, {'Content-Type': 'text/plain'});
-        res.end('Starting ROS failed: ' + err);
-    });
+     winston.info("command-server: Attempting to start ROS");
+     startRealmObjectServer((startSequence) => {
+         res.writeHead(200, {'Content-Type': 'text/plain'});
+         let response = `ROS started after ${Date.now() - startSequence} ms`;
+         winston.info("command-server: " + response);
+         res.end(response);
+     }, function (err) {
+         winston.error('command-server: Starting ROS failed: ' + err);
+         res.writeHead(500, {'Content-Type': 'text/plain'});
+         res.end('Starting ROS failed: ' + err);
+     });
 });
 
 // stop a previously started sync server
 dispatcher.onGet("/stop", function(req, res) {
-  winston.info("Attempting to stop ROS");
-  stopRealmObjectServer(function() {
-        winston.info("ROS stopped");
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('ROS stopped');
-  }, function(err) {
-        winston.error('Stopping ROS failed: ' + err);
-        res.writeHead(500, {'Content-Type': 'text/plain'});
-        res.end('Stopping ROS failed: ' + err);
-  });
+      winston.info("command-server: Attempting to stop ROS");
+      stopRealmObjectServer(function() {
+            winston.info("command-server: ROS stopped");
+            res.writeHead(200, {'Content-Type': 'text/plain'});
+            res.end('ROS stopped');
+      }, function(err) {
+            winston.error('command-server: Stopping ROS failed: ' + err);
+            res.writeHead(500, {'Content-Type': 'text/plain'});
+            res.end('Stopping ROS failed: ' + err);
+      });
 });
 
 //Create and start the Http server
 var server = http.createServer(handleRequest);
 server.listen(PORT, function() {
-    winston.info("Integration test server listening on: 127.0.0.1:%s", PORT);
+    winston.info("command-server: Integration test server listening on: 127.0.0.1:%s", PORT);
 });
