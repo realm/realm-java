@@ -180,6 +180,7 @@ public class PermissionManager implements Closeable {
         threadId = Thread.currentThread().getId();
         managementRealmConfig = new SyncConfiguration.Builder(
                 user, getRealmUrl(RealmType.MANAGEMENT_REALM, user.getAuthenticationUrl()))
+                .fullSynchronization()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
@@ -194,6 +195,7 @@ public class PermissionManager implements Closeable {
 
         permissionRealmConfig = new SyncConfiguration.Builder(
                 user, getRealmUrl(RealmType.PERMISSION_REALM, user.getAuthenticationUrl()))
+                .fullSynchronization()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
@@ -211,6 +213,7 @@ public class PermissionManager implements Closeable {
 
         defaultPermissionRealmConfig = new SyncConfiguration.Builder(
                 user, getRealmUrl(RealmType.DEFAULT_PERMISSION_REALM, user.getAuthenticationUrl()))
+                .fullSynchronization()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {

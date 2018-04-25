@@ -83,7 +83,10 @@ public class SyncManagerTests {
     @After
     public void tearDown() {
         UserFactory.logoutAllUsers();
-        SyncManager.reset();
+        UserStore userStore = SyncManager.getUserStore();
+        for (SyncUser syncUser : userStore.allUsers()) {
+            userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
+        }
     }
 
     @Test

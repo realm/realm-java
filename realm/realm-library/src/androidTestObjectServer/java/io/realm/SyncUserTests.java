@@ -103,7 +103,10 @@ public class SyncUserTests {
 
     @Before
     public void setUp() {
-        SyncManager.reset();
+        UserStore userStore = SyncManager.getUserStore();
+        for (SyncUser syncUser : userStore.allUsers()) {
+            userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
+        }
     }
 
     @After
