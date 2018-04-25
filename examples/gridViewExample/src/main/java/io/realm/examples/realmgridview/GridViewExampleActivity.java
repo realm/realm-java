@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,123 +22,73 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
-import io.realm.RealmObject;
+import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 
 public class GridViewExampleActivity extends Activity implements AdapterView.OnItemClickListener {
 
-    private GridView mGridView;
-    private CityAdapter mAdapter;
+    private GridView gridView;
+    private CityAdapter adapter;
 
     private Realm realm;
+    private RealmResults<City> cities;
+    private RealmChangeListener<RealmResults<City>> realmChangeListener = cities -> {
+        // Set the cities to the adapter only when async query is loaded.
+        // It will also be called for any future writes made to the Realm.
+        adapter.setData(cities);
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_realm_example);
 
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder().build();
+        // This is the GridView adapter
+        adapter = new CityAdapter();
+
+        //This is the GridView which will display the list of cities
+        gridView = findViewById(R.id.cities_list);
+        gridView.setAdapter(adapter);
+        gridView.setOnItemClickListener(GridViewExampleActivity.this);
 
         // Clear the realm from last time
-        Realm.deleteRealm(realmConfiguration);
+        //noinspection ConstantConditions
+        Realm.deleteRealm(Realm.getDefaultConfiguration());
 
         // Create a new empty instance of Realm
-        realm = Realm.getInstance(realmConfiguration);
-    }
+        realm = Realm.getDefaultInstance();
 
-    @Override
-    public void onResume() {
-        super.onResume();
+        // Obtain the cities in the Realm with asynchronous query.
+        cities = realm.where(City.class).findAllAsync();
 
-        // Load from file "cities.json" first time
-        if(mAdapter == null) {
-            List<City> cities = loadCities();
-
-            //This is the GridView adapter
-            mAdapter = new CityAdapter(this);
-            mAdapter.setData(cities);
-
-            //This is the GridView which will display the list of cities
-            mGridView = (GridView) findViewById(R.id.cities_list);
-            mGridView.setAdapter(mAdapter);
-            mGridView.setOnItemClickListener(GridViewExampleActivity.this);
-            mAdapter.notifyDataSetChanged();
-            mGridView.invalidate();
-        }
+        // The RealmChangeListener will be called when the results are asynchronously loaded, and available for use.
+        cities.addChangeListener(realmChangeListener);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        cities.removeAllChangeListeners(); // Remove change listeners to prevent updating views not yet GCed.
         realm.close(); // Remember to close Realm when done.
-    }
-
-    private List<City> loadCities() {
-        // In this case we're loading from local assets.
-        // NOTE: could alternatively easily load from network
-        InputStream stream;
-        try {
-            stream = getAssets().open("cities.json");
-        } catch (IOException e) {
-            return null;
-        }
-
-        Gson gson = new GsonBuilder().create();
-
-        JsonElement json = new JsonParser().parse(new InputStreamReader(stream));
-        List<City> cities = gson.fromJson(json, new TypeToken<List<City>>() {}.getType());
-
-        // Open a transaction to store items into the realm
-        // Use copyToRealm() to convert the objects into proper RealmObjects managed by Realm.
-        realm.beginTransaction();
-        Collection<City> realmCities = realm.copyToRealm(cities);
-        realm.commitTransaction();
-
-        return new ArrayList<City>(realmCities);
-    }
-
-    public void updateCities() {
-        // Pull all the cities from the realm
-        RealmResults<City> cities = realm.where(City.class).findAll();
-
-        // Put these items in the Adapter
-        mAdapter.setData(cities);
-        mAdapter.notifyDataSetChanged();
-        mGridView.invalidate();
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        City modifiedCity = (City)mAdapter.getItem(position);
+        City modifiedCity = adapter.getItem(position);
 
-        // Acquire the RealmObject matching the name of the clicked City.
-        final City city = realm.where(City.class).equalTo("name", modifiedCity.getName()).findFirst();
+        // Acquire the name of the clicked City, in order to be able to query for it.
+        final String name = modifiedCity.getName();
 
-        // Create a transaction to increment the vote count for the selected City in the realm
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
+        // Create an asynchronous transaction to increment the vote count for the selected City in the Realm.
+        // The write will happen on a background thread, and the RealmChangeListener will update the GridView automatically.
+        realm.executeTransactionAsync(bgRealm -> {
+            // We need to find the City we want to modify from the background thread's Realm
+            City city = bgRealm.where(City.class).equalTo("name", name).findFirst();
+            if (city != null) {
+                // Let's increase the votes of the selected city!
                 city.setVotes(city.getVotes() + 1);
             }
         });
-
-        updateCities();
     }
 }

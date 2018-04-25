@@ -1,4 +1,16 @@
-## 5.0.2 (YYYY-MM-DD)
+## 5.1.0 (2018-04-25)
+
+### Enhancements
+
+* [ObjectServer] Added support for `SyncUser.requestPasswordReset()`, `SyncUser.completePasswordReset()`
+  and their async variants. This makes it possible to reset the password for users created using
+  `Credentials.usernamePassword()` where they used their email as username (#5821).
+* [ObjectServer] Added support for `SyncUser.requestEmailConfirmation()`, `SyncUser.confirmEmail()`
+  and their async variants. This makes it possible to ask users to confirm their email. This is only
+  supported for users created using `Credentials.usernamePassword()` who have used an email as their
+  username (#5821).
+* `RealmQuery.in()` now support `null` which will always return no matches (#4011).
+* Added support for `RealmQuery.alwaysTrue()` and `RealmQuery.alwaysFalse()`.
 
 ### Bug Fixes
 
