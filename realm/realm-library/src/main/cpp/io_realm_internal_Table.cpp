@@ -215,10 +215,13 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
 // 4d. the column to be converted will index shifted one place to column_index + 1
 // 5. search indexing must be preserved
 // 6. removing the original column and renaming the temporary column will make it look like original is being modified
+//
+// WARNING: These methods do NOT work on primary key columns if the Realm is synchronized.
+//
 
 // Converts a table to allow for nullable values
 // Works on both normal table columns and sub tables
-static void convert_column_to_nullable(JNIEnv* env, Table* old_table, size_t old_col_ndx, Table* new_table, size_t new_col_ndx, bool is_primary_key)
+static void convert_column_to_nullable(JNIEnv* env, Table* old_table, size_t old_col_ndx, Table* new_table, size_t new_col_ndx)
 {
     DataType column_type = old_table->get_column_type(old_col_ndx);
     if (old_table != new_table) {
@@ -229,12 +232,7 @@ static void convert_column_to_nullable(JNIEnv* env, Table* old_table, size_t old
             case type_String: {
                 // Payload copy is needed
                 StringData sd(old_table->get_string(old_col_ndx, i));
-                if (is_primary_key) {
-                    new_table->set_string_unique(new_col_ndx, i, sd);
-                }
-                else {
-                    new_table->set_string(new_col_ndx, i, sd);
-                }
+                new_table->set_string(new_col_ndx, i, sd);
                 break;
             }
             case type_Binary: {
@@ -243,12 +241,7 @@ static void convert_column_to_nullable(JNIEnv* env, Table* old_table, size_t old
                 break;
             }
             case type_Int:
-                if (is_primary_key) {
-                    new_table->set_int_unique(new_col_ndx, i, old_table->get_int(old_col_ndx, i));
-                }
-                else {
-                    new_table->set_int(new_col_ndx, i, old_table->get_int(old_col_ndx, i));
-                }
+                new_table->set_int(new_col_ndx, i, old_table->get_int(old_col_ndx, i));
                 break;
             case type_Bool:
                 new_table->set_bool(new_col_ndx, i, old_table->get_bool(old_col_ndx, i));
@@ -313,8 +306,11 @@ static void create_new_column(Table* table, size_t column_index, bool nullable)
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable(JNIEnv* env, jobject obj,
                                                                                   jlong native_table_ptr,
                                                                                   jlong j_column_index,
-                                                                                  jboolean is_primary_key)
+                                                                                  jboolean)
 {
+#if REALM_ENABLE_SYNC
+    REALM_ASSERT(false);
+#endif
     Table* table = TBL(native_table_ptr);
     if (!TBL_AND_COL_INDEX_VALID(env, table, j_column_index)) {
         return;
@@ -352,11 +348,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
             for (size_t i = 0; i < table->size(); ++i) {
                 TableRef new_subtable = table->get_subtable(column_index, i);
                 TableRef old_subtable = table->get_subtable(column_index + 1, i);
-                convert_column_to_nullable(env, old_subtable.get(), 0, new_subtable.get(), 0, is_primary_key);
+                convert_column_to_nullable(env, old_subtable.get(), 0, new_subtable.get(), 0);
             }
         }
         else {
-            convert_column_to_nullable(env, table, column_index + 1, table, column_index, is_primary_key);
+            convert_column_to_nullable(env, table, column_index + 1, table, column_index);
         }
 
         // Cleanup
@@ -373,12 +369,14 @@ static void convert_column_to_not_nullable(JNIEnv* env, Table* old_table, size_t
 {
     DataType column_type = old_table->get_column_type(old_col_ndx);
     std::string column_name = old_table->get_column_name(old_col_ndx);
+    size_t no_rows = old_table->size();
     if (old_table != new_table) {
-        new_table->add_empty_row(old_table->size());
+        new_table->add_empty_row(no_rows);
     }
-    for (size_t i = 0; i < old_table->size(); ++i) {
+    for (size_t i = 0; i < no_rows; ++i) {
         switch (column_type) { // FIXME: respect user-specified default values
             case type_String: {
+                // Payload copy is needed
                 StringData sd = old_table->get_string(old_col_ndx, i);
                 if (sd == realm::null()) {
                     if (is_primary_key) {
@@ -390,13 +388,7 @@ static void convert_column_to_not_nullable(JNIEnv* env, Table* old_table, size_t
                     }
                 }
                 else {
-                    // Payload copy is needed
-                    if (is_primary_key) {
-                        new_table->set_string_unique(new_col_ndx, i, sd);
-                    }
-                    else {
-                        new_table->set_string(new_col_ndx, i, sd);
-                    }
+                    new_table->set_string(new_col_ndx, i, sd);
                 }
                 break;
             }
@@ -423,12 +415,7 @@ static void convert_column_to_not_nullable(JNIEnv* env, Table* old_table, size_t
                     }
                 }
                 else {
-                    if (is_primary_key) {
-                        new_table->set_int_unique(new_col_ndx, i, old_table->get_int(old_col_ndx, i));
-                    }
-                    else {
-                        new_table->set_int(new_col_ndx, i, old_table->get_int(old_col_ndx, i));
-                    }
+                    new_table->set_int(new_col_ndx, i, old_table->get_int(old_col_ndx, i));
                 }
                 break;
             case type_Bool:
@@ -483,6 +470,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                                                                                      jlong j_column_index,
                                                                                      jboolean is_primary_key)
 {
+#if REALM_ENABLE_SYNC
+    REALM_ASSERT(false);
+#endif
     try {
         Table* table = TBL(native_table_ptr);
         if (!TBL_AND_COL_INDEX_VALID(env, table, j_column_index)) {
