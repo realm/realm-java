@@ -1,3 +1,10 @@
+## 5.0.2 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Changing a primary key from being nullable to being required could result in objects being deleted (##5899).
+
+
 ## 5.0.1 (2018-04-09)
 
 ### Enhancements

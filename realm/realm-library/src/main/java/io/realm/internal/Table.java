@@ -226,6 +226,9 @@ public class Table implements NativeObject {
      * @param columnIndex the column index.
      */
     public void convertColumnToNullable(long columnIndex) {
+        if (sharedRealm.isSyncRealm()) {
+            throw new IllegalStateException("This method is only available for non-synchronized Realms");
+        }
         nativeConvertColumnToNullable(nativePtr, columnIndex, isPrimaryKey(columnIndex));
     }
 
@@ -235,6 +238,9 @@ public class Table implements NativeObject {
      * @param columnIndex the column index.
      */
     public void convertColumnToNotNullable(long columnIndex) {
+        if (sharedRealm.isSyncRealm()) {
+            throw new IllegalStateException("This method is only available for non-synchronized Realms");
+        }
         nativeConvertColumnToNotNullable(nativePtr, columnIndex, isPrimaryKey(columnIndex));
     }
 
