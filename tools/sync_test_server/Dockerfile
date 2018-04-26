@@ -4,19 +4,32 @@ FROM node:6.11.4
 RUN cp /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
 RUN echo "Europe/Copenhagen" >  /etc/timezone
 
-ARG ROS_DE_VERSION
+ARG ROS_VERSION
 
-# Install realm object server
-RUN npm install -g realm-object-server@$ROS_DE_VERSION -S
+# Install netstat (used for debugging)
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    net-tools \
+    psmisc \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+## Copy ROS node template project to image. Then configure and prepare it for usage.
+COPY ros /ros
+WORKDIR "/ros"
+RUN sed -i -e "s/%ROS_VERSION%/$ROS_VERSION/g" package.json
+RUN npm install
+WORKDIR "/"
 
 # Install test server dependencies
-RUN npm install winston@2.4.0 temp httpdispatcher@1.0.0 fs-extra moment
+RUN npm install winston@2.4.0 temp httpdispatcher@1.0.0 fs-extra moment is-port-available@0.1.5
 
-COPY keys/public.pem keys/private.pem keys/127_0_0_1-server.key.pem keys/127_0_0_1-chain.crt.pem configuration.yml /
-COPY ros-testing-server.js /usr/bin/
+COPY keys/public.pem keys/private.pem keys/127_0_0_1-server.key.pem keys/127_0_0_1-chain.crt.pem /
+COPY integration-test-command-server.js /usr/bin/
 
-#Bypass the ROS license check
+# Bypass the ROS license check
 ENV DOCKER_DATA_PATH /
 ENV ROS_TOS_EMAIL_ADDRESS 'ci@realm.io'
 
-CMD /usr/bin/ros-testing-server.js /tmp/ros-testing-server.log
+# Run integration test server
+CMD /usr/bin/integration-test-command-server.js /tmp/integration-test-command-server.log

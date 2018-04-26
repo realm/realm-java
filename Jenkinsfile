@@ -41,8 +41,8 @@ try {
           buildEnv = docker.build 'realm-java:snapshot'
           // Docker image for testing Realm Object Server
           def dependProperties = readProperties file: 'dependencies.list'
-          def rosDeVersion = dependProperties["REALM_OBJECT_SERVER_DE_VERSION"]
-          rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_DE_VERSION=${rosDeVersion} tools/sync_test_server"
+          def rosVersion = dependProperties["REALM_OBJECT_SERVER_VERSION"]
+          rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_VERSION=${rosVersion} tools/sync_test_server"
         }
 
 	    rosContainer = rosEnv.run()
@@ -190,7 +190,7 @@ def stopLogCatCollector(String backgroundPid) {
 }
 
 def archiveRosLog(String id) {
-  sh "docker cp ${id}:/tmp/ros-testing-server.log ./ros.log"
+  sh "docker cp ${id}:/tmp/integration-test-command-server.log ./ros.log"
   zip([
       'zipFile': 'roslog.zip',
       'archive': true,
