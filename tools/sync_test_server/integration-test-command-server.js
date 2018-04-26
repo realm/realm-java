@@ -95,9 +95,17 @@ function startRealmObjectServer(onSuccess, onError) {
 // before trying to start the server.
 function waitForPortToBeReady(attempts, onSuccess, onError) {
     if (attempts == 0) {
+        // Log as much info as possible in order to help debugging
+        exec('ps auxw', (error, stdout, stderr) => {
+            winston.info(`command-server:\n ${stdout}`);
+        });
+        exec('netstat -tulpn', (error, stdout, stderr) => {
+            winston.info(`command-server:\n ${stdout}`);
+        });
         onError("Port failed to become ready in time");
         return;
     }
+
     // Port 9080 and 9443 are being used by ROS
     isPortAvailable("9443").then( status => {
         if (status) {
