@@ -165,13 +165,14 @@ function stopRealmObjectServer(onSuccess, onError) {
     }
     if (syncServerChildProcess) {
         syncServerChildProcess.on('exit', function(code) {
-            // Manually kill sub process started by node.
+            // Manually kill sub process started by node that actually runs ROS.
             // It is not killed when killing the process running NPM
-            exec('pkill -f "node dist/index.js"', (error, stdout, stderr) => {
-                if (error.code) {
+            exec('fuser -k 9443/tcp', (error, stdout, stderr) => {
+                if (error) {
                     onError(error)
                     return;
                 }
+                winston.info(`command-server: Stopping process: '${stdout}'`)
                 syncServerChildProcess.removeAllListeners('exit');
                 syncServerChildProcess = null;
                 onSuccess();
