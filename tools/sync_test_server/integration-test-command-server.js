@@ -11,18 +11,13 @@
  */
 
 var winston = require('winston'); //logging
-const temp = require('temp');
 const spawn = require('child_process').spawn;
 const exec = require('child_process').exec;
-const execSync = require('child_process').execSync;
 const isPortAvailable = require('is-port-available');
 var http = require('http');
 var dispatcher = require('httpdispatcher');
 var fs = require('fs-extra');
 var moment = require('moment')
-
-// Automatically track and cleanup files at exit
-temp.track();
 
 if (process. argv. length <= 2) {
     console.log("Usage: " + __filename + " somefile.log");
@@ -40,21 +35,10 @@ winston.add(winston.transports.File, {
 });
 
 const PORT = 8888;
-
-function handleRequest(request, response) {
-    try {
-        //log the request on console
-        winston.log(request.url);
-        //Dispatch
-        dispatcher.dispatch(request, response);
-    } catch(err) {
-        console.log(err);
-    }
-}
-
 var syncServerChildProcess = null;
 
-// Waits for ROS to be fully initialized.
+// When starting ROS, it isn't ready immediately. This method will wait until /health/
+// returns OK indicating that ROS is now fully initialized and ready.
 function waitForRosToInitialize(attempts, onSuccess, onError, startSequence) {
     if (attempts == 0) {
         onError("Could not get ROS to start. See Docker log.");
@@ -81,15 +65,7 @@ function waitForRosToInitialize(attempts, onSuccess, onError, startSequence) {
     });
 }
 
-function startRealmObjectServer(onSuccess, onError) {
-    stopRealmObjectServer(() => {
-        waitForPortToBeReady(20, function() {
-                doStartRealmObjectServer(onSuccess, onError)
-        }, onError);
-    }, onError)
-}
-
-// When starting a new server, the old one might still be in the process of being
+// When starting a new ROS instance, an old one might still be in the process of being
 // torn down. This can sometimes cause the new server to fail to start due to the
 // port still being used. To prevent that, we wait for the port to be ready
 // before trying to start the server.
@@ -119,10 +95,10 @@ function waitForPortToBeReady(attempts, onSuccess, onError) {
     });
 }
 
-function doStartRealmObjectServer(onSuccess, onError) {
-    temp.mkdir('ros', function(err, path) {
-        if (!err) {
-            winston.info("command-server: Starting sync server in ", path);
+function startRealmObjectServer(onSuccess, onError) {
+    stopRealmObjectServer(() => {
+        waitForPortToBeReady(20, function() {
+            winston.info("command-server: Starting ROS in /ros");
             var env = Object.create( process.env );
             winston.info(env.NODE_ENV);
             env.NODE_ENV = 'development';
@@ -144,7 +120,7 @@ function doStartRealmObjectServer(onSuccess, onError) {
             // Start ROS
             syncServerChildProcess = spawn('npm', ['start'], { env: env, cwd: '/ros' });
 
-            // local config:
+            // Route logs from ROS to the Command Server log so we can save it
             syncServerChildProcess.stdout.on('data', (data) => {
                 winston.info(`ros: ${data}`);
             });
@@ -155,8 +131,9 @@ function doStartRealmObjectServer(onSuccess, onError) {
 
             // The interval between every health check is 0.5 second. Give the ROS 30 seconds to get fully initialized.
             waitForRosToInitialize(60, onSuccess, onError, Date.now());
-        }
-    });
+
+        }, onError);
+    }, onError)
 }
 
 function stopRealmObjectServer(onSuccess, onError) {
@@ -182,22 +159,22 @@ function stopRealmObjectServer(onSuccess, onError) {
     }
 }
 
-// start sync server
+// Command Server endpoint: Start a new instance of ROS
 dispatcher.onGet("/start", function(req, res) {
      winston.info("command-server: Attempting to start ROS");
      startRealmObjectServer((startSequence) => {
          res.writeHead(200, {'Content-Type': 'text/plain'});
          let response = `ROS started after ${Date.now() - startSequence} ms`;
-         winston.info("command-server: " + response);
          res.end(response);
+         winston.info("command-server: " + response);
      }, function (err) {
-         winston.error('command-server: Starting ROS failed: ' + err);
          res.writeHead(500, {'Content-Type': 'text/plain'});
          res.end('Starting ROS failed: ' + err);
+         winston.error('command-server: Starting ROS failed: ' + err);
      });
 });
 
-// stop a previously started sync server
+// Command Server endpoint: Stop a running instance of ROS.
 dispatcher.onGet("/stop", function(req, res) {
       winston.info("command-server: Attempting to stop ROS");
       stopRealmObjectServer(function() {
@@ -210,6 +187,15 @@ dispatcher.onGet("/stop", function(req, res) {
             res.end('Stopping ROS failed: ' + err);
       });
 });
+
+function handleRequest(request, response) {
+    try {
+        winston.info('command-server: ' + request.url);
+        dispatcher.dispatch(request, response);
+    } catch(err) {
+        winston.error('command-server: ' + err);
+    }
+}
 
 //Create and start the Http server
 var server = http.createServer(handleRequest);
