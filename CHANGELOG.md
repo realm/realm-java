@@ -5,7 +5,8 @@
 * [ObjectServer] Partial sync is now the default mode of synchronization. `SyncConfiguration.Builder.partialRealm()` has been replaced by `SyncConfiguration.Builder.fullSynchronization()`.
 * [ObjectServer] `SyncConfiguration.isPartialRealm()` has been replaced by `SyncConfiguration.isFullySynchronizedRealm()`.
 
-## 5.1.0 (YYYY-MM-DD)
+
+## 5.1.0 (2018-04-25)
 
 ### Enhancements
 
@@ -18,6 +19,10 @@
   username (#5821).
 * `RealmQuery.in()` now support `null` which will always return no matches (#4011).
 * Added support for `RealmQuery.alwaysTrue()` and `RealmQuery.alwaysFalse()`.
+
+### Bug Fixes
+
+* Changing a primary key from being nullable to being required could result in objects being deleted (##5899).
 
 
 ## 5.0.1 (2018-04-09)
