@@ -25,6 +25,9 @@ import groovy.io.FileType
 import io.realm.annotations.RealmClass
 import javassist.ClassPool
 import javassist.CtClass
+import javassist.Modifier
+import javassist.NotFoundException
+import javassist.bytecode.ClassFile
 import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -40,7 +43,7 @@ import static com.android.build.api.transform.QualifiedContent.*
 @SuppressWarnings("GroovyUnusedDeclaration")
 class RealmTransformer extends Transform {
 
-    private Logger logger = LoggerFactory.getLogger('realm-logger')
+    private static Logger logger = LoggerFactory.getLogger('realm-logger')
     private Project project
 
     public RealmTransformer(Project project) {
@@ -71,7 +74,7 @@ class RealmTransformer extends Transform {
 
     @Override
     boolean isIncremental() {
-        return false
+        return true
     }
 
     @Override
@@ -81,10 +84,23 @@ class RealmTransformer extends Transform {
 
         def tic = System.currentTimeMillis()
 
-        // Find all the class names
-        def inputClassNames = getClassNames(inputs)
-        def referencedClassNames = getClassNames(referencedInputs)
-        def allClassNames = merge(inputClassNames, referencedClassNames)
+        // Find all the class names available for transforms as well as all referenced classes.
+
+        def outputClassNames = new HashSet<String>()
+        def outputReferencedClassNames = new HashSet<String>();
+        findClassNames(inputs, outputClassNames, outputReferencedClassNames, isIncremental)
+
+        logger.debug("Incremental build: ${isIncremental.toString()}, files being processed: ${outputClassNames.size()}.")
+        if (isIncremental) {
+            logger.debug("Incremental files: ${outputClassNames.join(",")}" )
+        }
+        if (outputClassNames.empty) {
+            // Abort transform as quickly as possible if no files where found for processing.
+            exitTransform(Collections.emptySet(), Collections.emptyList(), tic)
+            return;
+        }
+        findClassNames(referencedInputs, outputReferencedClassNames, outputReferencedClassNames, isIncremental)
+        def allClassNames = merge(outputClassNames, outputReferencedClassNames)
 
         // Create and populate the Javassist class pool
         ClassPool classPool = new ManagedClassPool(inputs, referencedInputs)
@@ -97,7 +113,7 @@ class RealmTransformer extends Transform {
         // mark as transformed
         def baseProxyMediator = classPool.get('io.realm.internal.RealmProxyMediator')
         def mediatorPattern = Pattern.compile('^io\\.realm\\.[^.]+Mediator$')
-        def proxyMediatorClasses = inputClassNames
+        def proxyMediatorClasses = outputClassNames
                 .findAll { it.matches(mediatorPattern) }
                 .collect { classPool.getCtClass(it) }
                 .findAll { it.superclass?.equals(baseProxyMediator) }
@@ -106,15 +122,21 @@ class RealmTransformer extends Transform {
             BytecodeModifier.overrideTransformedMarker(it)
         }
 
-        // Find the model classes
+        // FIXME: Currently doens't handle all cases correctly, e.g. marking an field @Ignore will
+        // not transform classes that previously used the non-ignored field.
+        CtClass realmModelInterface = classPool.get("io.realm.RealmModel");
+        CtClass realmObjectProxyInterface = classPool.get("io.realm.internal.RealmObjectProxy");
         def allModelClasses = allClassNames
-                .findAll { it.endsWith('RealmProxy') }
-                .collect { classPool.getCtClass(it).superclass }
-                .findAll { it.hasAnnotation(RealmClass.class) || it.superclass.hasAnnotation(RealmClass.class) }
-        def inputModelClasses = allModelClasses.findAll {
-            inputClassNames.contains(it.name)
+                .collect { classPool.getCtClass(it) } // Map strings to CtClass'es.
+                .findAll { isSubtypeOf(classPool, it, realmModelInterface) } // Include all classes/interfaces that are a subtype of RealmModel
+                .findAll { it.hasAnnotation(RealmClass.class) || it.superclass.hasAnnotation(RealmClass.class) } // Model classes either need the RealmClass annotation or their superclass needs it
+                .findAll { !it.interface && !Modifier.isAbstract(it.modifiers) } // Discard any interfaces and abstract classes
+                .findAll { !isSubtypeOf(classPool, it, realmObjectProxyInterface) } // Discard any proxy classes
+
+        def outputModelClasses = allModelClasses.findAll {
+            outputClassNames.contains(it.name)
         }
-        logger.debug "Model Classes: ${allModelClasses*.name}"
+        logger.debug "All Model Classes: ${allModelClasses*.name}"
 
         // Populate a list of the fields that need to be managed with bytecode manipulation
         def allManagedFields = []
@@ -126,27 +148,93 @@ class RealmTransformer extends Transform {
         logger.debug "Managed Fields: ${allManagedFields*.name}"
 
         // Add accessors to the model classes in the target project
-        inputModelClasses.each {
+        outputModelClasses.each {
+            logger.debug("Modify model class: ${it.name}")
             BytecodeModifier.addRealmAccessors(it)
             BytecodeModifier.addRealmProxyInterface(it, classPool)
             BytecodeModifier.callInjectObjectContextFromConstructors(it)
         }
 
         // Use accessors instead of direct field access
-        inputClassNames.each {
-            logger.debug "  Modifying class ${it}"
+        outputClassNames.each {
+            logger.debug "Modify accessors in class: ${it.name}"
             def ctClass = classPool.getCtClass(it)
             BytecodeModifier.useRealmAccessors(ctClass, allManagedFields)
             ctClass.writeFile(getOutputFile(outputProvider).canonicalPath)
         }
 
         copyResourceFiles(inputs, outputProvider)
-
-        def toc = System.currentTimeMillis()
-        logger.debug "Realm Transform time: ${toc-tic} milliseconds"
-
-        this.sendAnalytics(inputs, inputModelClasses)
         classPool.close()
+        exitTransform(inputs, outputModelClasses, tic)
+    }
+
+    /**
+     * Returns {@code true} if 'clazz' is considered a subtype of 'superType'.
+     *
+     * This function is different than {@link CtClass#subtypeOf(CtClass)} in the sense
+     * that it will never crash even if classes are missing from the class pool, instead
+     * it will just return {@code false}.
+     *
+     * This e.g. happens with RxJava classes which are optional, but JavaAssist will try
+     * to load them and then crash.
+     *
+     * @param classPool pool of all known classes
+     * @param clazz class to check
+     * @param typeToCheckAgainst the type we want to check against
+     * @return
+     */
+    private boolean isSubtypeOf(ClassPool classPool, CtClass clazz, CtClass typeToCheckAgainst) {
+        String typeToCheckAgainstQualifiedName = typeToCheckAgainst.getName();
+        if (clazz == typeToCheckAgainst || clazz.getName().equals(typeToCheckAgainstQualifiedName))
+            return true;
+
+        ClassFile file = clazz.getClassFile2();
+
+        // Check direct super class
+        String superName = file.getSuperclass();
+        if (superName != null && superName.equals(typeToCheckAgainstQualifiedName))
+            return true;
+
+        // Check direct interfaces
+        String[] ifs = file.getInterfaces();
+        int num = ifs.length;
+        for (int i = 0; i < num; i++) {
+            if (ifs[i].equals(typeToCheckAgainstQualifiedName)) {
+                return true;
+            }
+        }
+
+        // Check other inherited super classes
+        if (superName != null) {
+            CtClass nextSuper
+            try {
+                nextSuper = classPool.get(superName)
+                if (isSubtypeOf(classPool, nextSuper, typeToCheckAgainst)) {
+                    return true;
+                }
+            } catch (NotFoundException ignored) {
+            }
+        }
+
+        // Check other inherited interfaces
+        for (int i = 0; i < num; i++) {
+            try {
+                CtClass interfaceClass = classPool.get(ifs[i])
+                if (isSubtypeOf(classPool, interfaceClass, typeToCheckAgainst)) {
+                    return true;
+                }
+            } catch (NotFoundException ignored) {
+            }
+        }
+
+        return false;
+    }
+
+    // Called when the transformer is exiting
+    private exitTransform(Collection<TransformInput> inputs, List<CtClass> outputModelClasses, long startTime) {
+        def endTime = System.currentTimeMillis()
+        logger.debug "Realm Transform time: ${endTime-startTime} milliseconds"
+        this.sendAnalytics(inputs, outputModelClasses)
     }
 
     /**
@@ -154,57 +242,99 @@ class RealmTransformer extends Transform {
      * @param inputs the inputs provided by the Transform API
      * @param inputModelClasses a list of ctClasses describing the Realm models
      */
-    private sendAnalytics(Collection<TransformInput> inputs, List<CtClass> inputModelClasses) {
+    private sendAnalytics(Collection<TransformInput> inputs, List<CtClass> outputModelClasses) {
+        def disableAnalytics = "true".equals(System.getenv()["REALM_DISABLE_ANALYTICS"])
+        if (inputs.empty || disableAnalytics) {
+            // Don't send analytics for incremental builds or if they have ben explicitly disabled.
+            return
+        }
+
         def containsKotlin = false
-        inputs.each {
-            it.directoryInputs.each {
-                def path = it.file.absolutePath
+
+        outer:
+        for(TransformInput input : inputs) {
+            for (DirectoryInput di : input.directoryInputs) {
+                def path = di.file.absolutePath
                 def index = path.indexOf('build' + File.separator + 'intermediates' + File.separator + 'classes')
                 if (index != -1) {
                     def projectPath = path.substring(0, index)
                     def buildFile = new File(projectPath + 'build.gradle')
                     if (buildFile.exists() && buildFile.text.contains('kotlin')) {
                         containsKotlin = true
+                        break outer
                     }
                 }
             }
         }
 
-        def packages = inputModelClasses.collect {
+        def packages = outputModelClasses.collect {
             it.getPackageName()
         }
 
         def targetSdk = project?.android?.defaultConfig?.targetSdkVersion?.mApiLevel as String
         def minSdk = project?.android?.defaultConfig?.minSdkVersion?.mApiLevel as String
 
-        def env = System.getenv()
-        def disableAnalytics = env["REALM_DISABLE_ANALYTICS"]
-        if (disableAnalytics == null || disableAnalytics != "true") {
+        if (disableAnalytics) {
             boolean sync = project?.realm?.syncEnabled != null && project.realm.syncEnabled
             def analytics = new RealmAnalytics(packages as Set, containsKotlin, sync, targetSdk, minSdk)
             analytics.execute()
         }
     }
 
-    private static Set<String> getClassNames(Collection<TransformInput> inputs) {
-        Set<String> classNames = new HashSet<String>()
-
+    /**
+     * Go through the transform input in order to find all files we need to transform.
+     *
+     * @param inputs set of input files
+     * @param directoryFiles the set of files in directories getting compiled. These are candidates for the transformer.
+     * @param referencedFiles the set of files that are possible referenced but never transformed (required by JavaAssist).
+     * @param isIncremental {@code true} if build is incremental.
+     */
+    private static void findClassNames(Collection<TransformInput> inputs, Set<String> directoryFiles, Set<String> referencedFiles, isIncremental) {
         inputs.each {
+
+            // Files in directories are files we most likely want to transform, unless they are
+            // marked as referenced scope. See {@link Transform#getReferencedScopes()}.
             it.directoryInputs.each {
                 def dirPath = it.file.absolutePath
-                it.file.eachFileRecurse(FileType.FILES) {
-                    if (it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
-                        def className =
-                                it.absolutePath.substring(
-                                        dirPath.length() + 1,
-                                        it.absolutePath.length() - SdkConstants.DOT_CLASS.length()
-                                ).replace(File.separatorChar, '.' as char)
-                        classNames.add(className)
+                if (isIncremental) {
+                    // Incremental builds: Include all changed or added files, i.e. ignore deleted files
+                    it.changedFiles.entrySet().each {
+                        if (it.value == Status.NOTCHANGED || it.value == Status.REMOVED) {
+                            return
+                        }
+                        def filePath = it.key.absolutePath
+                        if (filePath.endsWith(SdkConstants.DOT_CLASS)) {
+                            def className =
+                                    filePath.substring(
+                                            dirPath.length() + 1,
+                                            filePath.length() - SdkConstants.DOT_CLASS.length()
+                                    ).replace(File.separatorChar, '.' as char)
+                            directoryFiles.add(className)
+                        }
+                    }
+
+                } else {
+                    // Non-incremental build: Include all files
+                    it.file.eachFileRecurse(FileType.FILES) {
+                        if (it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
+                            def className =
+                                    it.absolutePath.substring(
+                                            dirPath.length() + 1,
+                                            it.absolutePath.length() - SdkConstants.DOT_CLASS.length()
+                                    ).replace(File.separatorChar, '.' as char)
+                            directoryFiles.add(className)
+                        }
                     }
                 }
             }
 
+            // Files in Jars are always treated as referenced input. They should already have been
+            // modified by the transformer in the project that built the jar.
             it.jarInputs.each {
+                if (isIncremental && (it.status == Status.REMOVED)) {
+                    return;
+                }
+
                 def jarFile = new JarFile(it.file)
                 jarFile.entries().findAll {
                     !it.directory && it.name.endsWith(SdkConstants.DOT_CLASS)
@@ -216,12 +346,11 @@ class RealmTransformer extends Transform {
                     String className = path.substring(0, path.length() - SdkConstants.DOT_CLASS.length())
                             .replace('/' as char , '.' as char)
                             .replace('\\' as char , '.' as char)
-                    classNames.add(className)
+                    referencedFiles.add(className)
                 }
                 jarFile.close() // Crash transformer if this fails
             }
         }
-        return classNames
     }
 
     private copyResourceFiles(Collection<TransformInput> inputs, TransformOutputProvider outputProvider) {

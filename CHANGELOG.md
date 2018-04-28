@@ -1,3 +1,10 @@
+## 5.2.0 (YYYY-MM-DD)
+
+### Enhancements
+
+* The Realm Transformer now support incremental builds (#3034).
+
+
 ## 5.1.0 (2018-04-25)
 
 ### Enhancements

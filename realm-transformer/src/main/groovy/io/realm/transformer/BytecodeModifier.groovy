@@ -41,7 +41,6 @@ class BytecodeModifier {
      * @param clazz the CtClass to add accessors to.
      */
     public static void addRealmAccessors(CtClass clazz) {
-        logger.debug "  Realm: Adding accessors to ${clazz.simpleName}"
         def methods = clazz.getDeclaredMethods()*.name
         clazz.declaredFields.each { CtField field ->
             if (isModelField(field)) {
