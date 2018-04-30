@@ -4,6 +4,10 @@
 
 * The Realm Transformer now support incremental builds (#3034).
 
+### Internal
+
+* Module mediator classes being generated now produces a stable output enabling better support for incremental builds (#3034).
+
 
 ## 5.1.0 (2018-04-25)
 
