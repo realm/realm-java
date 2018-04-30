@@ -1796,6 +1796,27 @@ Java_io_realm_internal_TableQuery_nativeIsNotEmpty(JNIEnv *env, jobject, jlong n
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL
+Java_io_realm_internal_TableQuery_nativeAlwaysFalse(JNIEnv *env, jobject, jlong nativeQueryPtr) {
+    TR_ENTER_PTR(nativeQueryPtr);
+    try {
+        Query* query = reinterpret_cast<Query *>(nativeQueryPtr);
+        query->and_query(std::unique_ptr<Expression>(new FalseExpression));
+    }
+    CATCH_STD()
+
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_TableQuery_nativeAlwaysTrue(JNIEnv *env, jobject, jlong nativeQueryPtr) {
+    TR_ENTER_PTR(nativeQueryPtr);
+    try {
+        Query* query = reinterpret_cast<Query *>(nativeQueryPtr);
+        query->and_query(std::unique_ptr<Expression>(new TrueExpression));
+    }
+    CATCH_STD()
+}
+
 static void finalize_table_query(jlong ptr)
 {
     TR_ENTER_PTR(ptr)

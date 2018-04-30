@@ -19,6 +19,7 @@ package io.realm.internal.network;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.ErrorCode;
+import io.realm.log.RealmLog;
 
 /**
  * Abstracts the concept of running an network task with incremental backoff. It will run forever until interrupted.
@@ -46,7 +47,9 @@ public abstract class ExponentialBackoffTask<T extends AuthServerResponse> imple
     protected boolean shouldAbortTask(T response) {
         // Only retry in case of IO exceptions, since that might be network timeouts etc.
         // All other errors indicate a bigger problem, so just stop the task.
-        if (!response.isValid()) {
+        if (Thread.interrupted()) {
+            return true;
+        } else if (!response.isValid()) {
             return response.getError().getErrorCode() != ErrorCode.IO_EXCEPTION;
         } else {
             return false;
@@ -62,13 +65,14 @@ public abstract class ExponentialBackoffTask<T extends AuthServerResponse> imple
     @Override
     public void run() {
         int attempt = 0;
-        while (true) {
+        while (!Thread.interrupted()) {
             attempt++;
             long sleep = calculateExponentialDelay(attempt - 1, TimeUnit.MINUTES.toMillis(5));
             if (sleep > 0) {
                 try {
                     Thread.sleep(sleep);
                 } catch (InterruptedException e) {
+                    RealmLog.debug("Incremental backoff was interrupted.");
                     return; // Abort if interrupted
                 }
             }

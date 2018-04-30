@@ -1,9 +1,116 @@
-## 4.3.2 (YYYY-MM-DD)
+## 5.1.0 (2018-04-25)
+
+### Enhancements
+
+* [ObjectServer] Added support for `SyncUser.requestPasswordReset()`, `SyncUser.completePasswordReset()`
+  and their async variants. This makes it possible to reset the password for users created using
+  `Credentials.usernamePassword()` where they used their email as username (#5821).
+* [ObjectServer] Added support for `SyncUser.requestEmailConfirmation()`, `SyncUser.confirmEmail()`
+  and their async variants. This makes it possible to ask users to confirm their email. This is only
+  supported for users created using `Credentials.usernamePassword()` who have used an email as their
+  username (#5821).
+* `RealmQuery.in()` now support `null` which will always return no matches (#4011).
+* Added support for `RealmQuery.alwaysTrue()` and `RealmQuery.alwaysFalse()`.
+
+### Bug Fixes
+
+* Changing a primary key from being nullable to being required could result in objects being deleted (##5899).
+
+
+## 5.0.1 (2018-04-09)
+
+### Enhancements
+
+* [ObjectServer] `SyncConfiguration.automatic()` will make use of the host port to work out the default Realm URL.
+* [ObjectServer] A role is now automatically created for each user with that user as its only member. This simplifies the common use case of restricting access to specific objects to a single user. This role can be accessed at `PermissionUser.getRole()`.
+* [ObjectServer] Expose `Role.getMembers()` to access the list of associated `UserPermission`.
+
+### Bug Fixes
+
+* `RealmList.move()` did not move items correctly for unmanaged lists (#5860).
+* `RealmObject.isValid()` not correctly returns `false` if `null` is provided as an argument (#5865).
+* `RealmQuery.findFirst()` and `RealmQuery.findFirstAsync()` not working correctly with sorting (#5714).
+* Permission `noPrivileges` and `allPrivileges` were returning opposite privileges.
+* Fixes an issue caused by JNI local table reference overflow (#5880).
+
+### Internal
+
+* Upgraded to Realm Sync 3.0.1
+* Upgraded to Realm Core 5.4.2
+
+## 5.0.0 (2018-03-15)
+
+This release is compatible with the Realm Object Server 3.0.0-beta.3 or later.
+
+### Known Bugs
+
+* API's marked @ObjectServer are shipped as part of the base binary, they should only be available when enabling synchronized Realms.
+
+### Breaking Changes
+
+* [ObjectServer] Renamed `SyncUser.currentUser()` to `SyncUser.current()`.
+* [ObjectServer] Renamed `SyncUser.login(...)` and `SyncUser.loginAsync(...)` to `SyncUser.logIn(...)` and `SyncUser.logInAsync(...)`.
+* [ObjectServer] Renamed `SyncUser.logout()` to `SyncUser.logOut()`.
+* The `OrderedCollectionChangeSet` parameter in `OrderedRealmCollectionChangeListener.onChange()` is no longer nullable. Use `changeSet.getState()` instead (#5619).
+* `realm.subscribeForObjects()` have been removed. Use `RealmQuery.findAllAsync(String subscriptionName)` and `RealmQuery.findAllAsync()` instead.
+* Removed previously deprecated `RealmQuery.findAllSorted()`, `RealmQuery.findAllSortedAsync()` `RealmQuery.distinct() and `RealmQuery.distinctAsync()`.
+* Renamed `RealmQuery.distinctValues()` to `RealmQuery.distinct()`
+
+### Enhancements
+
+* [ObjectServer] Added support for partial Realms. Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
+* [ObjectServer] Added support for Object Level Permissions (requires partial synchronized Realms). Read [here](https://realm.io/docs/java/latest/#partial-realms) for more information.
+* [ObjectServer] Added `SyncConfiguration.automatic()` and `SyncConfiguration.automatic(SyncUser user)` (#5806).
+* Added two new methods to `OrderedCollectionChangeSet`: `getState()` and `getError()` (#5619).
+
+## Bug Fixes
+
+* Better exception message if a non model class is provided to methods only accepting those (#5779).
+
+### Internal
+
+* Upgraded to Realm Sync 3.0.0
+* Upgraded to Realm Core 5.3.0
+
+
+## 4.4.0 (2018-03-13)
+
+### Enhancements
+
+* Added support for mapping between a Java name and the underlying name in the Realm file using `@RealmModule`, `@RealmClass` and `@RealmField` annotations (#5280).
+
+## Bug Fixes
+
+* [ObjectServer] Fixed an issue where login after a logout will not resume Syncing (https://github.com/realm/my-first-realm-app/issues/22).
+
+
+## 4.3.4 (2018-02-06)
+
+## Bug Fixes
+
+* Added missing `RealmQuery.oneOf()` for Kotlin that accepts non-nullable types (#5717).
+* [ObjectServer] Fixed an issue preventing sync to resume when the network is back (#5677).
+
+## 4.3.3 (2018-01-19)
+
+### Internal
+
+* Downgrade JavaAssist to 3.21.0-GA to fix an issue with a `ClassNotFoundException` at runtime (#5641).
+
+
+## 4.3.2 (2018-01-17)
 
 ### Bug Fixes
 
 * Throws a better exception message when calling `RealmObjectSchema.addField()` with a `RealmModel` class (#3388).
 * Use https for Realm version checker (#4043).
+* Prevent Realms Gradle plugin from transitively forcing specific versions of Google Build Tools onto downstream projects (#5640).
+* [ObjectServer] logging a warning message instead of throwing an exception, when sync report an unknown error code (#5403).
+
+### Enhancements
+
+* [ObjectServer] added support for both Anonymous and Nickname authentication.
+
 
 ### Internal
 

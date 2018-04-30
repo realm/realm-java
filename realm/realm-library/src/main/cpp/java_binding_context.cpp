@@ -72,3 +72,21 @@ void JavaBindingContext::set_schema_changed_callback(JNIEnv* env, jobject schema
 {
     m_schema_changed_callback = JavaGlobalWeakRef(env, schema_changed_callback);
 }
+
+void JavaBindingContext::will_send_notifications() {
+    auto env = JniUtils::get_env();
+    m_java_notifier.call_with_local_ref(env, [&](JNIEnv*, jobject notifier_obj) {
+        static JavaMethod realm_notifier_will_send_notifications(env, JavaClassGlobalDef::realm_notifier(),
+                                                           "willSendNotifications", "()V");
+        env->CallVoidMethod(notifier_obj, realm_notifier_will_send_notifications);
+    });
+}
+
+void JavaBindingContext::did_send_notifications() {
+    auto env = JniUtils::get_env();
+    m_java_notifier.call_with_local_ref(env, [&](JNIEnv*, jobject notifier_obj) {
+        static JavaMethod realm_notifier_did_send_notifications(env, JavaClassGlobalDef::realm_notifier(),
+                                                                 "didSendNotifications", "()V");
+        env->CallVoidMethod(notifier_obj, realm_notifier_did_send_notifications);
+    });
+}

@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.internal.ObjectServerFacade;
 
 import static org.junit.Assert.assertTrue;
 
@@ -129,7 +130,9 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     // This builder creates a configuration that is *NOT* managed.
     // You have to delete it yourself.
     public RealmConfiguration.Builder createConfigurationBuilder() {
-        return new RealmConfiguration.Builder().directory(getRoot());
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder().directory(getRoot());
+        ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
+        return builder;
     }
 
     public RealmConfiguration createConfiguration() {
@@ -168,6 +171,8 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
         if (module != null) {
             builder.modules(module);
+        } else {
+            ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
         }
 
         if (key != null) {

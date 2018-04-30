@@ -31,6 +31,7 @@ import java.util.Map;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.entities.AllTypes;
+import io.realm.entities.AllTypesModelModule;
 
 /**
  * Helper service for multi-processes support testing.
@@ -128,7 +129,7 @@ public class RemoteProcessService extends Service {
 
         @Override
         void run() {
-            thiz.testRealm = Realm.getInstance(new RealmConfiguration.Builder().build());
+            thiz.testRealm = Realm.getInstance(getConfiguration());
             int expected = 1;
             long got = thiz.testRealm.where(AllTypes.class).count();
             if (expected == got) {
@@ -144,10 +145,15 @@ public class RemoteProcessService extends Service {
 
         @Override
         void run() {
-            thiz.testRealm = Realm.getInstance(new RealmConfiguration.Builder().build());
+            thiz.testRealm = Realm.getInstance(getConfiguration());
             thiz.testRealm.close();
             response(null);
             Runtime.getRuntime().exit(0);
         }
     };
+
+    private static RealmConfiguration getConfiguration() {
+        return new RealmConfiguration.Builder().modules(new AllTypesModelModule()).build();
+    }
+
 }

@@ -19,6 +19,8 @@ package io.realm;
 
 import java.io.IOException;
 
+import io.realm.log.RealmLog;
+
 /**
  * This class enumerate all potential errors related to using the Object Server or synchronizing data.
  */
@@ -192,7 +194,8 @@ public enum ErrorCode {
                 return error;
             }
         }
-        throw new IllegalArgumentException("Unknown error code: " + errorCode);
+        RealmLog.warn("Unknown error code: " + errorCode);
+        return UNKNOWN;
     }
 
     /**

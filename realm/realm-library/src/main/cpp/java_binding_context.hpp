@@ -46,7 +46,8 @@ public:
     void did_change(std::vector<ObserverState> const& observers, std::vector<void*> const& invalidated,
                     bool version_changed = true) override;
     void schema_did_change(Schema const&) override;
-
+    void will_send_notifications() override;
+    void did_send_notifications() override;
     explicit JavaBindingContext(const ConcreteJavaBindContext& concrete_context)
         : m_java_notifier(concrete_context.jni_env, concrete_context.java_notifier)
         , m_schema_changed_callback()

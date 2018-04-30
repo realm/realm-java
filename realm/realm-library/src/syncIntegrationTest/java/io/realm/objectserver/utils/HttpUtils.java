@@ -36,7 +36,8 @@ public class HttpUtils {
     // "Realm could not be deleted errors".
     // FIXME re-adjust timeout after https://github.com/realm/realm-object-server-private/issues/697 is fixed
     private final static OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(2, TimeUnit.MINUTES)
+            .connectTimeout(40, TimeUnit.SECONDS)
+            .readTimeout(40, TimeUnit.SECONDS)// since ROS startup timeout is 30s
             .build();
 
     // adb reverse tcp:8888 tcp:8888
@@ -55,10 +56,6 @@ public class HttpUtils {
 
         Response response = client.newCall(request).execute();
         if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-
-        // Work around race condition between starting ROS and logging in first user
-        // See https://github.com/realm/ros/issues/389
-        SystemClock.sleep(2000);
     }
 
     /**

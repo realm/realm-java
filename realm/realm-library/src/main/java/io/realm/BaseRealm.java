@@ -26,26 +26,34 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.reactivex.Flowable;
 import javax.annotation.Nullable;
 
+import io.reactivex.Flowable;
+import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
+import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
+import io.realm.sync.permissions.ObjectPrivileges;
+import io.realm.sync.permissions.RealmPermissions;
+import io.realm.sync.permissions.RealmPrivileges;
+import io.realm.sync.permissions.Role;
 
 /**
  * Base class for all Realm instances.
@@ -63,8 +71,12 @@ abstract class BaseRealm implements Closeable {
             "This Realm instance has already been closed, making it unusable.";
     private static final String NOT_IN_TRANSACTION_MESSAGE =
             "Changing Realm data can only be done from inside a transaction.";
-    static final String LISTENER_NOT_ALLOWED_MESSAGE = "Listeners cannot be used on current thread.";
-
+    static final String LISTENER_NOT_ALLOWED_MESSAGE =
+            "Listeners cannot be used on current thread.";
+    static final String DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC =
+            "This API is not supported by partially " +
+            "synchronized Realms. Either unsubscribe using 'Realm.unsubscribeAsync()' or " +
+            "delete the objects using a query and 'RealmResults.deleteAllFromRealm()'";
 
     static volatile Context applicationContext;
 
@@ -433,6 +445,17 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    protected void checkIfPartialRealm() {
+        boolean isPartialRealm = false;
+        if (configuration.isSyncConfiguration()) {
+            isPartialRealm = ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration);
+        }
+
+        if (!isPartialRealm) {
+            throw new IllegalStateException("This method is only available on partially synchronized Realms.");
+        }
+    }
+
     /**
      * Checks if the Realm is valid and in a transaction.
      */
@@ -478,6 +501,41 @@ abstract class BaseRealm implements Closeable {
      */
     public long getVersion() {
         return OsObjectStore.getSchemaVersion(sharedRealm);
+    }
+
+    /**
+     * Returns the privileges granted to the current user for this Realm.
+     *
+     * @return the privileges granted the current user for this Realm.
+     */
+    @Beta
+    @ObjectServer
+    public RealmPrivileges getPrivileges() {
+        checkIfValid();
+        return new RealmPrivileges(sharedRealm.getPrivileges());
+    }
+
+    /**
+     * Returns the privileges granted to the current user for the given object.
+     *
+     * @param object Realm object to get privileges for.
+     * @return the privileges granted the current user for the object.
+     * @throws IllegalArgumentException if the object is either null, unmanaged or not part of this Realm.
+     */
+    public ObjectPrivileges getPrivileges(RealmModel object) {
+        checkIfValid();
+        //noinspection ConstantConditions
+        if (object == null) {
+            throw new IllegalArgumentException("Non-null 'object' required.");
+        }
+        if (!RealmObject.isManaged(object)) {
+            throw new IllegalArgumentException("Only managed objects have privileges. This is a an unmanaged object: " + object.toString());
+        }
+        if (!((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(getPath())) {
+            throw new IllegalArgumentException("Object belongs to a different Realm.");
+        }
+        UncheckedRow row = (UncheckedRow) ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm();
+        return new ObjectPrivileges(sharedRealm.getObjectPrivileges(row));
     }
 
     /**
@@ -594,13 +652,20 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Deletes all objects from this Realm.
+     * <p>
+     * If the Realm is a partially synchronized Realm, all subscriptions will be cleared as well.
      *
-     * @throws IllegalStateException if the corresponding Realm is closed or called from an incorrect thread.
+     * @throws IllegalStateException if the corresponding Realm is a partially synchronized Realm, is
+     * closed or called from an incorrect thread.
      */
     public void deleteAll() {
         checkIfValid();
+        if (sharedRealm.isPartial()) {
+            throw new IllegalStateException(DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC);
+        }
+        boolean isPartialRealm = sharedRealm.isPartial();
         for (RealmObjectSchema objectSchema : getSchema().getAll()) {
-            getSchema().getTable(objectSchema.getClassName()).clear();
+            getSchema().getTable(objectSchema.getClassName()).clear(isPartialRealm);
         }
     }
 

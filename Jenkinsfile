@@ -27,10 +27,10 @@ try {
         // A full build is done on `master`.
         // TODO Once Android emulators are available on all nodes, we can switch to x86 builds
         // on PR's for even more throughput.
-        def ABIs = ""
+        def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
-        if (!['master'].contains(env.BRANCH_NAME)) {
-            ABIs = "armeabi-v7a"
+        if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
+            abiFilter = "-PbuildTargetABIs=armeabi-v7a"
             instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug more for better error reporting
         }
 
@@ -41,8 +41,8 @@ try {
           buildEnv = docker.build 'realm-java:snapshot'
           // Docker image for testing Realm Object Server
           def dependProperties = readProperties file: 'dependencies.list'
-          def rosDeVersion = dependProperties["REALM_OBJECT_SERVER_DE_VERSION"]
-          rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_DE_VERSION=${rosDeVersion} tools/sync_test_server"
+          def rosVersion = dependProperties["REALM_OBJECT_SERVER_VERSION"]
+          rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_VERSION=${rosVersion} tools/sync_test_server"
         }
 
 	    rosContainer = rosEnv.run()
@@ -60,7 +60,7 @@ try {
                 stage('JVM tests') {
                   try {
                     withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-                      sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} -PbuildTargetABIs=${ABIs}"
+                      sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} ${abiFilter}"
                     }
                   } finally {
                     storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
@@ -87,7 +87,7 @@ try {
 
                 stage('Static code analysis') {
                   try {
-                    gradle('realm', 'findbugs pmd checkstyle')
+                    gradle('realm', "findbugs pmd checkstyle ${abiFilter}")
                   } finally {
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
                     publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
@@ -118,11 +118,13 @@ try {
 
                 // TODO: add support for running monkey on the example apps
 
-                if (env.BRANCH_NAME == 'master') {
+                if (['master'].contains(env.BRANCH_NAME)) {
                   stage('Collect metrics') {
                     collectAarMetrics()
                   }
+                }
 
+                if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
                   stage('Publish to OJO') {
                     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
                       sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
@@ -145,7 +147,7 @@ try {
   buildSuccess = false
   throw e
 } finally {
-  if (['master', 'releases'].contains(env.BRANCH_NAME) && !buildSuccess) {
+  if (['master', 'releases', 'next-major'].contains(env.BRANCH_NAME) && !buildSuccess) {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
@@ -188,7 +190,7 @@ def stopLogCatCollector(String backgroundPid) {
 }
 
 def archiveRosLog(String id) {
-  sh "docker cp ${id}:/tmp/ros-testing-server.log ./ros.log"
+  sh "docker cp ${id}:/tmp/integration-test-command-server.log ./ros.log"
   zip([
       'zipFile': 'roslog.zip',
       'archive': true,

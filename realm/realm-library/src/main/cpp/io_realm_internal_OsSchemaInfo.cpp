@@ -19,8 +19,6 @@
 #include <schema.hpp>
 #include <object_schema.hpp>
 #include <property.hpp>
-#include <realm/util/to_string.hpp>
-
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"
 #include "util.hpp"

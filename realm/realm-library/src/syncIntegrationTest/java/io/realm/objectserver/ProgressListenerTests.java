@@ -219,8 +219,8 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         adminRealm.close();
         // worker thread will hang if logout happens before listener triggered.
         worker.join();
-        userWithData.logout();
-        adminUser.logout();
+        userWithData.logOut();
+        adminUser.logOut();
     }
 
     // Make sure that a ProgressListener continues to report the correct thing, even if it crashed

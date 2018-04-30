@@ -63,7 +63,7 @@ set(classes_LIST
     io.realm.internal.OsObjectSchemaInfo io.realm.internal.OsResults
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
-    io.realm.internal.OsObjectStore
+    io.realm.internal.OsObjectStore io.realm.internal.sync.OsSubscription
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319
@@ -170,6 +170,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_sync_OsSubscription.cpp
     )
 endif()
 

@@ -510,52 +510,48 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeRegisterSchema
     }
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeRegisterPartialSyncQuery(
-    REALM_UNUSED JNIEnv* env, REALM_UNUSED jobject j_shared_realm_instance, REALM_UNUSED jlong shared_realm_ptr, REALM_UNUSED jstring j_class_name,
-    REALM_UNUSED jstring j_query, REALM_UNUSED jobject j_callback)
+#if REALM_ENABLE_SYNC
+JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetRealmPrivileges(
+    JNIEnv*, jclass, jlong shared_realm_ptr)
 {
     TR_ENTER_PTR(shared_realm_ptr)
-
-#if REALM_ENABLE_SYNC
-
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    return static_cast<jint>(shared_realm->get_privileges());
+}
+
+JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetClassPrivileges(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring j_class_name)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
     try {
-        JStringAccessor class_name(env, j_class_name);               // throws
-        JStringAccessor query(env, j_query);                         // throws
-
-        // The lambda will capture the copied reference and it will be unreferenced when the lambda's life cycle is over.
-        // That happens when the Realm is closed or the callback has been triggered once.
-        JavaGlobalRef j_callback_ref(env, j_callback);
-        JavaGlobalWeakRef j_shared_realm_instance_ref(env, j_shared_realm_instance);
-
-        static JavaClass shared_realm_class(env, "io/realm/internal/OsSharedRealm");
-        static JavaMethod partial_sync_cb(env, shared_realm_class, "runPartialSyncRegistrationCallback",
-                                          "(Ljava/lang/String;JLio/realm/internal/OsSharedRealm$PartialSyncCallback;)V");
-
-        auto cb = [j_callback_ref, j_shared_realm_instance_ref](Results results, std::exception_ptr err) {
-            JNIEnv* env = JniUtils::get_env(true);
-            j_shared_realm_instance_ref.call_with_local_ref(env, [&](JNIEnv*, jobject row_obj) {
-                if (err) {
-                    try {
-                        std::rethrow_exception(err);
-                    }
-                    catch (const std::exception& e) {
-                        env->CallVoidMethod(row_obj, partial_sync_cb, to_jstring(env, e.what()),
-                                            reinterpret_cast<jlong>(nullptr), j_callback_ref.get());
-                    }
-                    return;
-                }
-
-                auto wrapper = new ResultsWrapper(results);
-                env->CallVoidMethod(row_obj, partial_sync_cb, nullptr, reinterpret_cast<jlong>(wrapper),
-                                    j_callback_ref.get());
-            });
-        };
-
-        partial_sync::register_query(shared_realm, class_name, query, std::move(cb));
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        JStringAccessor class_name(env, j_class_name);
+        return static_cast<jint>(shared_realm->get_privileges(StringData(class_name)));
     }
     CATCH_STD()
-#else
-    REALM_TERMINATE("Unsupported operation. Only available when used with the Realm Object Server");
+    return 0;
+}
+
+JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetObjectPrivileges(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong row_ptr)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+    try {
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        auto r = reinterpret_cast<Row*>(row_ptr);
+        RowExpr row = r->get_table()->get(r->get_index());
+
+        return static_cast<jint>(shared_realm->get_privileges(row));
+    }
+    CATCH_STD()
+    return 0;
+}
 #endif
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsPartial(JNIEnv*, jclass, jlong shared_realm_ptr)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+    // No throws
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    return to_jbool(shared_realm->is_partial());
 }
