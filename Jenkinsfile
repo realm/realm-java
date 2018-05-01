@@ -22,6 +22,8 @@ try {
                ])
         }
 
+        sh "Building branch: echo ${getCurrentBranch()}"
+
         // Toggles for PR vs. Master builds.
         // For PR's, we just build for arm-v7a and run unit tests for the ObjectServer variant
         // A full build is done on `master`.
