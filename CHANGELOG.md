@@ -2,7 +2,11 @@
 
 ### Enhancements
 
-* The Realm Transformer now support incremental builds (#3034).
+* The Realm Transformer now supports incremental builds (#3034).
+
+### Bug Fixes
+
+* Having files that ends with `RealmProxy` will no longer break the Realm Transformer (#3709).
 
 ### Internal
 
