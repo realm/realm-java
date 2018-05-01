@@ -259,7 +259,7 @@ def gradle(String relativePath, String commands) {
 
 def String getCurrentBranch () {
   return sh (
-          script: 'git rev-parse --abbrev-ref HEAD',
+          script: 'git branch | grep \\* | cut -f 2 -d " "',
           returnStdout: true
   ).trim()
 }
