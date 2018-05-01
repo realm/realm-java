@@ -29,7 +29,7 @@ try {
         // on PR's for even more throughput.
         def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
-        if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
+        if (!['master', 'next-major', 'cm/transformer-speed'].contains(env.BRANCH_NAME)) {
             abiFilter = "-PbuildTargetABIs=armeabi-v7a"
             instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug more for better error reporting
         }
@@ -124,7 +124,7 @@ try {
                   }
                 }
 
-                if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
+                if (['master', 'next-major', 'cm/transformer-speed'].contains(env.BRANCH_NAME)) {
                   stage('Publish to OJO') {
                     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
                       sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
