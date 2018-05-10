@@ -17,6 +17,9 @@
 package io.realm.transformer
 
 import com.android.build.api.transform.*
+import io.realm.transformer.build.FullBuild
+import io.realm.transformer.build.IncrementalBuild
+import io.realm.transformer.build.BuildTemplate
 import javassist.CtClass
 import org.gradle.api.Project
 import org.slf4j.Logger
@@ -84,7 +87,7 @@ class RealmTransformer(val project: Project) : Transform() {
 
         val tic = System.currentTimeMillis()
 
-        val build: TransformBuildTemplate = if (isIncremental) IncrementalBuild(project, outputProvider!!, this)
+        val build: BuildTemplate = if (isIncremental) IncrementalBuild(project, outputProvider!!, this)
         else FullBuild(project, outputProvider!!, this)
 
         build.prepareOutputClasses(inputs!!);
