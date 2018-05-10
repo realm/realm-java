@@ -22,8 +22,6 @@ try {
                ])
         }
 
-        sh "Building branch: echo ${getCurrentBranch()}"
-
         // Toggles for PR vs. Master builds.
         // For PR's, we just build for arm-v7a and run unit tests for the ObjectServer variant
         // A full build is done on `master`.
@@ -31,7 +29,7 @@ try {
         // on PR's for even more throughput.
         def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
-        if (!['master', 'next-major', 'cm/transformer-speed'].contains(getCurrentBranch())) {
+        if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
             abiFilter = "-PbuildTargetABIs=armeabi-v7a"
             instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug more for better error reporting
         }
@@ -120,13 +118,13 @@ try {
 
                 // TODO: add support for running monkey on the example apps
 
-                if (['master'].contains(getCurrentBranch())) {
+                if (['master'].contains(env.BRANCH_NAME)) {
                   stage('Collect metrics') {
                     collectAarMetrics()
                   }
                 }
 
-                if (['master', 'next-major', 'cm/transformer-speed'].contains(getCurrentBranch())) {
+                if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
                   stage('Publish to OJO') {
                     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
                       sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
@@ -255,11 +253,4 @@ def gradle(String commands) {
 
 def gradle(String relativePath, String commands) {
   sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
-}
-
-def String getCurrentBranch() {
-  return sh (
-          script: 'tools/print_current_branch.sh',
-          returnStdout: true
-  ).trim()
 }
