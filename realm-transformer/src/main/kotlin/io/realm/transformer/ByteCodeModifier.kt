@@ -18,6 +18,7 @@ package io.realm.transformer
 
 import io.realm.annotations.Ignore
 import io.realm.annotations.RealmClass
+import io.realm.transformer.ext.safeSubtypeOf
 import javassist.*
 import javassist.expr.ExprEditor
 import javassist.expr.FieldAccess
@@ -182,7 +183,7 @@ class BytecodeModifier {
                     }
                 }
             }
-            .filter { !io.realm.transformer.ext.safeSubtypeOf(classPool, it, realmObjectProxyInterface) }
+            .filter { !it.safeSubtypeOf(realmObjectProxyInterface) }
             .any { it.name != "io.realm.RealmObject" }
         }
     }
