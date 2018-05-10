@@ -257,9 +257,9 @@ def gradle(String relativePath, String commands) {
   sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
 }
 
-def String getCurrentBranch () {
+def String getCurrentBranch() {
   return sh (
-          script: 'git branch | grep \\* | cut -f 2 -d " "',
+          script: 'tools/print_current_branch.sh',
           returnStdout: true
   ).trim()
 }
