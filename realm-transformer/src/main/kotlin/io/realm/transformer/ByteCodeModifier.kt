@@ -41,6 +41,7 @@ class BytecodeModifier {
          *
          * @param clazz the CtClass to add accessors to.
          */
+        @JvmStatic
         fun addRealmAccessors(clazz: CtClass) {
             val methods: List<String> = clazz.declaredMethods.map { it.name }
             clazz.declaredFields.forEach { field: CtField ->
@@ -61,6 +62,7 @@ class BytecodeModifier {
          * @param clazz The CtClass to modify
          * @param managedFields List of fields whose access should be replaced
          */
+        @JvmStatic
         fun useRealmAccessors(classPool: ClassPool, clazz: CtClass, managedFields: List<CtField>?) {
             clazz.declaredBehaviors.forEach { behavior ->
                 logger.debug("    Behavior: ${behavior.name}")
@@ -89,6 +91,7 @@ class BytecodeModifier {
          * @param clazz The CtClass to modify
          * @param classPool the Javassist class pool
          */
+        @JvmStatic
         fun addRealmProxyInterface(clazz: CtClass, classPool: ClassPool) {
             val proxyInterface: CtClass = classPool.get("io.realm.${clazz.getName().replace(".", "_")}RealmProxyInterface")
             clazz.addInterface(proxyInterface)
