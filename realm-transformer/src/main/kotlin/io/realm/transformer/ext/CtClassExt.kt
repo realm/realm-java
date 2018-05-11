@@ -1,6 +1,5 @@
 package io.realm.transformer.ext
 
-import javassist.ClassPool
 import javassist.CtClass
 import javassist.NotFoundException
 import javassist.bytecode.ClassFile
@@ -16,8 +15,6 @@ import javassist.bytecode.ClassFile
  * This e.g. happens with RxJava classes which are optional, but JavaAssist will try
  * to load them and then crash.
  *
- * @param classPool pool of all known classes
- * @param clazz class to check
  * @param typeToCheckAgainst the type we want to check against
  * @return `true` if `clazz` is a subtype of `typeToCheckAgainst`, `false` otherwise.
  */
@@ -27,16 +24,16 @@ fun CtClass.safeSubtypeOf(typeToCheckAgainst: CtClass): Boolean {
         return true
     }
 
-    val file: ClassFile = this.getClassFile2();
+    val file: ClassFile = this.classFile2
 
     // Check direct super class
-    val superName: String? = file.getSuperclass()
+    val superName: String? = file.superclass
     if (superName.equals(typeToCheckAgainstQualifiedName)) {
-        return true;
+        return true
     }
 
     // Check direct interfaces
-    val ifs: Array<String> = file.interfaces;
+    val ifs: Array<String> = file.interfaces
     ifs.forEach {
         if (it == typeToCheckAgainstQualifiedName) {
             return true
@@ -60,11 +57,11 @@ fun CtClass.safeSubtypeOf(typeToCheckAgainst: CtClass): Boolean {
         try {
             val interfaceClass: CtClass = classPool.get(interfaceName)
             if (interfaceClass.safeSubtypeOf(typeToCheckAgainst)) {
-                return true;
+                return true
             }
         } catch (ignored: NotFoundException) {
         }
     }
 
-    return false;
+    return false
 }
