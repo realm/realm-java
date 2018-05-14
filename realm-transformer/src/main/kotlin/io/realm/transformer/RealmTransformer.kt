@@ -85,28 +85,34 @@ class RealmTransformer(val project: Project) : Transform() {
                            referencedInputs: Collection<TransformInput>?,
                            outputProvider: TransformOutputProvider?, isIncremental: Boolean) {
 
-        val tic = System.currentTimeMillis()
+        val timer = Stopwatch()
+        timer.start("Realm Transform time")
 
         val build: BuildTemplate = if (isIncremental) IncrementalBuild(project, outputProvider!!, this)
         else FullBuild(project, outputProvider!!, this)
 
-        build.prepareOutputClasses(inputs!!);
+        build.prepareOutputClasses(inputs!!)
+        timer.splitTime("Prepare output classes")
         if (build.hasNoOutput()) {
             // Abort transform as quickly as possible if no files where found for processing.
-            exitTransform(emptySet(), emptyList(), tic)
+            exitTransform(emptySet(), emptyList(), timer)
             return
         }
         build.prepareReferencedClasses(referencedInputs!!);
+        timer.splitTime("Prepare referenced classes")
         build.markMediatorsAsTransformed()
+        timer.splitTime("Mark mediators as transformed")
         build.transformModelClasses();
+        timer.splitTime("Transform model classes")
         build.transformDirectAccessToModelFields();
+        timer.splitTime("Transform references to model fields")
         build.copyResourceFiles();
-        exitTransform(inputs, build.getOutputModelClasses(), tic)
+        timer.splitTime("Copy resource files")
+        exitTransform(inputs, build.getOutputModelClasses(), timer)
     }
 
-    private fun exitTransform(inputs: Collection<TransformInput>, outputModelClasses: Collection<CtClass>, startTime: Long) {
-        val endTime = System.currentTimeMillis()
-        logger.debug("Realm Transform time: ${endTime-startTime} milliseconds")
+    private fun exitTransform(inputs: Collection<TransformInput>, outputModelClasses: Collection<CtClass>, timer: Stopwatch) {
+        timer.stop()
         this.sendAnalytics(inputs, outputModelClasses)
     }
 
