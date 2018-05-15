@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import io.realm.RealmFieldType;
 import io.realm.internal.ColumnInfo;
@@ -38,6 +39,9 @@ import io.realm.internal.Table;
  * </ul>
  */
 public abstract class FieldDescriptor {
+
+    private static final Pattern SEPERATOR = Pattern.compile("\\.");
+
     public interface SchemaProxy {
         boolean hasCache();
 
@@ -273,10 +277,17 @@ public abstract class FieldDescriptor {
         if (fieldDescription == null || fieldDescription.equals("")) {
             throw new IllegalArgumentException("Invalid query: field name is empty");
         }
-        if (fieldDescription.endsWith(".")) {
+
+        int lastDotIndex = fieldDescription.lastIndexOf(".");
+        if (lastDotIndex == fieldDescription.length() - 1) {
             throw new IllegalArgumentException("Invalid query: field name must not end with a period ('.')");
         }
-        return Arrays.asList(fieldDescription.split("\\."));
+
+        if (lastDotIndex > -1) {
+            return Arrays.asList(SEPERATOR.split(fieldDescription));
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     private void verifyColumnType(String className, String columnName, RealmFieldType columnType, Set<RealmFieldType> validTypes) {
