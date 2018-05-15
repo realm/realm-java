@@ -40,7 +40,7 @@ import io.realm.internal.Table;
  */
 public abstract class FieldDescriptor {
 
-    private static final Pattern SEPERATOR = Pattern.compile("\\.");
+    private static final Pattern FIELD_SEPARATOR = Pattern.compile("\\.");
 
     public interface SchemaProxy {
         boolean hasCache();
@@ -284,7 +284,7 @@ public abstract class FieldDescriptor {
         }
 
         if (lastDotIndex > -1) {
-            return Arrays.asList(SEPERATOR.split(fieldDescription));
+            return Arrays.asList(FIELD_SEPARATOR.split(fieldDescription));
         } else {
             return Collections.emptyList();
         }
