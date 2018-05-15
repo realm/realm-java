@@ -267,11 +267,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 throw new IndexOutOfBoundsException("Invalid index " + newPos + ", size is " + listSize);
             }
             E object = unmanagedList.remove(oldPos);
-            if (newPos > oldPos) {
-                unmanagedList.add(newPos - 1, object);
-            } else {
-                unmanagedList.add(newPos, object);
-            }
+            unmanagedList.add(newPos, object);
         }
     }
 

@@ -226,6 +226,9 @@ public class Table implements NativeObject {
      * @param columnIndex the column index.
      */
     public void convertColumnToNullable(long columnIndex) {
+        if (sharedRealm.isSyncRealm()) {
+            throw new IllegalStateException("This method is only available for non-synchronized Realms");
+        }
         nativeConvertColumnToNullable(nativePtr, columnIndex, isPrimaryKey(columnIndex));
     }
 
@@ -235,6 +238,9 @@ public class Table implements NativeObject {
      * @param columnIndex the column index.
      */
     public void convertColumnToNotNullable(long columnIndex) {
+        if (sharedRealm.isSyncRealm()) {
+            throw new IllegalStateException("This method is only available for non-synchronized Realms");
+        }
         nativeConvertColumnToNotNullable(nativePtr, columnIndex, isPrimaryKey(columnIndex));
     }
 
@@ -261,10 +267,12 @@ public class Table implements NativeObject {
 
     /**
      * Clears the table i.e., deleting all rows in the table.
+     *
+     * If using partial sync, this method will behave similarly to 'findAll().deleteFromRealm()'.
      */
-    public void clear() {
+    public void clear(boolean partialRealm) {
         checkImmutable();
-        nativeClear(nativePtr);
+        nativeClear(nativePtr, partialRealm);
     }
 
     // Column Information.
@@ -724,7 +732,7 @@ public class Table implements NativeObject {
 
     private native long nativeSize(long nativeTablePtr);
 
-    private native void nativeClear(long nativeTablePtr);
+    private native void nativeClear(long nativeTablePtr, boolean partialRealm);
 
     private native long nativeGetColumnCount(long nativeTablePtr);
 

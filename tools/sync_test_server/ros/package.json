@@ -1,0 +1,17 @@
+{
+    "name": "ros-integration-test-server",
+    "version": "1.0.0",
+    "description": "ROS instance used by integration tests",
+    "main": "src/index.js",
+    "scripts": {
+        "build": "rm -rf dist; ./node_modules/.bin/tsc",
+        "clean": "rm -rf dist",
+        "start": "npm run build && node dist/index.js"
+    },
+    "devDependencies": {
+        "typescript": "2.5.3"
+    },
+    "dependencies": {
+        "realm-object-server": "%ROS_VERSION%"
+    }
+}

@@ -18,22 +18,18 @@ package io.realm.objectserver.utils;
 
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.SystemClock;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeUnit;
 
-import io.realm.AuthenticationListener;
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.SyncCredentials;
-import io.realm.SyncManager;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.log.RealmLog;
 
 import static org.junit.Assert.fail;
@@ -43,14 +39,17 @@ import static org.junit.Assert.fail;
 // Must be in `io.realm.objectserver` to work around package protected methods.
 // This require Realm.init() to be called before using this class.
 public class UserFactory {
-    private static final String PASSWORD = "myPassw0rd";
+    public static final String PASSWORD = "myPassw0rd";
     // Since the integration tests need to use the same user for different processes, we create a new user name when the
     // test starts and store it in a Realm. Then it can be retrieved for every process.
     private String userName;
     private static UserFactory instance;
-    private static RealmConfiguration configuration = new RealmConfiguration.Builder()
-            .name("user-factory.realm")
-            .build();
+    private static RealmConfiguration configuration;
+    static {
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder().name("user-factory.realm");
+        ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
+        configuration = builder.build();
+    }
 
     private UserFactory(String userName) {
         this.userName = userName;
@@ -58,7 +57,7 @@ public class UserFactory {
 
     public SyncUser loginWithDefaultUser(String authUrl) {
         SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, false);
-        return SyncUser.login(credentials, authUrl);
+        return SyncUser.logIn(credentials, authUrl);
     }
 
     /**
@@ -79,20 +78,25 @@ public class UserFactory {
 
     private static SyncUser createUser(String username, String authUrl) {
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, PASSWORD, true);
-        return SyncUser.login(credentials, authUrl);
+        return SyncUser.logIn(credentials, authUrl);
     }
 
 
     public SyncUser createDefaultUser(String authUrl) {
         SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, true);
-        return SyncUser.login(credentials, authUrl);
+        return SyncUser.logIn(credentials, authUrl);
     }
 
     public static SyncUser createAdminUser(String authUrl) {
         // `admin` required as user identifier to be granted admin rights.
         // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
         SyncCredentials credentials = SyncCredentials.usernamePassword("realm-admin", "", false);
-        return SyncUser.login(credentials, authUrl);
+        return SyncUser.logIn(credentials, authUrl);
+    }
+
+    public static SyncUser createNicknameUser(String authUrl, String nickname, boolean isAdmin) {
+        SyncCredentials credentials = SyncCredentials.nickname(nickname, isAdmin);
+        return SyncUser.logIn(credentials, authUrl);
     }
 
     // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
@@ -142,18 +146,20 @@ public class UserFactory {
         final HandlerThread ht = new HandlerThread("LoggingOutUsersThread");
         ht.start();
         Handler handler = new Handler(ht.getLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Map<String, SyncUser> users = SyncUser.all();
-                for (SyncUser user : users.values()) {
-                    user.logout();
-                }
-                allUsersLoggedOut.countDown();
-
+        handler.post(() -> {
+            Map<String, SyncUser> users = SyncUser.all();
+            for (SyncUser user : users.values()) {
+                user.logOut();
             }
+            TestHelper.waitForNetworkThreadExecutorToFinish();
+            allUsersLoggedOut.countDown();
         });
         TestHelper.awaitOrFail(allUsersLoggedOut);
         ht.quit();
+        try {
+            ht.join(TimeUnit.SECONDS.toMillis(TestHelper.SHORT_WAIT_SECS));
+        } catch (InterruptedException e) {
+            throw new AssertionError("LoggingOutUsersThread failed to finish in time");
+        }
     }
 }

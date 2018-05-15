@@ -281,26 +281,29 @@ public class RealmListTests extends CollectionTests {
     public void move_down() {
         Owner owner = realm.where(Owner.class).findFirst();
         Dog dog1 = owner.getDogs().get(1);
+        Dog dog2 = owner.getDogs().get(0);
         realm.beginTransaction();
         owner.getDogs().move(1, 0);
         realm.commitTransaction();
 
+        assertEquals(TEST_SIZE, owner.getDogs().size());
         assertEquals(0, owner.getDogs().indexOf(dog1));
+        assertEquals(1, owner.getDogs().indexOf(dog2));
     }
 
     // Tests move where oldPosition < newPosition.
     @Test
     public void move_up() {
         Owner owner = realm.where(Owner.class).findFirst();
-        int oldIndex = TEST_SIZE / 2;
-        int newIndex = oldIndex + 1;
-        Dog dog = owner.getDogs().get(oldIndex);
+        Dog dog1 = owner.getDogs().get(0);
+        Dog dog2 = owner.getDogs().get(1);
         realm.beginTransaction();
-        owner.getDogs().move(oldIndex, newIndex); // This doesn't do anything as oldIndex is now empty so the index's above gets shifted to the left.
+        owner.getDogs().move(0, 1);
         realm.commitTransaction();
 
         assertEquals(TEST_SIZE, owner.getDogs().size());
-        assertEquals(newIndex, owner.getDogs().indexOf(dog));
+        assertEquals(1, owner.getDogs().indexOf(dog1));
+        assertEquals(0, owner.getDogs().indexOf(dog2));
     }
 
     // Tests move where oldPosition > newPosition.
@@ -308,22 +311,27 @@ public class RealmListTests extends CollectionTests {
     public void move_downInUnmanagedMode() {
         RealmList<Dog> dogs = createUnmanagedDogList();
         Dog dog1 = dogs.get(1);
+        Dog dog2 = dogs.get(0);
+
         dogs.move(1, 0);
 
+        assertEquals(TEST_SIZE, dogs.size());
         assertEquals(0, dogs.indexOf(dog1));
+        assertEquals(1, dogs.indexOf(dog2));
     }
 
     // Tests move where oldPosition < newPosition.
     @Test
     public void move_upInUnmanagedMode() {
         RealmList<Dog> dogs = createUnmanagedDogList();
-        int oldIndex = TEST_SIZE / 2;
-        int newIndex = oldIndex + 1;
-        Dog dog = dogs.get(oldIndex);
-        dogs.move(oldIndex, newIndex); // This doesn't do anything as oldIndex is now empty so the index's above gets shifted to the left.
+        Dog dog1 = dogs.get(0);
+        Dog dog2 = dogs.get(1);
+
+        dogs.move(0, 1);
 
         assertEquals(TEST_SIZE, dogs.size());
-        assertEquals(oldIndex, dogs.indexOf(dog));
+        assertEquals(1, dogs.indexOf(dog1));
+        assertEquals(0, dogs.indexOf(dog2));
     }
 
     /*********************************************************
