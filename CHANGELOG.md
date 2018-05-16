@@ -53,7 +53,7 @@ This release is compatible with the Realm Object Server 3.0.0-beta.3 or later.
 * [ObjectServer] Renamed `SyncUser.logout()` to `SyncUser.logOut()`.
 * The `OrderedCollectionChangeSet` parameter in `OrderedRealmCollectionChangeListener.onChange()` is no longer nullable. Use `changeSet.getState()` instead (#5619).
 * `realm.subscribeForObjects()` have been removed. Use `RealmQuery.findAllAsync(String subscriptionName)` and `RealmQuery.findAllAsync()` instead.
-* Removed previously deprecated `RealmQuery.findAllSorted()`, `RealmQuery.findAllSortedAsync()` `RealmQuery.distinct() and `RealmQuery.distinctAsync()`.
+* Removed previously deprecated `RealmQuery.findAllSorted()`, `RealmQuery.findAllSortedAsync()` `RealmQuery.distinct()` and `RealmQuery.distinctAsync()`.
 * Renamed `RealmQuery.distinctValues()` to `RealmQuery.distinct()`
 
 ### Enhancements
