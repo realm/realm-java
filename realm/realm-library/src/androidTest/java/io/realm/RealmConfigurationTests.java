@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -780,6 +781,11 @@ public class RealmConfigurationTests {
 
             @Override
             public <E> Single<RealmQuery<E>> from(DynamicRealm realm, RealmQuery<E> query) {
+                return null;
+            }
+
+            @Override
+            public Completable from(Realm realm, Realm.Transaction transaction) {
                 return null;
             }
         };

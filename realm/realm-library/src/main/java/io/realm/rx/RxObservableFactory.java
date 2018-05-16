@@ -16,6 +16,7 @@
 
 package io.realm.rx;
 
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -236,4 +237,12 @@ public interface RxObservableFactory {
      * @param realm {@link DynamicRealm} instance query is coming from.
      */
     <E> Single<RealmQuery<E>> from(DynamicRealm realm, RealmQuery<E> query);
+
+    /**
+     * Creates a Completable from a {@link io.realm.Realm.Transaction}
+     *
+     * @param realm {@link Realm} instance transaction is invoked on
+     */
+    Completable from(Realm realm, Realm.Transaction transaction);
+
 }

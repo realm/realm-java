@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
@@ -74,6 +75,7 @@ import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
+import io.realm.rx.RxObservableFactory;
 import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.ClassPrivileges;
 import io.realm.sync.permissions.RealmPermissions;
@@ -1584,6 +1586,18 @@ public class Realm extends BaseRealm {
         });
 
         return new RealmAsyncTaskImpl(pendingTransaction, asyncTaskExecutor);
+    }
+
+    /**
+     * Invokes transaction on worker thread and returns Completable
+     *
+     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @return {@link Completable} representing asynchronous transaction
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     */
+    public Completable executeTransactionCompletable(final Transaction transaction) {
+        RxObservableFactory factory = configuration.getRxFactory();
+        return factory.from(this, transaction);
     }
 
     /**

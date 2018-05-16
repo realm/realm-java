@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
@@ -917,6 +918,20 @@ public class RxJavaTests {
 
         subscription.dispose();
         assertTrue(dynamicRealm.isClosed());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void realmObject_asyncTransactionCompletes() {
+        final Realm realm = looperThread.getRealm();
+
+        Completable c = realm.executeTransactionCompletable((transactionRealm) -> transactionRealm.createObject(AllTypes.class));
+
+        subscription = c.subscribe(() -> {
+            assertEquals(1, realm.where(AllTypes.class).count());
+            realm.close();
+            looperThread.testComplete();
+        }, (t) -> fail(t.toString()));
     }
 
     // Tests that Observables keep strong references to their parent, so they are not accidentally GC'ed while

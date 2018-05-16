@@ -20,6 +20,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 import io.reactivex.BackpressureStrategy;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
 import io.reactivex.FlowableOnSubscribe;
@@ -590,6 +591,11 @@ public class RealmObservableFactory implements RxObservableFactory {
     @Override
     public <E> Single<RealmQuery<E>> from(DynamicRealm realm, RealmQuery<E> query) {
         throw new RuntimeException("RealmQuery not supported yet.");
+    }
+
+    @Override
+    public Completable from(Realm realm, Realm.Transaction transaction) {
+        return Completable.create(e -> realm.executeTransactionAsync(transaction, e::onComplete, e::onError));
     }
 
     @Override
