@@ -36,13 +36,13 @@ class FullBuild(project: Project, outputProvider: TransformOutputProvider, trans
 
     override fun prepareOutputClasses(inputs: MutableCollection<TransformInput>) {
         this.inputs = inputs;
-        findClassNames(inputs, outputClassNames, outputReferencedClassNames)
+        categorizeClassNames(inputs, outputClassNames, outputReferencedClassNames)
         logger.debug("Full build. Files being processed: ${outputClassNames.size}.")
     }
 
-    override fun findClassNames(inputs: Collection<TransformInput>,
-                                directoryFiles: MutableSet<String>,
-                                referencedFiles: MutableSet<String>) {
+    override fun categorizeClassNames(inputs: Collection<TransformInput>,
+                                      directoryFiles: MutableSet<String>,
+                                      jarFiles: MutableSet<String>) {
         inputs.forEach {
             it.directoryInputs.forEach {
                 val dirPath: String = it.file.absolutePath
@@ -59,8 +59,6 @@ class FullBuild(project: Project, outputProvider: TransformOutputProvider, trans
                 }
             }
 
-            // Files in Jars are always treated as referenced input. They should already have been
-            // modified by the transformer in the project that built the jar.
             it.jarInputs.forEach {
                 val jarFile = JarFile(it.file)
                 jarFile.entries()
@@ -77,7 +75,7 @@ class FullBuild(project: Project, outputProvider: TransformOutputProvider, trans
                                     .substring(0, path.length - SdkConstants.DOT_CLASS.length)
                                     .replace('/', '.')
                                     .replace('\\', '.')
-                            referencedFiles.add(className)
+                            jarFiles.add(className)
                         }
                 jarFile.close() // Crash transformer if this fails
             }

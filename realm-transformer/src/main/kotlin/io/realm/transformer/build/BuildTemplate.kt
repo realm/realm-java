@@ -49,14 +49,16 @@ abstract class BuildTemplate(val project: Project, val outputProvider: Transform
     abstract fun prepareOutputClasses(inputs: MutableCollection<TransformInput>)
 
     /**
-     * Helper method for going through all `TransformInput` and sort classes into either
-     * the set of files that should be transformed or the set of files that are just references.
+     * Helper method for going through all `TransformInput` and sort classes into buckets of
+     * source files in the current project or source files found in jar files.
      *
      * @param inputs set of input files
-     * @param directoryFiles the set of files in directories getting compiled. These are candidates for the transformer.
-     * @param referencedFiles the set of files that are possible referenced but never transformed (required by JavaAssist).
+     * @param directoryFiles the set of files in directories getting compiled. These are potential
+     * candidates for the transformer.
+     * @param jaFiles the set of files found in jar files. These will never be transformed. This should
+     * already be done when creating the jar file.
      */
-    protected abstract fun findClassNames(inputs: Collection<TransformInput>,
+    protected abstract fun categorizeClassNames(inputs: Collection<TransformInput>,
                                           directoryFiles: MutableSet<String>,
                                           referencedFiles: MutableSet<String>)
 
@@ -69,7 +71,7 @@ abstract class BuildTemplate(val project: Project, val outputProvider: Transform
 
 
     fun prepareReferencedClasses(referencedInputs: Collection<TransformInput>) {
-        findClassNames(referencedInputs, outputReferencedClassNames, outputReferencedClassNames) // referenced files
+        categorizeClassNames(referencedInputs, outputReferencedClassNames, outputReferencedClassNames) // referenced files
 
         // Create and populate the Javassist class pool
         this.classPool = ManagedClassPool(inputs, referencedInputs)
