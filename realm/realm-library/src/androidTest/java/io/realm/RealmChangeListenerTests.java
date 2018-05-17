@@ -29,6 +29,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
 import io.realm.entities.Cat;
+import io.realm.entities.StringOnly;
 import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -271,7 +272,8 @@ public class RealmChangeListenerTests {
     // 1. adding a listener if on the parent
     // 2. modify child
     // 3. listener is triggered (forward link)
-    @Test@RunTestInLooperThread
+    @Test
+    @RunTestInLooperThread
     public void listenerOnParentChangeChild() {
         final long[] nCalls = {0};
         final Realm realm = Realm.getInstance(looperThread.getConfiguration());
@@ -298,5 +300,25 @@ public class RealmChangeListenerTests {
 
         realm.close();
         looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeListenerOnInvalidObjectShouldWarn() {
+        realm = Realm.getInstance(realmConfig);
+        RealmChangeListener<StringOnly> listener = realmModel -> {
+        };
+
+        realm.beginTransaction();
+        StringOnly stringOnly = realm.createObject(StringOnly.class);
+        realm.commitTransaction();
+
+        stringOnly.addChangeListener(listener);
+
+        realm.close();
+
+        assertFalse(stringOnly.isValid());
+        
+        stringOnly.removeChangeListener(listener);
     }
 }
