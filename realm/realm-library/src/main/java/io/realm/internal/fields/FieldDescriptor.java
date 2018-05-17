@@ -15,6 +15,7 @@
  */
 package io.realm.internal.fields;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -286,7 +287,9 @@ public abstract class FieldDescriptor {
         if (lastDotIndex > -1) {
             return Arrays.asList(FIELD_SEPARATOR.split(fieldDescription));
         } else {
-            return Collections.emptyList();
+            ArrayList<String> result = new ArrayList<>(1);
+            result.add(fieldDescription);
+            return result;
         }
     }
 
