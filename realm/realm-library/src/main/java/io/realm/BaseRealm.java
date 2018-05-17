@@ -51,9 +51,7 @@ import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
 import io.realm.sync.permissions.ObjectPrivileges;
-import io.realm.sync.permissions.RealmPermissions;
 import io.realm.sync.permissions.RealmPrivileges;
-import io.realm.sync.permissions.Role;
 
 /**
  * Base class for all Realm instances.
@@ -227,8 +225,10 @@ abstract class BaseRealm implements Closeable {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
-        checkIfValid();
-        sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+        if (isClosed()) {
+            RealmLog.warn("Calling removeChangeListener on a closed Realm %s, " +
+                    "make sure to close all listeners before closing the Realm.", configuration.getPath());
+        }
         //noinspection unchecked
         sharedRealm.realmNotifier.removeChangeListener((T) this, listener);
     }
@@ -260,8 +260,10 @@ abstract class BaseRealm implements Closeable {
      * @see io.realm.RealmChangeListener
      */
     protected void removeAllListeners() {
-        checkIfValid();
-        sharedRealm.capabilities.checkCanDeliverNotification("removeListener cannot be called on current thread.");
+        if (isClosed()) {
+            RealmLog.warn("Calling removeChangeListener on a closed Realm %s, " +
+                    "make sure to close all listeners before closing the Realm.", configuration.getPath());
+        }
         sharedRealm.realmNotifier.removeChangeListeners(this);
     }
 
