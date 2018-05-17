@@ -287,9 +287,7 @@ public abstract class FieldDescriptor {
         if (lastDotIndex > -1) {
             return Arrays.asList(FIELD_SEPARATOR.split(fieldDescription));
         } else {
-            ArrayList<String> result = new ArrayList<>(1);
-            result.add(fieldDescription);
-            return result;
+            return Collections.singletonList(fieldDescription);
         }
     }
 
