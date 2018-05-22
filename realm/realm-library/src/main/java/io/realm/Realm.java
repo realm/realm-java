@@ -1589,13 +1589,13 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Invokes transaction on worker thread and returns Completable
+     * Invokes the transaction on a worker thread wrapping the result as a {@link Completable}.
      *
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
-     * @return {@link Completable} representing asynchronous transaction
+     * @return {@link Completable} representing the asynchronous transaction
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      */
-    public Completable executeTransactionCompletable(final Transaction transaction) {
+    public Completable asCompletable(final Transaction transaction) {
         RxObservableFactory factory = configuration.getRxFactory();
         return factory.from(this, transaction);
     }

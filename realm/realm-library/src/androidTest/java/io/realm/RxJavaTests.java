@@ -922,10 +922,10 @@ public class RxJavaTests {
 
     @Test
     @RunTestInLooperThread
-    public void realmObject_asyncTransactionCompletes() {
+    public void realmObject_transactionAsCompletable() {
         final Realm realm = looperThread.getRealm();
 
-        Completable c = realm.executeTransactionCompletable((transactionRealm) -> transactionRealm.createObject(AllTypes.class));
+        Completable c = realm.asCompletable((transactionRealm) -> transactionRealm.createObject(AllTypes.class));
 
         subscription = c.subscribe(() -> {
             assertEquals(1, realm.where(AllTypes.class).count());
