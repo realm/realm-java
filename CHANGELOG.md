@@ -6,6 +6,13 @@
 * [ObjectServer] `SyncConfiguration.isPartialRealm()` has been replaced by `SyncConfiguration.isFullySynchronizedRealm()`.
 
 
+## 5.1.1 (YYYY-MM-DD)
+
+### Enhancements
+
+* Improved speed and allocations when parsing field descriptions in queries (#5547).
+
+
 ## 5.1.0 (2018-04-25)
 
 ### Enhancements
