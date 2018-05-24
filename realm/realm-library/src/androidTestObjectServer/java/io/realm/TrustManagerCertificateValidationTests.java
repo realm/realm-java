@@ -4,6 +4,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -26,6 +27,7 @@ public class TrustManagerCertificateValidationTests {
     //            adb push <realm-java>/tools/sync_test_server/keys/android_test_certificate.crt /sdcard/
     //            then import the certificate from the device (Settings/Security/Install from storage)
     @Test
+    @Ignore("Root certificate have expired. Replace with newer one. https://github.com/realm/realm-java/issues/5970")
     public void sslVerifyCallback_certificateChainWithRootCAInstalledShouldValidate() {
         // simulating the following certificate chain
         // ---
@@ -109,6 +111,7 @@ public class TrustManagerCertificateValidationTests {
     }
 
     @Test
+    @Ignore("Root certificate have expired. Replace with newer one. https://github.com/realm/realm-java/issues/5970")
     public void sslVerifyCallback_shouldVerifyHostname() {
         // simulating the following certificate chain
         // ---
