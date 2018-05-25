@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -34,7 +33,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
-import io.realm.annotations.Beta;
+import io.reactivex.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
@@ -50,8 +49,7 @@ import io.realm.rx.RxObservableFactory;
  * Object Server.
  * <p>
  * A valid {@link SyncUser} is required to create a {@link SyncConfiguration}. See {@link SyncCredentials} and
- * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)} for more information on
- * how to get a user object.
+ * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)} for more information on how to get a user object.
  * <p>
  * A minimal {@link SyncConfiguration} can be found below.
  * <pre>
@@ -206,69 +204,6 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Creates an automatic default configuration based on the the currently logged in user.
-     * <p>
-     * This configuration will point to the default Realm on the server where the user was
-     * authenticated.
-     *
-     * @throws IllegalStateException if no user are logged in, or multiple users have. Only one should
-     * be logged in when calling this method.
-     * @return The constructed {@link SyncConfiguration}.
-     */
-    @Beta
-    public static SyncConfiguration automatic() {
-        SyncUser user = SyncUser.current();
-        if (user == null) {
-            throw new IllegalStateException("No user was logged in.");
-        }
-        return getDefaultConfig(user);
-    }
-
-    /**
-     * Creates an automatic default configuration for the provided user.
-     * <p>
-     * This configuration will point to the default Realm on the server where the user was
-     * authenticated.
-     *
-     * @throws IllegalArgumentException if no user was provided or the user isn't valid.
-     * @return The constructed {@link SyncConfiguration}.
-     */
-    @Beta
-    public static SyncConfiguration automatic(SyncUser user) {
-        if (user == null) {
-            throw new IllegalArgumentException("Non-null 'user' required.");
-        }
-        if (!user.isValid()) {
-            throw new IllegalArgumentException("User is no logger valid.  Log the user in again.");
-        }
-        return getDefaultConfig(user);
-    }
-
-    private static SyncConfiguration getDefaultConfig(SyncUser user) {
-        return new SyncConfiguration.Builder(user, createUrl(user))
-                .build();
-    }
-
-    // Infer the URL to the default Realm based on the server used to login the user
-    private static String createUrl(SyncUser user) {
-        URL url = user.getAuthenticationUrl();
-        String protocol = url.getProtocol();
-        String host = url.getHost();
-        int port = url.getPort();
-        if (port != -1) { // port set
-            host += ":" + port;
-        }
-
-        if (protocol.equalsIgnoreCase("https")) {
-            protocol = "realms";
-        } else {
-            protocol = "realm";
-        }
-
-        return protocol + "://" + host + "/default";
-    }
-
-    /**
      * Returns a {@link RealmConfiguration} appropriate to open a read-only, non-synced Realm to recover any pending changes.
      * This is useful when trying to open a backup/recovery Realm (after a client reset).
      *
@@ -292,6 +227,49 @@ public class SyncConfiguration extends RealmConfiguration {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Could not replace '/~/' with a valid user ID.", e);
         }
+    }
+
+    /**
+     * Creates an automatic default configuration based on the the currently logged in user.
+     * <p>
+     * This configuration will point to the default Realm on the server where the user was
+     * authenticated.
+     *
+     * @throws IllegalStateException if no user are logged in, or multiple users have. Only one should
+     * be logged in when calling this method.
+     * @return The constructed {@link SyncConfiguration}.
+     * @deprecated use {@link SyncUser#getDefaultConfiguration()} instead.
+     */
+    @Deprecated
+    @Beta
+    public static SyncConfiguration automatic() {
+        SyncUser user = SyncUser.current();
+        if (user == null) {
+            throw new IllegalStateException("No user was logged in.");
+        }
+        return user.getDefaultConfiguration();
+    }
+
+    /**
+     * Creates an automatic default configuration for the provided user.
+     * <p>
+     * This configuration will point to the default Realm on the server where the user was
+     * authenticated.
+     *
+     * @throws IllegalArgumentException if no user was provided or the user isn't valid.
+     * @return The constructed {@link SyncConfiguration}.
+     * @deprecated use {@link SyncUser#getDefaultConfiguration()} instead.
+     */
+    @Deprecated
+    @Beta
+    public static SyncConfiguration automatic(SyncUser user) {
+        if (user == null) {
+            throw new IllegalArgumentException("Non-null 'user' required.");
+        }
+        if (!user.isValid()) {
+            throw new IllegalArgumentException("User is no logger valid.  Log the user in again.");
+        }
+        return user.getDefaultConfiguration();
     }
 
     // Extract the full server path, minus the file name
@@ -451,6 +429,20 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
+     * Whether this configuration is for a query-based Realm.
+     * <p>
+     * Query-based synchronization allows a synchronized Realm to be opened in such a way that
+     * only objects queried by the user are synchronized to the device.
+     *
+     * @return {@code true} to open a query-based Realm {@code false} otherwise.
+     * @deprecated use {@link #isFullySynchronizedRealm()} instead.
+     */
+    @Deprecated
+    public boolean isPartialRealm() {
+        return isPartial;
+    }
+
+    /**
      * Returns whether this configuration is for a fully synchronized Realm or not.
      *
      * @see Builder#fullSynchronization() for more details.
@@ -496,7 +488,8 @@ public class SyncConfiguration extends RealmConfiguration {
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         private boolean isPartial = true; // Partial Synchronization is enabled by default
         /**
-         * Creates an instance of the Builder for the SyncConfiguration.
+         * Creates an instance of the Builder for the SyncConfiguration. This SyncConfiguration
+         * will be for a fully synchronized Realm.
          * <p>
          * Opening a synchronized Realm requires a valid user and an unique URI that identifies that Realm. In URIs,
          * {@code /~/} can be used as a placeholder for a user ID in case the Realm should only be available to one
@@ -521,9 +514,12 @@ public class SyncConfiguration extends RealmConfiguration {
          *            assume the file is located on the same server returned by {@link SyncUser#getAuthenticationUrl()}.
          *
          * @see SyncUser#isValid()
+         * @deprecated Use {@link SyncUser#createConfiguration(String)} instead.
          */
+        @Deprecated
         public Builder(SyncUser user, String uri) {
             this(BaseRealm.applicationContext, user, uri);
+            fullSynchronization();
         }
 
         Builder(Context context, SyncUser user, String url) {
@@ -958,14 +954,24 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Setting this will open a query-based Realm.
+         *
+         * @see #isPartialRealm()
+         * @deprecated Use {@link SyncUser#createConfiguration(String)} instead.
+         */
+        @Deprecated
+        public SyncConfiguration.Builder partialRealm() {
+            this.isPartial = true;
+            return this;
+        }
+
+        /**
          * Define this Realm as a fully synchronized Realm.
          * <p>
          * Full synchronization, unlike the default query-based synchronization, will transparently
          * synchronize the entire Realm without needing to query for the data. This option is
          * useful if the serverside Realm is small and all the data in the Realm should be
          * available to the user.
-         *
-         * @see #isFullySynchronizedRealm() ()
          */
         public SyncConfiguration.Builder fullSynchronization() {
             this.isPartial = false;

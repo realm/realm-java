@@ -68,7 +68,7 @@ public class ObjectLevelPermissionsTest {
     @Before
     public void setUp() {
         user = createTestUser();
-        configuration = new SyncConfiguration.Builder(user, REALM_URI)
+        configuration = user.createConfiguration(REALM_URI)
                 .modules(new TestModule())
                 .build();
         realm = Realm.getInstance(configuration);

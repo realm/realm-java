@@ -399,13 +399,13 @@ public class AuthTests extends StandardIntegrationTest {
         SyncCredentials credentials = SyncCredentials.usernamePassword(username, password, true);
         final SyncUser user = spy(SyncUser.logIn(credentials, Constants.AUTH_URL));
 
-        when(user.isValid()).thenReturn(true, false);
+        when(user.isValid()).thenReturn(true, true, false);
 
         final RealmConfiguration configuration = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM).build();
         Realm realm = Realm.getInstance(configuration);
 
         assertFalse(user.isValid());
-        verify(user, times(2)).isValid();
+        verify(user, times(3)).isValid();
 
         final CountDownLatch backgroundThread = new CountDownLatch(1);
         // Should not throw when using an expired refresh_token form a different thread
@@ -446,7 +446,7 @@ public class AuthTests extends StandardIntegrationTest {
             // We should not be able to build a configuration with an invalid/logged out user
             configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM).build();
             fail("Invalid user, it should not be possible to create a SyncConfiguration");
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalStateException expected) {
             // User not authenticated or authentication expired.
         }
 
@@ -454,7 +454,7 @@ public class AuthTests extends StandardIntegrationTest {
             // We should not be able to build a configuration with an invalid/logged out user
             configurationFactory.createSyncConfigurationBuilder(currentUser, Constants.USER_REALM).build();
             fail("Invalid currentUser, it should not be possible to create a SyncConfiguration");
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalStateException expected) {
             // User not authenticated or authentication expired.
         }
     }

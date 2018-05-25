@@ -118,7 +118,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 assertInitialPermissions(permissions);
 
                 // Create new Realm, which should create a new Permission entry
-                SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM_2)
+                SyncConfiguration config2 = user.createConfiguration(Constants.USER_REALM_2)
                         .schema(AllJavaTypes.class)
                         .errorHandler(new SyncSession.ErrorHandler() {
                             @Override
@@ -166,7 +166,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 assertInitialPermissions(permissions);
 
                 for (int i = 0; i < TEST_SIZE; i++) {
-                    SyncConfiguration configNew = new SyncConfiguration.Builder(user, "realm://" + Constants.HOST + "/~/test" + i)
+                    SyncConfiguration configNew = user.createConfiguration("realm://" + Constants.HOST + "/~/test" + i)
                             .schema(AllJavaTypes.class)
                             .build();
                     Realm newRealm = Realm.getInstance(configNew);
@@ -776,7 +776,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
             public void onSuccess() {
                 // Default permissions are not recorded in the __permission Realm for user2
                 // Only way to check is by opening the Realm.
-                SyncConfiguration config = new SyncConfiguration.Builder(user2, url)
+                SyncConfiguration config = user2.createConfiguration(url)
                         .schema(AllJavaTypes.class)
                         .waitForInitialRemoteData()
                         .errorHandler(new SyncSession.ErrorHandler() {
@@ -1184,7 +1184,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
      */
     private String createRemoteRealm(SyncUser user, String realmName) {
         String url = Constants.AUTH_SERVER_URL + "~/" + realmName;
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+        SyncConfiguration config = user.createConfiguration(url)
                 .name(realmName)
                 .schema(AllJavaTypes.class)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
