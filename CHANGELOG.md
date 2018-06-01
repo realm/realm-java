@@ -1,8 +1,26 @@
+## 5.2.0 (YYYY-MM-DD)
+
+The feature previously named Partial Sync is now called Query-Based Sync and is now the default mode when synchronizing Realms.
+This has impacted a number of API's. See below for the details.
+
+### Deprecated
+
+* [ObjectServer] `SyncConfiguration.automatic()` has been removed in favour of `SyncUser.getDefaultConfiguration()`.
+* [ObjectServer] `new SyncConfiguration.Builder(user, url)` has been deprecated in favour of `SyncUser.createConfiguration(url)`. NOTE: Creating configurations using `SyncUser` will default to using query-based Realms, while creating them using `new SyncConfiguration.Builder(user, url)` will default to fully synchronized Realms.
+* [ObjectServer] With query-based sync being the default `SyncConfiguration.Builder.partialRealm()` has been deprecated. Use ``SyncConfiguration.Builder.fullSynchronization()` if you want full synchronisation instead.
+
+### Enhancements
+
+* [ObjectServer] Added `SyncUser.createConfiguration(url)`. Realms created this way are query-based Realms by default.
+* [ObjectServer] Added `SyncUser.getDefaultConfiguration()`.
+
+
 ## 5.1.1 (YYYY-MM-DD)
 
 ### Enhancements
 
 * Improved speed and allocations when parsing field descriptions in queries (#5547).
+
 
 ## 5.1.0 (2018-04-25)
 

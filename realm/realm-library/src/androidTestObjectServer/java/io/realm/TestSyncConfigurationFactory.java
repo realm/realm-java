@@ -27,7 +27,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 public class TestSyncConfigurationFactory extends TestRealmConfigurationFactory {
 
     public SyncConfiguration.Builder createSyncConfigurationBuilder(SyncUser user, String url) {
-        return new SyncConfiguration.Builder(user, url)
+        return user.createConfiguration(url)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .addModule(new ObjectPermissionsModule())
                 .directory(getRoot());

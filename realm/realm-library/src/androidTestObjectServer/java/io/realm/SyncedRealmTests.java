@@ -62,7 +62,6 @@ public class SyncedRealmTests {
 
     private Realm getPartialRealm() {
         SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/fullsync")
-                .partialRealm()
                 .build();
         realm = Realm.getInstance(config);
         return realm;
@@ -70,6 +69,7 @@ public class SyncedRealmTests {
 
     private Realm getFullySyncRealm() {
         SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/fullsync")
+                .fullSynchronization()
                 .build();
         realm = Realm.getInstance(config);
         return realm;

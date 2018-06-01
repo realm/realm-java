@@ -94,7 +94,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
             String rosSerializedUser = user.toJson();
             byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
-            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath(), sessionStopPolicy, syncConfig.isPartialRealm()};
+            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath(), sessionStopPolicy, !syncConfig.isFullySynchronizedRealm()};
         } else {
             return new Object[8];
         }
@@ -180,7 +180,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public boolean isPartialRealm(RealmConfiguration configuration) {
         if (configuration instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            return syncConfig.isPartialRealm();
+            return !syncConfig.isFullySynchronizedRealm();
         }
         
         return false;

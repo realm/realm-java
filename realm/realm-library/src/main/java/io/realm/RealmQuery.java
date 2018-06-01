@@ -1769,11 +1769,8 @@ public class RealmQuery<E> {
     /**
      * Finds all objects that fulfill the query conditions. This method is only available from a Looper thread.
      * <p>
-     * On partially synchronized Realms, defined by setting {@link SyncConfiguration.Builder#partialRealm()},
-     * this method will also create an anonymous subscription that will download all server data matching
-     * the query.
-     * </p>
-     *
+     * If the Realm is a Query-based synchronized Realms, this method will also create an anonymous subscription
+     * that will download all server data matching the query.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
@@ -1797,14 +1794,14 @@ public class RealmQuery<E> {
     /**
      * Finds all objects that fulfill the query condition(s). This method is only available from a Looper thread.
      * <p>
-     * This method is only available on partially synchronized Realms and will also create a named subscription
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
      * that will synchronize all server data matching the query. Named subscriptions can be removed again by
      * calling {@code Realm.unsubscribe(subscriptionName}.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @see io.realm.RealmResults
-     * @throws IllegalStateException If the Realm is a not a partially synchronized Realm.
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm.
      */
     public RealmResults<E> findAllAsync(String subscriptionName) {
         realm.checkIfValid();
