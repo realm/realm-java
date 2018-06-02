@@ -70,14 +70,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedPro
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedLinkProperty(JNIEnv* env, jclass,
                                                                                           jstring j_name_str,
                                                                                           jint type,
-                                                                                          jstring j_target_class_name)
+                                                                                          jstring j_target_class_name,
+                                                                                          jboolean is_strong_reference)
 {
     TR_ENTER()
     try {
         JStringAccessor name(env, j_name_str);
         JStringAccessor link_name(env, j_target_class_name);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
-        return reinterpret_cast<jlong>(new Property(name, p_type, link_name));
+        Relationship relationship = (is_strong_reference) ? Relationship::Strong : Relationship::Weak;
+        return reinterpret_cast<jlong>(new Property(name, p_type, link_name, relationship));
     }
     CATCH_STD()
     return 0;

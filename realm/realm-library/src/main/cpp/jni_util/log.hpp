@@ -27,7 +27,6 @@
 #include "io_realm_log_LogLevel.h"
 
 #include "realm/util/logger.hpp"
-
 #define TR_ENTER()                                                                                                   \
     if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) {                                              \
         realm::jni_util::Log::t(" --> %1", __FUNCTION__);                                                            \

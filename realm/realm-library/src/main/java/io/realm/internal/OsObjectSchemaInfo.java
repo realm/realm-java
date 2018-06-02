@@ -90,9 +90,12 @@ public class OsObjectSchemaInfo implements NativeObject {
          * {@link RealmFieldType#LIST}.
          * @return this {@code OsObjectSchemaInfo.Builder}.
          */
-        public Builder addPersistedLinkProperty(String name, RealmFieldType type, String linkedClassName) {
+        public Builder addPersistedLinkProperty(String name,
+                                                RealmFieldType type,
+                                                String linkedClassName,
+                                                boolean isStrongRelationship) {
             long propertyPtr = Property.nativeCreatePersistedLinkProperty(name,
-                    Property.convertFromRealmFieldType(type, false), linkedClassName);
+                    Property.convertFromRealmFieldType(type, false), linkedClassName, isStrongRelationship);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;
             return this;

@@ -210,7 +210,7 @@ public class Property implements NativeObject {
     static native long nativeCreatePersistedProperty(
             String name, int type, boolean isPrimary, boolean isIndexed);
 
-    static native long nativeCreatePersistedLinkProperty(String name, int type, String linkedToName);
+    static native long nativeCreatePersistedLinkProperty(String name, int type, String linkedToName, boolean isStrongRelationship);
 
     static native long nativeCreateComputedLinkProperty(
             String name, String sourceClassName, String sourceFieldName);

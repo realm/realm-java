@@ -48,6 +48,7 @@ import io.realm.annotations.RealmClass;
 import io.realm.annotations.RealmField;
 import io.realm.annotations.RealmNamingPolicy;
 import io.realm.annotations.Required;
+import io.realm.annotations.StrongRelationship;
 import io.realm.processor.nameconverter.NameConverter;
 
 
@@ -65,7 +66,7 @@ public class ClassMetaData {
     private final Set<Backlink> backlinks = new HashSet<Backlink>();
     private final Set<RealmFieldElement> nullableFields = new HashSet<RealmFieldElement>(); // Set of fields which can be nullable
     private final Set<RealmFieldElement> nullableValueListFields = new HashSet<RealmFieldElement>(); // Set of fields whose elements can be nullable
-
+    private final Set<VariableElement> strongReferences = new HashSet<>(); // Set of fields whose elements have strong references
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
@@ -169,6 +170,10 @@ public class ClassMetaData {
 
     public Set<Backlink> getBacklinkFields() {
         return Collections.unmodifiableSet(backlinks);
+    }
+
+    public boolean isStrongReference(VariableElement field) {
+        return strongReferences.contains(field);
     }
 
     public String getInternalGetter(String fieldName) {
@@ -556,11 +561,20 @@ public class ClassMetaData {
             }
         }
 
+        // Check that @RealmField is used on the correct fields.
+        if (field.getAnnotation(StrongRelationship.class) != null) {
+            if (!Utils.isRealmModel(field) && !Utils.isRealmModelList(field)) {
+                Utils.error("@RealmField is only allowed on fields that reference either other Realm model classes or lists of model classes.");
+                return false;
+            }
+            strongReferences.add(field);
+        }
+
         if (field.getAnnotation(PrimaryKey.class) != null) {
             if (!categorizePrimaryKeyField(field)) { return false; }
         }
 
-        // @LinkingObjects cannot be @PrimaryKey or @Index.
+        // @LinkingObjects cannot be a Strong reference, @PrimaryKey or @Index.
         if (field.getAnnotation(LinkingObjects.class) != null) {
             // Do not add backlinks to fields list.
             return categorizeBacklinkField(field);
