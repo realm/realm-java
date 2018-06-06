@@ -19,6 +19,7 @@ package io.realm;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,7 +45,6 @@ import io.realm.internal.network.ChangePasswordResponse;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.LogoutResponse;
 import io.realm.internal.network.LookupUserIdResponse;
-import io.realm.internal.network.UpdateAccountRequest;
 import io.realm.internal.network.UpdateAccountResponse;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
@@ -66,6 +66,7 @@ public class SyncUser {
     private final URL authenticationUrl;
     // maps all RealmConfiguration and accessToken, using this SyncUser.
     private final Map<SyncConfiguration, Token> realms = new HashMap<SyncConfiguration, Token>();
+    private SyncConfiguration defaultConfiguration;
 
     SyncUser(Token refreshToken, URL authenticationUrl) {
         this.identity = refreshToken.identity();
@@ -210,6 +211,79 @@ public class SyncUser {
                 return logIn(credentials, authenticationUrl);
             }
         }.start();
+    }
+
+    /**
+     * Opening a synchronized Realm requires a {@link SyncConfiguration}. This method creates a
+     * {@link SyncConfiguration.Builder} that can be used to create it by calling {@link SyncConfiguration.Builder#build()}.
+     * <p>
+     * The default synchronization mode for this Realm is <a href="https://docs.realm.io/platform/using-synced-realms/syncing-data">query-based synchronizaton</a>,
+     * but see the {@link SyncConfiguration.Builder} class for more details on how to configure a Realm.
+     * <p>
+     * A synchronized Realm is identified by an unique URI. In the URI, {@code /~/} can be used as a placeholder for
+     * a user ID in case the Realm should only be available to one user e.g., {@code "realm://objectserver.realm.io/~/default"}.
+     * <p>
+     * The URL cannot end with {@code .realm}, {@code .realm.lock} or {@code .realm.management}.
+     * <p>
+     * The {@code /~/} will automatically be replaced with the user ID when creating the {@link SyncConfiguration}.
+     * <p>
+     * Moreover, the URI defines the local location on disk. The location of a synchronized Realm file is
+     * {@code /data/data/<packageName>/files/realm-object-server/<user-id>/<last-path-segment>}, but this behavior
+     * can be overwritten using {@link SyncConfiguration.Builder#name(String)} and {@link SyncConfiguration.Builder#directory(File)}.
+     * <p>
+     * Many Android devices are using FAT32 file systems. FAT32 file systems have a limitation that
+     * file names cannot be longer than 255 characters. Moreover, the entire URI should not exceed 256 characters.
+     * If the file name and underlying path are too long to handle for FAT32, a shorter unique name will be generated.
+     * See also @{link https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx}.
+     *
+     * @param uri URI identifying the Realm. If only a path like {@code /~/default} is given, the configuration will
+     *            assume the file is located on the same server returned by {@link #getAuthenticationUrl()}.
+     *
+     * @throws IllegalStateException if the user isn't valid. See {@link #isValid()}.
+     */
+    public SyncConfiguration.Builder createConfiguration(String uri) {
+        if (!isValid()) {
+            throw new IllegalStateException("Configurations can only be created from valid users");
+        }
+        return new SyncConfiguration.Builder(this, uri).partialRealm();
+    }
+
+    /**
+     * Returns the default configuration for this user. The default configuration points to the
+     * default query-based Realm on the server the user authenticated against.
+     *
+     * @return the default configuration for this user.
+     * @throws IllegalStateException if the user isn't valid. See {@link #isValid()}.
+     */
+    public SyncConfiguration getDefaultConfiguration() {
+        if (!isValid()) {
+            throw new IllegalStateException("The default configuration can only be created for users that are logged in.");
+        }
+        if (defaultConfiguration == null) {
+            defaultConfiguration = new SyncConfiguration.Builder(this, createUrl(this))
+                    .partialRealm()
+                    .build();
+        }
+        return defaultConfiguration;
+    }
+
+    // Infer the URL to the default Realm based on the server used to login the user
+    private static String createUrl(SyncUser user) {
+        URL url = user.getAuthenticationUrl();
+        String protocol = url.getProtocol();
+        String host = url.getHost();
+        int port = url.getPort();
+        if (port != -1) { // port set
+            host += ":" + port;
+        }
+
+        if (protocol.equalsIgnoreCase("https")) {
+            protocol = "realms";
+        } else {
+            protocol = "realm";
+        }
+
+        return protocol + "://" + host + "/default";
     }
 
     /**

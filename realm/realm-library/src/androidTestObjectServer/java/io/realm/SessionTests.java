@@ -65,7 +65,7 @@ public class SessionTests {
     @Before
     public void setUp() {
         user = createTestUser();
-        configuration = new SyncConfiguration.Builder(user, REALM_URI).addModule(new ObjectPermissionsModule()).build();
+        configuration = user.createConfiguration(REALM_URI).addModule(new ObjectPermissionsModule()).build();
     }
 
     @Test
