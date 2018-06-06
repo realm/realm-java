@@ -155,7 +155,7 @@ class BytecodeModifierTest extends Specification {
         BytecodeModifier.addRealmAccessors(ctClass)
 
         when: 'the field use is replaced by the accessor'
-        BytecodeModifier.useRealmAccessors(ctClass, [ctField])
+        BytecodeModifier.useRealmAccessors(classPool, ctClass, [ctField])
 
         then: 'the field is not used and getter is called in the method '
         !isFieldRead(ctMethod) && hasMethodCall(ctMethod)
@@ -186,7 +186,7 @@ class BytecodeModifierTest extends Specification {
         BytecodeModifier.addRealmAccessors(ctClass)
 
         when: 'the field use is replaced by the accessor'
-        BytecodeModifier.useRealmAccessors(ctClass, [ctField])
+        BytecodeModifier.useRealmAccessors(classPool, ctClass, [ctField])
 
         then: 'the field is not used in the method anymore'
         !isFieldRead(ctDefaultConstructor) && hasMethodCall(ctDefaultConstructor) &&

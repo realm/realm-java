@@ -13,6 +13,15 @@ This has impacted a number of API's. See below for the details.
 
 * [ObjectServer] Added `SyncUser.createConfiguration(url)`. Realms created this way are query-based Realms by default.
 * [ObjectServer] Added `SyncUser.getDefaultConfiguration()`.
+* The Realm bytecode transformer now supports incremental builds (#3034).
+
+### Bug Fixes
+
+* Having files that ends with `RealmProxy` will no longer break the Realm Transformer (#3709).
+
+### Internal
+
+* Module mediator classes being generated now produces a stable output enabling better support for incremental builds (#3034).
 
 
 ## 5.1.1 (YYYY-MM-DD)
