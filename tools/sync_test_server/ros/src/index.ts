@@ -90,6 +90,8 @@ server.start({
         // read more at https://docs.realm.io/platform/learn/advanced/log-compaction
         // maxDownloadSize?: number 16000000 (16 megabytes)
         // maxDownloadSize: 16000000
+
+        featureToken: "%REALM_FEATURE_TOKEN%"
     })
     .then(() => {
         console.log(`Realm Object Server was started on ${server.address}`)

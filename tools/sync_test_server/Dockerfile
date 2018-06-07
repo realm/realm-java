@@ -5,6 +5,7 @@ RUN cp /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
 RUN echo "Europe/Copenhagen" >  /etc/timezone
 
 ARG ROS_VERSION
+ARG REALM_FEATURE_TOKEN
 
 # Install netstat (used for debugging)
 RUN apt-get update \
@@ -18,6 +19,7 @@ RUN apt-get update \
 COPY ros /ros
 WORKDIR "/ros"
 RUN sed -i -e "s/%ROS_VERSION%/$ROS_VERSION/g" package.json
+RUN sed -i -e "s/%REALM_FEATURE_TOKEN%/$REALM_FEATURE_TOKEN/g" src/index.ts
 RUN npm install
 WORKDIR "/"
 
