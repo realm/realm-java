@@ -35,6 +35,10 @@ using namespace realm::jni_util;
 using namespace realm::sync;
 using namespace realm::_impl;
 
+static_assert(SyncSession::PublicState::Initial ==
+              static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_INITIAL),
+              "");
+
 static_assert(SyncSession::PublicState::WaitingForAccessToken ==
                   static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
               "");
@@ -46,9 +50,6 @@ static_assert(SyncSession::PublicState::Dying ==
               "");
 static_assert(SyncSession::PublicState::Inactive ==
                   static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_INACTIVE),
-              "");
-static_assert(SyncSession::PublicState::Error ==
-                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_ERROR),
               "");
 
 JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv* env, jclass,
@@ -221,6 +222,8 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jc
 
         if (session) {
             switch (session->state()) {
+                case SyncSession::PublicState::Initial:
+                    return io_realm_SyncSession_STATE_VALUE_INITIAL;
                 case SyncSession::PublicState::WaitingForAccessToken:
                     return io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN;
                 case SyncSession::PublicState::Active:
@@ -229,11 +232,77 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jc
                     return io_realm_SyncSession_STATE_VALUE_DYING;
                 case SyncSession::PublicState::Inactive:
                     return io_realm_SyncSession_STATE_VALUE_INACTIVE;
-                case SyncSession::PublicState::Error:
-                    return io_realm_SyncSession_STATE_VALUE_ERROR;
             }
         }
     }
     CATCH_STD()
     return -1;
+}
+
+static jlong get_state_value(SyncSession::PublicState state) {
+    switch (state) {
+        case SyncSession::PublicState::Initial: return static_cast<jlong>(0);
+        case SyncSession::PublicState::WaitingForAccessToken: return static_cast<jlong>(1);
+        case SyncSession::PublicState::Active: return static_cast<jlong>(2);
+        case SyncSession::PublicState::Dying: return static_cast<jlong>(3);
+        case SyncSession::PublicState::Inactive: return static_cast<jlong>(4);
+    }
+    return static_cast<jlong>(-1);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddStateListener(JNIEnv* env, jclass, jstring j_local_realm_path)
+{
+    try {
+        // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
+        std::string local_realm_path(JStringAccessor(env, j_local_realm_path));
+        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_session(local_realm_path);
+        if (!session) {
+            // FIXME: We should lift this restriction
+            ThrowException(env, IllegalState,
+            "Cannot register a state listener before a session is "
+            "created. A session will be created after the first call to Realm.getInstance().");
+            return 0;
+        }
+
+        static JavaClass java_syncmanager_class(env, "io/realm/SyncManager");
+        static JavaMethod java_notify_state_listener(env, java_syncmanager_class, "notifyStateListener", "(Ljava/lang/String;JJ)V", true);
+
+        std::function<SyncSession::SyncSessionStateCallback> callback = [local_realm_path](SyncSession::PublicState old_state, SyncSession::PublicState new_state) {
+            JNIEnv* local_env = jni_util::JniUtils::get_env(true);
+
+            jlong old_state_value = get_state_value(old_state);
+            jlong new_state_value = get_state_value(new_state);
+
+            JavaLocalRef<jstring> path(local_env, to_jstring(local_env, local_realm_path));
+            local_env->CallStaticVoidMethod(java_syncmanager_class, java_notify_state_listener, path.get(),
+                                        old_state_value, new_state_value);
+
+            // All exceptions will be caught on the Java side of handlers, but Errors will still end
+            // up here, so we need to do something sensible with them.
+            // Throwing a C++ exception will terminate the sync thread and cause the pending Java
+            // exception to become visible. For some (unknown) reason Logcat will not see the C++
+            // exception, only the Java one.
+            if (local_env->ExceptionCheck()) {
+                local_env->ExceptionDescribe();
+                throw std::runtime_error("An unexpected Error was thrown from Java. See LogCat");
+            }
+        };
+        uint64_t token = session->register_state_change_callback(callback);
+        return static_cast<jlong>(token);
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveStateListener(JNIEnv* env, jclass, jstring j_local_realm_path, jlong listener_id)
+{
+    try {
+        // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
+        std::string local_realm_path(JStringAccessor(env, j_local_realm_path));
+        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_session(local_realm_path);
+        if (session) {
+            session->unregister_state_change_callback(static_cast<uint64_t>(listener_id));
+        }
+    }
+    CATCH_STD()
 }

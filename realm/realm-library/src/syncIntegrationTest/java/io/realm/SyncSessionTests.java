@@ -18,6 +18,8 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
+
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.OsRealmConfig;
@@ -510,4 +512,20 @@ public class SyncSessionTests extends StandardIntegrationTest {
         SyncManager.simulateClientReset(SyncManager.getSession(config));
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void registerStateListener() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        SyncConfiguration syncConfiguration = configFactory
+                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .build();
+        Realm realm = Realm.getInstance(syncConfiguration);
+        SyncSession session = SyncManager.getSession(syncConfiguration);
+        session.addStateChangeListener(new SessionStateListener() {
+            @Override
+            public void onChange(@Nullable SessionState oldState, SessionState newState) {
+                RealmLog.error(oldState.toString() + ", " + newState.toString());
+            }
+        });
+    }
 }

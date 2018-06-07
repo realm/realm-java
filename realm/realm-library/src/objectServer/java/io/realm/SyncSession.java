@@ -26,6 +26,7 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
@@ -94,20 +95,30 @@ public class SyncSession {
     // we register the listener.
     private final AtomicLong progressListenerId = new AtomicLong(-1);
 
+    // List of Java state change listeners
+    private final CopyOnWriteArrayList<SessionStateListener> sessionStateListeners = new CopyOnWriteArrayList<>();
+
+    // Reference to the token representing the native state change
+    // Only one listener is used for all Java listeners.
+    private long nativeStateListenerToken;
+
     // represent different states as defined in SyncSession::PublicState 'sync_session.hpp'
-    private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 0;
-    private static final byte STATE_VALUE_ACTIVE = 1;
-    private static final byte STATE_VALUE_DYING = 2;
-    private static final byte STATE_VALUE_INACTIVE = 3;
-    private static final byte STATE_VALUE_ERROR = 4;
+    private static final byte STATE_VALUE_INITIAL = 0;
+    private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 1;
+    private static final byte STATE_VALUE_ACTIVE = 2;
+    private static final byte STATE_VALUE_DYING = 3;
+    private static final byte STATE_VALUE_INACTIVE = 4;
+    private static final byte STATE_VALUE_ERROR = 5;
 
     private URI resolvedRealmURI;
 
     public enum State {
+        INITIAL(STATE_VALUE_INITIAL),
         WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
         ACTIVE(STATE_VALUE_ACTIVE),
         DYING(STATE_VALUE_DYING),
         INACTIVE(STATE_VALUE_INACTIVE),
+        @Deprecated
         ERROR(STATE_VALUE_ERROR);
 
         final byte value;
@@ -210,7 +221,14 @@ public class SyncSession {
             RealmLog.debug("Trying unknown listener failed: " + listenerId);
         }
     }
-    
+
+    void notifySessionStateListeners(SessionState oldState, SessionState newState) {
+        for (SessionStateListener listener : sessionStateListeners) {
+            listener.onChange(oldState, newState);
+        }
+    }
+
+
     /**
      * Adds a progress listener tracking changes that need to be downloaded from the Realm Object
      * Server.
@@ -294,6 +312,30 @@ public class SyncSession {
         //noinspection ConstantConditions
         if (mode == null) {
             throw new IllegalArgumentException("Non-null 'mode' required.");
+        }
+    }
+
+    /**
+     * FIXME
+     *
+     * @param listener
+     */
+    public synchronized void addStateChangeListener(SessionStateListener listener) {
+        if (sessionStateListeners.isEmpty()) {
+            nativeStateListenerToken = nativeAddStateListener(configuration.getPath());
+        }
+        sessionStateListeners.add(listener);
+    }
+
+    /**
+     * FIXME
+     *
+     * @param listener
+     */
+    public synchronized void removeStateChangeListener(SessionStateListener listener) {
+        sessionStateListeners.remove(listener);
+        if (sessionStateListeners.isEmpty()) {
+            nativeRemoveStateListener(configuration.getPath(), nativeStateListenerToken);
         }
     }
 
@@ -712,6 +754,8 @@ public class SyncSession {
         }
     }
 
+    private static native long nativeAddStateListener(String localRealmPath);
+    private static native void nativeRemoveStateListener(String localRealmPath, long listenerId);
     private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
     private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);

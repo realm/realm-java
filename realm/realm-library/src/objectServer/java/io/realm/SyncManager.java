@@ -401,6 +401,22 @@ public class SyncManager {
     }
 
     /**
+     * Called from native code. This method is not allowed to throw as it would be swallowed
+     * by the native Sync Client thread. Instead log all exceptions to logcat.
+     */
+    @SuppressWarnings("unused")
+    private static synchronized void notifySessionStateListener(String localRealmPath, long oldState, long newState) {
+        SyncSession session = sessions.get(localRealmPath);
+        if (session != null) {
+            try {
+                session.notifySessionStateListeners(SessionState.fromValue(oldState), SessionState.fromValue(newState));
+            } catch (Exception exception) {
+                RealmLog.error(exception);
+            }
+        }
+    }
+
+    /**
      * This is called from the Object Store (through JNI) to request an {@code access_token} for
      * the session specified by sessionPath.
      *

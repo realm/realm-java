@@ -1,3 +1,10 @@
+## 5.3.0 (YYYY-MM-DD)
+
+### Enhancements
+
+* [ObjectServer] Added support for `SyncSession.addStateChangeListener()`.
+
+
 ## 5.2.0 (2018-06-06)
 
 The feature previously named Partial Sync is now called Query-Based Sync and is now the default mode when synchronizing Realms.
