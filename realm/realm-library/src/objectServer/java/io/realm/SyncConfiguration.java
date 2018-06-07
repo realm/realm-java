@@ -965,6 +965,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @see #isFullySynchronizedRealm() ()
          */
         @Deprecated
+        public SyncConfiguration.Builder partialRealm() {
+            this.isPartial = true;
             return this;
         }
 
