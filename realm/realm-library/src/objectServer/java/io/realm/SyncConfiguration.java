@@ -143,7 +143,8 @@ public class SyncConfiguration extends RealmConfiguration {
                                 String serverCertificateFilePath,
                                 boolean waitForInitialData,
                                 OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
-                                boolean isPartial
+                                boolean isPartial,
+                                CompactOnLaunchCallback compactOnLaunch
     ) {
         super(directory,
                 filename,
@@ -158,7 +159,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 rxFactory,
                 initialDataTransaction,
                 readOnly,
-                null,
+                compactOnLaunch,
                 false
         );
 
@@ -487,6 +488,8 @@ public class SyncConfiguration extends RealmConfiguration {
         private String serverCertificateFilePath;
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         private boolean isPartial = true; // Partial Synchronization is enabled by default
+        private CompactOnLaunchCallback compactOnLaunch;
+
         /**
          * Creates an instance of the Builder for the SyncConfiguration. This SyncConfiguration
          * will be for a fully synchronized Realm.
@@ -978,6 +981,31 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
+        /**
+         * Setting this will cause Realm to compact the Realm file if the Realm file has grown too large and a
+         * significant amount of space can be recovered. See {@link DefaultCompactOnLaunchCallback} for details.
+         */
+        public SyncConfiguration.Builder compactOnLaunch() {
+            return compactOnLaunch(new DefaultCompactOnLaunchCallback());
+        }
+
+        /**
+         * Sets this to determine if the Realm file should be compacted before returned to the user. It is passed the
+         * total file size (data + free space) and the bytes used by data in the file.
+         *
+         * @param compactOnLaunch a callback called when opening a Realm for the first time during the life of a process
+         *                        to determine if it should be compacted before being returned to the user. It is passed
+         *                        the total file size (data + free space) and the bytes used by data in the file.
+         */
+        public SyncConfiguration.Builder compactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
+            //noinspection ConstantConditions
+            if (compactOnLaunch == null) {
+                throw new IllegalArgumentException("A non-null compactOnLaunch must be provided");
+            }
+            this.compactOnLaunch = compactOnLaunch;
+            return this;
+        }
+
         private String MD5(String in) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -1129,7 +1157,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     serverCertificateFilePath,
                     waitForServerChanges,
                     sessionStopPolicy,
-                    isPartial
+                    isPartial,
+                    compactOnLaunch
             );
         }
 
