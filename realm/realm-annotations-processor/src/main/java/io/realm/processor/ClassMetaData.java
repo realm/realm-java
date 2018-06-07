@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -60,11 +61,11 @@ public class ClassMetaData {
 
     private final TypeElement classType; // Reference to model class.
     private final String javaClassName; // Model class simple name as defined in Java.
-    private final List<RealmFieldElement> fields = new ArrayList<RealmFieldElement>(); // List of all fields in the class except those @Ignored.
-    private final List<RealmFieldElement> indexedFields = new ArrayList<RealmFieldElement>(); // list of all fields marked @Index.
-    private final Set<Backlink> backlinks = new HashSet<Backlink>();
-    private final Set<RealmFieldElement> nullableFields = new HashSet<RealmFieldElement>(); // Set of fields which can be nullable
-    private final Set<RealmFieldElement> nullableValueListFields = new HashSet<RealmFieldElement>(); // Set of fields whose elements can be nullable
+    private final List<RealmFieldElement> fields = new ArrayList<>(); // List of all fields in the class except those @Ignored.
+    private final List<RealmFieldElement> indexedFields = new ArrayList<>(); // list of all fields marked @Index.
+    private final Set<Backlink> backlinks = new LinkedHashSet<>();
+    private final Set<RealmFieldElement> nullableFields = new LinkedHashSet<>(); // Set of fields which can be nullable
+    private final Set<RealmFieldElement> nullableValueListFields = new LinkedHashSet<>(); // Set of fields whose elements can be nullable
 
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.

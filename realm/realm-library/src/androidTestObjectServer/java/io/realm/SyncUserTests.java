@@ -472,7 +472,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
         assertEquals(0, user.allSessions().size());
 
-        SyncConfiguration configuration1 = new SyncConfiguration.Builder(user, url1).modules(new AllTypesModelModule()).build();
+        SyncConfiguration configuration1 = user.createConfiguration(url1).modules(new AllTypesModelModule()).build();
         Realm realm1 = Realm.getInstance(configuration1);
         List<SyncSession> allSessions = user.allSessions();
         assertEquals(1, allSessions.size());
@@ -481,7 +481,7 @@ public class SyncUserTests {
         assertEquals(user, session.getUser());
         assertEquals(url1, session.getServerUrl().toString());
 
-        SyncConfiguration configuration2 = new SyncConfiguration.Builder(user, url2).modules(new AllTypesModelModule()).build();
+        SyncConfiguration configuration2 = user.createConfiguration(url2).modules(new AllTypesModelModule()).build();
         Realm realm2 = Realm.getInstance(configuration2);
         allSessions = user.allSessions();
         assertEquals(2, allSessions.size());
@@ -544,8 +544,7 @@ public class SyncUserTests {
         Realm.init(InstrumentationRegistry.getTargetContext());
 
         SyncUser user = createTestUser();
-        SyncConfiguration syncConfiguration = new SyncConfiguration
-                .Builder(user, "realm://127.0.0.1:9080/~/tests")
+        SyncConfiguration syncConfiguration = user.createConfiguration("realm://127.0.0.1:9080/~/tests")
                 .modules(new StringOnlyModule())
                 .build();
 

@@ -1,6 +1,7 @@
 # Gradle build artifacts
 build
 realm/build
+!realm-transformer/src/main/kotlin/io/realm/transformer/build
 
 # Gradle cache
 .gradle

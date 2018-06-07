@@ -104,7 +104,7 @@ public class SyncConfigurationTests {
             String expectedFolder = validUrl[1];
             String expectedFileName = validUrl[2];
 
-            SyncConfiguration config = new SyncConfiguration.Builder(user, serverUrl).build();
+            SyncConfiguration config = user.createConfiguration(serverUrl).build();
 
             assertEquals(new File(InstrumentationRegistry.getContext().getFilesDir(), expectedFolder), config.getRealmDirectory());
             assertEquals(expectedFileName, config.getRealmFileName());
@@ -145,7 +145,7 @@ public class SyncConfigurationTests {
             String serverUrlInput = (String) test[1];
             String resolvedServerUrl = ((String) test[2]).replace("~", user.getIdentity());
 
-            SyncConfiguration config = new SyncConfiguration.Builder(user, serverUrlInput).build();
+            SyncConfiguration config = user.createConfiguration(serverUrlInput).build();
 
             assertEquals(String.format("Input '%s' did not resolve correctly.", serverUrlInput),
                     resolvedServerUrl, config.getServerUrl().toString());
@@ -171,7 +171,7 @@ public class SyncConfigurationTests {
 
         for (String invalidUrl : invalidUrls) {
             try {
-                new SyncConfiguration.Builder(createTestUser(), invalidUrl);
+                createTestUser().createConfiguration(invalidUrl);
                 fail(invalidUrl + " should have failed.");
             } catch (IllegalArgumentException ignore) {
             }
@@ -192,7 +192,7 @@ public class SyncConfigurationTests {
                 SyncConfiguration.MAX_FILE_NAME_LENGTH, SyncConfiguration.MAX_FILE_NAME_LENGTH + 1, 1000};
 
         for (int len : lengths) {
-            SyncConfiguration config = new SyncConfiguration.Builder(createTestUser(), makeServerUrl(len)).build();
+            SyncConfiguration config = createTestUser().createConfiguration(makeServerUrl(len)).build();
             assertTrue("Length: " + len, config.getRealmFileName().length() <= SyncConfiguration.MAX_FILE_NAME_LENGTH);
             assertTrue("Length: " + len, config.getPath().length() <= SyncConfiguration.MAX_FULL_PATH_LENGTH);
         }
@@ -200,7 +200,7 @@ public class SyncConfigurationTests {
 
     @Test
     public void serverUrl_invalidChars() {
-        SyncConfiguration.Builder builder = new SyncConfiguration.Builder(createTestUser(), "realm://objectserver.realm.io/~/?");
+        SyncConfiguration.Builder builder = createTestUser().createConfiguration("realm://objectserver.realm.io/~/?");
         SyncConfiguration config = builder.build();
         assertFalse(config.getRealmFileName().contains("?"));
     }
@@ -214,14 +214,14 @@ public class SyncConfigurationTests {
         urlPort.put("realms://objectserver.realm.io:2443/~/default", 2443);
 
         for (String url : urlPort.keySet()) {
-            SyncConfiguration config = new SyncConfiguration.Builder(createTestUser(), url).build();
+            SyncConfiguration config = createTestUser().createConfiguration(url).build();
             assertEquals(urlPort.get(url).intValue(), config.getServerUrl().getPort());
         }
     }
 
     @Test
     public void errorHandler() {
-        SyncConfiguration.Builder builder = new SyncConfiguration.Builder(createTestUser(), "realm://objectserver.realm.io/default");
+        SyncConfiguration.Builder builder = createTestUser().createConfiguration("realm://objectserver.realm.io/default");
         SyncSession.ErrorHandler errorHandler = new SyncSession.ErrorHandler() {
             @Override
             public void onError(SyncSession session, ObjectServerError error) {
@@ -246,7 +246,7 @@ public class SyncConfigurationTests {
         // Create configuration using the default handler
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+        SyncConfiguration config = user.createConfiguration(url).build();
         assertEquals(errorHandler, config.getErrorHandler());
         SyncManager.setDefaultSessionErrorHandler(null);
     }
@@ -256,7 +256,7 @@ public class SyncConfigurationTests {
     public void errorHandler_nullThrows() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration.Builder builder = new SyncConfiguration.Builder(user, url);
+        SyncConfiguration.Builder builder = user.createConfiguration(url);
 
         try {
             builder.errorHandler(null);
@@ -268,7 +268,7 @@ public class SyncConfigurationTests {
     public void equals() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+        SyncConfiguration config = user.createConfiguration(url)
                 .build();
         assertTrue(config.equals(config));
     }
@@ -277,8 +277,8 @@ public class SyncConfigurationTests {
     public void equals_same() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration config1 = new SyncConfiguration.Builder(user, url).build();
-        SyncConfiguration config2 = new SyncConfiguration.Builder(user, url).build();
+        SyncConfiguration config1 = user.createConfiguration(url).build();
+        SyncConfiguration config2 = user.createConfiguration(url).build();
 
         assertTrue(config1.equals(config2));
     }
@@ -288,8 +288,8 @@ public class SyncConfigurationTests {
         SyncUser user = createTestUser();
         String url1 = "realm://objectserver.realm.io/default1";
         String url2 = "realm://objectserver.realm.io/default2";
-        SyncConfiguration config1 = new SyncConfiguration.Builder(user, url1).build();
-        SyncConfiguration config2 = new SyncConfiguration.Builder(user, url2).build();
+        SyncConfiguration config1 = user.createConfiguration(url1).build();
+        SyncConfiguration config2 = user.createConfiguration(url2).build();
         assertFalse(config1.equals(config2));
     }
 
@@ -297,7 +297,7 @@ public class SyncConfigurationTests {
     public void hashCode_equal() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+        SyncConfiguration config = user.createConfiguration(url)
                 .build();
 
         assertEquals(config.hashCode(), config.hashCode());
@@ -308,8 +308,8 @@ public class SyncConfigurationTests {
         SyncUser user = createTestUser();
         String url1 = "realm://objectserver.realm.io/default1";
         String url2 = "realm://objectserver.realm.io/default2";
-        SyncConfiguration config1 = new SyncConfiguration.Builder(user, url1).build();
-        SyncConfiguration config2 = new SyncConfiguration.Builder(user, url2).build();
+        SyncConfiguration config1 = user.createConfiguration(url1).build();
+        SyncConfiguration config2 = user.createConfiguration(url2).build();
         assertNotEquals(config1.hashCode(), config2.hashCode());
     }
 
@@ -317,7 +317,7 @@ public class SyncConfigurationTests {
     public void get_syncSpecificValues() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+        SyncConfiguration config = user.createConfiguration(url).build();
         assertTrue(user.equals(config.getUser()));
         assertEquals("realm://objectserver.realm.io/default", config.getServerUrl().toString());
         assertFalse(config.shouldDeleteRealmOnLogout());
@@ -328,7 +328,7 @@ public class SyncConfigurationTests {
     public void encryption() {
        SyncUser user = createTestUser();
        String url = "realm://objectserver.realm.io/default";
-       SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+       SyncConfiguration config = user.createConfiguration(url)
                .encryptionKey(TestHelper.getRandomKey())
                .build();
        assertNotNull(config.getEncryptionKey());
@@ -339,7 +339,7 @@ public class SyncConfigurationTests {
        SyncUser user = createTestUser();
        String url = "realm://objectserver.realm.io/default";
 
-       new SyncConfiguration.Builder(user, url).encryptionKey(null);
+       user.createConfiguration(url).encryptionKey(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -347,14 +347,14 @@ public class SyncConfigurationTests {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
 
-        new SyncConfiguration.Builder(user, url).encryptionKey(new byte[]{1, 2, 3});
+        user.createConfiguration(url).encryptionKey(new byte[]{1, 2, 3});
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void directory_null() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        new SyncConfiguration.Builder(user, url).directory(null);
+        user.createConfiguration(url).directory(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -363,7 +363,7 @@ public class SyncConfigurationTests {
         String url = "realm://objectserver.realm.io/default";
 
         File dir = new File("/");
-        new SyncConfiguration.Builder(user, url).directory(dir);
+        user.createConfiguration(url).directory(dir);
     }
 
     @Test
@@ -375,7 +375,7 @@ public class SyncConfigurationTests {
         File file = new File(dir, "dummyfile");
         assertTrue(file.createNewFile());
         thrown.expect(IllegalArgumentException.class);
-        new SyncConfiguration.Builder(user, url).directory(file);
+        user.createConfiguration(url).directory(file);
         file.delete(); // clean up
     }
 
@@ -385,7 +385,7 @@ public class SyncConfigurationTests {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
 
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+        SyncConfiguration config = user.createConfiguration(url)
                 //.deleteRealmOnLogout()
                 .build();
         assertTrue(config.shouldDeleteRealmOnLogout());
@@ -426,7 +426,7 @@ public class SyncConfigurationTests {
     public void defaultRxFactory() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+        SyncConfiguration config = user.createConfiguration(url).build();
 
         assertNotNull(config.getRxFactory());
     }
@@ -435,7 +435,7 @@ public class SyncConfigurationTests {
     public void toString_nonEmpty() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+        SyncConfiguration config = user.createConfiguration(url).build();
 
         String configStr = config.toString();
         assertTrue(configStr != null && !configStr.isEmpty());
@@ -446,7 +446,7 @@ public class SyncConfigurationTests {
     public void compact_NotAllowed() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+        SyncConfiguration config = user.createConfiguration(url).build();
 
         Realm.compactRealm(config);
     }
@@ -458,11 +458,11 @@ public class SyncConfigurationTests {
         SyncUser user1 = createNamedTestUser("user1");
         SyncUser user2 = createNamedTestUser("user2");
         String sharedUrl = "realm://ros.realm.io/42/default";
-        SyncConfiguration config1 = new SyncConfiguration.Builder(user1, sharedUrl)
+        SyncConfiguration config1 = user1.createConfiguration(sharedUrl)
                 .modules(new StringOnlyModule())
                 .build();
         Realm realm1 = Realm.getInstance(config1);
-        SyncConfiguration config2 = new SyncConfiguration.Builder(user2, sharedUrl)
+        SyncConfiguration config2 = user2.createConfiguration(sharedUrl)
                 .modules(new StringOnlyModule())
                 .build();
         Realm realm2 = null;
@@ -482,44 +482,21 @@ public class SyncConfigurationTests {
     }
 
     @Test
-    public void automatic_throwsIfNoUserIsLoggedIn() {
-        try {
-            SyncConfiguration.automatic();
-            fail();
-        } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().startsWith("No user was logged in"));
-        }
-    }
-
-    @Test
-    public void automatic_throwsIfMultipleUsersIsLoggedIn() {
-        SyncTestUtils.createTestUser();
-        SyncTestUtils.createTestUser();
-        try {
-            SyncConfiguration.automatic();
-            fail();
-        } catch (IllegalStateException e) {
-            assertEquals("Current user is not valid if more that one valid, logged-in user exists.", e.getMessage());
-        }
-    }
-
-    @Test
-    public void automaticWithUser_throwsIfNullOrInvalid() {
-        try {
-            //noinspection ConstantConditions
-            SyncConfiguration.automatic(null);
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().startsWith("Non-null 'user' required."));
-        }
-        SyncUser user = SyncTestUtils.createTestUser();
+    public void getDefaultConfiguration_throwsIfNotLoggedIn() {
+        SyncUser user = createTestUser();
         user.logOut();
         try {
-            SyncConfiguration.automatic(user);
+            user.getDefaultConfiguration();
             fail();
-        } catch (IllegalArgumentException e) {
-            assertEquals("User is no logger valid.  Log the user in again.", e.getMessage());
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().startsWith("The default configuration can only be created for users that are logged in."));
         }
+    }
+
+    @Test
+    public void getDefaultConfiguration_isFullySynchronized() {
+        SyncUser user = SyncTestUtils.createTestUser();
+        SyncConfiguration config = user.getDefaultConfiguration();
     }
 
     @Test
@@ -557,7 +534,7 @@ public class SyncConfigurationTests {
             String realmUrl = (String) test[1];
 
             SyncUser user = SyncTestUtils.createTestUser(authUrl);
-            SyncConfiguration config = SyncConfiguration.automatic();
+            SyncConfiguration config = user.getDefaultConfiguration();
             URI url = config.getServerUrl();
             assertEquals(realmUrl, url.toString());
             user.logOut();

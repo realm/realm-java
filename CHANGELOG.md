@@ -1,16 +1,28 @@
-## 6.0.0 (YYYY-MM-DD)
+## 5.2.0 (2018-06-06)
 
-### Breaking Changes
+The feature previously named Partial Sync is now called Query-Based Sync and is now the default mode when synchronizing Realms.
+This has impacted a number of API's. See below for the details.
 
-* [ObjectServer] Partial sync is now the default mode of synchronization. `SyncConfiguration.Builder.partialRealm()` has been replaced by `SyncConfiguration.Builder.fullSynchronization()`.
-* [ObjectServer] `SyncConfiguration.isPartialRealm()` has been replaced by `SyncConfiguration.isFullySynchronizedRealm()`.
+### Deprecated
 
-
-## 5.1.1 (YYYY-MM-DD)
+* [ObjectServer] `SyncConfiguration.automatic()` has been deprecated in favour of `SyncUser.getDefaultConfiguration()`.
+* [ObjectServer] `new SyncConfiguration.Builder(user, url)` has been deprecated in favour of `SyncUser.createConfiguration(url)`. NOTE: Creating configurations using `SyncUser` will default to using query-based Realms, while creating them using `new SyncConfiguration.Builder(user, url)` will default to fully synchronized Realms.
+* [ObjectServer] With query-based sync being the default `SyncConfiguration.Builder.partialRealm()` has been deprecated. Use ``SyncConfiguration.Builder.fullSynchronization()` if you want full synchronisation instead.
 
 ### Enhancements
 
+* [ObjectServer] Added `SyncUser.createConfiguration(url)`. Realms created this way are query-based Realms by default.
+* [ObjectServer] Added `SyncUser.getDefaultConfiguration()`.
+* The Realm bytecode transformer now supports incremental builds (#3034).
 * Improved speed and allocations when parsing field descriptions in queries (#5547).
+
+### Bug Fixes
+
+* Having files that ends with `RealmProxy` will no longer break the Realm Transformer (#3709).
+
+### Internal
+
+* Module mediator classes being generated now produces a stable output enabling better support for incremental builds (#3034).
 
 
 ## 5.1.0 (2018-04-25)

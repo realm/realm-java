@@ -19,6 +19,7 @@ package io.realm.processor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -63,16 +64,16 @@ public class ModuleMetaData {
 
     // Pre-processing
     // <FullyQualifiedModuleClassName, X>
-    private Set<String> globalModules = new HashSet<>(); // All modules with `allClasses = true` set
-    private Map<String, Set<String>> specificClassesModules = new HashMap<>(); // Modules with classes specifically named
-    private Map<String, RealmNamingPolicy> classNamingPolicy = new HashMap<String, RealmNamingPolicy>();
-    private Map<String, RealmNamingPolicy> fieldNamingPolicy = new HashMap<String, RealmNamingPolicy>();
+    private Set<String> globalModules = new LinkedHashSet<>(); // All modules with `allClasses = true` set
+    private Map<String, Set<String>> specificClassesModules = new LinkedHashMap<>(); // Modules with classes specifically named
+    private Map<String, RealmNamingPolicy> classNamingPolicy = new LinkedHashMap<>();
+    private Map<String, RealmNamingPolicy> fieldNamingPolicy = new LinkedHashMap<>();
     private Map<String, RealmModule> moduleAnnotations = new HashMap<>();
 
     // Post-processing
     // <FullyQualifiedModuleClassName, X>
-    private Map<String, Set<ClassMetaData>> modules = new HashMap<String, Set<ClassMetaData>>();
-    private Map<String, Set<ClassMetaData>> libraryModules = new HashMap<String, Set<ClassMetaData>>();
+    private Map<String, Set<ClassMetaData>> modules = new LinkedHashMap<>();
+    private Map<String, Set<ClassMetaData>> libraryModules = new LinkedHashMap<>();
 
     private boolean shouldCreateDefaultModule;
 
@@ -386,7 +387,7 @@ public class ModuleMetaData {
      * Returns all module classes and the RealmObjects they know of.
      */
     public Map<String, Set<ClassMetaData>> getAllModules() {
-        Map<String, Set<ClassMetaData>> allModules = new HashMap<String, Set<ClassMetaData>>();
+        Map<String, Set<ClassMetaData>> allModules = new LinkedHashMap<>();
         allModules.putAll(modules);
         allModules.putAll(libraryModules);
         return allModules;

@@ -57,7 +57,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         String password = "password";
         SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
 
-        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+        SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
                 .schema(StringOnly.class)
                 .fullSynchronization()
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
@@ -84,7 +84,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         }
 
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
-        SyncConfiguration config2 = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+        SyncConfiguration config2 = user.createConfiguration(Constants.USER_REALM)
                 .fullSynchronization()
                 .schema(StringOnly.class)
                 .build();
@@ -101,7 +101,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     @UiThreadTest
     public void waitForInitialRemoteData_mainThreadThrows() {
         final SyncUser user = SyncTestUtils.createTestUser(Constants.AUTH_URL);
-        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+        SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
                 .fullSynchronization()
                 .waitForInitialRemoteData()
                 .build();
@@ -148,7 +148,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         // 2. Local state should now be completely reset. Open the same sync Realm but different local name again with
         // a new configuration which should download the uploaded changes (pray it managed to do so within the time frame).
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
-        SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+        SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
                 .name("newRealm")
                 .fullSynchronization()
                 .schema(StringOnly.class)
@@ -180,7 +180,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     public void waitForInitialData_resilientInCaseOfRetries() throws InterruptedException {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
-        final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+        final SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
                 .waitForInitialRemoteData()
                 .build();
 
@@ -217,7 +217,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     public void waitForInitialData_resilientInCaseOfRetriesAsync() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
-        final SyncConfiguration config = new SyncConfiguration.Builder(user, Constants.USER_REALM)
+        final SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .directory(configurationFactory.getRoot())
                 .waitForInitialRemoteData()
@@ -334,7 +334,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     public void defaultRealm() throws InterruptedException {
         SyncCredentials credentials = SyncCredentials.nickname("test", false);
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
-        SyncConfiguration config = SyncConfiguration.automatic();
+        SyncConfiguration config = user.getDefaultConfiguration();
         Realm realm = Realm.getInstance(config);
         SyncManager.getSession(config).downloadAllServerChanges();
         realm.refresh();
