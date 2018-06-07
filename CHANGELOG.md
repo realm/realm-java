@@ -2,7 +2,7 @@
 
 ### Enhancements
 
-* Added `RealmQuery.getRealm()`, `RealmResults.getRealm()` annd `RealmList.getRealm()` (#5997).
+* Added `RealmQuery.getRealm()`, `RealmResults.getRealm()`, `RealmList.getRealm()` and `OrderedRealmCollectionSnapshot.getRealm()` (#5997).
 
 
 ## 5.2.0 (2018-06-06)
