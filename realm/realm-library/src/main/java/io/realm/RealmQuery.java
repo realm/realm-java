@@ -1955,7 +1955,7 @@ public class RealmQuery<E> {
      * Returns the {@link Realm} instance to which this query belongs.
      * <p>
      * Calling {@link Realm#close()} on the returned instance is discouraged as it is the same as
-     * calling it on the original Realm instance causing the Realm to fully close invalidating the
+     * calling it on the original Realm instance which may cause the Realm to fully close invalidating the
      * query.
      *
      * @return {@link Realm} instance this query belongs to.

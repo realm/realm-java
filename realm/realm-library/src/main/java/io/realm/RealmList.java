@@ -770,8 +770,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * Returns the {@link Realm} instance to which this collection belongs.
      * <p>
      * Calling {@link Realm#close()} on the returned instance is discouraged as it is the same as
-     * calling it on the original Realm instance causing the Realm to fully close invalidating the
-     * collection.
+     * calling it on the original Realm instance which may cause the Realm to fully close invalidating the
+     * list.
      *
      * @return {@link Realm} instance this collection belongs to or {@code null} if the collection is unmanaged.
      * @throws IllegalStateException if the Realm is an instance of {@link DynamicRealm} or the
