@@ -580,6 +580,25 @@ abstract class OrderedRealmCollectionImpl<E>
         }
     }
 
+    /**
+     * Returns the {@link Realm} instance to which this collection belongs.
+     * <p>
+     * Calling {@link Realm#close()} on the returned instance is discouraged as it is the same as
+     * calling it on the original Realm instance which may cause the Realm to fully close invalidating the
+     * query result.
+     *
+     * @return {@link Realm} instance this collection belongs to.
+     * @throws IllegalStateException if the Realm is an instance of {@link DynamicRealm} or the
+     * {@link Realm} was already closed.
+     */
+    public Realm getRealm() {
+        realm.checkIfValid();
+        if (!(realm instanceof Realm)) {
+            throw new IllegalStateException("This method is only available for typed Realms");
+        }
+        return (Realm) realm;
+    }
+
     // Custom RealmResults list iterator.
     private class RealmCollectionListIterator extends OsResults.ListIterator<E> {
         RealmCollectionListIterator(int start) {
