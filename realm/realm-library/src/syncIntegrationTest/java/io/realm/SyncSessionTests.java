@@ -521,11 +521,10 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 .build();
         Realm realm = Realm.getInstance(syncConfiguration);
         SyncSession session = SyncManager.getSession(syncConfiguration);
-        session.addStateChangeListener(new SessionStateListener() {
-            @Override
-            public void onChange(@Nullable SessionState oldState, SessionState newState) {
-                RealmLog.error(oldState.toString() + ", " + newState.toString());
-            }
-        });
+        RealmLog.error(session.getState().toString());
+        session.addStateChangeListener((oldState, newState) ->
+                RealmLog.error(oldState.toString() + " -> " + newState.toString())
+        );
+        RealmLog.error(session.getState().toString());
     }
 }

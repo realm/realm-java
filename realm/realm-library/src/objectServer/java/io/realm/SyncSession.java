@@ -127,7 +127,7 @@ public class SyncSession {
             this.value = value;
         }
 
-        static State fromByte(byte value) {
+        static State fromNativeValue(long value) {
             State[] stateCodes = values();
             for (State state : stateCodes) {
                 if (state.value == value) {
@@ -206,7 +206,7 @@ public class SyncSession {
             // session was not found, probably the Realm was closed
             throw new IllegalStateException("Could not find session, Realm was probably closed");
         }
-        return State.fromByte(state);
+        return State.fromNativeValue(state);
     }
 
     synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {
@@ -222,7 +222,7 @@ public class SyncSession {
         }
     }
 
-    void notifySessionStateListeners(SessionState oldState, SessionState newState) {
+    void notifySessionStateListeners(SyncSession.State oldState, SyncSession.State newState) {
         for (SessionStateListener listener : sessionStateListeners) {
             listener.onChange(oldState, newState);
         }

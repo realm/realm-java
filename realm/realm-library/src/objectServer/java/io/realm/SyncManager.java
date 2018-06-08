@@ -405,11 +405,11 @@ public class SyncManager {
      * by the native Sync Client thread. Instead log all exceptions to logcat.
      */
     @SuppressWarnings("unused")
-    private static synchronized void notifySessionStateListener(String localRealmPath, long oldState, long newState) {
+    private static synchronized void notifyStateListener(String localRealmPath, long oldState, long newState) {
         SyncSession session = sessions.get(localRealmPath);
         if (session != null) {
             try {
-                session.notifySessionStateListeners(SessionState.fromValue(oldState), SessionState.fromValue(newState));
+                session.notifySessionStateListeners(SyncSession.State.fromNativeValue(oldState), SyncSession.State.fromNativeValue(newState));
             } catch (Exception exception) {
                 RealmLog.error(exception);
             }
