@@ -4,6 +4,7 @@
 
 * Added `RealmQuery.getRealm()`, `RealmResults.getRealm()`, `RealmList.getRealm()` and `OrderedRealmCollectionSnapshot.getRealm()` (#5997).
 
+* Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
 
 ## 5.2.0 (2018-06-06)
 
