@@ -37,7 +37,7 @@ public class RealmCore {
     private static final String BINARIES_PATH = "lib" + PATH_SEP + ".." + FILE_SEP + "lib";
     private static final String JAVA_LIBRARY_PATH = "java.library.path";
 
-    private static volatile boolean libraryIsLoaded = false;
+    private static boolean libraryIsLoaded = false;
 
     public static boolean osIsWindows() {
         String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());
