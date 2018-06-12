@@ -42,7 +42,9 @@ try {
           // Docker image for testing Realm Object Server
           def dependProperties = readProperties file: 'dependencies.list'
           def rosVersion = dependProperties["REALM_OBJECT_SERVER_VERSION"]
-          rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_VERSION=${rosVersion} tools/sync_test_server"
+          withCredentials([string(credentialsId: 'realm-sync-feature-token-enterprise', variable: 'realmFeatureToken')]) {
+            rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_VERSION=${rosVersion} --build-arg REALM_FEATURE_TOKEN=${realmFeatureToken} tools/sync_test_server"
+          }
         }
 
 	    rosContainer = rosEnv.run()
