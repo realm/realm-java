@@ -6,6 +6,8 @@ RUN echo "Europe/Copenhagen" >  /etc/timezone
 
 ARG ROS_VERSION
 ARG REALM_FEATURE_TOKEN
+RUN if [ "x$ROS_VERSION" = "x" ] ; then echo Non-empty ROS_VERSION required ; exit 1; fi
+RUN if [ "x$REALM_FEATURE_TOKEN" = "x" ] ; then echo Non-empty REALM_FEATURE_TOKEN required ; exit 1; fi
 
 # Install netstat (used for debugging)
 RUN apt-get update \
