@@ -441,16 +441,6 @@ public class SyncConfigurationTests {
         assertTrue(configStr != null && !configStr.isEmpty());
     }
 
-    // FIXME: This test can be removed when https://github.com/realm/realm-core/issues/2345 is resolved
-    @Test(expected = UnsupportedOperationException.class)
-    public void compact_NotAllowed() {
-        SyncUser user = createTestUser();
-        String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration config = user.createConfiguration(url).build();
-
-        Realm.compactRealm(config);
-    }
-
     // Check that it is possible for multiple users to reference the same Realm URL while each user still use their
     // own copy on the filesystem. This is e.g. what happens if a Realm is shared using a PermissionOffer.
     @Test

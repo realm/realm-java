@@ -308,9 +308,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
                                                                                   jlong j_column_index,
                                                                                   jboolean)
 {
-#if REALM_ENABLE_SYNC
-    REALM_ASSERT(false);
-#endif
     Table* table = TBL(native_table_ptr);
     if (!TBL_AND_COL_INDEX_VALID(env, table, j_column_index)) {
         return;
@@ -470,9 +467,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                                                                                      jlong j_column_index,
                                                                                      jboolean is_primary_key)
 {
-#if REALM_ENABLE_SYNC
-    REALM_ASSERT(false);
-#endif
     try {
         Table* table = TBL(native_table_ptr);
         if (!TBL_AND_COL_INDEX_VALID(env, table, j_column_index)) {
