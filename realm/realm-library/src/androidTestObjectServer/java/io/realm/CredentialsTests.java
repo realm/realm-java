@@ -210,6 +210,13 @@ public class CredentialsTests {
         }
     }
 
+    @Test
+    public void toJson() {
+        SyncCredentials creds = SyncCredentials.usernamePassword("foo", "bar");
+        String expected = "{\"provider\":\"password\",\"data\":\"foo\",\"user_info\":{\"password\":\"bar\",\"register\":false}}";
+        assertEquals(expected, creds.toJson());
+    }
+
     private void assertUsernamePassword(SyncCredentials creds, String username, String password, boolean register) {
         assertEquals(username, creds.getUserIdentifier());
 

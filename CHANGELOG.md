@@ -1,3 +1,10 @@
+## 5.4.0 (YYYY-MM-DD)
+
+### Enhancements
+
+* [ObjectServer] Added `SyncCredentials.toJson()` that will print the information needed to login to Realm Studio.
+
+
 ## 5.3.0 (2018-06-12)
 
 ### Enhancements

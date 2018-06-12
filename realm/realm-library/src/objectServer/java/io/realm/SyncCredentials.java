@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import io.realm.internal.Util;
+import io.realm.internal.network.AuthenticateRequest;
 
 
 /**
@@ -279,6 +280,14 @@ public class SyncCredentials {
      */
     public Map<String, Object> getUserInfo() {
         return Collections.unmodifiableMap(userInfo);
+    }
+
+    /**
+     * Returns the JSON representation of these credentials that e.g. can be used to login on the
+     * server using Realm Studio
+     */
+    public String toJson() {
+        return AuthenticateRequest.userLogin(this).toJson();
     }
 
     /**
