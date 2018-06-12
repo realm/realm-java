@@ -9,7 +9,7 @@
 ### Internal
 
 * Upgraded to Realm Core 5.6.0
-* Upgraded to Realm Sync 3.5.1
+* Upgraded to Realm Sync 3.5.2
 
 
 ## 5.2.0 (2018-06-06)
