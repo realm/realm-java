@@ -73,7 +73,7 @@ public class Utils {
         return getAndroidExtension(project).getDefaultConfig().getMinSdkVersion().getApiString();
     }
 
-    public static boolean isSyncEnabled(@Nonnull Project project) {
+    public static boolean isSyncEnabled(Project project) {
         return ((RealmPluginExtension) project.getExtensions().getByName("realm")).getSyncEnabled();
     }
 
