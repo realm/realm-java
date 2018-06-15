@@ -208,7 +208,7 @@ public class Realm extends BaseRealm {
     public boolean isEmpty() {
         checkIfValid();
         for (RealmObjectSchema clazz : schema.getAll()) {
-            if (clazz.getTable().size() > 0) {
+            if (!clazz.getClassName().startsWith("__") && clazz.getTable().size() > 0) {
                 return false;
             }
         }
