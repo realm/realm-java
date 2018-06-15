@@ -82,32 +82,7 @@ public abstract class RealmSchema {
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
-    public Set<RealmObjectSchema> getAll() {
-        Set<RealmObjectSchema> schemas = null;
-        if (realm instanceof DynamicRealm) {
-            // Return all tables when using the Dynamic Realm
-            int tableCount = (int) realm.getSharedRealm().size();
-            schemas = new LinkedHashSet<>(tableCount);
-            for (int i = 0; i < tableCount; i++) {
-                RealmObjectSchema objectSchema = get(Table.getClassNameForTable(realm.getSharedRealm().getTableName(i)));
-                if (objectSchema != null) {
-                    schemas.add(objectSchema);
-                }
-            }
-
-        } else if (realm instanceof Realm) {
-            // Return only classes defined in the schema for a Dynamic Realm
-            RealmProxyMediator schemaMediator = realm.getConfiguration().getSchemaMediator();
-            Set<Class<? extends RealmModel>> classes = schemaMediator.getModelClasses();
-            schemas = new LinkedHashSet<>(classes.size());
-            for (Class<? extends RealmModel> clazz : classes) {
-                String className = schemaMediator.getSimpleClassName(clazz);
-                RealmObjectSchema objectSchema = get(className);
-                schemas.add(objectSchema);
-            }
-        }
-        return schemas;
-    }
+    public abstract Set<RealmObjectSchema> getAll();
 
     /**
      * Adds a new class to the Realm.
