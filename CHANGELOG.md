@@ -1,3 +1,15 @@
+## 5.3.1 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Fixed rare native crash materializing as `Assertion failed: ref + size <= after_ref with (ref, size, after_ref, ndx, m_free_positions.size())` (#5300).
+
+### Internal
+
+* Upgraded to Realm Core 5.6.2
+* Upgraded to Realm Core 3.5.4
+
+
 ## 5.3.0 (2018-06-12)
 
 ### Enhancements
