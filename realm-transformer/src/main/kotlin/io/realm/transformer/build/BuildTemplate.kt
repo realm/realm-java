@@ -24,6 +24,7 @@ import com.google.common.io.Files
 import io.realm.transformer.BytecodeModifier
 import io.realm.transformer.ManagedClassPool
 import io.realm.transformer.logger
+import io.realm.transformer.Utils
 import javassist.ClassPool
 import javassist.CtClass
 import org.gradle.api.Project
