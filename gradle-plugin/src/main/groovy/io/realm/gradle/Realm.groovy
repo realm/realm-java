@@ -58,6 +58,7 @@ class Realm implements Plugin<Project> {
         }
 
         project.android.registerTransform(new RealmTransformer(project))
+        def dependencyConfigurationName = getDependencyConfigurationName(project)
 
         project.repositories.add(project.getRepositories().jcenter())
         project.dependencies.add(dependencyConfigurationName, "io.realm:realm-annotations:${Version.VERSION}")
@@ -74,7 +75,7 @@ class Realm implements Plugin<Project> {
         }
 
         project.afterEvaluate {
-            setDependencies(extension.syncEnabled, extension.kotlinExtensionsEnabled)
+            setDependencies(project, dependencyConfigurationName, extension.syncEnabled, extension.kotlinExtensionsEnabled)
         }
     }
 
@@ -118,9 +119,9 @@ class Realm implements Plugin<Project> {
         return !hasAnnotationProcessorConfiguration
     }
 
-    private void setDependencies(boolean syncEnabled, boolean kotlinExtensionsEnabled) {
+    private static void setDependencies(Project project, String dependencyConfigurationName, boolean syncEnabled, boolean kotlinExtensionsEnabled) {
         // remove libraries first
-        def dependencyConfigurationName = getDependencyConfigurationName(project)
+        
         def iterator = project.getConfigurations().getByName(dependencyConfigurationName).getDependencies().iterator()
         while (iterator.hasNext()) {
             def item = iterator.next()

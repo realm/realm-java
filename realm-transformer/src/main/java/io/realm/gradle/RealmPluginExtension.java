@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.gradle
+package io.realm.gradle;
 
-class RealmPluginExtension {
-	var syncEnabled: Boolean = false
-	var kotlinExtensionsEnabled: Boolean = false
+import org.gradle.api.tasks.Input;
+
+public class RealmPluginExtension {
+
+    @Input public boolean syncEnabled = false;
+    @Input public boolean kotlinExtensionsEnabled = false;
 }
