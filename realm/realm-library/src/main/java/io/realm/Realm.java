@@ -202,6 +202,20 @@ public class Realm extends BaseRealm {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isEmpty() {
+        checkIfValid();
+        for (RealmObjectSchema clazz : schema.getAll()) {
+            if (!clazz.getClassName().startsWith("__") && clazz.getTable().size() > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Returns the schema for this Realm. The schema is immutable.
      * Any attempt to modify it will result in an {@link UnsupportedOperationException}.
      * <p>
