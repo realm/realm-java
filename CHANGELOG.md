@@ -2,8 +2,10 @@
 
 ### Bug Fixes
 
-* Fixed rare native crash materializing as `Assertion failed: ref + size <= after_ref with (ref, size, after_ref, ndx, m_free_positions.size())` (#5300).
 * [ObjectServer] Fixed a bug which could potentially flood Realm Object Server with PING messages.
+* Calling `Realm.deleteAll()` on a Realm file that contains more classes than in the schema throws exception (#5745).
+* `Realm.isEmpty()` returning false in some cases, even if all tables part of the schema are empty (#5745).
+* Fixed rare native crash materializing as `Assertion failed: ref + size <= after_ref with (ref, size, after_ref, ndx, m_free_positions.size())` (#5300).
 
 ### Internal
 
