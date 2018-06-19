@@ -295,6 +295,15 @@ public class DynamicRealm extends BaseRealm {
         return configuration.getRxFactory().from(this);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isEmpty() {
+        checkIfValid();
+        return sharedRealm.isEmpty();
+    }
+
 // FIXME: Depends on a typed schema. Find a work-around
 //    /**
 //     * {@inheritDoc}

@@ -589,10 +589,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @return {@code true} if empty, @{code false} otherwise.
      */
-    public boolean isEmpty() {
-        checkIfValid();
-        return sharedRealm.isEmpty();
-    }
+    abstract public boolean isEmpty();
 
     /**
      * Returns the schema for this Realm.
