@@ -1,10 +1,39 @@
-## 5.3.0 (YYYY-MM-DD)
+## 5.4.0 (YYYY-MM-DD)
 
 ### Enhancements
 
+* Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
+
+
+## 5.3.1 (2018-06-19)
+
+### Bug Fixes
+
+* [ObjectServer] Fixed a bug which could potentially flood Realm Object Server with PING messages.
+* Calling `Realm.deleteAll()` on a Realm file that contains more classes than in the schema throws exception (#5745).
+* `Realm.isEmpty()` returning false in some cases, even if all tables part of the schema are empty (#5745).
+* Fixed rare native crash materializing as `Assertion failed: ref + size <= after_ref with (ref, size, after_ref, ndx, m_free_positions.size())` (#5300).
+
+### Internal
+
+* Upgraded to Realm Core 5.6.2
+* Upgraded to Realm Sync 3.5.6
+* Upgraded to Object Store commit `0bcb9643b8fb14323df697999b79c4a5341a8a21`
+
+
+## 5.3.0 (2018-06-12)
+
+### Enhancements
+
+* [ObjectServer] `Realm.compactRealm(config)` now works on synchronized Realms (#5937).
+* [ObjectServer] `SyncConfiguration.compactOnLaunch()` and `SyncConfiguration.compactOnLaunch(callback)` has been added (#5937).
 * Added `RealmQuery.getRealm()`, `RealmResults.getRealm()`, `RealmList.getRealm()` and `OrderedRealmCollectionSnapshot.getRealm()` (#5997).
 
-* Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
+### Internal
+
+* Upgraded to Realm Core 5.6.0
+* Upgraded to Realm Sync 3.5.2
+
 
 ## 5.2.0 (2018-06-06)
 

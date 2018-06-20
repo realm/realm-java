@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.util.Pair;
@@ -81,17 +82,7 @@ public abstract class RealmSchema {
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
-    public Set<RealmObjectSchema> getAll() {
-        int tableCount = (int) realm.getSharedRealm().size();
-        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
-        for (int i = 0; i < tableCount; i++) {
-            RealmObjectSchema objectSchema = get(Table.getClassNameForTable(realm.getSharedRealm().getTableName(i)));
-            if (objectSchema != null) {
-                schemas.add(objectSchema);
-            }
-        }
-        return schemas;
-    }
+    public abstract Set<RealmObjectSchema> getAll();
 
     /**
      * Adds a new class to the Realm.

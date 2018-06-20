@@ -96,6 +96,7 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.RandomPrimaryKey;
+import io.realm.entities.StringAndInt;
 import io.realm.entities.StringOnly;
 import io.realm.entities.StringOnlyReadOnly;
 import io.realm.exceptions.RealmException;
@@ -3789,6 +3790,41 @@ public class RealmTests {
         assertEquals(0, realm.where(Cat.class).count());
         assertTrue(realm.isEmpty());
     }
+
+    // Test for https://github.com/realm/realm-java/issues/5745
+    @Test
+    public void deleteAll_realmWithMoreTables() {
+        realm.close();
+        RealmConfiguration config1 = configFactory.createConfigurationBuilder()
+                .name("deleteAllTest.realm")
+                .schema(StringOnly.class, StringAndInt.class)
+                .build();
+        realm = Realm.getInstance(config1);
+        realm.executeTransaction(r -> {
+            r.createObject(StringOnly.class);
+            r.createObject(StringAndInt.class);
+        });
+        realm.close();
+
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder()
+                .name("deleteAllTest.realm")
+                .schema(StringOnly.class)
+                .build();
+
+        realm = Realm.getInstance(config2);
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+        assertTrue(realm.isEmpty());
+        realm.close();
+
+        // deleteAll() will only delete tables part of the schema, so reopening with the old
+        // should reveal the old data
+        realm = Realm.getInstance(config1);
+        assertFalse(realm.isEmpty());
+        assertEquals(1, realm.where(StringAndInt.class).count());
+    }
+
 
     @Test
     public void waitForChange_emptyDataChange() throws InterruptedException {
