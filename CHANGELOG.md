@@ -1,3 +1,8 @@
+## 5.4.0 (YYYY-MM-DD)
+
+* Added `Realm.getSyncSession()` as a Kotlin extension method for synced Realms.
+ 
+
 ## 5.3.1 (2018-06-19)
 
 ### Bug Fixes
