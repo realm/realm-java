@@ -507,7 +507,15 @@ final class RealmCache {
                 @Override
                 public void run() {
                     if (realmFileFromAsset != null) {
-                        copyFileIfNeeded(configuration.getAssetFilePath(), realmFileFromAsset);
+                        boolean overwriteLocalFile = false;
+                        if (realmFileFromAsset.exists()) {
+                            // Manually create the instance in order to avoid deadlocking Object Store
+                            OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configuration);
+                            DynamicRealm realm = DynamicRealm.createInstance(sharedRealm);
+                            overwriteLocalFile = configuration.getAssetFileCallback().overwriteLocalFile(realm);
+                            realm.close();
+                        }
+                        copyFile(configuration.getAssetFilePath(), realmFileFromAsset, overwriteLocalFile);
                     }
 
                     // Copy Sync Server certificate path if available
@@ -516,15 +524,15 @@ final class RealmCache {
                                 configuration.isSyncConfiguration()).getSyncServerCertificateFilePath(configuration);
 
                         File certificateFile = new File(syncServerCertificateFilePath);
-                        copyFileIfNeeded(syncServerCertificateAssetName, certificateFile);
+                        copyFile(syncServerCertificateAssetName, certificateFile, false);
                     }
                 }
             });
         }
     }
 
-    private static void copyFileIfNeeded(String assetFileName, File file) {
-        if (file.exists()) {
+    private static void copyFile(String assetFileName, File file, boolean overwrite) {
+        if (file.exists() && !overwrite) {
             return;
         }
 

@@ -1018,6 +1018,40 @@ public class RealmConfigurationTests {
         }
     }
 
+
+    @Test
+    public void assetFile_overrideLocalFile() throws IOException {
+
+        // Create initial file on disk
+        RealmConfiguration configuration = new RealmConfiguration
+                .Builder(context)
+                .modules(new AssetFileModule())
+                .assetFile("asset_file.realm")
+                .build();
+        Realm.deleteRealm(configuration);
+        realm = Realm.getInstance(configuration);
+        assertEquals(10, realm.where(Cat.class).count());
+        realm.executeTransaction(r -> {
+            r.createObject(Cat.class);
+        });
+        assertEquals(11, realm.where(Cat.class).count());
+        realm.close();
+
+        // Create new configuration that will override the file on disk
+        configuration = new RealmConfiguration
+                .Builder(context)
+                .modules(new AssetFileModule())
+                .assetFile("asset_file.realm", new RealmConfiguration.OverwriteLocalFileCallback() {
+                    @Override
+                    public boolean overwriteLocalFile(DynamicRealm realm) {
+                        return realm.where(Cat.CLASS_NAME).count() == 11;
+                    }
+                })
+                .build();
+        realm = Realm.getInstance(configuration);
+        assertEquals(10, realm.where(Cat.class).count());
+    }
+
     private static class MigrationWithNoEquals implements RealmMigration {
         @Override
         public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {

@@ -91,6 +91,7 @@ public class RealmConfiguration {
     private final String realmFileName;
     private final String canonicalPath;
     private final String assetFilePath;
+    private final OverwriteLocalFileCallback assetFileCallback;
     private final byte[] key;
     private final long schemaVersion;
     private final RealmMigration migration;
@@ -113,6 +114,7 @@ public class RealmConfiguration {
             @Nullable String realmFileName,
             String canonicalPath,
             @Nullable String assetFilePath,
+            @Nullable OverwriteLocalFileCallback assetFileCallback,
             @Nullable byte[] key,
             long schemaVersion,
             @Nullable RealmMigration migration,
@@ -128,6 +130,7 @@ public class RealmConfiguration {
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
         this.assetFilePath = assetFilePath;
+        this.assetFileCallback = assetFileCallback;
         this.key = key;
         this.schemaVersion = schemaVersion;
         this.migration = migration;
@@ -195,6 +198,13 @@ public class RealmConfiguration {
      */
     boolean hasAssetFile() {
         return !Util.isEmptyString(assetFilePath);
+    }
+
+    /**
+     * Returns the callback used to determine if the local Realm should be overwritten
+     */
+    OverwriteLocalFileCallback getAssetFileCallback() {
+        return assetFileCallback;
     }
 
     /**
@@ -447,6 +457,22 @@ public class RealmConfiguration {
         return false;
     }
 
+
+    /**
+     * Callback used in combination with {@link RealmConfiguration.Builder#assetFile(String, OverwriteLocalFileCallback)}
+     * When opening the Realm it is used to determine if the Realm file on disk should be overwritten with the one from
+     * assets in the APK
+     */
+    public interface OverwriteLocalFileCallback {
+        /**
+         * Determines if the Realm file should be overwritten or not.
+         *
+         * @param realm the Realm file currently on disk.
+         * @return {@code true} if the Realm on disk should be overwritten, {@code false} if not.
+         */
+        boolean overwriteLocalFile(DynamicRealm realm);
+    }
+
     /**
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
@@ -455,6 +481,7 @@ public class RealmConfiguration {
         private File directory;
         private String fileName;
         private String assetFilePath;
+        private OverwriteLocalFileCallback assetFileCallback;
         private byte[] key;
         private long schemaVersion;
         private RealmMigration migration;
@@ -711,8 +738,36 @@ public class RealmConfiguration {
          * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
          */
         public Builder assetFile(String assetFile) {
+            return assetFile(assetFile, new OverwriteLocalFileCallback() {
+                @Override
+                public boolean overwriteLocalFile(DynamicRealm realm) {
+                    return false;
+                }
+            });
+        }
+
+        /**
+         * Copies the Realm file from the given asset file path. If a Realm file already exists
+         * on the disk, the {@code callback} will be invoked in order to determine if the local
+         * file should be overwritten.
+         * <p>
+         * This cannot be combined with {@link #deleteRealmIfMigrationNeeded()} as doing so would just result in the
+         * copied file being deleted.
+         * <p>
+         * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
+         *
+         * @param assetFile path to the asset database file.
+         * @param callback callback used if a local file is already present and will be used to determine if the local file should be
+         *                 overwritten with the one from assets.
+         * @throws IllegalStateException if this is configured to clear its schema by calling {@link #deleteRealmIfMigrationNeeded()}.
+         */
+        public Builder assetFile(String assetFile, OverwriteLocalFileCallback callback) {
             if (Util.isEmptyString(assetFile)) {
                 throw new IllegalArgumentException("A non-empty asset file path must be provided");
+            }
+            //noinspection ConstantConditions
+            if (callback == null) {
+                throw new IllegalArgumentException("'callback' is required");
             }
             if (durability == OsRealmConfig.Durability.MEM_ONLY) {
                 throw new RealmException("Realm can not use in-memory configuration if asset file is present.");
@@ -721,7 +776,7 @@ public class RealmConfiguration {
                 throw new IllegalStateException("Realm cannot use an asset file when previously configured to clear its schema in migration by calling deleteRealmIfMigrationNeeded().");
             }
             this.assetFilePath = assetFile;
-
+            this.assetFileCallback = callback;
             return this;
         }
 
@@ -818,6 +873,7 @@ public class RealmConfiguration {
                     fileName,
                     getCanonicalPath(new File(directory, fileName)),
                     assetFilePath,
+                    assetFileCallback,
                     key,
                     schemaVersion,
                     migration,

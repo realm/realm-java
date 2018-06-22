@@ -120,6 +120,8 @@ public class SyncConfiguration extends RealmConfiguration {
                                 @Nullable
                                 String assetFilePath,
                                 @Nullable
+                                OverwriteLocalFileCallback assetFileCallback,
+                                @Nullable
                                 byte[] key,
                                 long schemaVersion,
                                 @Nullable
@@ -150,6 +152,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 filename,
                 canonicalPath,
                 assetFilePath,
+                assetFileCallback,
                 key,
                 schemaVersion,
                 migration,
@@ -219,7 +222,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true);
+        return new RealmConfiguration(null,null, canonicalPath,null, null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true);
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -1136,6 +1139,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     realmFileDirectory,
                     realmFileName,
                     getCanonicalPath(new File(realmFileDirectory, realmFileName)),
+                    null, // assetFile not supported by Sync. See https://github.com/realm/realm-sync/issues/241
                     null, // assetFile not supported by Sync. See https://github.com/realm/realm-sync/issues/241
                     key,
                     schemaVersion,

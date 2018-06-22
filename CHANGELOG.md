@@ -1,3 +1,10 @@
+## 5.4.0 (YYYY-MM-DD)
+
+### Enhancements
+
+* Added `RealmConfiguration.assetFile(String, OverrideAssetFileCallback)` (#6026).
+
+
 ## 5.3.1 (2018-06-19)
 
 ### Bug Fixes
