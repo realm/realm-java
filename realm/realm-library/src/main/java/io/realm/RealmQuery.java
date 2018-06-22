@@ -1951,6 +1951,28 @@ public class RealmQuery<E> {
         return this;
     }
 
+    /**
+     * Returns the {@link Realm} instance to which this query belongs.
+     * <p>
+     * Calling {@link Realm#close()} on the returned instance is discouraged as it is the same as
+     * calling it on the original Realm instance which may cause the Realm to fully close invalidating the
+     * query.
+     *
+     * @return {@link Realm} instance this query belongs to.
+     * @throws IllegalStateException if the Realm is an instance of {@link DynamicRealm} or the
+     * {@link Realm} was already closed.
+     */
+    public Realm getRealm() {
+        if (realm == null) {
+            return null;
+        }
+        realm.checkIfValid();
+        if (!(realm instanceof Realm)) {
+            throw new IllegalStateException("This method is only available for typed Realms");
+        }
+        return (Realm) realm;
+    }
+
     private boolean isDynamicQuery() {
         return className != null;
     }

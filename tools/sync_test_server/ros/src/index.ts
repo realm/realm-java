@@ -7,6 +7,8 @@ server.start({
         // For all the full list of configuration parameters see:
         // https://realm.io/docs/realm-object-server/latest/api/ros/interfaces/serverconfig.html
 
+        featureToken: '%REALM_FEATURE_TOKEN%',
+
         // This is the location where ROS will store its runtime data
         dataPath: path.join(__dirname, '../data'),
 

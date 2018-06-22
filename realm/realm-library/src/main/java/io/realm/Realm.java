@@ -202,6 +202,20 @@ public class Realm extends BaseRealm {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isEmpty() {
+        checkIfValid();
+        for (RealmObjectSchema clazz : schema.getAll()) {
+            if (!clazz.getClassName().startsWith("__") && clazz.getTable().size() > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Returns the schema for this Realm. The schema is immutable.
      * Any attempt to modify it will result in an {@link UnsupportedOperationException}.
      * <p>
@@ -1702,13 +1716,8 @@ public class Realm extends BaseRealm {
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return {@code true} if successful, {@code false} if any file operation failed.
-     * @throws UnsupportedOperationException if Realm is synchronized.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
-        // FIXME: remove this restriction when https://github.com/realm/realm-core/issues/2345 is resolved
-        if (configuration.isSyncConfiguration()) {
-            throw new UnsupportedOperationException("Compacting is not supported yet on synced Realms. See https://github.com/realm/realm-core/issues/2345");
-        }
         return BaseRealm.compactRealm(configuration);
     }
 

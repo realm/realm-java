@@ -46,6 +46,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -1112,5 +1113,39 @@ public class RealmListTests extends CollectionTests {
 
         assertNotNull(collection.getOsList());
         assertEquals(collection.getOsList().getTargetTable().getName(), snapshot.getTable().getName());
+    }
+
+    @Test
+    public void getRealm() {
+        assertTrue(realm == collection.getRealm());
+    }
+
+    @Test
+    public void getRealm_throwsIfDynamicRealm() {
+        DynamicRealm dRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        DynamicRealmObject obj = dRealm.where(Owner.CLASS_NAME).findFirst();
+        RealmList<DynamicRealmObject> list = obj.getList("dogs");
+        try {
+            list.getRealm();
+            fail();
+        } catch (IllegalStateException ignore) {
+        } finally {
+            dRealm.close();
+        }
+    }
+
+    @Test
+    public void getRealm_throwsIfRealmClosed() {
+        realm.close();
+        try {
+            collection.getRealm();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
+
+    @Test
+    public void getRealm_returnsNullForUnmanagedList() {
+        assertNull(new RealmList().getRealm());
     }
 }

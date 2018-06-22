@@ -56,7 +56,7 @@ allprojects {
                 doLast {
                     def numberOfEvents = 2000
                     def appId = getAppId("${project.projectDir}/build.gradle")
-                    def process = "adb shell monkey -p ${appId} ${numberOfEvents}".execute([], project.rootDir)
+                    def process = "adb shell monkey -p ${appId} --pct-syskeys 0 ${numberOfEvents}".execute([], project.rootDir)
 
                     def sout = new StringBuilder(), serr = new StringBuilder()
                     process.consumeProcessOutput(sout, serr)
