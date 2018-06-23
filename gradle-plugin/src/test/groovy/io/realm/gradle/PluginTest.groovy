@@ -51,21 +51,35 @@ class PluginTest {
         project.buildscript {
             repositories {
                 mavenLocal()
+                google()
                 jcenter()
             }
             dependencies {
                 classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
-                classpath "io.realm:realm-gradle-plugin:${currentVersion}"
             }
         }
+
+        def manifest = project.file("src/main/AndroidManifest.xml")
+        manifest.parentFile.mkdirs()
+        manifest.text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.realm.test"></manifest>'
 
         project.apply plugin: 'com.android.application'
         project.apply plugin: 'realm-android'
 
+        project.android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                minSdkVersion 16
+                targetSdkVersion 27
+            }
+        }
+
+        project.evaluate()
+
         assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-android-library', currentVersion))
         assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-annotations', currentVersion))
-
         assertTrue(containsTransform(project.android.transforms, RealmTransformer.class))
     }
 
@@ -79,7 +93,6 @@ class PluginTest {
             dependencies {
                 classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
-                classpath "io.realm:realm-gradle-plugin:${currentVersion}"
             }
         }
 
