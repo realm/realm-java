@@ -1,3 +1,10 @@
+## 5.4.0 (YYYY-MM-DD)
+
+### Credits
+
+* Thanks to @kageiit for removing Groovy from the Realm Transformer (#3971).
+
+
 ## 5.3.1 (2018-06-19)
 
 ### Bug Fixes
