@@ -1,12 +1,12 @@
-package buildtransformer.visitors
+package io.realm.buildtransformer.visitors
 
 import org.objectweb.asm.AnnotationVisitor
-import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.FieldVisitor
 
-class AnnotationBasedMethodRemover(private val annotation: String, api: Int, parentVisitor: MethodVisitor)
-    : MethodVisitor(api, parentVisitor) {
+class AnnotationBasedFieldRemover(private val annotation: String, api: Int, parentVisitor: FieldVisitor)
+    : FieldVisitor(api, parentVisitor) {
 
-    // Ignore the method if it annotated with the given annotation
+    // Ignore the field if it annotated with the given annotation
     override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor? {
         return if (annotation == descriptor) {
             null

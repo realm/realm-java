@@ -187,6 +187,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
 import io.realm.transformer.RealmTransformer
+import buildtransformer.*;
 
 android.registerTransform(new RealmTransformer(project))
 

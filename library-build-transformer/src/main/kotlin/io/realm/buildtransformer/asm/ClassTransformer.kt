@@ -1,4 +1,4 @@
-package buildtransformer.asm
+package io.realm.buildtransformer.asm
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter

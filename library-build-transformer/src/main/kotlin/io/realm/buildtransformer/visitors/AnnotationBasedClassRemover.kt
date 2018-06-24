@@ -1,4 +1,4 @@
-package buildtransformer.visitors
+package io.realm.buildtransformer.visitors
 
 import org.objectweb.asm.*
 import org.objectweb.asm.tree.MethodNode

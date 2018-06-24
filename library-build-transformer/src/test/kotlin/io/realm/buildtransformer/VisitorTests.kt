@@ -1,11 +1,10 @@
 package io.realm.buildtransformer
 
-import buildtransformer.asm.ClassTransformer
+import io.realm.buildtransformer.asm.ClassTransformer
 import io.realm.DynamicClassLoader
 import io.realm.classes.SimpleTestClass
 import io.realm.classes.SimpleTestFields
 import io.realm.classes.SimpleTestMethods
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import java.io.File

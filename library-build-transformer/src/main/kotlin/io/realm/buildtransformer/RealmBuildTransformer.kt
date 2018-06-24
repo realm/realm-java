@@ -1,16 +1,17 @@
-package buildtransformer
+package io.realm.buildtransformer
 
-import buildtransformer.asm.ClassTransformer
+import io.realm.buildtransformer.asm.ClassTransformer
 import com.android.SdkConstants
 import com.android.build.api.transform.*
 import com.google.common.collect.ImmutableSet
-import buildtransformer.util.Stopwatch
+import io.realm.buildtransformer.util.Stopwatch
+import org.gradle.api.Project
 import java.io.File
 
 /**
  * Transformer that strips all classes, methods and fields annotated with a given annotation.
  */
-class RealmBuildTransformer : Transform() {
+class RealmBuildTransformer(project: Project) : Transform() {
 
     override fun getName() : String {
         return "RealmBuildTransformer"
