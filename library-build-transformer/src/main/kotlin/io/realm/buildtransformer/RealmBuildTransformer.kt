@@ -19,7 +19,7 @@ val logger: Logger = LoggerFactory.getLogger("realm-logger")
  */
 class RealmBuildTransformer : Transform() {
 
-    override fun getName() : String {
+    override fun getName(): String {
         return "RealmBuildTransformer"
     }
 
@@ -54,27 +54,57 @@ class RealmBuildTransformer : Transform() {
         val timer = Stopwatch()
         timer.start("Build Transform time")
         if (transformClasses) {
-            inputs?.forEach {
-                it.directoryInputs.forEach {
-                    val dirPath: String = it.file.absolutePath
-                    // Non-incremental build: Include all files
-                    val filesToDelete: MutableList<File> = mutableListOf()
-                    it.file.walkTopDown().forEach {
-                        if (it.isFile) {
-                            if (it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
-                                val transformer = ClassTransformer(it, "io.realm.internal.ObjectServer")
-                                transformer.transform();
-                                if (transformer.isClassRemoved()) {
-                                    filesToDelete.add(it)
-                                }
-                            }
-                        }
-                    }
-                    filesToDelete.forEach { it.delete() }
-                }
+            if (isIncremental) {
+                runIncrementalTransform(inputs!!, outputProvider!!)
+            } else {
+                runFullTransform(inputs!!, outputProvider!!)
             }
         }
         timer.stop()
     }
 
+    private fun runFullTransform(inputs: MutableCollection<TransformInput>, outputProvider: TransformOutputProvider) {
+        logger.debug("Run full transform")
+        val outputDir = outputProvider.getContentLocation("realmlibrarytransformer", outputTypes, scopes, Format.DIRECTORY)
+        inputs.forEach {
+            it.directoryInputs.forEach {
+                // Non-incremental build: Include all files
+                it.file.walkTopDown().forEach {
+                    if (it.isFile) {
+                        if (it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
+                            logger.info("Transform: ${it.name}")
+                            val transformer = ClassTransformer(it, "io.realm.internal.ObjectServer")
+                            transformer.transform()
+                            if (!transformer.isClassRemoved()) {
+                                it.copyTo(File(outputDir, it.name), overwrite = true)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun runIncrementalTransform(inputs: MutableCollection<TransformInput>, outputProvider: TransformOutputProvider) {
+        logger.debug("Run incremental transform")
+        val outputDir = outputProvider.getContentLocation("realmlibrarytransformer", outputTypes, scopes, Format.DIRECTORY)
+        inputs.forEach {
+            it.directoryInputs.forEach {
+                it.changedFiles.entries.forEach {
+                    if (it.value == Status.NOTCHANGED || it.value == Status.REMOVED) {
+                        return@forEach
+                    }
+                    val filePath: String = it.key.absolutePath
+                    if (filePath.endsWith(SdkConstants.DOT_CLASS)) {
+                        logger.info("Transform: ${it.key.name}")
+                        val transformer = ClassTransformer(it.key, "io.realm.internal.ObjectServer")
+                        transformer.transform();
+                        if (!transformer.isClassRemoved()) {
+                            it.key.copyTo(File(outputDir, it.key.name), overwrite = true)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

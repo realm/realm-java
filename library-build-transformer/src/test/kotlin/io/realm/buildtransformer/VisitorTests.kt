@@ -1,7 +1,7 @@
 package io.realm.buildtransformer
 
-import io.realm.buildtransformer.asm.ClassTransformer
 import io.realm.DynamicClassLoader
+import io.realm.buildtransformer.asm.ClassTransformer
 import io.realm.classes.SimpleTestClass
 import io.realm.classes.SimpleTestFields
 import io.realm.classes.SimpleTestMethods
