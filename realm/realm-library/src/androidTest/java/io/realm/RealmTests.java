@@ -3715,50 +3715,38 @@ public class RealmTests {
     }
 
     @Test
-    public void removeChangeListenerThrowExceptionOnNonLooperThread() {
+    public void removeChangeListenerThrowExceptionOnWrongThread() {
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(realmConfig);
-                try {
-                    realm.removeChangeListener(new RealmChangeListener<Realm>() {
-                        @Override
-                        public void onChange(Realm object) {
-                        }
-                    });
-                    fail("Should not be able to invoke removeChangeListener");
-                } catch (IllegalStateException ignored) {
-                } finally {
-                    realm.close();
-                    signalTestFinished.countDown();
-                }
+        Realm realm = Realm.getInstance(realmConfig);
+        Thread thread = new Thread(() -> {
+            try {
+                realm.removeChangeListener(object -> {});
+                fail("Should not be able to invoke removeChangeListener");
+            } catch (IllegalStateException ignored) {
+            } finally {
+                signalTestFinished.countDown();
             }
         });
         thread.start();
-
         try {
             TestHelper.awaitOrFail(signalTestFinished);
         } finally {
             thread.interrupt();
+            realm.close();
         }
     }
 
     @Test
-    public void removeAllChangeListenersThrowExceptionOnNonLooperThread() {
+    public void removeAllChangeListenersThrowExceptionOnWrongThreadThread() {
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(realmConfig);
-                try {
-                    realm.removeAllChangeListeners();
-                    fail("Should not be able to invoke removeChangeListener");
-                } catch (IllegalStateException ignored) {
-                } finally {
-                    realm.close();
-                    signalTestFinished.countDown();
-                }
+        Realm realm = Realm.getInstance(realmConfig);
+        Thread thread = new Thread(() -> {
+            try {
+                realm.removeAllChangeListeners();
+                fail("Should not be able to invoke removeChangeListener");
+            } catch (IllegalStateException ignored) {
+            } finally {
+                signalTestFinished.countDown();
             }
         });
         thread.start();
@@ -3767,6 +3755,7 @@ public class RealmTests {
             TestHelper.awaitOrFail(signalTestFinished);
         } finally {
             thread.interrupt();
+            realm.close();
         }
     }
 

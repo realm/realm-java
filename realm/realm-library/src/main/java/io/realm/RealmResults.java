@@ -29,6 +29,7 @@ import io.realm.internal.OsResults;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+import io.realm.log.RealmLog;
 import io.realm.rx.CollectionChange;
 
 /**
@@ -169,7 +170,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * {@link android.app.IntentService} thread.
      */
     public void addChangeListener(RealmChangeListener<RealmResults<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        checkForAddListener(listener);
         osResults.addListener(this, listener);
     }
 
@@ -207,16 +208,27 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * {@link android.app.IntentService} thread.
      */
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmResults<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        checkForAddListener(listener);
         osResults.addListener(this, listener);
     }
 
-    private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
-        if (checkListener && listener == null) {
+    private void checkForAddListener(@Nullable Object listener) {
+        if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
         realm.checkIfValid();
         realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+    }
+
+    private void checkForRemoveListener(@Nullable Object listener, boolean checkListener) {
+        if (checkListener && listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+
+        if (realm.isClosed()) {
+            RealmLog.warn("Calling removeChangeListener on a closed Realm %s, " +
+                    "make sure to close all listeners before closing the Realm.", realm.configuration.getPath());
+        }
     }
 
     /**
@@ -226,7 +238,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @see io.realm.RealmChangeListener
      */
     public void removeAllChangeListeners() {
-        checkForAddRemoveListener(null, false);
+        checkForRemoveListener(null, false);
         osResults.removeAllListeners();
     }
 
@@ -239,7 +251,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener<RealmResults<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        checkForRemoveListener(listener, true);
         osResults.removeListener(this, listener);
     }
 
@@ -252,7 +264,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmResults<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        checkForRemoveListener(listener, true);
         osResults.removeListener(this, listener);
     }
 
