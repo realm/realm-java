@@ -60,7 +60,7 @@ class ClassTransformer(private val classFile: File, qualifiedAnnotationName: Str
             }
 
             // Remove all inner classes, interfaces and enums with the annotation
-            // TODO: Know limitation
+            // TODO: Known limitation
 
             // Write the modified file back again
             val writer = ClassWriter(ClassWriter.COMPUTE_MAXS)
@@ -71,6 +71,6 @@ class ClassTransformer(private val classFile: File, qualifiedAnnotationName: Str
     }
 
     fun isClassRemoved(): Boolean {
-        return false
+        return classRemoved
     }
 }

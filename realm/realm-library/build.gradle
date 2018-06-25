@@ -175,6 +175,9 @@ project.afterEvaluate {
             }
         }
     }
+
+
+
 }
 
 // enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/09/kotlin-1-1-50-is-out/
@@ -187,9 +190,9 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
 import io.realm.transformer.RealmTransformer
-import buildtransformer.*;
-
+import io.realm.buildtransformer.RealmBuildTransformer
 android.registerTransform(new RealmTransformer(project))
+android.registerTransform(new RealmBuildTransformer())
 
 repositories {
     maven { url "https://jitpack.io" }
