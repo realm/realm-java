@@ -53,31 +53,33 @@ class RealmBuildTransformer : Transform() {
 
         val timer = Stopwatch()
         timer.start("Build Transform time")
-        if (transformClasses) {
-            if (isIncremental) {
-                runIncrementalTransform(inputs!!, outputProvider!!)
-            } else {
-                runFullTransform(inputs!!, outputProvider!!)
-            }
+        if (isIncremental) {
+            runIncrementalTransform(inputs!!, outputProvider!!, transformClasses)
+        } else {
+            runFullTransform(inputs!!, outputProvider!!, transformClasses)
         }
         timer.stop()
     }
 
-    private fun runFullTransform(inputs: MutableCollection<TransformInput>, outputProvider: TransformOutputProvider) {
+    private fun runFullTransform(inputs: MutableCollection<TransformInput>, outputProvider: TransformOutputProvider, transformClasses: Boolean) {
         logger.debug("Run full transform")
         val outputDir = outputProvider.getContentLocation("realmlibrarytransformer", outputTypes, scopes, Format.DIRECTORY)
         inputs.forEach {
             it.directoryInputs.forEach {
                 // Non-incremental build: Include all files
+                val dirPath: String = it.file.absolutePath
                 it.file.walkTopDown().forEach {
                     if (it.isFile) {
-                        if (it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
-                            logger.info("Transform: ${it.name}")
+                        val outputFile = File(outputDir, it.absolutePath.substring(dirPath.length))
+                        var copyFile = true
+                        if (it.absolutePath.endsWith(SdkConstants.DOT_CLASS) && transformClasses) {
+                            logger.debug("Transform: ${it.name}")
                             val transformer = ClassTransformer(it, "io.realm.internal.ObjectServer")
                             transformer.transform()
-                            if (!transformer.isClassRemoved()) {
-                                it.copyTo(File(outputDir, it.name), overwrite = true)
-                            }
+                            copyFile = !transformer.isClassRemoved()
+                        }
+                        if (copyFile) {
+                            it.copyTo(outputFile, overwrite = true)
                         }
                     }
                 }
@@ -85,23 +87,27 @@ class RealmBuildTransformer : Transform() {
         }
     }
 
-    private fun runIncrementalTransform(inputs: MutableCollection<TransformInput>, outputProvider: TransformOutputProvider) {
+    private fun runIncrementalTransform(inputs: MutableCollection<TransformInput>, outputProvider: TransformOutputProvider, transformClasses: Boolean) {
         logger.debug("Run incremental transform")
         val outputDir = outputProvider.getContentLocation("realmlibrarytransformer", outputTypes, scopes, Format.DIRECTORY)
         inputs.forEach {
             it.directoryInputs.forEach {
+                val dirPath: String = it.file.absolutePath
                 it.changedFiles.entries.forEach {
-                    if (it.value == Status.NOTCHANGED || it.value == Status.REMOVED) {
+                    if (it.value == Status.REMOVED) {
                         return@forEach
                     }
-                    val filePath: String = it.key.absolutePath
-                    if (filePath.endsWith(SdkConstants.DOT_CLASS)) {
-                        logger.info("Transform: ${it.key.name}")
-                        val transformer = ClassTransformer(it.key, "io.realm.internal.ObjectServer")
-                        transformer.transform();
-                        if (!transformer.isClassRemoved()) {
-                            it.key.copyTo(File(outputDir, it.key.name), overwrite = true)
-                        }
+                    val inputFile = it.key
+                    val outputFile = File(outputDir, inputFile.absolutePath.substring(dirPath.length))
+                    var copyFile = true
+                    if (it.value != Status.NOTCHANGED && inputFile.absolutePath.endsWith(SdkConstants.DOT_CLASS) && transformClasses) {
+                        logger.info("Transform: ${inputFile.name}")
+                        val transformer = ClassTransformer(inputFile, "io.realm.internal.ObjectServer")
+                        transformer.transform()
+                        copyFile = !transformer.isClassRemoved()
+                    }
+                    if (copyFile) {
+                        inputFile.copyTo(outputFile, overwrite = true)
                     }
                 }
             }
