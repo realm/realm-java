@@ -4,6 +4,10 @@
 
 * Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
 
+### Credits
+
+* Thanks to @kageiit for removing Groovy from the Realm Transformer (#3971).
+
 
 ## 5.3.1 (2018-06-19)
 

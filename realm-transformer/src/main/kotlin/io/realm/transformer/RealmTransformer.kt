@@ -151,11 +151,11 @@ class RealmTransformer(val project: Project) : Transform() {
             it.packageName
         }
 
-        val targetSdk: String? = GroovyUtil.getTargetSdk(project)
-        val minSdk: String?  = GroovyUtil.getMinSdk(project)
+        val targetSdk: String? = Utils.getTargetSdk(project)
+        val minSdk: String?  = Utils.getMinSdk(project)
 
         if (disableAnalytics) {
-            val sync: Boolean = GroovyUtil.isSyncEnabled(project)
+            val sync: Boolean = Utils.isSyncEnabled(project)
             val analytics = RealmAnalytics(packages as Set, containsKotlin, sync, targetSdk, minSdk)
             analytics.execute()
         }
