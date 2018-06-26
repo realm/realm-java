@@ -481,7 +481,7 @@ public class SyncManager {
 
                 // verify the entire chain
                 try {
-                    TRUST_MANAGER.checkServerTrusted(chain, "RSA");
+                    TRUST_MANAGER.checkClientTrusted(chain, "RSA");
                     // verify the hostname
                     boolean isValid = OkHostnameVerifier.INSTANCE.verify(serverAddress, chain[0]);
                     if (isValid) {
@@ -521,7 +521,7 @@ public class SyncManager {
             }
             return (X509TrustManager) trustManagers[0];
         } catch (GeneralSecurityException e) {
-            throw new AssertionError(); // The system has no TLS. Just give up.
+            throw new IllegalStateException("No System TLS", e); // The system has no TLS. Just give up.
         }
     }
 
