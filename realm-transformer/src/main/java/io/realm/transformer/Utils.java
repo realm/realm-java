@@ -16,10 +16,15 @@
 
 package io.realm.transformer;
 
-import javax.xml.bind.DatatypeConverter;
+import com.android.build.gradle.BaseExtension;
+import io.realm.gradle.RealmPluginExtension;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import javax.xml.bind.DatatypeConverter;
+import org.gradle.api.Project;
 
 public class Utils {
 
@@ -56,5 +61,25 @@ public class Utils {
         }
 
         return stringBuilder.toString();
+    }
+
+    public static String getTargetSdk(Project project) {
+        return getAndroidExtension(project).getDefaultConfig().getTargetSdkVersion().getApiString();
+    }
+
+    public static String getMinSdk(Project project) {
+        return getAndroidExtension(project).getDefaultConfig().getMinSdkVersion().getApiString();
+    }
+
+    public static boolean isSyncEnabled(Project project) {
+        return ((RealmPluginExtension) project.getExtensions().getByName("realm")).syncEnabled;
+    }
+
+    public static List<File> getBootClasspath(Project project) {
+        return getAndroidExtension(project).getBootClasspath();
+    }
+
+    private static BaseExtension getAndroidExtension(Project project) {
+        return (BaseExtension) project.getExtensions().getByName("android");
     }
 }
