@@ -9,6 +9,13 @@
 * Thanks to @kageiit for removing Groovy from the Realm Transformer (#3971).
 
 
+## 5.3.2 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* [ObjectServer] Using Android Network Security Configuration is necessary to install the custom root CA for tests (API >= 24) (#5970).
+
+
 ## 5.3.1 (2018-06-19)
 
 ### Bug Fixes
