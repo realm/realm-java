@@ -9,17 +9,16 @@ import org.objectweb.asm.ClassWriter
 import java.io.File
 
 /**
- * Transformer that will transform a pool of classes by removing all classes, methods and fields annotated with
+ * Transformer that will transform a pool of testclasses by removing all testclasses, methods and fields annotated with
  * a provided annotation.
  *
  * It does so in 2 parses using the ASM Visitor API. The first parse will gather metadata about the class hierarchy,
  * the 2nd parse will do the actual transform. The ASM Tree API was considered as well, but it does not provide easy
- * access to other classes either, so two parses would be required here as well and the Visitor API is faster and
+ * access to other testclasses either, so two parses would be required here as well and the Visitor API is faster and
  * requires less memory.
  */
 class ClassPoolTransformer(annotationQualifiedName: String, private val inputClasses: Set<File>) {
 
-    private val modifiedClasses: MutableSet<File> = mutableSetOf()
     private val annotationDescriptor: String = createDescriptor(annotationQualifiedName)
 
     /**
@@ -29,12 +28,11 @@ class ClassPoolTransformer(annotationQualifiedName: String, private val inputCla
      */
     fun transform(): Set<File> {
         val (markedClasses, markedMethods) = parse1()
-        parse2(markedClasses, markedMethods)
-        return modifiedClasses
+        return parse2(markedClasses, markedMethods)
     }
 
     /**
-     * Parse 1: Collect all classes, interfaces and enums that contain the given annotation. This include both top-level
+     * Parse 1: Collect all testclasses, interfaces and enums that contain the given annotation. This include both top-level
      * as well as inner types.
      */
     private fun parse1(): Pair<Set<String>, Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>> {
@@ -49,9 +47,10 @@ class ClassPoolTransformer(annotationQualifiedName: String, private val inputCla
     }
 
     /**
-     * Parse 2: Remove all classes, methods and fields marked with the annotation
+     * Parse 2: Remove all testclasses, methods and fields marked with the annotation
      */
-    private fun parse2(markedClasses: Set<String>, markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>) {
+    private fun parse2(markedClasses: Set<String>, markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>): Set<File> {
+        val modifiedClasses: MutableSet<File> = mutableSetOf()
         inputClasses.forEach { classFile ->
             var result = ByteArray(0)
             classFile.inputStream().use { inputStream ->
@@ -62,10 +61,12 @@ class ClassPoolTransformer(annotationQualifiedName: String, private val inputCla
                 result = if (classRemover.deleteClass) ByteArray(0) else writer.toByteArray()
             }
             if (result.isNotEmpty()) {
+                io.realm.buildtransformer.logger.debug("Modified: ${classFile.name}")
                 classFile.outputStream().use { outputStream -> outputStream.write(result) }
                 modifiedClasses.add(classFile)
             }
         }
+        return modifiedClasses
     }
 
     /**

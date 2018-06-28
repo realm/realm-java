@@ -8,7 +8,7 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
- * ClassVisitor that gather all classes and methods with the given annotation. This is the first parse and is required
+ * ClassVisitor that gather all testclasses and methods with the given annotation. This is the first parse and is required
  * for correctly identifying them in the 2nd parse before any byte code is written.
  */
 class AnnotationVisitor(private val annotationDescriptor: String) : ClassVisitor(Opcodes.ASM6) {

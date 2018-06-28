@@ -49,6 +49,8 @@ dependencies {
 
     testCompile group:'junit', name:'junit', version:'4.12'
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+
 }
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"

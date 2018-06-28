@@ -1,7 +1,7 @@
 package io.realm.buildtransformer
 
 import io.realm.buildtransformer.asm.ClassPoolTransformer
-import io.realm.buildtransformer.classes.*
+import io.realm.buildtransformer.testclasses.*
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -22,7 +22,7 @@ class VisitorTests {
 
     @Test
     fun removeFields() {
-        val c: Class<SimpleTestFields> = modifyClass(io.realm.buildtransformer.classes.SimpleTestFields::class)
+        val c: Class<SimpleTestFields> = modifyClass(SimpleTestFields::class)
         assetDefaultConstructorExists(c)
         assertFieldExists("field2", c)
         assertFieldRemoved("field1", c)
@@ -58,9 +58,9 @@ class VisitorTests {
 
     @Test
     fun removeInnerClasses() {
-        // The reflection API does not make it possible to find inner classes, so we need to inspect the bytecode
+        // The reflection API does not make it possible to find inner testclasses, so we need to inspect the bytecode
         // instead. We do this by checking the output of the transformer which will only output files modified and
-        // not classes deleted.
+        // not testclasses deleted.
         val inputClasses: MutableSet<File> = mutableSetOf()
         setOf<KClass<*>>(
             NestedTestClass::class,
@@ -112,8 +112,7 @@ class VisitorTests {
         pool.forEach { inputClasses.add(getClassFile(it)) }
         val transformer = ClassPoolTransformer(qualifiedAnnotationName, inputClasses)
         val outputFiles: Set<File> = transformer.transform()
-        val c: Class<T> = classLoader.loadClass(clazz.java.name, outputFiles) as Class<T>
-        return c
+        return classLoader.loadClass(clazz.java.name, outputFiles) as Class<T>
     }
 
     private fun getClassFile(clazz: KClass<*>): File {

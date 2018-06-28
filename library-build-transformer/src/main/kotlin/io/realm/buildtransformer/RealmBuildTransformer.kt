@@ -18,7 +18,7 @@ typealias ByteCodeMethodName = String
 val logger: Logger = LoggerFactory.getLogger("realm-logger")
 
 /**
- * Transformer that strips all classes, methods and fields annotated with a given annotation.
+ * Transformer that strips all testclasses, methods and fields annotated with a given annotation.
  */
 class RealmBuildTransformer(private val flavorToStrip: String, private val annotationQualifiedName: QualifiedName) : Transform() {
 
@@ -112,10 +112,11 @@ class RealmBuildTransformer(private val flavorToStrip: String, private val annot
         val transformer = ClassPoolTransformer("io.realm.internal.ObjectServer", inputFiles)
         val modifiedFiles = transformer.transform()
         modifiedFiles.forEach {
-            // Deleted files will not be part of `modifiedFiles`, so by not copying them to the output Dir they
+            // Deleted files will not be part of `modifiedFiles`, so by not copying them to the output dir they
             // are effectively deleted
             val outputFile = File(outputDir, it.absolutePath.substring(it.packageHierarchyRootDir.length))
             it.copyTo(outputFile, overwrite = true)
+            logger.debug("Write file to output: ${outputFile.name}")
         }
     }
 

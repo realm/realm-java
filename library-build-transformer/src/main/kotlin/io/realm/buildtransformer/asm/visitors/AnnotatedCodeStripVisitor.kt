@@ -6,7 +6,7 @@ import org.objectweb.asm.*
 import org.objectweb.asm.AnnotationVisitor
 
 /**
- * Visitor that will remove all classes, methods and fields annotated with given annotation.
+ * Visitor that will remove all testclasses, methods and fields annotated with given annotation.
  * Doing this requires a pre-processing step performed by [AnnotationVisitor].
  */
 class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,

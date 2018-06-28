@@ -10,11 +10,6 @@ feasible, like e.g. when the `Realm` class is shared between the `base` and `obj
 Register the transformer as normal and provide it with the flavor to strip and annotation to detect
 
 ```
-build.gradle
-
-buildsc
-
-
 import io.realm.buildtransformer.RealmBuildTransformer
 android.registerTransform(new RealmBuildTransformer("base", Ob"io.realm.internal.annotations.ObjectServer"))
 ```
@@ -29,8 +24,6 @@ runtime when the actual code is accessed.
 
 * If all constructors are stripped by this transformer, a new default constructor will not be created. This will result
   in invalid byte code being generated.
-
-* Removing inner classes, enums and interfaces but keeping the top level class is not supported.
 
 * If the top-level class is removed, all inner classes, enums and interfaces must also be annotated, otherwise they are
   not removed, resulting in valid bytecode being generated.
