@@ -1,4 +1,4 @@
-package io.realm.classes;
+package io.realm.buildtransformer.classes;
 
 import io.realm.internal.annotations.ObjectServer;
 
@@ -6,7 +6,6 @@ import io.realm.internal.annotations.ObjectServer;
 public class SimpleTestClass {
     public String name;
 
-    @ObjectServer
     public static class Foo {
         public String bar;
     }

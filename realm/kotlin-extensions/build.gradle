@@ -14,8 +14,8 @@ apply plugin: 'org.jetbrains.dokka'
 //apply plugin: 'com.github.kt3k.coveralls'
 //apply plugin: 'net.ltgt.errorprone'
 
-import io.realm.transformer.RealmTransformer
-android.registerTransform(new RealmTransformer(project))
+android.registerTransform(new io.realm.transformer.RealmTransformer(project))
+android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer("base", "io.realm.internal.annotations.ObjectServer"))
 
 android {
     compileSdkVersion rootProject.compileSdkVersion

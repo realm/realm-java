@@ -1,4 +1,4 @@
-package io.realm.classes;
+package io.realm.buildtransformer.classes;
 
 import io.realm.internal.annotations.ObjectServer;
 

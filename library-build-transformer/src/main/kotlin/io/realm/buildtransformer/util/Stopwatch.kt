@@ -27,7 +27,7 @@ class Stopwatch {
     var lastSplit: Long = -1L
     lateinit var label: String
 
-    /*
+    /**
      * Start the stopwatch.
      */
     fun start(label: String) {
@@ -39,7 +39,7 @@ class Stopwatch {
         lastSplit = start;
     }
 
-    /*
+    /**
      * Reports the split time.
      *
      * @param label Label to use when printing split time

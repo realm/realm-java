@@ -1,29 +1,28 @@
-package io.realm.classes;
+package io.realm.buildtransformer.classes;
 
 import io.realm.internal.annotations.ObjectServer;
 
-public class AdvancedTestClass {
-
+public class NestedTestClass {
     public String name;
 
     @ObjectServer
-    public class MyInnerClass {
+    public static class StaticInnerClass {
+        public String foo;
+    }
 
+
+    @ObjectServer
+    public class InnerClass {
         public String foo;
     }
 
     @ObjectServer
-    public static class MyStaticInnerClass {
-        public String foo;
-    }
-
-    @ObjectServer
-    public enum MyEnum {
+    public enum Enum {
         FOO
     }
 
     @ObjectServer
-    public interface MyInterface {
+    public interface Interface {
         void foo();
     }
 }

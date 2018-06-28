@@ -57,7 +57,7 @@ import io.realm.permissions.PermissionRequest;
  * This class depends on underlying Realms, so all data coming from this class is thread-confined and must be
  * closed after use to avoid leaking resources.
  *
- * @see <a href="https://realm.io/docs/java/latest/#access-control">How to work with Access Controls</a>
+ * @see <a href="https://realm.io/docs/java/latPest/#access-control">How to work with Access Controls</a>
  */
 public class PermissionManager implements Closeable {
 

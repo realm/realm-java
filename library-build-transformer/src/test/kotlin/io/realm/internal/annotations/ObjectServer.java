@@ -24,8 +24,7 @@ import java.lang.annotation.Target;
 /**
  * Copy of an interface from the Realm Library (to break cyclic dependencies)
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
-
 public @interface ObjectServer {
 }

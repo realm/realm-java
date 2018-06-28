@@ -1,14 +1,13 @@
 package io.realm.buildtransformer
 
-import io.realm.DynamicClassLoader
-import io.realm.buildtransformer.asm.ClassTransformer
-import io.realm.classes.SimpleTestClass
-import io.realm.classes.SimpleTestFields
-import io.realm.classes.SimpleTestMethods
+import io.realm.buildtransformer.asm.ClassPoolTransformer
+import io.realm.buildtransformer.classes.*
 import org.junit.Before
 import org.junit.Test
 import java.io.File
 import kotlin.reflect.KClass
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class VisitorTests {
@@ -23,16 +22,18 @@ class VisitorTests {
 
     @Test
     fun removeFields() {
-        val c: Class<*> = modifyClass(SimpleTestFields::class)
-        assertFieldRemoved("field1", c)
+        val c: Class<SimpleTestFields> = modifyClass(io.realm.buildtransformer.classes.SimpleTestFields::class)
+        assetDefaultConstructorExists(c)
         assertFieldExists("field2", c)
+        assertFieldRemoved("field1", c)
     }
 
     @Test
     fun removeMethods() {
-        val c: Class<*> = modifyClass(SimpleTestMethods::class)
-        assertMethodRemoved("foo", c)
+        val c: Class<SimpleTestMethods> = modifyClass(SimpleTestMethods::class)
+        assetDefaultConstructorExists(c)
         assertMethodExists("bar", c)
+        assertMethodRemoved("foo", c)
     }
 
     @Test
@@ -40,10 +41,43 @@ class VisitorTests {
         try {
             modifyClass(SimpleTestClass::class)
             fail()
-        } catch(ignore: ClassFormatError) {
+        } catch(e: IllegalStateException) {
+            assertTrue(e.message?.contains("Class pool does not contain") == true)
         }
     }
 
+    @Test
+    fun removeClassIfSuperClassIsAnnotated() {
+        try {
+            modifyClass(SubClass::class, setOf(SubClass::class, SuperClass::class))
+            fail()
+        } catch(e: IllegalStateException) {
+            assertTrue(e.message?.contains("Class pool does not contain") == true)
+        }
+    }
+
+    @Test
+    fun removeInnerClasses() {
+        // The reflection API does not make it possible to find inner classes, so we need to inspect the bytecode
+        // instead. We do this by checking the output of the transformer which will only output files modified and
+        // not classes deleted.
+        val inputClasses: MutableSet<File> = mutableSetOf()
+        setOf<KClass<*>>(
+            NestedTestClass::class,
+            NestedTestClass.InnerClass::class,
+            NestedTestClass.StaticInnerClass::class,
+            NestedTestClass.Enum::class,
+            NestedTestClass.Interface::class
+        ).forEach { inputClasses.add(getClassFile(it)) }
+        val transformer = ClassPoolTransformer(qualifiedAnnotationName, inputClasses)
+        val outputFiles: Set<File> = transformer.transform()
+        assertEquals(1, outputFiles.size) // Only top level file is saved.
+        assertTrue(outputFiles.first().name.endsWith("NestedTestClass.class"))
+    }
+
+    private fun assetDefaultConstructorExists(clazz: Class<*>) {
+        clazz.getConstructor()
+    }
 
     private fun assertFieldRemoved(fieldName: String, clazz: Class<*>) {
         try {
@@ -69,16 +103,25 @@ class VisitorTests {
         clazz.getMethod(methodName) // Will throw exception if it doesn't
     }
 
-    private fun modifyClass(clazz: KClass<*>): Class<*> {
-        val file = getClassFile(clazz)
-        val transformer = ClassTransformer(file, qualifiedAnnotationName)
-        val modifiedClassData: ByteArray = transformer.transform()
-        val c: Class<*> = classLoader.loadClass(clazz.java.name, modifiedClassData)
+    private fun <T: Any> modifyClass(clazz: KClass<T>): Class<T> {
+        return this.modifyClass(clazz, setOf(clazz))
+    }
+
+    private fun <T: Any> modifyClass(clazz: KClass<T>, pool: Set<KClass<*>>): Class<T> {
+        val inputClasses: MutableSet<File> = mutableSetOf()
+        pool.forEach { inputClasses.add(getClassFile(it)) }
+        val transformer = ClassPoolTransformer(qualifiedAnnotationName, inputClasses)
+        val outputFiles: Set<File> = transformer.transform()
+        val c: Class<T> = classLoader.loadClass(clazz.java.name, outputFiles) as Class<T>
         return c
     }
 
     private fun getClassFile(clazz: KClass<*>): File {
-        val filePath = "${clazz.java.name.replace(".", "/")}.class"
+        return getClassFile(clazz.java)
+    }
+
+    private fun getClassFile(clazz: Class<*>): File {
+        val filePath = "${clazz.name.replace(".", "/")}.class"
         return File(classLoader.getResource(filePath).file)
     }
 }

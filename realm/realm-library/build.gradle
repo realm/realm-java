@@ -189,10 +189,8 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
-import io.realm.transformer.RealmTransformer
-import io.realm.buildtransformer.RealmBuildTransformer
-android.registerTransform(new RealmTransformer(project))
-android.registerTransform(new RealmBuildTransformer())
+android.registerTransform(new io.realm.transformer.RealmTransformer(project))
+android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer("base", "io.realm.internal.annotations.ObjectServer"))
 
 repositories {
     maven { url "https://jitpack.io" }

@@ -1,4 +1,4 @@
-package io.realm.classes;
+package io.realm.buildtransformer.classes;
 
 import io.realm.internal.annotations.ObjectServer;
 
@@ -7,6 +7,11 @@ public class SimpleTestMethods {
     @ObjectServer
     public String foo() {
         return "foo";
+    }
+
+    @ObjectServer
+    public String foo1(String input) {
+        return "foo1";
     }
 
     public String bar() {

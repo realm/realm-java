@@ -1,23 +1,26 @@
 package io.realm.buildtransformer
 
-import com.android.SdkConstants
 import com.android.build.api.transform.*
 import com.google.common.collect.ImmutableSet
-import io.realm.buildtransformer.asm.ClassTransformer
+import io.realm.buildtransformer.asm.ClassPoolTransformer
+import io.realm.buildtransformer.ext.packageHierarchyRootDir
 import io.realm.buildtransformer.util.Stopwatch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 
+// Type alias' for improving readability
+typealias ByteCodeTypeDescriptor = String
+typealias QualifiedName = String
+typealias ByteCodeMethodName = String
 
 // Package level logger
 val logger: Logger = LoggerFactory.getLogger("realm-logger")
 
-
 /**
  * Transformer that strips all classes, methods and fields annotated with a given annotation.
  */
-class RealmBuildTransformer : Transform() {
+class RealmBuildTransformer(private val flavorToStrip: String, private val annotationQualifiedName: QualifiedName) : Transform() {
 
     override fun getName(): String {
         return "RealmBuildTransformer"
@@ -49,7 +52,7 @@ class RealmBuildTransformer : Transform() {
         // Poor mans version of detecting variants, since the Gradle API does not allow us to
         // register a transformer for only a single build variant
         // https://issuetracker.google.com/issues/37072849
-        val transformClasses: Boolean = context?.variantName?.startsWith("base") == true
+        val transformClasses: Boolean = context?.variantName?.startsWith(flavorToStrip.toLowerCase()) == true
 
         val timer = Stopwatch()
         timer.start("Build Transform time")
@@ -64,53 +67,56 @@ class RealmBuildTransformer : Transform() {
     private fun runFullTransform(inputs: MutableCollection<TransformInput>, outputProvider: TransformOutputProvider, transformClasses: Boolean) {
         logger.debug("Run full transform")
         val outputDir = outputProvider.getContentLocation("realmlibrarytransformer", outputTypes, scopes, Format.DIRECTORY)
+        val inputFiles: MutableSet<File> = mutableSetOf()
         inputs.forEach {
             it.directoryInputs.forEach {
                 // Non-incremental build: Include all files
                 val dirPath: String = it.file.absolutePath
-                it.file.walkTopDown().forEach {
-                    if (it.isFile) {
-                        val outputFile = File(outputDir, it.absolutePath.substring(dirPath.length))
-                        var copyFile = true
-                        if (it.absolutePath.endsWith(SdkConstants.DOT_CLASS) && transformClasses) {
-                            logger.debug("Transform: ${it.name}")
-                            val transformer = ClassTransformer(it, "io.realm.internal.ObjectServer")
-                            transformer.transform()
-                            copyFile = !transformer.isClassRemoved()
+                it.file.walkTopDown()
+                        .filter { it.isFile }
+                        .forEach {
+                            it.packageHierarchyRootDir = dirPath
+                            inputFiles.add(it)
                         }
-                        if (copyFile) {
-                            it.copyTo(outputFile, overwrite = true)
-                        }
-                    }
-                }
             }
         }
+
+        transformClassFiles(inputFiles, outputDir)
     }
 
     private fun runIncrementalTransform(inputs: MutableCollection<TransformInput>, outputProvider: TransformOutputProvider, transformClasses: Boolean) {
         logger.debug("Run incremental transform")
         val outputDir = outputProvider.getContentLocation("realmlibrarytransformer", outputTypes, scopes, Format.DIRECTORY)
+        val inputFiles: MutableSet<File> = mutableSetOf()
         inputs.forEach {
-            it.directoryInputs.forEach {
-                val dirPath: String = it.file.absolutePath
-                it.changedFiles.entries.forEach {
-                    if (it.value == Status.REMOVED) {
-                        return@forEach
-                    }
-                    val inputFile = it.key
-                    val outputFile = File(outputDir, inputFile.absolutePath.substring(dirPath.length))
-                    var copyFile = true
-                    if (it.value != Status.NOTCHANGED && inputFile.absolutePath.endsWith(SdkConstants.DOT_CLASS) && transformClasses) {
-                        logger.info("Transform: ${inputFile.name}")
-                        val transformer = ClassTransformer(inputFile, "io.realm.internal.ObjectServer")
-                        transformer.transform()
-                        copyFile = !transformer.isClassRemoved()
-                    }
-                    if (copyFile) {
-                        inputFile.copyTo(outputFile, overwrite = true)
-                    }
+            it.directoryInputs.forEach iterateDirs@{
+                if (!it.file.exists()) {
+                    return@iterateDirs // Directory was deleted
                 }
+                val dirPath: String = it.file.absolutePath
+                it.changedFiles.entries
+                        .filter { it.key.isFile }
+                        .filterNot { it.value == Status.REMOVED }
+                        .forEach {
+                            val file: File = it.key
+                            file.packageHierarchyRootDir = dirPath
+                            inputFiles.add(file)
+                        }
             }
         }
+
+        transformClassFiles(inputFiles, outputDir)
     }
+
+    private fun transformClassFiles(inputFiles: MutableSet<File>, outputDir: File?) {
+        val transformer = ClassPoolTransformer("io.realm.internal.ObjectServer", inputFiles)
+        val modifiedFiles = transformer.transform()
+        modifiedFiles.forEach {
+            // Deleted files will not be part of `modifiedFiles`, so by not copying them to the output Dir they
+            // are effectively deleted
+            val outputFile = File(outputDir, it.absolutePath.substring(it.packageHierarchyRootDir.length))
+            it.copyTo(outputFile, overwrite = true)
+        }
+    }
+
 }
