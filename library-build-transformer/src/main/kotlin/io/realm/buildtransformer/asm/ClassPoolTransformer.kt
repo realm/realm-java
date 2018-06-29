@@ -40,7 +40,7 @@ class ClassPoolTransformer(annotationQualifiedName: String, private val inputCla
         inputClasses.forEach {
             it.inputStream().use {
                 val classReader = ClassReader(it)
-                classReader.accept(metadataCollector, ClassReader.SKIP_DEBUG or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
+                classReader.accept(metadataCollector, 0)
             }
         }
         return Pair(metadataCollector.annotatedClasses, metadataCollector.annotatedMethods)
@@ -54,7 +54,7 @@ class ClassPoolTransformer(annotationQualifiedName: String, private val inputCla
         inputClasses.forEach { classFile ->
             var result = ByteArray(0)
             classFile.inputStream().use { inputStream ->
-                val writer = ClassWriter(ClassWriter.COMPUTE_FRAMES)
+                val writer = ClassWriter(0) // We don't modify methods so no reason to re-calculate method frames
                 val classRemover = AnnotatedCodeStripVisitor(annotationDescriptor, markedClasses, markedMethods, writer)
                 val reader = ClassReader(inputStream)
                 reader.accept(classRemover, 0)
