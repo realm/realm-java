@@ -72,7 +72,6 @@ public class ObjectLevelPermissionIntegrationTests extends IsolatedIntegrationTe
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM)
                 .modules(schemaModule)
-                .partialRealm()
                 .build();
 
         Realm realm = Realm.getInstance(syncConfig);
@@ -119,7 +118,6 @@ public class ObjectLevelPermissionIntegrationTests extends IsolatedIntegrationTe
         SyncConfiguration user1SyncConfig = configurationFactory
                 .createSyncConfigurationBuilder(user1, Constants.DEFAULT_REALM)
                 .modules(schemaModules)
-                .partialRealm()
                 .build();
         Realm user1Realm = Realm.getInstance(user1SyncConfig);
         user1Realm.beginTransaction();
@@ -149,6 +147,7 @@ public class ObjectLevelPermissionIntegrationTests extends IsolatedIntegrationTe
         // Connect with admin user and verify that user1 object is visible (non-partial Realm)
         SyncUser adminUser = UserFactory.createNicknameUser(Constants.AUTH_URL, "admin2", true);
         SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, Constants.DEFAULT_REALM)
+                .fullSynchronization()
                 .modules(schemaModules)
                 .waitForInitialRemoteData()
                 .build();
@@ -166,7 +165,6 @@ public class ObjectLevelPermissionIntegrationTests extends IsolatedIntegrationTe
         SyncUser user2 = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration syncConfig2 = configurationFactory.createSyncConfigurationBuilder(user2, Constants.DEFAULT_REALM)
                 .modules(schemaModules)
-                .partialRealm()
                 .build();
         Realm user2Realm = Realm.getInstance(syncConfig2);
         looperThread.closeAfterTest(user2Realm);

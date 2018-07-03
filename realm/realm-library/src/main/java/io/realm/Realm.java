@@ -202,6 +202,20 @@ public class Realm extends BaseRealm {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isEmpty() {
+        checkIfValid();
+        for (RealmObjectSchema clazz : schema.getAll()) {
+            if (!clazz.getClassName().startsWith("__") && clazz.getTable().size() > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Returns the schema for this Realm. The schema is immutable.
      * Any attempt to modify it will result in an {@link UnsupportedOperationException}.
      * <p>
@@ -1590,7 +1604,7 @@ public class Realm extends BaseRealm {
      * Deletes all objects of the specified class from the Realm.
      *
      * @param clazz the class which objects should be removed.
-     * @throws IllegalStateException if the corresponding Realm is a partially synchronized Realm, is
+     * @throws IllegalStateException if the corresponding Realm is a query-based synchronized Realm, is
      * closed or called from an incorrect thread.
      */
     public void delete(Class<? extends RealmModel> clazz) {
@@ -1702,13 +1716,8 @@ public class Realm extends BaseRealm {
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return {@code true} if successful, {@code false} if any file operation failed.
-     * @throws UnsupportedOperationException if Realm is synchronized.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
-        // FIXME: remove this restriction when https://github.com/realm/realm-core/issues/2345 is resolved
-        if (configuration.isSyncConfiguration()) {
-            throw new UnsupportedOperationException("Compacting is not supported yet on synced Realms. See https://github.com/realm/realm-core/issues/2345");
-        }
         return BaseRealm.compactRealm(configuration);
     }
 
@@ -1728,7 +1737,7 @@ public class Realm extends BaseRealm {
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @throws IllegalArgumentException if no {@code subscriptionName} or {@code callback} was provided.
      * @throws IllegalStateException if called on a non-looper thread.
-     * @throws UnsupportedOperationException if the Realm is not a partially synchronized Realm.
+     * @throws UnsupportedOperationException if the Realm is not a query-based synchronized Realm.
      */
     @Beta
     public RealmAsyncTask unsubscribeAsync(String subscriptionName, Realm.UnsubscribeCallback callback) {
@@ -1741,7 +1750,7 @@ public class Realm extends BaseRealm {
         }
         sharedRealm.capabilities.checkCanDeliverNotification("This method is only available from a Looper thread.");
         if (!ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration)) {
-            throw new UnsupportedOperationException("Realm is not a partially synchronized Realm: " + configuration.getPath());
+            throw new UnsupportedOperationException("Realm is fully synchronized Realm. This method is only available when using query-based synchronization: " + configuration.getPath());
         }
 
         return executeTransactionAsync(new Transaction() {
@@ -1944,7 +1953,7 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Interface used when canceling partial sync subscriptions.
+     * Interface used when canceling query-based sync subscriptions.
      *
      * @see #unsubscribeAsync(String, UnsubscribeCallback)
      */

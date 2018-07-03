@@ -23,11 +23,20 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+import java.io.IOException;
+
+import io.realm.entities.AllJavaTypes;
+import io.realm.entities.AllTypes;
+import io.realm.internal.util.Pair;
 import io.realm.objectserver.model.PartialSyncObjectA;
+import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.util.SyncTestUtils;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -52,6 +61,9 @@ public class SyncedRealmTests {
         if (realm != null && !realm.isClosed()) {
             realm.close();
         }
+        for (SyncUser user : SyncUser.all().values()) {
+            user.logOut();
+        }
     }
 
     private Realm getNormalRealm() {
@@ -62,7 +74,6 @@ public class SyncedRealmTests {
 
     private Realm getPartialRealm() {
         SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/fullsync")
-                .partialRealm()
                 .build();
         realm = Realm.getInstance(config);
         return realm;
@@ -70,6 +81,7 @@ public class SyncedRealmTests {
 
     private Realm getFullySyncRealm() {
         SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/fullsync")
+                .fullSynchronization()
                 .build();
         realm = Realm.getInstance(config);
         return realm;
@@ -194,6 +206,53 @@ public class SyncedRealmTests {
         } finally {
             dynamicRealm.close();
         }
+    }
+
+    @Test
+    public void compactRealm_populatedRealm() {
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), Constants.DEFAULT_REALM).build();
+        realm = Realm.getInstance(config);
+        realm.executeTransaction(r -> {
+            for (int i = 0; i < 10; i++) {
+                r.insert(new AllJavaTypes(i));
+            }
+        });
+        realm.close();
+        assertTrue(Realm.compactRealm(config));
+        realm = Realm.getInstance(config);
+        assertEquals(10, realm.where(AllJavaTypes.class).count());
+    }
+
+    @Test
+    public void compactOnLaunch_shouldCompact() throws IOException {
+        SyncUser user = SyncTestUtils.createTestUser();
+
+        // Fill Realm with data and record size
+        SyncConfiguration config1 = configFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM).build();
+        realm = Realm.getInstance(config1);
+        byte[] oneMBData = new byte[1024 * 1024];
+        realm.beginTransaction();
+        for (int i = 0; i < 10; i++) {
+            realm.createObject(AllTypes.class).setColumnBinary(oneMBData);
+        }
+        realm.commitTransaction();
+        realm.close();
+        long originalSize = new File(realm.getPath()).length();
+
+        // Open Realm with CompactOnLaunch
+        SyncConfiguration config2 = configFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM)
+                .compactOnLaunch(new CompactOnLaunchCallback() {
+                    @Override
+                    public boolean shouldCompact(long totalBytes, long usedBytes) {
+                        return true;
+                    }
+                })
+                .build();
+        realm = Realm.getInstance(config2);
+        realm.close();
+        long compactedSize = new File(realm.getPath()).length();
+
+        assertTrue(originalSize > compactedSize);
     }
 
 }

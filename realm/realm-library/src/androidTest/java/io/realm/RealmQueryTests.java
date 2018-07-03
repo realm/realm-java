@@ -3475,4 +3475,32 @@ public class RealmQueryTests extends QueryTests {
         populateTestRealm();
         assertEquals(TEST_DATA_SIZE, realm.where(AllTypes.class).not().alwaysFalse().findAll().size());
     }
+
+    @Test
+    public void getRealm() {
+        assertTrue(realm == realm.where(AllTypes.class).getRealm());
+    }
+
+    @Test
+    public void getRealm_throwsIfDynamicRealm() {
+        DynamicRealm dRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        try {
+            dRealm.where(AllTypes.CLASS_NAME).getRealm();
+            fail();
+        } catch (IllegalStateException ignore) {
+        } finally {
+            dRealm.close();
+        }
+    }
+
+    @Test
+    public void getRealm_throwsIfRealmClosed() {
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+        realm.close();
+        try {
+            query.getRealm();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
 }

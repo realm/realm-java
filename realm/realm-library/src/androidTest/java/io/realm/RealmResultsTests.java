@@ -678,4 +678,35 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(1, obj.getFieldList().size());
         assertEquals(fieldListIntValue, obj.getFieldList().first().getFieldInt());
     }
+
+    @Test
+    public void getRealm() {
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
+        assertTrue(realm == collection.getRealm());
+    }
+
+    @Test
+    public void getRealm_throwsIfDynamicRealm() {
+        DynamicRealm dRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        RealmResults<DynamicRealmObject> collection = dRealm.where(AllTypes.CLASS_NAME).findAll();
+
+        try {
+            collection.getRealm();
+            fail();
+        } catch (IllegalStateException ignore) {
+        } finally {
+            dRealm.close();
+        }
+    }
+
+    @Test
+    public void getRealm_throwsIfRealmClosed() {
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
+        realm.close();
+        try {
+            collection.getRealm();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
 }
