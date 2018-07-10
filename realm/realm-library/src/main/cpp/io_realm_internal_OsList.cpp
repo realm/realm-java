@@ -81,30 +81,33 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeGetFinalizerPtr(JNIE
 }
 
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* env, jclass, jlong shared_realm_ptr,
-                                                                        jlong row_ptr, jlong column_index)
+                                                                        jlong obj_ptr, jlong column_key)
 {
-    TR_ENTER_PTR(row_ptr)
+    TR_ENTER_PTR(obj_ptr)
 
     try {
-        auto& row = *reinterpret_cast<realm::Row*>(row_ptr);
+        auto& obj = *reinterpret_cast<realm::Obj*>(obj_ptr);
 
-        if (!ROW_AND_COL_INDEX_VALID(env, &row, column_index)) {
+        if (!ROW_AND_COL_INDEX_VALID(env, &obj, column_key)) {
             return 0;
         }
 
         auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
         jlong ret[2];
 
-        List list(shared_realm, *row.get_table(), column_index, row.get_index());
+//        List list(shared_realm, *obj.get_table(), column_key, obj.get_index());
+        List list(shared_realm, obj, ColKey(column_key));
         ListWrapper* wrapper_ptr = new ListWrapper(list);
         ret[0] = reinterpret_cast<jlong>(wrapper_ptr);
 
         if (wrapper_ptr->collection().get_type() == PropertyType::Object) {
-            LinkViewRef link_view_ref(row.get_linklist(column_index));
+//            LinkViewRef link_view_ref(obj.get_linklist(ColKey(column_key)));
+            auto link_view_ref = obj.get_linklist(ColKey(column_key));
 
-            Table* target_table_ptr = &(link_view_ref)->get_target_table();
-            LangBindHelper::bind_table_ptr(target_table_ptr);
-            ret[1] = reinterpret_cast<jlong>(target_table_ptr);
+//            Table* target_table_ptr = &(link_view_ref)->get_target_table();
+            Table target_table_ptr = link_view_ref.get_target_table();
+//            LangBindHelper::bind_table_ptr(target_table_ptr);
+            ret[1] = reinterpret_cast<jlong>(&target_table_ptr);
         }
         else {
             ret[1] = reinterpret_cast<jlong>(nullptr);
@@ -129,8 +132,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeGetRow(JNIEnv* env, 
 
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
-        auto row = wrapper.collection().get(column_index);
-        return reinterpret_cast<jlong>(new Row(std::move(row)));
+        auto obj = wrapper.collection().get(column_index);
+        return reinterpret_cast<jlong>(new Obj(std::move(obj)));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);

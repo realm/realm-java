@@ -56,7 +56,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeInit(JNIEnv* e
 
     try {
         JStringAccessor path(env, temporary_directory_path);    // throws
-        SharedGroupOptions::set_sys_tmp_dir(std::string(path)); // throws
+        DBOptions::set_sys_tmp_dir(std::string(path)); // throws
     }
     CATCH_STD()
 }
@@ -333,13 +333,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetTableNam
                                                                                 jlong shared_realm_ptr, jint index)
 {
 
-    TR_ENTER_PTR(shared_realm_ptr)
-
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    try {
-        return to_jstring(env, shared_realm->read_group().get_table_name(static_cast<size_t>(index)));
-    }
-    CATCH_STD()
+    //TODO refactor to return all name since ndx2key is private & this method is only used in SharedRealm to get all table names
+//    TR_ENTER_PTR(shared_realm_ptr)
+//
+//    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+//    try {
+//        return to_jstring(env, shared_realm->read_group().get_table_name(static_cast<size_t>(index)));
+//    }
+//    CATCH_STD()
     return NULL;
 }
 
@@ -414,8 +415,9 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeWaitForCha
 
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        using rf = realm::_impl::RealmFriend;
-        return static_cast<jboolean>(rf::get_shared_group(*shared_realm).wait_for_change());
+//        using rf = realm::_impl::RealmFriend;
+//        return static_cast<jboolean>(rf::get_shared_group(*shared_realm).wait_for_change());
+        return shared_realm->wait_for_change();
     }
     CATCH_STD()
 
@@ -429,8 +431,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeStopWaitForCha
 
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        using rf = realm::_impl::RealmFriend;
-        rf::get_shared_group(*shared_realm).wait_for_change_release();
+        shared_realm->wait_for_change_release();
     }
     CATCH_STD()
 }

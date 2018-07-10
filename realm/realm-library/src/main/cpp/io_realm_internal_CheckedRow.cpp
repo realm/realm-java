@@ -24,7 +24,7 @@ using namespace realm;
 JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnCount(JNIEnv* env, jobject obj,
                                                                                jlong nativeRowPtr)
 {
-    if (!ROW(nativeRowPtr)->is_attached()) {
+    if (!ROW(nativeRowPtr)->is_valid()) {
         return 0;
     }
 
@@ -44,7 +44,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnName(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnIndex(JNIEnv* env, jobject obj,
                                                                                jlong nativeRowPtr, jstring columnName)
 {
-    if (!ROW(nativeRowPtr)->is_attached())
+    if (!ROW(nativeRowPtr)->is_valid())
         return 0;
 
     jlong ndx = Java_io_realm_internal_UncheckedRow_nativeGetColumnIndex(env, obj, nativeRowPtr, columnName);

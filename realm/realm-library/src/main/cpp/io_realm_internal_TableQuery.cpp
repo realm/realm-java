@@ -42,7 +42,7 @@ static void finalize_table_query(jlong ptr);
 
 inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colIndex, DataType type)
 {
-    return TBL_AND_COL_INDEX_AND_TYPE_VALID(env, Q(nativeQueryPtr)->get_table().get(), colIndex, type);
+    return TBL_AND_COL_INDEX_AND_TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), colIndex, type);
 }
 
 
@@ -114,7 +114,7 @@ static bool isNullable(JNIEnv* env, Table* src_table_ptr, TableRef table_ref, jl
         ThrowException(env, IllegalArgument, "LinkingObject from field " + std::string(src_table_ptr->get_column_name(column_idx)) + " is not nullable.");
         return false;
     }
-    if (!TBL_AND_COL_NULLABLE(env, table_ref.get(), column_idx)) {
+    if (!TBL_AND_COL_NULLABLE(env, table_ref, column_idx)) {
         return false;
     }
     return true;

@@ -27,7 +27,7 @@
 #include <inttypes.h>
 
 #include <realm.hpp>
-#include <realm/lang_bind_helper.hpp>
+//#include <realm/lang_bind_helper.hpp>
 #include <realm/timestamp.hpp>
 #include <realm/table.hpp>
 #include <realm/util/safe_int_ops.hpp>
@@ -77,9 +77,9 @@ std::string num_to_string(T pNumber)
 #define S(x) static_cast<size_t>(x)
 #define B(x) static_cast<bool>(x)
 #define S64(x) static_cast<int64_t>(x)
-#define TBL(x) reinterpret_cast<realm::Table*>(x)
-#define Q(x) reinterpret_cast<realm::Query*>(x)
-#define ROW(x) reinterpret_cast<realm::Row*>(x)
+#define TBL(x) reinterpret_cast<const realm::Table*>(x)
+#define Q(x) reinterpret_cast<const realm::Query*>(x)
+#define ROW(x) reinterpret_cast<realm::Obj*>(x)//TODO rename ROW to OBJ
 
 // Exception handling
 enum ExceptionKind {
@@ -174,7 +174,10 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     if (valid) {
         // Check if Table is valid
         if (std::is_same<realm::Table, T>::value) {
-            valid = TBL(objPtr)->is_attached();
+            if (TBL(objPtr)) {
+                valid = true;
+            }
+//            valid = TBL(objPtr)->is_attached();
         }
         // TODO: Add check for TableView
     }
@@ -184,10 +187,10 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     }
     return valid;
 }
-
-inline bool RowIsValid(JNIEnv* env, realm::Row* rowPtr)
+//TODO rename to ObjIsValid
+inline bool RowIsValid(JNIEnv* env, realm::Obj* rowPtr)
 {
-    bool valid = (rowPtr != NULL && rowPtr->is_attached());
+    bool valid = (rowPtr != NULL && rowPtr->is_valid());
     if (!valid) {
         realm::jni_util::Log::e("Row %1 is no longer attached!", reinterpret_cast<int64_t>(rowPtr));
         ThrowException(env, IllegalState,
@@ -198,7 +201,7 @@ inline bool RowIsValid(JNIEnv* env, realm::Row* rowPtr)
 
 inline bool QueryIsValid(JNIEnv* env, realm::Query* query)
 {
-    return TableIsValid(env, query->get_table().get());
+    return TableIsValid(env, &const_cast<realm::TableRef&>(query->get_table()));
 }
 
 
@@ -298,7 +301,7 @@ inline bool TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
     return ColIndexValid(env, pTable, columnIndex);
 }
 
-inline bool RowColIndexValid(JNIEnv* env, realm::Row* pRow, jlong columnIndex)
+inline bool RowColIndexValid(JNIEnv* env, realm::Obj* pRow, jlong columnIndex)
 {
     return RowIsValid(env, pRow) && ColIndexValid(env, pRow->get_table(), columnIndex);
 }
@@ -334,10 +337,12 @@ template <class T>
 inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
 {
     size_t col = static_cast<size_t>(columnIndex);
-    int colType = pTable->get_column_type(col);
+
+    realm::ColKey col_key = pTable->ndx2colkey(col);
+    int colType = pTable->get_column_type(col_key);
     if (colType != expectColType) {
-        realm::jni_util::Log::e("Expected columnType %1, but got %2.", expectColType, pTable->get_column_type(col));
-        ThrowException(env, IllegalArgument, "ColumnType of '" + std::string(pTable->get_column_name(col)) + "' is invalid.");
+        realm::jni_util::Log::e("Expected columnType %1, but got %2.", expectColType, colType);
+        ThrowException(env, IllegalArgument, "ColumnType of '" + std::string(pTable->get_column_name(col_key)) + "' is invalid.");
         return false;
     }
     return true;
@@ -360,9 +365,9 @@ inline bool TypeIsLinkLike(JNIEnv* env, T* pTable, jlong columnIndex)
 }
 
 template <class T>
-inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
+inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnKey)
 {
-    size_t col = static_cast<size_t>(columnIndex);
+    realm::ColKey col = realm::ColKey(columnKey);
     int colType = pTable->get_column_type(col);
     if (colType == realm::type_Link) {
         return true;
@@ -402,12 +407,12 @@ inline bool TblColIndexAndLinkOrLinkList(JNIEnv* env, T* pTable, jlong columnInd
 // FIXME Usually this is called after TBL_AND_INDEX_AND_TYPE_VALID which will validate Table as well.
 // Try to avoid duplicated checks to improve performance.
 template <class T>
-inline bool TblColIndexAndNullable(JNIEnv* env, T* pTable, jlong columnIndex)
+inline bool TblColIndexAndNullable(JNIEnv* env, T* pTable, jlong columnKey)
 {
-    return TableIsValid(env, pTable) && ColIsNullable(env, pTable, columnIndex);
+    return TableIsValid(env, pTable) && ColIsNullable(env, pTable, columnKey);
 }
 
-inline bool RowColIndexAndTypeValid(JNIEnv* env, realm::Row* pRow, jlong columnIndex, int expectColType)
+inline bool RowColIndexAndTypeValid(JNIEnv* env, realm::Obj* pRow, jlong columnIndex, int expectColType)
 {
     return RowIsValid(env, pRow) && ColIndexAndTypeValid(env, pRow->get_table(), columnIndex, expectColType);
 }
@@ -461,7 +466,7 @@ public:
         static constexpr size_t max_string_size = realm::Table::max_string_size;
 
         if (m_is_null) {
-            return realm::StringData(NULL);
+            return realm::StringData();
         }
         else if (m_size > max_string_size) {
             THROW_JAVA_EXCEPTION(

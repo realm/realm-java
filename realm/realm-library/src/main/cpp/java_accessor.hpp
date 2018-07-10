@@ -220,7 +220,7 @@ public:
     {
         return v ? _impl::JavaClassGlobalDef::new_long(m_env, v.value()) : nullptr;
     }
-    util::Any box(RowExpr) const
+    util::Any box(Obj) const
     {
         REALM_TERMINATE("not supported");
     }
@@ -397,7 +397,7 @@ inline Timestamp JavaAccessorContext::unbox(util::Any& v, bool, bool) const
 }
 
 template <>
-inline RowExpr JavaAccessorContext::unbox(util::Any&, bool, bool) const
+inline Obj JavaAccessorContext::unbox(util::Any&, bool, bool) const
 {
     REALM_TERMINATE("not supported");
 }

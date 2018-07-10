@@ -83,13 +83,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateSnapshot(JN
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeContains(JNIEnv* env, jclass, jlong native_ptr,
-                                                                            jlong native_row_ptr)
+                                                                            jlong native_obj_ptr)
 {
     TR_ENTER_PTR(native_ptr);
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto row = reinterpret_cast<Row*>(native_row_ptr);
-        size_t index = wrapper->collection().index_of(RowExpr(*row));
+        auto obj = reinterpret_cast<Obj*>(native_obj_ptr);
+        size_t index = wrapper->collection().index_of(obj);//TODO confirm change & call to non implemented method index_of
         return to_jbool(index != not_found);
     }
     CATCH_STD();
@@ -159,23 +159,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeSize(JNIEnv* env,
 }
 
 JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEnv* env, jclass, jlong native_ptr,
-                                                                            jlong column_index, jbyte agg_func)
+                                                                            jlong column_key, jbyte agg_func)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
 
-        size_t index = S(column_index);
+//        size_t index = S(column_index);
+        ColKey col_key(column_key);
         Optional<Mixed> value;
         switch (agg_func) {
             case io_realm_internal_OsResults_AGGREGATE_FUNCTION_MINIMUM:
-                value = wrapper->collection().min(index);
+                value = wrapper->collection().min(col_key);
                 break;
             case io_realm_internal_OsResults_AGGREGATE_FUNCTION_MAXIMUM:
-                value = wrapper->collection().max(index);
+                value = wrapper->collection().max(col_key);
                 break;
             case io_realm_internal_OsResults_AGGREGATE_FUNCTION_AVERAGE: {
-                Optional<double> value_count(wrapper->collection().average(index));
+                Optional<double> value_count(wrapper->collection().average(col_key));
                 if (value_count) {
                     value = Optional<Mixed>(Mixed(value_count.value()));
                 }
@@ -185,7 +186,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEn
                 break;
             }
             case io_realm_internal_OsResults_AGGREGATE_FUNCTION_SUM:
-                value = wrapper->collection().sum(index);
+                value = wrapper->collection().sum(col_key);
                 break;
             default:
                 REALM_UNREACHABLE();
@@ -277,7 +278,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeWhere(JNIEnv* env
 
         auto table_view = wrapper->collection().get_tableview();
         Query* query =
-            new Query(table_view.get_parent(), std::unique_ptr<TableViewBase>(new TableView(std::move(table_view))));
+            new Query(table_view.get_parent(), std::unique_ptr<ConstTableView>(new TableView(std::move(table_view))));
         return reinterpret_cast<jlong>(query);
     }
     CATCH_STD()
@@ -285,14 +286,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeWhere(JNIEnv* env
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeIndexOf(JNIEnv* env, jclass, jlong native_ptr,
-                                                                        jlong row_native_ptr)
+                                                                        jlong obj_native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto row = reinterpret_cast<Row*>(row_native_ptr);
+        auto obj = reinterpret_cast<Obj*>(obj_native_ptr);
 
-        return static_cast<jlong>(wrapper->collection().index_of(RowExpr(*row)));
+//        return static_cast<jlong>(wrapper->collection().index_of(RowExpr(*row)));
+        return static_cast<jlong>(wrapper->collection().index_of(obj));//TODO confirm change
     }
     CATCH_STD()
     return npos;
@@ -303,9 +305,10 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeDeleteLast(JNI
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto row = wrapper->collection().last();
-        if (row && row->is_attached()) {
-            row->move_last_over();
+        auto obj = wrapper->collection().last();
+        if (obj && obj->is_valid()) {
+//            row->move_last_over();
+            obj->remove();//TODO confirm it's the correct change
             return JNI_TRUE;
         }
     }
@@ -319,9 +322,9 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeDeleteFirst(JN
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto row = wrapper->collection().first();
-        if (row && row->is_attached()) {
-            row->move_last_over();
+        auto obj = wrapper->collection().first();
+        if (obj && obj->is_valid()) {
+            obj->remove();//TODO confirm it's the correct change
             return JNI_TRUE;
         }
     }
@@ -336,9 +339,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeDelete(JNIEnv* env
 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto row = wrapper->collection().get(index);
-        if (row.is_attached()) {
-            row.move_last_over();
+        auto obj = wrapper->collection().get(index);
+        if (obj.is_valid()) {
+            obj.remove();
         }
     }
     CATCH_STD()
@@ -367,8 +370,8 @@ JNIEXPORT jbyte JNICALL Java_io_realm_internal_OsResults_nativeGetMode(JNIEnv* e
                 return io_realm_internal_OsResults_MODE_TABLE;
             case Results::Mode::Query:
                 return io_realm_internal_OsResults_MODE_QUERY;
-            case Results::Mode::LinkView:
-                return io_realm_internal_OsResults_MODE_LINKVIEW;
+            case Results::Mode::LinkList:
+                return io_realm_internal_OsResults_MODE_LINKVIEW;//TODO rename linkview?
             case Results::Mode::TableView:
                 return io_realm_internal_OsResults_MODE_TABLEVIEW;
         }
@@ -379,18 +382,19 @@ JNIEXPORT jbyte JNICALL Java_io_realm_internal_OsResults_nativeGetMode(JNIEnv* e
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFromBacklinks(JNIEnv *env, jclass,
                                                                                            jlong shared_realm_ptr,
-                                                                                           jlong row_ptr,
+                                                                                           jlong obj_ptr,
                                                                                            jlong src_table_ptr,
-                                                                                           jlong src_col_index)
+                                                                                           jlong src_col_key)
 {
-    TR_ENTER_PTR(row_ptr)
-    Row* row = ROW(row_ptr);
-    if (!ROW_VALID(env, row)) {
+    TR_ENTER_PTR(obj_ptr)
+    Obj* obj = ROW(obj_ptr);
+    if (!ROW_VALID(env, obj)) {
         return reinterpret_cast<jlong>(nullptr);
     }
     try {
         Table* src_table = TBL(src_table_ptr);
-        TableView backlink_view = row->get_table()->get_backlink_view(row->get_index(), src_table, src_col_index);
+//        TableView backlink_view = obj->get_table()->get_backlink_view(row->get_index(), src_table, src_col_index);
+        TableView backlink_view = obj->get_backlink_view(src_table, ColKey(src_col_key));
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         Results results(shared_realm, std::move(backlink_view));
         auto wrapper = new ResultsWrapper(results);

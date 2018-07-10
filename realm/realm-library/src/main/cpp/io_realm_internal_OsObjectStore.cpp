@@ -51,15 +51,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetPrimaryKeyF
 
         if (j_pk_field_name) {
             // Not removal, check the column.
-            auto pk_column_ndx = table->get_column_index(pk_field_name_accessor);
-            if (pk_column_ndx == realm::npos) {
+//            auto pk_column_ndx = table->get_column_index(pk_field_name_accessor);
+            auto pk_column_col = table->get_column_key(pk_field_name_accessor);
+            if (pk_column_col == realm::ColKey()) {
                 THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                      format("Field '%1' doesn't exist in Class '%2'.",
                                             StringData(pk_field_name_accessor), StringData(class_name_accessor)));
             }
 
             // Check valid column type
-            auto field_type = table->get_column_type(pk_column_ndx);
+            auto field_type = table->get_column_type(pk_column_col);
             if (field_type != type_Int && field_type != type_String) {
                 THROW_JAVA_EXCEPTION(
                     env, JavaExceptionDef::IllegalArgument,
@@ -67,7 +68,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetPrimaryKeyF
             }
 
             // Check duplicated values. The pk field must have been indexed before set as a PK.
-            if (table->get_distinct_view(pk_column_ndx).size() != table->size()) {
+            if (table->get_distinct_view(pk_column_col).size() != table->size()) {
                 THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                      format("Field '%1' cannot be set as primary key since there are duplicated "
                                             "values for field '%1' in Class '%2'.",
@@ -151,7 +152,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsObjectStore_nativeCallWithLo
         std::string realm_path(path_accessor);
         static JavaClass runnable_class(env, "java/lang/Runnable");
         static JavaMethod run_method(env, runnable_class, "run", "()V");
-        bool result = SharedGroup::call_with_lock(realm_path, [&](std::string path) {
+        bool result = DB::call_with_lock(realm_path, [&](std::string path) {
             REALM_ASSERT_RELEASE_EX(realm_path.compare(path) == 0, realm_path.c_str(), path.c_str());
             env->CallVoidMethod(j_runnable, run_method);
             TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
