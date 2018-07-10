@@ -98,15 +98,15 @@ class RealmTransformer(val project: Project) : Transform() {
             exitTransform(emptySet(), emptyList(), timer)
             return
         }
-        build.prepareReferencedClasses(referencedInputs!!);
+        build.prepareReferencedClasses(referencedInputs!!)
         timer.splitTime("Prepare referenced classes")
         build.markMediatorsAsTransformed()
         timer.splitTime("Mark mediators as transformed")
-        build.transformModelClasses();
+        build.transformModelClasses()
         timer.splitTime("Transform model classes")
-        build.transformDirectAccessToModelFields();
+        build.transformDirectAccessToModelFields()
         timer.splitTime("Transform references to model fields")
-        build.copyResourceFiles();
+        build.copyResourceFiles()
         timer.splitTime("Copy resource files")
         exitTransform(inputs, build.getOutputModelClasses(), timer)
     }
