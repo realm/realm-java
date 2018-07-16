@@ -2279,7 +2279,7 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(TEST_DATA_SIZE, realm.where(AllTypes.class).count());
     }
 
-    // Verify that count works together with using distinct.
+    // Verify that count correctly when using distinct.
     // See https://github.com/realm/realm-java/issues/5958
     @Test
     public void distinctCount() {

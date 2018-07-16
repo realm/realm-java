@@ -618,7 +618,7 @@ public class TableQuery implements NativeObject {
      * Returns only the number of matching objects.
      * This method is very fast compared to evaluating a query completely, but it does not
      * goes around any logic implemented in Object Store and other parts of the API that works
-     * on query results. So it the primary use case for this method is testing.
+     * on query results. So the primary use case for this method is testing.
      */
     @Deprecated
     public long count() {
