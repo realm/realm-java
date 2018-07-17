@@ -38,7 +38,7 @@ class GroovyUtil {
 
     @Nonnull
     static boolean isSyncEnabled(@Nonnull Project project) {
-        return project?.realm?.syncEnabled == true
+        return (project?.hasProperty("realm")) ? project.realm.syncEnabled : false
     }
 
     @Nonnull
