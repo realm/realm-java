@@ -39,7 +39,7 @@ class GroovyUtil {
 
     @Nonnull
     static boolean isSyncEnabled(@Nonnull Project project) {
-        return project.realm?.syncEnabled != null && project.realm.syncEnabled
+        return project.realm?.syncEnabled == true
     }
 
     @Nonnull
