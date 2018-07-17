@@ -159,8 +159,8 @@ abstract class BuildTemplate(val project: Project, val outputProvider: Transform
         }
     }
 
-    fun getOutputModelClasses(): Collection<CtClass> {
-        return outputModelClasses
+    fun getOutputModelClasses(): Set<CtClass> {
+        return outputModelClasses.toSet()
     }
 
     protected abstract fun findModelClasses(classNames: Set<String>): Collection<CtClass>
