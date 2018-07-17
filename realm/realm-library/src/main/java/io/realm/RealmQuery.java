@@ -1749,8 +1749,12 @@ public class RealmQuery<E> {
      */
     public long count() {
         realm.checkIfValid();
-
-        return this.query.count();
+        // The fastest way of doing `count()` is going through `TableQuery.count()`. Unfortunately
+        // doing this does not correctly apply all side effects of queries (like subscriptions). Also
+        // some queries constructs, like doing distinct is not easily supported this way.
+        // In order to get the best of both worlds we thus need to create a Java RealmResults object
+        // and then directly access the `Results` class from Object Store.
+        return lazyFindAll().size();
     }
 
     /**
@@ -1764,6 +1768,24 @@ public class RealmQuery<E> {
     public RealmResults<E> findAll() {
         realm.checkIfValid();
         return createRealmResults(query, sortDescriptor, distinctDescriptor, true, SubscriptionAction.NO_SUBSCRIPTION);
+    }
+
+    /**
+     * The same as {@link #findAll()} expect the RealmResult is not forcefully evaluated. This
+     * means this method will return a more "pure" wrapper around the Object Store Results class.
+     *
+     * This can be useful for internal usage where we still want to take advantage of optimizations
+     * and additional functionality provided by Object Store, but do not wish to trigger the query
+     * unless needed.
+     */
+    private OsResults lazyFindAll() {
+        realm.checkIfValid();
+        return createRealmResults(
+                query,
+                sortDescriptor,
+                distinctDescriptor,
+                false,
+                SubscriptionAction.NO_SUBSCRIPTION).osResults;
     }
 
     /**
