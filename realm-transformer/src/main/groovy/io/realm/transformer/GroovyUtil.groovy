@@ -16,7 +16,6 @@
 
 package io.realm.transformer
 
-import kotlin.collections.EmptyList
 import org.gradle.api.Project
 
 import javax.annotation.Nonnull
@@ -39,7 +38,7 @@ class GroovyUtil {
 
     @Nonnull
     static boolean isSyncEnabled(@Nonnull Project project) {
-        return project.realm?.syncEnabled != null && project.realm.syncEnabled
+        return (project.hasProperty("realm")) ? project.realm.syncEnabled : false
     }
 
     @Nonnull
