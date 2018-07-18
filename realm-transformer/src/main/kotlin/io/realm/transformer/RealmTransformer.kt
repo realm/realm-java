@@ -95,23 +95,23 @@ class RealmTransformer(val project: Project) : Transform() {
         timer.splitTime("Prepare output classes")
         if (build.hasNoOutput()) {
             // Abort transform as quickly as possible if no files where found for processing.
-            exitTransform(emptySet(), emptyList(), timer)
+            exitTransform(emptySet(), emptySet(), timer)
             return
         }
-        build.prepareReferencedClasses(referencedInputs!!);
+        build.prepareReferencedClasses(referencedInputs!!)
         timer.splitTime("Prepare referenced classes")
         build.markMediatorsAsTransformed()
         timer.splitTime("Mark mediators as transformed")
-        build.transformModelClasses();
+        build.transformModelClasses()
         timer.splitTime("Transform model classes")
-        build.transformDirectAccessToModelFields();
+        build.transformDirectAccessToModelFields()
         timer.splitTime("Transform references to model fields")
-        build.copyResourceFiles();
+        build.copyResourceFiles()
         timer.splitTime("Copy resource files")
         exitTransform(inputs, build.getOutputModelClasses(), timer)
     }
 
-    private fun exitTransform(inputs: Collection<TransformInput>, outputModelClasses: Collection<CtClass>, timer: Stopwatch) {
+    private fun exitTransform(inputs: Collection<TransformInput>, outputModelClasses: Set<CtClass>, timer: Stopwatch) {
         timer.stop()
         this.sendAnalytics(inputs, outputModelClasses)
     }
@@ -122,7 +122,7 @@ class RealmTransformer(val project: Project) : Transform() {
      * @param inputs the inputs provided by the Transform API
      * @param inputModelClasses a list of ctClasses describing the Realm models
      */
-    private fun sendAnalytics(inputs: Collection<TransformInput>, outputModelClasses: Collection<CtClass>) {
+    private fun sendAnalytics(inputs: Collection<TransformInput>, outputModelClasses: Set<CtClass>) {
         val disableAnalytics: Boolean = "true".equals(System.getenv()["REALM_DISABLE_ANALYTICS"])
         if (inputs.isEmpty() || disableAnalytics) {
             // Don't send analytics for incremental builds or if they have ben explicitly disabled.
@@ -147,16 +147,16 @@ class RealmTransformer(val project: Project) : Transform() {
             }
         }
 
-        val packages: Collection<String> = outputModelClasses.map {
+        val packages: Set<String> = outputModelClasses.map {
             it.packageName
-        }
+        }.toSet()
 
         val targetSdk: String? = Utils.getTargetSdk(project)
         val minSdk: String?  = Utils.getMinSdk(project)
 
-        if (disableAnalytics) {
+        if (!disableAnalytics) {
             val sync: Boolean = Utils.isSyncEnabled(project)
-            val analytics = RealmAnalytics(packages as Set, containsKotlin, sync, targetSdk, minSdk)
+            val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk)
             analytics.execute()
         }
     }
