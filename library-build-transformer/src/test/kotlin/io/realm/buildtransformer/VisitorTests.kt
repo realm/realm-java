@@ -112,6 +112,7 @@ class VisitorTests {
         pool.forEach { inputClasses.add(getClassFile(it)) }
         val transformer = ClassPoolTransformer(qualifiedAnnotationName, inputClasses)
         val outputFiles: Set<File> = transformer.transform()
+        @Suppress("UNCHECKED_CAST")
         return classLoader.loadClass(clazz.java.name, outputFiles) as Class<T>
     }
 
