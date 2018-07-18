@@ -58,9 +58,9 @@ class VisitorTests {
 
     @Test
     fun removeInnerClasses() {
-        // The reflection API does not make it possible to find inner testclasses, so we need to inspect the bytecode
+        // The reflection API does not make it possible to find inner classes, so we need to inspect the bytecode
         // instead. We do this by checking the output of the transformer which will only output files modified and
-        // not testclasses deleted.
+        // not classes deleted.
         val inputClasses: MutableSet<File> = mutableSetOf()
         setOf<KClass<*>>(
             NestedTestClass::class,

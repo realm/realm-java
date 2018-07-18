@@ -4,6 +4,7 @@ import com.android.build.api.transform.*
 import com.google.common.collect.ImmutableSet
 import io.realm.buildtransformer.asm.ClassPoolTransformer
 import io.realm.buildtransformer.ext.packageHierarchyRootDir
+import io.realm.buildtransformer.ext.shouldBeDeleted
 import io.realm.buildtransformer.util.Stopwatch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,7 +19,7 @@ typealias ByteCodeMethodName = String
 val logger: Logger = LoggerFactory.getLogger("realm-build-logger")
 
 /**
- * Transformer that strips all testclasses, methods and fields annotated with a given annotation.
+ * Transformer that strips all classes, methods and fields annotated with a given annotation.
  */
 class RealmBuildTransformer(private val flavorToStrip: String, private val annotationQualifiedName: QualifiedName) : Transform() {
 
@@ -114,11 +115,16 @@ class RealmBuildTransformer(private val flavorToStrip: String, private val annot
         val transformer = ClassPoolTransformer(annotationQualifiedName, inputFiles)
         val modifiedFiles = transformer.transform()
         modifiedFiles.forEach {
-            // Deleted files will not be part of `modifiedFiles`, so by not copying them to the output dir they
-            // are effectively deleted
             val outputFile = File(outputDir, it.absolutePath.substring(it.packageHierarchyRootDir.length))
-            it.copyTo(outputFile, overwrite = true)
-            logger.debug("Write file to output: ${outputFile.name}")
+            if (it.shouldBeDeleted) {
+                if (outputFile.exists()) {
+                    outputFile.delete()
+                }
+            } else {
+                logger.debug("Copy ${it.absolutePath} to ${outputFile.absolutePath}")
+                it.copyTo(outputFile, overwrite = true)
+                logger.debug("Write file to output: ${outputFile.name}")
+            }
         }
     }
 

@@ -23,3 +23,8 @@ class FieldProperty<R, T : Any>(val initializer: (R) -> T = { throw IllegalState
  * package hierarchy.
  */
 var File.packageHierarchyRootDir: String by FieldProperty<File, String>()
+
+/**
+ * `true` if the file is marked for deletion after being processed.
+ */
+var File.shouldBeDeleted: Boolean by FieldProperty<File, Boolean>()

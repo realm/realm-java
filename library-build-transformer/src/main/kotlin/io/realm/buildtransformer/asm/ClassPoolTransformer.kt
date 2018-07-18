@@ -5,6 +5,7 @@ import io.realm.buildtransformer.ByteCodeTypeDescriptor
 import io.realm.buildtransformer.QualifiedName
 import io.realm.buildtransformer.asm.visitors.AnnotatedCodeStripVisitor
 import io.realm.buildtransformer.asm.visitors.AnnotationVisitor
+import io.realm.buildtransformer.ext.shouldBeDeleted
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import java.io.File
@@ -48,7 +49,9 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
     }
 
     /**
-     * Parse 2: Remove all testclasses, methods and fields marked with the annotation
+     * Parse 2: Remove methods and fields marked with the annotation. Classes that are removed
+     * are instead marked for deletion as deleting the File is the responsibility of the the
+     * transform API.
      */
     private fun parse2(markedClasses: Set<String>, markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>): Set<File> {
         val modifiedClasses: MutableSet<File> = mutableSetOf()
@@ -61,9 +64,10 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
                 reader.accept(classRemover, 0)
                 result = if (classRemover.deleteClass) ByteArray(0) else writer.toByteArray()
             }
-            if (result.isNotEmpty()) {
+            classFile.shouldBeDeleted = result.isEmpty()
+            modifiedClasses.add(classFile)
+            if (!classFile.shouldBeDeleted) {
                 classFile.outputStream().use { outputStream -> outputStream.write(result) }
-                modifiedClasses.add(classFile)
             }
         }
         return modifiedClasses
