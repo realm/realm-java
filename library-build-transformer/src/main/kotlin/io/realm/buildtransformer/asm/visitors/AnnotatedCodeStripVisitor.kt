@@ -6,8 +6,8 @@ import org.objectweb.asm.*
 import org.objectweb.asm.AnnotationVisitor
 
 /**
- * Visitor that will remove all testclasses, methods and fields annotated with given annotation.
- * Doing this requires a pre-processing step performed by [AnnotationVisitor].
+ * Visitor that will remove all classes, methods and fields annotated with given annotation.
+ * Doing this requires a pre-processing step performed by the [AnnotationVisitor].
  */
 class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
                                 private val markedClasses: Set<String>,
@@ -18,7 +18,7 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
     private lateinit var markedMethodsInClass: Set<ByteCodeMethodName>
 
     override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
-        // Only process this class or it's super class doesn't have the annotation
+        // Only process this class if it or its super class doesn't have the given annotation
         markedMethodsInClass = markedMethods[name!!]!!
         deleteClass = (markedClasses.contains(name) || markedClasses.contains(superName))
         if (!deleteClass) {
@@ -26,10 +26,10 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
         }
     }
 
-    // Remove INNERCLASS definitions from the bytecode in the top level class. It isn't clear if these are used by any
-    // relevant API's, but better remove them just in case.
+    // Remove INNERCLASS definitions from the bytecode in the top level class. It isn't clear if
+    // these are used by any relevant API's, but better remove them just in case.
     override fun visitInnerClass(name: String?, outerName: String?, innerName: String?, access: Int) {
-        if (markedClasses.contains(name)) {
+        if (!markedClasses.contains(name)) {
             super.visitInnerClass(name, outerName, innerName, access)
         }
     }

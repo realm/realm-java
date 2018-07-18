@@ -8,13 +8,14 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
- * ClassVisitor that gather all testclasses and methods with the given annotation. This is the first parse and is required
- * for correctly identifying them in the 2nd parse before any byte code is written.
+ * ClassVisitor that gather all classes and methods with the given annotation. This is the first
+ * parse and is required for correctly identifying them in the 2nd parse before any byte code is
+ * written.
  */
 class AnnotationVisitor(private val annotationDescriptor: String) : ClassVisitor(Opcodes.ASM6) {
 
-    val annotatedClasses: MutableSet<ByteCodeTypeDescriptor> = hashSetOf()
-    val annotatedMethods: MutableMap<ByteCodeTypeDescriptor, MutableSet<ByteCodeMethodName>> = hashMapOf()
+    val annotatedClasses: MutableSet<ByteCodeTypeDescriptor> = mutableSetOf()
+    val annotatedMethods: MutableMap<ByteCodeTypeDescriptor, MutableSet<ByteCodeMethodName>> = mutableMapOf()
     private var internalQualifiedName: String = ""
     private val annotatedMethodsInClass = mutableSetOf<ByteCodeMethodName>()
 

@@ -4,6 +4,7 @@ import java.io.File
 import java.util.*
 import kotlin.reflect.KProperty
 
+// Add support for extension properties
 // Credit: https://stackoverflow.com/questions/36502413/extension-fields-in-kotlin
 class FieldProperty<R, T : Any>(val initializer: (R) -> T = { throw IllegalStateException("Not initialized.") }) {
     private val map = WeakHashMap<R, T>()
