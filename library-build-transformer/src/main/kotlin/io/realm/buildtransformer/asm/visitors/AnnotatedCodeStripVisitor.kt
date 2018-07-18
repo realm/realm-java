@@ -2,6 +2,7 @@ package io.realm.buildtransformer.asm.visitors
 
 import io.realm.buildtransformer.ByteCodeMethodName
 import io.realm.buildtransformer.ByteCodeTypeDescriptor
+import io.realm.buildtransformer.logger
 import org.objectweb.asm.*
 import org.objectweb.asm.AnnotationVisitor
 
@@ -23,6 +24,8 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
         deleteClass = (markedClasses.contains(name) || markedClasses.contains(superName))
         if (!deleteClass) {
             super.visit(version, access, name, signature, superName, interfaces)
+        } else {
+            logger.debug("Removing top level class: $name")
         }
     }
 
@@ -31,6 +34,8 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
     override fun visitInnerClass(name: String?, outerName: String?, innerName: String?, access: Int) {
         if (!markedClasses.contains(name)) {
             super.visitInnerClass(name, outerName, innerName, access)
+        } else {
+            logger.debug("Removing inner class description: $name")
         }
     }
 
@@ -45,6 +50,8 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
                 if (!ignoreField) {
                     // Call super ClassVisitor directly
                     this@AnnotatedCodeStripVisitor.cv.visitField(access, name, descriptor, signature, value)
+                } else {
+                    logger.debug("Removing field: $name")
                 }
             }
         }
@@ -54,6 +61,7 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
         return if (!markedMethodsInClass.contains(name)) {
             super.visitMethod(access, name, descriptor, signature, exceptions)
         } else {
+            logger.debug("Removing method: $name")
             null
         }
     }

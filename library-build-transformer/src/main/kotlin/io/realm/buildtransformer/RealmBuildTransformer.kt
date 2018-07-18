@@ -15,7 +15,7 @@ typealias QualifiedName = String
 typealias ByteCodeMethodName = String
 
 // Package level logger
-val logger: Logger = LoggerFactory.getLogger("realm-logger")
+val logger: Logger = LoggerFactory.getLogger("realm-build-logger")
 
 /**
  * Transformer that strips all testclasses, methods and fields annotated with a given annotation.
@@ -111,7 +111,7 @@ class RealmBuildTransformer(private val flavorToStrip: String, private val annot
     }
 
     private fun transformClassFiles(inputFiles: MutableSet<File>, outputDir: File?) {
-        val transformer = ClassPoolTransformer("io.realm.internal.ObjectServer", inputFiles)
+        val transformer = ClassPoolTransformer(annotationQualifiedName, inputFiles)
         val modifiedFiles = transformer.transform()
         modifiedFiles.forEach {
             // Deleted files will not be part of `modifiedFiles`, so by not copying them to the output dir they

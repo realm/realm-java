@@ -2,6 +2,7 @@ package io.realm.buildtransformer.asm
 
 import io.realm.buildtransformer.ByteCodeMethodName
 import io.realm.buildtransformer.ByteCodeTypeDescriptor
+import io.realm.buildtransformer.QualifiedName
 import io.realm.buildtransformer.asm.visitors.AnnotatedCodeStripVisitor
 import io.realm.buildtransformer.asm.visitors.AnnotationVisitor
 import org.objectweb.asm.ClassReader
@@ -17,7 +18,7 @@ import java.io.File
  * access to referenced classes easily, so two parses would be required here as well and the Visitor API is faster and
  * requires less memory.
  */
-class ClassPoolTransformer(annotationQualifiedName: String, private val inputClasses: Set<File>) {
+class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val inputClasses: Set<File>) {
 
     private val annotationDescriptor: String = createDescriptor(annotationQualifiedName)
 
@@ -61,7 +62,6 @@ class ClassPoolTransformer(annotationQualifiedName: String, private val inputCla
                 result = if (classRemover.deleteClass) ByteArray(0) else writer.toByteArray()
             }
             if (result.isNotEmpty()) {
-                io.realm.buildtransformer.logger.debug("Modified: ${classFile.name}")
                 classFile.outputStream().use { outputStream -> outputStream.write(result) }
                 modifiedClasses.add(classFile)
             }

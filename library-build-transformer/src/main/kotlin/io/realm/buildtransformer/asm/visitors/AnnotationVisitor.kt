@@ -2,6 +2,7 @@ package io.realm.buildtransformer.asm.visitors;
 
 import io.realm.buildtransformer.ByteCodeMethodName
 import io.realm.buildtransformer.ByteCodeTypeDescriptor
+import io.realm.buildtransformer.logger
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
@@ -45,8 +46,8 @@ class AnnotationVisitor(private val annotationDescriptor: String) : ClassVisitor
     }
 
     override fun visitEnd() {
-        super.visitEnd()
         annotatedMethods[internalQualifiedName] = annotatedMethodsInClass
+        super.visitEnd()
     }
 
 
