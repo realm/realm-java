@@ -14,6 +14,7 @@
 ### Bug Fixes
 
 * [ObjectServer] Using Android Network Security Configuration is necessary to install the custom root CA for tests (API >= 24) (#5970).
+* Fixes issue with the incremental build causing direct access to model without accessor to fail (#6056).
 * `RealmQuery.distinct()` is now correctly applied when calling `RealmQuery.count()` (#5958).
 
 ## 5.3.1 (2018-06-19)

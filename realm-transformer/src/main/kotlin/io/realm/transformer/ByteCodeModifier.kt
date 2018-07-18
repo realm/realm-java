@@ -162,9 +162,16 @@ class BytecodeModifier {
         @Throws(CannotCompileException::class)
         override fun edit(fieldAccess: FieldAccess) {
             logger.debug("      Field being accessed: ${fieldAccess.className}.${fieldAccess.fieldName}")
-            if (isRealmModelClass(fieldAccess.enclosingClass) && isModelField(fieldAccess.field)) {
+
+            val fieldAccessCtClass: CtClass? = try { classPool.get(fieldAccess.className) } catch (e: NotFoundException) { null }
+            if (fieldAccessCtClass != null && isRealmModelClass(fieldAccessCtClass) && isModelField(fieldAccess.field)) {
                 logger.debug("        Realm: Manipulating ${ctClass.simpleName}.${behaviour.name}(): ${fieldAccess.fieldName}")
                 logger.debug("        Methods: ${ctClass.declaredMethods}")
+
+                // make sure accessors are added, otherwise javassist will fail with
+                // javassist.CannotCompileException: [source error] realmGet$id() not found in 'foo.Model'
+                addRealmAccessors(fieldAccessCtClass)
+
                 val fieldName: String = fieldAccess . fieldName
                 if (fieldAccess.isReader) {
                     fieldAccess.replace("\$_ = \$0.realmGet\$$fieldName();")
