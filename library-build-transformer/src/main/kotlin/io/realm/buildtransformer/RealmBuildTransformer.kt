@@ -74,6 +74,7 @@ class RealmBuildTransformer(private val flavorToStrip: String, private val annot
                 val dirPath: String = it.file.absolutePath
                 it.file.walkTopDown()
                         .filter { it.isFile }
+                        .filter { it.name.endsWith(".class") }
                         .forEach {
                             it.packageHierarchyRootDir = dirPath
                             inputFiles.add(it)
@@ -96,6 +97,7 @@ class RealmBuildTransformer(private val flavorToStrip: String, private val annot
                 val dirPath: String = it.file.absolutePath
                 it.changedFiles.entries
                         .filter { it.key.isFile }
+                        .filter { it.key.name.endsWith(".class") }
                         .filterNot { it.value == Status.REMOVED }
                         .forEach {
                             val file: File = it.key
