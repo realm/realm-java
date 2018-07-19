@@ -50,6 +50,4 @@ class AnnotationVisitor(private val annotationDescriptor: String) : ClassVisitor
         super.visitEnd()
     }
 
-
 }
-

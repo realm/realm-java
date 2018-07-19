@@ -26,7 +26,7 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
     /**
      * Transform files
      *
-     * @return All input files that where not removed.
+     * @return All input files, both those that have been modified and those that have not.
      */
     fun transform(): Set<File> {
         val (markedClasses, markedMethods) = parse1()
@@ -50,7 +50,7 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
 
     /**
      * Parse 2: Remove methods and fields marked with the annotation. Classes that are removed
-     * are instead marked for deletion as deleting the File is the responsibility of the the
+     * are instead marked for deletion as deleting the File is the responsibility of the
      * transform API.
      */
     private fun parse2(markedClasses: Set<String>, markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>): Set<File> {

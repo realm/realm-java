@@ -19,7 +19,9 @@ typealias ByteCodeMethodName = String
 val logger: Logger = LoggerFactory.getLogger("realm-build-logger")
 
 /**
- * Transformer that strips all classes, methods and fields annotated with a given annotation.
+ * Transformer that will strip all classes, methods and fields annotated with a given annotation from
+ * a specific Android flavour. It is also possible to provide a list of files to delete whether or
+ * not they have the annotation. These files will only be deleted from the defined flavour.
  */
 class RealmBuildTransformer(private val flavorToStrip: String,
                             private val annotationQualifiedName: QualifiedName,

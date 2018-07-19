@@ -1,8 +1,8 @@
 group 'io.realm'
-version '1.0-SNAPSHOT'
+version '1.0.0'
 
 buildscript {
-    ext.kotlin_version = '1.2.41'
+    ext.kotlin_version = '1.2.51'
 
     repositories {
         mavenCentral()
@@ -87,7 +87,7 @@ publishing {
             pom.withXml {
                 Node root = asNode()
                 root.appendNode('name', 'realm-library-build-transformer')
-                root.appendNode('description', 'Android Gradle Transformer for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
+                root.appendNode('description', 'Transform library for Realm Java that will strip unwanted files at build time.')
                 root.appendNode('url', 'http://realm.io')
                 root.children().last() + commonPom
             }
@@ -142,8 +142,3 @@ artifactory {
         }
     }
 }
-
-//task wrapper(type: Wrapper) {
-//    GradleVersion = project.gradleVersion
-//    distributionType = 'all'
-//}

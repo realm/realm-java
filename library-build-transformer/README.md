@@ -11,8 +11,14 @@ Register the transformer as normal and provide it with the flavor to strip and a
 
 ```
 import io.realm.buildtransformer.RealmBuildTransformer
-android.registerTransform(new RealmBuildTransformer("base", Ob"io.realm.internal.annotations.ObjectServer"))
+android.registerTransform(new RealmBuildTransformer("base", "io.realm.internal.annotations.ObjectServer", [
+  "explicit_files_to_remove"
+]))
 ```
+
+It is also possible to provide a specific list of files that will be removed whether or not they
+have the annotation. This is used to remove some files created by the annotation processor that do
+not carry over annotations.
 
 ## Warning
 
