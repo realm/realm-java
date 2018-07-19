@@ -6,7 +6,7 @@ import kotlin.reflect.KProperty
 
 // Add support for extension properties
 // Credit: https://stackoverflow.com/questions/36502413/extension-fields-in-kotlin
-class FieldProperty<R, T : Any>(val initializer: (R) -> T = { throw IllegalStateException("Not initialized.") }) {
+class FieldProperty<R, T : Any>(val initializer: (R) -> T = { throw IllegalStateException("Field Property not initialized.") }) {
     private val map = WeakHashMap<R, T>()
 
     operator fun getValue(thisRef: R, property: KProperty<*>): T =

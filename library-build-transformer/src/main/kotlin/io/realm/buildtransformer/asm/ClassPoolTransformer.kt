@@ -54,23 +54,24 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
      * transform API.
      */
     private fun parse2(markedClasses: Set<String>, markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>): Set<File> {
-        val modifiedClasses: MutableSet<File> = mutableSetOf()
         inputClasses.forEach { classFile ->
             var result = ByteArray(0)
-            classFile.inputStream().use { inputStream ->
-                val writer = ClassWriter(0) // We don't modify methods so no reason to re-calculate method frames
-                val classRemover = AnnotatedCodeStripVisitor(annotationDescriptor, markedClasses, markedMethods, writer)
-                val reader = ClassReader(inputStream)
-                reader.accept(classRemover, 0)
-                result = if (classRemover.deleteClass) ByteArray(0) else writer.toByteArray()
-            }
-            classFile.shouldBeDeleted = result.isEmpty()
-            modifiedClasses.add(classFile)
-            if (!classFile.shouldBeDeleted) {
-                classFile.outputStream().use { outputStream -> outputStream.write(result) }
+            if (!classFile.shouldBeDeleted) { // Respect previously set delete flag, so avoid doing any work
+                classFile.inputStream().use { inputStream ->
+                    val writer = ClassWriter(0) // We don't modify methods so no reason to re-calculate method frames
+                    val classRemover = AnnotatedCodeStripVisitor(annotationDescriptor, markedClasses, markedMethods, writer)
+                    val reader = ClassReader(inputStream)
+                    reader.accept(classRemover, 0)
+                    result = if (classRemover.deleteClass) ByteArray(0) else writer.toByteArray()
+                }
+                if (result.isNotEmpty()) {
+                    classFile.outputStream().use { outputStream -> outputStream.write(result) }
+                } else {
+                    classFile.shouldBeDeleted = true
+                }
             }
         }
-        return modifiedClasses
+        return inputClasses
     }
 
     /**

@@ -21,7 +21,9 @@ val logger: Logger = LoggerFactory.getLogger("realm-build-logger")
 /**
  * Transformer that strips all classes, methods and fields annotated with a given annotation.
  */
-class RealmBuildTransformer(private val flavorToStrip: String, private val annotationQualifiedName: QualifiedName) : Transform() {
+class RealmBuildTransformer(private val flavorToStrip: String,
+                            private val annotationQualifiedName: QualifiedName,
+                            private val specificFilesToStrip: Set<QualifiedName> = setOf()) : Transform() {
 
     override fun getName(): String {
         return "RealmBuildTransformer"
@@ -48,6 +50,7 @@ class RealmBuildTransformer(private val flavorToStrip: String, private val annot
                            referencedInputs: MutableCollection<TransformInput>?,
                            outputProvider: TransformOutputProvider?,
                            isIncremental: Boolean) {
+        @Suppress("DEPRECATION")
         super.transform(context, inputs, referencedInputs, outputProvider, isIncremental)
 
         // Poor mans version of detecting variants, since the Gradle API does not allow us to
@@ -76,14 +79,15 @@ class RealmBuildTransformer(private val flavorToStrip: String, private val annot
                 it.file.walkTopDown()
                         .filter { it.isFile }
                         .filter { it.name.endsWith(".class") }
-                        .forEach {
-                            it.packageHierarchyRootDir = dirPath
-                            inputFiles.add(it)
+                        .forEach { file ->
+                            file.packageHierarchyRootDir = dirPath
+                            file.shouldBeDeleted = transformClasses && specificFilesToStrip.find { file.absolutePath.endsWith(it) } != null
+                            inputFiles.add(file)
                         }
             }
         }
 
-        transformClassFiles(inputFiles, outputDir)
+        transformClassFiles(outputDir, inputFiles, transformClasses)
     }
 
     private fun runIncrementalTransform(inputs: MutableCollection<TransformInput>, outputProvider: TransformOutputProvider, transformClasses: Boolean) {
@@ -103,27 +107,35 @@ class RealmBuildTransformer(private val flavorToStrip: String, private val annot
                         .forEach {
                             val file: File = it.key
                             file.packageHierarchyRootDir = dirPath
+                            file.shouldBeDeleted = transformClasses && specificFilesToStrip.find { file.absolutePath.endsWith(it) } != null
                             inputFiles.add(file)
                         }
             }
         }
 
-        transformClassFiles(inputFiles, outputDir)
+        transformClassFiles(outputDir, inputFiles, transformClasses)
     }
 
-    private fun transformClassFiles(inputFiles: MutableSet<File>, outputDir: File?) {
-        val transformer = ClassPoolTransformer(annotationQualifiedName, inputFiles)
-        val modifiedFiles = transformer.transform()
-        modifiedFiles.forEach {
+    private fun transformClassFiles(outputDir: File, inputFiles: MutableSet<File>, transformClasses: Boolean) {
+        val files: Set<File> = if (transformClasses) {
+            val transformer = ClassPoolTransformer(annotationQualifiedName, inputFiles)
+            transformer.transform()
+        } else {
+            inputFiles
+        }
+
+        copyToOutput(outputDir, files)
+    }
+
+    private fun copyToOutput(outputDir: File, files: Set<File>) {
+        files.forEach {
             val outputFile = File(outputDir, it.absolutePath.substring(it.packageHierarchyRootDir.length))
             if (it.shouldBeDeleted) {
                 if (outputFile.exists()) {
                     outputFile.delete()
                 }
             } else {
-                logger.debug("Copy ${it.absolutePath} to ${outputFile.absolutePath}")
                 it.copyTo(outputFile, overwrite = true)
-                logger.debug("Write file to output: ${outputFile.name}")
             }
         }
     }
