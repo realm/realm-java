@@ -4,6 +4,10 @@
 
 * Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
 
+### Bug fixes
+
+* Methods and classes requiring synchronized Realms have been removed from the standard AAR package. They are now only visible when enabling synchronized Realms in Gradle. The methods and classes will still be visible in the source files and docs, but be annotated with `@ObjectServer` (#5799).
+
 ### Credits
 
 * Thanks to @kageiit for removing Groovy from the Realm Transformer (#3971).
