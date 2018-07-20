@@ -36,8 +36,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.Nullable;
-
 import io.realm.internal.Keep;
 import io.realm.internal.SyncObjectServerFacade;
 import io.realm.internal.Util;
@@ -351,33 +349,7 @@ public class SyncSession {
         // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
-            waitForChanges(DIRECTION_DOWNLOAD, -1, null);
-        }
-    }
-
-    /**
-     * Calling this method will block until all known remote changes have been downloaded and applied to the Realm
-     * or the specified timeout was hit. This will involve network access, so calling this method should only be done
-     * from a non-UI thread.
-     * <p>
-     * This method cannot be called before the session has been started.
-     *
-     * @throws IllegalStateException if called on the Android main thread.
-     * @throws InterruptedException if the timeout was hit or the thread was interrupted while downloading was in progress.
-     * @throws IllegalArgumentException if {@code timeout} is < 0 or {@code unit} is {@code null}.
-     */
-    public void downloadAllServerChanges(long timeout, TimeUnit unit) throws InterruptedException {
-        checkIfNotOnMainThread("downloadAllServerChanges() cannot be called from the main thread.");
-        checkTimeout(timeout, unit);
-
-        // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
-        // an async listener there and let it callback to the Java Session when done. This feels icky at best, but
-        // since all operations on the SyncSession operate under a shared mutex, we would prevent all other actions on the
-        // session, including trying to stop it.
-        // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
-        // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
-        synchronized (waitForChangesMutex) {
-            waitForChanges(DIRECTION_DOWNLOAD, timeout, unit);
+            waitForChanges(DIRECTION_DOWNLOAD);
         }
     }
 
@@ -402,33 +374,7 @@ public class SyncSession {
         // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
-            waitForChanges(DIRECTION_UPLOAD, -1, null);
-        }
-    }
-
-    /**
-     * Calling this method will block until all known local changes have been uploaded to the server or the specified
-     * timeout was hit. This will involve network access, so calling this method should only be done from a non-UI
-     * thread.
-     * <p>
-     * This method cannot be called before the session has been started.
-     *
-     * @throws IllegalStateException if called on the Android main thread.
-     * @throws InterruptedException if the timeout was hit or the thread was interrupted while downloading was in progress.
-     * @throws IllegalArgumentException if {@code timeout} is < 0 or {@code unit} is {@code null}.
-     */
-    public void uploadAllLocalChanges(long timeout, TimeUnit unit) throws InterruptedException {
-        checkIfNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
-        checkTimeout(timeout, unit);
-
-        // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
-        // an async listener there and let it callback to the Java Session when done. This feels icky at best, but
-        // since all operations on the SyncSession operate under a shared mutex, we would prevent all other actions on the
-        // session, including trying to stop it.
-        // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
-        // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
-        synchronized (waitForChangesMutex) {
-            waitForChanges(DIRECTION_UPLOAD, timeout, unit);
+            waitForChanges(DIRECTION_UPLOAD);
         }
     }
 
@@ -441,10 +387,8 @@ public class SyncSession {
      * It will block into all changes have been either uploaded or downloaded depending on the chosen direction.
      *
      * @param direction either {@link #DIRECTION_DOWNLOAD} or {@link #DIRECTION_UPLOAD}
-     * @param timeout timeout parameter. If < 0, no timeout is applied.
-     * @param unit timeout unit. If `timeout` is < 0, this is not used and can be null.
      */
-    private void waitForChanges(int direction, long timeout, @Nullable TimeUnit unit) throws InterruptedException {
+    private void waitForChanges(int direction) throws InterruptedException {
         if (direction != DIRECTION_DOWNLOAD && direction != DIRECTION_UPLOAD) {
             throw new IllegalArgumentException("Unknown direction: " + direction);
         }
@@ -469,7 +413,7 @@ public class SyncSession {
                 throw new ObjectServerError(ErrorCode.UNKNOWN, errorMsg + " Has the SyncClient been started?");
             }
             try {
-                wrapper.waitForServerChanges(timeout, unit);
+                wrapper.waitForServerChanges();
             } catch(InterruptedException e) {
                 waitingForServerChanges.set(null); // Ignore any results being sent if the wait was interrupted.
                 throw e;
@@ -491,16 +435,6 @@ public class SyncSession {
     private void checkIfNotOnMainThread(String errorMessage) {
         if (new AndroidCapabilities().isMainThread()) {
             throw new IllegalStateException(errorMessage);
-        }
-    }
-
-    private void checkTimeout(long timeout, TimeUnit unit) {
-        if (timeout < 0) {
-            throw new IllegalArgumentException("'timeout' most be >= 0. It was: " + timeout);
-        }
-        //noinspection ConstantConditions
-        if (unit == null) {
-            throw new IllegalArgumentException("Non-null 'unit' required");
         }
     }
 
@@ -741,16 +675,11 @@ public class SyncSession {
         private String errorMessage;
 
         /**
-         * Block until the wait either completes, timeouts or is terminated for other reasons.
-         * Timeouts are only applied if `timeout` >= 0.
+         * Block until the wait either completes or is terminated for other reasons.
          */
-        public void waitForServerChanges(long timeout, TimeUnit unit) throws InterruptedException {
+        public void waitForServerChanges() throws InterruptedException {
             if (!resultReceived) {
-                if (timeout >= 0) {
-                    waiter.await(timeout, unit);
-                } else {
-                    waiter.await();
-                }
+                waiter.await();
             }
         }
 
