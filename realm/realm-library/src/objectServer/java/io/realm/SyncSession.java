@@ -364,9 +364,10 @@ public class SyncSession {
      *
      * @throws IllegalStateException if called on the Android main thread.
      * @throws InterruptedException if the timeout was hit or the thread was interrupted while downloading was in progress.
-     * @throws IllegalArgumentException if {@code timeout} is < 0 or {@code unit} is {@code null}.
+     * @throws IllegalArgumentException if {@code timeout} is less than {@code 0} or {@code unit} is {@code null}.
+     * @return {@code true} if the data was downloaded before the timeout. {@code false} if the operation timed out or otherwise failed.
      */
-    public void downloadAllServerChanges(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean downloadAllServerChanges(long timeout, TimeUnit unit) throws InterruptedException {
         checkIfNotOnMainThread("downloadAllServerChanges() cannot be called from the main thread.");
         checkTimeout(timeout, unit);
 
@@ -377,7 +378,7 @@ public class SyncSession {
         // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
-            waitForChanges(DIRECTION_DOWNLOAD, timeout, unit);
+            return waitForChanges(DIRECTION_DOWNLOAD, timeout, unit);
         }
     }
 
@@ -415,9 +416,10 @@ public class SyncSession {
      *
      * @throws IllegalStateException if called on the Android main thread.
      * @throws InterruptedException if the timeout was hit or the thread was interrupted while downloading was in progress.
-     * @throws IllegalArgumentException if {@code timeout} is < 0 or {@code unit} is {@code null}.
+     * @throws IllegalArgumentException if {@code timeout} is less than {@code 0} or {@code unit} is {@code null}.
+     * @return {@code true} if the data was uploaded before the timeout. {@code false} if the operation timed out or otherwise failed.
      */
-    public void uploadAllLocalChanges(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean uploadAllLocalChanges(long timeout, TimeUnit unit) throws InterruptedException {
         checkIfNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
         checkTimeout(timeout, unit);
 
@@ -428,7 +430,7 @@ public class SyncSession {
         // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
-            waitForChanges(DIRECTION_UPLOAD, timeout, unit);
+            return waitForChanges(DIRECTION_UPLOAD, timeout, unit);
         }
     }
 
@@ -441,13 +443,15 @@ public class SyncSession {
      * It will block into all changes have been either uploaded or downloaded depending on the chosen direction.
      *
      * @param direction either {@link #DIRECTION_DOWNLOAD} or {@link #DIRECTION_UPLOAD}
-     * @param timeout timeout parameter. If < 0, no timeout is applied.
-     * @param unit timeout unit. If `timeout` is < 0, this is not used and can be null.
+     * @param timeout timeout parameter. If less than 0, no timeout is applied.
+     * @param unit timeout unit. If `timeout` is less than 0, this is not used and can be null.
+     * @return {@code true} if the job completed before the timeout was hit, {@code false}
      */
-    private void waitForChanges(int direction, long timeout, @Nullable TimeUnit unit) throws InterruptedException {
+    private boolean waitForChanges(int direction, long timeout, @Nullable TimeUnit unit) throws InterruptedException {
         if (direction != DIRECTION_DOWNLOAD && direction != DIRECTION_UPLOAD) {
             throw new IllegalArgumentException("Unknown direction: " + direction);
         }
+        boolean result = false;
         if (!isClosed) {
             String realmPath = configuration.getPath();
             WaitForSessionWrapper wrapper = new WaitForSessionWrapper();
@@ -458,7 +462,7 @@ public class SyncSession {
                     : nativeWaitForUploadCompletion(callbackId, realmPath);
             if (!listenerRegistered) {
                 waitingForServerChanges.set(null);
-                String errorMsg = "";
+                String errorMsg;
                 switch (direction) {
                     case DIRECTION_DOWNLOAD: errorMsg = "It was not possible to download all remote changes."; break;
                     case DIRECTION_UPLOAD: errorMsg = "It was not possible upload all local changes."; break;
@@ -469,7 +473,7 @@ public class SyncSession {
                 throw new ObjectServerError(ErrorCode.UNKNOWN, errorMsg + " Has the SyncClient been started?");
             }
             try {
-                wrapper.waitForServerChanges(timeout, unit);
+                result = wrapper.waitForServerChanges(timeout, unit);
             } catch(InterruptedException e) {
                 waitingForServerChanges.set(null); // Ignore any results being sent if the wait was interrupted.
                 throw e;
@@ -486,6 +490,7 @@ public class SyncSession {
                 waitingForServerChanges.set(null);
             }
         }
+        return result;
     }
 
     private void checkIfNotOnMainThread(String errorMessage) {
@@ -744,14 +749,16 @@ public class SyncSession {
          * Block until the wait either completes, timeouts or is terminated for other reasons.
          * Timeouts are only applied if `timeout` >= 0.
          */
-        public void waitForServerChanges(long timeout, TimeUnit unit) throws InterruptedException {
+        public boolean waitForServerChanges(long timeout, @Nullable TimeUnit unit) throws InterruptedException {
             if (!resultReceived) {
                 if (timeout >= 0) {
-                    waiter.await(timeout, unit);
+                    //noinspection ConstantConditions
+                    return waiter.await(timeout, unit);
                 } else {
                     waiter.await();
                 }
             }
+            return isSuccess();
         }
 
         /**

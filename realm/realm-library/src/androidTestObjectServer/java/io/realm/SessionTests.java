@@ -438,6 +438,17 @@ public class SessionTests {
     }
 
     @Test
+    public void uploadAllLocalChanges_returnFalseWhenTimedOut() throws InterruptedException {
+        Realm realm = Realm.getInstance(configuration);
+        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        try {
+            assertFalse(session.uploadAllLocalChanges(100, TimeUnit.MILLISECONDS));
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
     @UiThreadTest
     public void downloadAllServerChanges_throwsOnUiThread() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
@@ -481,6 +492,17 @@ public class SessionTests {
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
+    public void downloadAllServerChanges_returnFalseWhenTimedOut() throws InterruptedException {
+        Realm realm = Realm.getInstance(configuration);
+        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        try {
+            assertFalse(session.downloadAllServerChanges(100, TimeUnit.MILLISECONDS));
         } finally {
             realm.close();
         }
