@@ -2,6 +2,7 @@
 
 ### Enhancements
 
+* [ObjectServer] Added support for `SyncSession.downloadAllServerChanges(long timeout, TimeUnit unit)` and `SyncSession.uploadAllLocalChanges(long timeout, TimeUnit unit)`.
 * Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
 
 ### Credits
