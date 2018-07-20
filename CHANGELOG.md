@@ -4,6 +4,14 @@
 
 * Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
 
+### Internal
+
+* Upgraded to Realm Core 5.7.2
+* Upgraded to Realm Sync 3.8.1
+* [ObjectServer] Improved performance when integrating changes from the server.
+* Added extra information about the state of the Realm file if an exception is thrown due to Realm not being able to open it.
+* Removed internal dependency on Groovy in the Realm Transformer (#3971).
+
 ### Credits
 
 * Thanks to @kageiit for removing Groovy from the Realm Transformer (#3971).
