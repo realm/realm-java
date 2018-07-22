@@ -1,8 +1,14 @@
-## 5.4.0 (YYYY-MM-DD)
+## 5.4.0 (2018-07-22)
 
 ### Enhancements
 
 * Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
+
+### Bug Fixes
+
+* [ObjectServer] Using Android Network Security Configuration is necessary to install the custom root CA for tests (API >= 24) (#5970).
+* Fixes issue with the incremental build causing direct access to model without accessor to fail (#6056).
+* `RealmQuery.distinct()` is now correctly applied when calling `RealmQuery.count()` (#5958).
 
 ### Internal
 
@@ -16,14 +22,6 @@
 
 * Thanks to @kageiit for removing Groovy from the Realm Transformer (#3971).
 
-
-## 5.3.2 (YYYY-MM-DD)
-
-### Bug Fixes
-
-* [ObjectServer] Using Android Network Security Configuration is necessary to install the custom root CA for tests (API >= 24) (#5970).
-* Fixes issue with the incremental build causing direct access to model without accessor to fail (#6056).
-* `RealmQuery.distinct()` is now correctly applied when calling `RealmQuery.count()` (#5958).
 
 ## 5.3.1 (2018-06-19)
 
