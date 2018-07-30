@@ -2,7 +2,7 @@
 
 ### Bug Fixes
 
-* Fix Realm Gradle Plugin adding depencies in a way incompatible with Kotlin Android Extensions. This was introduced in Realm Java 5.4.0 (#6080).
+* Fix Realm Gradle Plugin adding dependencies in a way incompatible with Kotlin Android Extensions. This was introduced in Realm Java 5.4.0 (#6080).
 
 
 ## 5.4.0 (2018-07-22)
