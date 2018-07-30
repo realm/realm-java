@@ -25,6 +25,7 @@ import io.realm.transformer.BytecodeModifier
 import io.realm.transformer.ManagedClassPool
 import io.realm.transformer.logger
 import io.realm.transformer.Utils
+import io.realm.transformer.ext.getBootClasspath
 import javassist.ClassPool
 import javassist.CtClass
 import org.gradle.api.Project
@@ -147,7 +148,7 @@ abstract class BuildTemplate(val project: Project, val outputProvider: Transform
      */
     private fun addBootClassesToClassPool(classPool: ClassPool) {
         try {
-            Utils.getBootClasspath(project).forEach {
+            project.getBootClasspath().forEach {
                 val path: String = it.absolutePath
                 logger.debug("Add boot class $path to class pool.")
                 classPool.appendClassPath(path)
