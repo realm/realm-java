@@ -46,7 +46,3 @@ private fun getAndroidExtension(project: Project): BaseExtension {
     // trigger the transformer code in the first place.
     return project.extensions.getByName("android") as BaseExtension
 }
-
-
-
-
