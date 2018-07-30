@@ -74,9 +74,7 @@ class Realm implements Plugin<Project> {
             project.dependencies.add("androidTestAnnotationProcessor", "io.realm:realm-annotations-processor:${Version.VERSION}")
         }
 
-        project.afterEvaluate {
-            setDependencies(project, dependencyConfigurationName, extension.syncEnabled, extension.kotlinExtensionsEnabled)
-        }
+        setDependencies(project, dependencyConfigurationName, extension.syncEnabled, extension.kotlinExtensionsEnabled)
     }
 
     private static boolean isTransformAvailable() {
@@ -121,7 +119,6 @@ class Realm implements Plugin<Project> {
 
     private static void setDependencies(Project project, String dependencyConfigurationName, boolean syncEnabled, boolean kotlinExtensionsEnabled) {
         // remove libraries first
-        
         def iterator = project.getConfigurations().getByName(dependencyConfigurationName).getDependencies().iterator()
         while (iterator.hasNext()) {
             def item = iterator.next()
