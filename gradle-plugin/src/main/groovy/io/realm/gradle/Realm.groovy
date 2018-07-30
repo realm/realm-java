@@ -127,6 +127,9 @@ class Realm implements Plugin<Project> {
         return !hasAnnotationProcessorConfiguration
     }
 
+    // This will setup the required dependencies.
+    // Due to how Gradle works, we have no choice but to run this code every time any of the parameters
+    // in the Realm extension is changed.
     private static void setDependencies(Project project, String dependencyConfigurationName, boolean syncEnabled, boolean kotlinExtensionsEnabled) {
         // remove libraries first
         def iterator = project.getConfigurations().getByName(dependencyConfigurationName).getDependencies().iterator()
