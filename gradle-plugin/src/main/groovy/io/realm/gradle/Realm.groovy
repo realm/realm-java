@@ -19,6 +19,7 @@ package io.realm.gradle
 import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryPlugin
 import com.neenbedankt.gradle.androidapt.AndroidAptPlugin
+import io.realm.gradle.RealmPluginExtension
 import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -47,8 +48,20 @@ class Realm implements Plugin<Project> {
         def hasAnnotationProcessorConfiguration = project.getConfigurations().findByName('annotationProcessor') != null
         // TODO add a parameter in 'realm' block if this should be specified by users
         def preferAptOnKotlinProject = false
-
+        def dependencyConfigurationName = getDependencyConfigurationName(project)
         def extension = project.extensions.create('realm', RealmPluginExtension)
+        extension.addPropertyListener(RealmPluginExtension.KEY_KOTLIN_EXTENSIONS_ENABLED, new RealmPluginExtension.PropertyChangedListener<Boolean>() {
+            @Override
+            void onChange(Boolean checked) {
+                setDependencies(project, dependencyConfigurationName, extension.syncEnabled, extension.kotlinExtensionsEnabled)
+            }
+        })
+        extension.addPropertyListener(RealmPluginExtension.KEY_SYNC_ENABLED, new RealmPluginExtension.PropertyChangedListener<Boolean>() {
+            @Override
+            void onChange(Boolean checked) {
+                setDependencies(project, dependencyConfigurationName, extension.syncEnabled, extension.kotlinExtensionsEnabled)
+            }
+        })
         extension.kotlinExtensionsEnabled = useKotlinExtensionsDefault
 
         if (shouldApplyAndroidAptPlugin(usesAptPlugin, isKotlinProject,
@@ -58,7 +71,6 @@ class Realm implements Plugin<Project> {
         }
 
         project.android.registerTransform(new RealmTransformer(project))
-        def dependencyConfigurationName = getDependencyConfigurationName(project)
 
         project.repositories.add(project.getRepositories().jcenter())
         project.dependencies.add(dependencyConfigurationName, "io.realm:realm-annotations:${Version.VERSION}")
@@ -73,8 +85,6 @@ class Realm implements Plugin<Project> {
             project.dependencies.add("annotationProcessor", "io.realm:realm-annotations-processor:${Version.VERSION}")
             project.dependencies.add("androidTestAnnotationProcessor", "io.realm:realm-annotations-processor:${Version.VERSION}")
         }
-
-        setDependencies(project, dependencyConfigurationName, extension.syncEnabled, extension.kotlinExtensionsEnabled)
     }
 
     private static boolean isTransformAvailable() {
