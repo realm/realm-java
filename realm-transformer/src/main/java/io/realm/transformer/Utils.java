@@ -65,7 +65,7 @@ public class Utils {
 
     public static boolean isSyncEnabled(Project project) {
         RealmPluginExtension realmExtension = (RealmPluginExtension) project.getExtensions().findByName("realm");
-        return realmExtension != null && realmExtension.syncEnabled;
+        return realmExtension != null && realmExtension.isSyncEnabled();
     }
 
 }
