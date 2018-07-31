@@ -1,8 +1,41 @@
-## 5.4.0 (YYYY-MM-DD)
+## 5.5.0 (YYYY-MM-DD)
 
 ### Enhancements
 
 * [ObjectServer] Added support for `SyncSession.addStateChangeListener()`.
+
+
+## 5.4.1 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* Compile time crash if no `targetSdk` was defined in Gradle. This was introduced in 5.4.0 (#6082).
+* Fix Realm Gradle Plugin adding dependencies in a way incompatible with Kotlin Android Extensions. This was introduced in Realm Java 5.4.0 (#6080).
+
+
+## 5.4.0 (2018-07-22)
+
+### Enhancements
+
+* Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
+
+### Bug Fixes
+
+* [ObjectServer] Using Android Network Security Configuration is necessary to install the custom root CA for tests (API >= 24) (#5970).
+* Fixes issue with the incremental build causing direct access to model without accessor to fail (#6056).
+* `RealmQuery.distinct()` is now correctly applied when calling `RealmQuery.count()` (#5958).
+
+### Internal
+
+* Upgraded to Realm Core 5.7.2
+* Upgraded to Realm Sync 3.8.1
+* [ObjectServer] Improved performance when integrating changes from the server.
+* Added extra information about the state of the Realm file if an exception is thrown due to Realm not being able to open it.
+* Removed internal dependency on Groovy in the Realm Transformer (#3971).
+
+### Credits
+
+* Thanks to @kageiit for removing Groovy from the Realm Transformer (#3971).
 
 
 ## 5.3.1 (2018-06-19)
@@ -28,6 +61,8 @@
 * [ObjectServer] `Realm.compactRealm(config)` now works on synchronized Realms (#5937).
 * [ObjectServer] `SyncConfiguration.compactOnLaunch()` and `SyncConfiguration.compactOnLaunch(callback)` has been added (#5937).
 * Added `RealmQuery.getRealm()`, `RealmResults.getRealm()`, `RealmList.getRealm()` and `OrderedRealmCollectionSnapshot.getRealm()` (#5997).
+* Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
+
 
 ### Internal
 

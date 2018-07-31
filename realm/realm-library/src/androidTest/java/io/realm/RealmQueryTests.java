@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -2276,6 +2277,20 @@ public class RealmQueryTests extends QueryTests {
     public void count() {
         populateTestRealm(realm, TEST_DATA_SIZE);
         assertEquals(TEST_DATA_SIZE, realm.where(AllTypes.class).count());
+    }
+
+    // Verify that count correctly when using distinct.
+    // See https://github.com/realm/realm-java/issues/5958
+    @Test
+    public void distinctCount() {
+        realm.executeTransaction(r -> {
+            for (int i = 0; i < 5; i++) {
+                AllTypes obj = new AllTypes();
+                obj.setColumnString("Foo");
+                realm.copyToRealm(obj);
+            }
+        });
+        assertEquals(1, realm.where(AllTypes.class).distinct(AllTypes.FIELD_STRING).count());
     }
 
     // Tests isNull on link's nullable field.

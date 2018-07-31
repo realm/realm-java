@@ -22,9 +22,10 @@ import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import com.google.common.io.Files
 import io.realm.transformer.BytecodeModifier
-import io.realm.transformer.GroovyUtil
 import io.realm.transformer.ManagedClassPool
 import io.realm.transformer.logger
+import io.realm.transformer.Utils
+import io.realm.transformer.ext.getBootClasspath
 import javassist.ClassPool
 import javassist.CtClass
 import org.gradle.api.Project
@@ -147,7 +148,7 @@ abstract class BuildTemplate(val project: Project, val outputProvider: Transform
      */
     private fun addBootClassesToClassPool(classPool: ClassPool) {
         try {
-            GroovyUtil.getBootClasspath(project).forEach {
+            project.getBootClasspath().forEach {
                 val path: String = it.absolutePath
                 logger.debug("Add boot class $path to class pool.")
                 classPool.appendClassPath(path)
@@ -159,8 +160,8 @@ abstract class BuildTemplate(val project: Project, val outputProvider: Transform
         }
     }
 
-    fun getOutputModelClasses(): Collection<CtClass> {
-        return outputModelClasses
+    fun getOutputModelClasses(): Set<CtClass> {
+        return outputModelClasses.toSet()
     }
 
     protected abstract fun findModelClasses(classNames: Set<String>): Collection<CtClass>
