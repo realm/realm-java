@@ -126,9 +126,9 @@ class RealmTransformer(val project: Project) : Transform() {
      */
     private fun sendAnalytics(inputs: Collection<TransformInput>, outputModelClasses: Set<CtClass>) {
         try {
-            val disableAnalytics: Boolean = "true".equals(System.getenv()["REALM_DISABLE_ANALYTICS"])
+            val disableAnalytics: Boolean = "true".equals(System.getenv()["REALM_DISABLE_ANALYTICS"], ignoreCase = true)
             if (inputs.isEmpty() || disableAnalytics) {
-                // Don't send analytics for incremental builds or if they have ben explicitly disabled.
+                // Don't send analytics for incremental builds or if they have been explicitly disabled.
                 return
             }
 
