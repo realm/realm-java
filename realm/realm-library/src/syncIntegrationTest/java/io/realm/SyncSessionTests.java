@@ -521,10 +521,40 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 .build();
         Realm realm = Realm.getInstance(syncConfiguration);
         SyncSession session = SyncManager.getSession(syncConfiguration);
-        RealmLog.error(session.getState().toString());
-        session.addStateChangeListener((oldState, newState) ->
-                RealmLog.error(oldState.toString() + " -> " + newState.toString())
-        );
-        RealmLog.error(session.getState().toString());
+        session.addStateChangeListener((oldState, newState) -> {
+            // This happens when we close the Realm because sessionStopPolicy is IMMEDIATE
+            if (oldState == SyncSession.State.ACTIVE && newState == SyncSession.State.INACTIVE) {
+                looperThread.testComplete();
+            }
+        });
+        realm.close();
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeStateListener() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        SyncConfiguration syncConfiguration = configFactory
+                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .build();
+        Realm realm = Realm.getInstance(syncConfiguration);
+        SyncSession session = SyncManager.getSession(syncConfiguration);
+        SessionStateListener listener1 = (oldState, newState) -> {
+            if (newState == SyncSession.State.INACTIVE) {
+                fail("Listener should have been removed");
+            }
+        };
+        SessionStateListener listener2 = (oldState, newState) -> {
+            if (newState == SyncSession.State.INACTIVE) {
+                looperThread.testComplete();
+            }
+        };
+
+        session.addStateChangeListener(listener1);
+        session.addStateChangeListener(listener2);
+        session.removeStateChangeListener(listener1);
+        realm.close();
+
+    }
+
 }

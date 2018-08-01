@@ -35,10 +35,6 @@ using namespace realm::jni_util;
 using namespace realm::sync;
 using namespace realm::_impl;
 
-static_assert(SyncSession::PublicState::Initial ==
-              static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_INITIAL),
-              "");
-
 static_assert(SyncSession::PublicState::WaitingForAccessToken ==
                   static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
               "");
@@ -222,8 +218,6 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jc
 
         if (session) {
             switch (session->state()) {
-                case SyncSession::PublicState::Initial:
-                    return io_realm_SyncSession_STATE_VALUE_INITIAL;
                 case SyncSession::PublicState::WaitingForAccessToken:
                     return io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN;
                 case SyncSession::PublicState::Active:
@@ -241,11 +235,10 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jc
 
 static jlong get_state_value(SyncSession::PublicState state) {
     switch (state) {
-        case SyncSession::PublicState::Initial: return static_cast<jlong>(0);
-        case SyncSession::PublicState::WaitingForAccessToken: return static_cast<jlong>(1);
-        case SyncSession::PublicState::Active: return static_cast<jlong>(2);
-        case SyncSession::PublicState::Dying: return static_cast<jlong>(3);
-        case SyncSession::PublicState::Inactive: return static_cast<jlong>(4);
+        case SyncSession::PublicState::WaitingForAccessToken: return static_cast<jlong>(0);
+        case SyncSession::PublicState::Active: return static_cast<jlong>(1);
+        case SyncSession::PublicState::Dying: return static_cast<jlong>(2);
+        case SyncSession::PublicState::Inactive: return static_cast<jlong>(3);
     }
     return static_cast<jlong>(-1);
 }
@@ -294,7 +287,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddStateListener(JNIEnv*
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveStateListener(JNIEnv* env, jclass, jstring j_local_realm_path, jlong listener_id)
+JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveStateListener(JNIEnv* env, jclass, jlong listener_id, jstring j_local_realm_path)
 {
     try {
         // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda

@@ -103,17 +103,15 @@ public class SyncSession {
     private long nativeStateListenerToken;
 
     // represent different states as defined in SyncSession::PublicState 'sync_session.hpp'
-    private static final byte STATE_VALUE_INITIAL = 0;
-    private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 1;
-    private static final byte STATE_VALUE_ACTIVE = 2;
-    private static final byte STATE_VALUE_DYING = 3;
-    private static final byte STATE_VALUE_INACTIVE = 4;
-    private static final byte STATE_VALUE_ERROR = 5;
+    private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 0;
+    private static final byte STATE_VALUE_ACTIVE = 1;
+    private static final byte STATE_VALUE_DYING = 2;
+    private static final byte STATE_VALUE_INACTIVE = 3;
+    private static final byte STATE_VALUE_ERROR = 4;
 
     private URI resolvedRealmURI;
 
     public enum State {
-        INITIAL(STATE_VALUE_INITIAL),
         WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
         ACTIVE(STATE_VALUE_ACTIVE),
         DYING(STATE_VALUE_DYING),
@@ -335,7 +333,7 @@ public class SyncSession {
     public synchronized void removeStateChangeListener(SessionStateListener listener) {
         sessionStateListeners.remove(listener);
         if (sessionStateListeners.isEmpty()) {
-            nativeRemoveStateListener(configuration.getPath(), nativeStateListenerToken);
+            nativeRemoveStateListener(nativeStateListenerToken, configuration.getPath());
         }
     }
 
@@ -755,7 +753,7 @@ public class SyncSession {
     }
 
     private static native long nativeAddStateListener(String localRealmPath);
-    private static native void nativeRemoveStateListener(String localRealmPath, long listenerId);
+    private static native void nativeRemoveStateListener(long listenerId, String localRealmPath);
     private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
     private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
