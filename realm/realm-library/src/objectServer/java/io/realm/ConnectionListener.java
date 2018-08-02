@@ -17,13 +17,12 @@ package io.realm;
 
 import javax.annotation.Nullable;
 
-public interface SessionStateListener {
+public interface ConnectionListener {
 
     /**
      * FIXME
-     *
      * @param oldState
      * @param newState
      */
-    void onChange(@Nullable SyncSession.State oldState, SyncSession.State newState);
+    void onChange(@Nullable SyncSession.Connection oldState, SyncSession.Connection newState);
 }

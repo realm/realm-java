@@ -405,11 +405,27 @@ public class SyncManager {
      * by the native Sync Client thread. Instead log all exceptions to logcat.
      */
     @SuppressWarnings("unused")
-    private static synchronized void notifyStateListener(String localRealmPath, long oldState, long newState) {
+    private static synchronized void notifyStateListeners(String localRealmPath, long oldState, long newState) {
         SyncSession session = sessions.get(localRealmPath);
         if (session != null) {
             try {
                 session.notifySessionStateListeners(SyncSession.State.fromNativeValue(oldState), SyncSession.State.fromNativeValue(newState));
+            } catch (Exception exception) {
+                RealmLog.error(exception);
+            }
+        }
+    }
+
+    /**
+     * Called from native code. This method is not allowed to throw as it would be swallowed
+     * by the native Sync Client thread. Instead log all exceptions to logcat.
+     */
+    @SuppressWarnings("unused")
+    private static synchronized void notifyConnectionListeners(String localRealmPath, long oldState, long newState) {
+        SyncSession session = sessions.get(localRealmPath);
+        if (session != null) {
+            try {
+                session.notifyConnectionListeners(SyncSession.Connection.fromNativeValue(oldState), SyncSession.Connection.fromNativeValue(newState));
             } catch (Exception exception) {
                 RealmLog.error(exception);
             }

@@ -109,6 +109,18 @@ public class SyncSession {
     private static final byte STATE_VALUE_INACTIVE = 3;
     private static final byte STATE_VALUE_ERROR = 4;
 
+    // List of Java connection change listeners
+    private final CopyOnWriteArrayList<ConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
+
+    // Reference to the token representing the native listener for connection changes
+    // Only one native listener is used for all Java listeners
+    private long nativeConnectionListenerToken;
+
+    // represent different states as defined in SyncSession::PublicState 'sync_session.hpp'
+    private static final byte CONNECTION_VALUE_DISCONNECTED = 0;
+    private static final byte CONNECTION_VALUE_CONNECTING = 1;
+    private static final byte CONNECTION_VALUE_CONNECTED = 2;
+
     private URI resolvedRealmURI;
 
     public enum State {
@@ -133,7 +145,30 @@ public class SyncSession {
                 }
             }
 
-            throw new IllegalArgumentException("Unknown state code: " + value);
+            throw new IllegalArgumentException("Unknown session state code: " + value);
+        }
+    }
+
+    public enum Connection {
+        DISCONNECTED(CONNECTION_VALUE_DISCONNECTED),
+        CONNECTING(CONNECTION_VALUE_CONNECTING),
+        CONNECTED(CONNECTION_VALUE_CONNECTED);
+
+        final int value;
+
+        Connection(int value) {
+            this.value = value;
+        }
+
+        static Connection fromNativeValue(long value) {
+            Connection[] stateCodes = values();
+            for (Connection state : stateCodes) {
+                if (state.value == value) {
+                    return state;
+                }
+            }
+
+            throw new IllegalArgumentException("Unknown connection state code: " + value);
         }
     }
 
@@ -207,6 +242,20 @@ public class SyncSession {
         return State.fromNativeValue(state);
     }
 
+    /**
+     * Checks if the session is connected to the server.
+     *
+     * This is a best guess effort. To converse battery the underlying implementation uses heartbeats
+     * to  detect if the connection is still available. So if no data is actively being synced
+     * and some time has elapsed since the last heartbeat, the connection could have been dropped but
+     * this method will still return {@code true}.
+     *
+     * @return {@code true} if the session is connected, {@code false} if not or if it is in the process of connecting.
+     */
+    public boolean isConnected() {
+        return nativeGetConnectionState(configuration.getPath()) == Connection.CONNECTED.value;
+    }
+
     synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {
         Pair<ProgressListener, Progress> listener = listenerIdToProgressListenerMap.get(listenerId);
         if (listener != null) {
@@ -226,6 +275,11 @@ public class SyncSession {
         }
     }
 
+    void notifyConnectionListeners(SyncSession.Connection oldState, SyncSession.Connection newState) {
+        for (ConnectionListener listener : connectionListeners) {
+            listener.onChange(oldState, newState);
+        }
+    }
 
     /**
      * Adds a progress listener tracking changes that need to be downloaded from the Realm Object
@@ -334,6 +388,30 @@ public class SyncSession {
         sessionStateListeners.remove(listener);
         if (sessionStateListeners.isEmpty()) {
             nativeRemoveStateListener(nativeStateListenerToken, configuration.getPath());
+        }
+    }
+
+    /**
+     * FIXME
+     *
+     * @param listener
+     */
+    public synchronized void addConnectionChangeListener(ConnectionListener listener) {
+        if (connectionListeners.isEmpty()) {
+            nativeConnectionListenerToken = nativeAddConnectionListener(configuration.getPath());
+        }
+        connectionListeners.add(listener);
+    }
+
+    /**
+     * FIXME
+     *
+     * @param listener
+     */
+    public synchronized void removeConnectionChangeListener(ConnectionListener listener) {
+        connectionListeners.remove(listener);
+        if (connectionListeners.isEmpty()) {
+            nativeRemoveStateListener(nativeConnectionListenerToken, configuration.getPath());
         }
     }
 
@@ -754,10 +832,13 @@ public class SyncSession {
 
     private static native long nativeAddStateListener(String localRealmPath);
     private static native void nativeRemoveStateListener(long listenerId, String localRealmPath);
+    private static native long nativeAddConnectionListener(String localRealmPath);
+    private static native void nativeRemoveConnectionListener(long listenerId, String localRealmPath);
     private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
     private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
     private native boolean nativeWaitForDownloadCompletion(int callbackId, String localRealmPath);
     private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
     private static native byte nativeGetState(String localRealmPath);
+    private static native byte nativeGetConnectionState(String localRealmPath);
 }
