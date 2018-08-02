@@ -276,9 +276,9 @@ public class SyncSession {
      * if not or if it is in the process of connecting.
      */
     public boolean isConnected() {
-        long currentState = nativeGetConnectionState(configuration.getPath());
-        long currentConnection = nativeGetConnectionState(configuration.getPath());
-        return nativeGetConnectionState(configuration.getPath()) == ConnectionState.CONNECTED.value;
+        ConnectionState connectionState = ConnectionState.fromNativeValue(nativeGetConnectionState(configuration.getPath()));
+        State sessionState = getState();
+        return (sessionState == State.ACTIVE || sessionState == State.DYING) && connectionState == ConnectionState.CONNECTED;
     }
 
     synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {

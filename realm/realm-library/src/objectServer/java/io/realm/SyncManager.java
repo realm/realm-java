@@ -425,7 +425,7 @@ public class SyncManager {
         SyncSession session = sessions.get(localRealmPath);
         if (session != null) {
             try {
-                session.notifyConnectionListeners(SyncSession.ConnectionState.fromNativeValue(oldState), SyncSession.ConnectionState.fromNativeValue(newState));
+                session.notifyConnectionListeners(ConnectionState.fromNativeValue(oldState), ConnectionState.fromNativeValue(newState));
             } catch (Exception exception) {
                 RealmLog.error(exception);
             }
