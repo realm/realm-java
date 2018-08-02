@@ -267,10 +267,10 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetConnectionState(JNIEn
 
 static jlong get_state_value(SyncSession::PublicState state) {
     switch (state) {
-        case SyncSession::PublicState::WaitingForAccessToken: return static_cast<jlong>(0);
-        case SyncSession::PublicState::Active: return static_cast<jlong>(1);
-        case SyncSession::PublicState::Dying: return static_cast<jlong>(2);
-        case SyncSession::PublicState::Inactive: return static_cast<jlong>(3);
+        case SyncSession::PublicState::WaitingForAccessToken: return static_cast<jlong>(io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN);
+        case SyncSession::PublicState::Active: return static_cast<jlong>(io_realm_SyncSession_STATE_VALUE_ACTIVE);
+        case SyncSession::PublicState::Dying: return static_cast<jlong>(io_realm_SyncSession_STATE_VALUE_DYING);
+        case SyncSession::PublicState::Inactive: return static_cast<jlong>(io_realm_SyncSession_STATE_VALUE_INACTIVE);
     }
     return static_cast<jlong>(-1);
 }
@@ -334,9 +334,9 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveStateListener(JNIEn
 
 static jlong get_connection_value(SyncSession::PublicConnectionState state) {
     switch (state) {
-        case SyncSession::PublicConnectionState::Disconnected: return static_cast<jlong>(0);
-        case SyncSession::PublicConnectionState::Connecting: return static_cast<jlong>(1);
-        case SyncSession::PublicConnectionState::Connected: return static_cast<jlong>(2);
+        case SyncSession::PublicConnectionState::Disconnected: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_DISCONNECTED);
+        case SyncSession::PublicConnectionState::Connecting: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTING);
+        case SyncSession::PublicConnectionState::Connected: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTED);
     }
     return static_cast<jlong>(-1);
 }

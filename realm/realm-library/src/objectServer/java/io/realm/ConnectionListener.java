@@ -15,14 +15,25 @@
  */
 package io.realm;
 
-import javax.annotation.Nullable;
-
+/**
+ * Interface used when reporting changes that happened to the connection used by the session.
+ * <p>
+ * Multiple sessions might re-use the same connection. In that case, any connection
+ * change will be reported to all sessions.
+ * <p>
+ * If a disconnect happened due to an error, that error will be reported to the sessions
+ * {@link io.realm.SyncSession.ErrorHandler}.
+ *
+ * @see SyncSession#isConnected()
+ * @see SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)
+ */
 public interface ConnectionListener {
 
     /**
-     * FIXME
-     * @param oldState
-     * @param newState
+     * A change in the connection to the server was detected.
+     *
+     * @param oldState the state the connection transitioned from.
+     * @param newState the state the connection transitioned to.
      */
-    void onChange(@Nullable SyncSession.Connection oldState, SyncSession.Connection newState);
+    void onChange(SyncSession.Connection oldState, SyncSession.Connection newState);
 }

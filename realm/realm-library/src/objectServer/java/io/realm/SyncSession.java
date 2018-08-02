@@ -37,6 +37,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.Keep;
 import io.realm.internal.SyncObjectServerFacade;
 import io.realm.internal.Util;
@@ -51,13 +53,18 @@ import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 
 /**
- * This class represents the connection to the Realm Object Server for one {@link SyncConfiguration}.
+ * A session controls how data is synchronized between a single Realm on the device and the server
+ * Realm on the Realm Object Server.
  * <p>
  * A Session is created by opening a Realm instance using that configuration. Once a session has been created,
  * it will continue to exist until the app is closed or all threads using this {@link SyncConfiguration} closes their respective {@link Realm}s.
  * <p>
- * A session is fully controlled by Realm, but can provide additional information in case of errors.
+ * A session is controlled by Realm, but can provide additional information in case of errors.
  * It is passed along in all {@link SyncSession.ErrorHandler}s.
+ * <p>
+ * When creating a session, Realm will establish a connection to the server. This connection is also
+ * controlled by Realm and might be shared between multiple sessions. It is possible to get insight
+ * into the connection using {@link #addConnectionChangeListener(ConnectionListener)} and {@link #isConnected()}.
  * <p>
  * This object is thread safe.
  */
@@ -123,11 +130,48 @@ public class SyncSession {
 
     private URI resolvedRealmURI;
 
+    /**
+     * Enum describing the states a SyncSession can be in. The initial state is
+     * {@link State#INACTIVE}.
+     * <p>
+     * A Realm will only synchronize data with the server if the session is either {@link State#ACTIVE}
+     * or {@link State#DYING} and {@link #isConnected()} returns {@code true}. This happens automatically.
+     */
     public enum State {
-        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
-        ACTIVE(STATE_VALUE_ACTIVE),
-        DYING(STATE_VALUE_DYING),
+
+        /**
+         * This is the initial state. The session is closed. No data is being synchronized. The session
+         * will automatically transition to {@link #WAITING_FOR_ACCESS_TOKEN} when a Realm is opened.
+         */
         INACTIVE(STATE_VALUE_INACTIVE),
+
+        /**
+         * The user is attempting to synchronize data but needs a valid access token to do so. Realm
+         * will either use a cached token or automatically try to acquire one based on the current
+         * users login. This requires a network connection.
+         *
+         * Data cannot be synchronized in this state.
+         *
+         * Once a valid token is acquired, the session will transition to {@link #ACTIVE}.
+         */
+        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
+
+        /**
+         * The Realm is open and data will be synchronized between the device and the server
+         * if the underlying connection is {@link Connection#CONNECTED}.
+         *
+         * The session will remain in this state until either the current login expires or the Realm
+         * is closed. In the first case, the session will transition to {@link #WAITING_FOR_ACCESS_TOKEN},
+         * in the second case, it will become either {@link #DYING} or {@link #INACTIVE}.
+         */
+        ACTIVE(STATE_VALUE_ACTIVE),
+
+        /**
+         * The Realm was closed, but still contains data that needs to be synchronized to the server.
+         * The session will attempt to upload all local data before going {@link #INACTIVE}.
+         */
+        DYING(STATE_VALUE_DYING),
+
         @Deprecated
         ERROR(STATE_VALUE_ERROR);
 
@@ -149,9 +193,27 @@ public class SyncSession {
         }
     }
 
+    /**
+     * Enum describing the the states of the underlying connection used by the session.
+     */
     public enum Connection {
+        /**
+         * No connection to the server exists. No data is being transferred even if the session
+         * is {@link State#ACTIVE}. If the connection entered this state due to an error, this
+         * error will be reported to the {@link ErrorHandler}.
+         */
         DISCONNECTED(CONNECTION_VALUE_DISCONNECTED),
+
+        /**
+         * A connection is currently in progress of being established. If successful the next
+         * state is {@link #CONNECTED}. If the connection fails it will be {@link #DISCONNECTED}.
+         */
         CONNECTING(CONNECTION_VALUE_CONNECTING),
+
+        /**
+         * A connection was succesfully established to the server. If the SyncSession is {@link State#ACTIVE}
+         * data will now be transferred between the device and the server.
+         */
         CONNECTED(CONNECTION_VALUE_CONNECTED);
 
         final int value;
@@ -368,11 +430,26 @@ public class SyncSession {
     }
 
     /**
-     * FIXME
+     * Adds a progress listener tracking changes that need to be downloaded from the Realm Object
+     * Server.
+     * <p>
+     * The {@link ProgressListener} will be triggered immediately when registered, and periodically
+     * afterwards.
      *
-     * @param listener
+     * @param mode type of mode used. See {@link ProgressMode} for more information.
+     * @param listener the listener to register.
+     */
+
+    /**
+     * Adds a listener tracking state changes to this session. See {@link State} for further
+     * details.
+     *
+     * @param listener the listener to register.
+     * @throws IllegalArgumentException if the listener is {@code null}.
+     * @see State
      */
     public synchronized void addStateChangeListener(SessionStateListener listener) {
+        checkNonNullListener(listener);
         if (sessionStateListeners.isEmpty()) {
             nativeStateListenerToken = nativeAddStateListener(configuration.getPath());
         }
@@ -380,11 +457,13 @@ public class SyncSession {
     }
 
     /**
-     * FIXME
+     * Removes a previously registered {@link SessionStateListener}.
      *
-     * @param listener
+     * @param listener listener to remove
+     * @throws IllegalArgumentException if the listener is {@code null}.
      */
     public synchronized void removeStateChangeListener(SessionStateListener listener) {
+        checkNonNullListener(listener);
         sessionStateListeners.remove(listener);
         if (sessionStateListeners.isEmpty()) {
             nativeRemoveStateListener(nativeStateListenerToken, configuration.getPath());
@@ -392,11 +471,15 @@ public class SyncSession {
     }
 
     /**
-     * FIXME
+     * Adds a listener tracking changes to the connection backing this session. See {@link Connection}
+     * for further details.
      *
-     * @param listener
+     * @param listener the listener to register.
+     * @throws IllegalArgumentException if the listener is {@code null}.
+     * @see Connection
      */
     public synchronized void addConnectionChangeListener(ConnectionListener listener) {
+        checkNonNullListener(listener);
         if (connectionListeners.isEmpty()) {
             nativeConnectionListenerToken = nativeAddConnectionListener(configuration.getPath());
         }
@@ -404,14 +487,16 @@ public class SyncSession {
     }
 
     /**
-     * FIXME
+     * Removes a previously registered {@link ConnectionListener}.
      *
-     * @param listener
+     * @param listener listener to remove
+     * @throws IllegalArgumentException if the listener is {@code null}.
      */
     public synchronized void removeConnectionChangeListener(ConnectionListener listener) {
+        checkNonNullListener(listener);
         connectionListeners.remove(listener);
         if (connectionListeners.isEmpty()) {
-            nativeRemoveStateListener(nativeConnectionListenerToken, configuration.getPath());
+            nativeRemoveConnectionListener(nativeConnectionListenerToken, configuration.getPath());
         }
     }
 
@@ -553,6 +638,12 @@ public class SyncSession {
     private void checkIfNotOnMainThread(String errorMessage) {
         if (new AndroidCapabilities().isMainThread()) {
             throw new IllegalStateException(errorMessage);
+        }
+    }
+
+    private void checkNonNullListener(@Nullable Object listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Non-null 'listener' required.");
         }
     }
 

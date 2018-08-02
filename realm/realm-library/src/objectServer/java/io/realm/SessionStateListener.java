@@ -15,15 +15,18 @@
  */
 package io.realm;
 
-import javax.annotation.Nullable;
-
+/**
+ * Interface used when reporting changes to a {@link SyncSession}.
+ *
+ * @see SyncSession
+ */
 public interface SessionStateListener {
 
     /**
-     * FIXME
+     * A change in the session was detected.
      *
-     * @param oldState
-     * @param newState
+     * @param oldState the state the session transitioned from.
+     * @param newState the state the session transitioned to.
      */
-    void onChange(@Nullable SyncSession.State oldState, SyncSession.State newState);
+    void onChange(SyncSession.State oldState, SyncSession.State newState);
 }
