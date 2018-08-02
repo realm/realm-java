@@ -35,5 +35,5 @@ public interface ConnectionListener {
      * @param oldState the state the connection transitioned from.
      * @param newState the state the connection transitioned to.
      */
-    void onChange(SyncSession.Connection oldState, SyncSession.Connection newState);
+    void onChange(ConnectionState oldState, ConnectionState newState);
 }

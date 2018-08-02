@@ -564,7 +564,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
         Realm realm = Realm.getInstance(syncConfiguration);
         SyncSession session = SyncManager.getSession(syncConfiguration);
         session.addConnectionChangeListener((oldState, newState) -> {
-            if (newState == SyncSession.Connection.DISCONNECTED) {
+            if (newState == ConnectionState.DISCONNECTED) {
                 looperThread.testComplete();
             }
         });
@@ -581,12 +581,12 @@ public class SyncSessionTests extends StandardIntegrationTest {
         Realm realm = Realm.getInstance(syncConfiguration);
         SyncSession session = SyncManager.getSession(syncConfiguration);
         ConnectionListener listener1 = (oldState, newState) -> {
-            if (newState == SyncSession.Connection.DISCONNECTED) {
+            if (newState == ConnectionState.DISCONNECTED) {
                 fail("Listener should have been removed");
             }
         };
         ConnectionListener listener2 = (oldState, newState) -> {
-            if (newState == SyncSession.Connection.DISCONNECTED) {
+            if (newState == ConnectionState.DISCONNECTED) {
                 looperThread.testComplete();
             }
         };
@@ -610,7 +610,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
             looperThread.testComplete();
         } else {
             session.addConnectionChangeListener(((oldState, newState) -> {
-                if (newState == SyncSession.Connection.CONNECTED) {
+                if (newState == ConnectionState.CONNECTED) {
                     assertTrue(session.isConnected());
                     looperThread.testComplete();
                 }

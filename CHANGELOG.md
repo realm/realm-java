@@ -2,8 +2,8 @@
 
 ### Enhancements
 
-* [ObjectServer] Added support for `SyncSession.addStateChangeListener()`.
-* [ObjectServer] Added support for `SyncSession.addConnectionChangeListener()`.
+* [ObjectServer] Added support for observing SyncSession states using `SyncSession.addStateChangeListener()` and `SyncSession.removeStateChangeListener()`.
+* [ObjectServer] Added support for observing connection changes for a session using `SyncSession.addConnectionChangeListener()` and `SyncSession.removeConnectionChangeListener()`.
 * [ObjectServer] Added `SyncSession.isConnected()`.
 
 

@@ -56,17 +56,17 @@ import io.realm.log.RealmLog;
  * A session controls how data is synchronized between a single Realm on the device and the server
  * Realm on the Realm Object Server.
  * <p>
- * A Session is created by opening a Realm instance using that configuration. Once a session has been created,
+ * A Session is created by opening a Realm instance using a {@link SyncConfiguration}. Once a session has been created,
  * it will continue to exist until the app is closed or all threads using this {@link SyncConfiguration} closes their respective {@link Realm}s.
  * <p>
  * A session is controlled by Realm, but can provide additional information in case of errors.
- * It is passed along in all {@link SyncSession.ErrorHandler}s.
+ * These errors are passed along in the {@link SyncSession.ErrorHandler}.
  * <p>
- * When creating a session, Realm will establish a connection to the server. This connection is also
+ * When creating a session, Realm will establish a connection to the server. This connection is
  * controlled by Realm and might be shared between multiple sessions. It is possible to get insight
  * into the connection using {@link #addConnectionChangeListener(ConnectionListener)} and {@link #isConnected()}.
  * <p>
- * This object is thread safe.
+ * The {@link SyncSession} object is thread safe.
  */
 @Keep
 public class SyncSession {
@@ -123,10 +123,11 @@ public class SyncSession {
     // Only one native listener is used for all Java listeners
     private long nativeConnectionListenerToken;
 
-    // represent different states as defined in SyncSession::PublicState 'sync_session.hpp'
-    private static final byte CONNECTION_VALUE_DISCONNECTED = 0;
-    private static final byte CONNECTION_VALUE_CONNECTING = 1;
-    private static final byte CONNECTION_VALUE_CONNECTED = 2;
+    // represent different states as defined in SyncSession::PublicConnectionState 'sync_session.hpp'
+    // saved here instead of as constants in ConnectionState.java to enable static checking by JNI
+    static final byte CONNECTION_VALUE_DISCONNECTED = 0;
+    static final byte CONNECTION_VALUE_CONNECTING = 1;
+    static final byte CONNECTION_VALUE_CONNECTED = 2;
 
     private URI resolvedRealmURI;
 
@@ -134,8 +135,8 @@ public class SyncSession {
      * Enum describing the states a SyncSession can be in. The initial state is
      * {@link State#INACTIVE}.
      * <p>
-     * A Realm will only synchronize data with the server if the session is either {@link State#ACTIVE}
-     * or {@link State#DYING} and {@link #isConnected()} returns {@code true}. This happens automatically.
+     * A Realm will automatically synchronize data with the server if the session is either {@link State#ACTIVE}
+     * or {@link State#DYING} and {@link #isConnected()} returns {@code true}.
      */
     public enum State {
 
@@ -149,17 +150,17 @@ public class SyncSession {
          * The user is attempting to synchronize data but needs a valid access token to do so. Realm
          * will either use a cached token or automatically try to acquire one based on the current
          * users login. This requires a network connection.
-         *
+         * <p>
          * Data cannot be synchronized in this state.
-         *
+         * <p>
          * Once a valid token is acquired, the session will transition to {@link #ACTIVE}.
          */
         WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
 
         /**
          * The Realm is open and data will be synchronized between the device and the server
-         * if the underlying connection is {@link Connection#CONNECTED}.
-         *
+         * if the underlying connection is {@link ConnectionState#CONNECTED}.
+         * <p>
          * The session will remain in this state until either the current login expires or the Realm
          * is closed. In the first case, the session will transition to {@link #WAITING_FOR_ACCESS_TOKEN},
          * in the second case, it will become either {@link #DYING} or {@link #INACTIVE}.
@@ -190,47 +191,6 @@ public class SyncSession {
             }
 
             throw new IllegalArgumentException("Unknown session state code: " + value);
-        }
-    }
-
-    /**
-     * Enum describing the the states of the underlying connection used by the session.
-     */
-    public enum Connection {
-        /**
-         * No connection to the server exists. No data is being transferred even if the session
-         * is {@link State#ACTIVE}. If the connection entered this state due to an error, this
-         * error will be reported to the {@link ErrorHandler}.
-         */
-        DISCONNECTED(CONNECTION_VALUE_DISCONNECTED),
-
-        /**
-         * A connection is currently in progress of being established. If successful the next
-         * state is {@link #CONNECTED}. If the connection fails it will be {@link #DISCONNECTED}.
-         */
-        CONNECTING(CONNECTION_VALUE_CONNECTING),
-
-        /**
-         * A connection was succesfully established to the server. If the SyncSession is {@link State#ACTIVE}
-         * data will now be transferred between the device and the server.
-         */
-        CONNECTED(CONNECTION_VALUE_CONNECTED);
-
-        final int value;
-
-        Connection(int value) {
-            this.value = value;
-        }
-
-        static Connection fromNativeValue(long value) {
-            Connection[] stateCodes = values();
-            for (Connection state : stateCodes) {
-                if (state.value == value) {
-                    return state;
-                }
-            }
-
-            throw new IllegalArgumentException("Unknown connection state code: " + value);
         }
     }
 
@@ -305,17 +265,20 @@ public class SyncSession {
     }
 
     /**
-     * Checks if the session is connected to the server.
+     * Checks if the session is connected to the server and can synchronize data.
      *
      * This is a best guess effort. To converse battery the underlying implementation uses heartbeats
      * to  detect if the connection is still available. So if no data is actively being synced
      * and some time has elapsed since the last heartbeat, the connection could have been dropped but
      * this method will still return {@code true}.
      *
-     * @return {@code true} if the session is connected, {@code false} if not or if it is in the process of connecting.
+     * @return {@code true} if the session is connected and ready to synchronize data, {@code false}
+     * if not or if it is in the process of connecting.
      */
     public boolean isConnected() {
-        return nativeGetConnectionState(configuration.getPath()) == Connection.CONNECTED.value;
+        long currentState = nativeGetConnectionState(configuration.getPath());
+        long currentConnection = nativeGetConnectionState(configuration.getPath());
+        return nativeGetConnectionState(configuration.getPath()) == ConnectionState.CONNECTED.value;
     }
 
     synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {
@@ -337,7 +300,7 @@ public class SyncSession {
         }
     }
 
-    void notifyConnectionListeners(SyncSession.Connection oldState, SyncSession.Connection newState) {
+    void notifyConnectionListeners(ConnectionState oldState, ConnectionState newState) {
         for (ConnectionListener listener : connectionListeners) {
             listener.onChange(oldState, newState);
         }
@@ -471,12 +434,12 @@ public class SyncSession {
     }
 
     /**
-     * Adds a listener tracking changes to the connection backing this session. See {@link Connection}
+     * Adds a listener tracking changes to the connection backing this session. See {@link ConnectionState}
      * for further details.
      *
      * @param listener the listener to register.
      * @throws IllegalArgumentException if the listener is {@code null}.
-     * @see Connection
+     * @see ConnectionState
      */
     public synchronized void addConnectionChangeListener(ConnectionListener listener) {
         checkNonNullListener(listener);
