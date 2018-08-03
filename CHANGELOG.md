@@ -7,7 +7,7 @@
 * [ObjectServer] Added `SyncSession.isConnected()`.
 
 
-## 5.4.1 (YYYY-MM-DD)
+## 5.4.1 (2018-08-03)
 
 ### Bug Fixes
 
