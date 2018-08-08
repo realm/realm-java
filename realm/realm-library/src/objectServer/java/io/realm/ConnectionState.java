@@ -17,7 +17,7 @@
 package io.realm;
 
 /**
- * Enum describing the the states of the underlying connection used by the session.
+ * Enum describing the states of the underlying connection used by a {@link SyncSession}.
  */
 public enum ConnectionState {
 

@@ -66,6 +66,9 @@ import io.realm.log.RealmLog;
  * controlled by Realm and might be shared between multiple sessions. It is possible to get insight
  * into the connection using {@link #addConnectionChangeListener(ConnectionListener)} and {@link #isConnected()}.
  * <p>
+ * The session itself has a different lifecycle than the underlying connection. The state of the session
+ * can be found using {@link #getState()}.
+ * <p>
  * The {@link SyncSession} object is thread safe.
  */
 @Keep
@@ -156,7 +159,7 @@ public class SyncSession {
          * <p>
          * The session will remain in this state until either the current login expires or the Realm
          * is closed. In the first case, the session will transition to {@link #WAITING_FOR_ACCESS_TOKEN},
-         * in the second case, it will become either {@link #DYING} or {@link #INACTIVE}.
+         * in the second case, it will become {@link #DYING}.
          */
         ACTIVE(STATE_VALUE_ACTIVE),
 
@@ -166,6 +169,9 @@ public class SyncSession {
          */
         DYING(STATE_VALUE_DYING),
 
+        /**
+         * DEPRECATED: This is never used. Errors are reported to {@link ErrorHandler} instead.
+         */
         @Deprecated
         ERROR(STATE_VALUE_ERROR);
 
@@ -274,7 +280,7 @@ public class SyncSession {
     /**
      * Checks if the session is connected to the server and can synchronize data.
      *
-     * This is a best guess effort. To converse battery the underlying implementation uses heartbeats
+     * This is a best guess effort. To conserve battery the underlying implementation uses heartbeats
      * to  detect if the connection is still available. So if no data is actively being synced
      * and some time has elapsed since the last heartbeat, the connection could have been dropped but
      * this method will still return {@code true}.
