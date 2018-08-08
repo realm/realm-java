@@ -102,13 +102,6 @@ public class SyncSession {
     // we register the listener.
     private final AtomicLong progressListenerId = new AtomicLong(-1);
 
-    // List of Java state change listeners
-    private final CopyOnWriteArrayList<SessionStateListener> sessionStateListeners = new CopyOnWriteArrayList<>();
-
-    // Reference to the token representing the native state change
-    // Only one listener is used for all Java listeners.
-    private long nativeStateListenerToken;
-
     // represent different states as defined in SyncSession::PublicState 'sync_session.hpp'
     private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 0;
     private static final byte STATE_VALUE_ACTIVE = 1;
@@ -254,7 +247,6 @@ public class SyncSession {
      * @return the state of the session.
      * @see SyncSession.State
      */
-    @SuppressWarnings("unused")
     public State getState() {
         byte state = nativeGetState(configuration.getPath());
         if (state == -1) {
@@ -262,6 +254,21 @@ public class SyncSession {
             throw new IllegalStateException("Could not find session, Realm was probably closed");
         }
         return State.fromNativeValue(state);
+    }
+
+    /**
+     * Get the current state of the connection used by the session as defined in {@link ConnectionState}.
+     *
+     * @return the state of connection used by the session.
+     * @see ConnectionState
+     */
+    public ConnectionState getConnectionState() {
+        byte state = nativeGetConnectionState(configuration.getPath());
+        if (state == -1) {
+            // session was not found, probably the Realm was closed
+            throw new IllegalStateException("Could not find session, Realm was probably closed");
+        }
+        return ConnectionState.fromNativeValue(state);
     }
 
     /**
@@ -291,12 +298,6 @@ public class SyncSession {
             }
         } else {
             RealmLog.debug("Trying unknown listener failed: " + listenerId);
-        }
-    }
-
-    void notifySessionStateListeners(SyncSession.State oldState, SyncSession.State newState) {
-        for (SessionStateListener listener : sessionStateListeners) {
-            listener.onChange(oldState, newState);
         }
     }
 
@@ -389,47 +390,6 @@ public class SyncSession {
         //noinspection ConstantConditions
         if (mode == null) {
             throw new IllegalArgumentException("Non-null 'mode' required.");
-        }
-    }
-
-    /**
-     * Adds a progress listener tracking changes that need to be downloaded from the Realm Object
-     * Server.
-     * <p>
-     * The {@link ProgressListener} will be triggered immediately when registered, and periodically
-     * afterwards.
-     *
-     * @param mode type of mode used. See {@link ProgressMode} for more information.
-     * @param listener the listener to register.
-     */
-
-    /**
-     * Adds a listener tracking state changes to this session. See {@link State} for further
-     * details.
-     *
-     * @param listener the listener to register.
-     * @throws IllegalArgumentException if the listener is {@code null}.
-     * @see State
-     */
-    public synchronized void addStateChangeListener(SessionStateListener listener) {
-        checkNonNullListener(listener);
-        if (sessionStateListeners.isEmpty()) {
-            nativeStateListenerToken = nativeAddStateListener(configuration.getPath());
-        }
-        sessionStateListeners.add(listener);
-    }
-
-    /**
-     * Removes a previously registered {@link SessionStateListener}.
-     *
-     * @param listener listener to remove
-     * @throws IllegalArgumentException if the listener is {@code null}.
-     */
-    public synchronized void removeStateChangeListener(SessionStateListener listener) {
-        checkNonNullListener(listener);
-        sessionStateListeners.remove(listener);
-        if (sessionStateListeners.isEmpty()) {
-            nativeRemoveStateListener(nativeStateListenerToken, configuration.getPath());
         }
     }
 
@@ -884,8 +844,6 @@ public class SyncSession {
         }
     }
 
-    private static native long nativeAddStateListener(String localRealmPath);
-    private static native void nativeRemoveStateListener(long listenerId, String localRealmPath);
     private static native long nativeAddConnectionListener(String localRealmPath);
     private static native void nativeRemoveConnectionListener(long listenerId, String localRealmPath);
     private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);

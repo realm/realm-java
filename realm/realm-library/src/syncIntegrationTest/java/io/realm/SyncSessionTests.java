@@ -512,50 +512,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void registerStateListener() {
-        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        SyncConfiguration syncConfiguration = configFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .build();
-        Realm realm = Realm.getInstance(syncConfiguration);
-        SyncSession session = SyncManager.getSession(syncConfiguration);
-        session.addStateChangeListener((oldState, newState) -> {
-            // This happens when we close the Realm because sessionStopPolicy is IMMEDIATE
-            if (oldState == SyncSession.State.ACTIVE && newState == SyncSession.State.INACTIVE) {
-                looperThread.testComplete();
-            }
-        });
-        realm.close();
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void removeStateListener() {
-        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        SyncConfiguration syncConfiguration = configFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .build();
-        Realm realm = Realm.getInstance(syncConfiguration);
-        SyncSession session = SyncManager.getSession(syncConfiguration);
-        SessionStateListener listener1 = (oldState, newState) -> {
-            if (newState == SyncSession.State.INACTIVE) {
-                fail("Listener should have been removed");
-            }
-        };
-        SessionStateListener listener2 = (oldState, newState) -> {
-            if (newState == SyncSession.State.INACTIVE) {
-                looperThread.testComplete();
-            }
-        };
-
-        session.addStateChangeListener(listener1);
-        session.addStateChangeListener(listener2);
-        session.removeStateChangeListener(listener1);
-        realm.close();
-    }
-
-    @Test
-    @RunTestInLooperThread
     public void registerConnectionListener() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration syncConfiguration = configFactory
@@ -611,6 +567,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
         } else {
             session.addConnectionChangeListener(((oldState, newState) -> {
                 if (newState == ConnectionState.CONNECTED) {
+                    assertEquals(session.getConnectionState(), ConnectionState.CONNECTED);
                     assertTrue(session.isConnected());
                     looperThread.testComplete();
                 }
