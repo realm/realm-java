@@ -20,6 +20,8 @@ import com.android.build.api.transform.*
 import io.realm.transformer.build.FullBuild
 import io.realm.transformer.build.IncrementalBuild
 import io.realm.transformer.build.BuildTemplate
+import io.realm.transformer.ext.getMinSdk
+import io.realm.transformer.ext.getTargetSdk
 import javassist.CtClass
 import org.gradle.api.Project
 import org.slf4j.Logger
@@ -123,41 +125,46 @@ class RealmTransformer(val project: Project) : Transform() {
      * @param inputModelClasses a list of ctClasses describing the Realm models
      */
     private fun sendAnalytics(inputs: Collection<TransformInput>, outputModelClasses: Set<CtClass>) {
-        val disableAnalytics: Boolean = "true".equals(System.getenv()["REALM_DISABLE_ANALYTICS"])
-        if (inputs.isEmpty() || disableAnalytics) {
-            // Don't send analytics for incremental builds or if they have ben explicitly disabled.
-            return
-        }
+        try {
+            val disableAnalytics: Boolean = "true".equals(System.getenv()["REALM_DISABLE_ANALYTICS"], ignoreCase = true)
+            if (inputs.isEmpty() || disableAnalytics) {
+                // Don't send analytics for incremental builds or if they have been explicitly disabled.
+                return
+            }
 
-        var containsKotlin = false
+            var containsKotlin = false
 
-        outer@
-        for(input: TransformInput in inputs) {
-            for (di: DirectoryInput in input.directoryInputs) {
-                val path: String = di.file.absolutePath
-                val index: Int = path.indexOf("build${File.separator}intermediates${File.separator}classes")
-                if (index != -1) {
-                    val projectPath: String = path.substring(0, index)
-                    val buildFile = File(projectPath + "build.gradle")
-                    if (buildFile.exists() && buildFile.readText().contains("kotlin")) {
-                        containsKotlin = true
-                        break@outer
+            outer@
+            for(input: TransformInput in inputs) {
+                for (di: DirectoryInput in input.directoryInputs) {
+                    val path: String = di.file.absolutePath
+                    val index: Int = path.indexOf("build${File.separator}intermediates${File.separator}classes")
+                    if (index != -1) {
+                        val projectPath: String = path.substring(0, index)
+                        val buildFile = File(projectPath + "build.gradle")
+                        if (buildFile.exists() && buildFile.readText().contains("kotlin")) {
+                            containsKotlin = true
+                            break@outer
+                        }
                     }
                 }
             }
-        }
 
-        val packages: Set<String> = outputModelClasses.map {
-            it.packageName
-        }.toSet()
+            val packages: Set<String> = outputModelClasses.map {
+                it.packageName
+            }.toSet()
 
-        val targetSdk: String? = Utils.getTargetSdk(project)
-        val minSdk: String?  = Utils.getMinSdk(project)
+            val targetSdk: String? = project.getTargetSdk()
+            val minSdk: String?  = project.getMinSdk()
 
-        if (!disableAnalytics) {
-            val sync: Boolean = Utils.isSyncEnabled(project)
-            val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk)
-            analytics.execute()
+            if (!disableAnalytics) {
+                val sync: Boolean = Utils.isSyncEnabled(project)
+                val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk)
+                analytics.execute()
+            }
+        } catch (e: Exception) {
+            // Analytics failing for any reason should not crash the build
+            logger.debug("Could not send analytics: $e")
         }
     }
 

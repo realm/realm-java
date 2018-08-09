@@ -63,24 +63,9 @@ public class Utils {
         return stringBuilder.toString();
     }
 
-    public static String getTargetSdk(Project project) {
-        return getAndroidExtension(project).getDefaultConfig().getTargetSdkVersion().getApiString();
-    }
-
-    public static String getMinSdk(Project project) {
-        return getAndroidExtension(project).getDefaultConfig().getMinSdkVersion().getApiString();
-    }
-
     public static boolean isSyncEnabled(Project project) {
         RealmPluginExtension realmExtension = (RealmPluginExtension) project.getExtensions().findByName("realm");
-        return realmExtension != null && realmExtension.syncEnabled;
+        return realmExtension != null && realmExtension.isSyncEnabled();
     }
 
-    public static List<File> getBootClasspath(Project project) {
-        return getAndroidExtension(project).getBootClasspath();
-    }
-
-    private static BaseExtension getAndroidExtension(Project project) {
-        return (BaseExtension) project.getExtensions().getByName("android");
-    }
 }
