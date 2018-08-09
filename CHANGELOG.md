@@ -1,3 +1,14 @@
+## 5.4.2 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* [ObjectServer] Fixed bugs in the Sync Client that could lead to memory corruption and crashes.
+
+### Internal
+
+* Upgraded to Realm Sync 3.8.8
+
+
 ## 5.4.1 (2018-08-03)
 
 ### Bug Fixes
