@@ -29,9 +29,9 @@ import java.io.File
  * Transformer that will transform a pool of classes by removing all classes, methods and fields annotated with
  * a given annotation.
  *
- * It does so in 2 parses using the ASM Visitor API. The first parse will gather metadata about the class hierarchy,
- * the 2nd parse will do the actual transform. The ASM Tree API was considered as well, but it does not provide
- * access to referenced classes easily, so two parses would be required here as well and the Visitor API is faster and
+ * It does so in 2 passes using the ASM Visitor API. The first pass will gather metadata about the class hierarchy,
+ * the 2nd pass will do the actual transform. The ASM Tree API was considered as well, but it does not provide
+ * access to referenced classes easily, so two passes would be required here as well and the Visitor API is faster and
  * requires less memory.
  */
 class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val inputClasses: Set<File>) {
@@ -44,15 +44,15 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
      * @return All input files, both those that have been modified and those that have not.
      */
     fun transform(): Set<File> {
-        val (markedClasses, markedMethods) = parse1()
-        return parse2(markedClasses, markedMethods)
+        val (markedClasses, markedMethods) = pass1()
+        return pass2(markedClasses, markedMethods)
     }
 
     /**
-     * Parse 1: Collect all classes, interfaces and enums that contain the given annotation. This include both top-level
+     * Pass 1: Collect all classes, interfaces and enums that contain the given annotation. This include both top-level
      * and inner types.
      */
-    private fun parse1(): Pair<Set<String>, Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>> {
+    private fun pass1(): Pair<Set<String>, Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>> {
         val metadataCollector = AnnotationVisitor(annotationDescriptor)
         inputClasses.forEach {
             it.inputStream().use {
@@ -64,11 +64,11 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
     }
 
     /**
-     * Parse 2: Remove methods and fields marked with the annotation. Classes that are removed
+     * Pass 2: Remove methods and fields marked with the annotation. Classes that are removed
      * are instead marked for deletion as deleting the File is the responsibility of the
      * transform API.
      */
-    private fun parse2(markedClasses: Set<String>, markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>): Set<File> {
+    private fun pass2(markedClasses: Set<String>, markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>): Set<File> {
         inputClasses.forEach { classFile ->
             var result = ByteArray(0)
             if (!classFile.shouldBeDeleted) { // Respect previously set delete flag, so avoid doing any work
