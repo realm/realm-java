@@ -25,7 +25,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 
-// Type alias' for improving readability
+// Type aliases for improving readability
 typealias ByteCodeTypeDescriptor = String
 typealias QualifiedName = String
 typealias ByteCodeMethodName = String

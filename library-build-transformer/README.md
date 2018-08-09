@@ -1,9 +1,11 @@
 # Library Transformer
 
-This project contains a transformer that removes all classes, methods and fields annotated with a given annotation.
+This project contains a transformer that removes all classes, methods and fields annotated with a
+given annotation.
 
-This can be used to emulate Kotlin extension methods in cases where separating the code into flavour folders is not
-feasible, like e.g. when the `Realm` class is shared between the `base` and `objectServer` flavour.
+This can be used to emulate Kotlin extension methods in cases where separating the code into flavour
+folders is not feasible, like e.g. when the `Realm` class is shared between the `base` and
+`objectServer` flavour.
 
 ## Usage
 
@@ -22,16 +24,18 @@ not carry over annotations.
 
 ## Warning
 
-There are no checks in place with regard to it being safe or not to remove classes and methods, so only apply the
-transformer when it is safe to do so (i.e. the classes/methods/fields are not in use). Any errors will only be caught at
-runtime when the actual code is accessed.
+There are no checks in place with regard to it being safe or not to remove classes and methods, so
+only apply the transformer when it is safe to do so (i.e. the classes/methods/fields are not in use).
+Any errors will only be caught at runtime when the actual code is accessed.
 
 ## Known limitations
 
-* If all constructors are stripped by this transformer, a new default constructor will not be created. This will result
-  in invalid byte code being generated.
+* If all constructors are stripped by this transformer, a new default constructor will not be
+  created. This will result in invalid byte code being generated.
 
-* If the top-level class is removed, all inner classes, enums and interfaces must also be annotated, otherwise they are
-  not removed, resulting in valid bytecode being generated.
+* If the top-level class is removed, all inner classes, enums and interfaces must also be annotated,
+  otherwise they are not removed, resulting in valid bytecode being generated.
 
 * Annotations on super classes will also remove subclasses, but only the first level of inheritance.
+
+* Single enum values cannot be stripped, only the entire enum class.

@@ -26,9 +26,6 @@ allprojects {
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim()
 
-def properties = new Properties()
-properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
-
 apply plugin: 'kotlin'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
@@ -104,41 +101,6 @@ publishing {
             } else {
                 url "s3://realm-ci-artifacts/maven/releases/"
             }
-        }
-    }
-}
-
-bintray {
-    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-
-    dryRun = false
-    publish = false
-
-    publications = ['realmPublication']
-    pkg {
-        repo = 'maven'
-        name = 'realm-library-build-transformer'
-        desc = 'Realm for Android'
-        websiteUrl = 'http://realm.io'
-        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
-        vcsUrl = 'https://github.com/realm/realm-java.git'
-        licenses = ['Apache-2.0']
-        labels = ['android', 'realm']
-        publicDownloadNumbers = false
-    }
-}
-
-artifactory {
-    contextUrl = 'https://oss.jfrog.org/artifactory'
-    publish {
-        repository {
-            repoKey = 'oss-snapshot-local'
-            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-        }
-        defaults {
-            publications ('realmPublication')
         }
     }
 }
