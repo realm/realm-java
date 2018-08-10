@@ -48,14 +48,14 @@ static_assert(SyncSession::PublicState::Inactive ==
                   static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_INACTIVE),
               "");
 
-static_assert(SyncSession::PublicConnectionState::Disconnected ==
-              static_cast<SyncSession::PublicConnectionState >(io_realm_SyncSession_CONNECTION_VALUE_DISCONNECTED),
+static_assert(SyncSession::ConnectionState::Disconnected ==
+              static_cast<SyncSession::ConnectionState >(io_realm_SyncSession_CONNECTION_VALUE_DISCONNECTED),
               "");
-static_assert(SyncSession::PublicConnectionState::Connecting ==
-              static_cast<SyncSession::PublicConnectionState>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTING),
+static_assert(SyncSession::ConnectionState::Connecting ==
+              static_cast<SyncSession::ConnectionState>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTING),
               "");
-static_assert(SyncSession::PublicConnectionState::Connected ==
-              static_cast<SyncSession::PublicConnectionState>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTED),
+static_assert(SyncSession::ConnectionState::Connected ==
+              static_cast<SyncSession::ConnectionState>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTED),
               "");
 
 JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv* env, jclass,
@@ -251,12 +251,12 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetConnectionState(JNIEn
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
 
         if (session) {
-            switch (session->connectionState()) {
-                case SyncSession::PublicConnectionState::Disconnected:
+            switch (session->connection_state()) {
+                case SyncSession::ConnectionState::Disconnected:
                     return io_realm_SyncSession_CONNECTION_VALUE_DISCONNECTED;
-                case SyncSession::PublicConnectionState::Connecting:
+                case SyncSession::ConnectionState::Connecting:
                     return io_realm_SyncSession_CONNECTION_VALUE_CONNECTING;
-                case SyncSession::PublicConnectionState::Connected:
+                case SyncSession::ConnectionState::Connected:
                     return io_realm_SyncSession_CONNECTION_VALUE_CONNECTED;
             }
         }
@@ -265,11 +265,11 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetConnectionState(JNIEn
     return -1;
 }
 
-static jlong get_connection_value(SyncSession::PublicConnectionState state) {
+static jlong get_connection_value(SyncSession::ConnectionState state) {
     switch (state) {
-        case SyncSession::PublicConnectionState::Disconnected: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_DISCONNECTED);
-        case SyncSession::PublicConnectionState::Connecting: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTING);
-        case SyncSession::PublicConnectionState::Connected: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTED);
+        case SyncSession::ConnectionState::Disconnected: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_DISCONNECTED);
+        case SyncSession::ConnectionState::Connecting: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTING);
+        case SyncSession::ConnectionState::Connected: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTED);
     }
     return static_cast<jlong>(-1);
 }
@@ -291,7 +291,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddConnectionListener(JN
         static JavaClass java_syncmanager_class(env, "io/realm/SyncManager");
         static JavaMethod java_notify_connection_listener(env, java_syncmanager_class, "notifyConnectionListeners", "(Ljava/lang/String;JJ)V", true);
 
-        std::function<SyncSession::ConnectionStateCallback > callback = [local_realm_path](SyncSession::PublicConnectionState old_state, SyncSession::PublicConnectionState new_state) {
+        std::function<SyncSession::ConnectionStateCallback > callback = [local_realm_path](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
             jlong old_connection_value = get_connection_value(old_state);
