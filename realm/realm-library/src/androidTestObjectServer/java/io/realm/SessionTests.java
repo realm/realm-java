@@ -457,4 +457,16 @@ public class SessionTests {
                     "No SyncSession found using the path : "));
         }
     }
+
+    @Test
+    public void isConnected_falseForInvalidUser() {
+        Realm realm = Realm.getInstance(configuration);
+        SyncSession session = SyncManager.getSession(configuration);
+        try {
+            assertFalse(session.isConnected());
+        } finally {
+            realm.close();
+        }
+    }
+
 }
