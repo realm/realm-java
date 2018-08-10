@@ -11,6 +11,17 @@
 * Updated to Object Store commit: 97fd03819f398b3c81c8b007feaca8636629050b
 
 
+## 5.4.2 (2018-08-09)
+
+### Bug Fixes
+
+* [ObjectServer] Fixed bugs in the Sync Client that could lead to memory corruption and crashes.
+
+### Internal
+
+* Upgraded to Realm Sync 3.8.8
+
+
 ## 5.4.1 (2018-08-03)
 
 ### Bug Fixes
