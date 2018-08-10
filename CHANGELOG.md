@@ -6,6 +6,10 @@
 * [ObjectServer] Added `SyncSession.isConnected()`.
 * [ObjectServer] Added support for observing connection changes for a session using `SyncSession.addConnectionChangeListener()` and `SyncSession.removeConnectionChangeListener()`.
 
+### Internal
+
+* Updated to Object Store commit: 97fd03819f398b3c81c8b007feaca8636629050b
+
 
 ## 5.4.1 (2018-08-03)
 
