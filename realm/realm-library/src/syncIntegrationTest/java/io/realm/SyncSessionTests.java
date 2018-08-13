@@ -510,4 +510,68 @@ public class SyncSessionTests extends StandardIntegrationTest {
         SyncManager.simulateClientReset(SyncManager.getSession(config));
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void registerConnectionListener() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        SyncConfiguration syncConfiguration = configFactory
+                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .build();
+        Realm realm = Realm.getInstance(syncConfiguration);
+        SyncSession session = SyncManager.getSession(syncConfiguration);
+        session.addConnectionChangeListener((oldState, newState) -> {
+            if (newState == ConnectionState.DISCONNECTED) {
+                looperThread.testComplete();
+            }
+        });
+        realm.close();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeConnectionListener() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        SyncConfiguration syncConfiguration = configFactory
+                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .build();
+        Realm realm = Realm.getInstance(syncConfiguration);
+        SyncSession session = SyncManager.getSession(syncConfiguration);
+        ConnectionListener listener1 = (oldState, newState) -> {
+            if (newState == ConnectionState.DISCONNECTED) {
+                fail("Listener should have been removed");
+            }
+        };
+        ConnectionListener listener2 = (oldState, newState) -> {
+            if (newState == ConnectionState.DISCONNECTED) {
+                looperThread.testComplete();
+            }
+        };
+
+        session.addConnectionChangeListener(listener1);
+        session.addConnectionChangeListener(listener2);
+        session.removeConnectionChangeListener(listener1);
+        realm.close();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void isConnected() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        SyncConfiguration syncConfiguration = configFactory
+                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .build();
+        looperThread.closeAfterTest(Realm.getInstance(syncConfiguration));
+        SyncSession session = SyncManager.getSession(syncConfiguration);
+        if (session.isConnected()) {
+            looperThread.testComplete();
+        } else {
+            session.addConnectionChangeListener(((oldState, newState) -> {
+                if (newState == ConnectionState.CONNECTED) {
+                    assertEquals(session.getConnectionState(), ConnectionState.CONNECTED);
+                    assertTrue(session.isConnected());
+                    looperThread.testComplete();
+                }
+            }));
+        }
+    }
 }
