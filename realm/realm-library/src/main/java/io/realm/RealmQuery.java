@@ -1749,8 +1749,12 @@ public class RealmQuery<E> {
      */
     public long count() {
         realm.checkIfValid();
-
-        return this.query.count();
+        // The fastest way of doing `count()` is going through `TableQuery.count()`. Unfortunately
+        // doing this does not correctly apply all side effects of queries (like subscriptions). Also
+        // some queries constructs, like doing distinct is not easily supported this way.
+        // In order to get the best of both worlds we thus need to create a Java RealmResults object
+        // and then directly access the `Results` class from Object Store.
+        return lazyFindAll().size();
     }
 
     /**
@@ -1767,13 +1771,28 @@ public class RealmQuery<E> {
     }
 
     /**
+     * The same as {@link #findAll()} expect the RealmResult is not forcefully evaluated. This
+     * means this method will return a more "pure" wrapper around the Object Store Results class.
+     *
+     * This can be useful for internal usage where we still want to take advantage of optimizations
+     * and additional functionality provided by Object Store, but do not wish to trigger the query
+     * unless needed.
+     */
+    private OsResults lazyFindAll() {
+        realm.checkIfValid();
+        return createRealmResults(
+                query,
+                sortDescriptor,
+                distinctDescriptor,
+                false,
+                SubscriptionAction.NO_SUBSCRIPTION).osResults;
+    }
+
+    /**
      * Finds all objects that fulfill the query conditions. This method is only available from a Looper thread.
      * <p>
-     * On partially synchronized Realms, defined by setting {@link SyncConfiguration.Builder#partialRealm()},
-     * this method will also create an anonymous subscription that will download all server data matching
-     * the query.
-     * </p>
-     *
+     * If the Realm is a Query-based synchronized Realms, this method will also create an anonymous subscription
+     * that will download all server data matching the query.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
@@ -1797,14 +1816,14 @@ public class RealmQuery<E> {
     /**
      * Finds all objects that fulfill the query condition(s). This method is only available from a Looper thread.
      * <p>
-     * This method is only available on partially synchronized Realms and will also create a named subscription
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
      * that will synchronize all server data matching the query. Named subscriptions can be removed again by
      * calling {@code Realm.unsubscribe(subscriptionName}.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @see io.realm.RealmResults
-     * @throws IllegalStateException If the Realm is a not a partially synchronized Realm.
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm.
      */
     public RealmResults<E> findAllAsync(String subscriptionName) {
         realm.checkIfValid();
@@ -1952,6 +1971,28 @@ public class RealmQuery<E> {
         realm.checkIfValid();
         query.alwaysFalse();
         return this;
+    }
+
+    /**
+     * Returns the {@link Realm} instance to which this query belongs.
+     * <p>
+     * Calling {@link Realm#close()} on the returned instance is discouraged as it is the same as
+     * calling it on the original Realm instance which may cause the Realm to fully close invalidating the
+     * query.
+     *
+     * @return {@link Realm} instance this query belongs to.
+     * @throws IllegalStateException if the Realm is an instance of {@link DynamicRealm} or the
+     * {@link Realm} was already closed.
+     */
+    public Realm getRealm() {
+        if (realm == null) {
+            return null;
+        }
+        realm.checkIfValid();
+        if (!(realm instanceof Realm)) {
+            throw new IllegalStateException("This method is only available for typed Realms");
+        }
+        return (Realm) realm;
     }
 
     private boolean isDynamicQuery() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,15 @@ package io.realm.transformer
 import com.android.build.api.transform.TransformInput
 import javassist.ClassPath
 import javassist.ClassPool
+import java.io.Closeable
 
 /**
  * This class is a wrapper around JavaAssists {@code ClassPool} class that allows for correct cleanup
  * of the resources used.
  */
-@SuppressWarnings("GroovyUnusedDeclaration")
-class ManagedClassPool extends ClassPool implements Closeable {
+class ManagedClassPool(inputs: Collection<TransformInput>, referencedInputs: Collection<TransformInput>) : ClassPool(), Closeable {
 
-    def List<ClassPath> pathElements = new ArrayList<ClassPath>()
+    val pathElements: ArrayList<ClassPath> = arrayListOf()
 
     /**
      * Constructor for creating and populating the JavAssist class pool.
@@ -37,28 +37,27 @@ class ManagedClassPool extends ClassPool implements Closeable {
      * @param referencedInputs the referencedInputs provided by the Transform API
      * @return the populated ClassPool instance
      */
-    ManagedClassPool(Collection<TransformInput> inputs, Collection<TransformInput> referencedInputs) {
+    init {
         // Don't use ClassPool.getDefault(). Doing consecutive builds in the same run (e.g. debug+release)
         // will use a cached object and all the classes will be frozen.
-        super(null)
         appendSystemPath()
 
-        inputs.each {
-            it.directoryInputs.each {
+        inputs.forEach{
+            it.directoryInputs.forEach {
                 pathElements.add(appendClassPath(it.file.absolutePath))
             }
 
-            it.jarInputs.each {
+            it.jarInputs.forEach {
                 pathElements.add(appendClassPath(it.file.absolutePath))
             }
         }
 
-        referencedInputs.each {
-            it.directoryInputs.each {
+        referencedInputs.forEach {
+            it.directoryInputs.forEach {
                 pathElements.add(appendClassPath(it.file.absolutePath))
             }
 
-            it.jarInputs.each {
+            it.jarInputs.forEach {
                 pathElements.add(appendClassPath(it.file.absolutePath))
             }
         }
@@ -67,16 +66,16 @@ class ManagedClassPool extends ClassPool implements Closeable {
     /**
      * Detach all ClassPath elements, effectively closing the class pool.
      */
-    @Override
-    void close() throws IOException {
+    override fun close() {
         // Cleanup class pool. Internally it keeps a list of JarFile references that are only
         // cleaned up if the the ClassPath element wrapping it is manually removed.
         // See https://github.com/jboss-javassist/javassist/issues/165
-        def iter = pathElements.iterator()
+        val iter: MutableIterator<ClassPath> = pathElements.iterator()
         while (iter.hasNext()) {
-            def cp = iter.next()
+            val cp = iter.next()
             removeClassPath(cp)
             iter.remove()
         }
     }
+
 }

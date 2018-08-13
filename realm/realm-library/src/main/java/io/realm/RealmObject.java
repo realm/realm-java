@@ -25,6 +25,7 @@ import io.realm.internal.InvalidRow;
 import io.realm.internal.ManagableObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
+import io.realm.log.RealmLog;
 import io.realm.rx.ObjectChange;
 
 /**
@@ -584,8 +585,10 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
-            realm.checkIfValid();
-            realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+            if (realm.isClosed()) {
+                RealmLog.warn("Calling removeChangeListener on a closed Realm %s, " +
+                        "make sure to close all listeners before closing the Realm.", realm.configuration.getPath());
+            }
             //noinspection unchecked
             proxy.realmGet$proxyState().removeChangeListener(listener);
         } else {
@@ -623,8 +626,10 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
-            realm.checkIfValid();
-            realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+            if (realm.isClosed()) {
+                RealmLog.warn("Calling removeChangeListener on a closed Realm %s, " +
+                        "make sure to close all listeners before closing the Realm.", realm.configuration.getPath());
+            }
             proxy.realmGet$proxyState().removeAllChangeListeners();
         } else {
             throw new IllegalArgumentException("Cannot remove listeners from this unmanaged RealmObject (created outside of Realm)");

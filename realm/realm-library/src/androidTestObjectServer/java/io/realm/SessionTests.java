@@ -65,7 +65,7 @@ public class SessionTests {
     @Before
     public void setUp() {
         user = createTestUser();
-        configuration = new SyncConfiguration.Builder(user, REALM_URI).addModule(new ObjectPermissionsModule()).build();
+        configuration = user.createConfiguration(REALM_URI).addModule(new ObjectPermissionsModule()).build();
     }
 
     @Test
@@ -457,4 +457,16 @@ public class SessionTests {
                     "No SyncSession found using the path : "));
         }
     }
+
+    @Test
+    public void isConnected_falseForInvalidUser() {
+        Realm realm = Realm.getInstance(configuration);
+        SyncSession session = SyncManager.getSession(configuration);
+        try {
+            assertFalse(session.isConnected());
+        } finally {
+            realm.close();
+        }
+    }
+
 }

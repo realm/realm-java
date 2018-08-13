@@ -1,3 +1,119 @@
+## 5.5.0 (YYYY-MM-DD)
+
+### Enhancements
+
+* [ObjectServer] Added `ConnectionState` enum describing the states a connection can be in.
+* [ObjectServer] Added `SyncSession.isConnected()`.
+* [ObjectServer] Added support for observing connection changes for a session using `SyncSession.addConnectionChangeListener()` and `SyncSession.removeConnectionChangeListener()`.
+
+### Internal
+
+* Updated to Object Store commit: 97fd03819f398b3c81c8b007feaca8636629050b
+
+
+## 5.4.2 (2018-08-09)
+
+### Bug Fixes
+
+* [ObjectServer] Fixed bugs in the Sync Client that could lead to memory corruption and crashes.
+
+### Internal
+
+* Upgraded to Realm Sync 3.8.8
+
+
+## 5.4.1 (2018-08-03)
+
+### Bug Fixes
+
+* Compile time crash if no `targetSdk` was defined in Gradle. This was introduced in 5.4.0 (#6082).
+* Fix Realm Gradle Plugin adding dependencies in a way incompatible with Kotlin Android Extensions. This was introduced in Realm Java 5.4.0 (#6080).
+
+
+## 5.4.0 (2018-07-22)
+
+### Enhancements
+
+* Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
+
+### Bug Fixes
+
+* [ObjectServer] Using Android Network Security Configuration is necessary to install the custom root CA for tests (API >= 24) (#5970).
+* Fixes issue with the incremental build causing direct access to model without accessor to fail (#6056).
+* `RealmQuery.distinct()` is now correctly applied when calling `RealmQuery.count()` (#5958).
+
+### Internal
+
+* Upgraded to Realm Core 5.7.2
+* Upgraded to Realm Sync 3.8.1
+* [ObjectServer] Improved performance when integrating changes from the server.
+* Added extra information about the state of the Realm file if an exception is thrown due to Realm not being able to open it.
+* Removed internal dependency on Groovy in the Realm Transformer (#3971).
+
+### Credits
+
+* Thanks to @kageiit for removing Groovy from the Realm Transformer (#3971).
+
+
+## 5.3.1 (2018-06-19)
+
+### Bug Fixes
+
+* [ObjectServer] Fixed a bug which could potentially flood Realm Object Server with PING messages.
+* Calling `Realm.deleteAll()` on a Realm file that contains more classes than in the schema throws exception (#5745).
+* `Realm.isEmpty()` returning false in some cases, even if all tables part of the schema are empty (#5745).
+* Fixed rare native crash materializing as `Assertion failed: ref + size <= after_ref with (ref, size, after_ref, ndx, m_free_positions.size())` (#5300).
+
+### Internal
+
+* Upgraded to Realm Core 5.6.2
+* Upgraded to Realm Sync 3.5.6
+* Upgraded to Object Store commit `0bcb9643b8fb14323df697999b79c4a5341a8a21`
+
+
+## 5.3.0 (2018-06-12)
+
+### Enhancements
+
+* [ObjectServer] `Realm.compactRealm(config)` now works on synchronized Realms (#5937).
+* [ObjectServer] `SyncConfiguration.compactOnLaunch()` and `SyncConfiguration.compactOnLaunch(callback)` has been added (#5937).
+* Added `RealmQuery.getRealm()`, `RealmResults.getRealm()`, `RealmList.getRealm()` and `OrderedRealmCollectionSnapshot.getRealm()` (#5997).
+* Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
+
+
+### Internal
+
+* Upgraded to Realm Core 5.6.0
+* Upgraded to Realm Sync 3.5.2
+
+
+## 5.2.0 (2018-06-06)
+
+The feature previously named Partial Sync is now called Query-Based Sync and is now the default mode when synchronizing Realms.
+This has impacted a number of API's. See below for the details.
+
+### Deprecated
+
+* [ObjectServer] `SyncConfiguration.automatic()` has been deprecated in favour of `SyncUser.getDefaultConfiguration()`.
+* [ObjectServer] `new SyncConfiguration.Builder(user, url)` has been deprecated in favour of `SyncUser.createConfiguration(url)`. NOTE: Creating configurations using `SyncUser` will default to using query-based Realms, while creating them using `new SyncConfiguration.Builder(user, url)` will default to fully synchronized Realms.
+* [ObjectServer] With query-based sync being the default `SyncConfiguration.Builder.partialRealm()` has been deprecated. Use ``SyncConfiguration.Builder.fullSynchronization()` if you want full synchronisation instead.
+
+### Enhancements
+
+* [ObjectServer] Added `SyncUser.createConfiguration(url)`. Realms created this way are query-based Realms by default.
+* [ObjectServer] Added `SyncUser.getDefaultConfiguration()`.
+* The Realm bytecode transformer now supports incremental builds (#3034).
+* Improved speed and allocations when parsing field descriptions in queries (#5547).
+
+### Bug Fixes
+
+* Having files that ends with `RealmProxy` will no longer break the Realm Transformer (#3709).
+
+### Internal
+
+* Module mediator classes being generated now produces a stable output enabling better support for incremental builds (#3034).
+
+
 ## 5.1.0 (2018-04-25)
 
 ### Enhancements

@@ -22,6 +22,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -53,7 +54,7 @@ public class DefaultModuleGenerator {
         writer.emitPackage(Constants.REALM_PACKAGE_NAME);
         writer.emitEmptyLine();
 
-        Map<String, Boolean> attributes = new HashMap<String, Boolean>();
+        Map<String, Boolean> attributes = new LinkedHashMap<>();
         attributes.put("allClasses", Boolean.TRUE);
         writer.emitAnnotation(RealmModule.class, attributes);
         writer.beginType(

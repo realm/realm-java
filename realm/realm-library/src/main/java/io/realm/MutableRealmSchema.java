@@ -16,7 +16,9 @@
 
 package io.realm;
 
+import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
@@ -40,6 +42,20 @@ class MutableRealmSchema extends RealmSchema {
         if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
         Table table = realm.getSharedRealm().getTable(internalClassName);
         return new MutableRealmObjectSchema(realm, this, table);
+    }
+
+    @Override
+    public Set<RealmObjectSchema> getAll() {
+        // Return all tables prefixed with class__ in the Realm file
+        int tableCount = (int) realm.getSharedRealm().size();
+        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
+        for (int i = 0; i < tableCount; i++) {
+            RealmObjectSchema objectSchema = get(Table.getClassNameForTable(realm.getSharedRealm().getTableName(i)));
+            if (objectSchema != null) {
+                schemas.add(objectSchema);
+            }
+        }
+        return schemas;
     }
 
     @Override

@@ -188,7 +188,7 @@ coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
 import io.realm.transformer.RealmTransformer
 
-android.registerTransform(new RealmTransformer())
+android.registerTransform(new RealmTransformer(project))
 
 repositories {
     maven { url "https://jitpack.io" }
@@ -204,7 +204,7 @@ dependencies {
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
 
-    kaptObjectServer project(':realm-annotations-processor')
+    kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
     objectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
 
     kaptAndroidTest project(':realm-annotations-processor')

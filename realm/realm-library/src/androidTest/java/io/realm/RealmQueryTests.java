@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -2278,6 +2279,20 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(TEST_DATA_SIZE, realm.where(AllTypes.class).count());
     }
 
+    // Verify that count correctly when using distinct.
+    // See https://github.com/realm/realm-java/issues/5958
+    @Test
+    public void distinctCount() {
+        realm.executeTransaction(r -> {
+            for (int i = 0; i < 5; i++) {
+                AllTypes obj = new AllTypes();
+                obj.setColumnString("Foo");
+                realm.copyToRealm(obj);
+            }
+        });
+        assertEquals(1, realm.where(AllTypes.class).distinct(AllTypes.FIELD_STRING).count());
+    }
+
     // Tests isNull on link's nullable field.
     @Test
     public void isNull_linkField() {
@@ -3474,5 +3489,33 @@ public class RealmQueryTests extends QueryTests {
     public void alwaysFalse_inverted() {
         populateTestRealm();
         assertEquals(TEST_DATA_SIZE, realm.where(AllTypes.class).not().alwaysFalse().findAll().size());
+    }
+
+    @Test
+    public void getRealm() {
+        assertTrue(realm == realm.where(AllTypes.class).getRealm());
+    }
+
+    @Test
+    public void getRealm_throwsIfDynamicRealm() {
+        DynamicRealm dRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        try {
+            dRealm.where(AllTypes.CLASS_NAME).getRealm();
+            fail();
+        } catch (IllegalStateException ignore) {
+        } finally {
+            dRealm.close();
+        }
+    }
+
+    @Test
+    public void getRealm_throwsIfRealmClosed() {
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+        realm.close();
+        try {
+            query.getRealm();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
     }
 }

@@ -83,7 +83,10 @@ public class SyncManagerTests {
     @After
     public void tearDown() {
         UserFactory.logoutAllUsers();
-        SyncManager.reset();
+        UserStore userStore = SyncManager.getUserStore();
+        for (SyncUser syncUser : userStore.allUsers()) {
+            userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
+        }
     }
 
     @Test
@@ -159,7 +162,7 @@ public class SyncManagerTests {
     public void session() throws IOException {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration config = new SyncConfiguration.Builder(user, url)
+        SyncConfiguration config = user.createConfiguration(url)
                 .modules(new StringOnlyModule())
                 .build();
         // This will trigger the creation of the session

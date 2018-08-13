@@ -2,8 +2,8 @@ buildscript {
     def projectDependencies = new Properties()
     projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
     ext.gradle_build_tools = projectDependencies.get("GRADLE_BUILD_TOOLS")
-    ext.kotlin_version = '1.2.10'
-    ext.dokka_version = '0.9.15'
+    ext.kotlin_version = '1.2.50'
+    ext.dokka_version = '0.9.16'
     repositories {
         mavenLocal()
         google()

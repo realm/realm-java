@@ -178,8 +178,8 @@ public class PermissionManager implements Closeable {
     private PermissionManager(SyncUser user) {
         this.user = user;
         threadId = Thread.currentThread().getId();
-        managementRealmConfig = new SyncConfiguration.Builder(
-                user, getRealmUrl(RealmType.MANAGEMENT_REALM, user.getAuthenticationUrl()))
+        managementRealmConfig = user.createConfiguration(getRealmUrl(RealmType.MANAGEMENT_REALM, user.getAuthenticationUrl()))
+                .fullSynchronization()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
@@ -192,8 +192,8 @@ public class PermissionManager implements Closeable {
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
 
-        permissionRealmConfig = new SyncConfiguration.Builder(
-                user, getRealmUrl(RealmType.PERMISSION_REALM, user.getAuthenticationUrl()))
+        permissionRealmConfig = user.createConfiguration(getRealmUrl(RealmType.PERMISSION_REALM, user.getAuthenticationUrl()))
+                .fullSynchronization()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
@@ -209,8 +209,8 @@ public class PermissionManager implements Closeable {
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
 
-        defaultPermissionRealmConfig = new SyncConfiguration.Builder(
-                user, getRealmUrl(RealmType.DEFAULT_PERMISSION_REALM, user.getAuthenticationUrl()))
+        defaultPermissionRealmConfig = user.createConfiguration(getRealmUrl(RealmType.DEFAULT_PERMISSION_REALM, user.getAuthenticationUrl()))
+                .fullSynchronization()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
