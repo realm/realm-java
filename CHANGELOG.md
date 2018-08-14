@@ -6,6 +6,10 @@
 * [ObjectServer] Added `SyncSession.isConnected()`.
 * [ObjectServer] Added support for observing connection changes for a session using `SyncSession.addConnectionChangeListener()` and `SyncSession.removeConnectionChangeListener()`.
 
+### Bug Fixes
+
+* Methods and classes requiring synchronized Realms have been removed from the standard AAR package. They are now only visible when enabling synchronized Realms in Gradle. The methods and classes will still be visible in the source files and docs, but annotated with `@ObjectServer` (#5799).
+
 ### Internal
 
 * Updated to Object Store commit: 97fd03819f398b3c81c8b007feaca8636629050b
