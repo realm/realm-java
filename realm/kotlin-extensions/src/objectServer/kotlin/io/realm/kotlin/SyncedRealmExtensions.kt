@@ -18,7 +18,25 @@ package io.realm.kotlin
 import io.realm.Realm
 import io.realm.RealmModel
 import io.realm.SyncConfiguration
+import io.realm.SyncManager
+import io.realm.SyncSession
 import io.realm.sync.permissions.ClassPermissions
+
+
+/**
+ * Returns the [SyncSession] associated with this Realm.
+ *
+ * @return the [SyncSession] associated with this Realm.
+ * @throws IllegalStateException if the Realm is not a synchronized Realm.
+ */
+val Realm.syncSession: SyncSession
+    get() {
+        if (!(this.configuration is SyncConfiguration)) {
+            throw IllegalStateException("This method is only available on synchronized Realms")
+        }
+        return SyncManager.getSession(this.configuration as SyncConfiguration)
+    }
+}
 
 /**
  * Returns all permissions associated with the given class. Attach a change listener using

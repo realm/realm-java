@@ -38,13 +38,29 @@ class KotlinSyncedRealmTests {
     }
 
     @Test
+    fun syncSession() {
+        assertEquals(SyncManager.getSession(realm.configuration as SyncConfiguration), realm.syncSession)
+    }
+
+    @Test
+    fun syncSession_throwsForNonSyncRealm() {
+        realm.close()
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        try {
+            realm.syncSession
+            fail()
+        } catch (ignored: IllegalStateException) {
+        }
+    }
+
+    @Test
     fun classPermissions() {
         assertNotNull(realm.classPermissions<SimpleClass>())
     }
 
     @Test
     fun classPermissions_throwsForNonSyncRealm() {
-        realm.close();
+        realm.close()
         realm = Realm.getInstance(configFactory.createConfiguration())
         try {
             realm.classPermissions<SimpleClass>()

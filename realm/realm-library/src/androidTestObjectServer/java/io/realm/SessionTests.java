@@ -469,20 +469,4 @@ public class SessionTests {
         }
     }
 
-    @Test
-    public void getSession_throwsIfNormalRealm() {
-        Realm realm = Realm.getInstance(configFactory.createConfiguration());
-        try {
-            realm.getSession();
-            fail();
-        } catch (IllegalStateException ignore) {
-        }
-    }
-
-    @Test
-    public void getSession() {
-        Realm realm = Realm.getInstance(configuration);
-        assertEquals(SyncManager.getSession(configuration), realm.getSession());
-    }
-
 }

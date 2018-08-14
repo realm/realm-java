@@ -66,10 +66,8 @@ import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
@@ -77,7 +75,6 @@ import io.realm.log.RealmLog;
 import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.ClassPrivileges;
 import io.realm.sync.permissions.RealmPermissions;
-import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
 
 /**
@@ -1852,20 +1849,6 @@ public class Realm extends BaseRealm {
         return where(ClassPermissions.class)
                 .equalTo("name", configuration.getSchemaMediator().getSimpleClassName(clazz))
                 .findFirst();
-    }
-
-    /**
-     * Returns the Realm Object Server {@link SyncSession} associated with this Realm.
-     *
-     * @return the Realm Object Server session associated with this Realm.
-     * @see SyncManager#getSession(SyncConfiguration)
-     */
-    @ObjectServer
-    public SyncSession getSession() {
-        if (!(this.configuration instanceof SyncConfiguration)) {
-            throw new IllegalStateException("This method is only available on synchronized Realms");
-        }
-        return SyncManager.getSession((SyncConfiguration) this.configuration);
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {
