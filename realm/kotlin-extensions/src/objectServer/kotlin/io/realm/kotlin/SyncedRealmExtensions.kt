@@ -36,7 +36,6 @@ val Realm.syncSession: SyncSession
         }
         return SyncManager.getSession(this.configuration as SyncConfiguration)
     }
-}
 
 /**
  * Returns all permissions associated with the given class. Attach a change listener using
