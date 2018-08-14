@@ -22,7 +22,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -675,7 +674,6 @@ public class SortTest {
     }
 
     @Test
-    @Ignore("__CORE6__: sort in createAndTest is reversed looks like sort order is not respected, might be related to https://github.com/realm/realm-core-private/issues/203")
     public void sortCaseSensitive() {
         chars = "'- !\"#$%&()*,./:;?_+<=>123aAbBcCxXyYzZ";
         createAndTest(new StringBuilder(chars).reverse().toString());

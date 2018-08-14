@@ -18,7 +18,6 @@ package io.realm;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -321,8 +320,6 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         assertEquals(2, sortedList.last().getId());
     }
 
-    // Tests sort on nullable fields with null values partially.
-    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/203")
     @Test
     public void sort_rowsWithPartialNullValues() {
         if (isSnapshot(collectionClass)) {
@@ -391,8 +388,6 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         collection.sort("Non-existing");
     }
 
-    @Ignore("__CORE6__: ComparisonFailure: expected:<[Æble]> but was:<[Århus]> " +
-            "might be related to https://github.com/realm/realm-core-private/issues/203")
     @Test
     public void sort_danishCharacters() {
         if (isSnapshot(collectionClass)) {

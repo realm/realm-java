@@ -524,15 +524,9 @@ public class TableQuery implements NativeObject {
 
     // Count
 
-    // TODO: Rename all start, end parameter names to firstRow, lastRow
-    public long count(long start, long end, long limit) {
-        validateQuery();
-        return nativeCount(nativePtr, start, end, limit);
-    }
-
     public long count() {
         validateQuery();
-        return nativeCount(nativePtr, 0, Table.INFINITE, Table.INFINITE);
+        return nativeCount(nativePtr);
     }
 
     public long remove() {
@@ -679,7 +673,7 @@ public class TableQuery implements NativeObject {
 
     private native void nativeIsNotNull(long nativePtr, long[] columnIndice, long[] tablePtr);
 
-    private native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
+    private native long nativeCount(long nativeQueryPtr);
 
     private native long nativeRemove(long nativeQueryPtr);
 
