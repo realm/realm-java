@@ -6,11 +6,11 @@ import io.realm.Realm
 import io.realm.SyncConfiguration
 import io.realm.SyncManager
 import io.realm.TestSyncConfigurationFactory
+import io.realm.entities.SimpleClass
 import io.realm.objectserver.utils.Constants
 import io.realm.util.SyncTestUtils
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.fail
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -38,16 +38,16 @@ class KotlinSyncedRealmTests {
     }
 
     @Test
-    fun synsSession() {
-        assertEquals(SyncManager.getSession(realm.configuration as SyncConfiguration), realm.syncSession)
+    fun classPermissions() {
+        assertNotNull(realm.classPermissions<SimpleClass>())
     }
 
     @Test
-    fun syncSession_throwsForNonSyncRealm() {
+    fun classPermissions_throwsForNonSyncRealm() {
         realm.close();
         realm = Realm.getInstance(configFactory.createConfiguration())
         try {
-            realm.syncSession
+            realm.classPermissions<SimpleClass>()
             fail()
         } catch (ignored: IllegalStateException) {
         }

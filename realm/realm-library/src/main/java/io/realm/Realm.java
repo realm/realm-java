@@ -1854,6 +1854,20 @@ public class Realm extends BaseRealm {
                 .findFirst();
     }
 
+    /**
+     * Returns the Realm Object Server {@link SyncSession} associated with this Realm.
+     *
+     * @return the Realm Object Server session associated with this Realm.
+     * @see SyncManager#getSession(SyncConfiguration)
+     */
+    @ObjectServer
+    public SyncSession getSession() {
+        if (!(this.configuration instanceof SyncConfiguration)) {
+            throw new IllegalStateException("This method is only available on synchronized Realms")
+        }
+        return SyncManager.getSession((SyncConfiguration) this.configuration);
+    }
+
     Table getTable(Class<? extends RealmModel> clazz) {
         return schema.getTable(clazz);
     }

@@ -5,8 +5,8 @@
 * [ObjectServer] Added `ConnectionState` enum describing the states a connection can be in.
 * [ObjectServer] Added `SyncSession.isConnected()`.
 * [ObjectServer] Added support for observing connection changes for a session using `SyncSession.addConnectionChangeListener()` and `SyncSession.removeConnectionChangeListener()`.
-* [ObjectServer] Added `Realm.getSyncSession()` for synchronized Realms.
-* [ObjectServer] Added Kotlin reified variant of `Realm.getClassPermissions()` as an extension method.
+* [ObjectServer] Added `Realm.getSession()` for synchronized Realms.
+* [ObjectServer] Added Kotlin extension method `Realm.classPermissions<RealmModel>()`.
  
 ### Bug Fixes
 
