@@ -1863,7 +1863,7 @@ public class Realm extends BaseRealm {
     @ObjectServer
     public SyncSession getSession() {
         if (!(this.configuration instanceof SyncConfiguration)) {
-            throw new IllegalStateException("This method is only available on synchronized Realms")
+            throw new IllegalStateException("This method is only available on synchronized Realms");
         }
         return SyncManager.getSession((SyncConfiguration) this.configuration);
     }
