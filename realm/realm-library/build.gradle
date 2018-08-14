@@ -459,6 +459,12 @@ def coreDownloaded = false
 task downloadCore() {
     group = 'build setup'
     description = 'Download the latest version of Realm Core'
+
+    // We are building from source, no need to download anything
+    onlyIf {
+        return !coreSourcePath
+    }
+
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
