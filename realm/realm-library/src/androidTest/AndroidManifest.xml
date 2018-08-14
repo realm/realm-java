@@ -15,7 +15,8 @@
 
     <application
         android:debuggable="true"
-        android:largeHeap="true">
+        android:largeHeap="true"
+        android:networkSecurityConfig="@xml/network_security_config">
         <uses-library android:name="android.test.runner"/>
         <service
             android:name=".services.RemoteProcessService"

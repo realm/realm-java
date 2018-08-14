@@ -186,9 +186,18 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
-import io.realm.transformer.RealmTransformer
-
-android.registerTransform(new RealmTransformer(project))
+android.registerTransform(new io.realm.transformer.RealmTransformer(project))
+android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
+        "base",
+        "io.realm.internal.annotations.ObjectServer",
+        [
+            "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
+            "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
+            "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
+            "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
+            "io_realm_sync_permissions_RoleRealmProxyInterface.class"
+        ].toSet()
+))
 
 repositories {
     maven { url "https://jitpack.io" }
