@@ -48,7 +48,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNI
     TR_ENTER()
     try {
         auto query = reinterpret_cast<Query*>(query_ptr);
-        if (!QUERY_VALID(env, query)) {
+        if (!TABLE_VALID(env, query->get_table())) {
             return reinterpret_cast<jlong>(nullptr);
         }
 
@@ -88,49 +88,50 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeContains(JNIEn
     TR_ENTER_PTR(native_ptr);
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto obj = reinterpret_cast<Obj*>(native_obj_ptr);
-        size_t index = wrapper->collection().index_of(obj);//TODO confirm change & call to non implemented method index_of
+        const Obj* obj = reinterpret_cast<Obj*>(native_obj_ptr);
+        size_t index = wrapper->collection().index_of(*obj);//TODO confirm change & call to non implemented method in index_of
         return to_jbool(index != not_found);
     }
     CATCH_STD();
     return JNI_FALSE;
 }
-
+//TODO rename row to obj
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetRow(JNIEnv* env, jclass, jlong native_ptr,
                                                                        jint index)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto row = wrapper->collection().get(static_cast<size_t>(index));
-        return reinterpret_cast<jlong>(new Row(std::move(row)));
+        auto obj = wrapper->collection().get(static_cast<size_t>(index));
+        return reinterpret_cast<jlong>(new Obj(std::move(obj)));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
-
+//TODO rename row to obj
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeFirstRow(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto optional_row = wrapper->collection().first();
-        if (optional_row) {
-            return reinterpret_cast<jlong>(new Row(std::move(optional_row.value())));
+        auto optional_obj = wrapper->collection().first();
+        if (optional_obj) {
+            return reinterpret_cast<jlong>(new Obj(std::move(optional_obj.value())));
         }
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
 
+//TODO rename row -> obj
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeLastRow(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto optional_row = wrapper->collection().last();
-        if (optional_row) {
-            return reinterpret_cast<jlong>(new Row(std::move(optional_row.value())));
+        auto optional_obj = wrapper->collection().last();
+        if (optional_obj) {
+            return reinterpret_cast<jlong>(new Obj(std::move(optional_obj.value())));
         }
     }
     CATCH_STD()
@@ -291,10 +292,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeIndexOf(JNIEnv* e
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto obj = reinterpret_cast<Obj*>(obj_native_ptr);
+        Obj* obj = reinterpret_cast<Obj*>(obj_native_ptr);
 
 //        return static_cast<jlong>(wrapper->collection().index_of(RowExpr(*row)));
-        return static_cast<jlong>(wrapper->collection().index_of(obj));//TODO confirm change
+        return static_cast<jlong>(wrapper->collection().index_of(*obj));//TODO confirm change
     }
     CATCH_STD()
     return npos;

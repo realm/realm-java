@@ -197,8 +197,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetVersi
 
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     try {
-        using rf = realm::_impl::RealmFriend;
-        SharedGroup::VersionID version_id = rf::get_shared_group(*shared_realm).get_version_of_current_transaction();
+        DB::VersionID version_id = shared_realm->current_transaction_version().value();
 
         jlong version_array[2];
         version_array[0] = static_cast<jlong>(version_id.version);
@@ -235,7 +234,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetTable(JNIE
     try {
         JStringAccessor name(env, table_name); // throws
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        if (!shared_realm->read_group().has_table(name)) {
+        auto& group = shared_realm->read_group();
+        if (!group.has_table(name)) {
             std::string name_str = name;
             if (name_str.find(TABLE_PREFIX) == 0) {
                 name_str = name_str.substr(TABLE_PREFIX.length());
@@ -243,7 +243,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetTable(JNIE
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  format("The class '%1' doesn't exist in this Realm.", name_str));
         }
-        Table* table = LangBindHelper::get_table(shared_realm->read_group(), name);
+
+        Table* table = group.get_table(name);//TODO confirm this is implicit conversion that will return the table pointer to us
         return reinterpret_cast<jlong>(table);
     }
     CATCH_STD()
@@ -273,7 +274,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTable(J
         auto table_ref = sync::create_table(group, table_name); // throws
         table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
 #else
-        table = LangBindHelper::add_table(group, table_name); // throws
+        table = group.add_table(table_name); // throws
 #endif
         return reinterpret_cast<jlong>(table);
     }
@@ -313,9 +314,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
             sync::create_table_with_primary_key(group, table_name, pkType, field_name, is_nullable);
         table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
 #else
-        table = LangBindHelper::add_table(group, table_name);
-        size_t column_idx = table->add_column(pkType, field_name, is_nullable);
-        table->add_search_index(column_idx);
+        table = group.add_table(table_name);
+        ColKey column_key = table->add_column(pkType, field_name, is_nullable);
+        table->add_search_index(column_key);
 #endif
         ObjectStore::set_primary_key_for_object(group, class_name_str, field_name);
         return reinterpret_cast<jlong>(table);
@@ -329,19 +330,32 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
     return reinterpret_cast<jlong>(nullptr);
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetTableName(JNIEnv* env, jclass,
-                                                                                jlong shared_realm_ptr, jint index)
+JNIEXPORT jobjectArray JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetTablesName(JNIEnv* env, jclass,
+                                                                                        jlong shared_realm_ptr)
 {
+    TR_ENTER_PTR(shared_realm_ptr)
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
 
-    //TODO refactor to return all name since ndx2key is private & this method is only used in SharedRealm to get all table names
-//    TR_ENTER_PTR(shared_realm_ptr)
-//
-//    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-//    try {
-//        return to_jstring(env, shared_realm->read_group().get_table_name(static_cast<size_t>(index)));
-//    }
-//    CATCH_STD()
-    return NULL;
+    auto& group = shared_realm->read_group();
+
+    auto keys = group.get_table_keys();
+    if (!keys.empty()) {
+        size_t len = keys.size();
+        jobjectArray table_names = env->NewObjectArray(len, JavaClassGlobalDef::java_lang_string(), 0);
+
+        if (table_names == nullptr) {
+            ThrowException(env, OutOfMemory, "Could not allocate memory to return tables names");
+            return nullptr;
+        }
+
+        for (size_t i = 0; i < len; ++i) {
+            StringData name = group.get_table_name(keys[i]);
+            env->SetObjectArrayElement(table_names, i, to_jstring(env, name.data()));
+        }
+
+        return table_names;
+    }
+    return nullptr;
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeHasTable(JNIEnv* env, jclass,
@@ -417,7 +431,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeWaitForCha
     try {
 //        using rf = realm::_impl::RealmFriend;
 //        return static_cast<jboolean>(rf::get_shared_group(*shared_realm).wait_for_change());
-        return shared_realm->wait_for_change();
+        return static_cast<jboolean>(shared_realm->wait_for_change());
     }
     CATCH_STD()
 

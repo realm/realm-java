@@ -31,6 +31,7 @@ import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static junit.framework.Assert.assertNotSame;
 import static junit.framework.TestCase.assertEquals;
 
 
@@ -67,28 +68,12 @@ public class JNIColumnInfoTest {
 
     @Test
     public void shouldGetColumnInformation() {
-
         assertEquals(2, table.getColumnCount());
 
-        assertEquals("lastName", table.getColumnName(1));
+        long columnKey = table.getColumnKey("lastName");
+        assertNotSame(-1, columnKey);
 
-        assertEquals(1, table.getColumnIndex("lastName"));
-
-        assertEquals(RealmFieldType.STRING, table.getColumnType(1));
-
-    }
-
-    @Test
-    public void validateColumnInfo() {
-
-        assertEquals(2, table.getColumnCount());
-
-        assertEquals("lastName", table.getColumnName(1));
-
-        assertEquals(1, table.getColumnIndex("lastName"));
-
-        assertEquals(RealmFieldType.STRING, table.getColumnType(1));
-
+        assertEquals(RealmFieldType.STRING, table.getColumnType(columnKey));
     }
 
 }

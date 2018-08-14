@@ -88,10 +88,6 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
     try {
         auto& obj = *reinterpret_cast<realm::Obj*>(obj_ptr);
 
-        if (!ROW_AND_COL_INDEX_VALID(env, &obj, column_key)) {
-            return 0;
-        }
-
         auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
         jlong ret[2];
 
@@ -105,7 +101,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
             auto link_view_ref = obj.get_linklist(ColKey(column_key));
 
 //            Table* target_table_ptr = &(link_view_ref)->get_target_table();
-            Table target_table_ptr = link_view_ref.get_target_table();
+            Table& target_table_ptr = link_view_ref.get_target_table();
 //            LangBindHelper::bind_table_ptr(target_table_ptr);
             ret[1] = reinterpret_cast<jlong>(&target_table_ptr);
         }
@@ -140,37 +136,37 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeGetRow(JNIEnv* env, 
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddRow(JNIEnv* env, jclass, jlong list_ptr,
-                                                                  jlong target_row_index)
+                                                                  jlong target_obj_key)
 {
     TR_ENTER_PTR(list_ptr)
 
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
-        wrapper.collection().add(static_cast<size_t>(target_row_index));
+        wrapper.collection().add(ObjKey(target_obj_key));
     }
     CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertRow(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
-                                                                     jlong target_row_index)
+                                                                     jlong target_obj_key)
 {
     TR_ENTER_PTR(list_ptr)
 
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
-        wrapper.collection().insert(static_cast<size_t>(pos), static_cast<size_t>(target_row_index));
+        wrapper.collection().insert(static_cast<size_t>(pos), ObjKey(target_obj_key));
     }
     CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetRow(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
-                                                                  jlong target_row_index)
+                                                                  jlong target_obj_key)
 {
     TR_ENTER_PTR(list_ptr)
 
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
-        wrapper.collection().set(static_cast<size_t>(pos), static_cast<size_t>(target_row_index));
+        wrapper.collection().set(static_cast<size_t>(pos), ObjKey(target_obj_key));
     }
     CATCH_STD()
 }

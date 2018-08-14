@@ -86,18 +86,15 @@ struct ChangeCallback {
 
         // The local ref of jstring needs to be released to avoid reach the local ref table size limitation.
         std::vector<JavaGlobalRef> field_names;
+        auto table = m_wrapper->m_object.obj().get_table();
         for (const auto& col: change_set.columns) {
             if (col.second.empty()) {
                 continue;
             }
-            field_names.push_back(JavaGlobalRef(env, to_jstring(env, m_wrapper->m_object.get_object_schema().name), true));
+            // FIXME: After full integration of the OS schema, parse the column name from
+            // wrapper->m_object.get_object_schema() will be faster.
+            field_names.push_back(JavaGlobalRef(env, to_jstring(env, table->get_column_name(ColKey(col.first))), true));
         }
-//        for (size_t i = 0; i < change_set.columns.size(); ++i) {
-//            if (change_set.columns->[i].empty()) {
-//                continue;
-//            }
-//            field_names.push_back(JavaGlobalRef(env, to_jstring(env, m_wrapper->m_object.get_object_schema().name), true));
-//        }
         m_field_names_array = env->NewObjectArray(field_names.size(), JavaClassGlobalDef::java_lang_string(), 0);
         for (size_t i = 0; i < field_names.size(); ++i) {
             env->SetObjectArrayElement(m_field_names_array, i, field_names[i].get());
@@ -188,7 +185,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
-    if (is_pk_null && !TBL_AND_COL_NULLABLE(env, &table, pk_column_key)) {
+    if (is_pk_null && !COL_NULLABLE(env, &table, pk_column_key)) {
 //        return realm::npos;
         return Obj();
     }
@@ -240,7 +237,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
     JStringAccessor str_accessor(env, pk_value); // throws
-    if (!pk_value && !TBL_AND_COL_NULLABLE(env, &table, pk_column_key)) {
+    if (!pk_value && !COL_NULLABLE(env, &table, pk_column_key)) {
         return Obj();
     }
 
@@ -264,7 +261,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     Obj obj = table.create_object();
     if (pk_value) {
 //        table.set_string_unique(pk_column_ndx, row_ndx, str_accessor);
-        obj.set(col_key, str_accessor);
+        obj.set(col_key, StringData(str_accessor));
     }
     else {
 //        table.set_string_unique(pk_column_ndx, row_ndx, null{});
@@ -293,7 +290,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreate(JNIEnv*, jc
     auto& obj = *(reinterpret_cast<Obj*>(obj_ptr));
     Object object(shared_realm, dummy_object_schema, obj); // no throw
     auto wrapper = new ObjectWrapper(object);              // no throw
-
     return reinterpret_cast<jlong>(wrapper);
 }
 

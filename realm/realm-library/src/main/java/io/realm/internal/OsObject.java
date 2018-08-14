@@ -178,7 +178,7 @@ public class OsObject implements NativeObject {
         if (pkField == null) {
             throw new IllegalStateException(table.getName() + " has no primary key defined.");
         }
-        return table.getColumnIndex(pkField);
+        return table.getColumnKey(pkField);
     }
 
     // TODO: consider to return a OsObject instead when integrating with Object Store's object accessor.
@@ -190,8 +190,8 @@ public class OsObject implements NativeObject {
      * @return a newly created {@code UncheckedRow}.
      */
     public static UncheckedRow createWithPrimaryKey(Table table, @Nullable Object primaryKeyValue) {
-        long primaryKeyColumnIndex = getAndVerifyPrimaryKeyColumnIndex(table);
-        RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
+        long primaryKeyColumnKey = getAndVerifyPrimaryKeyColumnIndex(table);
+        RealmFieldType type = table.getColumnType(primaryKeyColumnKey);
         final OsSharedRealm sharedRealm = table.getSharedRealm();
 
         if (type == RealmFieldType.STRING) {
@@ -200,13 +200,13 @@ public class OsObject implements NativeObject {
             }
             return new UncheckedRow(sharedRealm.context, table,
                     nativeCreateNewObjectWithStringPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
-                            primaryKeyColumnIndex, (String) primaryKeyValue));
+                            primaryKeyColumnKey, (String) primaryKeyValue));
 
         } else if (type == RealmFieldType.INTEGER) {
             long value = primaryKeyValue == null ? 0 : Long.parseLong(primaryKeyValue.toString());
             return new UncheckedRow(sharedRealm.context, table,
                     nativeCreateNewObjectWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
-                            primaryKeyColumnIndex, value, primaryKeyValue == null));
+                            primaryKeyColumnKey, value, primaryKeyValue == null));
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
         }

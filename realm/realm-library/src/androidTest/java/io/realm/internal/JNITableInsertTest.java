@@ -101,10 +101,10 @@ public class JNITableInsertTest {
                             assertTrue(true);
                         } else {
                             // Adds column.
-                            t.addColumn(TestHelper.getColumnType(valueJ), valueJ.getClass().getSimpleName());
+                            long colKey = t.addColumn(TestHelper.getColumnType(valueJ), valueJ.getClass().getSimpleName());
                             // Adds value.
                             try {
-                                TestHelper.addRowWithValues(t, valueI);
+                                TestHelper.addRowWithValues(t, new long[]{colKey}, new Object[]{valueI});
                                 fail("No matching type");
                             } catch (IllegalArgumentException ignored) {
                             }

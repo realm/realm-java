@@ -96,7 +96,7 @@ public class Table implements NativeObject {
      * @param type the column type.
      * @param name the field/column name.
      * @param isNullable {@code true} if column can contain null values, {@code false} otherwise.
-     * @return the index of the new column.
+     * @return the column key of the new column.
      */
     public long addColumn(RealmFieldType type, String name, boolean isNullable) {
         verifyColumnName(name);
@@ -127,7 +127,7 @@ public class Table implements NativeObject {
     /**
      * Adds a non-nullable column to the table dynamically.
      *
-     * @return the index of the new column.
+     * @return the column key of the new column.
      */
     public long addColumn(RealmFieldType type, String name) {
         return addColumn(type, name, false);
@@ -151,16 +151,16 @@ public class Table implements NativeObject {
      *
      * @param columnIndex the column index to be removed.
      */
-    public void removeColumn(long columnIndex) {
+    public void removeColumn(long columnKey) {
         final String className = getClassName();
         // Checks the PK column index before removing a column. We don't know if we're hitting a PK col,
         // but it should be noted that once a column is removed, there is no way we can find whether
         // a PK exists or not.
-        final String columnName = getColumnName(columnIndex);
+        final String columnName = getColumnName(columnKey);
         final String pkName = OsObjectStore.getPrimaryKeyForObject(sharedRealm, getClassName());
 
         // First removes a column. If there is no error, we can proceed. Otherwise, it will stop here.
-        nativeRemoveColumn(nativePtr, columnIndex);
+        nativeRemoveColumn(nativePtr, columnKey);
 
         // Checks if a PK exists and takes actions if there is.
         if (columnName.equals(pkName)) {
@@ -179,14 +179,14 @@ public class Table implements NativeObject {
      * @param newName a new name replacing the old column name.
      * @throws IllegalArgumentException if {@code newFieldName} is an empty string, or exceeds field name length limit.
      */
-    public void renameColumn(long columnIndex, String newName) {
+    public void renameColumn(long columnKey, String newName) {
         verifyColumnName(newName);
         // Gets the old column name. We'll assume that the old column name is *NOT* an empty string.
-        final String oldName = nativeGetColumnName(nativePtr, columnIndex);
+        final String oldName = nativeGetColumnName(nativePtr, columnKey);
         final String pkName = OsObjectStore.getPrimaryKeyForObject(sharedRealm, getClassName());
 
         // Then let's try to rename a column. If an error occurs for some reasons, we'll throw.
-        nativeRenameColumn(nativePtr, columnIndex, newName);
+        nativeRenameColumn(nativePtr, columnKey, newName);
 
         // Renames a primary key. At this point, renaming the column name should have been fine.
         if (oldName.equals(pkName)) {
@@ -195,7 +195,7 @@ public class Table implements NativeObject {
             } catch (Exception e) {
                 // We failed to rename the pk meta table. roll back the column name, not pk meta table
                 // then rethrow.
-                nativeRenameColumn(nativePtr, columnIndex, oldName);
+                nativeRenameColumn(nativePtr, columnKey, oldName);
                 throw new RuntimeException(e);
             }
         }
@@ -216,8 +216,8 @@ public class Table implements NativeObject {
      * @param columnIndex the column index.
      * @return {@code true} if column is nullable, {@code false} otherwise.
      */
-    public boolean isColumnNullable(long columnIndex) {
-        return nativeIsColumnNullable(nativePtr, columnIndex);
+    public boolean isColumnNullable(long columnKey) {
+        return nativeIsColumnNullable(nativePtr, columnKey);
     }
 
     /**
@@ -225,11 +225,11 @@ public class Table implements NativeObject {
      *
      * @param columnIndex the column index.
      */
-    public void convertColumnToNullable(long columnIndex) {
+    public void convertColumnToNullable(long columnKey) {
         if (sharedRealm.isSyncRealm()) {
             throw new IllegalStateException("This method is only available for non-synchronized Realms");
         }
-        nativeConvertColumnToNullable(nativePtr, columnIndex, isPrimaryKey(columnIndex));
+        nativeConvertColumnToNullable(nativePtr, columnKey, isPrimaryKey(columnKey));
     }
 
     /**
@@ -237,11 +237,11 @@ public class Table implements NativeObject {
      *
      * @param columnIndex the column index.
      */
-    public void convertColumnToNotNullable(long columnIndex) {
+    public void convertColumnToNotNullable(long columnKey) {
         if (sharedRealm.isSyncRealm()) {
             throw new IllegalStateException("This method is only available for non-synchronized Realms");
         }
-        nativeConvertColumnToNotNullable(nativePtr, columnIndex, isPrimaryKey(columnIndex));
+        nativeConvertColumnToNotNullable(nativePtr, columnKey, isPrimaryKey(columnKey));
     }
 
     // Table Size and deletion. AutoGenerated subclasses are nothing to do with this
@@ -292,8 +292,12 @@ public class Table implements NativeObject {
      * @param columnIndex the column index.
      * @return the name of the column.
      */
-    public String getColumnName(long columnIndex) {
-        return nativeGetColumnName(nativePtr, columnIndex);
+    public String getColumnName(long columnKey) {
+        return nativeGetColumnName(nativePtr, columnKey);
+    }
+
+    public String getColumnNameByIndex(long columnIndex) {
+        return nativeGetColumnNameByIndex(nativePtr, columnIndex);
     }
 
     /**
@@ -309,14 +313,21 @@ public class Table implements NativeObject {
         return nativeGetColumnIndex(nativePtr, columnName);
     }
 
+    public long getColumnKey(String columnName) {
+        if (columnName == null) {
+            throw new IllegalArgumentException("Column name can not be null.");
+        }
+        return nativeGetColumnKey(nativePtr, columnName);
+    }
+
     /**
      * Gets the type of a column identified by the columnIndex.
      *
      * @param columnIndex index of the column.
      * @return the type of the particular column.
      */
-    public RealmFieldType getColumnType(long columnIndex) {
-        return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
+    public RealmFieldType getColumnType(long columnKey) {
+        return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePtr, columnKey));
     }
 
     /**
@@ -325,9 +336,9 @@ public class Table implements NativeObject {
      *
      * @param rowIndex the row index (starting with 0)
      */
-    public void moveLastOver(long rowIndex) {
+    public void moveLastOver(long rowKey) {
         checkImmutable();
-        nativeMoveLastOver(nativePtr, rowIndex);
+        nativeMoveLastOver(nativePtr, rowKey);
     }
 
     /**
@@ -336,8 +347,8 @@ public class Table implements NativeObject {
      * @param columnIndex the index of column in the table.
      * @return {@code true} if column is a primary key, {@code false} otherwise.
      */
-    private boolean isPrimaryKey(long columnIndex) {
-        return getColumnName(columnIndex).equals(OsObjectStore.getPrimaryKeyForObject(sharedRealm, getClassName()));
+    private boolean isPrimaryKey(long columnKey) {
+        return getColumnName(columnKey).equals(OsObjectStore.getPrimaryKeyForObject(sharedRealm, getClassName()));
     }
 
     /**
@@ -358,24 +369,24 @@ public class Table implements NativeObject {
         return sharedRealm;
     }
 
-    public long getLong(long columnIndex, long rowIndex) {
-        return nativeGetLong(nativePtr, columnIndex, rowIndex);
+    public long getLong(long columnKey, long rowKey) {
+        return nativeGetLong(nativePtr, columnKey, rowKey);
     }
 
-    public boolean getBoolean(long columnIndex, long rowIndex) {
-        return nativeGetBoolean(nativePtr, columnIndex, rowIndex);
+    public boolean getBoolean(long columnKey, long rowKey) {
+        return nativeGetBoolean(nativePtr, columnKey, rowKey);
     }
 
-    public float getFloat(long columnIndex, long rowIndex) {
-        return nativeGetFloat(nativePtr, columnIndex, rowIndex);
+    public float getFloat(long columnKey, long rowKey) {
+        return nativeGetFloat(nativePtr, columnKey, rowKey);
     }
 
-    public double getDouble(long columnIndex, long rowIndex) {
-        return nativeGetDouble(nativePtr, columnIndex, rowIndex);
+    public double getDouble(long columnKey, long rowKey) {
+        return nativeGetDouble(nativePtr, columnKey, rowKey);
     }
 
-    public Date getDate(long columnIndex, long rowIndex) {
-        return new Date(nativeGetTimestamp(nativePtr, columnIndex, rowIndex));
+    public Date getDate(long columnKey, long rowKey) {
+        return new Date(nativeGetTimestamp(nativePtr, columnKey, rowKey));
     }
 
     /**
@@ -385,26 +396,22 @@ public class Table implements NativeObject {
      * @param rowIndex 0 based index of the row.
      * @return value of the particular cell
      */
-    public String getString(long columnIndex, long rowIndex) {
-        return nativeGetString(nativePtr, columnIndex, rowIndex);
+    public String getString(long columnKey, long rowKey) {
+        return nativeGetString(nativePtr, columnKey, rowKey);
     }
 
-    public byte[] getBinaryByteArray(long columnIndex, long rowIndex) {
-        return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
+    public byte[] getBinaryByteArray(long columnKey, long rowKey) {
+        return nativeGetByteArray(nativePtr, columnKey, rowKey);
     }
 
-    public long getLink(long columnIndex, long rowIndex) {
-        return nativeGetLink(nativePtr, columnIndex, rowIndex);
+    public long getLink(long columnKey, long rowKey) {
+        return nativeGetLink(nativePtr, columnKey, rowKey);
     }
 
-    public Table getLinkTarget(long columnIndex) {
-        long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
+    public Table getLinkTarget(long columnKey) {
+        long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnKey);
         // Copies context reference from parent.
         return new Table(this.sharedRealm, nativeTablePointer);
-    }
-
-    public boolean isNull(long columnIndex, long rowIndex) {
-        return nativeIsNull(nativePtr, columnIndex, rowIndex);
     }
 
     /**
@@ -414,8 +421,8 @@ public class Table implements NativeObject {
      * @param index the index of row to fetch.
      * @return the unsafe row wrapper object.
      */
-    public UncheckedRow getUncheckedRow(long index) {
-        return UncheckedRow.getByRowIndex(context, this, index);
+    public UncheckedRow getUncheckedRow(long rowKey) {
+        return UncheckedRow.getByRowIndex(context, this, rowKey);
     }
 
     /**
@@ -446,36 +453,36 @@ public class Table implements NativeObject {
     // Setters
     //
 
-    public void setLong(long columnIndex, long rowIndex, long value, boolean isDefault) {
+    public void setLong(long columnKey, long rowKey, long value, boolean isDefault) {
         checkImmutable();
-        nativeSetLong(nativePtr, columnIndex, rowIndex, value, isDefault);
+        nativeSetLong(nativePtr, columnKey, rowKey, value, isDefault);
     }
 
     // must not be called on a primary key field
-    public void incrementLong(long columnIndex, long rowIndex, long value) {
+    public void incrementLong(long columnKey, long rowKey, long value) {
         checkImmutable();
-        nativeIncrementLong(nativePtr, columnIndex, rowIndex, value);
+        nativeIncrementLong(nativePtr, columnKey, rowKey, value);
     }
 
-    public void setBoolean(long columnIndex, long rowIndex, boolean value, boolean isDefault) {
+    public void setBoolean(long columnKey, long rowKey, boolean value, boolean isDefault) {
         checkImmutable();
-        nativeSetBoolean(nativePtr, columnIndex, rowIndex, value, isDefault);
+        nativeSetBoolean(nativePtr, columnKey, rowKey, value, isDefault);
     }
 
-    public void setFloat(long columnIndex, long rowIndex, float value, boolean isDefault) {
+    public void setFloat(long columnKey, long rowKey, float value, boolean isDefault) {
         checkImmutable();
-        nativeSetFloat(nativePtr, columnIndex, rowIndex, value, isDefault);
+        nativeSetFloat(nativePtr, columnKey, rowKey, value, isDefault);
     }
 
-    public void setDouble(long columnIndex, long rowIndex, double value, boolean isDefault) {
+    public void setDouble(long columnKey, long rowKey, double value, boolean isDefault) {
         checkImmutable();
-        nativeSetDouble(nativePtr, columnIndex, rowIndex, value, isDefault);
+        nativeSetDouble(nativePtr, columnKey, rowKey, value, isDefault);
     }
 
-    public void setDate(long columnIndex, long rowIndex, Date date, boolean isDefault) {
+    public void setDate(long columnKey, long rowKey, Date date, boolean isDefault) {
         if (date == null) { throw new IllegalArgumentException("Null Date is not allowed."); }
         checkImmutable();
-        nativeSetTimestamp(nativePtr, columnIndex, rowIndex, date.getTime(), isDefault);
+        nativeSetTimestamp(nativePtr, columnKey, rowKey, date.getTime(), isDefault);
     }
 
     /**
@@ -485,38 +492,38 @@ public class Table implements NativeObject {
      * @param rowIndex 0 based index value of the cell row.
      * @param value a String value to set in the cell.
      */
-    public void setString(long columnIndex, long rowIndex, @Nullable String value, boolean isDefault) {
+    public void setString(long columnKey, long rowKey, @Nullable String value, boolean isDefault) {
         checkImmutable();
         if (value == null) {
-            nativeSetNull(nativePtr, columnIndex, rowIndex, isDefault);
+            nativeSetNull(nativePtr, columnKey, rowKey, isDefault);
         } else {
-            nativeSetString(nativePtr, columnIndex, rowIndex, value, isDefault);
+            nativeSetString(nativePtr, columnKey, rowKey, value, isDefault);
         }
     }
 
-    public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data, boolean isDefault) {
+    public void setBinaryByteArray(long columnKey, long rowKey, byte[] data, boolean isDefault) {
         checkImmutable();
-        nativeSetByteArray(nativePtr, columnIndex, rowIndex, data, isDefault);
+        nativeSetByteArray(nativePtr, columnKey, rowKey, data, isDefault);
     }
 
-    public void setLink(long columnIndex, long rowIndex, long value, boolean isDefault) {
+    public void setLink(long columnKey, long rowKey, long value, boolean isDefault) {
         checkImmutable();
-        nativeSetLink(nativePtr, columnIndex, rowIndex, value, isDefault);
+        nativeSetLink(nativePtr, columnKey, rowKey, value, isDefault);
     }
 
-    public void setNull(long columnIndex, long rowIndex, boolean isDefault) {
+    public void setNull(long columnKey, long rowKey, boolean isDefault) {
         checkImmutable();
-        nativeSetNull(nativePtr, columnIndex, rowIndex, isDefault);
+        nativeSetNull(nativePtr, columnKey, rowKey, isDefault);
     }
 
-    public void addSearchIndex(long columnIndex) {
+    public void addSearchIndex(long columnKey) {
         checkImmutable();
-        nativeAddSearchIndex(nativePtr, columnIndex);
+        nativeAddSearchIndex(nativePtr, columnKey);
     }
 
-    public void removeSearchIndex(long columnIndex) {
+    public void removeSearchIndex(long columnKey) {
         checkImmutable();
-        nativeRemoveSearchIndex(nativePtr, columnIndex);
+        nativeRemoveSearchIndex(nativePtr, columnKey);
     }
 
     /*
@@ -535,16 +542,16 @@ public class Table implements NativeObject {
         nativeMigratePrimaryKeyTableIfNeeded(sharedRealm.getNativePtr());
     }
 
-    public boolean hasSearchIndex(long columnIndex) {
-        return nativeHasSearchIndex(nativePtr, columnIndex);
+    public boolean hasSearchIndex(long columnKey) {
+        return nativeHasSearchIndex(nativePtr, columnKey);
     }
 
-    public boolean isNullLink(long columnIndex, long rowIndex) {
-        return nativeIsNullLink(nativePtr, columnIndex, rowIndex);
+    public boolean isNullLink(long columnKey, long rowKey) {
+        return nativeIsNullLink(nativePtr, columnKey, rowKey);
     }
 
-    public void nullifyLink(long columnIndex, long rowIndex) {
-        nativeNullifyLink(nativePtr, columnIndex, rowIndex);
+    public void nullifyLink(long columnKey, long rowKey) {
+        nativeNullifyLink(nativePtr, columnKey, rowKey);
     }
 
     boolean isImmutable() {
@@ -562,20 +569,20 @@ public class Table implements NativeObject {
     // Count
     //
 
-    public long count(long columnIndex, long value) {
-        return nativeCountLong(nativePtr, columnIndex, value);
+    public long count(long columnKey, long value) {
+        return nativeCountLong(nativePtr, columnKey, value);
     }
 
-    public long count(long columnIndex, float value) {
-        return nativeCountFloat(nativePtr, columnIndex, value);
+    public long count(long columnKey, float value) {
+        return nativeCountFloat(nativePtr, columnKey, value);
     }
 
-    public long count(long columnIndex, double value) {
-        return nativeCountDouble(nativePtr, columnIndex, value);
+    public long count(long columnKey, double value) {
+        return nativeCountDouble(nativePtr, columnKey, value);
     }
 
-    public long count(long columnIndex, String value) {
-        return nativeCountString(nativePtr, columnIndex, value);
+    public long count(long columnKey, String value) {
+        return nativeCountString(nativePtr, columnKey, value);
     }
 
     //
@@ -588,34 +595,34 @@ public class Table implements NativeObject {
         return new TableQuery(this.context, this, nativeQueryPtr);
     }
 
-    public long findFirstLong(long columnIndex, long value) {
-        return nativeFindFirstInt(nativePtr, columnIndex, value);
+    public long findFirstLong(long columnKey, long value) {
+        return nativeFindFirstInt(nativePtr, columnKey, value);
     }
 
-    public long findFirstBoolean(long columnIndex, boolean value) {
-        return nativeFindFirstBool(nativePtr, columnIndex, value);
+    public long findFirstBoolean(long columnKey, boolean value) {
+        return nativeFindFirstBool(nativePtr, columnKey, value);
     }
 
-    public long findFirstFloat(long columnIndex, float value) {
-        return nativeFindFirstFloat(nativePtr, columnIndex, value);
+    public long findFirstFloat(long columnKey, float value) {
+        return nativeFindFirstFloat(nativePtr, columnKey, value);
     }
 
-    public long findFirstDouble(long columnIndex, double value) {
-        return nativeFindFirstDouble(nativePtr, columnIndex, value);
+    public long findFirstDouble(long columnKey, double value) {
+        return nativeFindFirstDouble(nativePtr, columnKey, value);
     }
 
-    public long findFirstDate(long columnIndex, Date date) {
+    public long findFirstDate(long columnKey, Date date) {
         if (date == null) {
             throw new IllegalArgumentException("null is not supported");
         }
-        return nativeFindFirstTimestamp(nativePtr, columnIndex, date.getTime());
+        return nativeFindFirstTimestamp(nativePtr, columnKey, date.getTime());
     }
 
-    public long findFirstString(long columnIndex, String value) {
+    public long findFirstString(long columnKey, String value) {
         if (value == null) {
             throw new IllegalArgumentException("null is not supported");
         }
-        return nativeFindFirstString(nativePtr, columnIndex, value);
+        return nativeFindFirstString(nativePtr, columnKey, value);
     }
 
     /**
@@ -624,8 +631,8 @@ public class Table implements NativeObject {
      * @param columnIndex the column to search in.
      * @return the row index for the first match found or {@link #NO_MATCH}.
      */
-    public long findFirstNull(long columnIndex) {
-        return nativeFindFirstNull(nativePtr, columnIndex);
+    public long findFirstNull(long columnKey) {
+        return nativeFindFirstNull(nativePtr, columnKey);
     }
 
     //
@@ -667,7 +674,7 @@ public class Table implements NativeObject {
             if (i != 0) {
                 stringBuilder.append(", ");
             }
-            stringBuilder.append(getColumnName(i));
+            stringBuilder.append(getColumnNameByIndex(i));
         }
         stringBuilder.append(".");
 
@@ -718,17 +725,17 @@ public class Table implements NativeObject {
 
     private native long nativeAddColumnLink(long nativeTablePtr, int type, String name, long targetTablePtr);
 
-    private native void nativeRenameColumn(long nativeTablePtr, long columnIndex, String name);
+    private native void nativeRenameColumn(long nativeTablePtr, long columnKey, String name);
 
-    private native void nativeRemoveColumn(long nativeTablePtr, long columnIndex);
+    private native void nativeRemoveColumn(long nativeTablePtr, long columnKey);
 
-    private static native void nativeInsertColumn(long nativeTablePtr, long columnIndex, int type, String name);
+    private static native void nativeInsertColumn(long nativeTablePtr, long columnIndex, int type, String name);//TODO check if this is still needed
 
-    private native boolean nativeIsColumnNullable(long nativePtr, long columnIndex);
+    private native boolean nativeIsColumnNullable(long nativePtr, long columnKey);
 
-    private native void nativeConvertColumnToNullable(long nativeTablePtr, long columnIndex, boolean isPrimaryKey);
+    private native void nativeConvertColumnToNullable(long nativeTablePtr, long columnKey, boolean isPrimaryKey);
 
-    private native void nativeConvertColumnToNotNullable(long nativePtr, long columnIndex, boolean isPrimaryKey);
+    private native void nativeConvertColumnToNotNullable(long nativePtr, long columnKey, boolean isPrimaryKey);
 
     private native long nativeSize(long nativeTablePtr);
 
@@ -736,91 +743,95 @@ public class Table implements NativeObject {
 
     private native long nativeGetColumnCount(long nativeTablePtr);
 
-    private native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
+    private native String nativeGetColumnName(long nativeTablePtr, long columnKey);
+
+    private native String nativeGetColumnNameByIndex(long nativeTablePtr, long columnIndex);
 
     private native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
 
-    private native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
+    private native long nativeGetColumnKey(long nativeTablePtr, String columnName);
 
-    private native void nativeMoveLastOver(long nativeTablePtr, long rowIndex);
+    private native int nativeGetColumnType(long nativeTablePtr, long columnKey);
 
-    private native long nativeGetLong(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native void nativeMoveLastOver(long nativeTablePtr, long rowKey);
 
-    private native boolean nativeGetBoolean(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native long nativeGetLong(long nativeTablePtr, long columnKey, long rowKey);
 
-    private native float nativeGetFloat(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native boolean nativeGetBoolean(long nativeTablePtr, long columnKey, long rowKey);
 
-    private native double nativeGetDouble(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native float nativeGetFloat(long nativeTablePtr, long columnKey, long rowKey);
 
-    private native long nativeGetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native double nativeGetDouble(long nativeTablePtr, long columnKey, long rowKey);
 
-    private native String nativeGetString(long nativePtr, long columnIndex, long rowIndex);
+    private native long nativeGetTimestamp(long nativeTablePtr, long columnKey, long rowKey);
 
-    private native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
+    private native String nativeGetString(long nativePtr, long columnKey, long rowKey);
 
-    private native long nativeGetLink(long nativePtr, long columnIndex, long rowIndex);
+    private native byte[] nativeGetByteArray(long nativePtr, long columnKey, long rowKey);
 
-    private native long nativeGetLinkTarget(long nativePtr, long columnIndex);
+    private native long nativeGetLink(long nativePtr, long columnKey, long rowKey);
 
-    private native boolean nativeIsNull(long nativePtr, long columnIndex, long rowIndex);
+    private native long nativeGetLinkTarget(long nativePtr, long columnKey);
 
-    native long nativeGetRowPtr(long nativePtr, long index);
+    private native boolean nativeIsNull(long nativePtr, long columnKey, long rowKey);
 
-    public static native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value, boolean isDefault);
+    native long nativeGetRowPtr(long nativePtr, long index);//FIXME not used?
 
-    public static native void nativeIncrementLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
+    public static native void nativeSetLong(long nativeTablePtr, long columnKey, long rowKey, long value, boolean isDefault);
 
-    public static native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value, boolean isDefault);
+    public static native void nativeIncrementLong(long nativeTablePtr, long columnKey, long rowKey, long value);
 
-    public static native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value, boolean isDefault);
+    public static native void nativeSetBoolean(long nativeTablePtr, long columnKey, long rowKey, boolean value, boolean isDefault);
 
-    public static native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value, boolean isDefault);
+    public static native void nativeSetFloat(long nativeTablePtr, long columnKey, long rowKey, float value, boolean isDefault);
 
-    public static native void nativeSetTimestamp(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue, boolean isDefault);
+    public static native void nativeSetDouble(long nativeTablePtr, long columnKey, long rowKey, double value, boolean isDefault);
 
-    public static native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value, boolean isDefault);
+    public static native void nativeSetTimestamp(long nativeTablePtr, long columnKey, long rowKey, long dateTimeValue, boolean isDefault);
 
-    public static native void nativeSetNull(long nativeTablePtr, long columnIndex, long rowIndex, boolean isDefault);
+    public static native void nativeSetString(long nativeTablePtr, long columnKey, long rowKey, String value, boolean isDefault);
 
-    public static native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data, boolean isDefault);
+    public static native void nativeSetNull(long nativeTablePtr, long columnKey, long rowKey, boolean isDefault);
 
-    public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value, boolean isDefault);
+    public static native void nativeSetByteArray(long nativePtr, long columnKey, long rowKey, byte[] data, boolean isDefault);
+
+    public static native void nativeSetLink(long nativeTablePtr, long columnKey, long rowKey, long value, boolean isDefault);
 
     private static native void nativeMigratePrimaryKeyTableIfNeeded(long sharedRealmPtr);
 
-    private native void nativeAddSearchIndex(long nativePtr, long columnIndex);
+    private native void nativeAddSearchIndex(long nativePtr, long columnKey);
 
-    private native void nativeRemoveSearchIndex(long nativePtr, long columnIndex);
+    private native void nativeRemoveSearchIndex(long nativePtr, long columnKey);
 
-    private native boolean nativeHasSearchIndex(long nativePtr, long columnIndex);
+    private native boolean nativeHasSearchIndex(long nativePtr, long columnKey);
 
-    private native boolean nativeIsNullLink(long nativePtr, long columnIndex, long rowIndex);
+    private native boolean nativeIsNullLink(long nativePtr, long columnKey, long rowKey);
 
-    public static native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
+    public static native void nativeNullifyLink(long nativePtr, long columnKey, long rowKey);
 
-    private native long nativeCountLong(long nativePtr, long columnIndex, long value);
+    private native long nativeCountLong(long nativePtr, long columnKey, long value);
 
-    private native long nativeCountFloat(long nativePtr, long columnIndex, float value);
+    private native long nativeCountFloat(long nativePtr, long columnKey, float value);
 
-    private native long nativeCountDouble(long nativePtr, long columnIndex, double value);
+    private native long nativeCountDouble(long nativePtr, long columnKey, double value);
 
-    private native long nativeCountString(long nativePtr, long columnIndex, String value);
+    private native long nativeCountString(long nativePtr, long columnKey, String value);
 
     private native long nativeWhere(long nativeTablePtr);
 
-    public static native long nativeFindFirstInt(long nativeTablePtr, long columnIndex, long value);
+    public static native long nativeFindFirstInt(long nativeTablePtr, long columnKey, long value);
 
-    private native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
+    private native long nativeFindFirstBool(long nativePtr, long columnKey, boolean value);
 
-    private native long nativeFindFirstFloat(long nativePtr, long columnIndex, float value);
+    private native long nativeFindFirstFloat(long nativePtr, long columnKey, float value);
 
-    private native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
+    private native long nativeFindFirstDouble(long nativePtr, long columnKey, double value);
 
-    private native long nativeFindFirstTimestamp(long nativeTablePtr, long columnIndex, long dateTimeValue);
+    private native long nativeFindFirstTimestamp(long nativeTablePtr, long columnKey, long dateTimeValue);
 
-    public static native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
+    public static native long nativeFindFirstString(long nativeTablePtr, long columnKey, String value);
 
-    public static native long nativeFindFirstNull(long nativeTablePtr, long columnIndex);
+    public static native long nativeFindFirstNull(long nativeTablePtr, long columnKey);
 
     private native String nativeGetName(long nativeTablePtr);
 

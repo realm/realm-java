@@ -64,7 +64,7 @@ public interface Row {
     /**
      * Returns the index in the original source table, not the tableview.
      */
-    long getIndex();
+    long getIndex();//TODO rename
 
     long getLong(long columnIndex);
 

@@ -618,9 +618,9 @@ abstract class BaseRealm implements Closeable {
         return result;
     }
 
-    <E extends RealmModel> E get(Class<E> clazz, long rowIndex, boolean acceptDefaultValue, List<String> excludeFields) {
+    <E extends RealmModel> E get(Class<E> clazz, long rowKey, boolean acceptDefaultValue, List<String> excludeFields) {
         Table table = getSchema().getTable(clazz);
-        UncheckedRow row = table.getUncheckedRow(rowIndex);
+        UncheckedRow row = table.getUncheckedRow(rowKey);
         return configuration.getSchemaMediator().newInstance(clazz, this, row, getSchema().getColumnInfo(clazz),
                 acceptDefaultValue, excludeFields);
     }

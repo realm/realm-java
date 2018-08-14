@@ -64,25 +64,25 @@ public abstract class ColumnInfo {
 
     // Immutable column information
     public static final class ColumnDetails {
-        public final long columnIndex;
+        public final long columnKey;
         public final RealmFieldType columnType;
         public final String linkedClassName;
 
-        private ColumnDetails(long columnIndex, RealmFieldType columnType, @Nullable String linkedClassName) {
+        private ColumnDetails(long columnKey, RealmFieldType columnType, @Nullable String linkedClassName) {
             // invariant: (columnType == OBJECT || columnType == LIST || columnType == LINKING_OBJECTS) == (linkedClassName != null)
-            this.columnIndex = columnIndex;
+            this.columnKey = columnKey;
             this.columnType = columnType;
             this.linkedClassName = linkedClassName;
         }
 
         ColumnDetails(Property property) {
-            this(property.getColumnIndex(), property.getType(), property.getLinkedObjectName());
+            this(property.getColumnKey(), property.getType(), property.getLinkedObjectName());
         }
 
         @Override
         public String toString() {
             StringBuilder buf = new StringBuilder("ColumnDetails[");
-            buf.append(columnIndex);
+            buf.append(columnKey);
             buf.append(", ").append(columnType);
             buf.append(", ").append(linkedClassName);
             return buf.append("]").toString();
@@ -133,13 +133,13 @@ public abstract class ColumnInfo {
     }
 
     /**
-     * Returns the index, in the described table, for the named column.
+     * Returns the column key, in the described table, for the named column.
      *
-     * @return column index.
+     * @return column key.
      */
-    public long getColumnIndex(String javaFieldName) {
+    public long getColumnKey(String javaFieldName) {
         ColumnDetails details = indicesFromJavaFieldNames.get(javaFieldName);
-        return (details == null) ? -1 : details.columnIndex;
+        return (details == null) ? -1 : details.columnKey;
     }
 
     /**
@@ -238,7 +238,7 @@ public abstract class ColumnInfo {
         ColumnDetails cd = new ColumnDetails(property);
         indicesFromJavaFieldNames.put(javaFieldName, cd);
         indicesFromColumnNames.put(internalColumnName, cd);
-        return property.getColumnIndex();
+        return property.getColumnKey();
     }
 
     /**
@@ -252,8 +252,8 @@ public abstract class ColumnInfo {
      * @param sourceJavaFieldName The name of the backlink source field.
      */
     protected final void addBacklinkDetails(OsSchemaInfo schemaInfo, String javaFieldName, String sourceTableName, String sourceJavaFieldName) {
-        long columnIndex = schemaInfo.getObjectSchemaInfo(sourceTableName).getProperty(sourceJavaFieldName).getColumnIndex();
-        indicesFromJavaFieldNames.put(javaFieldName, new ColumnDetails(columnIndex, RealmFieldType.LINKING_OBJECTS, sourceTableName));
+        long columnKey = schemaInfo.getObjectSchemaInfo(sourceTableName).getProperty(sourceJavaFieldName).getColumnKey();
+        indicesFromJavaFieldNames.put(javaFieldName, new ColumnDetails(columnKey, RealmFieldType.LINKING_OBJECTS, sourceTableName));
     }
 
     /**

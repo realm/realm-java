@@ -114,7 +114,7 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Property_nativeGetType(JNIEnv*, jc
     return static_cast<jint>(property.type);
 }
 //TODO rename to column key
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetColumnIndex(JNIEnv*, jclass, jlong native_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetColumnKey(JNIEnv*, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr);
     auto& property = *reinterpret_cast<Property*>(native_ptr);

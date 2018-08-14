@@ -96,8 +96,8 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public String getColumnName(long columnIndex) {
-        return nativeGetColumnName(nativePtr, columnIndex);
+    public String getColumnName(long columnKey) {
+        return nativeGetColumnName(nativePtr, columnKey);
     }
 
 
@@ -107,12 +107,12 @@ public class UncheckedRow implements NativeObject, Row {
         if (columnName == null) {
             throw new IllegalArgumentException("Column name can not be null.");
         }
-        return nativeGetColumnIndex(nativePtr, columnName);
+        return nativeGetColumnKey(nativePtr, columnName);
     }
 
     @Override
-    public RealmFieldType getColumnType(long columnIndex) {
-        return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
+    public RealmFieldType getColumnType(long columnKey) {
+        return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePtr, columnKey));
     }
 
     // Getters
@@ -128,95 +128,95 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public long getLong(long columnIndex) {
-        return nativeGetLong(nativePtr, columnIndex);
+    public long getLong(long columnKey) {
+        return nativeGetLong(nativePtr, columnKey);
     }
 
     @Override
-    public boolean getBoolean(long columnIndex) {
-        return nativeGetBoolean(nativePtr, columnIndex);
+    public boolean getBoolean(long columnKey) {
+        return nativeGetBoolean(nativePtr, columnKey);
     }
 
     @Override
-    public float getFloat(long columnIndex) {
-        return nativeGetFloat(nativePtr, columnIndex);
+    public float getFloat(long columnKey) {
+        return nativeGetFloat(nativePtr, columnKey);
     }
 
     @Override
-    public double getDouble(long columnIndex) {
-        return nativeGetDouble(nativePtr, columnIndex);
+    public double getDouble(long columnKey) {
+        return nativeGetDouble(nativePtr, columnKey);
     }
 
     @Override
-    public Date getDate(long columnIndex) {
-        return new Date(nativeGetTimestamp(nativePtr, columnIndex));
+    public Date getDate(long columnKey) {
+        return new Date(nativeGetTimestamp(nativePtr, columnKey));
     }
 
     @Override
-    public String getString(long columnIndex) {
-        return nativeGetString(nativePtr, columnIndex);
+    public String getString(long columnKey) {
+        return nativeGetString(nativePtr, columnKey);
     }
 
     @Override
-    public byte[] getBinaryByteArray(long columnIndex) {
-        return nativeGetByteArray(nativePtr, columnIndex);
+    public byte[] getBinaryByteArray(long columnKey) {
+        return nativeGetByteArray(nativePtr, columnKey);
     }
 
     @Override
-    public long getLink(long columnIndex) {
-        return nativeGetLink(nativePtr, columnIndex);
+    public long getLink(long columnKey) {
+        return nativeGetLink(nativePtr, columnKey);
     }
 
     @Override
-    public boolean isNullLink(long columnIndex) {
-        return nativeIsNullLink(nativePtr, columnIndex);
+    public boolean isNullLink(long columnKey) {
+        return nativeIsNullLink(nativePtr, columnKey);
     }
 
     @Override
-    public OsList getModelList(long columnIndex) {
-        return new OsList(this, columnIndex);
+    public OsList getModelList(long columnKey) {
+        return new OsList(this, columnKey);
     }
 
     @Override
-    public OsList getValueList(long columnIndex, RealmFieldType fieldType) {
-        return new OsList(this, columnIndex);
+    public OsList getValueList(long columnKey, RealmFieldType fieldType) {
+        return new OsList(this, columnKey);
     }
 
     // Setters
 
     @Override
-    public void setLong(long columnIndex, long value) {
+    public void setLong(long columnKey, long value) {
         parent.checkImmutable();
-        nativeSetLong(nativePtr, columnIndex, value);
+        nativeSetLong(nativePtr, columnKey, value);
     }
 
     @Override
-    public void setBoolean(long columnIndex, boolean value) {
+    public void setBoolean(long columnKey, boolean value) {
         parent.checkImmutable();
-        nativeSetBoolean(nativePtr, columnIndex, value);
+        nativeSetBoolean(nativePtr, columnKey, value);
     }
 
     @Override
-    public void setFloat(long columnIndex, float value) {
+    public void setFloat(long columnKey, float value) {
         parent.checkImmutable();
-        nativeSetFloat(nativePtr, columnIndex, value);
+        nativeSetFloat(nativePtr, columnKey, value);
     }
 
     @Override
-    public void setDouble(long columnIndex, double value) {
+    public void setDouble(long columnKey, double value) {
         parent.checkImmutable();
-        nativeSetDouble(nativePtr, columnIndex, value);
+        nativeSetDouble(nativePtr, columnKey, value);
     }
 
     @Override
-    public void setDate(long columnIndex, Date date) {
+    public void setDate(long columnKey, Date date) {
         parent.checkImmutable();
         //noinspection ConstantConditions
         if (date == null) {
             throw new IllegalArgumentException("Null Date is not allowed.");
         }
         long timestamp = date.getTime();
-        nativeSetTimestamp(nativePtr, columnIndex, timestamp);
+        nativeSetTimestamp(nativePtr, columnKey, timestamp);
     }
 
     /**
@@ -226,36 +226,36 @@ public class UncheckedRow implements NativeObject, Row {
      * @param value the value to to a row
      */
     @Override
-    public void setString(long columnIndex, @Nullable String value) {
+    public void setString(long columnKey, @Nullable String value) {
         parent.checkImmutable();
         if (value == null) {
-            nativeSetNull(nativePtr, columnIndex);
+            nativeSetNull(nativePtr, columnKey);
         } else {
-            nativeSetString(nativePtr, columnIndex, value);
+            nativeSetString(nativePtr, columnKey, value);
         }
     }
 
     @Override
-    public void setBinaryByteArray(long columnIndex, @Nullable byte[] data) {
+    public void setBinaryByteArray(long columnKey, @Nullable byte[] data) {
         parent.checkImmutable();
-        nativeSetByteArray(nativePtr, columnIndex, data);
+        nativeSetByteArray(nativePtr, columnKey, data);
     }
 
     @Override
-    public void setLink(long columnIndex, long value) {
+    public void setLink(long columnKey, long value) {
         parent.checkImmutable();
-        nativeSetLink(nativePtr, columnIndex, value);
+        nativeSetLink(nativePtr, columnKey, value);
     }
 
     @Override
-    public void nullifyLink(long columnIndex) {
+    public void nullifyLink(long columnKey) {
         parent.checkImmutable();
-        nativeNullifyLink(nativePtr, columnIndex);
+        nativeNullifyLink(nativePtr, columnKey);
     }
 
     @Override
-    public boolean isNull(long columnIndex) {
-        return nativeIsNull(nativePtr, columnIndex);
+    public boolean isNull(long columnKey) {
+        return nativeIsNull(nativePtr, columnKey);
     }
 
     /**
@@ -264,9 +264,9 @@ public class UncheckedRow implements NativeObject, Row {
      * @param columnIndex 0 based index value of the cell column.
      */
     @Override
-    public void setNull(long columnIndex) {
+    public void setNull(long columnKey) {
         parent.checkImmutable();
-        nativeSetNull(nativePtr, columnIndex);
+        nativeSetNull(nativePtr, columnKey);
     }
 
     /**
@@ -297,57 +297,57 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native long nativeGetColumnCount(long nativeTablePtr);
 
-    protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
+    protected native String nativeGetColumnName(long nativeTablePtr, long columnKey);
 
-    protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
+    protected native long nativeGetColumnKey(long nativeTablePtr, String columnName);
 
-    protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
+    protected native int nativeGetColumnType(long nativeTablePtr, long columnKey);
 
     protected native long nativeGetIndex(long nativeRowPtr);
 
-    protected native long nativeGetLong(long nativeRowPtr, long columnIndex);
+    protected native long nativeGetLong(long nativeRowPtr, long columnKey);
 
-    protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
+    protected native boolean nativeGetBoolean(long nativeRowPtr, long columnKey);
 
-    protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);
+    protected native float nativeGetFloat(long nativeRowPtr, long columnKey);
 
-    protected native double nativeGetDouble(long nativeRowPtr, long columnIndex);
+    protected native double nativeGetDouble(long nativeRowPtr, long columnKey);
 
-    protected native long nativeGetTimestamp(long nativeRowPtr, long columnIndex);
+    protected native long nativeGetTimestamp(long nativeRowPtr, long columnKey);
 
-    protected native String nativeGetString(long nativePtr, long columnIndex);
+    protected native String nativeGetString(long nativePtr, long columnKey);
 
-    protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
+    protected native boolean nativeIsNullLink(long nativeRowPtr, long columnKey);
 
-    protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
+    protected native byte[] nativeGetByteArray(long nativePtr, long columnKey);
 
-    protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
+    protected native void nativeSetLong(long nativeRowPtr, long columnKey, long value);
 
-    protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
+    protected native void nativeSetBoolean(long nativeRowPtr, long columnKey, boolean value);
 
-    protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
+    protected native void nativeSetFloat(long nativeRowPtr, long columnKey, float value);
 
-    protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
+    protected native long nativeGetLink(long nativeRowPtr, long columnKey);
 
-    protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
+    protected native void nativeSetDouble(long nativeRowPtr, long columnKey, double value);
 
-    protected native void nativeSetTimestamp(long nativeRowPtr, long columnIndex, long dateTimeValue);
+    protected native void nativeSetTimestamp(long nativeRowPtr, long columnKey, long dateTimeValue);
 
-    protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
+    protected native void nativeSetString(long nativeRowPtr, long columnKey, String value);
 
-    protected native void nativeSetByteArray(long nativePtr, long columnIndex, @Nullable byte[] data);
+    protected native void nativeSetByteArray(long nativePtr, long columnKey, @Nullable byte[] data);
 
-    protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
+    protected native void nativeSetLink(long nativeRowPtr, long columnKey, long value);
 
-    protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
+    protected native void nativeNullifyLink(long nativeRowPtr, long columnKey);
 
     protected native boolean nativeIsAttached(long nativeRowPtr);
 
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
 
-    protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
+    protected native boolean nativeIsNull(long nativeRowPtr, long columnKey);
 
-    protected native void nativeSetNull(long nativeRowPtr, long columnIndex);
+    protected native void nativeSetNull(long nativeRowPtr, long columnKey);
 
     private static native long nativeGetFinalizerPtr();
 }

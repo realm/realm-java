@@ -19,6 +19,7 @@ package io.realm;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -404,6 +405,7 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
+    @Ignore("__CORE6__: until https://github.com/realm/realm-core-private/issues/209")
     public void requiredFieldAttribute() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
@@ -628,6 +630,7 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
+    @Ignore("__CORE6__: until https://github.com/realm/realm-core-private/issues/209")
     public void setNullable_trueAndFalse() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             thrown.expect(UnsupportedOperationException.class);
@@ -680,6 +683,7 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
+    @Ignore("__CORE6__: until https://github.com/realm/realm-core-private/issues/209")
     public void setRequired_trueAndFalse() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             thrown.expect(UnsupportedOperationException.class);
@@ -734,6 +738,7 @@ public class RealmObjectSchemaTests {
     // When converting a nullable field to required, the null values of the field will be set to the default value
     // according to the field type.
     @Test
+    @Ignore("__CORE6__: until https://github.com/realm/realm-core-private/issues/209")
     public void setRequired_nullValueBecomesDefaultValue() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
@@ -855,6 +860,7 @@ public class RealmObjectSchemaTests {
 
     // Special test for making sure that binary data in all forms are transformed correctly
     // when moving between nullable and required states.
+    @Ignore("__CORE6__: until https://github.com/realm/realm-core-private/issues/209")
     @Test
     public void binaryData_nullabilityConversions() {
         if (type == ObjectSchemaType.IMMUTABLE) {
@@ -1312,14 +1318,14 @@ public class RealmObjectSchemaTests {
         dynamicRealm.beginTransaction();
         RealmObjectSchema objectSchema = dynamicRealm.getSchema().create(className);
 
-        assertTrue(objectSchema.getFieldIndex(fieldName) < 0);
+        assertTrue(objectSchema.getFieldColumnKey(fieldName) < 0);
 
         objectSchema.addField(fieldName, long.class);
         //noinspection ConstantConditions
-        assertTrue(objectSchema.getFieldIndex(fieldName) >= 0);
+        assertTrue(objectSchema.getFieldColumnKey(fieldName) >= 0);
 
         objectSchema.removeField(fieldName);
-        assertTrue(objectSchema.getFieldIndex(fieldName) < 0);
+        assertTrue(objectSchema.getFieldColumnKey(fieldName) < 0);
 
         dynamicRealm.cancelTransaction();
         dynamicRealm.close();

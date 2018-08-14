@@ -46,16 +46,16 @@ android {
         base {
             dimension 'api'
         }
-        objectServer {
-            dimension 'api'
-        }
+//        objectServer {
+//            dimension 'api'
+//        }
     }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         androidTest.java.srcDirs += ['src/androidTest/kotlin', '../realm-library/src/testUtils/java']
-        objectServer.java.srcDirs += 'src/objectServer/kotlin'
-        androidTestObjectServer.java.srcDirs += 'src/androidTestObjectServer/kotlin'
+//        objectServer.java.srcDirs += 'src/objectServer/kotlin'
+//        androidTestObjectServer.java.srcDirs += 'src/androidTestObjectServer/kotlin'
     }
 }
 
@@ -82,7 +82,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 
 
 task sourcesJar(type: Jar) {
-    from android.sourceSets.objectServer.java.srcDirs
+//    from android.sourceSets.objectServer.java.srcDirs
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
@@ -175,16 +175,16 @@ publishing {
             pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
 
-        objectServerPublication(MavenPublication) {
-            groupId 'io.realm'
-            artifactId 'realm-android-kotlin-extensions-object-server'
-            version project.version
-            artifact file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-objectServer-release.aar")
-            artifact sourcesJar
-            artifact javadocJar
-
-            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
-        }
+//        objectServerPublication(MavenPublication) {
+//            groupId 'io.realm'
+//            artifactId 'realm-android-kotlin-extensions-object-server'
+//            version project.version
+//            artifact file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-objectServer-release.aar")
+//            artifact sourcesJar
+//            artifact javadocJar
+//
+//            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
+//        }
     }
     repositories {
         maven {
@@ -210,7 +210,8 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-             publications('basePublication', 'objectServerPublication')
+//             publications('basePublication', 'objectServerPublication')
+             publications('basePublication')
             publishPom = true
             publishIvy = false
         }

@@ -1612,14 +1612,14 @@ public class RealmQuery<E> {
     public Number sum(String fieldName) {
         realm.checkIfValid();
 
-        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
-        switch (table.getColumnType(columnIndex)) {
+        long columnKey = schema.getAndCheckFieldColumnKey(fieldName);
+        switch (table.getColumnType(columnKey)) {
             case INTEGER:
-                return query.sumInt(columnIndex);
+                return query.sumInt(columnKey);
             case FLOAT:
-                return query.sumFloat(columnIndex);
+                return query.sumFloat(columnKey);
             case DOUBLE:
-                return query.sumDouble(columnIndex);
+                return query.sumDouble(columnKey);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
@@ -1639,7 +1639,7 @@ public class RealmQuery<E> {
     public double average(String fieldName) {
         realm.checkIfValid();
 
-        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return query.averageInt(columnIndex);
@@ -1666,7 +1666,7 @@ public class RealmQuery<E> {
     public Number min(String fieldName) {
         realm.checkIfValid();
 
-        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return this.query.minimumInt(columnIndex);
@@ -1693,7 +1693,7 @@ public class RealmQuery<E> {
     public Date minimumDate(String fieldName) {
         realm.checkIfValid();
 
-        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         return this.query.minimumDate(columnIndex);
     }
 
@@ -1710,7 +1710,7 @@ public class RealmQuery<E> {
     public Number max(String fieldName) {
         realm.checkIfValid();
 
-        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return this.query.maximumInt(columnIndex);
@@ -1737,7 +1737,7 @@ public class RealmQuery<E> {
     public Date maximumDate(String fieldName) {
         realm.checkIfValid();
 
-        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         return this.query.maximumDate(columnIndex);
     }
 

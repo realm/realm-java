@@ -19,9 +19,9 @@ public class OsList implements NativeObject, ObservableCollection {
     private final ObserverPairList<CollectionObserverPair> observerPairs =
             new ObserverPairList<CollectionObserverPair>();
 
-    public OsList(UncheckedRow row, long columnIndex) {
+    public OsList(UncheckedRow row, long columnKey) {
         OsSharedRealm sharedRealm = row.getTable().getSharedRealm();
-        long[] ptrs = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnIndex);
+        long[] ptrs = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
 
         this.nativePtr = ptrs[0];
         this.context = sharedRealm.context;
@@ -260,7 +260,7 @@ public class OsList implements NativeObject, ObservableCollection {
     // TODO: nativeTablePtr is not necessary. It is used to create FieldDescriptor which should be generated from
     // OsSchemaInfo.
     // Returns {nativeListPtr, nativeTablePtr}
-    private static native long[] nativeCreate(long nativeSharedRealmPtr, long nativeRowPtr, long columnIndex);
+    private static native long[] nativeCreate(long nativeSharedRealmPtr, long nativeRowPtr, long columnKey);
 
     private static native long nativeGetRow(long nativePtr, long index);
 

@@ -64,19 +64,19 @@ class DynamicFieldDescriptor extends FieldDescriptor {
 
             currentClassName = currentTable.getClassName();
 
-            final long columnIndex = currentTable.getColumnIndex(currentColumnName);
-            if (columnIndex < 0) {
+            final long columnKey = currentTable.getColumnKey(currentColumnName);
+            if (columnKey < 0) {
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Invalid query: field '%s' not found in table '%s'.", currentColumnName, currentClassName));
             }
 
-            currentColumnType = currentTable.getColumnType(columnIndex);
+            currentColumnType = currentTable.getColumnType(columnKey);
             if (i < nFields - 1) {
                 verifyInternalColumnType(currentClassName, currentColumnName, currentColumnType);
-                currentTable = currentTable.getLinkTarget(columnIndex);
+                currentTable = currentTable.getLinkTarget(columnKey);
             }
 
-            columnIndices[i] = columnIndex;
+            columnIndices[i] = columnKey;
         }
 
         setCompilationResults(currentClassName, currentColumnName, currentColumnType, columnIndices, new long[nFields]);

@@ -105,10 +105,10 @@ android {
         androidTest {
             java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java']
         }
-        androidTestObjectServer {
-            java.srcDirs += 'src/syncIntegrationTest/java'
-            assets.srcDirs += ['src/syncIntegrationTest/assets/']
-        }
+//        androidTestObjectServer {
+//            java.srcDirs += 'src/syncIntegrationTest/java'
+//            assets.srcDirs += ['src/syncIntegrationTest/assets/']
+//        }
     }
 
     compileOptions {
@@ -141,26 +141,27 @@ android {
             consumerProguardFiles 'proguard-rules-consumer-common.pro', 'proguard-rules-consumer-base.pro'
             proguardFiles 'proguard-rules-build-common.pro'
         }
-        objectServer {
-            dimension 'api'
-            externalNativeBuild {
-                cmake {
-                    arguments "-DREALM_FLAVOR=objectServer"
-                }
-            }
-            consumerProguardFiles 'proguard-rules-consumer-common.pro', 'proguard-rules-consumer-objectServer.pro'
-            proguardFiles 'proguard-rules-build-common.pro', 'proguard-rules-build-objectServer.pro'
-        }
+//        objectServer {
+//            dimension 'api'
+//            externalNativeBuild {
+//                cmake {
+//                    arguments "-DREALM_FLAVOR=objectServer"
+//                }
+//            }
+//            consumerProguardFiles 'proguard-rules-consumer-common.pro', 'proguard-rules-consumer-objectServer.pro'
+//            proguardFiles 'proguard-rules-build-common.pro', 'proguard-rules-build-objectServer.pro'
+//        }
     }
 
-    variantFilter { variant ->
-        def names = variant.flavors*.name
-
-        // Ignore the objectServer flavour when building from core source.
-        if (coreSourcePath && names.contains("objectServer")) {
-            variant.ignore = true
-        }
-    }
+//    variantFilter { variant ->
+//        def names = variant.flavors*.name
+//
+//        // Ignore the objectServer flavour when building from core source.
+//        if (names.contains("objectServer")) {
+////        if (coreSourcePath && names.contains("objectServer")) {
+//            variant.ignore = true
+//        }
+//    }
 }
 
 project.afterEvaluate {
@@ -205,7 +206,7 @@ dependencies {
     implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
-    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
+//    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
 
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
@@ -223,7 +224,7 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
-    from android.sourceSets.objectServer.java.srcDirs
+//    from android.sourceSets.objectServer.java.srcDirs
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
@@ -234,7 +235,7 @@ def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This soft
         'considered at production quality, and should be used with care.</div>'
 
 task javadoc(type: Javadoc) {
-    source android.sourceSets.objectServer.java.srcDirs
+//    source android.sourceSets.objectServer.java.srcDirs
     source android.sourceSets.main.java.srcDirs
     source "../../realm-annotations/src/main/java"
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
@@ -404,16 +405,16 @@ publishing {
             pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
 
-        objectServerPublication(MavenPublication) {
-            groupId 'io.realm'
-            artifactId 'realm-android-library-object-server'
-            version project.version
-            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
-            artifact sourcesJar
-            artifact javadocJar
-
-            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
-        }
+//        objectServerPublication(MavenPublication) {
+//            groupId 'io.realm'
+//            artifactId 'realm-android-library-object-server'
+//            version project.version
+//            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
+//            artifact sourcesJar
+//            artifact javadocJar
+//
+//            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
+//        }
     }
     repositories {
         maven {
@@ -439,7 +440,8 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-            publications('basePublication', 'objectServerPublication')
+//            publications('basePublication', 'objectServerPublication')
+            publications('basePublication')
             publishPom = true
             publishIvy = false
         }

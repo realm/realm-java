@@ -19,6 +19,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -56,6 +57,7 @@ public class OsSharedRealmTests {
         }
     }
 
+    @Ignore("__CORE6__: Waiting for insights from https://realmio.slack.com/archives/CA41SMVPV/p1534170527000428")
     @Test
     public void getVersionID() {
         OsSharedRealm.VersionID versionID1 = sharedRealm.getVersionID();

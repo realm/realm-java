@@ -23,6 +23,7 @@ import android.test.MoreAsserts;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -873,6 +874,7 @@ public class RealmConfigurationTests {
     }
 
     @Test
+    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
     public void initialDataTransactionAssetFile() throws IOException {
         // Removes default instance.
         Realm.deleteRealm(defaultConfig);
@@ -968,6 +970,7 @@ public class RealmConfigurationTests {
         }
     }
 
+    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
     @Test
     public void assetFileValidFile() throws IOException {
         // Ensures that there is no data.

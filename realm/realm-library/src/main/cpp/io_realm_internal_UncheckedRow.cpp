@@ -37,27 +37,26 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnCount
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnName(JNIEnv* env, jobject,
                                                                                   jlong nativeRowPtr,
-                                                                                  jlong columnKey)
+                                                                                  jlong columnIndex)
 {
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW_VALID(env, ROW(nativeRowPtr))) {
         return 0;
     }
-
     try {
-        return to_jstring(env, ROW(nativeRowPtr)->get_table()->get_column_name(ColKey(columnKey)));
+        return to_jstring(env, ROW(nativeRowPtr)->get_table()->get_column_name(ROW(nativeRowPtr)->get_table()->ndx2colkey(columnIndex)));//TODO validate access via ndx2colkey?
     }
     CATCH_STD();
     return NULL;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnIndex(JNIEnv* env, jobject,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnKey(JNIEnv* env, jobject,
                                                                                  jlong nativeRowPtr,
                                                                                  jstring columnName)
 {
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW(nativeRowPtr)->is_valid()) {
-        return 0;
+        ThrowException(env, IllegalArgument, "Object passed is not valid");
     }
 
     try {
@@ -68,22 +67,23 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnIndex
         }
     }
     CATCH_STD()
-    return 0;
+    return -1;
 }
 
 JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(JNIEnv*, jobject, jlong nativeRowPtr,
                                                                                jlong columnKey)
 {
     TR_ENTER_PTR(nativeRowPtr)
-    auto column_type = ROW(nativeRowPtr)->get_table()->get_column_type(ColKey(columnKey)); // noexcept
-    if (column_type != type_OldTable) {
-        return static_cast<jint>(column_type);
+
+    ColKey column_key (columnKey);
+    auto table = ROW(nativeRowPtr)->get_table();
+    jint column_type = table->get_column_type(column_key);
+    if (table->is_list(column_key) && column_type < type_LinkList) {
+        // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
+        column_type += 128;
     }
-    // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
-    // TODO confirm the subtable code was removed https://github.com/realm/realm-core-private/commit/20d5dc268bbe0cff399ed0e4bab227f309e0e8bb#diff-127deed3dee453dcd27c2e02e48ecdd2
-//    return static_cast<jint>(ROW(nativeRowPtr)->get_table()->get_descriptor()->get_subdescriptor(S(columnIndex))->get_column_type(S(0))
-//                             + io_realm_internal_Property_TYPE_ARRAY); // noexcept
-    return -1;//TODO replace with throw or proper default
+
+    return column_type;
 }
 
 //TODO renmae index to ObjKey
@@ -102,10 +102,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLong(JNIEnv
 {
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW_VALID(env, ROW(nativeRowPtr))) {
-        return 0;
+        return 0;// SIMILAR use cases should throw instead of returning a default value
     }
-
-    return ROW(nativeRowPtr)->get<Int>(ColKey(columnKey));
+    //TODO hack why this is needed for nullable column & only for Integer works perfectly with boxed type of float/double
+    //     maybe refactor once https://github.com/realm/realm-core-private/issues/211 is implemented
+    ColKey col_key(columnKey);
+    if (ROW(nativeRowPtr)->get_table()->is_nullable(col_key)) {
+        auto val = ROW(nativeRowPtr)->get<util::Optional<int64_t>>(col_key);
+        return val.value();
+    } else {
+        return  ROW(nativeRowPtr)->get<int64_t>(col_key);
+    }
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeGetBoolean(JNIEnv* env, jobject,
@@ -235,7 +242,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetBoolean(JNIE
     }
 
     try {
-        ROW(nativeRowPtr)->set(ColKey(columnKey), value);
+        ROW(nativeRowPtr)->set(ColKey(columnKey), (value == JNI_TRUE));
     }
     CATCH_STD()
 }
@@ -294,11 +301,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetString(JNIEn
     try {
         ColKey col_key(columnKey);
         if ((value == nullptr) && !(ROW(nativeRowPtr)->get_table()->is_nullable(col_key))) {
-            ThrowNullValueException(env, const_cast<Table*>(ROW(nativeRowPtr)->get_table()), S(columnKey));
+            ThrowNullValueException(env, const_cast<Table*>(ROW(nativeRowPtr)->get_table()), ColKey(columnKey));
             return;
         }
         JStringAccessor value2(env, value); // throws
-        ROW(nativeRowPtr)->set(col_key, value2);
+        ROW(nativeRowPtr)->set(col_key, StringData(value2));
     }
     CATCH_STD()
 }
@@ -317,7 +324,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetByteArray(JN
         auto& obj = *reinterpret_cast<realm::Obj*>(nativeRowPtr);
         ColKey col_key(columnKey);
         if (value == nullptr && !(obj.get_table()->is_nullable(col_key))) {
-            ThrowNullValueException(env, const_cast<Table*>(ROW(nativeRowPtr)->get_table()), S(columnKey));
+            ThrowNullValueException(env, const_cast<Table*>(ROW(nativeRowPtr)->get_table()), ColKey(columnKey));
             return;
         }
 
@@ -365,8 +372,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsAttached(
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeHasColumn(JNIEnv* env, jobject obj,
                                                                                jlong nativeRowPtr, jstring columnName)
 {
-    jlong ndx = Java_io_realm_internal_UncheckedRow_nativeGetColumnIndex(env, obj, nativeRowPtr, columnName);
-    return to_jbool(ndx != to_jlong_or_not_found(realm::not_found));
+    jlong col_key = Java_io_realm_internal_UncheckedRow_nativeGetColumnKey(env, obj, nativeRowPtr, columnName);
+    return to_jbool(col_key != -1);
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNull(JNIEnv* env, jobject, jlong nativeRowPtr,
@@ -391,7 +398,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull(JNIEnv*
     if (!ROW_VALID(env, ROW(nativeRowPtr))) {
         return;
     }
-    if (!TBL_AND_COL_NULLABLE(env, ROW(nativeRowPtr)->get_table(), columnKey)) {
+    if (!COL_NULLABLE(env, ROW(nativeRowPtr)->get_table(), columnKey)) {//TODO do we need the const_cast?
         return;
     }
     try {

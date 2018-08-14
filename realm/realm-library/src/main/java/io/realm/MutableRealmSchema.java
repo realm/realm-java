@@ -47,10 +47,11 @@ class MutableRealmSchema extends RealmSchema {
     @Override
     public Set<RealmObjectSchema> getAll() {
         // Return all tables prefixed with class__ in the Realm file
-        int tableCount = (int) realm.getSharedRealm().size();
+        String[] names = realm.getSharedRealm().getTablesNames();
+        int tableCount = names.length;
         Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
         for (int i = 0; i < tableCount; i++) {
-            RealmObjectSchema objectSchema = get(Table.getClassNameForTable(realm.getSharedRealm().getTableName(i)));
+            RealmObjectSchema objectSchema = get(Table.getClassNameForTable(names[i]));
             if (objectSchema != null) {
                 schemas.add(objectSchema);
             }

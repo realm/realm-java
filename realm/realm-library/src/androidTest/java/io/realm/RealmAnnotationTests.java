@@ -79,26 +79,26 @@ public class RealmAnnotationTests {
     public void index() {
         Table table = realm.getTable(AnnotationIndexTypes.class);
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexString")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexString")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexString")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexString")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexInt")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexInt")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexInt")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexInt")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexByte")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexByte")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexByte")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexByte")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexShort")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexShort")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexShort")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexShort")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexLong")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexLong")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexLong")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexLong")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexBoolean")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexBoolean")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexBoolean")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexBoolean")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexDate")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexDate")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexDate")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexDate")));
     }
 
     @Test
@@ -130,11 +130,11 @@ public class RealmAnnotationTests {
     public void primaryKey_isIndexed() {
         Table table = realm.getTable(PrimaryKeyAsString.class);
         assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsString.CLASS_NAME));
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("name")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("name")));
 
         table = realm.getTable(PrimaryKeyAsLong.class);
         assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsLong.CLASS_NAME));
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("id")));
     }
 
     // Annotation processor honors common naming conventions.

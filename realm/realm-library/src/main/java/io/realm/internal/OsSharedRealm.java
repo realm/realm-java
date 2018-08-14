@@ -329,8 +329,9 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         nativeRenameTable(nativePtr, oldName, newName);
     }
 
-    public String getTableName(int index) {
-        return nativeGetTableName(nativePtr, index);
+    public String[] getTablesNames() {
+        String[] names = nativeGetTablesName(nativePtr);
+        return names != null? names : new String[]{};
     }
 
     public long size() {
@@ -578,7 +579,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
                                                                     String primaryKeyFieldName,
                                                                     boolean isStringType, boolean isNullable);
 
-    private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
+    private static native String[] nativeGetTablesName(long nativeSharedRealmPtr);
 
     private static native boolean nativeHasTable(long nativeSharedRealmPtr, String tableName);
 

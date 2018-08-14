@@ -280,7 +280,7 @@ public class OsResults implements NativeObject, ObservableCollection {
                 realm.getNativePtr(),
                 row.getNativePtr(),
                 srcTable.getNativePtr(),
-                srcTable.getColumnIndex(srcFieldName));
+                srcTable.getColumnKey(srcFieldName));
         return new OsResults(realm, srcTable, backlinksPtr);
     }
 
@@ -355,8 +355,8 @@ public class OsResults implements NativeObject, ObservableCollection {
         return new TableQuery(this.context, this.table, nativeQueryPtr);
     }
 
-    public Number aggregateNumber(Aggregate aggregateMethod, long columnIndex) {
-        return (Number) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
+    public Number aggregateNumber(Aggregate aggregateMethod, long columnKey) {
+        return (Number) nativeAggregate(nativePtr, columnKey, aggregateMethod.getValue());
     }
 
     public Date aggregateDate(Aggregate aggregateMethod, long columnIndex) {

@@ -91,7 +91,7 @@ public class RealmProxyMediatorTests {
         io_realm_entities_CatRealmProxy.CatColumnInfo columnInfo;
         columnInfo = (io_realm_entities_CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
 
-        final Set<Long> indexSet = new HashSet<Long>();
+        final Set<Long> columnKeySet = new HashSet<Long>();
         int indexCount = 0;
 
         // Gets index for each field and then put into set.
@@ -99,11 +99,11 @@ public class RealmProxyMediatorTests {
             if (Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
-            indexSet.add(columnInfo.getColumnIndex(field.getName()));
+            columnKeySet.add(columnInfo.getColumnKey(field.getName()));
             indexCount++;
         }
 
         assertEquals("if no duplicates, size of set equals to field count.",
-                indexCount, indexSet.size());
+                indexCount, columnKeySet.size());
     }
 }

@@ -21,6 +21,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -171,6 +172,7 @@ public class PrimaryKeyTests {
         sharedRealm.cancelTransaction();
     }
 
+    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
     @Test
     public void migratePrimaryKeyTableIfNeeded_first() throws IOException {
         configFactory.copyRealmFromAssets(context, "080_annotationtypes.realm", "default.realm");
@@ -181,6 +183,7 @@ public class PrimaryKeyTests {
         assertEquals(RealmFieldType.STRING, sharedRealm.getTable("pk").getColumnType(0));
     }
 
+    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
     @Test
     public void migratePrimaryKeyTableIfNeeded_second() throws IOException {
         configFactory.copyRealmFromAssets(context, "0841_annotationtypes.realm", "default.realm");
@@ -197,6 +200,7 @@ public class PrimaryKeyTests {
     // In 0.84.2, the class names in pk table has been renamed to some incorrect names like "Thclass", "Mclass",
     // "NClass", "Meclass" and etc..
     // The 0841_pk_migration.realm is made to produce the issue.
+    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
     @Test
     public void migratePrimaryKeyTableIfNeeded_primaryKeyTableMigratedWithRightName() throws IOException {
         List<String> tableNames = Arrays.asList(
@@ -233,7 +237,7 @@ public class PrimaryKeyTests {
 
         sharedRealm.beginTransaction();
         Table pkTable = sharedRealm.getTable("pk");
-        long classColumn = pkTable.getColumnIndex("pk_table");
+        long classColumn = pkTable.getColumnKey("pk_table");
         pkTable.removeSearchIndex(classColumn);
 
         // Tries to add a pk for another table.

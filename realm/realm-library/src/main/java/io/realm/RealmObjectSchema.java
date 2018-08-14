@@ -247,7 +247,7 @@ public abstract class RealmObjectSchema {
     public boolean hasIndex(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
-        return table.hasSearchIndex(table.getColumnIndex(fieldName));
+        return table.hasSearchIndex(table.getColumnKey(fieldName));
     }
 
     /**
@@ -325,7 +325,7 @@ public abstract class RealmObjectSchema {
      * @see #setRequired(String, boolean)
      */
     public boolean isRequired(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
+        long columnIndex = getColumnKey(fieldName);
         return !table.isColumnNullable(columnIndex);
     }
 
@@ -338,7 +338,7 @@ public abstract class RealmObjectSchema {
      * @see #setNullable(String, boolean)
      */
     public boolean isNullable(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
+        long columnIndex = getColumnKey(fieldName);
         return table.isColumnNullable(columnIndex);
     }
 
@@ -388,7 +388,7 @@ public abstract class RealmObjectSchema {
         int columnCount = (int) table.getColumnCount();
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
         for (int i = 0; i < columnCount; i++) {
-            String name = table.getColumnName(i);
+            String name = table.getColumnNameByIndex(i);
             if (!OsObject.isObjectIdColumn(name)) {
                 columnNames.add(name);
             }
@@ -413,8 +413,8 @@ public abstract class RealmObjectSchema {
      * @return the underlying type used by Realm to represent this field.
      */
     public RealmFieldType getFieldType(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        return table.getColumnType(columnIndex);
+        long columnKey = getColumnKey(fieldName);
+        return table.getColumnType(columnKey);
     }
 
     /**
@@ -446,12 +446,12 @@ public abstract class RealmObjectSchema {
         return this;
     }
 
-    long getAndCheckFieldIndex(String fieldName) {
-        long index = columnInfo.getColumnIndex(fieldName);
-        if (index < 0) {
+    long getAndCheckFieldColumnKey(String fieldName) {
+        long columnKey = columnInfo.getColumnKey(fieldName);
+        if (columnKey < 0) {
             throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
-        return index;
+        return columnKey;
     }
 
     Table getTable() {
@@ -483,8 +483,8 @@ public abstract class RealmObjectSchema {
      * @return column index or -1 if it doesn't exists.
      */
     //@VisibleForTesting(otherwise = VisibleForTesting.NONE)
-    long getFieldIndex(String fieldName) {
-        return columnInfo.getColumnIndex(fieldName);
+    long getFieldColumnKey(String fieldName) {
+        return columnInfo.getColumnKey(fieldName);
     }
 
     static void checkLegalName(String fieldName) {
@@ -506,16 +506,16 @@ public abstract class RealmObjectSchema {
         }
     }
 
-    long getColumnIndex(String fieldName) {
-        long columnIndex = table.getColumnIndex(fieldName);
-        if (columnIndex == -1) {
+    long getColumnKey(String fieldName) {
+        long columnKey = table.getColumnKey(fieldName);
+        if (columnKey == -1) {
             throw new IllegalArgumentException(
                     String.format(Locale.US,
                             "Field name '%s' does not exist on schema for '%s'",
                             fieldName, getClassName()
                     ));
         }
-        return columnIndex;
+        return columnKey;
     }
 
     static final class DynamicColumnIndices extends ColumnInfo {
@@ -527,8 +527,8 @@ public abstract class RealmObjectSchema {
         }
 
         @Override
-        public long getColumnIndex(String columnName) {
-            return table.getColumnIndex(columnName);
+        public long getColumnKey(String columnName) {
+            return table.getColumnKey(columnName);
         }
 
         @Override

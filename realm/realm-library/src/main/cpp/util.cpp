@@ -123,6 +123,10 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
     }
+    catch (runtime_error& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, RuntimeError, ss.str());
+    }
     catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
@@ -255,10 +259,10 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
     env->DeleteLocalRef(exception);
 }
 
-void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx)
+void ThrowNullValueException(JNIEnv* env, Table* table, ColKey col_key)
 {
     std::ostringstream ss;
-    ss << "Trying to set a non-nullable field '" << table->get_column_name(col_ndx) << "' in '" << table->get_name()
+    ss << "Trying to set a non-nullable field '" << table->get_column_name(col_key) << "' in '" << table->get_name()
        << "' to null.";
     ThrowException(env, IllegalArgument, ss.str());
 }
