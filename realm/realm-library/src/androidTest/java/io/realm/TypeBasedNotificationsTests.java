@@ -1080,7 +1080,7 @@ public class TypeBasedNotificationsTests {
     // "invalid" RealmResults.
     @Test
     @RunTestInLooperThread
-    @Ignore("__CORE6__: issue related to delete")
+    @Ignore("__CORE6__: https://github.com/realm/realm-object-store/issues/688")
     public void changeListener_onResultsBuiltOnDeletedLinkView() {
         final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
