@@ -18,7 +18,6 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -2609,7 +2608,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("__CORE6__: revisit after merging latest master // fixes OS")
     public void isValid_linkViewQuery() {
         populateTestRealm(realm, 1);
         final RealmList<Dog> list = realm.where(AllTypes.class).findFirst().getColumnRealmList();
