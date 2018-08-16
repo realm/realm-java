@@ -3969,10 +3969,8 @@ public class RealmTests {
         assertFalse(bgRealmSecondWaitResult.get());
     }
 
-    // Tests if waitForChange still blocks if stopWaitForChange has been called for a realm in a different thread.
     @Test
-    @Ignore("__CORE6__: waitForChange is not returning true when another thread pushes changes")
-    public void waitForChange_blockSpecificThreadOnly() throws InterruptedException {
+    public void waitForChange_stopWaitForChangeReleasesAllWaitingThreads() throws InterruptedException {
         final CountDownLatch bgRealmsOpened = new CountDownLatch(2);
         final CountDownLatch bgRealmsClosed = new CountDownLatch(2);
         final AtomicBoolean bgRealmFirstWaitResult = new AtomicBoolean(true);
@@ -3998,8 +3996,8 @@ public class RealmTests {
             public void run() {
                 Realm realm = Realm.getInstance(realmConfig);
                 bgRealmsOpened.countDown();
-                bgRealmSecondWaitResult.set(realm.waitForChange());//__CORE6__ This is returning false, it should be true since
-                // a commit from another thread should release the wait, also the count is 0 which indicates the thread still doesn't see the new changes
+                bgRealmSecondWaitResult.set(realm.waitForChange());//In Core 6 calling stopWaitForChange will release all waiting threads
+                // which causes query below to run before `populateTestRealm` happens
                 bgRealmWaitForChangeResult.set(realm.where(AllTypes.class).count());
                 realm.close();
                 bgRealmsClosed.countDown();
@@ -4015,8 +4013,8 @@ public class RealmTests {
         populateTestRealm();
         TestHelper.awaitOrFail(bgRealmsClosed);
         assertFalse(bgRealmFirstWaitResult.get());
-        assertTrue(bgRealmSecondWaitResult.get());
-        assertEquals(TEST_DATA_SIZE, bgRealmWaitForChangeResult.get());
+        assertFalse(bgRealmSecondWaitResult.get());
+        assertEquals(0, bgRealmWaitForChangeResult.get());
     }
 
     // Checks if waitForChange() does not respond to Thread.interrupt().
