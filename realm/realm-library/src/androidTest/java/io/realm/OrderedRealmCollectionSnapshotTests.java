@@ -97,7 +97,7 @@ public class OrderedRealmCollectionSnapshotTests {
     }
 
     @Test
-    @Ignore("__CORE6__: Investigate, why second call fails with InvalidKey")
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/233, second call fails with InvalidKey")
     //size_t Cluster::erase(ObjKey key, CascadeState& state)
     //InvalidKey("Key not found");
     public void deleteAllFromRealmTwice() {
