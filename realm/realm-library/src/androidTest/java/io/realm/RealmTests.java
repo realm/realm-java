@@ -105,7 +105,6 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.OsSharedRealm;
-import io.realm.internal.Table;
 import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
@@ -4159,55 +4158,6 @@ public class RealmTests {
         thread.end();
         TestHelper.awaitOrFail(bgRealmFished);
         assertFalse(bgRealmChangeResult.get());
-    }
-
-    // Check if the column indices cache is refreshed if the index of a defined column is changed by another Realm
-    // instance.
-    @Test
-    @Ignore("__CORE6__: table.insertColumn fails ColKey assertion fails, inserting a column at existing index is no longer possible" +
-            "this test might not be needed anymore since column indices are not refreshed (stable column key)  ")
-    public void nonAdditiveSchemaChangesWhenTypedRealmExists() throws InterruptedException {
-        final String TEST_CHARS = "TEST_CHARS";
-        final RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-                .schema(StringOnly.class)
-                .name("schemaChangeTest")
-                .build();
-        Realm realm = Realm.getInstance(realmConfig);
-        io_realm_entities_StringOnlyRealmProxy.StringOnlyColumnInfo columnInfo
-                = (io_realm_entities_StringOnlyRealmProxy.StringOnlyColumnInfo) realm.getSchema().getColumnInfo(StringOnly.class);
-        assertEquals(0, columnInfo.charsIndex);// Can not assert this anymore
-
-        realm.beginTransaction();
-        StringOnly stringOnly = realm.createObject(StringOnly.class);
-        stringOnly.setChars(TEST_CHARS);
-        realm.commitTransaction();
-
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                // Here we try to change the column index of FIELD_CHARS from 0 to 1.
-                DynamicRealm realm = DynamicRealm.getInstance(realmConfig);
-                realm.beginTransaction();
-                RealmObjectSchema stringOnlySchema = realm.getSchema().get(StringOnly.CLASS_NAME);
-                assertEquals(0, stringOnlySchema.getColumnKey(StringOnly.FIELD_CHARS));// This is not possible anymore (inserting at an existing ColKey)
-                Table table = stringOnlySchema.getTable();
-                // Please notice that we cannot do it by removing/adding a column since it is not allowed by Object
-                // Store. Do it by using the internal API insertColumn.
-                table.insertColumn(0, RealmFieldType.INTEGER, "NewColumn");//Inserting at an existing index is no longer possible
-                assertEquals(1, stringOnlySchema.getColumnKey(StringOnly.FIELD_CHARS));
-                realm.commitTransaction();
-                realm.close();
-            }
-        });
-        thread.start();
-        thread.join();
-        realm.refresh();
-
-        // The columnInfo object never changes, only the indexes it references will.
-        assertSame(columnInfo, realm.getSchema().getColumnInfo(StringOnly.class));
-        assertEquals(TEST_CHARS, stringOnly.getChars());
-        assertEquals(1, columnInfo.charsIndex);
-        realm.close();
     }
 
     @Test

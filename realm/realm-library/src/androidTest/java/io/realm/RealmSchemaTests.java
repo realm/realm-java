@@ -525,7 +525,8 @@ public class RealmSchemaTests {
     }
 
     @Test
-    @Ignore("__CORE6__: throws as expected but a native crash/exception when trying to get the table name (InvalidKey) in previousFoo.getClassName();")
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/232" +
+            "throws as expected but a native crash/exception when trying to get the table name (InvalidKey) in previousFoo.getClassName();")
     public void remove_shouldClearDynamicCache() {
         if (type == SchemaType.IMMUTABLE) {
             return;
