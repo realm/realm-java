@@ -19,6 +19,7 @@
 #include <realm.hpp>
 #include <realm/query_expression.hpp>
 #include <realm/table.hpp>
+#include <realm/parser/query_builder.hpp>
 
 #include <shared_realm.hpp>
 #include <object_store.hpp>
@@ -1827,4 +1828,23 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr(
 {
     TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_table_query);
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_TableQuery_nativeFilter(JNIEnv *env, jobject, jlong nativeQueryPtr, jstring j_filter)
+{
+    TR_ENTER_PTR(nativeQueryPtr);
+    try {
+        Query* query = reinterpret_cast<Query *>(nativeQueryPtr);
+        JStringAccessor filter(env, j_filter); // throws
+        parser::ParserResult parser_result = realm::parser::parse(filter);
+
+        query_builder::NoArguments no_args;
+        query_builder::apply_predicate(*query, parser_result.predicate, no_args);
+
+        // TODO What about ordering. What does this mean?
+        // DescriptorOrdering ordering;
+        // realm::parser::query_builder::apply_ordering(ordering, table, parser_result.ordering);
+    }
+    CATCH_STD()
 }

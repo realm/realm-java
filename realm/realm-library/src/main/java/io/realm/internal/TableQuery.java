@@ -626,6 +626,12 @@ public class TableQuery implements NativeObject {
         return nativeCount(nativePtr, 0, Table.INFINITE, Table.INFINITE);
     }
 
+    public void filter(String filter) {
+        validateQuery();
+        nativeFilter(nativePtr, filter);
+    }
+
+
     public long remove() {
         validateQuery();
         if (table.isImmutable()) { throwImmutable(); }
@@ -775,6 +781,8 @@ public class TableQuery implements NativeObject {
     private native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
 
     private native long nativeRemove(long nativeQueryPtr);
+
+    private native void nativeFilter(long nativeQueryPtr, String filter);
 
     private static native long nativeGetFinalizerPtr();
 }

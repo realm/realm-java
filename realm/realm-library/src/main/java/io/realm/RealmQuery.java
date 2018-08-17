@@ -1974,6 +1974,19 @@ public class RealmQuery<E> {
     }
 
     /**
+     * FIXME Add description
+     * FIXME Figure out an API for providing arguments, probably just re-use `String.format()` arguments
+     *
+     * @param filter
+     * @return
+     */
+    public RealmQuery<E> filter(String filter) {
+        realm.checkIfValid();
+        query.filter(filter);
+        return this;
+    }
+
+    /**
      * Returns the {@link Realm} instance to which this query belongs.
      * <p>
      * Calling {@link Realm#close()} on the returned instance is discouraged as it is the same as

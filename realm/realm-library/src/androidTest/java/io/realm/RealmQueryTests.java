@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
@@ -3518,4 +3519,40 @@ public class RealmQueryTests extends QueryTests {
         } catch (IllegalStateException ignore) {
         }
     }
+
+    @Test
+    public void filter() {
+        populateTestRealm();
+        RealmResults<AllTypes> result = realm.where(AllTypes.class).filter("columnString = 'test data 0'").findAll();
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    public void filter_invalidFieldName() {
+        try {
+            realm.where(AllTypes.class).filter("foo = 'test data 0'");
+            fail();
+        } catch (IllegalStateException e) {
+            // FIXME: This should be IllegalArgumentException instead
+            assertEquals("No property 'foo' on object of type 'AllTypes'", e.getMessage());
+        }
+    }
+
+    @Test
+    public void filter_mixedWithTypedPredicates() {
+        populateTestRealm();
+        RealmResults<AllTypes> result = realm.where(AllTypes.class)
+                .equalTo("columnString", "test data 0")
+                .or()
+                .filter("columnString = 'test data 1'")
+                .findAll();
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    public void filter_withOrdering() {
+        // FIXME
+    }
+
+
 }

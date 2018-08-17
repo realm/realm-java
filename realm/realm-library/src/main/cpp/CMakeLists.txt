@@ -196,9 +196,9 @@ add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SR
 add_dependencies(realm-jni jni_headers)
 
 if (build_SYNC)
-    target_link_libraries(realm-jni log android lib_realm_sync crypto ssl)
+    target_link_libraries(realm-jni log android lib_realm_sync lib_realm_parser crypto ssl)
 else()
-    target_link_libraries(realm-jni log android lib_realm_core crypto)
+    target_link_libraries(realm-jni log android lib_realm_core lib_realm_parser crypto)
 endif()
 
 # Strip the release so files and backup the unstripped versions

@@ -91,9 +91,15 @@ function(use_sync_release enable_sync sync_dist_path)
         IMPORTED_LINK_INTERFACE_LIBRARIES atomic
         INTERFACE_INCLUDE_DIRECTORIES "${sync_dist_path}/include")
 
+    # Parser artifact
+    set(parser_lib_path ${sync_dist_path}/librealm-parser-android-${ANDROID_ABI}${debug_lib_suffix}.a)
+    add_library(lib_realm_parser STATIC IMPORTED)
+    set_target_properties(lib_realm_parser PROPERTIES IMPORTED_LOCATION ${parser_lib_path})
+
     if (enable_sync)
         # Sync static library
         set(sync_lib_path ${sync_dist_path}/librealm-sync-android-${ANDROID_ABI}${debug_lib_suffix}.a)
+
         # Workaround for old core's funny ABI nicknames
         if (NOT EXISTS ${sync_lib_path})
             if (ARMEABI)
