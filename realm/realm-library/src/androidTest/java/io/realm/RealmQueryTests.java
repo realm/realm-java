@@ -3544,7 +3544,7 @@ public class RealmQueryTests extends QueryTests {
         RealmResults<AllTypes> result = realm.where(AllTypes.class)
                 .equalTo("columnString", "test data 0")
                 .or()
-                .rawPredicate(("columnString = 'test data 1'")
+                .rawPredicate("columnString = 'test data 1'")
                 .findAll();
         assertEquals(2, result.size());
     }
