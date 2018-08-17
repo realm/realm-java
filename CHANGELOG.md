@@ -1,3 +1,10 @@
+## 5.4.3 (2018-08-09)
+
+### Bug Fixes
+
+* [ObjectServer] ProGuard was not configured correctly when working with Subscriptions for Query-based Realms.
+
+
 ## 5.4.2 (2018-08-09)
 
 ### Bug Fixes
