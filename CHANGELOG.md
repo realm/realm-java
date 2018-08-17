@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-## 5.4.3 (2018-08-09)
-
-### Bug Fixes
-
-* [ObjectServer] ProGuard was not configured correctly when working with Subscriptions for Query-based Realms.
-=======
 ## 5.5.0 (YYYY-MM-DD)
 
 ### Enhancements
@@ -20,7 +13,13 @@
 ### Internal
 
 * Updated to Object Store commit: 97fd03819f398b3c81c8b007feaca8636629050b
->>>>>>> master
+
+
+## 5.4.3 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* [ObjectServer] ProGuard was not configured correctly when working with Subscriptions for Query-based Realms.
 
 
 ## 5.4.2 (2018-08-09)
