@@ -159,7 +159,6 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColTy
     return true;
 }
 
-// TODO remove work around once https://github.com/realm/realm-core-private/issues/199 is fixed
 template <class T>
 inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnKey)
 {
@@ -174,7 +173,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnKey)
         return false;
     }
 
-    if (!pTable->is_list(col) && pTable->is_nullable(col)) {// not a list of primitive types
+    if (pTable->is_nullable(col)) {
         return true;
     }
 
