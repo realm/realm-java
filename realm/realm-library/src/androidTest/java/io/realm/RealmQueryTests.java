@@ -3521,16 +3521,16 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void filter() {
+    public void rawPredicate() {
         populateTestRealm();
-        RealmResults<AllTypes> result = realm.where(AllTypes.class).filter("columnString = 'test data 0'").findAll();
+        RealmResults<AllTypes> result = realm.where(AllTypes.class).rawPredicate("columnString = 'test data 0'").findAll();
         assertEquals(1, result.size());
     }
 
     @Test
-    public void filter_invalidFieldName() {
+    public void rawPredicate_invalidFieldName() {
         try {
-            realm.where(AllTypes.class).filter("foo = 'test data 0'");
+            realm.where(AllTypes.class).rawPredicate(("foo = 'test data 0'");
             fail();
         } catch (IllegalStateException e) {
             // FIXME: This should be IllegalArgumentException instead
@@ -3539,18 +3539,18 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void filter_mixedWithTypedPredicates() {
+    public void rawPredicate_mixedWithTypedPredicates() {
         populateTestRealm();
         RealmResults<AllTypes> result = realm.where(AllTypes.class)
                 .equalTo("columnString", "test data 0")
                 .or()
-                .filter("columnString = 'test data 1'")
+                .rawPredicate(("columnString = 'test data 1'")
                 .findAll();
         assertEquals(2, result.size());
     }
 
     @Test
-    public void filter_withOrdering() {
+    public void rawPredicate_withOrdering() {
         // FIXME
     }
 

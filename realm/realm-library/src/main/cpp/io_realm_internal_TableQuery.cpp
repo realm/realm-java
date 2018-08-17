@@ -1831,7 +1831,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr(
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_TableQuery_nativeFilter(JNIEnv *env, jobject, jlong nativeQueryPtr, jstring j_filter)
+Java_io_realm_internal_TableQuery_nativePredicate(JNIEnv *env, jobject, jlong nativeQueryPtr, jstring j_filter)
 {
     TR_ENTER_PTR(nativeQueryPtr);
     try {

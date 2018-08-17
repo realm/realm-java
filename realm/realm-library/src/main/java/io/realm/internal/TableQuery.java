@@ -626,9 +626,9 @@ public class TableQuery implements NativeObject {
         return nativeCount(nativePtr, 0, Table.INFINITE, Table.INFINITE);
     }
 
-    public void filter(String filter) {
+    public void rawPredicate(String filter) {
         validateQuery();
-        nativeFilter(nativePtr, filter);
+        nativePredicate(nativePtr, filter);
     }
 
 
@@ -782,7 +782,7 @@ public class TableQuery implements NativeObject {
 
     private native long nativeRemove(long nativeQueryPtr);
 
-    private native void nativeFilter(long nativeQueryPtr, String filter);
+    private native void nativePredicate(long nativeQueryPtr, String filter);
 
     private static native long nativeGetFinalizerPtr();
 }

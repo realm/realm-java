@@ -1980,9 +1980,9 @@ public class RealmQuery<E> {
      * @param filter
      * @return
      */
-    public RealmQuery<E> filter(String filter) {
+    public RealmQuery<E> rawPredicate(String filter) {
         realm.checkIfValid();
-        query.filter(filter);
+        query.rawPredicate(filter);
         return this;
     }
 
