@@ -1980,9 +1980,13 @@ public class RealmQuery<E> {
      * @param filter
      * @return
      */
-    public RealmQuery<E> rawPredicate(String filter) {
+    public RealmQuery<E> rawPredicate(String filter, Object... arguments) {
         realm.checkIfValid();
-        query.rawPredicate(filter);
+        if (Util.isEmptyString(filter)) {
+            throw new IllegalArgumentException("Non-null 'filter' required.");
+        }
+        String formattedFilter = String.format(filter, arguments);
+        query.rawPredicate(formattedFilter);
         return this;
     }
 
