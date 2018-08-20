@@ -1,0 +1,106 @@
+group 'io.realm'
+version '1.0.0'
+
+buildscript {
+    ext.kotlin_version = '1.2.51'
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.2'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    def props = new Properties()
+    props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.each { key, val ->
+        project.ext.set(key, val)
+    }
+}
+
+group = 'io.realm'
+version = file("${projectDir}/../version.txt").text.trim()
+
+apply plugin: 'kotlin'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'com.jfrog.bintray'
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+dependencies {
+    compile gradleApi()
+    compileOnly 'com.android.tools.build:gradle:3.1.1'
+    compile 'org.ow2.asm:asm:6.2'
+    compile 'org.ow2.asm:asm-util:6.2'
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+
+    testCompile group:'junit', name:'junit', version:'4.12'
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+
+}
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+def commonPom = {
+    licenses {
+        license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
+    }
+    issueManagement {
+        system 'github'
+        url 'https://github.com/realm/realm-java/issues'
+    }
+    scm {
+        url 'scm:https://github.com/realm/realm-java'
+        connection 'scm:git@github.com:realm/realm-java.git'
+        developerConnection 'scm:git@github.com:realm/realm-java.git'
+    }
+}
+
+publishing {
+    publications {
+        realmPublication(MavenPublication) {
+            groupId 'io.realm'
+            artifactId = 'realm-library-build-transformer'
+            from components.java
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-library-build-transformer')
+                root.appendNode('description', 'Transform library for Realm Java that will strip unwanted files at build time.')
+                root.appendNode('url', 'http://realm.io')
+                root.children().last() + commonPom
+            }
+        }
+    }
+    repositories {
+        maven {
+            credentials(AwsCredentials) {
+                accessKey project.hasProperty('s3AccessKey') ? s3AccessKey : 'noAccessKey'
+                secretKey project.hasProperty('s3SecretKey') ? s3SecretKey : 'noSecretKey'
+            }
+            if(project.version.endsWith('-SNAPSHOT')) {
+                url "s3://realm-ci-artifacts/maven/snapshots/"
+            } else {
+                url "s3://realm-ci-artifacts/maven/releases/"
+            }
+        }
+    }
+}

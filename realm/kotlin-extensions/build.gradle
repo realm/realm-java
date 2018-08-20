@@ -14,8 +14,7 @@ apply plugin: 'org.jetbrains.dokka'
 //apply plugin: 'com.github.kt3k.coveralls'
 //apply plugin: 'net.ltgt.errorprone'
 
-import io.realm.transformer.RealmTransformer
-android.registerTransform(new RealmTransformer(project))
+android.registerTransform(new io.realm.transformer.RealmTransformer(project))
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -63,8 +62,8 @@ dependencies {
     implementation project(':realm-library')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     androidTestImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test:rules:1.0.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
