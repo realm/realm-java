@@ -18,8 +18,8 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class KotlinRealmTests {
 
-    @Suppress("MemberVisibilityCanPrivate")
-    @get:Rule
+    @Rule
+    @JvmField
     val configFactory = TestRealmConfigurationFactory()
 
     private lateinit var realm: Realm
