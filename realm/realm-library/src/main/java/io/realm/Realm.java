@@ -1057,8 +1057,13 @@ public class Realm extends BaseRealm {
         if (objects == null) {
             return new ArrayList<>();
         }
+        ArrayList<E> realmObjects;
+        if (objects instanceof Collection) {
+            realmObjects = new ArrayList<>(((Collection) objects).size());
+        } else {
+            realmObjects = new ArrayList<>();
+        }
         Map<RealmModel, RealmObjectProxy> cache = new HashMap<>();
-        ArrayList<E> realmObjects = new ArrayList<>();
         for (E object : objects) {
             checkNotNullObject(object);
             realmObjects.add(copyOrUpdate(object, false, cache));
@@ -1228,8 +1233,13 @@ public class Realm extends BaseRealm {
             return new ArrayList<>(0);
         }
 
+        ArrayList<E> realmObjects;
+        if (objects instanceof Collection) {
+            realmObjects = new ArrayList<>(((Collection) objects).size());
+        } else {
+            realmObjects = new ArrayList<>();
+        }
         Map<RealmModel, RealmObjectProxy> cache = new HashMap<>();
-        ArrayList<E> realmObjects = new ArrayList<>();
         for (E object : objects) {
             checkNotNullObject(object);
             realmObjects.add(copyOrUpdate(object, true, cache));
@@ -1287,7 +1297,12 @@ public class Realm extends BaseRealm {
             return new ArrayList<>(0);
         }
 
-        ArrayList<E> unmanagedObjects = new ArrayList<>();
+        ArrayList<E> unmanagedObjects;
+        if (realmObjects instanceof Collection) {
+            unmanagedObjects = new ArrayList<>(((Collection) realmObjects).size());
+        } else {
+            unmanagedObjects = new ArrayList<>();
+        }
         Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new HashMap<>();
         for (E object : realmObjects) {
             checkValidObjectForDetach(object);
