@@ -293,8 +293,8 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      * @throws IllegalArgumentException if the table doesn't exist.
      */
     public Table getTable(String name) {
-        long tablePtr = nativeGetTable(nativePtr, name);
-        return new Table(this, tablePtr);
+        long tableRefPtr = nativeGetTableRef(nativePtr, name);
+        return new Table(this, tableRefPtr);
     }
 
     /**
@@ -568,7 +568,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     private static native long[] nativeGetVersionID(long nativeSharedRealmPtr);
 
     // Throw IAE if the table doesn't exist.
-    private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
+    private static native long nativeGetTableRef(long nativeSharedRealmPtr, String tableName);
 
     // Throw IAE if the table exists already.
     private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName);

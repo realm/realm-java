@@ -67,6 +67,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved);
 #define TBL(x) reinterpret_cast<realm::Table*>(x)
 #define Q(x) reinterpret_cast<realm::Query*>(x)
 #define ROW(x) reinterpret_cast<realm::Obj*>(x)//TODO rename ROW to OBJ
+#define TBL_REF(x) *reinterpret_cast<realm::TableRef*>(x)
 
 // Exception handling
 enum ExceptionKind {

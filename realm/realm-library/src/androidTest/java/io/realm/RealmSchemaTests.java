@@ -41,6 +41,7 @@ import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsString;
+import io.realm.exceptions.RealmError;
 import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -525,8 +526,6 @@ public class RealmSchemaTests {
     }
 
     @Test
-    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/232" +
-            "throws as expected but a native crash/exception when trying to get the table name (InvalidKey) in previousFoo.getClassName();")
     public void remove_shouldClearDynamicCache() {
         if (type == SchemaType.IMMUTABLE) {
             return;
@@ -544,7 +543,7 @@ public class RealmSchemaTests {
         assertNotSame(previousFoo, newFoo);
 
         try {
-            previousFoo.getClassName();
+            assertEquals("foo", previousFoo.getClassName());
             fail();
         } catch (IllegalStateException ignored) {
         }

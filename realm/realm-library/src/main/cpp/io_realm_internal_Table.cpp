@@ -1148,8 +1148,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(JNIEnv*
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(JNIEnv* env, jobject, jlong nativeTablePtr)
 {
     try {
-        Table* table = TBL(nativeTablePtr);
-        return to_jstring(env, table->get_name());
+        TableRef table = TBL_REF(nativeTablePtr);
+        auto name = table->get_name();
+        return to_jstring(env, name);
     }
     CATCH_STD()
     return nullptr;

@@ -39,6 +39,9 @@ ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE
 // Set to true to enable linking with debug core.
 ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false //FIXME Use 'false' as default until https://github.com/realm/realm-java/issues/5354 is fixed
 
+
+ext.coreSourcePath = "/Users/cm/Realm/realm-core-private"
+
 android {
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
@@ -58,10 +61,10 @@ android {
                         // JNI build currently (lack of lto linking support).
                         // This file should be removed and use the one from Android SDK cmake package when it supports lto.
                         "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}",
-                        "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
-                if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
-                if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
-                if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=$project.coreSourcePath"
+                        "-DENABLE_DEBUG_CORE=${project.enableDebugCore}"
+                if (project.ccachePath) arguments "-DNDK_CCACHE=${project.ccachePath}"
+                if (project.lcachePath) arguments "-DNDK_LCACHE=${project.lcachePath}"
+                if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=${project.coreSourcePath}"
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
@@ -188,17 +191,17 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
 android.registerTransform(new io.realm.transformer.RealmTransformer(project))
-android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
-        "base",
-        "io.realm.internal.annotations.ObjectServer",
-        [
-            "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
-            "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
-            "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
-            "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
-            "io_realm_sync_permissions_RoleRealmProxyInterface.class"
-        ].toSet()
-))
+//android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
+//        "base",
+//        "io.realm.internal.annotations.ObjectServer",
+//        [
+//            "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
+//            "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
+//            "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
+//            "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
+//            "io_realm_sync_permissions_RoleRealmProxyInterface.class"
+//        ].toSet()
+//))
 
 repositories {
     maven { url "https://jitpack.io" }

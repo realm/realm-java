@@ -226,7 +226,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsClosed(J
 }
 
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetTable(JNIEnv* env, jclass, jlong shared_realm_ptr,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetTableRef(JNIEnv* env, jclass, jlong shared_realm_ptr,
                                                                           jstring table_name)
 {
     TR_ENTER_PTR(shared_realm_ptr)
@@ -244,8 +244,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetTable(JNIE
                                  format("The class '%1' doesn't exist in this Realm.", name_str));
         }
 
-        Table* table = group.get_table(name);//TODO confirm this is implicit conversion that will return the table pointer to us
-        return reinterpret_cast<jlong>(table);
+        TableRef* tableRef = new TableRef(group.get_table(name));
+        return reinterpret_cast<jlong>(tableRef);
     }
     CATCH_STD()
 

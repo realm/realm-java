@@ -31,6 +31,7 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 import io.realm.internal.fields.FieldDescriptor;
 
 
@@ -106,6 +107,7 @@ public abstract class RealmObjectSchema {
      * </ul>
      *
      * @return the name of the RealmObject class represented by this schema.
+     * @throws IllegalStateException if this schema defintion is no longer part of the Realm.
      */
     public String getClassName() {
         return table.getClassName();
