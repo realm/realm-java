@@ -90,8 +90,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObjectStore_nativeGetPrimaryK
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         JStringAccessor class_name_accessor(env, j_class_name);
-        StringData pk_field_name =
-            ObjectStore::get_primary_key_for_object(shared_realm->read_group(), class_name_accessor);
+        StringData pk_field_name = ObjectStore::get_primary_key_for_object(shared_realm->read_group(), class_name_accessor);
         return pk_field_name.size() == 0 ? nullptr : to_jstring(env, pk_field_name);
     }
     CATCH_STD()

@@ -70,7 +70,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn(JNIEnv* env
         if (is_column_nullable && dataType == type_LinkList) {
             ThrowException(env, IllegalArgument, "List fields cannot be nullable.");
         }
-        ColKey col_key = TBL(nativeTablePtr)->add_column(dataType, name2, is_column_nullable);
+        TableRef table = TBL_REF(nativeTablePtr);
+        ColKey col_key = table->add_column(dataType, name2, is_column_nullable);
         return reinterpret_cast<jlong>(col_key.value);
     }
     CATCH_STD()
@@ -85,7 +86,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveListColum
         JStringAccessor name(env, j_name); // throws
         bool is_column_nullable = to_bool(j_is_nullable);
         DataType data_type = DataType(j_col_type);
-        Table* table = TBL(native_table_ptr);
+        TableRef table = TBL_REF(native_table_ptr);
         return reinterpret_cast<jlong>(table->add_column_list(data_type, name, is_column_nullable).value);
     }
     CATCH_STD()
@@ -96,13 +97,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink(JNIEnv*
                                                                          jint colType, jstring name,
                                                                          jlong targetTablePtr)
 {
-    if (!TBL(targetTablePtr)->is_group_level()) {
+    TableRef targetTableRef = TBL_REF(targetTablePtr);
+    if (!targetTableRef->is_group_level()) {
         ThrowException(env, UnsupportedOperation, "Links can only be made to toplevel tables.");
         return 0;
     }
     try {
         JStringAccessor name2(env, name); // throws
-        return static_cast<jlong>(TBL(nativeTablePtr)->add_column_link(DataType(colType), name2, *TBL(targetTablePtr)).value);
+        TableRef table = TBL_REF(nativeTablePtr);
+        return static_cast<jlong>(table->add_column_link(DataType(colType), name2, *targetTableRef).value);
     }
     CATCH_STD()
     return 0;
@@ -113,7 +116,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn(JNIEnv* e
                                                                        jlong columnKey)
 {
     try {
-        TBL(nativeTablePtr)->remove_column(ColKey(columnKey));
+        TableRef table = TBL_REF(nativeTablePtr);
+        table->remove_column(ColKey(columnKey));
     }
     CATCH_STD()
 }
@@ -136,7 +140,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn(JNIEnv* e
 {
     try {
         JStringAccessor name2(env, name); // throws
-        TBL(nativeTablePtr)->rename_column(ColKey(columnKey), name2);
+        TableRef table = TBL_REF(nativeTablePtr);
+        table->rename_column(ColKey(columnKey), name2);
     }
     CATCH_STD()
 }
@@ -145,7 +150,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(J
                                                                                jlong nativeTablePtr,
                                                                                jlong columnKey)
 {
-    Table* table = TBL(nativeTablePtr);
+TableRef table = TBL_REF(nativeTablePtr);
     return to_jbool(table->is_nullable(ColKey(columnKey))); // noexcept
 }
 
@@ -288,7 +293,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
 //        return;
 //    }
     try {
-        Table* table = TBL(native_table_ptr);
+        TableRef table = TBL_REF(native_table_ptr);
 //        if (!TBL_AND_COL_INDEX_VALID(env, table, j_column_key)) {
 //            return;
 //        }
@@ -480,7 +485,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                                                                                      jboolean is_primary_key)
 {
     try {
-        Table* table = TBL(native_table_ptr);
+        TableRef table = TBL_REF(native_table_ptr);
 //        if (!TBL_AND_COL_INDEX_VALID(env, table, j_column_key)) {
 //            return;
 //        }
@@ -535,16 +540,18 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSize(JNIEnv* env, jobject, jlong nativeTablePtr)
 {
-    return static_cast<jlong>(TBL(nativeTablePtr)->size()); // noexcept
+    TableRef table = TBL_REF(nativeTablePtr);
+    return static_cast<jlong>(table->size()); // noexcept
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClear(JNIEnv* env, jobject, jlong nativeTablePtr, jboolean is_partial_realm)
 {
     try {
+        TableRef table = TBL_REF(nativeTablePtr);
         if (is_partial_realm) {
-            TBL(nativeTablePtr)->where().find_all().clear();
+            table->where().find_all().clear();
         } else {
-            TBL(nativeTablePtr)->clear();
+            table->clear();
         }
     }
     CATCH_STD()
@@ -556,15 +563,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClear(JNIEnv* env, job
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnCount(JNIEnv* env, jobject, jlong nativeTablePtr)
 {
-    return static_cast<jlong>(TBL(nativeTablePtr)->get_column_count()); // noexcept
+    TableRef table = TBL_REF(nativeTablePtr);
+    return static_cast<jlong>(table->get_column_count()); // noexcept
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetColumnName(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                            jlong columnKey)
 {
     try {
+        TableRef table = TBL_REF(nativeTablePtr);
         ColKey col_key(columnKey);
-        StringData stringData = TBL(nativeTablePtr)->get_column_name(col_key);//<----- this is crashing
+        StringData stringData = table->get_column_name(col_key);//<----- this is crashing
         return to_jstring(env, stringData);
     }
     CATCH_STD();
@@ -574,9 +583,9 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetColumnNameByInde
                                                                            jlong columnIndex)
 {
     try {
-        auto column_key = TBL(nativeTablePtr)->ndx2colkey(columnIndex);
-        StringData stringData = TBL(nativeTablePtr)->get_column_name(column_key);
-
+        TableRef table = TBL_REF(nativeTablePtr);
+        auto column_key = table->ndx2colkey(columnIndex);
+        StringData stringData = table->get_column_name(column_key);
         return to_jstring(env, stringData);
     }
     CATCH_STD();
@@ -587,10 +596,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnIndex(JNIEnv
                                                                           jstring columnName)
 {
     try {
+        TableRef table = TBL_REF(nativeTablePtr);
         JStringAccessor columnName2(env, columnName);                                     // throws
-        ColKey col_key = TBL(nativeTablePtr)->get_column_key(columnName2);
+        ColKey col_key = table->get_column_key(columnName2);
         if (bool(col_key)) {//TODO generalize this test & return for similar lookups
-            return to_jlong_or_not_found(TBL(nativeTablePtr)->colkey2ndx(col_key)); // noexcept //TODO does colkey2ndx return realm::not_found?
+            return to_jlong_or_not_found(table->colkey2ndx(col_key)); // noexcept //TODO does colkey2ndx return realm::not_found?
         }
         return -1;
     }
@@ -603,7 +613,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnKey(JNIEnv* 
 {
     try {
         JStringAccessor columnName2(env, columnName);                                     // throws
-        ColKey col_key = TBL(nativeTablePtr)->get_column_key(columnName2);
+        TableRef table = TBL_REF(nativeTablePtr);
+        ColKey col_key = table->get_column_key(columnName2);
         if (bool(col_key)) {//TODO generalize this test & return for similar lookups
             return reinterpret_cast<jlong>(col_key.value); // noexcept
         }
@@ -617,7 +628,7 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv* 
                                                                         jlong columnKey)
 {
     ColKey column_key (columnKey);
-    auto table = TBL(nativeTablePtr);
+    TableRef table = TBL_REF(nativeTablePtr);
     jint column_type = table->get_column_type(column_key);
     if (table->is_list(column_key) && column_type < type_LinkList) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
@@ -637,7 +648,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMoveLastOver(JNIEnv* e
                                                                        jlong rowKey)
 {
     try {
-        TBL(nativeTablePtr)->remove_object(ObjKey(rowKey));
+        TableRef table = TBL_REF(nativeTablePtr);
+        table->remove_object(ObjKey(rowKey));
     }
     CATCH_STD()
 }
@@ -647,50 +659,55 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMoveLastOver(JNIEnv* e
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLong(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                    jlong columnKey, jlong rowKey)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Int)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Int)) {
         return 0;//TODO throw instead of returning a default value , check for similar use cases
     }
-    return TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).get<Int>(ColKey(columnKey)); // noexcept
+    return table->get_object(ObjKey(rowKey)).get<Int>(ColKey(columnKey)); // noexcept
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeGetBoolean(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                          jlong columnKey, jlong rowKey)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Bool)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Bool)) {
         return JNI_FALSE;
     }
 
-    return to_jbool(TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).get<bool>(ColKey(columnKey)));
+    return to_jbool(table->get_object(ObjKey(rowKey)).get<bool>(ColKey(columnKey)));
 }
 
 JNIEXPORT jfloat JNICALL Java_io_realm_internal_Table_nativeGetFloat(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                      jlong columnKey, jlong rowKey)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Float)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Float)) {
         return 0;
     }
 
-    return TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).get<float>(ColKey(columnKey));
+    return table->get_object(ObjKey(rowKey)).get<float>(ColKey(columnKey));
 }
 
 JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeGetDouble(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                        jlong columnKey, jlong rowKey)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Double)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Double)) {
         return 0;
     }
 
-    return TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).get<double>(ColKey(columnKey));
+    return table->get_object(ObjKey(rowKey)).get<double>(ColKey(columnKey));
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetTimestamp(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                         jlong columnKey, jlong rowKey)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Timestamp)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Timestamp)) {
         return 0;
     }
     try {
-        return to_milliseconds(TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).get<Timestamp>(ColKey(columnKey)));
+        return to_milliseconds(table->get_object(ObjKey(rowKey)).get<Timestamp>(ColKey(columnKey)));
     }
     CATCH_STD()
     return 0;
@@ -699,11 +716,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetTimestamp(JNIEnv* 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetString(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                        jlong columnKey, jlong rowKey)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_String)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_String)) {
         return nullptr;
     }
     try {
-        return to_jstring(env, TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).get<StringData>(ColKey(columnKey)));
+        return to_jstring(env, table->get_object(ObjKey(rowKey)).get<StringData>(ColKey(columnKey)));
     }
     CATCH_STD()
     return nullptr;
@@ -714,11 +732,12 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeGetByteArray(JNI
                                                                              jlong nativeTablePtr, jlong columnKey,
                                                                              jlong rowKey)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Binary)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Binary)) {
         return nullptr;
     }
     try {
-        realm::BinaryData bin = TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).get<BinaryData>(ColKey(columnKey));
+        realm::BinaryData bin = table->get_object(ObjKey(rowKey)).get<BinaryData>(ColKey(columnKey));
         return JavaClassGlobalDef::new_byte_array(env, bin);
     }
     CATCH_STD()
@@ -728,18 +747,19 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeGetByteArray(JNI
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLink(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                    jlong columnKey, jlong rowKey)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Link)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Link)) {
         return 0;
     }
-    return static_cast<jlong>(TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).get<ObjKey>(ColKey(columnKey)).value); // noexcept
+    return static_cast<jlong>(table->get_object(ObjKey(rowKey)).get<ObjKey>(ColKey(columnKey)).value); // noexcept
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkTarget(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                          jlong columnKey)
 {
     try {
-        Table* pTable = &(*TBL(nativeTablePtr)->get_link_target(ColKey(columnKey)));
-        return reinterpret_cast<jlong>(pTable);
+        Table* table = &(*((Table*)TBL_REF(nativeTablePtr))->get_link_target(ColKey(columnKey)));
+        return reinterpret_cast<jlong>(new TableRef(table));
     }
     CATCH_STD()
     return 0;
@@ -748,7 +768,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLinkTarget(JNIEnv*
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsNull(JNIEnv*, jobject, jlong nativeTablePtr,
                                                                      jlong columnKey, jlong rowKey)
 {
-    return to_jbool(TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).is_null(ColKey(columnKey))); // noexcept
+    TableRef table = TBL_REF(nativeTablePtr);
+    return to_jbool(table->get_object(ObjKey(rowKey)).is_null(ColKey(columnKey))); // noexcept
 }
 
 // ----------------- Set cell
@@ -757,11 +778,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLink(JNIEnv* env, j
                                                                   jlong columnKey, jlong rowKey,
                                                                   jlong targetRowKey, jboolean isDefault)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Link)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Link)) {
         return;
     }
     try {
-        TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).set(ColKey(columnKey), ObjKey(targetRowKey), B(isDefault));
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), ObjKey(targetRowKey), B(isDefault));
     }
     CATCH_STD()
 }
@@ -770,11 +792,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLong(JNIEnv* env, j
                                                                   jlong columnKey, jlong rowKey, jlong value,
                                                                   jboolean isDefault)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Int)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Int)) {
         return;
     }
     try {
-        TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).set(ColKey(columnKey), value, B(isDefault));
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), value, B(isDefault));
     }
     CATCH_STD()
 }
@@ -782,12 +805,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLong(JNIEnv* env, j
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeIncrementLong(JNIEnv* env, jclass, jlong nativeTablePtr,
                                                                   jlong columnKey, jlong rowKey, jlong value)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Int)) {
+
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Int)) {
         return;
     }
 
     try {
-        Table* table = TBL(nativeTablePtr);
         auto obj = table->get_object(ObjKey(rowKey));
         if (obj.is_null(ColKey(columnKey))) {
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
@@ -803,11 +827,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetBoolean(JNIEnv* env
                                                                      jlong columnKey, jlong rowKey,
                                                                      jboolean value, jboolean isDefault)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Bool)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Bool)) {
         return;
     }
     try {
-        TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).set(ColKey(columnKey), B(value), B(isDefault));
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), B(value), B(isDefault));
     }
     CATCH_STD()
 }
@@ -816,11 +841,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetFloat(JNIEnv* env, 
                                                                    jlong columnKey, jlong rowKey, jfloat value,
                                                                    jboolean isDefault)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Float)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Float)) {
         return;
     }
     try {
-        TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).set(ColKey(columnKey), value, B(isDefault));
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), value, B(isDefault));
     }
     CATCH_STD()
 }
@@ -829,11 +855,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDouble(JNIEnv* env,
                                                                     jlong columnKey, jlong rowKey, jdouble value,
                                                                     jboolean isDefault)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Double)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Double)) {
         return;
     }
     try {
-        TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).set(ColKey(columnKey), value, B(isDefault));
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), value, B(isDefault));
     }
     CATCH_STD()
 }
@@ -842,17 +869,18 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString(JNIEnv* env,
                                                                     jlong columnKey, jlong rowKey, jstring value,
                                                                     jboolean isDefault)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_String)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_String)) {
         return;
     }
     try {
         if (value == nullptr) {
-            if (!COL_NULLABLE(env, TBL(nativeTablePtr), columnKey)) {
+            if (!COL_NULLABLE(env, table, columnKey)) {
                 return;
             }
         }
         JStringAccessor value2(env, value); // throws
-        TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).set(ColKey(columnKey), StringData(value2), B(isDefault));
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), StringData(value2), B(isDefault));
     }
     CATCH_STD()
 }
@@ -861,11 +889,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetTimestamp(JNIEnv* e
                                                                        jlong columnKey, jlong rowKey,
                                                                        jlong timestampValue, jboolean isDefault)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Timestamp)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Timestamp)) {
         return;
     }
     try {
-        TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).set(ColKey(columnKey), from_milliseconds(timestampValue), B(isDefault));
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), from_milliseconds(timestampValue), B(isDefault));
     }
     CATCH_STD()
 }
@@ -874,7 +903,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(JNIEnv* e
                                                                        jlong columnKey, jlong rowKey,
                                                                        jbyteArray dataArray, jboolean isDefault)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Binary)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Binary)) {
         return;
     }
     try {
@@ -883,7 +913,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(JNIEnv* e
         }
 
         JByteArrayAccessor jarray_accessor(env, dataArray);
-        TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).set(ColKey(columnKey), jarray_accessor.transform<BinaryData>(), B(isDefault));
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), jarray_accessor.transform<BinaryData>(), B(isDefault));
     }
     CATCH_STD()
 }
@@ -892,13 +922,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull(JNIEnv* env, j
                                                                   jlong columnKey, jlong rowKey,
                                                                   jboolean isDefault)
 {
-    Table* pTable = TBL(nativeTablePtr);
-    if (!COL_NULLABLE(env, pTable, columnKey)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!COL_NULLABLE(env, table, columnKey)) {
         return;
     }
 
     try {
-        pTable->get_object(ObjKey(rowKey)).set_null(ColKey(columnKey), B(isDefault));
+        table->get_object(ObjKey(rowKey)).set_null(ColKey(columnKey), B(isDefault));
     }
     CATCH_STD()
 }
@@ -907,7 +937,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetRowPtr(JNIEnv* env
                                                                      jlong key)
 {
     try {
-        Obj* obj = new Obj((*TBL(nativeTablePtr)).get_object(ObjKey(key)));
+        TableRef table = TBL_REF(nativeTablePtr);
+        Obj* obj = new Obj(table->get_object(ObjKey(key)));
         return reinterpret_cast<jlong>(obj);
     }
     CATCH_STD()
@@ -919,14 +950,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetRowPtr(JNIEnv* env
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                          jlong columnKey)
 {
-    Table* pTable = TBL(nativeTablePtr);
-    DataType column_type = pTable->get_column_type(ColKey(columnKey));
+    TableRef table = TBL_REF(nativeTablePtr);
+    DataType column_type = table->get_column_type(ColKey(columnKey));
     if (!is_allowed_to_index(env, column_type)) {
         return;
     }
 
     try {
-        pTable->add_search_index(ColKey(columnKey));
+        table->add_search_index(ColKey(columnKey));
     }
     CATCH_STD()
 }
@@ -934,13 +965,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex(JNIEnv*
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveSearchIndex(JNIEnv* env, jobject,
                                                                             jlong nativeTablePtr, jlong columnKey)
 {
-    Table* pTable = TBL(nativeTablePtr);
-    DataType column_type = pTable->get_column_type(ColKey(columnKey));
+    TableRef table = TBL_REF(nativeTablePtr);
+    DataType column_type = table->get_column_type(ColKey(columnKey));
     if (!is_allowed_to_index(env, column_type)) {
         return;
     }
     try {
-        pTable->remove_search_index(ColKey(columnKey));
+        table->remove_search_index(ColKey(columnKey));
     }
     CATCH_STD()
 }
@@ -950,7 +981,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSearchIndex(JNI
                                                                              jlong nativeTablePtr, jlong columnKey)
 {
     try {
-        return to_jbool(TBL(nativeTablePtr)->has_search_index(ColKey(columnKey)));
+        TableRef table = TBL_REF(nativeTablePtr);
+        return to_jbool(table->has_search_index(ColKey(columnKey)));
     }
     CATCH_STD()
     return JNI_FALSE;
@@ -959,21 +991,23 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSearchIndex(JNI
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsNullLink(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                          jlong columnKey, jlong rowKey)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Link)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Link)) {
         return JNI_FALSE;
     }
 
-    return to_jbool(TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).is_null(ColKey(columnKey)));
+    return to_jbool(table->get_object(ObjKey(rowKey)).is_null(ColKey(columnKey)));
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeNullifyLink(JNIEnv* env, jclass, jlong nativeTablePtr,
                                                                       jlong columnKey, jlong rowKey)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Link)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Link)) {
         return;
     }
     try {
-        TBL(nativeTablePtr)->get_object(ObjKey(rowKey)).set_null(ColKey(columnKey));
+        table->get_object(ObjKey(rowKey)).set_null(ColKey(columnKey));
     }
     CATCH_STD()
 }
@@ -983,11 +1017,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeNullifyLink(JNIEnv* en
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountLong(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                      jlong columnKey, jlong value)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Int)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Int)) {
         return 0;
     }
     try {
-        return static_cast<jlong>(TBL(nativeTablePtr)->count_int(ColKey(columnKey), value));
+        return static_cast<jlong>(table->count_int(ColKey(columnKey), value));
     }
     CATCH_STD()
     return 0;
@@ -996,11 +1031,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountLong(JNIEnv* env
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountFloat(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                       jlong columnKey, jfloat value)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Float)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Float)) {
         return 0;
     }
     try {
-        return static_cast<jlong>(TBL(nativeTablePtr)->count_float(ColKey(columnKey), value));
+        return static_cast<jlong>(table->count_float(ColKey(columnKey), value));
     }
     CATCH_STD()
     return 0;
@@ -1009,11 +1045,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountFloat(JNIEnv* en
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountDouble(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                        jlong columnKey, jdouble value)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Double)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Double)) {
         return 0;
     }
     try {
-        return static_cast<jlong>(TBL(nativeTablePtr)->count_double(ColKey(columnKey), value));
+        return static_cast<jlong>(table->count_double(ColKey(columnKey), value));
     }
     CATCH_STD()
     return 0;
@@ -1022,12 +1059,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountDouble(JNIEnv* e
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountString(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                        jlong columnKey, jstring value)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_String)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_String)) {
         return 0;
     }
     try {
         JStringAccessor value2(env, value); // throws
-        return static_cast<jlong>(TBL(nativeTablePtr)->count_string(ColKey(columnKey), value2));
+        return static_cast<jlong>(table->count_string(ColKey(columnKey), value2));
     }
     CATCH_STD()
     return 0;
@@ -1037,7 +1075,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountString(JNIEnv* e
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeWhere(JNIEnv* env, jobject, jlong nativeTablePtr)
 {
     try {
-        Query* queryPtr = new Query(TBL(nativeTablePtr)->where());
+        TableRef table = TBL_REF(nativeTablePtr);
+        Query* queryPtr = new Query(table->where());
         return reinterpret_cast<jlong>(queryPtr);
     }
     CATCH_STD()
@@ -1049,11 +1088,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeWhere(JNIEnv* env, jo
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstInt(JNIEnv* env, jclass, jlong nativeTablePtr,
                                                                         jlong columnKey, jlong value)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Int)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Int)) {
         return 0;
     }
     try {
-        return to_jlong_or_not_found(TBL(nativeTablePtr)->find_first_int(ColKey(columnKey), value));
+        return to_jlong_or_not_found(table->find_first_int(ColKey(columnKey), value));
     }
     CATCH_STD()
     return 0;
@@ -1062,11 +1102,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstInt(JNIEnv* 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstBool(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                          jlong columnKey, jboolean value)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Bool)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Bool)) {
         return 0;
     }
     try {
-        return to_jlong_or_not_found(TBL(nativeTablePtr)->find_first_bool(ColKey(columnKey), to_bool(value)));
+        return to_jlong_or_not_found(table->find_first_bool(ColKey(columnKey), to_bool(value)));
     }
     CATCH_STD()
     return 0;
@@ -1075,11 +1116,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstBool(JNIEnv*
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstFloat(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                           jlong columnKey, jfloat value)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Float)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Float)) {
         return 0;
     }
     try {
-        return to_jlong_or_not_found(TBL(nativeTablePtr)->find_first_float(ColKey(columnKey), value));
+        return to_jlong_or_not_found(table->find_first_float(ColKey(columnKey), value));
     }
     CATCH_STD()
     return 0;
@@ -1088,11 +1130,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstFloat(JNIEnv
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDouble(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                            jlong columnKey, jdouble value)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Double)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Double)) {
         return 0;
     }
     try {
-        return to_jlong_or_not_found(TBL(nativeTablePtr)->find_first_double(ColKey(columnKey), value));
+        return to_jlong_or_not_found(table->find_first_double(ColKey(columnKey), value));
     }
     CATCH_STD()
     return 0;
@@ -1102,11 +1145,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstTimestamp(JN
                                                                               jlong nativeTablePtr, jlong columnKey,
                                                                               jlong dateTimeValue)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_Timestamp)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_Timestamp)) {
         return 0;
     }
     try {
-        return to_jlong_or_not_found(TBL(nativeTablePtr)->find_first_timestamp(ColKey(columnKey), from_milliseconds(dateTimeValue)));
+        return to_jlong_or_not_found(table->find_first_timestamp(ColKey(columnKey), from_milliseconds(dateTimeValue)));
     }
     CATCH_STD()
     return 0;
@@ -1115,13 +1159,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstTimestamp(JN
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(JNIEnv* env, jclass, jlong nativeTablePtr,
                                                                            jlong columnKey, jstring value)
 {
-    if (!TYPE_VALID(env, TBL(nativeTablePtr), columnKey, type_String)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!TYPE_VALID(env, table, columnKey, type_String)) {
         return 0;
     }
 
     try {
         JStringAccessor value2(env, value); // throws
-        return to_jlong_or_not_found(TBL(nativeTablePtr)->find_first_string(ColKey(columnKey), value2));
+        return to_jlong_or_not_found(table->find_first_string(ColKey(columnKey), value2));
     }
     CATCH_STD()
     return 0;
@@ -1130,12 +1175,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(JNIEn
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(JNIEnv* env, jclass, jlong nativeTablePtr,
                                                                          jlong columnKey)
 {
-    Table* pTable = TBL(nativeTablePtr);
-    if (!COL_NULLABLE(env, pTable, columnKey)) {
+    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
+    if (!COL_NULLABLE(env, table, columnKey)) {
         return static_cast<jlong>(realm::not_found);
     }
     try {
-        return to_jlong_or_not_found(pTable->find_first_null(ColKey(columnKey)));
+        return to_jlong_or_not_found(table->find_first_null(ColKey(columnKey)));
     }
     CATCH_STD()
     return static_cast<jlong>(realm::not_found);
@@ -1149,8 +1194,12 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(JNIEnv* env
 {
     try {
         TableRef table = TBL_REF(nativeTablePtr);
-        auto name = table->get_name();
-        return to_jstring(env, name);
+        // Mirror API in Java for now. Before Core 6 this would return null for tables not attached to the group.
+        if (table) {
+            return to_jstring(env, table->get_name());
+        } else {
+            return nullptr;
+        }
     }
     CATCH_STD()
     return nullptr;
@@ -1159,7 +1208,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(JNIEnv* env
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(JNIEnv*, jobject, jlong nativeTablePtr)
 {
     TR_ENTER_PTR(nativeTablePtr)
-    if(TBL(nativeTablePtr)) {
+    if(TBL_REF(nativeTablePtr)) {
         return JNI_TRUE;
     } else {
         return JNI_FALSE;
@@ -1287,13 +1336,15 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema(JNIE
 {
     //TODO check is the correct replacement
     using tf = _impl::TableFriend;
-    return to_jbool(tf::get_spec(*TBL(thisTablePtr)) == tf::get_spec(*TBL(otherTablePtr)));
+    TableRef this_table = TBL_REF(thisTablePtr);
+    TableRef other_table = TBL_REF(otherTablePtr);
+    return to_jbool(tf::get_spec(*this_table) == tf::get_spec(*other_table));
 }
 
 static void finalize_table(jlong ptr)
 {
     TR_ENTER_PTR(ptr)
-    //TODO find appropriate replacement
+    delete reinterpret_cast<realm::TableRef*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetFinalizerPtr(JNIEnv*, jclass)

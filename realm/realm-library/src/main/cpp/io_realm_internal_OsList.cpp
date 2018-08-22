@@ -101,9 +101,9 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
             auto link_view_ref = obj.get_linklist(ColKey(column_key));
 
 //            Table* target_table_ptr = &(link_view_ref)->get_target_table();
-            Table& target_table_ptr = link_view_ref.get_target_table();
+            TableRef* target_table_ptr = new TableRef(link_view_ref.get_target_table().get_table_ref());
 //            LangBindHelper::bind_table_ptr(target_table_ptr);
-            ret[1] = reinterpret_cast<jlong>(&target_table_ptr);
+            ret[1] = reinterpret_cast<jlong>(target_table_ptr);
         }
         else {
             ret[1] = reinterpret_cast<jlong>(nullptr);

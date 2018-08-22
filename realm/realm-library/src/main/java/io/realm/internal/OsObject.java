@@ -261,29 +261,29 @@ public class OsObject implements NativeObject {
 
     private native void nativeStopListening(long nativePtr);
 
-    private static native long nativeCreateNewObject(long sharedRealmPtr, long tablePtr);
+    private static native long nativeCreateNewObject(long sharedRealmPtr, long tableRefPtr);
 
-    private static native long nativeCreateRow(long sharedRealmPtr, long tablePtr);
+    private static native long nativeCreateRow(long sharedRealmPtr, long tableRefPtr);
 
 
     // Return a pointer to newly created Row. We may need to return a OsObject pointer in the future.
     private static native long nativeCreateNewObjectWithLongPrimaryKey(long sharedRealmPtr,
-                                                                       long tablePtr, long pk_column_index,
+                                                                       long tableRefPtr, long pk_column_index,
                                                                        long primaryKeyValue, boolean isNullValue);
 
     // Return a index of newly created Row.
     private static native long nativeCreateRowWithLongPrimaryKey(long sharedRealmPtr,
-                                                                 long tablePtr, long pk_column_index,
+                                                                 long tableRefPtr, long pk_column_index,
                                                                  long primaryKeyValue, boolean isNullValue);
 
     // Return a pointer to newly created Row. We may need to return a OsObject pointer in the future.
     private static native long nativeCreateNewObjectWithStringPrimaryKey(long sharedRealmPtr,
-                                                                         long tablePtr, long pk_column_index,
+                                                                         long tableRefPtr, long pk_column_index,
                                                                          @Nullable String primaryKeyValue);
 
     // Return a index of newly created Row.
     private static native long nativeCreateRowWithStringPrimaryKey(long sharedRealmPtr,
-                                                                   long tablePtr, long pk_column_index,
+                                                                   long tableRefPtr, long pk_column_index,
                                                                    String primaryKeyValue);
 
     // Return sync::object_id_column_name

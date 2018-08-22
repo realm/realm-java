@@ -263,7 +263,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTable(J
         table_name = JStringAccessor(env, j_table_name); // throws
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         shared_realm->verify_in_write(); // throws
-        Table* table;
+        TableRef table;
         auto& group = shared_realm->read_group();
 #if REALM_ENABLE_SYNC
         // Sync doesn't throw when table exists.
@@ -276,7 +276,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTable(J
 #else
         table = group.add_table(table_name); // throws
 #endif
-        return reinterpret_cast<jlong>(table);
+        return reinterpret_cast<jlong>(new TableRef(table));
     }
     catch (TableNameInUse& e) {
         // We need to print the table name, so catch the exception here.
@@ -302,7 +302,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         shared_realm->verify_in_write(); // throws
         DataType pkType = is_string_type ? DataType::type_String : DataType::type_Int;
-        Table* table;
+        TableRef table;
         auto& group = shared_realm->read_group();
 #if REALM_ENABLE_SYNC
         // Sync doesn't throw when table exists.
@@ -319,7 +319,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
         table->add_search_index(column_key);
 #endif
         ObjectStore::set_primary_key_for_object(group, class_name_str, field_name);
-        return reinterpret_cast<jlong>(table);
+        return reinterpret_cast<jlong>(new TableRef(table));
     }
     catch (TableNameInUse& e) {
         // We need to print the table name, so catch the exception here.

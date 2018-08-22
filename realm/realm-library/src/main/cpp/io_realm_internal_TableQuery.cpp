@@ -60,15 +60,16 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery(
 static TableRef getTableForLinkQuery(jlong nativeQueryPtr, const JLongArrayAccessor& tablesArray,
                                      const JLongArrayAccessor& colKeysArray)
 {
-    auto table_ref = reinterpret_cast<Query *>(nativeQueryPtr)->get_table();
+    TableRef table_ref = reinterpret_cast<Query *>(nativeQueryPtr)->get_table();
     jsize link_element_count = colKeysArray.size() - 1;
     for (int i = 0; i < link_element_count; ++i) {
         auto col_key = ColKey(colKeysArray[i]);
-        auto table_ptr = reinterpret_cast<Table *>(tablesArray[i]);
-        if (table_ptr == nullptr) {
+        TableRef* linked_table_ref = reinterpret_cast<TableRef*>(tablesArray[i]);
+        if (linked_table_ref == nullptr) {
             table_ref->link(col_key);
         }
         else {
+            Table* table_ptr = *linked_table_ref;
             table_ref->backlink(*table_ptr, col_key);
         }
     }
@@ -79,27 +80,28 @@ static TableRef getTableForLinkQuery(jlong nativeQueryPtr, const JLongArrayAcces
 static TableRef getTableByArray(jlong nativeQueryPtr, const JLongArrayAccessor& tablesArray,
                                 const JLongArrayAccessor& colKeysArray)
 {
-    auto table_ref = reinterpret_cast<Query *>(nativeQueryPtr)->get_table();
+    TableRef table_ref = reinterpret_cast<Query *>(nativeQueryPtr)->get_table();
     jsize link_element_count = colKeysArray.size() - 1;
     // TODO check this logic, this loop has no break, when finding the tableref
     for (int i = 0; i < link_element_count; ++i) {
-        auto table_ptr = reinterpret_cast<Table *>(tablesArray[i]);
+        TableRef* table_ptr = reinterpret_cast<TableRef*>(tablesArray[i]);
         if (table_ptr == nullptr) {
             table_ref = table_ref->get_link_target(ColKey(colKeysArray[i]));
         }
         else {
-            table_ref = TableRef(table_ptr);
+            table_ref = *table_ptr;
         }
     }
     return table_ref;
 }
 
 // I am not at all sure that it is even the right idea, let alone correct code. --gbm
-static bool isNullable(JNIEnv* env, Table* src_table_ptr, TableRef& table_ref, jlong column_key)
+static bool isNullable(JNIEnv* env, TableRef* src_table_ptr, TableRef& table_ref, jlong column_key)
 {
     // if table_arr is not a nullptr, this is a backlink and not allowed.
     if (src_table_ptr != nullptr) {
-        ThrowException(env, IllegalArgument, "LinkingObject from field " + std::string(src_table_ptr->get_column_name(ColKey(column_key))) + " is not nullable.");
+        TableRef table = *src_table_ptr;
+        ThrowException(env, IllegalArgument, "LinkingObject from field " + std::string(table->get_column_name(ColKey(column_key))) + " is not nullable.");
         return false;
     }
     return COL_NULLABLE(env, static_cast<const Table*>(table_ref), column_key);
@@ -1402,7 +1404,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
         jlong column_idx = col_key_arr[arr_len - 1];
 
         TableRef table_ref = getTableByArray(nativeQueryPtr, table_arr, col_key_arr);
-        if (!isNullable(env, reinterpret_cast<Table *>(table_arr[arr_len - 1]), table_ref, column_idx)) {
+        if (!isNullable(env, reinterpret_cast<TableRef*>(table_arr[arr_len - 1]), table_ref, column_idx)) {
             return;
         }
 
@@ -1481,7 +1483,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
         jlong column_idx = col_key_arr[arr_len - 1];
 
         TableRef table_ref = getTableByArray(nativeQueryPtr, table_arr, col_key_arr);
-        if (!isNullable(env, TBL(table_arr[arr_len - 1]), table_ref, column_idx)) {
+        if (!isNullable(env, reinterpret_cast<TableRef*>(table_arr[arr_len - 1]), table_ref, column_idx)) {
             return;
         }
 
@@ -1564,9 +1566,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty(JNIEnv* e
         ColKey column_idx = ColKey(col_arr[arr_len - 1]);
 
         // Support a backlink as the last column in a field descriptor
-        auto last = reinterpret_cast<Table*>(table_arr[arr_len-1]);
+        TableRef* last = reinterpret_cast<TableRef*>(table_arr[arr_len-1]);
         if (last != nullptr) {
-            pQuery->and_query(src_table_ref->column<BackLink>(*last, column_idx).count() == 0);
+            Table* table = *last;
+            pQuery->and_query(src_table_ref->column<BackLink>(*table, column_idx).count() == 0);
             return;
         }
 
@@ -1631,13 +1634,14 @@ Java_io_realm_internal_TableQuery_nativeIsNotEmpty(JNIEnv *env, jobject, jlong n
     jsize arr_len = col_arr.size();
     Query* pQuery = reinterpret_cast<Query *>(nativeQueryPtr);
     try {
-        TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, col_arr);
+        Table* src_table_ref = getTableForLinkQuery(nativeQueryPtr, table_arr, col_arr);
         ColKey column_idx = ColKey(col_arr[arr_len - 1]);
 
         // Support a backlink as the last column in a field descriptor
-        auto last = reinterpret_cast<Table*>(table_arr[arr_len-1]);
+        TableRef* last = reinterpret_cast<TableRef*>(table_arr[arr_len-1]);
         if (last != nullptr) {
-            pQuery->and_query(src_table_ref->column<BackLink>(*last, column_idx).count() != 0);
+            Table* table = *last;
+            pQuery->and_query(src_table_ref->column<BackLink>(*table, column_idx).count() != 0);
             return;
         }
 

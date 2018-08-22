@@ -123,9 +123,6 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
     }
-    catch (NoSuchTable e) {
-        ThrowException(env, IllegalState, e.what());
-    }
     catch (runtime_error& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, RuntimeError, ss.str());
