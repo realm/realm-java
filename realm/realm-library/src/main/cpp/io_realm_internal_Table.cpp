@@ -908,7 +908,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(JNIEnv* e
         return;
     }
     try {
-        if (dataArray == nullptr && !COL_NULLABLE(env, TBL(nativeTablePtr), columnKey)) {
+        if (dataArray == nullptr && !COL_NULLABLE(env, table, columnKey)) {
             return;
         }
 

@@ -64,7 +64,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved);
 // Helper macros for better readability
 #define S(x) static_cast<size_t>(x)
 #define B(x) static_cast<bool>(x)
-#define TBL(x) reinterpret_cast<realm::Table*>(x)
 #define Q(x) reinterpret_cast<realm::Query*>(x)
 #define ROW(x) reinterpret_cast<realm::Obj*>(x)//TODO rename ROW to OBJ
 #define TBL_REF(x) *reinterpret_cast<realm::TableRef*>(x)
