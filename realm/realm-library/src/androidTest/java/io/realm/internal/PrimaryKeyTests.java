@@ -172,7 +172,7 @@ public class PrimaryKeyTests {
         sharedRealm.cancelTransaction();
     }
 
-    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
+    @Ignore("__CORE6__: No support for fileformat 6 and below: https://github.com/realm/realm-java/issues/6123")
     @Test
     public void migratePrimaryKeyTableIfNeeded_first() throws IOException {
         configFactory.copyRealmFromAssets(context, "080_annotationtypes.realm", "default.realm");
@@ -183,7 +183,7 @@ public class PrimaryKeyTests {
         assertEquals(RealmFieldType.STRING, sharedRealm.getTable("pk").getColumnType(0));
     }
 
-    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
+    @Ignore("__CORE6__: No support for fileformat 6 and below: https://github.com/realm/realm-java/issues/6123")
     @Test
     public void migratePrimaryKeyTableIfNeeded_second() throws IOException {
         configFactory.copyRealmFromAssets(context, "0841_annotationtypes.realm", "default.realm");
@@ -200,7 +200,7 @@ public class PrimaryKeyTests {
     // In 0.84.2, the class names in pk table has been renamed to some incorrect names like "Thclass", "Mclass",
     // "NClass", "Meclass" and etc..
     // The 0841_pk_migration.realm is made to produce the issue.
-    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
+    @Ignore("__CORE6__: No support for fileformat 6 and below: https://github.com/realm/realm-java/issues/6123")
     @Test
     public void migratePrimaryKeyTableIfNeeded_primaryKeyTableMigratedWithRightName() throws IOException {
         List<String> tableNames = Arrays.asList(

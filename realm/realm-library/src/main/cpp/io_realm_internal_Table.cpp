@@ -536,6 +536,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         table->rename_column(col_key, column_name);
     }
     CATCH_STD()
+
+//    try {
+//        TableRef table = TBL_REF(native_table_ptr);
+//        ColKey col_key(j_column_key);
+//        bool nullable = false;
+//        bool throw_on_value_conversion = is_primary_key;
+//        table->set_nullability(col_key, nullable, throw_on_value_conversion);
+//    }
+//    CATCH_STD()
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSize(JNIEnv* env, jobject, jlong nativeTablePtr)
