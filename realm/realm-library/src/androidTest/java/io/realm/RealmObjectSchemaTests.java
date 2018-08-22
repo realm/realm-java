@@ -405,7 +405,6 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
-    @Ignore("__CORE6__: until https://github.com/realm/realm-core-private/issues/209")
     public void requiredFieldAttribute() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
@@ -630,7 +629,6 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
-    @Ignore("__CORE6__: until https://github.com/realm/realm-core-private/issues/209")
     public void setNullable_trueAndFalse() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             thrown.expect(UnsupportedOperationException.class);
@@ -683,7 +681,6 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
-    @Ignore("__CORE6__: until https://github.com/realm/realm-core-private/issues/209")
     public void setRequired_trueAndFalse() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             thrown.expect(UnsupportedOperationException.class);
@@ -738,7 +735,7 @@ public class RealmObjectSchemaTests {
     // When converting a nullable field to required, the null values of the field will be set to the default value
     // according to the field type.
     @Test
-    @Ignore("__CORE6__: until https://github.com/realm/realm-core-private/issues/209")
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/239")
     public void setRequired_nullValueBecomesDefaultValue() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
@@ -860,8 +857,8 @@ public class RealmObjectSchemaTests {
 
     // Special test for making sure that binary data in all forms are transformed correctly
     // when moving between nullable and required states.
-    @Ignore("__CORE6__: until https://github.com/realm/realm-core-private/issues/209")
     @Test
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/239")
     public void binaryData_nullabilityConversions() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
@@ -892,6 +889,7 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/239")
     public void setRequired_true_onPrimaryKeyField_containsNullValues_shouldThrow() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
@@ -953,6 +951,7 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/239")
     public void setRequired_true_onPrimaryKeyField() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
@@ -961,6 +960,7 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/239")
     public void setRequired_false_onPrimaryKeyField() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
@@ -987,6 +987,7 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/239")
     public void setRequired_true_onIndexedField() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
@@ -995,6 +996,7 @@ public class RealmObjectSchemaTests {
     }
 
     @Test
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/239")
     public void setRequired_false_onIndexedField() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
@@ -1358,6 +1360,7 @@ public class RealmObjectSchemaTests {
 
     // Tests https://github.com/realm/realm-studio/issues/5899
     @Test
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/239")
     public void setRequired_keepExistingRowsIfPrimaryKey() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
