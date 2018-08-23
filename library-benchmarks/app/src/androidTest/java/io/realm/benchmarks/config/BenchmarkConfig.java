@@ -46,7 +46,10 @@ public class BenchmarkConfig {
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             throw new RuntimeException("SDCard does not appear to be mounted.");
         }
-        MyPermissionRequester.request(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
+        MyPermissionRequester.request(
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+        );
 
         // Create test folders
         File externalDocuments = new File(Environment.getExternalStorageDirectory(), "realm-benchmarks");
