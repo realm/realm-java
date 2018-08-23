@@ -266,7 +266,16 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         }
 
         if (required) {
-            table.convertColumnToNotNullable(columnKey);
+            try {
+                table.convertColumnToNotNullable(columnKey);
+            } catch (IllegalArgumentException e) {
+                // Preserve old behaviour instead of throwing the rather non-descript Core error
+                if (e.getMessage().contains("Attempted to insert null into non-nullable column")) {
+                    throw new IllegalStateException(String.format("The primary key field '%s' has 'null' values stored.", fieldName));
+                } else {
+                    throw e;
+                }
+            }
         } else {
             table.convertColumnToNullable(columnKey);
         }
