@@ -16,7 +16,13 @@
 
 package io.realm.benchmarks.config;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Environment;
+import android.support.test.InstrumentationRegistry;
+import android.support.v4.app.ActivityCompat;
+
+import org.junit.Assert;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +41,14 @@ public class BenchmarkConfig {
         // Benchmarks results should be saved in <documentFolder>/results/<className>.json
         // Baseline data should be found in <documentFolder>/baselines/<className>.json
         // Custom CSV files should be found in <documentFolder>/csv/<className>.csv
+
+        // Request permissions for accessing the SDCard (if needed)
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            throw new RuntimeException("SDCard does not appear to be mounted.");
+        }
+        MyPermissionRequester.request(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
+
+        // Create test folders
         File externalDocuments = new File(Environment.getExternalStorageDirectory(), "realm-benchmarks");
         if (!externalDocuments.exists() && !externalDocuments.mkdir()) {
             throw new RuntimeException("Could not create benchmark directory: " + externalDocuments);

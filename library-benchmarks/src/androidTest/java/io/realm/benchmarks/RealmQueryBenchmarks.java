@@ -87,7 +87,7 @@ public class RealmQueryBenchmarks {
     @Benchmark
     public void findAllSortedOneField(long reps) {
         for (long i = 0; i < reps; i++) {
-            RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllSorted(AllTypes.FIELD_STRING, Sort.ASCENDING);
+            RealmResults<AllTypes> results = realm.where(AllTypes.class).sort(AllTypes.FIELD_STRING, Sort.ASCENDING).findAll();
         }
     }
 }
