@@ -3538,18 +3538,18 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
-//    @Test
-//    public void rawPredicate_mixedWithTypedPredicates() {
-//        populateTestRealm();
-//        // FIXME We might need to track `or()` in cases such as this so we can add a TRUE_PREDICATE
-//        //
-//        RealmResults<AllTypes> result = realm.where(AllTypes.class)
-//                .equalTo("columnString", "test data 0")
-//                .or()
-//                .rawPredicate("columnString = 'test data 1'") // This throws `Missing right-hand side of OR`
-//                .findAll();
-//        assertEquals(2, result.size());
-//    }
+    @Test
+    public void rawPredicate_mixedWithTypedPredicates() {
+        populateTestRealm();
+        // FIXME We might need to track `or()` in cases such as this so we can add a TRUE_PREDICATE
+        //
+        RealmResults<AllTypes> result = realm.where(AllTypes.class)
+                .equalTo("columnString", "test data 0")
+                .or()
+                .rawPredicate("columnString = 'test data 1'")
+                .findAll();
+        assertEquals(2, result.size());
+    }
 
     @Test
     public void rawPredicate_withOrdering() {

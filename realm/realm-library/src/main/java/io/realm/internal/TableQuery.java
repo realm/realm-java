@@ -627,8 +627,8 @@ public class TableQuery implements NativeObject {
     }
 
     public void rawPredicate(String filter) {
-        validateQuery();
         nativePredicate(nativePtr, filter);
+        queryValidated = false;
     }
 
 

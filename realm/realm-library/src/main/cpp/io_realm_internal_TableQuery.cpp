@@ -1837,9 +1837,8 @@ Java_io_realm_internal_TableQuery_nativePredicate(JNIEnv *env, jobject, jlong na
     try {
         Query* query = reinterpret_cast<Query *>(nativeQueryPtr);
         JStringAccessor filter(env, j_filter); // throws
-        parser::ParserResult parser_result = realm::parser::parse(filter);
-
         query_builder::NoArguments no_args;
+        parser::ParserResult parser_result = realm::parser::parse(filter);
         query_builder::apply_predicate(*query, parser_result.predicate, no_args);
 
         // TODO What about ordering. What does this mean?
