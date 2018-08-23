@@ -735,7 +735,7 @@ public class RealmObjectSchemaTests {
     // When converting a nullable field to required, the null values of the field will be set to the default value
     // according to the field type.
     @Test
-    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/239")
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/241")
     public void setRequired_nullValueBecomesDefaultValue() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
@@ -858,7 +858,7 @@ public class RealmObjectSchemaTests {
     // Special test for making sure that binary data in all forms are transformed correctly
     // when moving between nullable and required states.
     @Test
-    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/239")
+    @Ignore("__CORE6__: https://github.com/realm/realm-core-private/issues/241")
     public void binaryData_nullabilityConversions() {
         if (type == ObjectSchemaType.IMMUTABLE) {
             return;
