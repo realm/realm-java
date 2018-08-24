@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 #include <realm/views.hpp>
 
-#include "java_sort_descriptor.hpp"
+#include "java_query_descriptor.hpp"
 #include "util.hpp"
 
 using namespace realm;
@@ -59,7 +59,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
     try {
         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
         if (j_sort_descriptor) {
-            descriptor->append_sort(JavaSortDescriptor(env, j_sort_descriptor).sort_descriptor());
+                descriptor->append_sort(JavaQueryDescriptor(env, j_sort_descriptor).sort_descriptor());
         }
     }
     CATCH_STD()
@@ -73,7 +73,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
     try {
         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
         if (j_distinct_descriptor) {
-            descriptor->append_distinct(JavaSortDescriptor(env, j_distinct_descriptor).distinct_descriptor());
+            descriptor->append_distinct(JavaQueryDescriptor(env, j_distinct_descriptor).distinct_descriptor());
         }
     }
     CATCH_STD()

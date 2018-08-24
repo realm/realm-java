@@ -23,14 +23,13 @@ import java.util.Locale;
 
 import javax.annotation.Nullable;
 
-import io.realm.annotations.Beta;
 import io.realm.annotations.Required;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
+import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SortDescriptor;
 import io.realm.internal.SubscriptionAwareOsResults;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
@@ -1902,7 +1901,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> sort(String[] fieldNames, Sort[] sortOrders) {
         realm.checkIfValid();
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
+        QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
         queryDescriptors.appendSort(sortDescriptor);
         return this;
     }
@@ -1936,14 +1935,14 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> distinct(String firstFieldName, String... remainingFieldNames) {
         realm.checkIfValid();
-        SortDescriptor distinctDescriptor;
+        QueryDescriptor distinctDescriptor;
         if (remainingFieldNames.length == 0) {
-            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, firstFieldName);
+            distinctDescriptor = QueryDescriptor.getInstanceForDistinct(getSchemaConnector(), table, firstFieldName);
         } else {
             String[] fieldNames = new String[1 + remainingFieldNames.length];
             fieldNames[0] = firstFieldName;
             System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
-            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
+            distinctDescriptor = QueryDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
         }
         queryDescriptors.appendDistinct(distinctDescriptor);
         return this;

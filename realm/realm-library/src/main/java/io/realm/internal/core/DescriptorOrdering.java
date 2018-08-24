@@ -2,7 +2,6 @@ package io.realm.internal.core;
 
 import io.realm.internal.NativeObject;
 import io.realm.internal.OsSharedRealm;
-import io.realm.internal.SortDescriptor;
 import io.realm.internal.TableQuery;
 
 /**
@@ -47,7 +46,7 @@ public class DescriptorOrdering implements NativeObject {
      *
      * @param descriptor description of the sort
      */
-    public void appendSort(SortDescriptor descriptor) {
+    public void appendSort(QueryDescriptor descriptor) {
         if (sortDefined) {
             throw new IllegalStateException("A sorting order was already defined. It cannot be redefined");
         }
@@ -60,7 +59,7 @@ public class DescriptorOrdering implements NativeObject {
      *
      * @param descriptor description of the distinct critia
      */
-    public void appendDistinct(SortDescriptor descriptor) {
+    public void appendDistinct(QueryDescriptor descriptor) {
         if (distinctDefined) {
             throw new IllegalStateException("A distinct field was already defined. It cannot be redefined");
         }
@@ -89,8 +88,8 @@ public class DescriptorOrdering implements NativeObject {
 
     private static native long nativeGetFinalizerMethodPtr();
     private static native long nativeCreate();
-    private static native void nativeAppendSort(long descriptorPtr, SortDescriptor sortDesc);
-    private static native void nativeAppendDistinct(long descriptorPtr, SortDescriptor sortDesc);
+    private static native void nativeAppendSort(long descriptorPtr, QueryDescriptor sortDesc);
+    private static native void nativeAppendDistinct(long descriptorPtr, QueryDescriptor sortDesc);
     private static native void nativeSetLimit(long descriptorPtr, long limit);
     private static native boolean nativeIsEmpty(long descriptorPtr);
 

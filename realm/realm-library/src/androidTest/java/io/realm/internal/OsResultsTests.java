@@ -37,6 +37,7 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 import io.realm.internal.core.DescriptorOrdering;
+import io.realm.internal.core.QueryDescriptor;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -153,7 +154,7 @@ public class OsResultsTests {
     @Test
     public void constructor_withDistinct() {
         DescriptorOrdering queryDescriptors = new DescriptorOrdering();
-        queryDescriptors.appendDistinct(SortDescriptor.getInstanceForDistinct(null, table, "firstName"));
+        queryDescriptors.appendDistinct(QueryDescriptor.getInstanceForDistinct(null, table, "firstName"));
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), queryDescriptors);
 
         assertEquals(3, osResults.size());
@@ -204,7 +205,7 @@ public class OsResultsTests {
     @Test
     public void sort() {
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan(new long[] {2}, oneNullTable, 1));
-        SortDescriptor sortDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
+        QueryDescriptor sortDescriptor = QueryDescriptor.getTestInstance(table, new long[] {2});
 
         OsResults osResults2 = osResults.sort(sortDescriptor);
 
@@ -237,7 +238,7 @@ public class OsResultsTests {
     @Test
     public void indexOf() {
         DescriptorOrdering queryDescriptors = new DescriptorOrdering();
-        queryDescriptors.appendSort(SortDescriptor.getTestInstance(table, new long[] {2}));
+        queryDescriptors.appendSort(QueryDescriptor.getTestInstance(table, new long[] {2}));
 
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), queryDescriptors);
         UncheckedRow row = table.getUncheckedRow(0);
@@ -248,7 +249,7 @@ public class OsResultsTests {
     public void distinct() {
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan(new long[] {2}, oneNullTable, 4));
 
-        SortDescriptor distinctDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
+        QueryDescriptor distinctDescriptor = QueryDescriptor.getTestInstance(table, new long[] {2});
         OsResults osResults2 = osResults.distinct(distinctDescriptor);
 
         // A new native Results should be created.

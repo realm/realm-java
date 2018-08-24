@@ -22,7 +22,7 @@
 #include <realm/util/optional.hpp>
 
 #include "java_class_global_def.hpp"
-#include "java_sort_descriptor.hpp"
+#include "java_query_descriptor.hpp"
 #include "observable_collection_wrapper.hpp"
 #include "util.hpp"
 
@@ -213,7 +213,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeSort(JNIEnv* env,
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto sorted_result = wrapper->collection().sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor());
+        auto sorted_result = wrapper->collection().sort(JavaQueryDescriptor(env, j_sort_desc).sort_descriptor());
         return reinterpret_cast<jlong>(new ResultsWrapper(sorted_result));
     }
     CATCH_STD()
@@ -227,7 +227,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeDistinct(JNIEnv* 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto distinct_result =
-            wrapper->collection().distinct(JavaSortDescriptor(env, j_distinct_desc).distinct_descriptor());
+            wrapper->collection().distinct(JavaQueryDescriptor(env, j_distinct_desc).distinct_descriptor());
         return reinterpret_cast<jlong>(new ResultsWrapper(distinct_result));
     }
     CATCH_STD()
