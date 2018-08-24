@@ -24,6 +24,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmFieldType;
 import io.realm.Sort;
 import io.realm.internal.Keep;
@@ -135,12 +136,14 @@ public class QueryDescriptor {
 
     // Called by JNI.
     @SuppressWarnings("unused")
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public long[][] getColumnIndices() {
         return columnIndices;
     }
 
     // Called by JNI.
     @SuppressWarnings("unused")
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public boolean[] getAscendings() {
         return ascendings;
     }
