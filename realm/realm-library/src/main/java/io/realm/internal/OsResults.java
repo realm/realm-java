@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
+import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.sync.OsSubscription;
 
 
@@ -284,18 +285,14 @@ public class OsResults implements NativeObject, ObservableCollection {
         return new OsResults(realm, srcTable, backlinksPtr);
     }
 
-    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query,
-                                            @Nullable SortDescriptor sortDescriptor,
-                                            @Nullable SortDescriptor distinctDescriptor) {
+    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query, DescriptorOrdering queryDescriptors) {
         query.validateQuery();
-        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
-                sortDescriptor,
-                distinctDescriptor);
+        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), queryDescriptors.getNativePtr());
         return new OsResults(sharedRealm, query.getTable(), ptr);
     }
 
     public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query) {
-        return createFromQuery(sharedRealm, query, null, null);
+        return createFromQuery(sharedRealm, query, new DescriptorOrdering());
     }
 
     OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
@@ -480,8 +477,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native long nativeGetFinalizerPtr();
 
-    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-                                                     @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
+    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long descriptorOrderingPtr);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 

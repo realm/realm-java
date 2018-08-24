@@ -36,6 +36,7 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
+import io.realm.internal.core.DescriptorOrdering;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -151,8 +152,9 @@ public class OsResultsTests {
 
     @Test
     public void constructor_withDistinct() {
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(null, table, "firstName");
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), null, distinctDescriptor);
+        DescriptorOrdering queryDescriptors = new DescriptorOrdering();
+        queryDescriptors.appendDistinct(SortDescriptor.getInstanceForDistinct(null, table, "firstName"));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), queryDescriptors);
 
         assertEquals(3, osResults.size());
         assertEquals("John", osResults.getUncheckedRow(0).getString(0));
@@ -234,9 +236,10 @@ public class OsResultsTests {
 
     @Test
     public void indexOf() {
-        SortDescriptor sortDescriptor = SortDescriptor.getTestInstance(table, new long[] {2});
+        DescriptorOrdering queryDescriptors = new DescriptorOrdering();
+        queryDescriptors.appendSort(SortDescriptor.getTestInstance(table, new long[] {2}));
 
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), sortDescriptor, null);
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), queryDescriptors);
         UncheckedRow row = table.getUncheckedRow(0);
         assertEquals(3, osResults.indexOf(row));
     }

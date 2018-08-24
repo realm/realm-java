@@ -41,9 +41,9 @@ static void finalize_results(jlong ptr)
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNIEnv* env, jclass,
-                                                                              jlong shared_realm_ptr, jlong query_ptr,
-                                                                              jobject j_sort_desc,
-                                                                              jobject j_distinct_desc)
+                                                                             jlong shared_realm_ptr,
+                                                                             jlong query_ptr,
+                                                                             jlong descriptor_ordering_ptr)
 {
     TR_ENTER()
     try {
@@ -53,13 +53,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNI
         }
 
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        DescriptorOrdering descriptor_ordering;
-        if (j_sort_desc) {
-            descriptor_ordering.append_sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor());
-        }
-        if (j_distinct_desc) {
-            descriptor_ordering.append_distinct(JavaSortDescriptor(env, j_distinct_desc).distinct_descriptor());
-        }
+        auto descriptor_ordering = *(reinterpret_cast<DescriptorOrdering*>(descriptor_ordering_ptr));
         Results results(shared_realm, *query, descriptor_ordering);
         auto wrapper = new ResultsWrapper(results);
 
