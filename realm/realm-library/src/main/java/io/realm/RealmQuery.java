@@ -1918,7 +1918,6 @@ public class RealmQuery<E> {
      * to linked fields.
      * @throws IllegalStateException if distinct field names were already defined.
      */
-    @Beta
     public RealmQuery<E> distinct(String fieldName) {
         return distinct(fieldName, new String[]{});
     }
@@ -1935,7 +1934,6 @@ public class RealmQuery<E> {
      * is an unsupported type, or points to a linked field.
      * @throws IllegalStateException if distinct field names were already defined.
      */
-    @Beta
     public RealmQuery<E> distinct(String firstFieldName, String... remainingFieldNames) {
         realm.checkIfValid();
         SortDescriptor distinctDescriptor;
@@ -1948,6 +1946,21 @@ public class RealmQuery<E> {
             distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
         }
         queryDescriptors.appendDistinct(distinctDescriptor);
+        return this;
+    }
+
+    /**
+     * Limits the number of objects returned in case the query matched more objects.
+     *
+     * @param limit a limit that is {@code &gt; 0}.
+     * @throws IllegalArgumentException if the provided {@code limit} is less than 0.
+     */
+    public RealmQuery<E> limit(long limit) {
+        realm.checkIfValid();
+        if (limit < 0) {
+            throw new IllegalArgumentException("Only positive numbers are allowed. Yours was: " + limit);
+        }
+        queryDescriptors.setLimit(limit);
         return this;
     }
 
