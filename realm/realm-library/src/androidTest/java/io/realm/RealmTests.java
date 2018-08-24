@@ -4423,7 +4423,6 @@ public class RealmTests {
     }
 
     @Test
-    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
     public void beginTransaction_readOnlyThrows() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("readonly.realm")
@@ -4444,7 +4443,6 @@ public class RealmTests {
     }
 
     @Test
-    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
     public void getInstance_wrongSchemaInReadonlyThrows() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("readonly.realm")
@@ -4464,7 +4462,6 @@ public class RealmTests {
 
     // https://github.com/realm/realm-java/issues/5570
     @Test
-    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
     public void getInstance_migrationExceptionThrows_migrationBlockDefiend_realmInstancesShouldBeClosed() {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("readonly.realm")
