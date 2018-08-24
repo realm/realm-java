@@ -14,6 +14,10 @@
 
 * Updated to Object Store commit: 97fd03819f398b3c81c8b007feaca8636629050b
 
+### Credits
+
+* Thanks to @lucasdornelasv for improving the performance of `Realm.copyToRealm()`, `Realm.copyToRealmOrUpdate()` and `Realm.copyFromRealm()` #(6124). 
+
 
 ## 5.4.3 (YYYY-MM-DD)
 
