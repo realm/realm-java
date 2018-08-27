@@ -16,6 +16,10 @@
 
 package io.realm.examples.unittesting.repository;
 
+import io.realm.examples.unittesting.model.Dog;
+
 public interface DogRepository {
     void createDog(String name);
+
+    Dog findDogNamged(String name);
 }

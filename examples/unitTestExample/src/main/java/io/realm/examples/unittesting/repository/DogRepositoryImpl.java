@@ -17,16 +17,38 @@
 package io.realm.examples.unittesting.repository;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.examples.unittesting.model.Dog;
 
 public class DogRepositoryImpl implements DogRepository {
+
+    private final RealmConfiguration configuration;
+
+    public DogRepositoryImpl() {
+        this(Realm.getDefaultConfiguration());
+    }
+
+    public DogRepositoryImpl(RealmConfiguration configuration) {
+        this.configuration = configuration;
+    }
+
     @Override
     public void createDog(final String name) {
-        Realm realm = Realm.getDefaultInstance();
+        Realm realm = Realm.getInstance(configuration);
         realm.executeTransaction(r -> {
             Dog dog = r.createObject(Dog.class);
             dog.setName(name);
         });
         realm.close();
+    }
+
+    @Override
+    public Dog findDogNamged(String name) {
+        Realm realm = Realm.getInstance(configuration);
+        try {
+            return realm.where(Dog.class).equalTo("name", name).findFirst();
+        } finally {
+            realm.close();
+        }
     }
 }
