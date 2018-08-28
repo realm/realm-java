@@ -97,7 +97,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
             String urlPrefix = syncConfig.getUrlPrefix();
             String customAuthorizationHeaderName = SyncManager.getAuthorizationHeaderName(syncConfig.getServerUrl());
-            Map<String, String> customHeaders = SyncManager.getCustomHttpHeaders(syncConfig.getServerUrl());
+            Map<String, String> customHeaders = SyncManager.getCustomRequestHeaders(syncConfig.getServerUrl());
             return new Object[]{
                     rosUserIdentity,
                     rosServerUrl,

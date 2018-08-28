@@ -31,6 +31,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
@@ -218,5 +221,121 @@ public class SyncManagerTests {
         SyncManager.setAuthorizationHeaderName("foo", "lOcAlHoSt");
         assertEquals("foo", SyncManager.getAuthorizationHeaderName(new URI("http://localhost")));
         assertEquals("foo", SyncManager.getAuthorizationHeaderName(new URI("http://LOCALHOST")));
+    }
+
+    @Test
+    public void addCustomRequestHeader_illegalArgumentThrows() {
+        //noinspection ConstantConditions
+        tryCase(() -> SyncManager.addCustomRequestHeader(null, "val"));
+        tryCase(() -> SyncManager.addCustomRequestHeader("", "val"));
+        //noinspection ConstantConditions
+        tryCase(() -> SyncManager.addCustomRequestHeader("header", null));
+
+        //noinspection ConstantConditions
+        tryCase(() -> SyncManager.addCustomRequestHeader(null, "val", "localhost"));
+        tryCase(() -> SyncManager.addCustomRequestHeader("", "val", "localhost"));
+        //noinspection ConstantConditions
+        tryCase(() -> SyncManager.addCustomRequestHeader("header", "value", null));
+        tryCase(() -> SyncManager.addCustomRequestHeader("header", "value", ""));
+    }
+
+    @Test
+    public void addCustomRequestHeaders_illegalArgumentThrows() {
+        tryCase(() -> SyncManager.addCustomRequestHeaders(null));
+        tryCase(() -> SyncManager.addCustomRequestHeaders(Collections.emptyMap(), null));
+        tryCase(() -> SyncManager.addCustomRequestHeaders(Collections.emptyMap(), ""));
+    }
+
+    @Test
+    public void addCustomRequestHeader() throws URISyntaxException {
+        SyncManager.addCustomRequestHeader("header1", "val1");
+        SyncManager.addCustomRequestHeader("header2", "val2");
+        Map<String, String> headers = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
+        assertEquals(2, headers.size());
+        Map.Entry<String, String> header = headers.entrySet().iterator().next();
+        assertEquals("header1", header.getKey());
+        assertEquals("val1", header.getValue());
+    }
+
+    @Test
+    public void addCustomRequestHeader_hostOverrideGlobal() throws URISyntaxException {
+        SyncManager.addCustomRequestHeader("header1", "val1");
+        SyncManager.addCustomRequestHeader("header1", "val2", "localhost");
+        Map<String, String> headers = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
+        assertEquals(1, headers.size());
+        Map.Entry<String, String> header = headers.entrySet().iterator().next();
+        assertEquals("header1", header.getKey());
+        assertEquals("val2", header.getValue());
+    }
+
+    @Test
+    public void addCustomRequestHeader_ignoreCasingForHost() throws URISyntaxException {
+        SyncManager.addCustomRequestHeader("header1", "val1", "lOcAlHoSt");
+        SyncManager.addCustomRequestHeader("header2", "val2", "LOCALHOST");
+        Map<String, String> headers = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
+        assertEquals(2, headers.size());
+    }
+
+    @Test
+    public void addCustomHeaders() throws URISyntaxException {
+        Map<String, String> inputHeaders = new LinkedHashMap<>();
+        inputHeaders.put("header1", "value1");
+        inputHeaders.put("header2", "value2");
+        SyncManager.addCustomRequestHeaders(inputHeaders);
+        Map<String, String> outputHeaders = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
+        assertEquals(2, outputHeaders.size());
+    }
+
+    @Test
+    public void addCustomHeaders_hostOverrideGlobal() throws URISyntaxException {
+        Map<String, String> inputHeaders = new LinkedHashMap<>();
+        inputHeaders.put("header1", "val1");
+        SyncManager.addCustomRequestHeaders(inputHeaders);
+        inputHeaders.put("header1", "val2");
+        SyncManager.addCustomRequestHeaders(inputHeaders, "localhost");
+        Map<String, String> outputHeaders = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
+        assertEquals(1, outputHeaders.size());
+        Map.Entry<String, String> header = outputHeaders.entrySet().iterator().next();
+        assertEquals("header1", header.getKey());
+        assertEquals("val2", header.getValue());
+    }
+
+    @Test
+    public void addCustomHeader_combinesSingleAndMultiple() throws URISyntaxException {
+        Map<String, String> inputHeaders1 = new LinkedHashMap<>();
+        inputHeaders1.put("header1", "val1");
+        Map<String, String> inputHeaders2 = new LinkedHashMap<>();
+        inputHeaders2.put("header2", "val2");
+
+        SyncManager.addCustomRequestHeader("header3", "val3");
+        SyncManager.addCustomRequestHeaders(inputHeaders1);
+        SyncManager.addCustomRequestHeader("header4", "val4", "realm.io");
+        SyncManager.addCustomRequestHeaders(inputHeaders2, "realm.io");
+
+        Map<String, String> localhostHeaders = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
+        assertEquals(2, localhostHeaders.size());
+        Iterator<Map.Entry<String, String>> it = localhostHeaders.entrySet().iterator();
+        Map.Entry<String, String> item = it.next();
+        assertEquals("header3", item.getKey());
+        assertEquals("val3", item.getValue());
+        item = it.next();
+        assertEquals("header1", item.getKey());
+        assertEquals("val1", item.getValue());
+
+        Map<String, String> realmioHeaders = SyncManager.getCustomRequestHeaders(new URI("http://realm.io"));
+        it = realmioHeaders.entrySet().iterator();
+        assertEquals(4, realmioHeaders.size());
+        item = it.next();
+        assertEquals("header3", item.getKey());
+        assertEquals("val3", item.getValue());
+        item = it.next();
+        assertEquals("header1", item.getKey());
+        assertEquals("val1", item.getValue());
+        item = it.next();
+        assertEquals("header4", item.getKey());
+        assertEquals("val4", item.getValue());
+        item = it.next();
+        assertEquals("header2", item.getKey());
+        assertEquals("val2", item.getValue());
     }
 }

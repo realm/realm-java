@@ -295,9 +295,7 @@ public class SyncManager {
      * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
      */
     public static synchronized void setAuthorizationHeaderName(String headerName) {
-        if (Util.isEmptyString(headerName)) {
-            throw new IllegalArgumentException("Non-empty 'headerName' required.");
-        }
+        checkNotEmpty(headerName, "headerName");
         globalAuthorizationHeaderName = headerName;
     }
 
@@ -317,12 +315,8 @@ public class SyncManager {
      */
 
     public static synchronized void setAuthorizationHeaderName(String headerName, String host) {
-        if (Util.isEmptyString(headerName)) {
-            throw new IllegalArgumentException("Non-empty 'headerName' required.");
-        }
-        if (Util.isEmptyString(host)) {
-            throw new IllegalArgumentException("Non-empty 'host' required.");
-        }
+        checkNotEmpty(headerName, "headerName");
+        checkNotEmpty(host, "host");
         host = host.toLowerCase(Locale.US);
         hostRestrictedAuthorizationHeaderName.put(host, headerName);
     }
@@ -333,15 +327,9 @@ public class SyncManager {
      * @param headerName
      * @param headerValue
      */
-    public static synchronized void addCustomHeader(String headerName, String headerValue) {
-        if (Util.isEmptyString(headerName)) {
-            throw new IllegalArgumentException("Non-empty 'headerName' required.");
-        }
-        //noinspection ConstantConditions
-        if (headerValue == null) {
-            throw new IllegalArgumentException("Non-null 'headerValue' required.");
-        }
-
+    public static synchronized void addCustomRequestHeader(String headerName, String headerValue) {
+        checkNotEmpty(headerName, "headerName");
+        checkNotNull(headerValue, "headerValue");
         authServer.addHeader(headerName, headerValue, null);
         globalCustomHeaders.put(headerName, headerValue);
     }
@@ -352,14 +340,10 @@ public class SyncManager {
      * @param headerName
      * @param headerValue
      */
-    public static synchronized void addCustomHeader(String headerName, String headerValue, String host) {
-        if (Util.isEmptyString(headerName)) {
-            throw new IllegalArgumentException("Non-empty 'headerName' required.");
-        }
-        //noinspection ConstantConditions
-        if (headerValue == null) {
-            throw new IllegalArgumentException("Non-null 'headerValue' required.");
-        }
+    public static synchronized void addCustomRequestHeader(String headerName, String headerValue, String host) {
+        checkNotEmpty(headerName, "headerName");
+        checkNotNull(headerValue, "headerValue");
+        checkNotEmpty(host, "host");
 
         // Headers
         host = host.toLowerCase(Locale.US);
@@ -377,11 +361,11 @@ public class SyncManager {
      *
      * @param headers
      */
-    public static synchronized void addCustomHeaders(Map<String, String> headers) {
+    public static synchronized void addCustomRequestHeaders(Map<String, String> headers) {
         //noinspection ConstantConditions
         if (headers != null) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
-                addCustomHeader(entry.getKey(), entry.getValue());
+                addCustomRequestHeader(entry.getKey(), entry.getValue());
             }
         }
     }
@@ -391,7 +375,7 @@ public class SyncManager {
      *
      * @param headers
      */
-    public static synchronized void addCustomHeaders(Map<String, String> headers, String host) {
+    public static synchronized void addCustomRequestHeaders(Map<String, String> headers, String host) {
         if (Util.isEmptyString(host)) {
             throw new IllegalArgumentException("Non-empty 'host' required");
         }
@@ -399,7 +383,7 @@ public class SyncManager {
         //noinspection ConstantConditions
         if (headers != null) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
-                addCustomHeader(entry.getKey(), entry.getValue(), host);
+                addCustomRequestHeader(entry.getKey(), entry.getValue(), host);
             }
         }
     }
@@ -422,7 +406,7 @@ public class SyncManager {
      * @return all defined custom headers used when making http requests to the given url.
      * f
      */
-    public static synchronized Map<String, String> getCustomHttpHeaders(URI serverSyncUrl) {
+    public static synchronized Map<String, String> getCustomRequestHeaders(URI serverSyncUrl) {
         Map<String, String> headers = new LinkedHashMap<>();
         headers.putAll(globalCustomHeaders);
         String host = serverSyncUrl.getHost().toLowerCase(Locale.US);
@@ -709,6 +693,18 @@ public class SyncManager {
             if (stream != null) {
                 stream.close();
             }
+        }
+    }
+
+    private static void checkNotEmpty(String headerName, String varName) {
+        if (Util.isEmptyString(headerName)) {
+            throw new IllegalArgumentException("Non-empty '" + varName +"' required.");
+        }
+    }
+
+    private static void checkNotNull(String val, String varName) {
+        if (val == null) {
+            throw new IllegalArgumentException("Non-null'" + varName +"' required.");
         }
     }
 
