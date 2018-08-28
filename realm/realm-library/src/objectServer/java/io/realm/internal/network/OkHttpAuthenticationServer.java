@@ -19,7 +19,12 @@ package io.realm.internal.network;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
 
 import io.realm.SyncCredentials;
 import io.realm.internal.Util;
@@ -50,6 +55,37 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             // will not return before the tests timeout (ex 10 seconds for AuthTests)
             .connectionPool(new ConnectionPool(5, 5, TimeUnit.SECONDS))
             .build();
+
+    private Map<String, Map<String, String>> customHeaders = new LinkedHashMap<>();
+    private Map<String, String> customAuthorizationHeaders = new HashMap<>();
+
+    public OkHttpAuthenticationServer() {
+        customAuthorizationHeaders.put("", "Authorization"); // Default value for authorization header
+        customHeaders.put("", new LinkedHashMap<>()); // Add holder for headers used across all hosts
+    }
+
+    @Override
+    public void setAuthorizationHeaderName(String headerName, @Nullable String host) {
+        if (Util.isEmptyString(host)) {
+            customAuthorizationHeaders.put("", headerName);
+        } else {
+            customAuthorizationHeaders.put(host, headerName);
+        }
+    }
+
+    @Override
+    public void addHeader(String headerName, String headerValue, @Nullable String host) {
+        if (Util.isEmptyString(host)) {
+            customHeaders.get("").put(headerName, headerValue);
+        } else {
+            Map<String, String> headers = customHeaders.get(host);
+            if (headers == null) {
+                headers = new LinkedHashMap<>();
+                customHeaders.put(host, headers);
+            }
+            headers.put(headerName, headerValue);
+        }
+    }
 
     /**
      * Authenticate the given credentials on the specified Realm Authentication Server.
@@ -237,9 +273,25 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Accept", "application/json");
 
+        // Add custom headers used by all hosts
+        for (Map.Entry<String, String> entry : customHeaders.get("").entrySet()) {
+            builder.addHeader(entry.getKey(), entry.getValue());
+        }
+
+        // add custom headers used by specific host (may override g
+        for (Map.Entry<String, String> entry : customHeaders.get(url.getHost()).entrySet()) {
+            builder.addHeader(entry.getKey(), entry.getValue());
+        }
+
         // Only add Authorization header for those API's that require it.
+        // Use the defined custom authorization name if one is available for this host.
         if (!Util.isEmptyString(authToken)) {
-            builder.addHeader("Authorization", authToken);
+            String headerName = customAuthorizationHeaders.get(url.getHost());
+            if (headerName != null) {
+                builder.addHeader(headerName, authToken);
+            } else {
+                builder.addHeader(customAuthorizationHeaders.get(""), authToken);
+            }
         }
 
         return builder;

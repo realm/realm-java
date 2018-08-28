@@ -27,7 +27,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -106,46 +108,38 @@ public class SyncConfiguration extends RealmConfiguration {
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
     private final boolean syncClientValidateSsl;
-    @Nullable
-    private final String serverCertificateAssetName;
-    @Nullable
-    private final String serverCertificateFilePath;
+    @Nullable private final String serverCertificateAssetName;
+    @Nullable private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
     private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
     private final boolean isPartial;
+    @Nullable private final String syncUrlPrefix;
 
     private SyncConfiguration(File directory,
-                                String filename,
-                                String canonicalPath,
-                                @Nullable
-                                String assetFilePath,
-                                @Nullable
-                                byte[] key,
-                                long schemaVersion,
-                                @Nullable
-                                RealmMigration migration,
-                                boolean deleteRealmIfMigrationNeeded,
-                                OsRealmConfig.Durability durability,
-                                RealmProxyMediator schemaMediator,
-                                @Nullable
-                                RxObservableFactory rxFactory,
-                                @Nullable
-                                Realm.Transaction initialDataTransaction,
-                                boolean readOnly,
-                                SyncUser user,
-                                URI serverUrl,
-                                SyncSession.ErrorHandler errorHandler,
-                                boolean deleteRealmOnLogout,
-                                boolean syncClientValidateSsl,
-                                @Nullable
-                                String serverCertificateAssetName,
-                                @Nullable
-                                String serverCertificateFilePath,
-                                boolean waitForInitialData,
-                                OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
-                                boolean isPartial,
-                                CompactOnLaunchCallback compactOnLaunch
-    ) {
+                              String filename,
+                              String canonicalPath,
+                              @Nullable String assetFilePath,
+                              @Nullable byte[] key,
+                              long schemaVersion,
+                              @Nullable RealmMigration migration,
+                              boolean deleteRealmIfMigrationNeeded,
+                              OsRealmConfig.Durability durability,
+                              RealmProxyMediator schemaMediator,
+                              @Nullable RxObservableFactory rxFactory,
+                              @Nullable Realm.Transaction initialDataTransaction,
+                              boolean readOnly,
+                              SyncUser user,
+                              URI serverUrl,
+                              SyncSession.ErrorHandler errorHandler,
+                              boolean deleteRealmOnLogout,
+                              boolean syncClientValidateSsl,
+                              @Nullable String serverCertificateAssetName,
+                              @Nullable String serverCertificateFilePath,
+                              boolean waitForInitialData,
+                              OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
+                              boolean isPartial,
+                              CompactOnLaunchCallback compactOnLaunch,
+                              @Nullable String syncUrlPrefix) {
         super(directory,
                 filename,
                 canonicalPath,
@@ -173,6 +167,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.waitForInitialData = waitForInitialData;
         this.sessionStopPolicy = sessionStopPolicy;
         this.isPartial = isPartial;
+        this.syncUrlPrefix = syncUrlPrefix;
     }
 
     /**
@@ -452,6 +447,10 @@ public class SyncConfiguration extends RealmConfiguration {
         return !isPartial;
     }
 
+    public String getUrlPrefix() {
+        return syncUrlPrefix;
+    }
+
     /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */
@@ -489,6 +488,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         private boolean isPartial = true; // Partial Synchronization is enabled by default
         private CompactOnLaunchCallback compactOnLaunch;
+        private String syncUrlPrefix = null;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration. This SyncConfiguration
@@ -1006,6 +1006,20 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
+        /**
+         * FIXME
+         *
+         * @param urlPrefix
+         * @return
+         */
+        public SyncConfiguration.Builder urlPrefix(String urlPrefix) {
+            if (Util.isEmptyString(urlPrefix)) {
+                throw new IllegalArgumentException("Non-empty 'urlPrefix' required");
+            }
+            this.syncUrlPrefix = urlPrefix;
+            return this;
+        }
+
         private String MD5(String in) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -1158,7 +1172,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     waitForServerChanges,
                     sessionStopPolicy,
                     isPartial,
-                    compactOnLaunch
+                    compactOnLaunch,
+                    syncUrlPrefix
             );
         }
 

@@ -28,6 +28,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -129,6 +130,12 @@ public class SyncManager {
     // Right now it just lives and dies together with the process.
     private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
     private static volatile UserStore userStore;
+
+    // Header configuration
+    private static String globalAuthorizationHeaderName = "Authorization"; // authorization header name if no host-defined header is available
+    private static Map<String, String> hostRestrictedAuthorizationHeaderName = new HashMap<>(); // authorization header name for the given host
+    private static Map<String, String> globalCustomHeaders = new HashMap<>();
+    private static Map<String, Map<String, String>> hostRestrictedCustomHeaders = new HashMap<>();
 
     private static NetworkStateReceiver.ConnectionListener networkListener = new NetworkStateReceiver.ConnectionListener() {
         @Override
@@ -274,6 +281,149 @@ public class SyncManager {
         }
 
         return session;
+    }
+
+    /**
+     * Sets the name of the HTTP header used to send authorization data in when making requests to
+     * all Realm Object Servers used by the app. These servers must have been configured to expect a
+     * custom authorization header.
+     * <p>
+     * The default header is named "Authorization".
+     *
+     * @param headerName name of the header.
+     * @throws IllegalArgumentException if a null or empty header is provided.
+     * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
+     */
+    public static synchronized void setAuthorizationHeaderName(String headerName) {
+        if (Util.isEmptyString(headerName)) {
+            throw new IllegalArgumentException("Non-empty 'headerName' required.");
+        }
+        globalAuthorizationHeaderName = headerName;
+    }
+
+    /**
+     * Sets the name of the HTTP header used to send authorization data in when making requests to
+     * the Realm Object Server running on the defined {@code host}. This server must have been
+     * configured to expect a custom authorization header.
+     * <p>
+     * The default header is named "Authorization".
+     *
+     * @param headerName name of the header.
+     * @param host if this is provided, the authorization header name will only be used on this particular host.
+     *             If {@code null} the header will be renamed for all hosts. Example of valid values: "localhost",
+     *             "127.0.0.1" and "myinstance.us1.cloud.realm.io".
+     * @throws IllegalArgumentException if a {@code null} or empty header and/or host is provided.
+     * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
+     */
+
+    public static synchronized void setAuthorizationHeaderName(String headerName, String host) {
+        if (Util.isEmptyString(headerName)) {
+            throw new IllegalArgumentException("Non-empty 'headerName' required.");
+        }
+        if (Util.isEmptyString(headerName)) {
+            throw new IllegalArgumentException("Non-empty 'host' required.");
+        }
+        hostRestrictedAuthorizationHeaderName.put(host, headerName);
+    }
+
+    /**
+     * Adds an extra HTTP header to append to every request to a Realm Object Server.
+     *
+     * @param headerName
+     * @param headerValue
+     */
+    public static synchronized void addCustomHeader(String headerName, String headerValue) {
+        if (Util.isEmptyString(headerName)) {
+            throw new IllegalArgumentException("Non-empty 'headerName' required.");
+        }
+        //noinspection ConstantConditions
+        if (headerValue == null) {
+            throw new IllegalArgumentException("Non-null 'headerValue' required.");
+        }
+
+        authServer.addHeader(headerName, headerValue, null);
+        globalCustomHeaders.put(headerName, headerValue);
+    }
+
+    /**
+     * Adds an extra HTTP header to append to every request to a Realm Object Server.
+     *
+     * @param headerName
+     * @param headerValue
+     */
+    public static synchronized void addCustomHeader(String headerName, String headerValue, String host) {
+        if (Util.isEmptyString(headerName)) {
+            throw new IllegalArgumentException("Non-empty 'headerName' required.");
+        }
+        //noinspection ConstantConditions
+        if (headerValue == null) {
+            throw new IllegalArgumentException("Non-null 'headerValue' required.");
+        }
+
+        // Headers
+        authServer.addHeader(headerName, headerValue, host);
+        Map<String, String> headers = hostRestrictedCustomHeaders.get(host);
+        if (headers == null) {
+            headers = new LinkedHashMap<>();
+            hostRestrictedCustomHeaders.put(host, headers);
+        }
+        headers.put(headerName, headerValue);
+    }
+
+
+    /**
+     * FIXME
+     *
+     * @param headers
+     */
+    public static synchronized void addCustomHeaders(Map<String, String> headers) {
+        //noinspection ConstantConditions
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                addCustomHeader(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    /**
+     * FIXME
+     *
+     * @param headers
+     */
+    public static synchronized void addCustomHeaders(Map<String, String> headers, String host) {
+        //noinspection ConstantConditions
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                addCustomHeader(entry.getKey(), entry.getValue(), host);
+            }
+        }
+    }
+
+    /**
+     * Returns the authentication header name used for the http request to the given url.
+     *
+     * @param objectServerUrl Url to get header for.
+     * @return the authorization header name used by http requests to this url.
+     */
+    public static synchronized String getAuthorizationHeaderName(URI objectServerUrl) {
+        String host = objectServerUrl.getHost();
+        String hostRestrictedHeader = hostRestrictedAuthorizationHeaderName.get(host);
+        return (hostRestrictedHeader != null) ? hostRestrictedHeader : globalAuthorizationHeaderName;
+    }
+
+    /**
+     * Returns all the custom headers added to requests to the given url.
+     *
+     * @return all defined custom headers used when making http requests to the given url.
+     * f
+     */
+    public static synchronized Map<String, String> getCustomHttpHeaders(URI serverSyncUrl) {
+        Map<String, String> headers = new LinkedHashMap<>();
+        headers.putAll(globalCustomHeaders);
+        for (Map.Entry<String, String> entry : hostRestrictedCustomHeaders.get(serverSyncUrl.getHost()).entrySet()) {
+            headers.put(entry.getKey(), entry.getValue());
+        }
+        return headers;
     }
 
     /**
