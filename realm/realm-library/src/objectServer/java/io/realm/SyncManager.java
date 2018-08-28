@@ -320,9 +320,10 @@ public class SyncManager {
         if (Util.isEmptyString(headerName)) {
             throw new IllegalArgumentException("Non-empty 'headerName' required.");
         }
-        if (Util.isEmptyString(headerName)) {
+        if (Util.isEmptyString(host)) {
             throw new IllegalArgumentException("Non-empty 'host' required.");
         }
+        host = host.toLowerCase(Locale.US);
         hostRestrictedAuthorizationHeaderName.put(host, headerName);
     }
 
@@ -361,6 +362,7 @@ public class SyncManager {
         }
 
         // Headers
+        host = host.toLowerCase(Locale.US);
         authServer.addHeader(headerName, headerValue, host);
         Map<String, String> headers = hostRestrictedCustomHeaders.get(host);
         if (headers == null) {
@@ -369,7 +371,6 @@ public class SyncManager {
         }
         headers.put(headerName, headerValue);
     }
-
 
     /**
      * FIXME
@@ -391,6 +392,10 @@ public class SyncManager {
      * @param headers
      */
     public static synchronized void addCustomHeaders(Map<String, String> headers, String host) {
+        if (Util.isEmptyString(host)) {
+            throw new IllegalArgumentException("Non-empty 'host' required");
+        }
+        host = host.toLowerCase(Locale.US);
         //noinspection ConstantConditions
         if (headers != null) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
@@ -406,7 +411,7 @@ public class SyncManager {
      * @return the authorization header name used by http requests to this url.
      */
     public static synchronized String getAuthorizationHeaderName(URI objectServerUrl) {
-        String host = objectServerUrl.getHost();
+        String host = objectServerUrl.getHost().toLowerCase(Locale.US);
         String hostRestrictedHeader = hostRestrictedAuthorizationHeaderName.get(host);
         return (hostRestrictedHeader != null) ? hostRestrictedHeader : globalAuthorizationHeaderName;
     }
@@ -420,8 +425,12 @@ public class SyncManager {
     public static synchronized Map<String, String> getCustomHttpHeaders(URI serverSyncUrl) {
         Map<String, String> headers = new LinkedHashMap<>();
         headers.putAll(globalCustomHeaders);
-        for (Map.Entry<String, String> entry : hostRestrictedCustomHeaders.get(serverSyncUrl.getHost()).entrySet()) {
-            headers.put(entry.getKey(), entry.getValue());
+        String host = serverSyncUrl.getHost().toLowerCase(Locale.US);
+        Map<String, String> hostHeaders = hostRestrictedCustomHeaders.get(host);
+        if (hostHeaders != null) {
+            for (Map.Entry<String, String> entry : hostHeaders.entrySet()) {
+                headers.put(entry.getKey(), entry.getValue());
+            }
         }
         return headers;
     }
@@ -712,6 +721,10 @@ public class SyncManager {
     static synchronized void reset() {
         nativeReset();
         sessions.clear();
+        hostRestrictedAuthorizationHeaderName.clear();
+        globalAuthorizationHeaderName = "Authorization";
+        hostRestrictedCustomHeaders.clear();
+        globalCustomHeaders.clear();
     }
 
     /**

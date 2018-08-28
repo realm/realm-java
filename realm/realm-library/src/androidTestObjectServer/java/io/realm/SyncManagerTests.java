@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -26,6 +27,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -78,6 +81,7 @@ public class SyncManagerTests {
                 return true;
             }
         };
+        SyncManager.reset();
     }
 
     @After
@@ -87,6 +91,7 @@ public class SyncManagerTests {
         for (SyncUser syncUser : userStore.allUsers()) {
             userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
         }
+        SyncManager.reset();
     }
 
     @Test
@@ -160,6 +165,8 @@ public class SyncManagerTests {
 
     @Test
     public void session() throws IOException {
+        BaseRealm.applicationContext = null;
+        Realm.init(InstrumentationRegistry.getTargetContext());
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         SyncConfiguration config = user.createConfiguration(url)
@@ -171,5 +178,45 @@ public class SyncManagerTests {
         assertEquals(user, session.getUser()); // see also SessionTests
 
         realm.close();
+    }
+
+    private void tryCase(Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void setAuthorizationHeaderName_illegalArgumentsThrows() {
+        //noinspection ConstantConditions
+        tryCase(() -> SyncManager.setAuthorizationHeaderName(null));
+        tryCase(() -> SyncManager.setAuthorizationHeaderName(""));
+        //noinspection ConstantConditions
+        tryCase(() -> SyncManager.setAuthorizationHeaderName(null, "myhost"));
+        tryCase(() -> SyncManager.setAuthorizationHeaderName("", "myhost"));
+        //noinspection ConstantConditions
+        tryCase(() -> SyncManager.setAuthorizationHeaderName("myheader", null));
+        tryCase(() -> SyncManager.setAuthorizationHeaderName("myheader", ""));
+    }
+
+    @Test
+    public void setAuthorizationHeaderName() throws URISyntaxException {
+        SyncManager.setAuthorizationHeaderName("foo");
+        assertEquals("foo", SyncManager.getAuthorizationHeaderName(new URI("http://localhost")));
+    }
+
+    @Test
+    public void setAuthorizationHeaderName_hostOverrideGlobal() throws URISyntaxException {
+        SyncManager.setAuthorizationHeaderName("foo");
+        SyncManager.setAuthorizationHeaderName("bar", "localhost");
+        assertEquals("bar", SyncManager.getAuthorizationHeaderName(new URI("http://localhost")));
+    }
+
+    @Test
+    public void getAuthorizationHeaderName_ignoreHostCasing() throws URISyntaxException {
+        SyncManager.setAuthorizationHeaderName("foo", "lOcAlHoSt");
+        assertEquals("foo", SyncManager.getAuthorizationHeaderName(new URI("http://localhost")));
+        assertEquals("foo", SyncManager.getAuthorizationHeaderName(new URI("http://LOCALHOST")));
     }
 }
