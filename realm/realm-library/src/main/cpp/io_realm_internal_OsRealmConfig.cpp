@@ -333,7 +333,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         config.sync_config->error_handler = std::move(error_handler);
         config.sync_config->is_partial = (j_is_partial == JNI_TRUE);
 
-        if (j_custom_headers_array) {
+        if (j_url_prefix) {
             JStringAccessor url_prefix(env, j_url_prefix);
             config.sync_config->url_prefix = realm::util::Optional<std::string>(url_prefix);
         }

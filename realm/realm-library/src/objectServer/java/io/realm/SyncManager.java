@@ -288,7 +288,7 @@ public class SyncManager {
      * all Realm Object Servers used by the app. These servers must have been configured to expect a
      * custom authorization header.
      * <p>
-     * The default header is named "Authorization".
+     * The default authorization header is named "Authorization".
      *
      * @param headerName name of the header.
      * @throws IllegalArgumentException if a null or empty header is provided.
@@ -305,12 +305,11 @@ public class SyncManager {
      * the Realm Object Server running on the defined {@code host}. This server must have been
      * configured to expect a custom authorization header.
      * <p>
-     * The default header is named "Authorization".
+     * The default authorization header is named "Authorization".
      *
      * @param headerName name of the header.
      * @param host if this is provided, the authorization header name will only be used on this particular host.
-     *             If {@code null} the header will be renamed for all hosts. Example of valid values: "localhost",
-     *             "127.0.0.1" and "myinstance.us1.cloud.realm.io".
+     *             Example of valid values: "localhost", "127.0.0.1" and "myinstance.us1.cloud.realm.io".
      * @throws IllegalArgumentException if a {@code null} or empty header and/or host is provided.
      * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
      */
@@ -326,8 +325,9 @@ public class SyncManager {
     /**
      * Adds an extra HTTP header to append to every request to a Realm Object Server.
      *
-     * @param headerName
-     * @param headerValue
+     * @param headerName the name of the header.
+     * @param headerValue the value of header.
+     * @throws IllegalArgumentException if a non-empty {@code headerName} is provided or a null {@code headerValue}.
      */
     public static synchronized void addCustomRequestHeader(String headerName, String headerValue) {
         checkNotEmpty(headerName, "headerName");
@@ -339,8 +339,11 @@ public class SyncManager {
     /**
      * Adds an extra HTTP header to append to every request to a Realm Object Server.
      *
-     * @param headerName
-     * @param headerValue
+     * @param headerName the name of the header.
+     * @param headerValue the value of header.
+     * @param host if this is provided, the this header will only be used on this particular host.
+     *             Example of valid values: "localhost", "127.0.0.1" and "myinstance.us1.cloud.realm.io".
+     * @throws IllegalArgumentException If an non-empty {@code headerName}, {@code headerValue} or {@code host} is provided.
      */
     public static synchronized void addCustomRequestHeader(String headerName, String headerValue, String host) {
         checkNotEmpty(headerName, "headerName");
@@ -359,12 +362,12 @@ public class SyncManager {
     }
 
     /**
-     * FIXME
+     * Adds extra HTTP headers to append to every request to a Realm Object Server.
      *
-     * @param headers
+     * @param headers map of (headerName, headerValue) pairs.
+     * @throws IllegalArgumentException If any of the headers provided are illegal.
      */
-    public static synchronized void addCustomRequestHeaders(Map<String, String> headers) {
-        //noinspection ConstantConditions
+    public static synchronized void addCustomRequestHeaders(@Nullable Map<String, String> headers) {
         if (headers != null) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
                 addCustomRequestHeader(entry.getKey(), entry.getValue());
@@ -373,16 +376,18 @@ public class SyncManager {
     }
 
     /**
-     * FIXME
+     * Adds extra HTTP headers to append to every request to a Realm Object Server.
      *
-     * @param headers
+     * @param headers map of (headerName, headerValue) pairs.
+     * @param host if this is provided, the this header will only be used on this particular host.
+     *             Example of valid values: "localhost", "127.0.0.1" and "myinstance.us1.cloud.realm.io".
+     * @throws IllegalArgumentException If any of the headers provided are illegal.
      */
-    public static synchronized void addCustomRequestHeaders(Map<String, String> headers, String host) {
+    public static synchronized void addCustomRequestHeaders(@Nullable Map<String, String> headers, String host) {
         if (Util.isEmptyString(host)) {
             throw new IllegalArgumentException("Non-empty 'host' required");
         }
         host = host.toLowerCase(Locale.US);
-        //noinspection ConstantConditions
         if (headers != null) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
                 addCustomRequestHeader(entry.getKey(), entry.getValue(), host);
@@ -409,8 +414,7 @@ public class SyncManager {
      * f
      */
     public static synchronized Map<String, String> getCustomRequestHeaders(URI serverSyncUrl) {
-        Map<String, String> headers = new LinkedHashMap<>();
-        headers.putAll(globalCustomHeaders);
+        Map<String, String> headers = new LinkedHashMap<>(globalCustomHeaders);
         String host = serverSyncUrl.getHost().toLowerCase(Locale.US);
         Map<String, String> hostHeaders = hostRestrictedCustomHeaders.get(host);
         if (hostHeaders != null) {
@@ -448,6 +452,7 @@ public class SyncManager {
      * @return the all valid sessions belonging to the user.
      */
     static List<SyncSession> getAllSessions(SyncUser syncUser) {
+        //noinspection ConstantConditions
         if (syncUser == null) {
             throw new IllegalArgumentException("A non-empty 'syncUser' is required.");
         }
@@ -704,7 +709,7 @@ public class SyncManager {
         }
     }
 
-    private static void checkNotNull(String val, String varName) {
+    private static void checkNotNull(@Nullable String val, String varName) {
         if (val == null) {
             throw new IllegalArgumentException("Non-null'" + varName +"' required.");
         }

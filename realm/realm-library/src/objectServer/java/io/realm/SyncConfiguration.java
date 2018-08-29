@@ -447,6 +447,10 @@ public class SyncConfiguration extends RealmConfiguration {
         return !isPartial;
     }
 
+    /**
+     * Returns the url prefix used when establishing a sync connection to the Realm Object Server.
+     */
+    @Nullable
     public String getUrlPrefix() {
         return syncUrlPrefix;
     }
@@ -1007,10 +1011,14 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * FIXME
+         * The prefix that is prepended to the path in the HTTP request that initiates a sync
+         * connection to the Realm Object Server. The value specified must match with the server’s
+         * expectation. Changing the value of {@code urlPrefix} should be matched with a
+         * corresponding change of the server’s configuration. If no value is specified here then
+         * the default /realm-sync path is used.
          *
-         * @param urlPrefix
-         * @return
+         * @param urlPrefix The prefix to append to the sync connection url.
+         * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
          */
         public SyncConfiguration.Builder urlPrefix(String urlPrefix) {
             if (Util.isEmptyString(urlPrefix)) {
