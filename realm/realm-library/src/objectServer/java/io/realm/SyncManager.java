@@ -296,6 +296,7 @@ public class SyncManager {
      */
     public static synchronized void setAuthorizationHeaderName(String headerName) {
         checkNotEmpty(headerName, "headerName");
+        authServer.setAuthorizationHeaderName(headerName, null);
         globalAuthorizationHeaderName = headerName;
     }
 
@@ -318,6 +319,7 @@ public class SyncManager {
         checkNotEmpty(headerName, "headerName");
         checkNotEmpty(host, "host");
         host = host.toLowerCase(Locale.US);
+        authServer.setAuthorizationHeaderName(headerName, host);
         hostRestrictedAuthorizationHeaderName.put(host, headerName);
     }
 
