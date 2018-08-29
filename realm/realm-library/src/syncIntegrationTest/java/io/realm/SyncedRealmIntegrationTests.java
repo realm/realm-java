@@ -346,4 +346,26 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
             user.logOut();
         }
     }
+
+    // There really isn't a way to check if the network request is correct aside from attaching
+    // a network proxy like Charles. This test is thus mostly a smoke test that checks that setting
+    // the headers doesn't crash.
+    @Test
+    @RunTestInLooperThread
+    public void customHeaders() throws InterruptedException {
+        SyncManager.addCustomRequestHeader("foo", "bar");
+        SyncCredentials credentials = SyncCredentials.nickname("test", false);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
+        SyncConfiguration config = user.getDefaultConfiguration();
+        Realm realm = Realm.getInstance(config);
+        SyncManager.getSession(config).downloadAllServerChanges();
+        realm.refresh();
+        try {
+            assertTrue(realm.isEmpty());
+        } finally {
+            realm.close();
+            user.logOut();
+        }
+        looperThread.testComplete();
+    }
 }

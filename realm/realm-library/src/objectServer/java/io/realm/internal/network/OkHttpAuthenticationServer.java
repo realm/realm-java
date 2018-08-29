@@ -279,8 +279,11 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
         }
 
         // add custom headers used by specific host (may override g
-        for (Map.Entry<String, String> entry : customHeaders.get(url.getHost()).entrySet()) {
-            builder.addHeader(entry.getKey(), entry.getValue());
+        Map<String, String> customHeaders = this.customHeaders.get(url.getHost());
+        if (customHeaders != null) {
+            for (Map.Entry<String, String> entry : customHeaders.entrySet()) {
+                builder.addHeader(entry.getKey(), entry.getValue());
+            }
         }
 
         // Only add Authorization header for those API's that require it.

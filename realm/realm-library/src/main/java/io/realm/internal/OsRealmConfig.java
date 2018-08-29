@@ -206,12 +206,13 @@ public class OsRealmConfig implements NativeObject {
         // [key1, value1, key2, value2, ...]
         //noinspection unchecked
         Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[10]);
-        String[] customHeaders = new String[customHeadersMap != null ? customHeadersMap.size() : 0];
+        String[] customHeaders = new String[customHeadersMap != null ? customHeadersMap.size() * 2 : 0];
         if (customHeadersMap != null) {
             int i = 0;
             for (Map.Entry<String, String> entry : customHeadersMap.entrySet()) {
-                customHeaders[i++] = entry.getKey();
-                customHeaders[i++] = entry.getValue();
+                customHeaders[i] = entry.getKey();
+                customHeaders[i + 1] = entry.getValue();
+                i = i + 2;
             }
         }
 
