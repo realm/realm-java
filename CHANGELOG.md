@@ -7,8 +7,14 @@
 * [ObjectServer] Added support for observing connection changes for a session using `SyncSession.addConnectionChangeListener()` and `SyncSession.removeConnectionChangeListener()`.
 * [ObjectServer] Added Kotlin extension property `Realm.syncSession` for synchronized Realms.
 * [ObjectServer] Added Kotlin extension method `Realm.classPermissions<RealmModel>()`.
-* [ObjectServer] Added `SyncManager.setAuthorizationHeaderName(String)` and `SyncManager.addCustomHeader(String, String)` and `SyncManager.addCustomHeaders(Map<String,String>)` for supporting network proxies with their own access tokens (#XXX).
-* [ObjectServer] Added `SyncConfiguration.urlPrefix(String prefix)` for supporting network proxies with specific url requirements (#XXX).  
+* [ObjectServer] Added API's for making it easier to work with network proxies (#6163): 
+  * `SyncManager.setAuthorizationHeaderName(String headerName)`
+  * `SyncManager.setAuthorizationHeaderName(String headerName, String host)`
+  * `SyncManager.addCustomRequestHeader(String headerName, String headerValue)`
+  * `SyncManager.addCustomRequestHeader(String headerName, String headerValue, String host)`
+  * `SyncManager.addCustomRequestHeaders(Map<String, String> headers)`
+  * `SyncManager.addCustomRequestHeaders(Map<String, String> headers, String host)`
+  * `SyncConfiguration.Builder.urlPrefix(String prefix)`
  
 ### Bug Fixes
 
