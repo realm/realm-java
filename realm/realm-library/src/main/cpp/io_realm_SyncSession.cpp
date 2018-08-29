@@ -330,3 +330,34 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveConnectionListener(
     }
     CATCH_STD()
 }
+
+JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStart(JNIEnv* env, jclass, jstring j_local_realm_path)
+{
+    TR_ENTER()
+    try {
+        JStringAccessor local_realm_path(env, j_local_realm_path);
+        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+        if (!session) {
+            // FIXME: We should lift this restriction
+            ThrowException(env, IllegalState,
+            "Cannot call start() before a session is "
+            "created. A session will be created after the first call to Realm.getInstance().");
+            return;
+        }
+        session->revive_if_needed();
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStop(JNIEnv* env, jclass, jstring j_local_realm_path)
+{
+    TR_ENTER()
+    try {
+        JStringAccessor local_realm_path(env, j_local_realm_path);
+        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+        if (session) {
+            session->log_out();
+        }
+    }
+    CATCH_STD()
+}

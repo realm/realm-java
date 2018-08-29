@@ -510,6 +510,38 @@ public class SyncSession {
         }
     }
 
+    /**
+     * Attempts to start the session and enable synchronization with the Realm Object Server.
+     * <p>
+     * This happens automatically when opening the Realm instance, so doing it manually should only
+     * be needed if the session was stopped using {@link #stop()}.
+     * <p>
+     * If the session was already started, calling this method will do nothing.
+     * <p>
+     * A session is considered started if {@link #getState()} returns either {@link State#ACTIVE},
+     * {@link State#WAITING_FOR_ACCESS_TOKEN}. If the session is {@link State#DYING}, the session
+     * will be moved back to {@link State#ACTIVE}.
+     *
+     * @see #getState()
+     * @see #stop()
+     */
+    public synchronized void start() {
+        nativeStart(configuration.getPath());
+    }
+
+    /**
+     * Stops the session if it was active. This will stop any synchronization with the Realm
+     * Object Server.
+     * <p>
+     * Synchronization can be re-enabled by calling {@link #start()} again. Otherwise synchronization
+     * will resume when all Realms have been closed and an instance is re-opened.
+     * <p>
+     * If the session is already stopped, calling this method will do nothing.
+     */
+    public synchronized void stop() {
+        nativeStop(configuration.getPath());
+    }
+
     void setResolvedRealmURI(URI resolvedRealmURI) {
         this.resolvedRealmURI = resolvedRealmURI;
     }
@@ -859,4 +891,6 @@ public class SyncSession {
     private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
     private static native byte nativeGetState(String localRealmPath);
     private static native byte nativeGetConnectionState(String localRealmPath);
+    private static native void nativeStart(String localRealmPath);
+    private static native void nativeStop(String localRealmPath);
 }
