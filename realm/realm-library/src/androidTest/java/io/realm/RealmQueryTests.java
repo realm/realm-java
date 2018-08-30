@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.Locale;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -3518,4 +3517,78 @@ public class RealmQueryTests extends QueryTests {
         } catch (IllegalStateException ignore) {
         }
     }
+
+    @Test
+    public void limit() {
+        populateTestRealm(realm, TEST_DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).limit(5).findAll();
+        assertEquals(5, results.size());
+        for (int i = 0; i < 5; i++) {
+            assertEquals(i, results.get(i).getColumnLong());
+        }
+    }
+
+    @Test
+    public void limit_withSortAndDistinct() {
+        // The order of operators matter when using limit()
+        // If applying sort/distinct without limit, any order will result in the same query result.
+
+        realm.executeTransaction(r -> {
+            for (int i = 0; i < 5; i++) {
+                r.createObject(AllTypes.class).setColumnLong(i % 5);
+            }
+        });
+
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
+                .distinct(AllTypes.FIELD_LONG) // [4, 3, 2, 1, 0]
+                .limit(2) // [4, 3]
+                .findAll();
+        assertEquals(2, results.size());
+        assertEquals(4, results.first().getColumnLong());
+        assertEquals(3, results.last().getColumnLong());
+
+        results = realm.where(AllTypes.class)
+                .limit(2) // [0, 1]
+                .distinct(AllTypes.FIELD_LONG) // [ 0, 1]
+                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [1, 0]
+                .findAll();
+        assertEquals(2, results.size());
+        assertEquals(1, results.first().getColumnLong());
+        assertEquals(0, results.last().getColumnLong());
+
+        results = realm.where(AllTypes.class)
+                .distinct(AllTypes.FIELD_LONG) // [ 0, 1, 2, 3, 4]
+                .limit(2) // [0, 1]
+                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [1, 0]
+                .findAll();
+        assertEquals(2, results.size());
+        assertEquals(1, results.first().getColumnLong());
+        assertEquals(0, results.last().getColumnLong());
+    }
+
+    // Checks that https://github.com/realm/realm-object-store/pull/679/files#diff-c0354faf99b53cc5d3c9e6a58ed9ae85R610
+    // Do not apply to Realm Java as we do not lazy-execute queries.
+    @Test
+    public void limit_asSubQuery() {
+        realm.executeTransaction(r -> {
+            for (int i = 0; i < 5; i++) {
+                r.createObject(AllTypes.class).setColumnLong(i % 5);
+            }
+        });
+
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING)
+                .findAll() // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
+                .where()
+                .distinct(AllTypes.FIELD_LONG)
+                .findAll() // [4, 3, 2, 1, 0]
+                .where()
+                .limit(2) // [4, 3]
+                .findAll();
+        assertEquals(2, results.size());
+        assertEquals(4, results.first().getColumnLong());
+        assertEquals(3, results.last().getColumnLong());
+    }
+
 }

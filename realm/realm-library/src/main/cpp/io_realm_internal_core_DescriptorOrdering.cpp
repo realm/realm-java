@@ -79,14 +79,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeSetLimit(JNIEnv* env, jclass,
-                                                                             jlong /*descriptor_ptr*/,
-                                                                             jlong /*limit*/)
+JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppendLimit(JNIEnv* env, jclass,
+                                                                             jlong descriptor_ptr,
+                                                                             jlong limit)
 {
     TR_ENTER()
     try {
-        // auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
-        throw std::runtime_error("Not supported yet");
+         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
+         descriptor->append_limit(limit);
     }
     CATCH_STD()
 }

@@ -74,7 +74,7 @@ public class DescriptorOrdering implements NativeObject {
         if (limitDefined) {
             throw new IllegalStateException("A limit was already set. It cannot be redefined.");
         }
-        nativeSetLimit(nativePtr, limit);
+        nativeAppendLimit(nativePtr, limit);
         limitDefined = true;
     }
 
@@ -90,7 +90,7 @@ public class DescriptorOrdering implements NativeObject {
     private static native long nativeCreate();
     private static native void nativeAppendSort(long descriptorPtr, QueryDescriptor sortDesc);
     private static native void nativeAppendDistinct(long descriptorPtr, QueryDescriptor sortDesc);
-    private static native void nativeSetLimit(long descriptorPtr, long limit);
+    private static native void nativeAppendLimit(long descriptorPtr, long limit);
     private static native boolean nativeIsEmpty(long descriptorPtr);
 
 }

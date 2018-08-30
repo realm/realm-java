@@ -28,6 +28,7 @@ import junit.framework.AssertionFailedError;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.log.RealmLogger;
 import io.realm.rule.RunInLooperThread;
@@ -987,5 +989,78 @@ public class NotificationsTest {
             fail();
         } catch (IllegalStateException ignored) {
         }
+    }
+
+    // Checks that we can attach change listeners to queries involving `limit()` an that
+    // they do the right thing
+    @Test
+    @RunTestInLooperThread
+    @Ignore("FIXME: Objects going outside the `limit()` range is not identified as deleted in the changeset")
+    public void limitedQueryResult_fromTable_finegrainedListener() {
+        realm = looperThread.getRealm();
+        realm.executeTransaction(r -> {
+            for (int i = 0; i < 5; i++) {
+                r.createObject(AllTypes.class).setColumnLong(i % 5);
+            }
+        });
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
+                .distinct(AllTypes.FIELD_LONG) // [4, 3, 2, 1, 0]
+                .limit(2) // [4, 3]
+                .findAll();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener((objects, changeSet) -> {
+            // Currently this does not work. Objects going out of the limit range is not correctly
+            // identified as "deleted"
+            assertEquals(2, objects.size());
+            assertEquals(5, objects.first().getColumnLong());
+            assertEquals(4, objects.last().getColumnLong());
+            assertEquals(2, changeSet.getInsertions().length);
+            assertEquals(0, changeSet.getInsertions()[0]);
+            assertEquals(1, changeSet.getInsertions()[1]);
+            assertEquals(2, changeSet.getDeletions().length);
+            assertEquals(0, changeSet.getDeletions()[0]);
+            assertEquals(1, changeSet.getDeletions()[1]);
+            looperThread.testComplete();
+        });
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class).setColumnLong(5);
+            }
+        });
+    }
+
+    // Checks that we can attach change listeners to queries involving `limit()` an that
+    // they do the right thing
+    @Test
+    @RunTestInLooperThread
+    public void limitedQueryResult_fromTable_simpleChangeListener() {
+        realm = looperThread.getRealm();
+        realm.executeTransaction(r -> {
+            for (int i = 0; i < 5; i++) {
+                r.createObject(AllTypes.class).setColumnLong(i % 5);
+            }
+        });
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
+                .distinct(AllTypes.FIELD_LONG) // [4, 3, 2, 1, 0]
+                .limit(2) // [4, 3]
+                .findAll();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener((objects) -> {
+            assertEquals(2, objects.size());
+            assertEquals(5, objects.first().getColumnLong());
+            assertEquals(4, objects.last().getColumnLong());
+            looperThread.testComplete();
+        });
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class).setColumnLong(5);
+            }
+        });
     }
 }

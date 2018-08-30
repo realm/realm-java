@@ -1950,6 +1950,10 @@ public class RealmQuery<E> {
 
     /**
      * Limits the number of objects returned in case the query matched more objects.
+     * <p>
+     * Note that when using this method in combination with {@link #sort(String)} and
+     * {@link #distinct(String)} they will be executed in the order they where added which can
+     * effect the end result.
      *
      * @param limit a limit that is {@code &gt; 0}.
      * @throws IllegalArgumentException if the provided {@code limit} is less than 0.
