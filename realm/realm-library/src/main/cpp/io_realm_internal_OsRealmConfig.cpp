@@ -348,7 +348,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             for (int i = 0; i < count; i = i + 2) {
                 JStringAccessor key(env, (jstring) env->GetObjectArrayElement(j_custom_headers_array, i));
                 JStringAccessor value(env, (jstring) env->GetObjectArrayElement(j_custom_headers_array, i + 1));
-                config.sync_config->custom_http_headers[(std::string)key] = (std::string)value;
+                config.sync_config->custom_http_headers[std::string(key)] = std::string(value);
             }
         }
 

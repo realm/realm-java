@@ -40,7 +40,7 @@ public interface AuthenticationServer {
     void setAuthorizationHeaderName(String headerName, @Nullable String host);
 
     /**
-     * Add a custom header that should be applied to all http requests made by the authentication
+     * Add a custom header that should be applied to all HTTP requests made by the authentication
      * server.
      */
     void addHeader(String headerName, String headerValue, @Nullable String host);

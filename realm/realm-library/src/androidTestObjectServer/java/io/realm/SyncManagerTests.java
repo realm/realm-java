@@ -284,6 +284,13 @@ public class SyncManagerTests {
         SyncManager.addCustomRequestHeaders(inputHeaders);
         Map<String, String> outputHeaders = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
         assertEquals(2, outputHeaders.size());
+        Iterator<Map.Entry<String, String>> it = outputHeaders.entrySet().iterator();
+        Map.Entry<String, String> header1 = it.next();
+        assertEquals("header1", header1.getKey());
+        assertEquals("value1", header1.getValue());
+        Map.Entry<String, String> header2 = it.next();
+        assertEquals("header2", header2.getKey());
+        assertEquals("value2", header2.getValue());
     }
 
     @Test
