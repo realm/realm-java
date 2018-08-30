@@ -8,7 +8,7 @@ import io.realm.SyncManager
 import io.realm.TestSyncConfigurationFactory
 import io.realm.entities.SimpleClass
 import io.realm.objectserver.utils.Constants
-import io.realm.util.SyncTestUtils
+import io.realm.SyncTestUtils
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
