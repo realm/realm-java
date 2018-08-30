@@ -7,7 +7,8 @@
 * [ObjectServer] Added support for observing connection changes for a session using `SyncSession.addConnectionChangeListener()` and `SyncSession.removeConnectionChangeListener()`.
 * [ObjectServer] Added Kotlin extension property `Realm.syncSession` for synchronized Realms.
 * [ObjectServer] Added Kotlin extension method `Realm.classPermissions<RealmModel>()`.
- 
+* [ObjectServer] Added support for starting and stopping synchronization using `SyncSession.start()` and `SyncSession.stop()` (#6135).
+
 ### Bug Fixes
 
 * Methods and classes requiring synchronized Realms have been removed from the standard AAR package. They are now only visible when enabling synchronized Realms in Gradle. The methods and classes will still be visible in the source files and docs, but annotated with `@ObjectServer` (#5799).
