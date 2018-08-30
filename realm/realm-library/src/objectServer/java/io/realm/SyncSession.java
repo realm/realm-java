@@ -518,7 +518,7 @@ public class SyncSession {
      * <p>
      * If the session was already started, calling this method will do nothing.
      * <p>
-     * A session is considered started if {@link #getState()} returns either {@link State#ACTIVE},
+     * A session is considered started if {@link #getState()} returns either {@link State#ACTIVE} or
      * {@link State#WAITING_FOR_ACCESS_TOKEN}. If the session is {@link State#DYING}, the session
      * will be moved back to {@link State#ACTIVE}.
      *
@@ -530,11 +530,10 @@ public class SyncSession {
     }
 
     /**
-     * Stops the session if it was active. This will stop any synchronization with the Realm
-     * Object Server.
+     * Stops any synchronization with the Realm Object Server until the Realm is re-opened again
+     * after fully closing it.
      * <p>
-     * Synchronization can be re-enabled by calling {@link #start()} again. Otherwise synchronization
-     * will resume when all Realms have been closed and an instance is re-opened.
+     * Synchronization can be re-enabled by calling {@link #start()} again.
      * <p>
      * If the session is already stopped, calling this method will do nothing.
      */
