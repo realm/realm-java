@@ -5,7 +5,10 @@
 * [ObjectServer] Added `ConnectionState` enum describing the states a connection can be in.
 * [ObjectServer] Added `SyncSession.isConnected()`.
 * [ObjectServer] Added support for observing connection changes for a session using `SyncSession.addConnectionChangeListener()` and `SyncSession.removeConnectionChangeListener()`.
-* Added support for `RealmQuery.limit()` (#544).
+* [ObjectServer] Added Kotlin extension property `Realm.syncSession` for synchronized Realms.
+* [ObjectServer] Added Kotlin extension method `Realm.classPermissions<RealmModel>()`.
+* [ObjectServer] Added support for starting and stopping synchronization using `SyncSession.start()` and `SyncSession.stop()` (#6135).
+* Added support for `RealmQuery.limit(long limit)` (#544).
 
 ### Bug Fixes
 
@@ -13,7 +16,13 @@
 
 ### Internal
 
-* Updated to Object Store commit: 97fd03819f398b3c81c8b007feaca8636629050b
+* Updated to Realm Sync 3.9.3
+* Updated to Realm Core 5.8.0
+* Updated to Object Store commit: b0fc2814d9e6061ce5ba1da887aab6cfba4755ca
+
+### Credits
+
+* Thanks to @lucasdornelasv for improving the performance of `Realm.copyToRealm()`, `Realm.copyToRealmOrUpdate()` and `Realm.copyFromRealm()` #(6124). 
 
 
 ## 5.4.3 (YYYY-MM-DD)
