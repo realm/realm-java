@@ -94,15 +94,10 @@ public class SyncUserTests {
     @Rule
     public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
 
-    @BeforeClass
-    public static void initUserStore() {
-        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
-        UserStore userStore = new RealmFileUserStore();
-        SyncManager.setUserStore(userStore);
-    }
-
     @Before
     public void setUp() {
+        BaseRealm.applicationContext = null;
+        Realm.init(InstrumentationRegistry.getTargetContext());
         UserStore userStore = SyncManager.getUserStore();
         for (SyncUser syncUser : userStore.allUsers()) {
             userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
