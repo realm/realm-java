@@ -29,18 +29,14 @@ import java.io.File;
 import java.util.Random;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
-import io.realm.log.RealmLogger;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
