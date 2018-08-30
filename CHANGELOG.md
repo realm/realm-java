@@ -14,7 +14,9 @@
 
 ### Internal
 
-* Updated to Object Store commit: 97fd03819f398b3c81c8b007feaca8636629050b
+* Updated to Realm Sync 3.9.3
+* Updated to Realm Core 5.8.0
+* Updated to Object Store commit: f742b304bb34ebb44c96ec056b633e0c5921284a
 
 ### Credits
 
