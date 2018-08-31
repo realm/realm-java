@@ -14,6 +14,7 @@ import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
+import io.realm.SyncTestUtils;
 import io.realm.SyncUser;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
@@ -24,7 +25,6 @@ import io.realm.objectserver.model.PartialSyncObjectB;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.util.SyncTestUtils;
 
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;

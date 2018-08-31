@@ -8,7 +8,15 @@
 * [ObjectServer] Added Kotlin extension property `Realm.syncSession` for synchronized Realms.
 * [ObjectServer] Added Kotlin extension method `Realm.classPermissions<RealmModel>()`.
 * [ObjectServer] Added support for starting and stopping synchronization using `SyncSession.start()` and `SyncSession.stop()` (#6135).
-
+* [ObjectServer] Added API's for making it easier to work with network proxies (#6163): 
+  * `SyncManager.setAuthorizationHeaderName(String headerName)`
+  * `SyncManager.setAuthorizationHeaderName(String headerName, String host)`
+  * `SyncManager.addCustomRequestHeader(String headerName, String headerValue)`
+  * `SyncManager.addCustomRequestHeader(String headerName, String headerValue, String host)`
+  * `SyncManager.addCustomRequestHeaders(Map<String, String> headers)`
+  * `SyncManager.addCustomRequestHeaders(Map<String, String> headers, String host)`
+  * `SyncConfiguration.Builder.urlPrefix(String prefix)`
+ 
 ### Bug Fixes
 
 * Methods and classes requiring synchronized Realms have been removed from the standard AAR package. They are now only visible when enabling synchronized Realms in Gradle. The methods and classes will still be visible in the source files and docs, but annotated with `@ObjectServer` (#5799).
