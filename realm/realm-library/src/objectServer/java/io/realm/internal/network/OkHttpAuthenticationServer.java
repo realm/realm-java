@@ -90,6 +90,10 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     private Map<String, String> customAuthorizationHeaders = new HashMap<>();
 
     public OkHttpAuthenticationServer() {
+        initHeaders();
+    }
+
+    private void initHeaders() {
         customAuthorizationHeaders.put("", "Authorization"); // Default value for authorization header
         customHeaders.put("", new LinkedHashMap<>()); // Add holder for headers used across all hosts
     }
@@ -115,6 +119,13 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             }
             headers.put(headerName, headerValue);
         }
+    }
+
+    @Override
+    public void clearCustomHeaderSettings() {
+        customAuthorizationHeaders.clear();
+        customHeaders.clear();
+        initHeaders();
     }
 
     /**
