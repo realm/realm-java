@@ -23,7 +23,7 @@
 
 ### Internal
 
-* Updated to Realm Sync 3.9.3
+* Updated to Realm Sync 3.9.4
 * Updated to Realm Core 5.8.0
 * Updated to Object Store commit: b0fc2814d9e6061ce5ba1da887aab6cfba4755ca
 
