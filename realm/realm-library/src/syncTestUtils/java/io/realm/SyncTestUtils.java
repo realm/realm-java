@@ -74,7 +74,7 @@ public class SyncTestUtils {
             SyncManager.reset();
             BaseRealm.applicationContext = null; // Required for Realm.init() to work
         }
-        Realm.init(InstrumentationRegistry.getContext());
+        Realm.init(InstrumentationRegistry.getTargetContext());
         originalLogLevel = RealmLog.getLevel();
         RealmLog.setLevel(LogLevel.DEBUG);
     }

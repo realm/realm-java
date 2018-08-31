@@ -728,6 +728,7 @@ public class SyncManager {
         globalAuthorizationHeaderName = "Authorization";
         hostRestrictedCustomHeaders.clear();
         globalCustomHeaders.clear();
+        authServer.clearCustomHeaderSettings();
     }
 
     /**
