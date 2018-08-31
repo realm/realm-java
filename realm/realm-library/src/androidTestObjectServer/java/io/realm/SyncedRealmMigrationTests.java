@@ -35,13 +35,12 @@ import java.util.List;
 import io.realm.entities.IndexedFields;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.IncompatibleSyncedFileException;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
-import io.realm.exceptions.IncompatibleSyncedFileException;
 import io.realm.objectserver.utils.StringOnlyModule;
-import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
