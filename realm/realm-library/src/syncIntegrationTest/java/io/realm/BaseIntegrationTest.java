@@ -56,10 +56,6 @@ public abstract class BaseIntegrationTest {
 
     protected ConfigurationWrapper configurationFactory = new ConfigurationWrapper(looperThread);
 
-    static {
-        // Attempt to combat issues with the sync meta data Realm not being correctly cleaned
-    }
-
     /**
      * Starts a new ROS instance that can be used for testing.
      */

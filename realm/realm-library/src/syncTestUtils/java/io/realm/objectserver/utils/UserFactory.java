@@ -45,10 +45,15 @@ public class UserFactory {
     private String userName;
     private static UserFactory instance;
     private static RealmConfiguration configuration;
-    static {
-        RealmConfiguration.Builder builder = new RealmConfiguration.Builder().name("user-factory.realm");
-        ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
-        configuration = builder.build();
+
+    // Run initializer here to make it possible to ensure that Realm.init has been called.
+    // It is unpredictable when the static initializer is running
+    private static synchronized void initFactory(boolean forceReset) {
+        if (configuration == null || forceReset) {
+            RealmConfiguration.Builder builder = new RealmConfiguration.Builder().name("user-factory.realm");
+            ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
+            configuration = builder.build();
+        }
     }
 
     private UserFactory(String userName) {
@@ -102,7 +107,7 @@ public class UserFactory {
     // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
     // test case.
     public static void resetInstance() {
-        instance = null;
+        initFactory(true);
         Realm realm = Realm.getInstance(configuration);
         UserFactoryStore store = realm.where(UserFactoryStore.class).findFirst();
         realm.beginTransaction();
@@ -112,6 +117,7 @@ public class UserFactory {
         store.setUserName(UUID.randomUUID().toString());
         realm.commitTransaction();
         realm.close();
+        instance = null;
     }
 
     // The @Before method will be called before the looper tests finished. We need to find a better place to call this.
@@ -125,6 +131,7 @@ public class UserFactory {
 
     public static synchronized UserFactory getInstance() {
         if (instance == null)  {
+            initFactory(false);
             Realm realm = Realm.getInstance(configuration);
             UserFactoryStore store = realm.where(UserFactoryStore.class).findFirst();
             if (store == null || store.getUserName() == null) {
