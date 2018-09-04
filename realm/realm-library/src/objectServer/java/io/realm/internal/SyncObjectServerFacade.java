@@ -23,6 +23,7 @@ import android.net.ConnectivityManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
@@ -85,7 +86,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public Object[] getUserAndServerUrl(RealmConfiguration config) {
+    public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             SyncUser user = syncConfig.getUser();
@@ -94,9 +95,24 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
             String rosSerializedUser = user.toJson();
             byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
-            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath(), sessionStopPolicy, !syncConfig.isFullySynchronizedRealm()};
+            String urlPrefix = syncConfig.getUrlPrefix();
+            String customAuthorizationHeaderName = SyncManager.getAuthorizationHeaderName(syncConfig.getServerUrl());
+            Map<String, String> customHeaders = SyncManager.getCustomRequestHeaders(syncConfig.getServerUrl());
+            return new Object[]{
+                    rosUserIdentity,
+                    rosServerUrl,
+                    syncRealmAuthUrl,
+                    rosSerializedUser,
+                    syncConfig.syncClientValidateSsl(),
+                    syncConfig.getServerCertificateFilePath(),
+                    sessionStopPolicy,
+                    !syncConfig.isFullySynchronizedRealm(),
+                    urlPrefix,
+                    customAuthorizationHeaderName,
+                    customHeaders
+            };
         } else {
-            return new Object[8];
+            return new Object[11];
         }
     }
 

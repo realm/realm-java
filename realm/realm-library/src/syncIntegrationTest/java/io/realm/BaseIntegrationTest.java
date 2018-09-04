@@ -56,29 +56,6 @@ public abstract class BaseIntegrationTest {
 
     protected ConfigurationWrapper configurationFactory = new ConfigurationWrapper(looperThread);
 
-    static {
-        // Attempt to combat issues with the sync meta data Realm not being correctly cleaned
-    }
-
-    protected void prepareEnvironmentForTest() throws IOException {
-        deleteRosFiles();
-        if (BaseRealm.applicationContext != null) {
-            // Realm was already initialized. Reset all internal state
-            // in order to be able fully re-initialize.
-
-            // This will set the 'm_metadata_manager' in 'sync_manager.cpp' to be 'null'
-            // causing the SyncUser to remain in memory.
-            // They're actually not persisted into disk.
-            // move this call to 'tearDown' to clean in-memory & on-disk users
-            // once https://github.com/realm/realm-object-store/issues/207 is resolved
-            SyncManager.reset();
-            BaseRealm.applicationContext = null; // Required for Realm.init() to work
-        }
-        Realm.init(InstrumentationRegistry.getContext());
-        originalLogLevel = RealmLog.getLevel();
-        RealmLog.setLevel(LogLevel.DEBUG);
-    }
-
     /**
      * Starts a new ROS instance that can be used for testing.
      */
@@ -102,37 +79,7 @@ public abstract class BaseIntegrationTest {
             Log.e(HttpUtils.TAG, "Failed to stop Sync Server: " + Util.getStackTrace(e));
         }
     }
-
-    /**
-     * Tries to restore the environment as best as possible after a test.
-     */
-    protected void restoreEnvironmentAfterTest() {
-        // Block until all users are logged out
-        UserFactory.logoutAllUsers();
-
-        // Reset log level
-        RealmLog.setLevel(originalLogLevel);
-    }
-
-    // Cleanup filesystem to make sure nothing lives for the next test.
-    // Failing to do so might lead to DIVERGENT_HISTORY errors being thrown if Realms from
-    // previous tests are being accessed.
-    private static void deleteRosFiles() throws IOException {
-        File rosFiles = new File(InstrumentationRegistry.getContext().getFilesDir(),"realm-object-server");
-        deleteFile(rosFiles);
-    }
-
-    private static void deleteFile(File file) throws IOException {
-        if (file.isDirectory()) {
-            for (File c : file.listFiles()) {
-                deleteFile(c);
-            }
-        }
-        if (!file.delete()) {
-            throw new IllegalStateException("Failed to delete file or directory: " + file.getAbsolutePath());
-        }
-    }
-
+    
     // Returns a valid SyncConfiguration usable by tests
     // FIXME: WARNING: Do not use `SyncTestRealmConfigurationFactory`, but use this. Refactor later.
     protected static class ConfigurationWrapper {

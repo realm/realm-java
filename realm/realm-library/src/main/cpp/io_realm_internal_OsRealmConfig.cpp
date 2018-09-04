@@ -250,7 +250,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 #if REALM_ENABLE_SYNC
 JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
     JNIEnv* env, jclass, jlong native_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
-    jstring j_refresh_token, jboolean j_is_partial, jbyte j_session_stop_policy)
+    jstring j_refresh_token, jboolean j_is_partial, jbyte j_session_stop_policy, jstring j_url_prefix,
+    jstring j_custom_auth_header_name, jobjectArray j_custom_headers_array)
 {
     TR_ENTER_PTR(native_ptr)
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
@@ -323,8 +324,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             user = SyncManager::shared().get_user(sync_user_identifier, refresh_token);
         }
 
-
-
         SyncSessionStopPolicy session_stop_policy = static_cast<SyncSessionStopPolicy>(j_session_stop_policy);
 
         JStringAccessor realm_url(env, j_sync_realm_url);
@@ -333,13 +332,32 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         config.sync_config->bind_session_handler = std::move(bind_handler);
         config.sync_config->error_handler = std::move(error_handler);
         config.sync_config->is_partial = (j_is_partial == JNI_TRUE);
+
+        if (j_url_prefix) {
+            JStringAccessor url_prefix(env, j_url_prefix);
+            config.sync_config->url_prefix = realm::util::Optional<std::string>(url_prefix);
+        }
+
+        if (j_custom_auth_header_name) {
+            JStringAccessor custom_auth_header_name(env, j_custom_auth_header_name);
+            config.sync_config->authorization_header_name = realm::util::Optional<std::string>(custom_auth_header_name);
+        }
+
+        if (j_custom_headers_array) {
+            jsize count = env->GetArrayLength(j_custom_headers_array);
+            for (int i = 0; i < count; i = i + 2) {
+                JStringAccessor key(env, (jstring) env->GetObjectArrayElement(j_custom_headers_array, i));
+                JStringAccessor value(env, (jstring) env->GetObjectArrayElement(j_custom_headers_array, i + 1));
+                config.sync_config->custom_http_headers[std::string(key)] = std::string(value);
+            }
+        }
+
         if (!config.encryption_key.empty()) {
             config.sync_config->realm_encryption_key = std::array<char, 64>();
             std::copy_n(config.encryption_key.begin(), 64, config.sync_config->realm_encryption_key->begin());
         }
 
         return to_jstring(env, config.sync_config->realm_url().c_str());
-
     }
     CATCH_STD()
     return nullptr;

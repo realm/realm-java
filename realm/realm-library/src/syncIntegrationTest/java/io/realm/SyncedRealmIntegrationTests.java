@@ -33,9 +33,10 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.OsRealmConfig;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -346,4 +347,96 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
             user.logOut();
         }
     }
+
+    // Check that custom headers and auth header renames are correctly used for HTTP requests
+    // performed from Java.
+    @Test
+    @RunTestInLooperThread
+    public void javaRequestCustomHeaders() {
+        SyncManager.addCustomRequestHeader("Foo", "bar");
+        SyncManager.setAuthorizationHeaderName("RealmAuth");
+        runJavaRequestCustomHeadersTest();
+    }
+
+    // Check that custom headers and auth header renames are correctly used for HTTP requests
+    // performed from Java.
+    @Test
+    @RunTestInLooperThread
+    public void javaRequestCustomHeaders_specificHost() {
+        SyncManager.addCustomRequestHeader("Foo", "bar", Constants.HOST);
+        SyncManager.setAuthorizationHeaderName("RealmAuth", Constants.HOST);
+        runJavaRequestCustomHeadersTest();
+    }
+
+    private void runJavaRequestCustomHeadersTest() {
+        SyncCredentials credentials = SyncCredentials.nickname("test", false);
+
+        RealmLog.setLevel(LogLevel.ALL);
+        RealmLog.add((level, tag, throwable, message) -> {
+            if (level == LogLevel.TRACE
+                    && message.contains("Foo: bar")
+                    && message.contains("RealmAuth: ")) {
+                looperThread.testComplete();
+            }});
+
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
+        try {
+            user.changePassword("foo");
+        } catch (ObjectServerError e) {
+            if (e.getErrorCode() != ErrorCode.INVALID_CREDENTIALS) {
+                throw e;
+            }
+        }
+    }
+
+    // Test that auth header renaming, custom headers and url prefix are all propagated correctly
+    // to Sync. There really isn't a way to create a proper integration test since ROS used for testing
+    // isn't configured to accept such requests. Instead we inspect the log from Sync which will
+    // output the headers in TRACE mode.
+    @Test
+    @RunTestInLooperThread
+    public void syncAuthHeaderAndUrlPrefix() {
+        SyncManager.setAuthorizationHeaderName("TestAuth");
+        SyncManager.addCustomRequestHeader("Test", "test");
+        runSyncAuthHeadersAndUrlPrefixTest();
+    }
+
+    // Test that auth header renaming, custom headers and url prefix are all propagated correctly
+    // to Sync. There really isn't a way to create a proper integration test since ROS used for testing
+    // isn't configured to accept such requests. Instead we inspect the log from Sync which will
+    // output the headers in TRACE mode.
+    @Test
+    @RunTestInLooperThread
+    public void syncAuthHeaderAndUrlPrefix_specificHost() {
+        SyncManager.setAuthorizationHeaderName("TestAuth", Constants.HOST);
+        SyncManager.addCustomRequestHeader("Test", "test", Constants.HOST);
+        runSyncAuthHeadersAndUrlPrefixTest();
+    }
+
+    private void runSyncAuthHeadersAndUrlPrefixTest() {
+        SyncCredentials credentials = SyncCredentials.nickname("test", false);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
+        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM)
+                .urlPrefix("/foo")
+                .errorHandler(new SyncSession.ErrorHandler() {
+                    @Override
+                    public void onError(SyncSession session, ObjectServerError error) {
+                        RealmLog.error(error.toString());
+                    }
+                })
+                .build();
+
+        RealmLog.setLevel(LogLevel.ALL);
+        RealmLog.add((level, tag, throwable, message) -> {
+            if (tag.equals("REALM_SYNC")
+                    && message.contains("GET /foo/%2Fdefault%2F__partial%")
+                    && message.contains("TestAuth: Realm-Access-Token version=1")
+                    && message.contains("Test: test")) {
+                looperThread.testComplete();
+            }
+        });
+        Realm realm = Realm.getInstance(config);
+        looperThread.closeAfterTest(realm);
+    }
+
 }
