@@ -1,3 +1,10 @@
+## 5.6.0 (YYYY-MM-DD)
+
+### Enhancements
+
+* `@RealmClass("name")` and `@RealmField("name")` can now be used as a shorthand for defining custom name mappings (#6145).
+
+
 ## 5.5.0 (2018-08-31)
 
 ### Enhancements
