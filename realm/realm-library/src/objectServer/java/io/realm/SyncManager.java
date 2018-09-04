@@ -341,7 +341,7 @@ public class SyncManager {
      *
      * @param headerName the name of the header.
      * @param headerValue the value of header.
-     * @param host if this is provided, the this header will only be used on this particular host.
+     * @param host if this is provided, this header will only be used on this particular host.
      *             Example of valid values: "localhost", "127.0.0.1" and "myinstance.us1.cloud.realm.io".
      * @throws IllegalArgumentException If an non-empty {@code headerName}, {@code headerValue} or {@code host} is provided.
      */
@@ -411,7 +411,6 @@ public class SyncManager {
      * Returns all the custom headers added to requests to the given url.
      *
      * @return all defined custom headers used when making http requests to the given url.
-     * f
      */
     public static synchronized Map<String, String> getCustomRequestHeaders(URI serverSyncUrl) {
         Map<String, String> headers = new LinkedHashMap<>(globalCustomHeaders);

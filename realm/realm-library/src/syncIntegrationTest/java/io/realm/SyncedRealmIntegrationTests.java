@@ -29,12 +29,15 @@ import java.io.File;
 import java.util.Random;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
+import io.realm.log.RealmLogger;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunTestInLooperThread;
 
@@ -372,13 +375,17 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         SyncCredentials credentials = SyncCredentials.nickname("test", false);
 
         RealmLog.setLevel(LogLevel.ALL);
-        RealmLog.add((level, tag, throwable, message) -> {
-            if (level == LogLevel.TRACE
-                    && message.contains("Foo: bar")
-                    && message.contains("RealmAuth: ")) {
-                looperThread.testComplete();
-            }});
-
+        RealmLog.add(new RealmLogger() {
+            @Override
+            public void log(int level, String tag, @Nullable Throwable throwable, @Nullable String message) {
+                if (level == LogLevel.TRACE
+                        && message.contains("Foo: bar")
+                        && message.contains("RealmAuth: ")) {
+                    RealmLog.remove(this);
+                    looperThread.testComplete();
+                }
+            };
+        });
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         try {
             user.changePassword("foo");
@@ -427,12 +434,16 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
                 .build();
 
         RealmLog.setLevel(LogLevel.ALL);
-        RealmLog.add((level, tag, throwable, message) -> {
-            if (tag.equals("REALM_SYNC")
-                    && message.contains("GET /foo/%2Fdefault%2F__partial%")
-                    && message.contains("TestAuth: Realm-Access-Token version=1")
-                    && message.contains("Test: test")) {
-                looperThread.testComplete();
+        RealmLog.add(new RealmLogger() {
+            @Override
+            public void log(int level, String tag, @Nullable Throwable throwable, @Nullable String message) {
+                if (tag.equals("REALM_SYNC")
+                        && message.contains("GET /foo/%2Fdefault%2F__partial%")
+                        && message.contains("TestAuth: Realm-Access-Token version=1")
+                        && message.contains("Test: test")) {
+                    RealmLog.remove(this);
+                    looperThread.testComplete();
+                }
             }
         });
         Realm realm = Realm.getInstance(config);
