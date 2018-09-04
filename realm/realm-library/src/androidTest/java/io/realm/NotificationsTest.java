@@ -995,7 +995,6 @@ public class NotificationsTest {
     // they do the right thing
     @Test
     @RunTestInLooperThread
-    @Ignore("FIXME: Objects going outside the `limit()` range is not identified as deleted in the changeset")
     public void limitedQueryResult_fromTable_finegrainedListener() {
         realm = looperThread.getRealm();
         realm.executeTransaction(r -> {
@@ -1015,12 +1014,11 @@ public class NotificationsTest {
             assertEquals(2, objects.size());
             assertEquals(5, objects.first().getColumnLong());
             assertEquals(4, objects.last().getColumnLong());
-            assertEquals(2, changeSet.getInsertions().length);
+            assertEquals(1, changeSet.getInsertions().length);
             assertEquals(0, changeSet.getInsertions()[0]);
-            assertEquals(1, changeSet.getInsertions()[1]);
-            assertEquals(2, changeSet.getDeletions().length);
-            assertEquals(0, changeSet.getDeletions()[0]);
-            assertEquals(1, changeSet.getDeletions()[1]);
+            assertEquals(1, changeSet.getDeletions().length);
+            assertEquals(1, changeSet.getDeletions()[0]);
+            assertEquals(0, changeSet.getChanges().length);
             looperThread.testComplete();
         });
 
@@ -1028,6 +1026,47 @@ public class NotificationsTest {
             @Override
             public void execute(Realm realm) {
                 realm.createObject(AllTypes.class).setColumnLong(5);
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void limitedQueryResult_fromTable_finegrainedListener_withModifications() {
+        realm = looperThread.getRealm();
+        realm.executeTransaction(r -> {
+            for (int i = 0; i < 5; i++) {
+                r.createObject(AllTypes.class).setColumnLong(i % 5);
+            }
+        });
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
+                .distinct(AllTypes.FIELD_LONG) // [4, 3, 2, 1, 0]
+                .limit(2) // [4, 3]
+                .findAll();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener((objects, changeSet) -> {
+            // Currently this does not work. Objects going out of the limit range is not correctly
+            // identified as "deleted"
+            assertEquals(2, objects.size());
+            assertEquals(6, objects.first().getColumnLong());
+            assertEquals(5, objects.last().getColumnLong());
+            assertEquals(1, changeSet.getInsertions().length);
+            assertEquals(0, changeSet.getInsertions()[0]);
+            assertEquals(1, changeSet.getDeletions().length);
+            assertEquals(1, changeSet.getDeletions()[0]);
+            assertEquals(1, changeSet.getChanges().length);
+            assertEquals(1, changeSet.getChanges()[0]);
+            looperThread.testComplete();
+        });
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class).setColumnLong(6);
+                for (AllTypes obj : realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 4).findAll()) {
+                    obj.setColumnLong(5);
+                }
             }
         });
     }
