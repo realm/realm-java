@@ -307,8 +307,10 @@ public class ClassMetaData {
 
         RealmClass realmClassAnnotation = classType.getAnnotation(RealmClass.class);
         // If name has been specifically set, it should override any module policy.
-        if (!realmClassAnnotation.name().equals("")) {
+        if (!realmClassAnnotation.name().isEmpty()) {
             internalClassName = realmClassAnnotation.name();
+        } else if (!realmClassAnnotation.value().isEmpty()) {
+            internalClassName = realmClassAnnotation.value();
         } else {
             internalClassName = moduleClassNameFormatter.convert(javaClassName);
         }
@@ -581,14 +583,15 @@ public class ClassMetaData {
     private String getInternalFieldName(VariableElement field, NameConverter defaultConverter) {
         RealmField nameAnnotation = field.getAnnotation(RealmField.class);
         if (nameAnnotation != null) {
-            String declaredName = nameAnnotation.name();
-            if (!declaredName.equals("")) {
-                return declaredName;
-            } else {
-                Utils.note(String.format("Empty internal name defined on @RealmField. " +
-                        "Falling back to named used by Java model class: %s", field.getSimpleName()), field);
-                return field.getSimpleName().toString();
+            if (!nameAnnotation.name().isEmpty()) {
+                return nameAnnotation.name();
             }
+            if (!nameAnnotation.value().isEmpty()) {
+                return nameAnnotation.value();
+            }
+            Utils.note(String.format("Empty internal name defined on @RealmField. " +
+                    "Falling back to named used by Java model class: %s", field.getSimpleName()), field);
+            return field.getSimpleName().toString();
         } else {
             return defaultConverter.convert(field.getSimpleName().toString());
         }
