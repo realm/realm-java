@@ -47,7 +47,6 @@ public @interface RealmClass {
      * {@link RealmModule#classNamingPolicy()}.
      *
      * @see io.realm.annotations.RealmNamingPolicy for more information about what setting the name means.
-     * @see #value()
      */
     String name() default "";
 
