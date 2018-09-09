@@ -30,14 +30,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
-import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
-import static io.realm.util.SyncTestUtils.createTestUser;
+import static io.realm.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -469,4 +468,12 @@ public class SessionTests {
         }
     }
 
+    @Test
+    public void close_doesNotThrowIfCalledWhenRealmIsClosed() {
+        Realm realm = Realm.getInstance(configuration);
+        SyncSession session = SyncManager.getSession(configuration);
+        realm.close();
+        session.stop();
+        assertEquals(SyncSession.State.INACTIVE, session.getState());
+    }
 }

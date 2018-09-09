@@ -18,7 +18,6 @@ import java.net.URL;
 import io.realm.internal.network.AuthenticateRequest;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.objectserver.Token;
-import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
