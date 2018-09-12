@@ -1,3 +1,9 @@
+## 5.5.1 (YYYY-MM-DD)
+
+### Internal
+
+* Updated ReLinker to 1.3.0.
+
 ## 5.5.0 (2018-08-31)
 
 ### Enhancements
