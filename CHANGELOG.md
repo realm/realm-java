@@ -1,8 +1,13 @@
 ## 5.5.1 (YYYY-MM-DD)
 
+### Bug Fixes
+
+* Building with Android App Bundle enabled should now work correctly (#5977).
+
 ### Internal
 
 * Updated ReLinker to 1.3.0.
+
 
 ## 5.5.0 (2018-08-31)
 
