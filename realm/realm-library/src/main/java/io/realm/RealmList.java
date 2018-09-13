@@ -89,6 +89,21 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     }
 
     /**
+     * Creates a RealmList in unmanaged mode with a initial capacity, where the elements are not controlled by a Realm.
+     * This effectively makes the RealmList function as a {@link java.util.ArrayList} and it is not possible to query
+     * the objects in this state.
+     * <p>
+     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist its elements in Realm.
+     *
+     * @param initialCapacity the initial capacity of the list.
+     */
+    public RealmList(int initialCapacity) {
+        realm = null;
+        osListOperator = null;
+        unmanagedList = new ArrayList<>(initialCapacity);
+    }
+
+    /**
      * Creates a RealmList in unmanaged mode with an initial list of elements.
      * A RealmList in unmanaged mode function as a {@link java.util.ArrayList} and it is not possible to query the
      * objects in this state.
@@ -106,6 +121,25 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         osListOperator = null;
         unmanagedList = new ArrayList<>(objects.length);
         Collections.addAll(unmanagedList, objects);
+    }
+
+    /**
+     * Creates a RealmList in unmanaged mode with an initial list of elements.
+     * A RealmList in unmanaged mode function as a {@link java.util.ArrayList} and it is not possible to query the
+     * objects in this state.
+     * <p>
+     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist all unmanaged elements in Realm.
+     *
+     * @param objects initial objects in the list.
+     */
+    public RealmList(Collection<E> objects) {
+        //noinspection ConstantConditions
+        if (objects == null) {
+            throw new IllegalArgumentException("The objects argument cannot be null");
+        }
+        realm = null;
+        osListOperator = null;
+        unmanagedList = new ArrayList<>(objects);
     }
 
     /**
