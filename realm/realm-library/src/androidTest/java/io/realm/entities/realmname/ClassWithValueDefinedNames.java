@@ -15,20 +15,19 @@
  */
 package io.realm.entities.realmname;
 
-import io.realm.annotations.RealmModule;
-import io.realm.annotations.RealmNamingPolicy;
+import io.realm.RealmObject;
+import io.realm.annotations.RealmClass;
+import io.realm.annotations.RealmField;
 
-@RealmModule(classes =
-        {
-            ClassNameOverrideModulePolicy.class,
-            ClassWithPolicy.class,
-            ClassWithValueDefinedNames.class,
-            DefaultPolicyFromModule.class,
-            FieldNameOverrideClassPolicy.class
-        },
-        classNamingPolicy = RealmNamingPolicy.LOWER_CASE_WITH_UNDERSCORES,
-        fieldNamingPolicy = RealmNamingPolicy.LOWER_CASE_WITH_UNDERSCORES
-)
-public class CustomRealmNamesModule {
+@RealmClass("my-class-name")
+public class ClassWithValueDefinedNames extends RealmObject {
 
+    public static final String JAVA_CLASS_NAME = "ClassWithValueDefinedNames";
+    public static final String REALM_CLASS_NAME = "my-class-name";
+
+    public static final String JAVA_FIELD_NAME = "field";
+    public static final String REALM_FIELD_NAME = "my-field-name";
+
+    @RealmField("my-field-name")
+    public String field;
 }

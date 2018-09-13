@@ -35,6 +35,15 @@ public @interface RealmField {
      * {@link RealmNamingPolicy} set on the class or the module.
      *
      * @see io.realm.annotations.RealmNamingPolicy for more information about what setting the name means.
+     * @see #name()
+     */
+    String value() default "";
+
+    /**
+     * Manually set the internal name used by Realm for this field. This will override any
+     * {@link RealmNamingPolicy} set on the class or the module.
+     *
+     * @see io.realm.annotations.RealmNamingPolicy for more information about what setting the name means.
      */
     String name() default "";
 }
