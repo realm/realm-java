@@ -46,6 +46,11 @@ public interface AuthenticationServer {
     void addHeader(String headerName, String headerValue, @Nullable String host);
 
     /**
+     * Clear any custom header settings (Authorization and others).
+     */
+    void clearCustomHeaderSettings();
+
+    /**
      * Login a User on the Object Server. This will create a "UserToken" (Currently called RefreshToken) that acts as
      * the users credentials.
      */
@@ -108,4 +113,5 @@ public interface AuthenticationServer {
      * Complete an email confirmation by sending the token contained in the email.
      */
     UpdateAccountResponse confirmEmail(String confirmationToken, URL authenticationUrl);
+
 }
