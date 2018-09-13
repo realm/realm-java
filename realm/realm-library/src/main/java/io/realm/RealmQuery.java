@@ -37,6 +37,7 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
 import io.realm.internal.fields.FieldDescriptor;
 import io.realm.internal.sync.SubscriptionAction;
+import io.realm.sync.Subscription;
 
 
 /**
@@ -1993,6 +1994,43 @@ public class RealmQuery<E> {
             throw new IllegalStateException("This method is only available for typed Realms");
         }
         return (Realm) realm;
+    }
+
+    /**
+     * FIXME
+     *
+     * @return
+     */
+    public Subscription subscribe() {
+       return null;
+    }
+
+
+    /**
+     * FIXME
+     *
+     * @param name
+     * @return
+     */
+    public Subscription subscribe(String name) {
+        return null;
+    }
+
+    /**
+     * Returns a textual description of this query.
+     * @return
+     */
+    public String getDescription() {
+        StringBuilder sb = new StringBuilder('[');
+        sb.append(isDynamicQuery() ? className : clazz.getSimpleName());
+        sb.append("]: ");
+//         sb.append(nativeSerializeQuery()); // FIXME
+        return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return getDescription();
     }
 
     private boolean isDynamicQuery() {

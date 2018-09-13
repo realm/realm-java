@@ -74,6 +74,7 @@ import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
+import io.realm.sync.Subscription;
 import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.ClassPrivileges;
 import io.realm.sync.permissions.RealmPermissions;
@@ -1852,6 +1853,41 @@ public class Realm extends BaseRealm {
         return where(ClassPermissions.class)
                 .equalTo("name", configuration.getSchemaMediator().getSimpleClassName(clazz))
                 .findFirst();
+    }
+
+    /**
+     * FIXME
+     *
+     * @return
+     */
+    @Beta
+    @ObjectServer
+    public RealmResults<Subscription> getSubscriptions() {
+        return where(Subscription.class).findAll();
+    }
+
+    /**
+     * FIXME
+     *
+     * @param nameFilter
+     * @return
+     */
+    @Beta
+    @ObjectServer
+    public RealmResults<Subscription> getSubscriptions(String nameFilter) {
+        return where(Subscription.class).like("name", nameFilter).findAll();
+    }
+
+    /**
+     * FIXME
+     *
+     * @param name
+     * @return
+     */
+    @Beta
+    @ObjectServer
+    public Subscription getSubscription(String name) {
+        return where(Subscription.class).equalTo("name", name).findFirst();
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {
