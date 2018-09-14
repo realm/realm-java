@@ -1698,9 +1698,9 @@ public class RealmProxyClassGenerator {
                         .emitEmptyLine()
                         .emitStatement("RealmList<%s> managed%sList = realmSource.%s()",
                                 Utils.getGenericTypeQualifiedName(field), fieldName, getter)
-                        .emitStatement("int size = managed%sList.size()")
+                        .emitStatement("int size = managed%sList.size()", fieldName)
                         .emitStatement("unmanagedCopy.%1$s(new RealmList<%2$s>(size))", setter, Utils.getGenericTypeQualifiedName(field))
-                        .emitStatement("unmanagedCopy.%1$s().addAll(managed%sList)", getter);
+                        .emitStatement("unmanagedCopy.%1$s().addAll(managed%2$sList)", getter, fieldName);
             } else if (Utils.isMutableRealmInteger(field)) {
                 // If the user initializes the unmanaged MutableRealmInteger to null, this will fail mysteriously.
                 writer.emitStatement("unmanagedCopy.%s().set(realmSource.%s().get())", getter, getter);
