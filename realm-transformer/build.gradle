@@ -79,6 +79,8 @@ task generateVersionClass(type: Copy) {
     outputs.upToDateWhen { false }
 }
 
+compileJava.dependsOn generateVersionClass
+
 def commonPom = {
     licenses {
         license {
