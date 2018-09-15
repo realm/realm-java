@@ -17,20 +17,14 @@ package io.realm.internal;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.RealmConfiguration;
-import io.realm.SyncTestUtils;
-import io.realm.log.LogLevel;
-import io.realm.log.RealmLog;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
@@ -45,18 +39,6 @@ public class OsObjectStoreTests {
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
-
-
-    @Before
-    public void setUp() throws IOException {
-        SyncTestUtils.prepareEnvironmentForTest();
-        RealmLog.setLevel(LogLevel.ERROR);
-    }
-
-    @After
-    public void tearDown() {
-        SyncTestUtils.restoreEnvironmentAfterTest();
-    }
 
     @Test
     public void callWithLock() {

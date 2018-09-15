@@ -55,7 +55,7 @@ class PluginTest {
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
+                classpath 'com.android.tools.build:gradle:3.1.4'
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             }
         }
@@ -91,7 +91,7 @@ class PluginTest {
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
+                classpath 'com.android.tools.build:gradle:3.1.4'
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             }
         }
