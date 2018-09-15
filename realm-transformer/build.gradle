@@ -20,7 +20,7 @@ allprojects {
 }
 
 apply plugin: 'kotlin'
-apply plugin: 'groovy'
+//apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
@@ -83,11 +83,11 @@ task generateVersionClass(type: Copy) {
     outputs.upToDateWhen { false }
 }
 
-compileJava.dependsOn generateVersionClass
-compileGroovy.dependsOn = compileGroovy.taskDependencies.values - 'compileJava'
-compileKotlin.dependsOn compileGroovy
-compileKotlin.classpath += files(compileGroovy.destinationDir)
-classes.dependsOn compileKotlin
+//compileJava.dependsOn generateVersionClass
+//compileGroovy.dependsOn = compileGroovy.taskDependencies.values - 'compileJava'
+//compileKotlin.dependsOn compileGroovy
+//compileKotlin.classpath += files(compileGroovy.destinationDir)
+//classes.dependsOn compileKotlin
 
 def commonPom = {
     licenses {
