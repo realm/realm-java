@@ -24,6 +24,7 @@ import io.realm.internal.NativeObject;
 import io.realm.internal.ObserverPairList;
 import io.realm.internal.OsResults;
 
+@KeepMember
 public class OsSubscription implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();

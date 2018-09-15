@@ -34,8 +34,6 @@ import io.realm.SyncUser;
 
 
 public class LoginActivity extends AppCompatActivity {
-    private static final String REALM_AUTH_URL = "http://" + BuildConfig.OBJECT_SERVER_IP + ":9080/auth";
-
     @BindView(R.id.input_username) EditText username;
     @BindView(R.id.input_password) EditText password;
     @BindView(R.id.button_login) Button loginButton;
@@ -103,7 +101,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
 
-        SyncUser.logInAsync(creds, REALM_AUTH_URL, callback);
+        SyncUser.logInAsync(creds, BuildConfig.REALM_AUTH_URL, callback);
     }
 
     @Override

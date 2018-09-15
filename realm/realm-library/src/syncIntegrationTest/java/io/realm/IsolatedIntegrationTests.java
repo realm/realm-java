@@ -18,21 +18,21 @@ public class IsolatedIntegrationTests extends BaseIntegrationTest {
     @Before
     public void setupTest() throws IOException {
         startSyncServer();
-        prepareEnvironmentForTest();
+        SyncTestUtils.prepareEnvironmentForTest();
     }
 
     @After
     public void teardownTest() {
         if (!looperThread.isRuleUsed() || looperThread.isTestComplete()) {
             // Non-looper tests can reset here
-            restoreEnvironmentAfterTest();
+            SyncTestUtils.restoreEnvironmentAfterTest();
             stopSyncServer();
         } else {
             // Otherwise we need to wait for the test to complete
             looperThread.runAfterTest(new Runnable() {
                 @Override
                 public void run() {
-                    restoreEnvironmentAfterTest();
+                    SyncTestUtils.restoreEnvironmentAfterTest();
                     stopSyncServer();
                 }
             });

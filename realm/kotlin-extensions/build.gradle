@@ -14,8 +14,7 @@ apply plugin: 'org.jetbrains.dokka'
 //apply plugin: 'com.github.kt3k.coveralls'
 //apply plugin: 'net.ltgt.errorprone'
 
-import io.realm.transformer.RealmTransformer
-android.registerTransform(new RealmTransformer(project))
+android.registerTransform(new io.realm.transformer.RealmTransformer(project))
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -55,7 +54,16 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
         androidTest.java.srcDirs += ['src/androidTest/kotlin', '../realm-library/src/testUtils/java']
         objectServer.java.srcDirs += 'src/objectServer/kotlin'
-        androidTestObjectServer.java.srcDirs += 'src/androidTestObjectServer/kotlin'
+        androidTestObjectServer.java.srcDirs += [
+                'src/androidTestObjectServer/kotlin',
+                '../realm-library/src/testUtils/java',
+                '../realm-library/src/testUtils/kotlin',
+                '../realm-library/src/syncTestUtils/java',
+        ]
+    }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
     }
 }
 
@@ -63,10 +71,15 @@ dependencies {
     implementation project(':realm-library')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     androidTestImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test:rules:1.0.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    androidTestObjectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
+    androidTestObjectServerImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
+    androidTestObjectServerImplementation 'com.google.code.findbugs:jsr305:3.0.2'
+
+
 }
 
 repositories {

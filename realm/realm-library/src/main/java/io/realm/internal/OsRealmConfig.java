@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -189,7 +190,7 @@ public class OsRealmConfig implements NativeObject {
         NativeContext.dummyContext.addReference(this);
 
         // Retrieve Sync settings first. We need syncRealmUrl to identify if this is a SyncConfig
-        Object[] syncConfigurationOptions = ObjectServerFacade.getSyncFacadeIfPossible().getUserAndServerUrl(realmConfiguration);
+        Object[] syncConfigurationOptions = ObjectServerFacade.getSyncFacadeIfPossible().getSyncConfigurationOptions(realmConfiguration);
         String syncUserIdentifier = (String) syncConfigurationOptions[0];
         String syncRealmUrl = (String) syncConfigurationOptions[1];
         String syncRealmAuthUrl = (String) syncConfigurationOptions[2];
@@ -198,6 +199,22 @@ public class OsRealmConfig implements NativeObject {
         String syncSslTrustCertificatePath = (String) syncConfigurationOptions[5];
         Byte sessionStopPolicy = (Byte) syncConfigurationOptions[6];
         boolean isPartial = (Boolean.TRUE.equals(syncConfigurationOptions[7]));
+        String urlPrefix = (String)(syncConfigurationOptions[8]);
+        String customAuthorizationHeaderName = (String)(syncConfigurationOptions[9]);
+
+        // Convert the headers into a String array to make it easier to send through JNI
+        // [key1, value1, key2, value2, ...]
+        //noinspection unchecked
+        Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[10]);
+        String[] customHeaders = new String[customHeadersMap != null ? customHeadersMap.size() * 2 : 0];
+        if (customHeadersMap != null) {
+            int i = 0;
+            for (Map.Entry<String, String> entry : customHeadersMap.entrySet()) {
+                customHeaders[i] = entry.getKey();
+                customHeaders[i + 1] = entry.getValue();
+                i = i + 2;
+            }
+        }
 
         // Set encryption key
         byte[] key = config.getEncryptionKey();
@@ -242,8 +259,17 @@ public class OsRealmConfig implements NativeObject {
         URI resolvedRealmURI  = null;
         // Set sync config
         if (syncRealmUrl != null) {
-            String resolvedSyncRealmUrl = nativeCreateAndSetSyncConfig(nativePtr, syncRealmUrl, syncRealmAuthUrl, syncUserIdentifier,
-                    syncRefreshToken, isPartial, sessionStopPolicy);
+            String resolvedSyncRealmUrl = nativeCreateAndSetSyncConfig(
+                    nativePtr,
+                    syncRealmUrl,
+                    syncRealmAuthUrl,
+                    syncUserIdentifier,
+                    syncRefreshToken,
+                    isPartial,
+                    sessionStopPolicy,
+                    urlPrefix,
+                    customAuthorizationHeaderName,
+                    customHeaders);
             try {
                 resolvedRealmURI = new URI(resolvedSyncRealmUrl);
             } catch (URISyntaxException e) {
@@ -292,8 +318,11 @@ public class OsRealmConfig implements NativeObject {
 
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
-    private static native String nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl,
-                                                            String authUrl, String userId, String refreshToken, boolean isPartial, byte sessionStopPolicy);
+    private static native String nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl, String authUrl,
+                                                              String userId, String refreshToken, boolean isPartial,
+                                                              byte sessionStopPolicy, String urlPrefix,
+                                                              String customAuthorizationHeaderName,
+                                                              String[] customHeaders);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);
