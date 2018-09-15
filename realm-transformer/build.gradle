@@ -20,7 +20,6 @@ allprojects {
 }
 
 apply plugin: 'kotlin'
-//apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
@@ -67,10 +66,7 @@ dependencies {
     compile 'org.javassist:javassist:3.21.0-GA'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
 
-    testCompile localGroovy()
-    testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
-        exclude module: 'groovy-all'
-    }
+    testCompile 'junit:junit:4.12'
 }
 
 // for Ant filter
@@ -82,12 +78,6 @@ task generateVersionClass(type: Copy) {
     filter(ReplaceTokens, tokens: [version: version, syncVersion: syncVersion])
     outputs.upToDateWhen { false }
 }
-
-//compileJava.dependsOn generateVersionClass
-//compileGroovy.dependsOn = compileGroovy.taskDependencies.values - 'compileJava'
-//compileKotlin.dependsOn compileGroovy
-//compileKotlin.classpath += files(compileGroovy.destinationDir)
-//classes.dependsOn compileKotlin
 
 def commonPom = {
     licenses {
