@@ -20,6 +20,9 @@ props.each { key, val ->
     project.ext.set(key, val)
 }
 
+def projectDependencies = new Properties()
+projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
+
 repositories {
     mavenLocal()
     google()
@@ -52,11 +55,11 @@ dependencies {
      and this https://www.littlerobots.nl/blog/Whats-next-for-android-apt/ for more info.
    */
     compile 'com.neenbedankt.gradle.plugins:android-apt:1.8' //TODO: https://www.littlerobots.nl/blog/Whats-next-for-android-apt/
-    compileOnly 'com.android.tools.build:gradle:3.1.4'
+    compileOnly "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
 
     testCompile gradleTestKit()
     testCompile 'junit:junit:4.12'
-    testCompile 'com.android.tools.build:gradle:3.1.4'
+    testCompile "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
 }
 
 //for Ant filter
