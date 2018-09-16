@@ -24,6 +24,5 @@ android {
 }
 
 dependencies {
-    //noinspection GradleDependency
-    implementation 'com.android.support:appcompat-v7:24.0.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
 }
