@@ -1,11 +1,17 @@
 ## 5.5.1 (YYYY-MM-DD)
 
-### Bug Fixes
+### Enhancements
+* None
 
-* Building with Android App Bundle enabled should now work correctly (#5977).
+### Fixes
+* Building with Android App Bundle enabled should now work correctly [#5977](https://github.com/realm/realm-java/issues/5977, since v?.?.?).
+
+### Compatibility
+* File format: ver. 7 (upgrades automatically from previous formats)
+* Realm Object Server: 3.0.0 or later.
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
-
 * Updated ReLinker to 1.3.0.
 
 
