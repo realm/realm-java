@@ -4,7 +4,7 @@
 * None
 
 ### Fixes
-* Building with Android App Bundle enabled should now work correctly [#5977](https://github.com/realm/realm-java/issues/5977, since v?.?.?).
+* Building with Android App Bundle enabled should now work correctly [#5977](https://github.com/realm/realm-java/issues/5977, since 1.0.0).
 
 ### Compatibility
 * File format: ver. 7 (upgrades automatically from previous formats)
