@@ -2,8 +2,8 @@
 
 ### Enhancements
 
+* [ObjectServer] Added `RealmPermissions.findOrCreate(String roleName)` and `ClassPermissions.findOrCreate(String roleName)` (#XXX).
 * `@RealmClass("name")` and `@RealmField("name")` can now be used as a shorthand for defining custom name mappings (#6145).
-
 
 ## 5.5.1 (YYYY-MM-DD)
 
