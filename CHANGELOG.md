@@ -1,10 +1,10 @@
 ## 5.5.1 (YYYY-MM-DD)
 
 ### Enhancements
-* None
+* Building with Android App Bundle is now supported ([#5977](https://github.com/realm/realm-java/issues/5977)).
 
 ### Fixes
-* Building with Android App Bundle enabled should now work correctly ([#5977](https://github.com/realm/realm-java/issues/5977), since 0.88.0).
+* None
 
 ### Compatibility
 * File format: ver. 7 (upgrades automatically from previous formats)
