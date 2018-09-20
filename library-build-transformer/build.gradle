@@ -2,7 +2,7 @@ group 'io.realm'
 version '1.0.0'
 
 buildscript {
-    ext.kotlin_version = '1.2.51'
+    ext.kotlin_version = '1.2.61'
 
     repositories {
         mavenCentral()
@@ -45,10 +45,8 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
 
     testCompile group:'junit', name:'junit', version:'4.12'
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
-
 }
+
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
