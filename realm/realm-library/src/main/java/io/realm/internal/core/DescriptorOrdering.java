@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm.internal.core;
 
 import io.realm.internal.NativeObject;
@@ -13,7 +29,7 @@ public class DescriptorOrdering implements NativeObject {
     private static final long nativeFinalizerMethodPtr = nativeGetFinalizerMethodPtr();
     private final long nativePtr;
 
-    // Used to track constraints are already set. Throw in that case.
+    // Used to track if constraints are already set, and throw if they are.
     // This is just to mirror old behaviour. We should consider lifting this restriction,
     // although it seems hard to find a use case that is not a logical bug in nested query
     // construction.
@@ -44,7 +60,7 @@ public class DescriptorOrdering implements NativeObject {
     /**
      * Append a sort criteria.
      *
-     * @param descriptor description of the sort
+     * @param descriptor description of the sort.
      */
     public void appendSort(QueryDescriptor descriptor) {
         if (sortDefined) {
@@ -57,7 +73,7 @@ public class DescriptorOrdering implements NativeObject {
     /**
      * Append a distinct criteria.
      *
-     * @param descriptor description of the distinct critia
+     * @param descriptor description of the distinct criteria.
      */
     public void appendDistinct(QueryDescriptor descriptor) {
         if (distinctDefined) {
@@ -69,6 +85,8 @@ public class DescriptorOrdering implements NativeObject {
 
     /**
      * Sets a limit criteria.
+     *
+     * @param limit the maximum amount of objects returned.
      */
     public void setLimit(long limit) {
         if (limitDefined) {

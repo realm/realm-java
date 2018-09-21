@@ -3521,7 +3521,7 @@ public class RealmQueryTests extends QueryTests {
     @Test
     public void limit() {
         populateTestRealm(realm, TEST_DATA_SIZE);
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).limit(5).findAll();
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).limit(5).findAll();
         assertEquals(5, results.size());
         for (int i = 0; i < 5; i++) {
             assertEquals(i, results.get(i).getColumnLong());
@@ -3533,38 +3533,41 @@ public class RealmQueryTests extends QueryTests {
         // The order of operators matter when using limit()
         // If applying sort/distinct without limit, any order will result in the same query result.
 
-        realm.executeTransaction(r -> {
-            for (int i = 0; i < 5; i++) {
-                r.createObject(AllTypes.class).setColumnLong(i % 5);
-            }
-        });
+        realm.beginTransaction();
+        RealmList<AllJavaTypes> list = realm.createObject(AllJavaTypes.class, -1).getFieldList(); // Root object;
+        for (int i = 0; i < 5; i++) {
+            AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i);
+            obj.setFieldLong(i);
+            list.add(obj);
+        }
+        realm.commitTransaction();
 
-        RealmResults<AllTypes> results = realm.where(AllTypes.class)
-                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
-                .distinct(AllTypes.FIELD_LONG) // [4, 3, 2, 1, 0]
+        RealmResults<AllJavaTypes> results = list.where()
+                .sort(AllJavaTypes.FIELD_LONG, Sort.DESCENDING) // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
+                .distinct(AllJavaTypes.FIELD_LONG) // [4, 3, 2, 1, 0]
                 .limit(2) // [4, 3]
                 .findAll();
         assertEquals(2, results.size());
-        assertEquals(4, results.first().getColumnLong());
-        assertEquals(3, results.last().getColumnLong());
+        assertEquals(4, results.first().getFieldLong());
+        assertEquals(3, results.last().getFieldLong());
 
-        results = realm.where(AllTypes.class)
+        results = list.where()
                 .limit(2) // [0, 1]
-                .distinct(AllTypes.FIELD_LONG) // [ 0, 1]
-                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [1, 0]
+                .distinct(AllJavaTypes.FIELD_LONG) // [ 0, 1]
+                .sort(AllJavaTypes.FIELD_LONG, Sort.DESCENDING) // [1, 0]
                 .findAll();
         assertEquals(2, results.size());
-        assertEquals(1, results.first().getColumnLong());
-        assertEquals(0, results.last().getColumnLong());
+        assertEquals(1, results.first().getFieldLong());
+        assertEquals(0, results.last().getFieldLong());
 
-        results = realm.where(AllTypes.class)
-                .distinct(AllTypes.FIELD_LONG) // [ 0, 1, 2, 3, 4]
+        results = list.where()
+                .distinct(AllJavaTypes.FIELD_LONG) // [ 0, 1, 2, 3, 4]
                 .limit(2) // [0, 1]
-                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [1, 0]
+                .sort(AllJavaTypes.FIELD_LONG, Sort.DESCENDING) // [1, 0]
                 .findAll();
         assertEquals(2, results.size());
-        assertEquals(1, results.first().getColumnLong());
-        assertEquals(0, results.last().getColumnLong());
+        assertEquals(1, results.first().getFieldLong());
+        assertEquals(0, results.last().getFieldLong());
     }
 
     // Checks that https://github.com/realm/realm-object-store/pull/679/files#diff-c0354faf99b53cc5d3c9e6a58ed9ae85R610
@@ -3572,7 +3575,7 @@ public class RealmQueryTests extends QueryTests {
     @Test
     public void limit_asSubQuery() {
         realm.executeTransaction(r -> {
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 10; i++) {
                 r.createObject(AllTypes.class).setColumnLong(i % 5);
             }
         });
@@ -3590,5 +3593,23 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(4, results.first().getColumnLong());
         assertEquals(3, results.last().getColumnLong());
     }
+
+    @Test
+    public void limit_invalidValuesThrows() {
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+
+        try {
+            query.limit(0);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        try {
+            query.limit(-1);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
 
 }

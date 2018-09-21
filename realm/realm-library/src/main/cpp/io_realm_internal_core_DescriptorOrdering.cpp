@@ -25,15 +25,12 @@ using namespace realm;
 using namespace realm::util;
 using namespace realm::_impl;
 
-namespace {
-
-void finalize_descriptor(jlong ptr)
+static void finalize_descriptor(jlong ptr);
+static void finalize_descriptor(jlong ptr)
 {
     TR_ENTER_PTR(ptr)
     delete reinterpret_cast<DescriptorOrdering*>(ptr);
 }
-
-} // anonymous namespace
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeGetFinalizerMethodPtr(JNIEnv*, jclass)
 {
@@ -43,7 +40,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeGet
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeCreate(JNIEnv* env, jclass)
 {
-    TR_ENTER()
+   TR_ENTER()
    try {
         return reinterpret_cast<jlong>(new DescriptorOrdering());
     }

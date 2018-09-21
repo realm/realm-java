@@ -302,7 +302,6 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    @Ignore("FIXME: Enable when https://github.com/realm/realm-js/issues/1971 is fixed")
     public void downloadLimitedData() throws InterruptedException {
         RealmLog.setLevel(LogLevel.TRACE);
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);

@@ -991,7 +991,7 @@ public class NotificationsTest {
         }
     }
 
-    // Checks that we can attach change listeners to queries involving `limit()` an that
+    // Checks that we can attach change listeners to queries involving `limit()` and that
     // they do the right thing
     @Test
     @RunTestInLooperThread
@@ -1046,8 +1046,6 @@ public class NotificationsTest {
                 .findAll();
         looperThread.keepStrongReference(results);
         results.addChangeListener((objects, changeSet) -> {
-            // Currently this does not work. Objects going out of the limit range is not correctly
-            // identified as "deleted"
             assertEquals(2, objects.size());
             assertEquals(6, objects.first().getColumnLong());
             assertEquals(5, objects.last().getColumnLong());
@@ -1071,7 +1069,7 @@ public class NotificationsTest {
         });
     }
 
-    // Checks that we can attach change listeners to queries involving `limit()` an that
+    // Checks that we can attach change listeners to queries involving `limit()` and that
     // they do the right thing
     @Test
     @RunTestInLooperThread

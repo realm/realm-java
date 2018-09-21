@@ -1953,15 +1953,15 @@ public class RealmQuery<E> {
      * <p>
      * Note that when using this method in combination with {@link #sort(String)} and
      * {@link #distinct(String)} they will be executed in the order they where added which can
-     * effect the end result.
+     * affect the end result.
      *
-     * @param limit a limit that is {@code &gt; 0}.
-     * @throws IllegalArgumentException if the provided {@code limit} is less than 0.
+     * @param limit a limit that is {@code &ge; 1}.
+     * @throws IllegalArgumentException if the provided {@code limit} is less than 1.
      */
     public RealmQuery<E> limit(long limit) {
         realm.checkIfValid();
-        if (limit < 0) {
-            throw new IllegalArgumentException("Only positive numbers are allowed. Yours was: " + limit);
+        if (limit < 1) {
+            throw new IllegalArgumentException("Only positive numbers above 0 is allowed. Yours was: " + limit);
         }
         queryDescriptors.setLimit(limit);
         return this;

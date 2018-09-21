@@ -150,7 +150,7 @@ public class QueryDescriptor {
 
     // Called by JNI.
     @SuppressWarnings("unused")
-    public long getTablePtr() {
+    private long getTablePtr() {
         return table.getNativePtr();
     }
 }
