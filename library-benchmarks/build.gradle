@@ -1,3 +1,6 @@
+def projectDependencies = new Properties()
+projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
+
 buildscript {
     repositories {
         mavenLocal()
@@ -5,7 +8,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0-alpha06'
+        classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
         classpath "io.realm:realm-gradle-plugin:${file("${rootDir}/../version.txt").text.trim()}"
     }
 }
@@ -28,7 +31,7 @@ apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion "27.0.2"
+    buildToolsVersion ${projectDependencies.get("ANDROID_BUILD_TOOLS")}
 
     defaultConfig {
         minSdkVersion 15

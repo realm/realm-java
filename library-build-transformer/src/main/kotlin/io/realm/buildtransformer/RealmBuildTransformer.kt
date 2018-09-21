@@ -29,6 +29,7 @@ import java.io.File
 typealias ByteCodeTypeDescriptor = String
 typealias QualifiedName = String
 typealias ByteCodeMethodName = String
+typealias FieldName = String
 
 // Package level logger
 val logger: Logger = LoggerFactory.getLogger("realm-build-logger")

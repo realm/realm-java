@@ -16,10 +16,13 @@
 package io.realm.buildtransformer.testclasses;
 
 import io.realm.internal.annotations.ObjectServer;
+import io.realm.internal.annotations.CustomAnnotation;
 
 public class SimpleTestFields {
 
     @ObjectServer
     public String field1;
+
+    @CustomAnnotation // Annotations must be written back as well
     public String field2;
 }

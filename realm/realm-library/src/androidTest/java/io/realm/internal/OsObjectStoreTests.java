@@ -24,11 +24,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.RealmConfiguration;
-import io.realm.SyncTestUtils;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -46,16 +44,14 @@ public class OsObjectStoreTests {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-
     @Before
-    public void setUp() throws IOException {
-        SyncTestUtils.prepareEnvironmentForTest();
+    public void setUp() {
         RealmLog.setLevel(LogLevel.ERROR);
     }
 
     @After
     public void tearDown() {
-        SyncTestUtils.restoreEnvironmentAfterTest();
+        RealmLog.setLevel(LogLevel.WARN);
     }
 
     @Test

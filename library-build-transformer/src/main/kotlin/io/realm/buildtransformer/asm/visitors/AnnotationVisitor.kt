@@ -17,11 +17,10 @@ package io.realm.buildtransformer.asm.visitors;
 
 import io.realm.buildtransformer.ByteCodeMethodName
 import io.realm.buildtransformer.ByteCodeTypeDescriptor
+import io.realm.buildtransformer.FieldName
 import io.realm.buildtransformer.logger
+import org.objectweb.asm.*
 import org.objectweb.asm.AnnotationVisitor
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
 
 /**
  * ClassVisitor that gather all classes and methods with the given annotation. This is the first
@@ -32,12 +31,16 @@ class AnnotationVisitor(private val annotationDescriptor: String) : ClassVisitor
 
     val annotatedClasses: MutableSet<ByteCodeTypeDescriptor> = mutableSetOf()
     val annotatedMethods: MutableMap<ByteCodeTypeDescriptor, MutableSet<ByteCodeMethodName>> = mutableMapOf()
+    val annotatedFields: MutableMap<ByteCodeTypeDescriptor, MutableSet<FieldName>> = mutableMapOf()
+
     private var internalQualifiedName: String = ""
     private val annotatedMethodsInClass = mutableSetOf<ByteCodeMethodName>()
+    private val annotatedFieldsInClass = mutableSetOf<FieldName>()
 
     override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
         internalQualifiedName = name!!
         annotatedMethods[internalQualifiedName] = annotatedMethodsInClass
+        annotatedFields[internalQualifiedName] = annotatedFieldsInClass
         super.visit(version, access, name, signature, superName, interfaces)
     }
 
@@ -54,6 +57,17 @@ class AnnotationVisitor(private val annotationDescriptor: String) : ClassVisitor
             override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor? {
                 if (descriptor == annotationDescriptor) {
                     annotatedMethodsInClass.add(name!!)
+                }
+                return super.visitAnnotation(descriptor, visible)
+            }
+        }
+    }
+
+    override fun visitField(access: Int, name: String?, descriptor: String?, signature: String?, value: Any?): FieldVisitor {
+        return object: FieldVisitor(api) {
+            override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor? {
+                if (descriptor == annotationDescriptor) {
+                    annotatedFieldsInClass.add(name!!)
                 }
                 return super.visitAnnotation(descriptor, visible)
             }
