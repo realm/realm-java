@@ -1,12 +1,15 @@
 buildscript {
+    def properties = new Properties()
+    properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
+
     ext.kotlin_version = '1.2.50'
     repositories {
         google()
         jcenter()
     }
     dependencies {
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.2'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${properties.get('GRADLE_BINTRAY_PLUGIN')}"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }

@@ -1,7 +1,6 @@
 buildscript {
     def projectDependencies = new Properties()
     projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
-    ext.gradle_build_tools = projectDependencies.get("GRADLE_BUILD_TOOLS")
     ext.kotlin_version = '1.2.50'
     ext.dokka_version = '0.9.16'
     repositories {
@@ -13,14 +12,14 @@ buildscript {
     }
 
     dependencies {
-        classpath "com.android.tools.build:gradle:${gradle_build_tools}"
+        classpath "com.android.tools.build:gradle:${projectDependencies.get('GRADLE_BUILD_TOOLS')}"
         classpath 'de.undercouch:gradle-download-task:3.3.0'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
         classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
         classpath 'com.github.skhatri:gradle-s3-plugin:1.0.4'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.2'
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.4'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${projectDependencies.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${projectDependencies.get('GRADLE_BINTRAY_PLUGIN')}"
         classpath "io.realm:realm-transformer:${file('../version.txt').text.trim()}"
         classpath "io.realm:realm-library-build-transformer:${file('../version.txt').text.trim()}"
         classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.13'
