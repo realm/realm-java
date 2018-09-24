@@ -10,11 +10,11 @@
   
 ### Compatibility
 * File format: ver. 7 (upgrades automatically from previous formats)
-* Sync Protocol: ver. 25
 * Realm Object Server: 3.11.0 or later.
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
+* Sync Protocol version increased to 25.
 * Updated Realm Sync to 3.10.1
 * Updated Realm Core to 5.10.2
 
