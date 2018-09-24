@@ -4,8 +4,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
@@ -756,11 +756,17 @@ android.productFlavors.all { flavor ->
     }
 }
 
-task bintrayUpload() {
-    android.productFlavors.all { flavor ->
-        dependsOn "bintray${flavor.name.capitalize()}"
-    }
+// Cannot override bintrayUpload in Gradle 4.9. Most likely due to a bug in
+// the gradle-bintray-plugin. So we use `bintrayUploadAll` instead that can
+// then depend on the original bintrayUpload task.
+task bintrayUploadAll() {
     group = 'Publishing'
+}
+
+project.afterEvaluate {
+    android.productFlavors.all { flavor ->
+        bintrayUploadAll.dependsOn "bintray${flavor.name.capitalize()}"
+    }
 }
 
 task ojoUpload() {

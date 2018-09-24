@@ -1,14 +1,14 @@
-def projectDependencies = new Properties()
-projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
-
 buildscript {
+    def properties = new Properties()
+    properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
+
     repositories {
         mavenLocal()
         google()
         jcenter()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
+        classpath "com.android.tools.build:gradle:${properties.get("GRADLE_BUILD_TOOLS")}"
         classpath "io.realm:realm-gradle-plugin:${file("${rootDir}/../version.txt").text.trim()}"
     }
 }
@@ -16,6 +16,7 @@ buildscript {
 allprojects {
     def props = new Properties()
     props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.load(new FileInputStream("${rootDir}/../dependencies.list"))
     props.each { key, val ->
         project.ext.set(key, val)
     }
@@ -31,7 +32,7 @@ apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion ${projectDependencies.get("ANDROID_BUILD_TOOLS")}
+    buildToolsVersion "${project.ext.get("ANDROID_BUILD_TOOLS")}"
 
     defaultConfig {
         minSdkVersion 15
