@@ -1,7 +1,27 @@
+## 5.7.0 (YYYY-MM-DD)
+
+## Enhancements
+* [ObjectServer] Devices will now report download progress for read-only Realms which 
+  will allow the server to compact files sooner, saving server space. This does not affect 
+  the client. You will need to upgrade your Realm Object Server to at least version 3.11.0 
+  or use [Realm Cloud](https://cloud.realm.io). If you try to connect to a ROS v3.10.x or 
+  previous, you will see an error like `Wrong protocol version in Sync HTTP request, 
+  client protocol version = 25, server protocol version = 24`.
+  
+### Compatibility
+* File format: ver. 7 (upgrades automatically from previous formats)
+* Realm Object Server: 3.11.0 or later.
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Sync Protocol version increased to 25.
+* Updated Realm Sync to 3.10.1
+* Updated Realm Core to 5.10.2
+
+
 ## 5.6.0 (2018-09-24)
 
 ### Enhancements
-
 * [ObjectServer] Added `RealmPermissions.findOrCreate(String roleName)` and
   `ClassPermissions.findOrCreate(String roleName)` ([#6168](https://github.com/realm/realm-java/issues/6168)).
 * `@RealmClass("name")` and `@RealmField("name")` can now be used as a shorthand for defining custom
