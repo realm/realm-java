@@ -1,11 +1,13 @@
 ## 5.7.0 (YYYY-MM-DD)
 
-## Breaking Changes
-* [ObjectServer] The sync protocol version has been bumped to version 25. The server is
-  backwards-compatible with clients using protocol version 24 or below, but clients at version 25
-  are not backwards-compatible with a server at protocol version 24. The server must be upgraded
-  before any clients are upgraded.
-
+## Enhancements
+* [ObjectServer] Devices will now report download progress for read-only Realms which 
+  will allow the server to compact files sooner, saving server space. This does not affect 
+  the client. You will need to upgrade your Realm Object Server to at least version 3.11.0 
+  or use [Realm Cloud](https://cloud.realm.io). If you try to connect to a ROS v3.10.x or 
+  previous, you will see an error like `Wrong protocol version in Sync HTTP request, 
+  client protocol version = 25, server protocol version = 24`.
+  
 ### Compatibility
 * File format: ver. 7 (upgrades automatically from previous formats)
 * Sync Protocol: ver. 25
