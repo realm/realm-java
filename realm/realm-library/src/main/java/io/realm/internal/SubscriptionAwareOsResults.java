@@ -19,6 +19,7 @@ package io.realm.internal;
 import javax.annotation.Nullable;
 
 import io.realm.RealmChangeListener;
+import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.sync.OsSubscription;
 
 /**
@@ -38,11 +39,10 @@ public class SubscriptionAwareOsResults extends OsResults {
     private boolean firstCallback;
 
     public static SubscriptionAwareOsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query,
-                                                             @Nullable SortDescriptor sortDescriptor,
-                                                             @Nullable SortDescriptor distinctDescriptor,
+                                                             DescriptorOrdering queryDescriptors,
                                                              String subscriptionName) {
         query.validateQuery();
-        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), sortDescriptor, distinctDescriptor);
+        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), queryDescriptors.getNativePtr());
         return new SubscriptionAwareOsResults(sharedRealm, query.getTable(), ptr, subscriptionName);
     }
 

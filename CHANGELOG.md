@@ -1,8 +1,18 @@
 ## 5.6.0 (YYYY-MM-DD)
 
+### Breaking changes
+
+* When building a `RealmQuery`, `sort()`, `distinct()` and `limit()` will now be applied in the order they are called. Before 
+  this release, `sort()`  and `distinct()` could be called any order, but `sort()` would always be applied before `distinct()`.
+
 ### Enhancements
 
 * `@RealmClass("name")` and `@RealmField("name")` can now be used as a shorthand for defining custom name mappings (#6145).
+* Added support for `RealmQuery.limit(long limit)` (#544).
+
+### Internal
+
+* Updated to Object Store commit: 7e19c51af72c3343b453b8a13c82dfda148e4bbc
 
 
 ## 5.5.1 (YYYY-MM-DD)
