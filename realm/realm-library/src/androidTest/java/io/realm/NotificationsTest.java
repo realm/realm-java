@@ -1009,8 +1009,6 @@ public class NotificationsTest {
                 .findAll();
         looperThread.keepStrongReference(results);
         results.addChangeListener((objects, changeSet) -> {
-            // Currently this does not work. Objects going out of the limit range is not correctly
-            // identified as "deleted"
             assertEquals(2, objects.size());
             assertEquals(5, objects.first().getColumnLong());
             assertEquals(4, objects.last().getColumnLong());
