@@ -7,13 +7,13 @@
 
 ### Enhancements
 
+* [ObjectServer] Added `RealmPermissions.findOrCreate(String roleName)` and `ClassPermissions.findOrCreate(String roleName)` (#6168).
 * `@RealmClass("name")` and `@RealmField("name")` can now be used as a shorthand for defining custom name mappings (#6145).
 * Added support for `RealmQuery.limit(long limit)` (#544).
 
 ### Internal
 
 * Updated to Object Store commit: 7e19c51af72c3343b453b8a13c82dfda148e4bbc
-
 
 ## 5.5.1 (YYYY-MM-DD)
 

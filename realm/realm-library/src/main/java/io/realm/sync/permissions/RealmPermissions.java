@@ -15,11 +15,13 @@
  */
 package io.realm.sync.permissions;
 
+import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 import io.realm.internal.annotations.ObjectServer;
+import io.realm.internal.sync.PermissionHelper;
 
 /**
  * Class describing all permissions related to a given Realm. Permissions attached to this class
@@ -47,5 +49,26 @@ public class RealmPermissions extends RealmObject {
      */
     public RealmList<Permission> getPermissions() {
         return permissions;
+    }
+
+    /**
+     * Finds the permissions associated with a given {@link Role}. If either the role or the permission
+     * object doesn't exists, it will be created.
+     * <p>
+     * If the {@link Permission} object is created because one didn't exist already, it will be
+     * created with all privileges disabled.
+     * <p>
+     * If the role {@link Role} object is created because one didn't exists, it will be created
+     * with no members.
+     *
+     * @param roleName name of the role to find.
+     * @return permission object for the given role.
+     * @throws IllegalStateException if this object is not managed by Realm.
+     * @throws IllegalStateException if this method is not called inside a write transaction.
+     * @throws IllegalArgumentException if a {@code null} or empty
+     */
+    public Permission findOrCreate(String roleName) {
+        // Error handling done in the helper class
+        return PermissionHelper.findOrCreatePermissionForRole(this, permissions, roleName);
     }
 }
