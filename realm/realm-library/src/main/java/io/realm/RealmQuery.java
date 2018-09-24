@@ -23,18 +23,18 @@ import java.util.Locale;
 
 import javax.annotation.Nullable;
 
-import io.realm.annotations.Beta;
 import io.realm.annotations.Required;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
+import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SortDescriptor;
 import io.realm.internal.SubscriptionAwareOsResults;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
+import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.fields.FieldDescriptor;
 import io.realm.internal.sync.SubscriptionAction;
 
@@ -67,8 +67,7 @@ public class RealmQuery<E> {
     private String className;
     private final boolean forValues;
     private final OsList osList;
-    private SortDescriptor sortDescriptor;
-    private SortDescriptor distinctDescriptor;
+    private DescriptorOrdering queryDescriptors = new DescriptorOrdering();
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
@@ -1767,7 +1766,7 @@ public class RealmQuery<E> {
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         realm.checkIfValid();
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, true, SubscriptionAction.NO_SUBSCRIPTION);
+        return createRealmResults(query, queryDescriptors, true, SubscriptionAction.NO_SUBSCRIPTION);
     }
 
     /**
@@ -1782,8 +1781,7 @@ public class RealmQuery<E> {
         realm.checkIfValid();
         return createRealmResults(
                 query,
-                sortDescriptor,
-                distinctDescriptor,
+                queryDescriptors,
                 false,
                 SubscriptionAction.NO_SUBSCRIPTION).osResults;
     }
@@ -1810,7 +1808,7 @@ public class RealmQuery<E> {
         }  else {
             subscriptionAction = SubscriptionAction.NO_SUBSCRIPTION;
         }
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, subscriptionAction);
+        return createRealmResults(query, queryDescriptors, false, subscriptionAction);
     }
 
     /**
@@ -1836,7 +1834,7 @@ public class RealmQuery<E> {
         }
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, SubscriptionAction.create(subscriptionName));
+        return createRealmResults(query, queryDescriptors, false, SubscriptionAction.create(subscriptionName));
     }
 
     /**
@@ -1903,10 +1901,8 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> sort(String[] fieldNames, Sort[] sortOrders) {
         realm.checkIfValid();
-        if (sortDescriptor != null) {
-            throw new IllegalStateException("A sorting order was already defined.");
-        }
-        sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
+        QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
+        queryDescriptors.appendSort(sortDescriptor);
         return this;
     }
 
@@ -1921,7 +1917,6 @@ public class RealmQuery<E> {
      * to linked fields.
      * @throws IllegalStateException if distinct field names were already defined.
      */
-    @Beta
     public RealmQuery<E> distinct(String fieldName) {
         return distinct(fieldName, new String[]{});
     }
@@ -1938,20 +1933,37 @@ public class RealmQuery<E> {
      * is an unsupported type, or points to a linked field.
      * @throws IllegalStateException if distinct field names were already defined.
      */
-    @Beta
     public RealmQuery<E> distinct(String firstFieldName, String... remainingFieldNames) {
         realm.checkIfValid();
-        if (distinctDescriptor != null) {
-            throw new IllegalStateException("Distinct fields have already been defined.");
-        }
+        QueryDescriptor distinctDescriptor;
         if (remainingFieldNames.length == 0) {
-            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, firstFieldName);
+            distinctDescriptor = QueryDescriptor.getInstanceForDistinct(getSchemaConnector(), table, firstFieldName);
         } else {
             String[] fieldNames = new String[1 + remainingFieldNames.length];
             fieldNames[0] = firstFieldName;
             System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
-            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
+            distinctDescriptor = QueryDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
         }
+        queryDescriptors.appendDistinct(distinctDescriptor);
+        return this;
+    }
+
+    /**
+     * Limits the number of objects returned in case the query matched more objects.
+     * <p>
+     * Note that when using this method in combination with {@link #sort(String)} and
+     * {@link #distinct(String)} they will be executed in the order they where added which can
+     * affect the end result.
+     *
+     * @param limit a limit that is {@code &ge; 1}.
+     * @throws IllegalArgumentException if the provided {@code limit} is less than 1.
+     */
+    public RealmQuery<E> limit(long limit) {
+        realm.checkIfValid();
+        if (limit < 1) {
+            throw new IllegalArgumentException("Only positive numbers above 0 is allowed. Yours was: " + limit);
+        }
+        queryDescriptors.setLimit(limit);
         return this;
     }
 
@@ -2049,7 +2061,7 @@ public class RealmQuery<E> {
             // TODO: The performance by the pending query will be a little bit worse than directly calling core's
             // Query.find(). The overhead comes with core needs to add all the row indices to the vector. However this
             // can be optimized by adding support of limit in OS's Results which is supported by core already.
-            row = new PendingRow(realm.sharedRealm, query, sortDescriptor, isDynamicQuery());
+            row = new PendingRow(realm.sharedRealm, query, queryDescriptors, isDynamicQuery());
         }
         final E result;
         if (isDynamicQuery()) {
@@ -2074,16 +2086,15 @@ public class RealmQuery<E> {
 
 
     private RealmResults<E> createRealmResults(TableQuery query,
-                                               @Nullable SortDescriptor sortDescriptor,
-                                               @Nullable SortDescriptor distinctDescriptor,
+                                               DescriptorOrdering queryDescriptors,
                                                boolean loadResults,
                                                SubscriptionAction subscriptionAction) {
         RealmResults<E> results;
         OsResults osResults;
         if (subscriptionAction.shouldCreateSubscriptions()) {
-            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor, subscriptionAction.getName());
+            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors, subscriptionAction.getName());
         } else {
-            osResults = OsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
+            osResults = OsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors);
         }
 
         if (isDynamicQuery()) {
@@ -2099,7 +2110,7 @@ public class RealmQuery<E> {
     }
 
     private long getSourceRowIndexForFirstObject() {
-        if (sortDescriptor != null || distinctDescriptor != null) {
+        if (!queryDescriptors.isEmpty()) {
             RealmObjectProxy obj = (RealmObjectProxy) findAll().first(null);
             if (obj != null) {
                 return obj.realmGet$proxyState().getRow$realm().getIndex();

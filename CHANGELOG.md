@@ -19,15 +19,17 @@
 * Updated Realm Core to 5.10.2
 
 
-## 5.6.0 (YYYY-MM-DD)
+## 5.6.0 (2018-09-24)
 
 ### Enhancements
-* `@RealmClass("name")` and `@RealmField("name")` can now be used as a shorthand for defining custom name mappings (#6145).
-
-
-## 5.5.1 (YYYY-MM-DD)
-
-### Enhancements
+* [ObjectServer] Added `RealmPermissions.findOrCreate(String roleName)` and
+  `ClassPermissions.findOrCreate(String roleName)` ([#6168](https://github.com/realm/realm-java/issues/6168)).
+* `@RealmClass("name")` and `@RealmField("name")` can now be used as a shorthand for defining custom
+  name mappings ([#6145](https://github.com/realm/realm-java/issues/6145)).
+* Added support for `RealmQuery.limit(long limit)` ([#544](https://github.com/realm/realm-java/issues/544)).
+  When building a `RealmQuery`, `sort()`, `distinct()` and `limit()` will now be applied in the order
+  they are called. Before this release, `sort()`  and `distinct()` could be called any order, but
+  `sort()` would always be applied before `distinct()`.
 * Building with Android App Bundle is now supported ([#5977](https://github.com/realm/realm-java/issues/5977)).
 
 ### Fixes
@@ -40,6 +42,7 @@
 
 ### Internal
 * Updated ReLinker to 1.3.0.
+* Updated to Object Store commit: 7e19c51af72c3343b453b8a13c82dfda148e4bbc
 
 
 ## 5.5.0 (2018-08-31)
