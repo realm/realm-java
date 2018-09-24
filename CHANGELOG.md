@@ -1,7 +1,25 @@
+## 5.7.0 (YYYY-MM-DD)
+
+## Breaking Changes
+* [ObjectServer] The sync protocol version has been bumped to version 25. The server is
+  backwards-compatible with clients using protocol version 24 or below, but clients at version 25
+  are not backwards-compatible with a server at protocol version 24. The server must be upgraded
+  before any clients are upgraded.
+
+### Compatibility
+* File format: ver. 7 (upgrades automatically from previous formats)
+* Sync Protocol: ver. 25
+* Realm Object Server: 3.11.0 or later.
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated Realm Sync to 3.10.1
+* Updated Realm Core to 5.10.2
+
+
 ## 5.6.0 (YYYY-MM-DD)
 
 ### Enhancements
-
 * `@RealmClass("name")` and `@RealmField("name")` can now be used as a shorthand for defining custom name mappings (#6145).
 
 
