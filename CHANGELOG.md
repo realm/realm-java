@@ -5,8 +5,8 @@
 * [ObjectServer] Added `RealmPermissions.findOrCreate(String roleName)` and
   `ClassPermissions.findOrCreate(String roleName)` ([#6168](https://github.com/realm/realm-java/issues/6168)).
 * `@RealmClass("name")` and `@RealmField("name")` can now be used as a shorthand for defining custom
-  name mappings ([#6145]((https://github.com/realm/realm-java/issues/6145))).
-* Added support for `RealmQuery.limit(long limit)` ([#544]((https://github.com/realm/realm-java/issues/544)).
+  name mappings ([#6145](https://github.com/realm/realm-java/issues/6145)).
+* Added support for `RealmQuery.limit(long limit)` ([#544](https://github.com/realm/realm-java/issues/544)).
   When building a `RealmQuery`, `sort()`, `distinct()` and `limit()` will now be applied in the order
   they are called. Before this release, `sort()`  and `distinct()` could be called any order, but
   `sort()` would always be applied before `distinct()`.
