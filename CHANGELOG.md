@@ -1,4 +1,4 @@
-## 5.7.0 (YYYY-MM-DD)
+## 5.7.0 (2017-09-24)
 
 ## Enhancements
 * [ObjectServer] Devices will now report download progress for read-only Realms which 
