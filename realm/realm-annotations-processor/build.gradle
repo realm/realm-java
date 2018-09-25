@@ -115,6 +115,14 @@ bintray {
     }
 }
 
+// Cannot override bintrayUpload in Gradle 4.9. Most likely due to a bug in
+// the gradle-bintray-plugin. So we use `bintrayUploadAll` instead that can
+// then depend on the original bintrayUpload task.
+task bintrayUploadAll() {
+    dependsOn bintrayUpload
+    group = 'Publishing'
+}
+
 artifactory {
     contextUrl = 'https://oss.jfrog.org/artifactory'
     publish {
