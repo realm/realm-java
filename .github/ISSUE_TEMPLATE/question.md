@@ -12,3 +12,5 @@ Please use one of the following options instead:
 2) Realm Forums: https://forum.realm.io/
 
 3) Twitter: https://twitter.com/realm
+
+If you are a paying Realm Sync user or have a support contract with Realm please use: https://support.realm.io/
