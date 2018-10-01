@@ -14,5 +14,5 @@ is good to get specific help about how to do use Realm.
 that are now allowed on StackOverflow like best practices etc.
 
 * [Realm Support](https://support.realm.io) can be used if you are a paying Realm Cloud user
-or have a support contract with Realm. If you would like support contract
+or have a support contract with Realm. If you would like a support contract
 you can contact [Sales](sales@realm.io).
