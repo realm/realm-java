@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef JAVA_SORT_DESCRIPTOR_HPP
-#define JAVA_SORT_DESCRIPTOR_HPP
+#ifndef JAVA_QUERY_DESCRIPTOR_HPP
+#define JAVA_QUERY_DESCRIPTOR_HPP
 
 #include <jni.h>
 
@@ -27,23 +27,24 @@ class JavaClass;
 
 namespace _impl {
 
-// For converting a Java SortDescriptor object to realm::SortDescriptor.
+// For converting a Java QueryDescriptor object to realm::SortDescriptor or realm::DistinctDescriptor.
+//
 // This class is not designed to be used across JNI calls. So it doesn't acquire a reference to the given Java object.
-// We don't hold a pointer to the SortDescriptor in the Java object like normally we do, because the ObjectStore
-// always consumes the SortDescriptor by calling the move constructor. Holding an empty SortDescriptor in Java level
-// doesn't make too much sense and causes troubles with memory management.
-class JavaSortDescriptor {
+// We don't hold a pointer to the native Sort/DistinctDescriptor in the Java object like normally we do, because the
+// ObjectStore always consumes the descriptor by calling the move constructor. Holding an empty descriptor at Java level
+// thus doesn't make much sense and causes problems with memory management.
+class JavaQueryDescriptor {
 public:
-    JavaSortDescriptor(JNIEnv* env, jobject sort_desc_obj)
+    JavaQueryDescriptor(JNIEnv* env, jobject sort_desc_obj)
         : m_env(env)
         , m_sort_desc_obj(sort_desc_obj)
     {
     }
 
-    JavaSortDescriptor(const JavaSortDescriptor&) = delete;
-    JavaSortDescriptor& operator=(const JavaSortDescriptor&) = delete;
-    JavaSortDescriptor(JavaSortDescriptor&&) = delete;
-    JavaSortDescriptor& operator=(JavaSortDescriptor&&) = delete;
+    JavaQueryDescriptor(const JavaQueryDescriptor&) = delete;
+    JavaQueryDescriptor& operator=(const JavaQueryDescriptor&) = delete;
+    JavaQueryDescriptor(JavaQueryDescriptor&&) = delete;
+    JavaQueryDescriptor& operator=(JavaQueryDescriptor&&) = delete;
 
     // Prevent heap allocation
     static void *operator new     (size_t) = delete;
@@ -67,4 +68,4 @@ private:
 
 } // namespace _impl
 } // namespace realm
-#endif // JAVA_SORT_DESCRIPTOR_HPP
+#endif // JAVA_QUERY_DESCRIPTOR_HPP

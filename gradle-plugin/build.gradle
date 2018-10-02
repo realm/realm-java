@@ -1,10 +1,13 @@
 buildscript {
+    def properties = new Properties()
+    properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
+
     repositories {
         jcenter()
     }
     dependencies {
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.2'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${properties.get('GRADLE_BINTRAY_PLUGIN')}"
     }
 }
 
@@ -16,6 +19,7 @@ apply plugin: 'com.jfrog.bintray'
 
 def props = new Properties()
 props.load(new FileInputStream("${rootDir}/../realm.properties"))
+props.load(new FileInputStream("${rootDir}/../dependencies.list"))
 props.each { key, val ->
     project.ext.set(key, val)
 }
@@ -52,11 +56,11 @@ dependencies {
      and this https://www.littlerobots.nl/blog/Whats-next-for-android-apt/ for more info.
    */
     compile 'com.neenbedankt.gradle.plugins:android-apt:1.8' //TODO: https://www.littlerobots.nl/blog/Whats-next-for-android-apt/
-    compileOnly 'com.android.tools.build:gradle:3.1.0-alpha06'
+    compileOnly "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
 
     testCompile gradleTestKit()
     testCompile 'junit:junit:4.12'
-    testCompile 'com.android.tools.build:gradle:3.1.0-alpha06'
+    testCompile "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
 }
 
 //for Ant filter

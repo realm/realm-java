@@ -25,7 +25,7 @@ import io.realm.annotations.RealmNamingPolicy;
  */
 public class NamePolicyFieldNameOnly extends RealmObject {
 
-    @RealmField(name = "first_name")
+    @RealmField("first_name")
     public String firstName;
     public String lastName;
 }

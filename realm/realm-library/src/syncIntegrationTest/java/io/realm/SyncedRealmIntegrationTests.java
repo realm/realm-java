@@ -284,7 +284,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         realm.close();
         user.logOut();
     }
-    
+
     @Test
     public void waitForInitialRemoteData_readOnlyTrue_throwsIfWrongServerSchema() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);

@@ -520,6 +520,118 @@ public class ObjectLevelPermissionsTest {
         assertNoAccess(nobody);
     }
 
+    @Test
+    public void findOrCreate_unmanagedObjectThrows() {
+        RealmPermissions realmPermissions = new RealmPermissions();
+        try {
+            realmPermissions.findOrCreate("foo");
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        ClassPermissions classPermissions = new ClassPermissions();
+        try {
+            classPermissions.findOrCreate("foo");
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void findOrCreate_notInTransactionThrows() {
+        RealmPermissions realmPermissions = realm.getPermissions();
+        try {
+            realmPermissions.findOrCreate("foo");
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        ClassPermissions classPermissions = realm.getPermissions(ClassPermissions.class);
+        try {
+            classPermissions.findOrCreate("foo");
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void findOrCreate_nullThrows() {
+        realm.beginTransaction();
+        RealmPermissions realmPermissions = realm.getPermissions();
+        try {
+            //noinspection ConstantConditions
+            realmPermissions.findOrCreate(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        ClassPermissions classPermissions = realm.getPermissions(ClassPermissions.class);
+        try {
+            //noinspection ConstantConditions
+            classPermissions.findOrCreate(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void findOrCreate_createRole() {
+        realm.beginTransaction();
+        assertNull(realm.where(Role.class).equalTo("name", "role1").findFirst());
+        assertNull(realm.where(Role.class).equalTo("name", "role2").findFirst());
+
+        // Realm permissions
+        RealmPermissions realmPermissions = realm.getPermissions();
+        Permission p = realmPermissions.findOrCreate("role1");
+        assertEquals("role1", p.getRole().getName());
+        assertTrue(p.getRole().getMembers().isEmpty());
+
+        // Class permissions
+        ClassPermissions classPermissions = realm.getPermissions(ClassPermissions.class);
+        p = classPermissions.findOrCreate("role2");
+        assertEquals("role2", p.getRole().getName());
+        assertTrue(p.getRole().getMembers().isEmpty());
+    }
+
+    @Test
+    public void findOrCreate_createPermission() {
+        realm.beginTransaction();
+        realm.createObject(Role.class, "role1");
+
+        RealmPermissions realmPermissions = realm.getPermissions();
+        assertEquals(1, realmPermissions.getPermissions().size());
+        Permission p = realmPermissions.findOrCreate("role1");
+        assertNoAccess(p);
+        assertEquals("role1", p.getRole().getName());
+        assertEquals(2, realmPermissions.getPermissions().size());
+        assertTrue(p.equals(realmPermissions.getPermissions().last()));
+
+        // Class permissions
+        ClassPermissions classPermissions = realm.getPermissions(ClassPermissions.class);
+        assertEquals(1, classPermissions.getPermissions().size());
+        p = classPermissions.findOrCreate("role2");
+        assertNoAccess(p);
+        assertEquals("role2", p.getRole().getName());
+        assertEquals(2, classPermissions.getPermissions().size());
+        assertTrue(p.equals(classPermissions.getPermissions().last()));
+    }
+
+    @Test
+    public void findOrCreate_findExistingPermission() {
+        realm.beginTransaction();
+
+        RealmPermissions realmPermissions = realm.getPermissions();
+        Permission p = realmPermissions.findOrCreate("everyone");
+        assertFullAccess(p);
+        assertEquals("everyone", p.getRole().getName());
+
+        ClassPermissions classPermissions = realm.getPermissions(ClassPermissions.class);
+        p = classPermissions.findOrCreate("everyone");
+        assertFullAccess(p);
+        assertEquals("everyone", p.getRole().getName());
+    }
+
+
     private void assertFullAccess(RealmPrivileges privileges) {
         assertTrue(privileges.canRead());
         assertTrue(privileges.canUpdate());

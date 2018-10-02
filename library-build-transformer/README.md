@@ -39,3 +39,20 @@ Any errors will only be caught at runtime when the actual code is accessed.
 * Annotations on super classes will also remove subclasses, but only the first level of inheritance.
 
 * Single enum values cannot be stripped, only the entire enum class.
+
+## Running unit tests
+
+Running unit tests can be done from the command line by using:
+
+    >./gradlew test
+
+It should also be possible to run tests from IntelliJ CE, however in some cases it will report
+
+    "Cannot find io.realm.buildtransformer.VistitorTests"
+
+This is a bug in IntelliJ and can be fixed by:
+
+1) Close the project in IntelliJ
+2) Delete the folder `.idea`
+3) Re-import the project into IntelliJ
+

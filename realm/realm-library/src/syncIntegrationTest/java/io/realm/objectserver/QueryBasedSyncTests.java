@@ -2,6 +2,7 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -11,6 +12,7 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
@@ -19,6 +21,8 @@ import io.realm.SyncUser;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PartialSyncModule;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
@@ -294,6 +298,42 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
         SyncTestUtils.syncRealm(realm);
         assertTrue(result.isEmpty());
         looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    @Ignore("FIXME: We need to use ROS 3.10+ to support limit, but cannot upgrade before https://github.com/realm/realm-js/issues/1971 is fixed")
+    public void downloadLimitedData() throws InterruptedException {
+        RealmLog.setLevel(LogLevel.TRACE);
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        createServerData(user, Constants.SYNC_SERVER_URL);
+        Realm realm = getPartialRealm(user);
+        looperThread.closeAfterTest(realm);
+
+        RealmResults<PartialSyncObjectA> results = realm.where(PartialSyncObjectA.class)
+                .notEqualTo("string", "")
+                .distinct("string")
+                .sort("string", Sort.ASCENDING)
+                .limit(2)
+                .findAllAsync();
+        looperThread.keepStrongReference(results);
+
+        results.addChangeListener((objects, changeSet) -> {
+            RealmLog.error(changeSet.getState().toString());
+            if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
+                RealmLog.error(changeSet.getError().toString());
+            }
+            if (changeSet.isCompleteResult()) {
+                assertEquals(2, results.size());
+                PartialSyncObjectA obj = objects.first();
+                assertEquals(6, obj.getNumber());
+                assertEquals("partial", obj.getString());
+                obj = objects.last();
+                assertEquals(0, obj.getNumber());
+                assertEquals("realm", obj.getString());
+                looperThread.testComplete();
+            }
+        });
     }
 
     private Realm getPartialRealm(SyncUser user) {

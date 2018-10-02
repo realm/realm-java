@@ -1,3 +1,50 @@
+## 5.7.0 (2017-09-24)
+
+## Enhancements
+* [ObjectServer] Devices will now report download progress for read-only Realms which 
+  will allow the server to compact files sooner, saving server space. This does not affect 
+  the client. You will need to upgrade your Realm Object Server to at least version 3.11.0 
+  or use [Realm Cloud](https://cloud.realm.io). If you try to connect to a ROS v3.10.x or 
+  previous, you will see an error like `Wrong protocol version in Sync HTTP request, 
+  client protocol version = 25, server protocol version = 24`.
+  
+### Compatibility
+* File format: ver. 7 (upgrades automatically from previous formats)
+* Realm Object Server: 3.11.0 or later.
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Sync Protocol version increased to 25.
+* Updated Realm Sync to 3.10.1
+* Updated Realm Core to 5.10.2
+
+
+## 5.6.0 (2018-09-24)
+
+### Enhancements
+* [ObjectServer] Added `RealmPermissions.findOrCreate(String roleName)` and
+  `ClassPermissions.findOrCreate(String roleName)` ([#6168](https://github.com/realm/realm-java/issues/6168)).
+* `@RealmClass("name")` and `@RealmField("name")` can now be used as a shorthand for defining custom
+  name mappings ([#6145](https://github.com/realm/realm-java/issues/6145)).
+* Added support for `RealmQuery.limit(long limit)` ([#544](https://github.com/realm/realm-java/issues/544)).
+  When building a `RealmQuery`, `sort()`, `distinct()` and `limit()` will now be applied in the order
+  they are called. Before this release, `sort()`  and `distinct()` could be called any order, but
+  `sort()` would always be applied before `distinct()`.
+* Building with Android App Bundle is now supported ([#5977](https://github.com/realm/realm-java/issues/5977)).
+
+### Fixes
+* None
+
+### Compatibility
+* File format: ver. 7 (upgrades automatically from previous formats)
+* Realm Object Server: 3.0.0 or later.
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated ReLinker to 1.3.0.
+* Updated to Object Store commit: 7e19c51af72c3343b453b8a13c82dfda148e4bbc
+
+
 ## 5.5.0 (2018-08-31)
 
 ### Enhancements
