@@ -9,8 +9,8 @@
   client protocol version = 25, server protocol version = 24`.
   
 ### Compatibility
-* File format: ver. 7 (upgrades automatically from previous formats)
 * Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
@@ -36,8 +36,8 @@
 * None
 
 ### Compatibility
-* File format: ver. 7 (upgrades automatically from previous formats)
-* Realm Object Server: 3.0.0 or later.
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
