@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.ImportFlag;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
@@ -114,9 +115,10 @@ public abstract class RealmProxyMediator {
      * @param update {@code true} if object has a primary key and should try to update already existing data,
      * {@code false} otherwise.
      * @param cache the cache for mapping between unmanaged objects and their {@link RealmObjectProxy} representation.
+     * @param flags any special flags controlling the behaviour of the import.
      * @return the managed Realm object.
      */
-    public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
+    public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags);
 
     /**
      * Inserts an unmanaged RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
