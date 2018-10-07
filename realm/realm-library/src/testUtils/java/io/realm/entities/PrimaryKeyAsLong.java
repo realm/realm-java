@@ -23,7 +23,7 @@ public class PrimaryKeyAsLong extends RealmObject {
 
     public static final String CLASS_NAME = "PrimaryKeyAsLong";
     public static final String FIELD_ID = "id";
-    public static final Object FIELD_NAME = "name";
+    public static final String FIELD_NAME = "name";
 
     @PrimaryKey
     private long id;

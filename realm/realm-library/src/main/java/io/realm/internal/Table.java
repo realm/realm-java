@@ -354,7 +354,7 @@ public class Table implements NativeObject {
     // Getters
     //
 
-    OsSharedRealm getSharedRealm() {
+    public OsSharedRealm getSharedRealm() {
         return sharedRealm;
     }
 
