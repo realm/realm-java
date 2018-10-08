@@ -53,9 +53,7 @@ import io.realm.internal.UncheckedRow;
  * that can guide any architectural design and the only way to really find out is to build out each
  * solution and benchmark it.
  */
-public class OsObjectBuilder implements NativeObject {
-
-    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
+public class OsObjectBuilder {
 
     private final Table table;
     private final long sharedRealmPtr;
@@ -63,11 +61,18 @@ public class OsObjectBuilder implements NativeObject {
     private final long tablePtr;
     private final NativeContext context;
 
-    private static ItemCallback<RealmModel> objectItemCallback = new ItemCallback<RealmModel>() {
+    private static ItemCallback<? extends RealmModel> objectItemCallback = new ItemCallback<RealmModel>() {
         @Override
         public void handleItem(long listPtr, RealmModel item) {
             RealmObjectProxy proxyItem = (RealmObjectProxy) item;
             nativeAddIntegerListItem(listPtr, ((UncheckedRow) proxyItem.realmGet$proxyState().getRow$realm()).getNativePtr());
+        }
+    };
+
+    private static ItemCallback<String> stringItemCallback = new ItemCallback<String>() {
+        @Override
+        public void handleItem(long listPtr, String item) {
+            nativeAddStringListItem(listPtr, item);
         }
     };
 
@@ -123,7 +128,7 @@ public class OsObjectBuilder implements NativeObject {
     private static ItemCallback<Date> dateItemCallback = new ItemCallback<Date>() {
         @Override
         public void handleItem(long listPtr, Date item) {
-            nativeAddDoubleListItem(listPtr, item.getTime());
+            nativeAddDateListItem(listPtr, item.getTime());
         }
     };
 
@@ -141,17 +146,7 @@ public class OsObjectBuilder implements NativeObject {
         this.tablePtr = table.getNativePtr();
         this.builderPtr = nativeCreateBuilder();
         this.context = sharedRealm.context;
-        NativeContext.dummyContext.addReference(this);
-    }
-
-    @Override
-    public long getNativePtr() {
-        return builderPtr;
-    }
-
-    @Override
-    public long getNativeFinalizerPtr() {
-        return nativeFinalizerPtr;
+//        context.addReference(this);
     }
 
     /**
@@ -248,7 +243,7 @@ public class OsObjectBuilder implements NativeObject {
         }
     }
 
-    public void addObjectList(String key, RealmList<RealmModel> list) {
+    public <T extends RealmModel> void addObjectList(String key, RealmList<T> list) {
         // Null objects references are not allowed. Bulk send them all
         if (list != null) {
             long[] rowPointers = new long[list.size()];
@@ -264,7 +259,10 @@ public class OsObjectBuilder implements NativeObject {
         } else {
             nativeAddObjectList(builderPtr, key, new long[0]);
         }
-        addListItem(builderPtr, key, list, objectItemCallback);
+    }
+
+    public void addStringList(String key, RealmList<String> list) {
+        addListItem(builderPtr, key, list, stringItemCallback);
     }
 
     public void addByteList(String key, RealmList<Byte> list) {
@@ -310,12 +308,16 @@ public class OsObjectBuilder implements NativeObject {
 
     public UncheckedRow updateExistingObject() {
         long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, true);
-        return new UncheckedRow(context, table, rowPtr);
+        UncheckedRow row = new UncheckedRow(context, table, rowPtr);
+        nativeDestroyBuilder(builderPtr);
+        return row;
     }
 
     public UncheckedRow createNewObject() {
         long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, true);
-        return new UncheckedRow(context, table, rowPtr);
+        UncheckedRow row = new UncheckedRow(context, table, rowPtr);
+        nativeDestroyBuilder(builderPtr);
+        return row;
     }
 
     private interface ItemCallback<T>  {
@@ -323,7 +325,7 @@ public class OsObjectBuilder implements NativeObject {
     }
 
     private static native long nativeCreateBuilder();
-    private static native long nativeGetFinalizerPtr();
+    private static native void nativeDestroyBuilder(long builderPtr);
     private static native long nativeCreateOrUpdate(long sharedRealmPtr, long tablePtr, long builderPtr, boolean updateExistingObject);
 
     // Add simple properties

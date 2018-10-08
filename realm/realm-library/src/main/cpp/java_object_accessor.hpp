@@ -85,11 +85,10 @@ public:
     // Invoke `fn` with each of the values from an enumerable type
     template<typename Func>
     void enumerate_list(util::Any& value, Func&& fn) {
-        // Detect different types of lists
-
-
         for (auto&& v : any_cast<AnyVector&>(value))
             fn(v);
+
+
     }
 
     // Determine if `value` boxes the same List as `list`
@@ -101,6 +100,9 @@ public:
     }
 
     // Convert from core types to the boxed type
+    // These are currently not used as Proxy objects read directly from the Row objects
+    // Implementation is copied from `java_accessor.hpp` to preserve the functionality for future
+    // use.
     util::Any box(BinaryData v) const { return reinterpret_cast<jobject>(JavaClassGlobalDef::new_byte_array(m_env, v)); }
     util::Any box(List /*v*/) const { REALM_TERMINATE("'List' not implemented"); }
     util::Any box(Object /*v*/) const { REALM_TERMINATE("'Object' not implemented"); }
@@ -215,8 +217,10 @@ inline BinaryData JavaContext::unbox(util::Any& v, bool, bool) const
 {
     if (!v.has_value())
         return BinaryData();
-    auto& value = any_cast<JByteArrayAccessor&>(v);
-    return value.transform<BinaryData>();
+
+    auto& value = any_cast<OwnedBinaryData&>(v);
+    const auto& data = value.get();
+    return data;
 }
 
 template <>

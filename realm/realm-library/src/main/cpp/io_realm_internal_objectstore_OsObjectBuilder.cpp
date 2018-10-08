@@ -27,17 +27,10 @@ using namespace realm::_impl;
 
 typedef std::map<std::string, util::Any> OsObjectData;
 
-static void finalize_object(jlong ptr)
-{
-    TR_ENTER_PTR(ptr);
-    delete reinterpret_cast<OsObjectData*>(ptr);
-}
-
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeGetFinalizerPtr(JNIEnv*, jclass)
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeDestroyBuilder(JNIEnv*, jclass, jlong data_ptr)
 {
     TR_ENTER()
-    return reinterpret_cast<jlong>(&finalize_object);
+    delete reinterpret_cast<OsObjectData*>(data_ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeCreateBuilder(JNIEnv*, jclass)
@@ -101,7 +94,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddByteArray
         (JNIEnv* env, jclass, jlong data_ptr, jstring j_key, jbyteArray j_value)
 {
-    auto value = util::Any(j_value);
+    auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+    auto value = util::Any(data);
     add_property(env, data_ptr, j_key, value);
 }
 
@@ -177,15 +171,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
         (JNIEnv* env, jclass, jlong data_ptr, jstring j_key, jlongArray row_ptrs)
 {
     auto rows = JLongArrayAccessor(env, row_ptrs);
-    auto list = new std::vector<util::Any>();
-    list->reserve(rows.size());
+    auto list = std::vector<util::Any>();
+    list.reserve(rows.size());
     for (jsize i = 0; i < rows.size(); ++i) {
-         list->push_back(util::Any(*reinterpret_cast<Row*>(rows[i])));
+        auto item = util::Any(*reinterpret_cast<Row*>(rows[i]));
+        list.push_back(item);
     }
     auto value = util::Any(list);
     add_property(env, data_ptr, j_key, value);
 }
-
 
 static inline void add_list_element(JNIEnv* env, jlong list_ptr, util::Any& value)
 {
@@ -241,7 +235,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddByteArrayListItem
         (JNIEnv* env, jclass, jlong list_ptr, jbyteArray j_value)
 {
-    auto value = util::Any(j_value);
+    auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+    auto value = util::Any(data);
     add_list_element(env, list_ptr, value);
 }
 
