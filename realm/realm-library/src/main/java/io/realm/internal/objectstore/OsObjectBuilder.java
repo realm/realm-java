@@ -16,6 +16,7 @@
 package io.realm.internal.objectstore;
 
 import java.util.Date;
+import java.util.List;
 
 import io.realm.RealmList;
 import io.realm.RealmModel;
@@ -61,6 +62,77 @@ public class OsObjectBuilder implements NativeObject {
     private final long builderPtr;
     private final long tablePtr;
     private final NativeContext context;
+
+    private static ItemCallback<RealmModel> objectItemCallback = new ItemCallback<RealmModel>() {
+        @Override
+        public void handleItem(long listPtr, RealmModel item) {
+            RealmObjectProxy proxyItem = (RealmObjectProxy) item;
+            nativeAddIntegerListItem(listPtr, ((UncheckedRow) proxyItem.realmGet$proxyState().getRow$realm()).getNativePtr());
+        }
+    };
+
+    private static ItemCallback<Byte> byteItemCallback = new ItemCallback<Byte>() {
+        @Override
+        public void handleItem(long listPtr, Byte item) {
+            nativeAddIntegerListItem(listPtr, item.longValue());
+        }
+    };
+
+    private static ItemCallback<Short> shortItemCallback = new ItemCallback<Short>() {
+        @Override
+        public void handleItem(long listPtr, Short item) {
+            nativeAddIntegerListItem(listPtr, item);
+        }
+    };
+
+    private static ItemCallback<Integer> integerItemCallback = new ItemCallback<Integer>() {
+        @Override
+        public void handleItem(long listPtr, Integer item) {
+            nativeAddIntegerListItem(listPtr, item);
+        }
+    };
+
+    private static ItemCallback<Long> longItemCallback = new ItemCallback<Long>() {
+        @Override
+        public void handleItem(long listPtr, Long item) {
+            nativeAddIntegerListItem(listPtr, item);
+        }
+    };
+
+    private static ItemCallback<Boolean> booleanItemCallback = new ItemCallback<Boolean>() {
+        @Override
+        public void handleItem(long listPtr, Boolean item) {
+            nativeAddBooleanListItem(listPtr, item);
+        }
+    };
+
+    private static ItemCallback<Float> floatItemCallback = new ItemCallback<Float>() {
+        @Override
+        public void handleItem(long listPtr, Float item) {
+            nativeAddFloatListItem(listPtr, item);
+        }
+    };
+
+    private static ItemCallback<Double> doubleItemCallback = new ItemCallback<Double>() {
+        @Override
+        public void handleItem(long listPtr, Double item) {
+            nativeAddDoubleListItem(listPtr, item);
+        }
+    };
+
+    private static ItemCallback<Date> dateItemCallback = new ItemCallback<Date>() {
+        @Override
+        public void handleItem(long listPtr, Date item) {
+            nativeAddDoubleListItem(listPtr, item.getTime());
+        }
+    };
+
+    private static ItemCallback<byte[]> byteArrayItemCallback = new ItemCallback<byte[]>() {
+        @Override
+        public void handleItem(long listPtr, byte[] item) {
+            nativeAddByteArrayListItem(listPtr, item);
+        }
+    };
 
     public OsObjectBuilder(Table table) {
         OsSharedRealm sharedRealm = table.getSharedRealm();
@@ -159,25 +231,15 @@ public class OsObjectBuilder implements NativeObject {
         }
     }
 
-    public void addObjectList(String key, RealmList<RealmModel> list) {
-
-    }
-
-    public void addByteList(String key, RealmList<Byte> list) {
-    }
-
-    public void addShortList(String key, RealmList<Short> list) {
-    }
-
-    public void addLongList(String key, RealmList<Long> list) {
+    private <T> void addListItem(long builderPtr, String key, List<T> list, ItemCallback<T> itemCallback) {
         if (list != null) {
             long listPtr = nativeStartList(list.size());
             for (int i = 0; i < list.size(); i++) {
-                Long item = list.get(i);
+                T item = list.get(i);
                 if (item == null) {
                     nativeAddNullListItem(listPtr);
                 } else {
-                    nativeAddIntegerListItem(listPtr, item);
+                    itemCallback.handleItem(listPtr, item);
                 }
             }
             nativeStopList(builderPtr, key, listPtr);
@@ -186,22 +248,59 @@ public class OsObjectBuilder implements NativeObject {
         }
     }
 
+    public void addObjectList(String key, RealmList<RealmModel> list) {
+        // Null objects references are not allowed. Bulk send them all
+        if (list != null) {
+            long[] rowPointers = new long[list.size()];
+            for (int i = 0; i < list.size(); i++) {
+                RealmObjectProxy item = (RealmObjectProxy) list.get(i);
+                if (item == null) {
+                    throw new IllegalArgumentException("Null values are not allowed in RealmLists containing Realm models");
+                } else {
+                    rowPointers[i] = ((UncheckedRow) item.realmGet$proxyState().getRow$realm()).getNativePtr();
+                }
+            }
+            nativeAddObjectList(builderPtr, key, rowPointers);
+        } else {
+            nativeAddObjectList(builderPtr, key, new long[0]);
+        }
+        addListItem(builderPtr, key, list, objectItemCallback);
+    }
+
+    public void addByteList(String key, RealmList<Byte> list) {
+        addListItem(builderPtr, key, list, byteItemCallback);
+    }
+
+    public void addShortList(String key, RealmList<Short> list) {
+        addListItem(builderPtr, key, list, shortItemCallback);
+    }
+
     public void addIntegerList(String key, RealmList<Integer> list) {
+        addListItem(builderPtr, key, list, integerItemCallback);
+    }
+
+    public void addLongList(String key, RealmList<Long> list) {
+        addListItem(builderPtr, key, list, longItemCallback);
     }
 
     public void addBooleanList(String key, RealmList<Boolean> list) {
+        addListItem(builderPtr, key, list, booleanItemCallback);
     }
 
     public void addFloatList(String key, RealmList<Float> list) {
+        addListItem(builderPtr, key, list, floatItemCallback);
     }
 
     public void addDoubleList(String key, RealmList<Double> list) {
+        addListItem(builderPtr, key, list, doubleItemCallback);
     }
 
     public void addDateList(String key, RealmList<Date> list) {
+        addListItem(builderPtr, key, list, dateItemCallback);
     }
 
     public void addByteArrayList(String key, RealmList<byte[]> list) {
+        addListItem(builderPtr, key, list, byteArrayItemCallback);
     }
 
     private void addEmptyList(String key) {
@@ -217,6 +316,10 @@ public class OsObjectBuilder implements NativeObject {
     public UncheckedRow createNewObject() {
         long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, true);
         return new UncheckedRow(context, table, rowPtr);
+    }
+
+    private interface ItemCallback<T>  {
+        void handleItem(long listPtr, T item);
     }
 
     private static native long nativeCreateBuilder();
@@ -236,9 +339,16 @@ public class OsObjectBuilder implements NativeObject {
 
     // Methods for adding lists
     // Lists sent across JNI one element at a time
-    // TODO: Consider bulk sending them where possible (needs to be measured)
     private static native long nativeStartList(long size);
     private static native void nativeStopList(long builderPtr, String key, long listPtr);
     private static native void nativeAddNullListItem(long listPtr);
     private static native void nativeAddIntegerListItem(long listPtr, long value);
+    private static native void nativeAddStringListItem(long listPtr, String val);
+    private static native void nativeAddFloatListItem(long listPtr, float val);
+    private static native void nativeAddDoubleListItem(long listPtr, double val);
+    private static native void nativeAddBooleanListItem(long listPtr, boolean val);
+    private static native void nativeAddByteArrayListItem(long listPtr, byte[] val);
+    private static native void nativeAddDateListItem(long listPtr, long val);
+    private static native void nativeAddObjectListItem(long listPtr, long rowPtr);
+    private static native void nativeAddObjectList(long builderPtr, String key, long[] rowPtrs);
 }
