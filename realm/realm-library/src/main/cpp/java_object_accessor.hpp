@@ -33,7 +33,6 @@ namespace realm {
 using AnyDict = std::map<std::string, util::Any>;
 using AnyVector = std::vector<util::Any>;
 
-
 struct RequiredFieldValueNotProvidedException : public std::logic_error {
     const std::string object_type;
     RequiredFieldValueNotProvidedException(const std::string& object_type)
@@ -41,11 +40,6 @@ struct RequiredFieldValueNotProvidedException : public std::logic_error {
     {
     }
 };
-
-//RequiredFieldValueNotProvidedException::RequiredFieldValueNotProvidedException(const std::string& object_type)
-//    : std::logic_error("This field is required. A non-null '" + object_type + "' type value is expected.")
-//    , object_type(object_type)
-//{}
 
 // This is the Java implementation of the `CppContext` class found in `object_accessor_impl.hpp`
 // It is an object accessor context which can be used to create and access objects.
@@ -101,8 +95,6 @@ public:
     void enumerate_list(util::Any& value, Func&& fn) {
         for (auto&& v : any_cast<AnyVector&>(value))
             fn(v);
-
-
     }
 
     // Determine if `value` boxes the same List as `list`
@@ -115,8 +107,7 @@ public:
 
     // Convert from core types to the boxed type
     // These are currently not used as Proxy objects read directly from the Row objects
-    // Implementation is copied from `java_accessor.hpp` to preserve the functionality for future
-    // use.
+    // This implementation is thus entirely untested.
     util::Any box(BinaryData v) const { return reinterpret_cast<jobject>(JavaClassGlobalDef::new_byte_array(m_env, v)); }
     util::Any box(List /*v*/) const { REALM_TERMINATE("'List' not implemented"); }
     util::Any box(Object /*v*/) const { REALM_TERMINATE("'Object' not implemented"); }
@@ -212,12 +203,6 @@ private:
         }
     }
 };
-
-//inline util::Any JavaContext::box(RowExpr row) const
-//{
-//    REALM_ASSERT(object_schema);
-//    return Object(realm, *object_schema, row);
-//}
 
 template <>
 inline bool JavaContext::unbox(util::Any& v, bool, bool) const
