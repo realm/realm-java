@@ -17,6 +17,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
+import io.realm.internal.objectstore.OsObjectBuilder;
 import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -290,6 +291,15 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         return realm.copyToRealm(obj);
     }
 
+    private static some_test_BooleansRealmProxy newProxyInstance(BaseRealm realm, Row row) {
+        // Ignore default values to avoid creating uexpected objects from RealmModel/RealmList fields
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
+        objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.Booleans.class), false, Collections.emptyList());
+        io.realm.some_test_BooleansRealmProxy obj = new io.realm.some_test_BooleansRealmProxy();
+        objectContext.clear();
+        return obj;
+    }
+
     public static some.test.Booleans copyOrUpdate(Realm realm, some.test.Booleans object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
@@ -315,18 +325,24 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
             return (some.test.Booleans) cachedRealmObject;
         }
 
-        // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
-        some.test.Booleans realmObject = realm.createObjectInternal(some.test.Booleans.class, false, Collections.<String>emptyList());
-        cache.put(newObject, (RealmObjectProxy) realmObject);
-
         some_test_BooleansRealmProxyInterface realmObjectSource = (some_test_BooleansRealmProxyInterface) newObject;
-        some_test_BooleansRealmProxyInterface realmObjectCopy = (some_test_BooleansRealmProxyInterface) realmObject;
 
-        realmObjectCopy.realmSet$done(realmObjectSource.realmGet$done());
-        realmObjectCopy.realmSet$isReady(realmObjectSource.realmGet$isReady());
-        realmObjectCopy.realmSet$mCompleted(realmObjectSource.realmGet$mCompleted());
-        realmObjectCopy.realmSet$anotherBoolean(realmObjectSource.realmGet$anotherBoolean());
-        return realmObject;
+        Table table = realm.getTable(some.test.Booleans.class);
+        OsObjectBuilder builder = new OsObjectBuilder(table);
+
+        // Add all non-"object reference" fields
+        builder.addBoolean("done", realmObjectSource.realmGet$done());
+        builder.addBoolean("isReady", realmObjectSource.realmGet$isReady());
+        builder.addBoolean("mCompleted", realmObjectSource.realmGet$mCompleted());
+        builder.addBoolean("anotherBoolean", realmObjectSource.realmGet$anotherBoolean());
+
+        // Create the underlying object and cache it before setting any object/objectlist references
+        // This will allow us to break any circular dependencies by using the object cache.
+        Row row = builder.createNewObject();
+        io.realm.some_test_BooleansRealmProxy realmObjectCopy = newProxyInstance(realm, row);
+        cache.put(newObject, realmObjectCopy);
+
+        return realmObjectCopy;
     }
 
     public static long insert(Realm realm, some.test.Booleans object, Map<RealmModel,Long> cache) {

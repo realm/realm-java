@@ -17,6 +17,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
+import io.realm.internal.objectstore.OsObjectBuilder;
 import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -218,6 +219,15 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         return realm.copyToRealm(obj);
     }
 
+    private static some_test_SimpleRealmProxy newProxyInstance(BaseRealm realm, Row row) {
+        // Ignore default values to avoid creating uexpected objects from RealmModel/RealmList fields
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
+        objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.Simple.class), false, Collections.emptyList());
+        io.realm.some_test_SimpleRealmProxy obj = new io.realm.some_test_SimpleRealmProxy();
+        objectContext.clear();
+        return obj;
+    }
+
     public static some.test.Simple copyOrUpdate(Realm realm, some.test.Simple object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
@@ -243,16 +253,22 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
             return (some.test.Simple) cachedRealmObject;
         }
 
-        // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
-        some.test.Simple realmObject = realm.createObjectInternal(some.test.Simple.class, false, Collections.<String>emptyList());
-        cache.put(newObject, (RealmObjectProxy) realmObject);
-
         some_test_SimpleRealmProxyInterface realmObjectSource = (some_test_SimpleRealmProxyInterface) newObject;
-        some_test_SimpleRealmProxyInterface realmObjectCopy = (some_test_SimpleRealmProxyInterface) realmObject;
 
-        realmObjectCopy.realmSet$name(realmObjectSource.realmGet$name());
-        realmObjectCopy.realmSet$age(realmObjectSource.realmGet$age());
-        return realmObject;
+        Table table = realm.getTable(some.test.Simple.class);
+        OsObjectBuilder builder = new OsObjectBuilder(table);
+
+        // Add all non-"object reference" fields
+        builder.addString("name", realmObjectSource.realmGet$name());
+        builder.addInteger("age", realmObjectSource.realmGet$age());
+
+        // Create the underlying object and cache it before setting any object/objectlist references
+        // This will allow us to break any circular dependencies by using the object cache.
+        Row row = builder.createNewObject();
+        io.realm.some_test_SimpleRealmProxy realmObjectCopy = newProxyInstance(realm, row);
+        cache.put(newObject, realmObjectCopy);
+
+        return realmObjectCopy;
     }
 
     public static long insert(Realm realm, some.test.Simple object, Map<RealmModel,Long> cache) {

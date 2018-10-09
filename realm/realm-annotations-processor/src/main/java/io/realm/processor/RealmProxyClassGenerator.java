@@ -1585,7 +1585,7 @@ public class RealmProxyClassGenerator {
         // Copy basic types
         writer
             .emitEmptyLine()
-            .emitSingleLineComment("Add all non-object reference fields");
+            .emitSingleLineComment("Add all non-\"object reference\" fields");
         for (RealmFieldElement field : metadata.getBasicTypeFields()) {
             String internalFieldName = field.getInternalFieldName();
             String fieldName = field.getSimpleName().toString();
@@ -1603,8 +1603,10 @@ public class RealmProxyClassGenerator {
             .emitStatement("cache.put(newObject, realmObjectCopy)");
 
         // Copy all object references or lists-of-objects
-        writer.emitEmptyLine();
-        writer.emitSingleLineComment("Finally add all fields that reference other Realm Objects, either directly or through a list");
+        if (!metadata.getObjectReferenceFields().isEmpty()) {
+            writer.emitEmptyLine();
+            writer.emitSingleLineComment("Finally add all fields that reference other Realm Objects, either directly or through a list");
+        }
         for (RealmFieldElement field : metadata.getObjectReferenceFields()) {
             String fieldType = field.asType().toString();
             String fieldName = field.getSimpleName().toString();
