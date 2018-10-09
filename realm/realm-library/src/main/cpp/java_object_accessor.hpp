@@ -33,6 +33,20 @@ namespace realm {
 using AnyDict = std::map<std::string, util::Any>;
 using AnyVector = std::vector<util::Any>;
 
+
+struct RequiredFieldValueNotProvidedException : public std::logic_error {
+    const std::string object_type;
+    RequiredFieldValueNotProvidedException(const std::string& object_type)
+            : std::logic_error("This field is required. A non-null '" + object_type + "' type value is expected.")
+    {
+    }
+};
+
+//RequiredFieldValueNotProvidedException::RequiredFieldValueNotProvidedException(const std::string& object_type)
+//    : std::logic_error("This field is required. A non-null '" + object_type + "' type value is expected.")
+//    , object_type(object_type)
+//{}
+
 // This is the Java implementation of the `CppContext` class found in `object_accessor_impl.hpp`
 // It is an object accessor context which can be used to create and access objects.
 // It will map between JNI types and Cores data types.
@@ -194,7 +208,7 @@ private:
     inline void check_value_not_null(util::Any& v, const char* expected_type) const
     {
         if (!v.has_value()) {
-            throw std::runtime_error(util::format("This field is required. A non-null '%1' type value is expected.", expected_type));
+            throw RequiredFieldValueNotProvidedException(std::string(expected_type));
         }
     }
 };
