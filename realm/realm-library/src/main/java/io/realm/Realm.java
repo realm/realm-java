@@ -913,7 +913,7 @@ public class Realm extends BaseRealm {
      * <p>
      * This method is only available for model classes with no @PrimaryKey annotation.
      * If you like to create an object that has a primary key, use {@link #createObject(Class, Object)}
-     * or {@link #copyToRealm(RealmModel)} instead.
+     * or {@link #copyToRealm(RealmModel, ImportFlag...)} instead.
      *
      * @param clazz the Class of the object to create.
      * @return the new object.
@@ -1008,14 +1008,14 @@ public class Realm extends BaseRealm {
      * set to their default value if not provided.
      *
      * @param object the {@link io.realm.RealmObject} to copy to the Realm.
+     * @param flags any flag that modifies the behaviour of inserting the data into the Realm.
      * @return a managed RealmObject with its properties backed by the Realm.
      * @throws java.lang.IllegalArgumentException if the object is {@code null} or it belongs to a Realm instance
      * in a different thread.
      */
-    public <E extends RealmModel> E copyToRealm(E object) {
+    public <E extends RealmModel> E copyToRealm(E object, ImportFlag... flags) {
         checkNotNullObject(object);
-        Set<ImportFlag> flags = Collections.emptySet();
-        return copyOrUpdate(object, false, new HashMap<RealmModel, RealmObjectProxy>(), flags);
+        return copyOrUpdate(object, false, new HashMap<>(), Util.toSet(flags));
     }
 
     /**
@@ -1027,10 +1027,11 @@ public class Realm extends BaseRealm {
      * set to their default value if not provided.
      *
      * @param object {@link io.realm.RealmObject} to copy or update.
+     * @param flags any flag that modifies the behaviour of inserting the data into the Realm.
      * @return the new or updated RealmObject with all its properties backed by the Realm.
      * @throws java.lang.IllegalArgumentException if the object is {@code null} or doesn't have a Primary key defined
      * or it belongs to a Realm instance in a different thread.
-     * @see #copyToRealm(RealmModel)
+     * @see #copyToRealm(RealmModel, ImportFlag...)
      */
     public <E extends RealmModel> E copyToRealmOrUpdate(E object, ImportFlag... flags) {
         checkNotNullObject(object);
@@ -1047,7 +1048,7 @@ public class Realm extends BaseRealm {
      * set to their default value if not provided.
      *
      * @param objects the RealmObjects to copy to the Realm.
-     * @param flags FIXME
+     * @param flags any flag that modifies the behaviour of inserting the data into the Realm.
      * @return a list of the the converted RealmObjects that all has their properties managed by the Realm.
      * @throws io.realm.exceptions.RealmException if any of the objects has already been added to Realm.
      * @throws java.lang.IllegalArgumentException if any of the elements in the input collection is {@code null}.
@@ -1108,7 +1109,7 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Inserts an unmanaged RealmObject. This is generally faster than {@link #copyToRealm(RealmModel)} since it
+     * Inserts an unmanaged RealmObject. This is generally faster than {@link #copyToRealm(RealmModel, ImportFlag...)} since it
      * doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original object will not be persisted.
      * <p>
@@ -1122,7 +1123,7 @@ public class Realm extends BaseRealm {
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
      * </ul>
      * <p>
-     * If you want the managed {@link RealmObject} returned, use {@link #copyToRealm(RealmModel)}, otherwise if
+     * If you want the managed {@link RealmObject} returned, use {@link #copyToRealm(RealmModel, ImportFlag...)}, otherwise if
      * you have a large number of object this method is generally faster.
      *
      * @param object RealmObjects to insert.
@@ -1130,7 +1131,7 @@ public class Realm extends BaseRealm {
      * transaction.
      * @throws io.realm.exceptions.RealmPrimaryKeyConstraintException if two objects with the same primary key is
      * inserted or if a primary key value already exists in the Realm.
-     * @see #copyToRealm(RealmModel)
+     * @see #copyToRealm(RealmModel, ImportFlag...)
      */
     public void insert(RealmModel object) {
         checkIfValidAndInTransaction();
@@ -1196,7 +1197,7 @@ public class Realm extends BaseRealm {
      * <li>Copying an object will copy all field values. Any unset field in the object and child objects will be set to their default value if not provided</li>
      * </ul>
      * <p>
-     * If you want the managed {@link RealmObject} returned, use {@link #copyToRealm(RealmModel)}, otherwise if
+     * If you want the managed {@link RealmObject} returned, use {@link #copyToRealm(RealmModel, ImportFlag...)}, otherwise if
      * you have a large number of object this method is generally faster.
      *
      * @param object RealmObjects to insert.
@@ -1223,7 +1224,7 @@ public class Realm extends BaseRealm {
      * set to their default value if not provided.
      *
      * @param objects a list of objects to update or copy into Realm.
-     * @param flags FIXME
+     * @param flags any flag that modifies the behaviour of inserting the data into the Realm.
      * @return a list of all the new or updated RealmObjects.
      * @throws java.lang.IllegalArgumentException if RealmObject is {@code null} or doesn't have a Primary key defined.
      * @see #copyToRealm(Iterable, ImportFlag...)
@@ -1258,8 +1259,9 @@ public class Realm extends BaseRealm {
      * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
      * <p>
      * *WARNING*: Any changes to copied objects can be merged back into Realm using
-     * {@link #copyToRealmOrUpdate(RealmModel, ImportFlag...)}, but all fields will be overridden, not just those that were changed.
-     * This includes references to other objects, and can potentially override changes made by other threads.
+     * {@link #copyToRealmOrUpdate(RealmModel, ImportFlag...)}, but all fields will be overridden, not just those that
+     * were changed. This includes references to other objects, and can potentially override changes made by other
+     * threads. This behaviour can be modified using {@link ImportFlag}s.
      *
      * @param realmObjects RealmObjects to copy.
      * @param <E> type of object.
@@ -1281,7 +1283,8 @@ public class Realm extends BaseRealm {
      * *WARNING*: Any changes to copied objects can be merged back into Realm using
      * {@link #copyToRealmOrUpdate(Iterable, ImportFlag...)}, but all fields will be overridden, not just those that were changed.
      * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being
-     * reached. This can also potentially override changes made by other threads.
+     * reached. This can also potentially override changes made by other threads. This behaviour can be modified using
+     * {@link ImportFlag}s.
      *
      * @param realmObjects RealmObjects to copy.
      * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is
@@ -1324,6 +1327,7 @@ public class Realm extends BaseRealm {
      * *WARNING*: Any changes to copied objects can be merged back into Realm using
      * {@link #copyToRealmOrUpdate(RealmModel, ImportFlag...)}, but all fields will be overridden, not just those that were changed.
      * This includes references to other objects, and can potentially override changes made by other threads.
+     * This behaviour can be modified using {@link ImportFlag}s.
      *
      * @param realmObject {@link RealmObject} to copy.
      * @param <E> type of object.
@@ -1345,7 +1349,8 @@ public class Realm extends BaseRealm {
      * *WARNING*: Any changes to copied objects can be merged back into Realm using
      * {@link #copyToRealmOrUpdate(RealmModel, ImportFlag...)}, but all fields will be overridden, not just those that were changed.
      * This includes references to other objects even though they might be {@code null} due to {@code maxDepth} being
-     * reached. This can also potentially override changes made by other threads.
+     * reached. This can also potentially override changes made by other threads. This behaviour can be modified using
+     * {@link ImportFlag}s.
      *
      * @param realmObject {@link RealmObject} to copy.
      * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is

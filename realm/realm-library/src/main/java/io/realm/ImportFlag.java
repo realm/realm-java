@@ -51,7 +51,7 @@ public enum ImportFlag {
      *         Then Device 2 uploads its changes. Due to last-write-wins, the server version now
      *         becomes (Field A = 3, Field B = 2).
      *     </li>
-     * <ol>
+     * </ol>
      * This is normally the desired behaviour as the final object is the merged result of the latest
      * changes from both devices, however if all the fields in an object are considered an atomic
      * unit, then this flag should not be set as it will ensure that all fields are set and thus have

@@ -2,13 +2,11 @@
 
 ### Enhancements
 * Added new `ImportFlag` class that is used to specify additional behaviour when importing
-  data into Realm [X###](XXXX).
-* Added support for `ImportFlag` to `Realm.copyToRealm()`, `Realm.copyToRealmOrUpdate()`,
-  `Realm.insert()`, `Realm.insertOrUpdate()`, `Realm.createFromJson*()` methods [X###](XXXX).
+  data into Realm [#6224](https://github.com/realm/realm-java/pull/6224).
+* Added support for `ImportFlag` to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()` [#6224](https://github.com/realm/realm-java/pull/6224).
 
 ### Internal
-
-* Optimized generated code from the annotation processor to bulk send data across JNI when using `Realm.copyToRealm`.
+* Optimized `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` so it is now XX faster.
 
 
 ## 5.7.0 (2017-09-24)
