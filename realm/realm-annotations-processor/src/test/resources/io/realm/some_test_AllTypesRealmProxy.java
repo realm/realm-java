@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.ImportFlag;
 import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -1210,7 +1212,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         return (canUpdate) ? update(realm, realmObject, object, cache) : copy(realm, object, update, cache);
     }
 
-    public static some.test.AllTypes copy(Realm realm, some.test.AllTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.AllTypes copy(Realm realm, some.test.AllTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags, Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.AllTypes) cachedRealmObject;
@@ -1219,7 +1221,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         some_test_AllTypesRealmProxyInterface realmObjectSource = (some_test_AllTypesRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.AllTypes.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table);
+        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
         builder.addString("columnString", realmObjectSource.realmGet$columnString());
@@ -1256,7 +1258,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             if (cachecolumnObject != null) {
                 realmObjectCopy.realmSet$columnObject(cachecolumnObject);
             } else {
-                realmObjectCopy.realmSet$columnObject(some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnObjectObj, update, cache));
+                realmObjectCopy.realmSet$columnObject(some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnObjectObj, update, cache,));
             }
         }
 
@@ -1270,7 +1272,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 if (cachecolumnRealmList != null) {
                     columnRealmListRealmList.add(cachecolumnRealmList);
                 } else {
-                    columnRealmListRealmList.add(some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnRealmListItem, update, cache));
+                    columnRealmListRealmList.add(some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnRealmListItem, update, cache, Set<ImportFlag> flags));
                 }
             }
         }
@@ -2177,11 +2179,11 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         return unmanagedObject;
     }
 
-    static some.test.AllTypes update(Realm realm, some.test.AllTypes realmObject, some.test.AllTypes newObject, Map<RealmModel, RealmObjectProxy> cache) {
+    static some.test.AllTypes update(Realm realm, some.test.AllTypes realmObject, some.test.AllTypes newObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
         some_test_AllTypesRealmProxyInterface realmObjectTarget = (some_test_AllTypesRealmProxyInterface) realmObject;
         some_test_AllTypesRealmProxyInterface realmObjectSource = (some_test_AllTypesRealmProxyInterface) newObject;
         Table table = realm.getTable(some.test.AllTypes.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table);
+        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
         builder.addString("columnString", realmObjectSource.realmGet$columnString());
         builder.addInteger("columnLong", realmObjectSource.realmGet$columnLong());
         builder.addFloat("columnFloat", realmObjectSource.realmGet$columnFloat());

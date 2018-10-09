@@ -17,12 +17,13 @@ package io.realm.internal.objectstore;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
+import io.realm.ImportFlag;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.internal.NativeContext;
-import io.realm.internal.NativeObject;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
@@ -155,13 +156,17 @@ public class OsObjectBuilder {
         }
     };
 
-    public OsObjectBuilder(Table table) {
+    // If true, fields will not be updated if the same value would be written to it.
+    private final boolean ignoreFieldsWithSameValue;
+
+    public OsObjectBuilder(Table table, Set<ImportFlag> flags) {
         OsSharedRealm sharedRealm = table.getSharedRealm();
         this.sharedRealmPtr = sharedRealm.getNativePtr();
         this.table = table;
         this.tablePtr = table.getNativePtr();
         this.builderPtr = nativeCreateBuilder();
         this.context = sharedRealm.context;
+        this.ignoreFieldsWithSameValue = flags.contains(ImportFlag.DO_NOT_SET_SAME_VALUES);
     }
 
     public void addInteger(String key, Byte val) {
@@ -353,7 +358,7 @@ public class OsObjectBuilder {
 
     public void updateExistingObject() {
         try {
-            nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, true);
+            nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, true, ignoreFieldsWithSameValue);
         } finally {
             nativeDestroyBuilder(builderPtr);
         }
@@ -362,7 +367,7 @@ public class OsObjectBuilder {
     public UncheckedRow createNewObject() {
         UncheckedRow row;
         try {
-            long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, false);
+            long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, false, false);
             row = new UncheckedRow(context, table, rowPtr);
         } finally {
             nativeDestroyBuilder(builderPtr);
@@ -376,7 +381,11 @@ public class OsObjectBuilder {
 
     private static native long nativeCreateBuilder();
     private static native void nativeDestroyBuilder(long builderPtr);
-    private static native long nativeCreateOrUpdate(long sharedRealmPtr, long tablePtr, long builderPtr, boolean updateExistingObject);
+    private static native long nativeCreateOrUpdate(long sharedRealmPtr,
+                                                    long tablePtr,
+                                                    long builderPtr,
+                                                    boolean updateExistingObject,
+                                                    boolean ignoreFieldsWithSameValue);
 
     // Add simple properties
     private static native void nativeAddNull(long builderPtr, String key);

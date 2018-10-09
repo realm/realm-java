@@ -48,6 +48,7 @@ public class RealmProxyClassGenerator {
             "android.os.Build",
             "android.util.JsonReader",
             "android.util.JsonToken",
+            "io.realm.ImportFlag",
             "io.realm.exceptions.RealmMigrationNeededException",
             "io.realm.internal.ColumnInfo",
             "io.realm.internal.OsList",
@@ -70,6 +71,7 @@ public class RealmProxyClassGenerator {
             "java.util.Date",
             "java.util.Map",
             "java.util.HashMap",
+            "java.util.Set",
             "org.json.JSONObject",
             "org.json.JSONException",
             "org.json.JSONArray");
@@ -881,7 +883,11 @@ public class RealmProxyClassGenerator {
                 qualifiedJavaClassName, // Return type
                 "copyOrUpdate", // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "Realm", "realm", qualifiedJavaClassName, "object", "boolean", "update", "Map<RealmModel,RealmObjectProxy>", "cache" // Argument type & argument name
+                "Realm", "realm", // Argument type & argument name
+                qualifiedJavaClassName, "object",
+                "boolean", "update",
+                "Map<RealmModel,RealmObjectProxy>", "cache",
+                "Set<ImportFlag>", "flags"
         );
 
         writer
@@ -907,7 +913,7 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
 
         if (!metadata.hasPrimaryKey()) {
-            writer.emitStatement("return copy(realm, object, update, cache)");
+            writer.emitStatement("return copy(realm, object, update, cache, flags)");
         } else {
             writer
                     .emitStatement("%s realmObject = null", qualifiedJavaClassName)
@@ -965,7 +971,7 @@ public class RealmProxyClassGenerator {
 
             writer
                     .emitEmptyLine()
-                       .emitStatement("return (canUpdate) ? update(realm, realmObject, object, cache) : copy(realm, object, update, cache)");
+                       .emitStatement("return (canUpdate) ? update(realm, realmObject, object, cache, flags) : copy(realm, object, update, cache, flags)");
         }
 
         writer.endMethod()
@@ -1567,7 +1573,13 @@ public class RealmProxyClassGenerator {
             qualifiedJavaClassName, // Return type
             "copy", // Method name
             EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-            "Realm", "realm", qualifiedJavaClassName, "newObject", "boolean", "update", "Map<RealmModel,RealmObjectProxy>", "cache"); // Argument type & argument name
+            "Realm", "realm",
+                    qualifiedJavaClassName, "newObject",
+                    "boolean", "update",
+                    "Map<RealmModel,RealmObjectProxy>", "cache",
+                    "Set<ImportFlag>", "flags"
+
+            ); // Argument type & argument name
 
         writer
             .emitStatement("RealmObjectProxy cachedRealmObject = cache.get(newObject)")
@@ -1580,7 +1592,7 @@ public class RealmProxyClassGenerator {
             .emitStatement("%1$s realmObjectSource = (%1$s) newObject", interfaceName)
             .emitEmptyLine()
             .emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
-            .emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table)");
+            .emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table, flags)");
 
         // Copy basic types
         writer
@@ -1623,7 +1635,7 @@ public class RealmProxyClassGenerator {
                         .beginControlFlow("if (cache%s != null)", fieldName)
                             .emitStatement("realmObjectCopy.%s(cache%s)", setter, fieldName)
                         .nextControlFlow("else")
-                            .emitStatement("realmObjectCopy.%s(%s.copyOrUpdate(realm, %sObj, update, cache))",
+                            .emitStatement("realmObjectCopy.%s(%s.copyOrUpdate(realm, %sObj, update, cache, flags))",
                                 setter, Utils.getProxyClassSimpleName(field), fieldName)
                         .endControlFlow()
                     // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
@@ -1645,7 +1657,7 @@ public class RealmProxyClassGenerator {
                             .beginControlFlow("if (cache%s != null)", fieldName)
                                 .emitStatement("%1$sRealmList.add(cache%1$s)", fieldName)
                             .nextControlFlow("else")
-                                .emitStatement("%1$sRealmList.add(%2$s.copyOrUpdate(realm, %1$sItem, update, cache))",
+                                .emitStatement("%1$sRealmList.add(%2$s.copyOrUpdate(realm, %1$sItem, update, cache, flags))",
                                     fieldName, Utils.getProxyClassSimpleName(field))
                             .endControlFlow()
                         .endControlFlow()
@@ -1750,13 +1762,18 @@ public class RealmProxyClassGenerator {
                 qualifiedJavaClassName, // Return type
                 "update", // Method name
                 EnumSet.of(Modifier.STATIC), // Modifiers
-                "Realm", "realm", qualifiedJavaClassName, "realmObject", qualifiedJavaClassName, "newObject", "Map<RealmModel, RealmObjectProxy>", "cache"); // Argument type & argument name
+                "Realm", "realm", // Argument type & argument name
+                qualifiedJavaClassName, "realmObject",
+                qualifiedJavaClassName, "newObject",
+                "Map<RealmModel, RealmObjectProxy>", "cache",
+                "Set<ImportFlag>", "flags"
+        );
 
         writer
                 .emitStatement("%1$s realmObjectTarget = (%1$s) realmObject", interfaceName)
                 .emitStatement("%1$s realmObjectSource = (%1$s) newObject", interfaceName)
                 .emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
-                .emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table)");
+                .emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table, flags)");
 
 
         for (RealmFieldElement field : metadata.getFields()) {
@@ -1776,7 +1793,7 @@ public class RealmProxyClassGenerator {
                         .beginControlFlow("if (cache%s != null)", fieldName)
                             .emitStatement("builder.addObject(\"%s\", cache%s)", internalFieldName, fieldName)
                         .nextControlFlow("else")
-                            .emitStatement("builder.addObject(\"%s\", %s.copyOrUpdate(realm, %sObj, true, cache))", internalFieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                            .emitStatement("builder.addObject(\"%s\", %s.copyOrUpdate(realm, %sObj, true, cache, flags))", internalFieldName, Utils.getProxyClassSimpleName(field), fieldName)
                         .endControlFlow()
                     // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
                     .endControlFlow();
@@ -1793,7 +1810,7 @@ public class RealmProxyClassGenerator {
                             .beginControlFlow("if (cache%s != null)", fieldName)
                                 .emitStatement("%1$sManagedCopy.add(cache%1$s)", fieldName)
                             .nextControlFlow("else")
-                                .emitStatement("%1$sManagedCopy.add(%2$s.copyOrUpdate(realm, %1$sItem, true, cache))", fieldName, Utils.getProxyClassSimpleName(field))
+                                .emitStatement("%1$sManagedCopy.add(%2$s.copyOrUpdate(realm, %1$sItem, true, cache, flags))", fieldName, Utils.getProxyClassSimpleName(field))
                             .endControlFlow()
                         .endControlFlow()
                         .emitStatement("builder.addObjectList(\"%s\", %sManagedCopy)", internalFieldName, fieldName)

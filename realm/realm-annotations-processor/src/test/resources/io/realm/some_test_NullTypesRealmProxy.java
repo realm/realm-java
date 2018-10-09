@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.ImportFlag;
 import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -2188,7 +2190,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         return obj;
     }
 
-    public static some.test.NullTypes copyOrUpdate(Realm realm, some.test.NullTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.NullTypes copyOrUpdate(Realm realm, some.test.NullTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
@@ -2204,10 +2206,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             return (some.test.NullTypes) cachedRealmObject;
         }
 
-        return copy(realm, object, update, cache);
+        return copy(realm, object, update, cache, flags);
     }
 
-    public static some.test.NullTypes copy(Realm realm, some.test.NullTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.NullTypes copy(Realm realm, some.test.NullTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.NullTypes) cachedRealmObject;
@@ -2216,7 +2218,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         some_test_NullTypesRealmProxyInterface realmObjectSource = (some_test_NullTypesRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.NullTypes.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table);
+        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
         builder.addString("fieldStringNotNull", realmObjectSource.realmGet$fieldStringNotNull());
@@ -2267,7 +2269,6 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         cache.put(newObject, realmObjectCopy);
 
         // Finally add all fields that reference other Realm Objects, either directly or through a list
-
         some.test.NullTypes fieldObjectNullObj = realmObjectSource.realmGet$fieldObjectNull();
         if (fieldObjectNullObj == null) {
             realmObjectCopy.realmSet$fieldObjectNull(null);
@@ -2276,7 +2277,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (cachefieldObjectNull != null) {
                 realmObjectCopy.realmSet$fieldObjectNull(cachefieldObjectNull);
             } else {
-                realmObjectCopy.realmSet$fieldObjectNull(some_test_NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, update, cache));
+                realmObjectCopy.realmSet$fieldObjectNull(some_test_NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, update, cache, flags));
             }
         }
 

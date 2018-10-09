@@ -126,7 +126,7 @@ static inline const ObjectSchema& get_schema(const Schema& schema, Table* table)
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeCreateOrUpdate
-        (JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong builder_ptr, jboolean update_existing)
+        (JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong builder_ptr, jboolean update_existing, jboolean /*ignore_same_values*/)
 {
     try {
         SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));

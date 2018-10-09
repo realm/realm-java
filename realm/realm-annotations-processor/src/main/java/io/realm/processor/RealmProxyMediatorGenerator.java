@@ -77,6 +77,7 @@ public class RealmProxyMediatorGenerator {
                 "java.util.Set",
                 "java.util.Iterator",
                 "java.util.Collection",
+                "io.realm.ImportFlag",
                 "io.realm.internal.ColumnInfo",
                 "io.realm.internal.RealmObjectProxy",
                 "io.realm.internal.RealmProxyMediator",
@@ -103,7 +104,7 @@ public class RealmProxyMediatorGenerator {
         emitGetSimpleClassNameMethod(writer);
         emitNewInstanceMethod(writer);
         emitGetClassModelList(writer);
-        emitCopyToRealmMethod(writer);
+        emitCopyOrUpdateMethod(writer);
         emitInsertObjectToRealmMethod(writer);
         emitInsertListToRealmMethod(writer);
         emitInsertOrUpdateObjectToRealmMethod(writer);
@@ -223,7 +224,7 @@ public class RealmProxyMediatorGenerator {
         writer.emitEmptyLine();
     }
 
-    private void emitCopyToRealmMethod(JavaWriter writer) throws IOException {
+    private void emitCopyOrUpdateMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod(
                 "<E extends RealmModel> E",
@@ -242,7 +243,7 @@ public class RealmProxyMediatorGenerator {
         emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return clazz.cast(%s.copyOrUpdate(realm, (%s) obj, update, cache))", qualifiedProxyClasses.get(i), qualifiedModelClasses.get(i));
+                writer.emitStatement("return clazz.cast(%s.copyOrUpdate(realm, (%s) obj, update, cache, flags))", qualifiedProxyClasses.get(i), qualifiedModelClasses.get(i));
             }
         }, writer, false);
         writer.endMethod();

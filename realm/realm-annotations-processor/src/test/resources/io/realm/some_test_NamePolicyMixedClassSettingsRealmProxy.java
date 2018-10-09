@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.ImportFlag;
 import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -236,7 +238,7 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         return obj;
     }
 
-    public static some.test.NamePolicyMixedClassSettings copyOrUpdate(Realm realm, some.test.NamePolicyMixedClassSettings object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.NamePolicyMixedClassSettings copyOrUpdate(Realm realm, some.test.NamePolicyMixedClassSettings object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
@@ -252,10 +254,10 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
             return (some.test.NamePolicyMixedClassSettings) cachedRealmObject;
         }
 
-        return copy(realm, object, update, cache);
+        return copy(realm, object, update, cache, flags);
     }
 
-    public static some.test.NamePolicyMixedClassSettings copy(Realm realm, some.test.NamePolicyMixedClassSettings newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.NamePolicyMixedClassSettings copy(Realm realm, some.test.NamePolicyMixedClassSettings newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.NamePolicyMixedClassSettings) cachedRealmObject;
@@ -264,7 +266,7 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         some_test_NamePolicyMixedClassSettingsRealmProxyInterface realmObjectSource = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.NamePolicyMixedClassSettings.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table);
+        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
         builder.addString("first_name", realmObjectSource.realmGet$firstName());

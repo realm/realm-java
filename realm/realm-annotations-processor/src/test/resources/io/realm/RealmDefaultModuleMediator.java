@@ -2,6 +2,7 @@ package io.realm;
 
 
 import android.util.JsonReader;
+import io.realm.ImportFlag;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsSchemaInfo;
@@ -85,7 +86,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         @SuppressWarnings("unchecked") Class<E> clazz = (Class<E>) ((obj instanceof RealmObjectProxy) ? obj.getClass().getSuperclass() : obj.getClass());
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return clazz.cast(io.realm.some_test_AllTypesRealmProxy.copyOrUpdate(realm, (some.test.AllTypes) obj, update, cache));
+            return clazz.cast(io.realm.some_test_AllTypesRealmProxy.copyOrUpdate(realm, (some.test.AllTypes) obj, update, cache, flags));
         }
         throw getMissingProxyClassException(clazz);
     }
