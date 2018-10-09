@@ -18,6 +18,7 @@ package io.realm.internal.objectstore;
 import java.util.Date;
 import java.util.List;
 
+import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.internal.NativeContext;
@@ -139,6 +140,18 @@ public class OsObjectBuilder {
         }
     };
 
+    private static ItemCallback<MutableRealmInteger> mutableRealmIntegerItemCallback = new ItemCallback<MutableRealmInteger>() {
+        @Override
+        public void handleItem(long listPtr, MutableRealmInteger item) {
+            Long value = item.get();
+            if (value == null) {
+                nativeAddNullListItem(listPtr);
+            } else {
+                nativeAddIntegerListItem(listPtr, value);
+            }
+        }
+    };
+
     public OsObjectBuilder(Table table) {
         OsSharedRealm sharedRealm = table.getSharedRealm();
         this.sharedRealmPtr = sharedRealm.getNativePtr();
@@ -146,7 +159,6 @@ public class OsObjectBuilder {
         this.tablePtr = table.getNativePtr();
         this.builderPtr = nativeCreateBuilder();
         this.context = sharedRealm.context;
-//        context.addReference(this);
     }
 
     /**
@@ -164,6 +176,14 @@ public class OsObjectBuilder {
             nativeAddNull(builderPtr, key);
         } else {
             nativeAddInteger(builderPtr, key, val);
+        }
+    }
+
+    public void addMutableRealmInteger(String key, MutableRealmInteger val) {
+        if (val == null || val.get() == null) {
+            nativeAddNull(builderPtr, key);
+        } else {
+            nativeAddInteger(builderPtr, key, val.get());
         }
     }
 
@@ -218,11 +238,17 @@ public class OsObjectBuilder {
         }
     }
 
-    public void addObject(String key, RealmObjectProxy val) {
+    public void addNull(String key) {
+        nativeAddNull(builderPtr, key);
+    }
+
+    public void addObject(String key, RealmModel val) {
         if (val == null) {
             nativeAddNull(builderPtr, key);
         } else {
-            nativeAddObject(builderPtr, key, ((UncheckedRow) val.realmGet$proxyState().getRow$realm()).getNativePtr());
+            RealmObjectProxy proxy = (RealmObjectProxy) val;
+            UncheckedRow row = (UncheckedRow) proxy.realmGet$proxyState().getRow$realm();
+            nativeAddObject(builderPtr, key, row.getNativePtr());
         }
     }
 
@@ -299,6 +325,10 @@ public class OsObjectBuilder {
 
     public void addByteArrayList(String key, RealmList<byte[]> list) {
         addListItem(builderPtr, key, list, byteArrayItemCallback);
+    }
+
+    public void addMutableRealmIntegerList(String key, RealmList<MutableRealmInteger> list) {
+        addListItem(builderPtr, key, list, mutableRealmIntegerItemCallback);
     }
 
     private void addEmptyList(String key) {
