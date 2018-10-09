@@ -1167,7 +1167,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         return obj;
     }
 
-    public static some.test.AllTypes copyOrUpdate(Realm realm, some.test.AllTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.AllTypes copyOrUpdate(Realm realm, some.test.AllTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
@@ -1209,10 +1209,10 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
 
-        return (canUpdate) ? update(realm, realmObject, object, cache) : copy(realm, object, update, cache);
+        return (canUpdate) ? update(realm, realmObject, object, cache, flags) : copy(realm, object, update, cache, flags);
     }
 
-    public static some.test.AllTypes copy(Realm realm, some.test.AllTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags, Set<ImportFlag> flags) {
+    public static some.test.AllTypes copy(Realm realm, some.test.AllTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.AllTypes) cachedRealmObject;
@@ -1258,7 +1258,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             if (cachecolumnObject != null) {
                 realmObjectCopy.realmSet$columnObject(cachecolumnObject);
             } else {
-                realmObjectCopy.realmSet$columnObject(some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnObjectObj, update, cache,));
+                realmObjectCopy.realmSet$columnObject(some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnObjectObj, update, cache, flags));
             }
         }
 
@@ -1272,7 +1272,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 if (cachecolumnRealmList != null) {
                     columnRealmListRealmList.add(cachecolumnRealmList);
                 } else {
-                    columnRealmListRealmList.add(some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnRealmListItem, update, cache, Set<ImportFlag> flags));
+                    columnRealmListRealmList.add(some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnRealmListItem, update, cache, flags));
                 }
             }
         }
@@ -2201,7 +2201,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             if (cachecolumnObject != null) {
                 builder.addObject("columnObject", cachecolumnObject);
             } else {
-                builder.addObject("columnObject", some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnObjectObj, true, cache));
+                builder.addObject("columnObject", some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnObjectObj, true, cache, flags));
             }
         }
 
@@ -2214,7 +2214,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 if (cachecolumnRealmList != null) {
                     columnRealmListManagedCopy.add(cachecolumnRealmList);
                 } else {
-                    columnRealmListManagedCopy.add(some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnRealmListItem, true, cache));
+                    columnRealmListManagedCopy.add(some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnRealmListItem, true, cache, flags));
                 }
             }
             builder.addObjectList("columnRealmList", columnRealmListManagedCopy);
