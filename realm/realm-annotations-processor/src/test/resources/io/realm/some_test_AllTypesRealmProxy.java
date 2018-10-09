@@ -1159,7 +1159,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
     private static some_test_AllTypesRealmProxy newProxyInstance(BaseRealm realm, Row row) {
         // Ignore default values to avoid creating uexpected objects from RealmModel/RealmList fields
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
-        objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.AllTypes.class), false, Collections.emptyList());
+        objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.AllTypes.class), false, Collections.<String>emptyList());
         io.realm.some_test_AllTypesRealmProxy obj = new io.realm.some_test_AllTypesRealmProxy();
         objectContext.clear();
         return obj;

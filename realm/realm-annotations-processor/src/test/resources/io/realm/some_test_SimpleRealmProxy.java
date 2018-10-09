@@ -222,7 +222,7 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
     private static some_test_SimpleRealmProxy newProxyInstance(BaseRealm realm, Row row) {
         // Ignore default values to avoid creating uexpected objects from RealmModel/RealmList fields
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
-        objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.Simple.class), false, Collections.emptyList());
+        objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.Simple.class), false, Collections.<String>emptyList());
         io.realm.some_test_SimpleRealmProxy obj = new io.realm.some_test_SimpleRealmProxy();
         objectContext.clear();
         return obj;

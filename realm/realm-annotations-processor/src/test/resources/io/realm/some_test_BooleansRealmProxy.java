@@ -294,7 +294,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
     private static some_test_BooleansRealmProxy newProxyInstance(BaseRealm realm, Row row) {
         // Ignore default values to avoid creating uexpected objects from RealmModel/RealmList fields
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
-        objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.Booleans.class), false, Collections.emptyList());
+        objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.Booleans.class), false, Collections.<String>emptyList());
         io.realm.some_test_BooleansRealmProxy obj = new io.realm.some_test_BooleansRealmProxy();
         objectContext.clear();
         return obj;

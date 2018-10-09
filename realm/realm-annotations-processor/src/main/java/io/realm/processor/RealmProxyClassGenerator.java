@@ -866,7 +866,7 @@ public class RealmProxyClassGenerator {
             "Row", "row")
                 .emitSingleLineComment("Ignore default values to avoid creating uexpected objects from RealmModel/RealmList fields")
                 .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
-                .emitStatement("objectContext.set(realm, row, realm.getSchema().getColumnInfo(%s.class), false, Collections.emptyList())", qualifiedJavaClassName)
+                .emitStatement("objectContext.set(realm, row, realm.getSchema().getColumnInfo(%s.class), false, Collections.<String>emptyList())", qualifiedJavaClassName)
                 .emitStatement("%1$s obj = new %1$s()", qualifiedGeneratedClassName)
                 .emitStatement("objectContext.clear()")
                 .emitStatement("return obj")
