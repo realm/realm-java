@@ -1794,6 +1794,8 @@ public class RealmProxyClassGenerator {
                             .endControlFlow()
                         .endControlFlow()
                         .emitStatement("builder.addObjectList(\"%s\", %sManagedCopy)", internalFieldName, fieldName)
+                    .nextControlFlow("else")
+                        .emitStatement("builder.addObjectList(\"%s\", new RealmList<%s>())", internalFieldName, genericType)
                     .endControlFlow();
             } else {
                 writer
