@@ -1635,6 +1635,9 @@ public class Realm extends BaseRealm {
     @SuppressWarnings("unchecked")
     private <E extends RealmModel> E copyOrUpdate(E object, boolean update, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
         checkIfValid();
+        if (!isInTransaction()) {
+            throw new IllegalStateException("`copyOrUpdate` can only be called inside a write transaction.");
+        }
         return configuration.getSchemaMediator().copyOrUpdate(this, object, update, cache, flags);
     }
 

@@ -161,16 +161,30 @@ public class OsObjectBuilder {
         this.context = sharedRealm.context;
     }
 
-    /**
-     * Add non-nullable property that maps to Core's INTEGER.
-     */
-    public void addInteger(String key, long val) {
-        nativeAddInteger(builderPtr, key, val);
+    public void addInteger(String key, Byte val) {
+        if (val == null) {
+            nativeAddNull(builderPtr, key);
+        } else {
+            nativeAddInteger(builderPtr, key, val);
+        }
+                                                    }
+
+    public void addInteger(String key, Short val) {
+        if (val == null) {
+            nativeAddNull(builderPtr, key);
+        } else {
+            nativeAddInteger(builderPtr, key, val);
+        }
     }
 
-    /**
-     * Add nullable property that maps to Core's INTEGER.
-     */
+    public void addInteger(String key, Integer val) {
+        if (val == null) {
+            nativeAddNull(builderPtr, key);
+        } else {
+            nativeAddInteger(builderPtr, key, val);
+        }
+    }
+
     public void addInteger(String key, Long val) {
         if (val == null) {
             nativeAddNull(builderPtr, key);

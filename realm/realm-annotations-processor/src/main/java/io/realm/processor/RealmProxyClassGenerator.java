@@ -867,7 +867,9 @@ public class RealmProxyClassGenerator {
                 .emitSingleLineComment("Ignore default values to avoid creating uexpected objects from RealmModel/RealmList fields")
                 .emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
                 .emitStatement("objectContext.set(realm, row, realm.getSchema().getColumnInfo(%s.class), false, Collections.emptyList())", qualifiedJavaClassName)
-                .emitStatement("return new %s()", qualifiedGeneratedClassName)
+                .emitStatement("%1$s obj = new %1$s()", qualifiedGeneratedClassName)
+                .emitStatement("objectContext.clear()")
+                .emitStatement("return obj")
             .endMethod()
             .emitEmptyLine();
     }
@@ -1580,24 +1582,47 @@ public class RealmProxyClassGenerator {
             .emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
             .emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table)");
 
-        for (RealmFieldElement field : metadata.getFields()) {
+        // Copy basic types
+        writer
+            .emitEmptyLine()
+            .emitSingleLineComment("Add all non-object reference fields");
+        for (RealmFieldElement field : metadata.getBasicTypeFields()) {
             String internalFieldName = field.getInternalFieldName();
+            String fieldName = field.getSimpleName().toString();
+            String getter = metadata.getInternalGetter(fieldName);
+            writer.emitStatement("builder.%s(\"%s\", realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), internalFieldName, getter);
+        }
+
+        // Create the underlying object
+        writer
+            .emitEmptyLine()
+            .emitSingleLineComment("Create the underlying object and cache it before setting any object/objectlist references")
+            .emitSingleLineComment("This will allow us to break any circular dependencies by using the object cache.")
+            .emitStatement("Row row = builder.createNewObject()")
+            .emitStatement("%s realmObjectCopy = newProxyInstance(realm, row)", qualifiedGeneratedClassName)
+            .emitStatement("cache.put(newObject, realmObjectCopy)");
+
+        // Copy all object references or lists-of-objects
+        writer.emitEmptyLine();
+        writer.emitSingleLineComment("Finally add all fields that reference other Realm Objects, either directly or through a list");
+        for (RealmFieldElement field : metadata.getObjectReferenceFields()) {
             String fieldType = field.asType().toString();
             String fieldName = field.getSimpleName().toString();
             String getter = metadata.getInternalGetter(fieldName);
+            String setter = metadata.getInternalSetter(fieldName);
 
             if (Utils.isRealmModel(field)) {
-                writer
-                    .emitEmptyLine()
+                writer.emitEmptyLine()
                     .emitStatement("%s %sObj = realmObjectSource.%s()", fieldType, fieldName, getter)
                     .beginControlFlow("if (%sObj == null)", fieldName)
-                        .emitStatement("builder.addNull(\"%s\")", internalFieldName)
+                        .emitStatement("realmObjectCopy.%s(null)", setter)
                     .nextControlFlow("else")
                         .emitStatement("%s cache%s = (%s) cache.get(%sObj)", fieldType, fieldName, fieldType, fieldName)
                         .beginControlFlow("if (cache%s != null)", fieldName)
-                            .emitStatement("builder.addObject(\"%s\", cache%s)", internalFieldName, fieldName)
+                            .emitStatement("realmObjectCopy.%s(cache%s)", setter, fieldName)
                         .nextControlFlow("else")
-                            .emitStatement("builder.addObject(\"%s\", %s.copyOrUpdate(realm, %sObj, update, cache))", internalFieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                            .emitStatement("realmObjectCopy.%s(%s.copyOrUpdate(realm, %sObj, update, cache))",
+                                setter, Utils.getProxyClassSimpleName(field), fieldName)
                         .endControlFlow()
                     // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
                     .endControlFlow();
@@ -1607,32 +1632,29 @@ public class RealmProxyClassGenerator {
                     .emitEmptyLine()
                     .emitStatement("RealmList<%s> %sList = realmObjectSource.%s()", genericType, fieldName, getter)
                     .beginControlFlow("if (%sList != null)", fieldName)
-                        .emitStatement("RealmList<%s> %sManagedCopy = new RealmList<%s>()", genericType, fieldName, genericType)
+                        .emitStatement("RealmList<%s> %sRealmList = realmObjectCopy.%s()",
+                            genericType, fieldName, getter)
+                         // Clear is needed. See bug https://github.com/realm/realm-java/issues/4957
+                        .emitStatement("%sRealmList.clear()", fieldName)
                         .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
                             .emitStatement("%1$s %2$sItem = %2$sList.get(i)", genericType, fieldName)
                             .emitStatement("%1$s cache%2$s = (%1$s) cache.get(%2$sItem)", genericType, fieldName)
                             .beginControlFlow("if (cache%s != null)", fieldName)
-                                .emitStatement("%1$sManagedCopy.add(cache%1$s)", fieldName)
+                                .emitStatement("%1$sRealmList.add(cache%1$s)", fieldName)
                             .nextControlFlow("else")
-                                .emitStatement("%1$sManagedCopy.add(%2$s.copyOrUpdate(realm, %1$sItem, update, cache))", fieldName, Utils.getProxyClassSimpleName(field))
+                                .emitStatement("%1$sRealmList.add(%2$s.copyOrUpdate(realm, %1$sItem, update, cache))",
+                                    fieldName, Utils.getProxyClassSimpleName(field))
                             .endControlFlow()
                         .endControlFlow()
-                        .emitStatement("builder.addObjectList(\"%s\", %sManagedCopy)", internalFieldName, fieldName)
                     .endControlFlow();
             } else {
-                writer
-                    .emitStatement("builder.%s(\"%s\", realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), internalFieldName, getter);
+                throw new IllegalStateException("Unsupported field: " + field);
             }
         }
 
         writer
             .emitEmptyLine()
-            .emitStatement("Row row = builder.createNewObject()")
-            .emitStatement("%s realmObject = newProxyInstance(realm, row)", qualifiedGeneratedClassName)
-            .emitStatement("cache.put(newObject, realmObject)")
-            .emitStatement("return realmObject");
-
-        writer
+            .emitStatement("return realmObjectCopy")
             .endMethod()
             .emitEmptyLine();
     }
@@ -1729,76 +1751,66 @@ public class RealmProxyClassGenerator {
 
         writer
                 .emitStatement("%1$s realmObjectTarget = (%1$s) realmObject", interfaceName)
-                .emitStatement("%1$s realmObjectSource = (%1$s) newObject", interfaceName);
+                .emitStatement("%1$s realmObjectSource = (%1$s) newObject", interfaceName)
+                .emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
+                .emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table)");
 
-        for (VariableElement field : metadata.getFields()) {
+
+        for (RealmFieldElement field : metadata.getFields()) {
+            String internalFieldName = field.getInternalFieldName();
+            String fieldType = field.asType().toString();
             String fieldName = field.getSimpleName().toString();
-            String setter = metadata.getInternalSetter(fieldName);
             String getter = metadata.getInternalGetter(fieldName);
-            //@formatter:off
+
             if (Utils.isRealmModel(field)) {
                 writer
-                        .emitStatement("%s %sObj = realmObjectSource.%s()",
-                                Utils.getFieldTypeQualifiedName(field), fieldName, getter)
-                        .beginControlFlow("if (%sObj == null)", fieldName)
-                        .emitStatement("realmObjectTarget.%s(null)", setter)
-                        .nextControlFlow("else")
-                        .emitStatement("%1$s cache%2$s = (%1$s) cache.get(%2$sObj)",
-                                Utils.getFieldTypeQualifiedName(field), fieldName)
+                    .emitEmptyLine()
+                    .emitStatement("%s %sObj = realmObjectSource.%s()", fieldType, fieldName, getter)
+                    .beginControlFlow("if (%sObj == null)", fieldName)
+                        .emitStatement("builder.addNull(\"%s\")", internalFieldName)
+                    .nextControlFlow("else")
+                        .emitStatement("%s cache%s = (%s) cache.get(%sObj)", fieldType, fieldName, fieldType, fieldName)
                         .beginControlFlow("if (cache%s != null)", fieldName)
-                        .emitStatement("realmObjectTarget.%s(cache%s)", setter, fieldName)
+                            .emitStatement("builder.addObject(\"%s\", cache%s)", internalFieldName, fieldName)
                         .nextControlFlow("else")
-                        .emitStatement("realmObjectTarget.%s(%s.copyOrUpdate(realm, %sObj, true, cache))",
-                                setter, Utils.getProxyClassSimpleName(field), fieldName)
+                            .emitStatement("builder.addObject(\"%s\", %s.copyOrUpdate(realm, %sObj, true, cache))", internalFieldName, Utils.getProxyClassSimpleName(field), fieldName)
                         .endControlFlow()
-                        // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
-                        .endControlFlow();
+                    // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
+                    .endControlFlow();
             } else if (Utils.isRealmModelList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
                 writer
+                    .emitEmptyLine()
                     .emitStatement("RealmList<%s> %sList = realmObjectSource.%s()", genericType, fieldName, getter)
-                    .emitStatement("RealmList<%s> %sRealmList = realmObjectTarget.%s()", genericType, fieldName, getter)
-                    .beginControlFlow("if (%1$sList != null && %1$sList.size() == %1$sRealmList.size())", fieldName)
-                        .emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
-                        .emitStatement("int objects = %sList.size()", fieldName)
-                        .beginControlFlow("for (int i = 0; i < objects; i++)")
+                    .beginControlFlow("if (%sList != null)", fieldName)
+                        .emitStatement("RealmList<%s> %sManagedCopy = new RealmList<%s>()", genericType, fieldName, genericType)
+                        .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
                             .emitStatement("%1$s %2$sItem = %2$sList.get(i)", genericType, fieldName)
                             .emitStatement("%1$s cache%2$s = (%1$s) cache.get(%2$sItem)", genericType, fieldName)
                             .beginControlFlow("if (cache%s != null)", fieldName)
-                                .emitStatement("%1$sRealmList.set(i, cache%1$s)", fieldName)
+                                .emitStatement("%1$sManagedCopy.add(cache%1$s)", fieldName)
                             .nextControlFlow("else")
-                                .emitStatement("%1$sRealmList.set(i, %2$s.copyOrUpdate(realm, %1$sItem, true, cache))", fieldName, Utils.getProxyClassSimpleName(field))
+                                .emitStatement("%1$sManagedCopy.add(%2$s.copyOrUpdate(realm, %1$sItem, true, cache))", fieldName, Utils.getProxyClassSimpleName(field))
                             .endControlFlow()
                         .endControlFlow()
-                    .nextControlFlow("else")
-                        .emitStatement("%sRealmList.clear()", fieldName)
-                        .beginControlFlow("if (%sList != null)", fieldName)
-                            .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
-                                .emitStatement("%1$s %2$sItem = %2$sList.get(i)", genericType, fieldName)
-                                .emitStatement("%1$s cache%2$s = (%1$s) cache.get(%2$sItem)", genericType, fieldName)
-                                .beginControlFlow("if (cache%s != null)", fieldName)
-                                    .emitStatement("%1$sRealmList.add(cache%1$s)", fieldName)
-                                .nextControlFlow("else")
-                                    .emitStatement("%1$sRealmList.add(%2$s.copyOrUpdate(realm, %1$sItem, true, cache))", fieldName, Utils.getProxyClassSimpleName(field))
-                                .endControlFlow()
-                            .endControlFlow()
-                        .endControlFlow()
+                        .emitStatement("builder.addObjectList(\"%s\", %sManagedCopy)", internalFieldName, fieldName)
                     .endControlFlow();
-            } else if (Utils.isRealmValueList(field)) {
-                writer.emitStatement("realmObjectTarget.%s(realmObjectSource.%s())", setter, getter);
-            } else if (Utils.isMutableRealmInteger(field)) {
-                writer.emitStatement("realmObjectTarget.%s().set(realmObjectSource.%s().get())", getter, getter);
             } else {
-                if (field != metadata.getPrimaryKey()) {
-                    writer.emitStatement("realmObjectTarget.%s(realmObjectSource.%s())", setter, getter);
-                }
+                writer
+                    .emitStatement("builder.%s(\"%s\", realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), internalFieldName, getter);
             }
-            //@formatter:on
         }
 
-        writer.emitStatement("return realmObject");
-        writer.endMethod();
-        writer.emitEmptyLine();
+        writer
+            .emitEmptyLine()
+            .emitStatement("Row row = builder.updateExistingObject()")
+//            .emitStatement("%s realmObject = newProxyInstance(realm, row)", qualifiedGeneratedClassName)
+//            .emitStatement("cache.put(newObject, realmObject)")
+            .emitStatement("return realmObject");
+
+        writer
+            .endMethod()
+            .emitEmptyLine();
     }
 
     private void emitToStringMethod(JavaWriter writer) throws IOException {
