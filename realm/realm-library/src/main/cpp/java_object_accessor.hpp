@@ -182,7 +182,8 @@ public:
                 return o.str();
             }
         } else {
-            throw std::logic_error("Unexpected type");
+            auto str = std::string(val.type().name());
+            throw std::logic_error(util::format("Unexpected type: %s", str));
         }
     }
 
