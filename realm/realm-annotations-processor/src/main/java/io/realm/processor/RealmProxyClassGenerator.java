@@ -1807,7 +1807,7 @@ public class RealmProxyClassGenerator {
 
         writer
             .emitEmptyLine()
-            .emitStatement("Row row = builder.updateExistingObject()")
+            .emitStatement("builder.updateExistingObject()")
             .emitStatement("return realmObject");
 
         writer

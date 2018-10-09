@@ -2231,7 +2231,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         builder.addFloatList("columnFloatList", realmObjectSource.realmGet$columnFloatList());
         builder.addDateList("columnDateList", realmObjectSource.realmGet$columnDateList());
 
-        Row row = builder.updateExistingObject();
+        builder.updateExistingObject();
         return realmObject;
     }
 

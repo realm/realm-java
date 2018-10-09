@@ -31,12 +31,15 @@ import io.realm.internal.UncheckedRow;
 /**
  * This class is a wrapper around building up object data for calling `Object::create()`
  * <p>
- * Fill the object data by calling the various `addX()` methods, then create a new or update
- * an existing by calling {@link #createNewObject()} or {@link #updateExistingObject()}. These
- * methods can be called multiple times if needed.
+ * Fill the object data by calling the various `addX()` methods, then create a new Object or update
+ * an existing one by calling {@link #createNewObject()} or {@link #updateExistingObject()}.
  * <p>
  * This class assumes it is only being used from within a write transaction. Using it outside one
  * will result in undefined behaviour.
+ * <p>
+ * The native
+ * resources are created in the constructor of this class and destroyed when calling either of the
+ * above two methods.
  * <p>
  * <H1>Design thoughts</H1>
  * <p>
@@ -201,9 +204,6 @@ public class OsObjectBuilder {
         }
     }
 
-    /**
-     * Add Nullable and Required String property.
-     */
     public void addString(String key, String val) {
         if (val == null) {
             nativeAddNull(builderPtr, key);
@@ -284,7 +284,8 @@ public class OsObjectBuilder {
     }
 
     public <T extends RealmModel> void addObjectList(String key, RealmList<T> list) {
-        // Null objects references are not allowed. Bulk send them all
+        // Null objects references are not allowed. So we can optimize the JNI boundary by
+        // sending all object references in one long[] array.
         if (list != null) {
             long[] rowPointers = new long[list.size()];
             for (int i = 0; i < list.size(); i++) {
@@ -350,17 +351,22 @@ public class OsObjectBuilder {
         nativeStopList(builderPtr, key, listPtr);
     }
 
-    public UncheckedRow updateExistingObject() {
-        long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, true);
-        UncheckedRow row = new UncheckedRow(context, table, rowPtr);
-        nativeDestroyBuilder(builderPtr);
-        return row;
+    public void updateExistingObject() {
+        try {
+            nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, true);
+        } finally {
+            nativeDestroyBuilder(builderPtr);
+        }
     }
 
     public UncheckedRow createNewObject() {
-        long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, false);
-        UncheckedRow row = new UncheckedRow(context, table, rowPtr);
-        nativeDestroyBuilder(builderPtr);
+        UncheckedRow row;
+        try {
+            long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, false);
+            row = new UncheckedRow(context, table, rowPtr);
+        } finally {
+            nativeDestroyBuilder(builderPtr);
+        }
         return row;
     }
 
