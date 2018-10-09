@@ -148,7 +148,38 @@ public:
     void did_change() {}
 
     // Get a string representation of the given value for use in error messages.
-    std::string print(util::Any const&) const { return "not implemented"; }
+    // This method should only be used when printing warnings about primary keys
+    // which means the input should only be valid types for primary keys:
+    // StringData, int64_t and Optional<int64_t>
+    std::string print(util::Any const& val) const {
+        if (!val.has_value()) {
+            return "null";
+        }
+        if (val.type() == typeid(JStringAccessor)) {
+            auto str = any_cast<JStringAccessor>(val);
+            if (str.is_null()) {
+                return "null";
+            } else {
+                return std::string(str);
+            }
+        } else if (val.type() == typeid(int64_t)) {
+            auto number = any_cast<int64_t>(val);
+            std::ostringstream o;
+            o << number;
+            return o.str();
+        } else if (val.type() == typeid(Optional<int64_t>)) {
+            auto opt = any_cast<Optional<int64_t>>(val);
+            if (!opt) {
+                return "null";
+            } else {
+                std::ostringstream o;
+                o << opt.value();
+                return o.str();
+            }
+        } else {
+            throw std::logic_error("Unexpected type");
+        }
+    }
 
     // Cocoa allows supplying fewer values than there are properties when
     // creating objects using an array of values. Other bindings should not

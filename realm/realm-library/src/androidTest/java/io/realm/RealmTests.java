@@ -1500,6 +1500,42 @@ public class RealmTests {
     }
 
     @Test
+    public void copyToRealm_duplicatedPrimaryKeyThrows() {
+        final String[] PRIMARY_KEY_TYPES = {"String", "BoxedLong", "long"};
+        for (String className : PRIMARY_KEY_TYPES) {
+            try {
+                realm.beginTransaction();
+                switch (className) {
+                    case "String": {
+                        PrimaryKeyAsString obj = new PrimaryKeyAsString("foo");
+                        realm.copyToRealm(obj);
+                        realm.copyToRealm(obj);
+                        break;
+                    }
+                    case "BoxedLong": {
+                        PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong(1L, "boxedlong");
+                        realm.copyToRealm(obj);
+                        realm.copyToRealm(obj);
+                        break;
+                    }
+                    case "long":
+                        PrimaryKeyAsLong obj = new PrimaryKeyAsLong(1L);
+                        realm.copyToRealm(obj);
+                        realm.copyToRealm(obj);
+                        break;
+                    default:
+                }
+                fail("Null value as primary key already exists, but wasn't detected correctly");
+            } catch (RealmPrimaryKeyConstraintException expected) {
+                assertTrue("Exception message is: " + expected.getMessage(),
+                        expected.getMessage().contains("with an existing primary key value"));
+            } finally {
+                realm.cancelTransaction();
+            }
+        }
+    }
+
+    @Test
     public void copyToRealm_duplicatedNullPrimaryKeyThrows() {
         final String[] PRIMARY_KEY_TYPES = {"String", "BoxedByte", "BoxedShort", "BoxedInteger", "BoxedLong"};
 
@@ -1530,10 +1566,10 @@ public class RealmTests {
                         break;
                     default:
                 }
-                fail("Null value as primary key already exists.");
+                fail("Null value as primary key already exists, but wasn't detected correctly");
             } catch (RealmPrimaryKeyConstraintException expected) {
                 assertTrue("Exception message is: " + expected.getMessage(),
-                        expected.getMessage().contains("Primary key value already exists: 'null' ."));
+                        expected.getMessage().contains("with an existing primary key value 'null'"));
             } finally {
                 realm.cancelTransaction();
             }

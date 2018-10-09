@@ -358,7 +358,7 @@ public class OsObjectBuilder {
     }
 
     public UncheckedRow createNewObject() {
-        long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, true);
+        long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, false);
         UncheckedRow row = new UncheckedRow(context, table, rowPtr);
         nativeDestroyBuilder(builderPtr);
         return row;

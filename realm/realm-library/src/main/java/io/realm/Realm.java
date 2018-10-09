@@ -53,6 +53,7 @@ import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.NativeObject;
 import io.realm.internal.ObjectServerFacade;
@@ -1638,7 +1639,16 @@ public class Realm extends BaseRealm {
         if (!isInTransaction()) {
             throw new IllegalStateException("`copyOrUpdate` can only be called inside a write transaction.");
         }
-        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, cache, flags);
+        try {
+            return configuration.getSchemaMediator().copyOrUpdate(this, object, update, cache, flags);
+        } catch (IllegalStateException e) {
+            // Convert OS exception to match old API
+            if (e.getMessage().startsWith("Attempting to create an object of type")) {
+                throw new RealmPrimaryKeyConstraintException(e.getMessage());
+            } else {
+                throw e;
+            }
+        }
     }
 
     private <E extends RealmModel> E createDetachedCopy(E object, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {

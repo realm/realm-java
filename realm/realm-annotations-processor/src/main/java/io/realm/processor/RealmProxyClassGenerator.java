@@ -1804,8 +1804,6 @@ public class RealmProxyClassGenerator {
         writer
             .emitEmptyLine()
             .emitStatement("Row row = builder.updateExistingObject()")
-//            .emitStatement("%s realmObject = newProxyInstance(realm, row)", qualifiedGeneratedClassName)
-//            .emitStatement("cache.put(newObject, realmObject)")
             .emitStatement("return realmObject");
 
         writer
