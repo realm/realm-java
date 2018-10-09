@@ -1248,7 +1248,6 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         cache.put(newObject, realmObjectCopy);
 
         // Finally add all fields that reference other Realm Objects, either directly or through a list
-
         some.test.AllTypes columnObjectObj = realmObjectSource.realmGet$columnObject();
         if (columnObjectObj == null) {
             realmObjectCopy.realmSet$columnObject(null);

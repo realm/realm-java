@@ -1603,8 +1603,8 @@ public class RealmProxyClassGenerator {
             .emitStatement("cache.put(newObject, realmObjectCopy)");
 
         // Copy all object references or lists-of-objects
+        writer.emitEmptyLine();
         if (!metadata.getObjectReferenceFields().isEmpty()) {
-            writer.emitEmptyLine();
             writer.emitSingleLineComment("Finally add all fields that reference other Realm Objects, either directly or through a list");
         }
         for (RealmFieldElement field : metadata.getObjectReferenceFields()) {
@@ -1614,7 +1614,7 @@ public class RealmProxyClassGenerator {
             String setter = metadata.getInternalSetter(fieldName);
 
             if (Utils.isRealmModel(field)) {
-                writer.emitEmptyLine()
+                writer
                     .emitStatement("%s %sObj = realmObjectSource.%s()", fieldType, fieldName, getter)
                     .beginControlFlow("if (%sObj == null)", fieldName)
                         .emitStatement("realmObjectCopy.%s(null)", setter)
@@ -1627,11 +1627,12 @@ public class RealmProxyClassGenerator {
                                 setter, Utils.getProxyClassSimpleName(field), fieldName)
                         .endControlFlow()
                     // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
-                    .endControlFlow();
+                    .endControlFlow()
+                    .emitEmptyLine();
+
             } else if (Utils.isRealmModelList(field)) {
                 final String genericType = Utils.getGenericTypeQualifiedName(field);
                 writer
-                    .emitEmptyLine()
                     .emitStatement("RealmList<%s> %sList = realmObjectSource.%s()", genericType, fieldName, getter)
                     .beginControlFlow("if (%sList != null)", fieldName)
                         .emitStatement("RealmList<%s> %sRealmList = realmObjectCopy.%s()",
@@ -1648,14 +1649,14 @@ public class RealmProxyClassGenerator {
                                     fieldName, Utils.getProxyClassSimpleName(field))
                             .endControlFlow()
                         .endControlFlow()
-                    .endControlFlow();
+                    .endControlFlow()
+                    .emitEmptyLine();
             } else {
                 throw new IllegalStateException("Unsupported field: " + field);
             }
         }
 
         writer
-            .emitEmptyLine()
             .emitStatement("return realmObjectCopy")
             .endMethod()
             .emitEmptyLine();
