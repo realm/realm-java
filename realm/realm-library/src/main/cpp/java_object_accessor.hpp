@@ -157,7 +157,7 @@ public:
     // which means the input should only be valid types for primary keys:
     // StringData, int64_t and Optional<int64_t>
     std::string print(util::Any const& val) const {
-        if (!val.has_value()) {
+        if (!val.has_value() ||  val.type() == typeid(void)) {
             return "null";
         }
 
@@ -175,6 +175,8 @@ public:
             } else {
                 return std::string(str);
             }
+        } else if (val.type() == typeid(std::string)) {
+            return any_cast<std::string>(val);
         } else if (val.type() == typeid(util::Optional<int64_t>)) {
             auto opt = any_cast<util::Optional<int64_t>>(val);
             if (!opt) {
