@@ -1501,7 +1501,7 @@ public class RealmTests {
 
     @Test
     public void copyToRealm_duplicatedPrimaryKeyThrows() {
-        final String[] PRIMARY_KEY_TYPES = {"String", "long"}; // "BoxedLong"
+        final String[] PRIMARY_KEY_TYPES = { "long"}; // "String","BoxedLong"
         for (String className : PRIMARY_KEY_TYPES) {
             String expectedKey = null;
             try {
