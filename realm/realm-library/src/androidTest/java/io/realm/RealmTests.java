@@ -1515,15 +1515,15 @@ public class RealmTests {
                         break;
                     }
                     case "BoxedLong": {
-                        expectedKey = "1";
-                        PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong(1L, "boxedlong");
+                        expectedKey = Long.toString(Long.MIN_VALUE);
+                        PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong(Long.MIN_VALUE, "boxedlong");
                         realm.copyToRealm(obj);
                         realm.copyToRealm(obj);
                         break;
                     }
                     case "long":
-                        expectedKey = "1";
-                        PrimaryKeyAsLong obj = new PrimaryKeyAsLong(1L);
+                        expectedKey = Long.toString(Long.MAX_VALUE);
+                        PrimaryKeyAsLong obj = new PrimaryKeyAsLong(Long.MAX_VALUE);
                         realm.copyToRealm(obj);
                         realm.copyToRealm(obj);
                         break;

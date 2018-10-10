@@ -160,18 +160,38 @@ public:
         if (!val.has_value()) {
             return "null";
         }
-        if (val.type() == typeid(JStringAccessor)) {
+
+        if (val.type() == typeid(StringData)) {
+            auto str = any_cast<StringData>(val);
+            if (str.is_null()) {
+                return "null";
+            } else {
+                return std::string(str);
+            }
+        } else if (val.type() == typeid(JStringAccessor)) {
             auto str = any_cast<JStringAccessor>(val);
             if (str.is_null()) {
                 return "null";
             } else {
                 return std::string(str);
             }
-        } else {
+        } else if (val.type() == typeid(util::Optional<int64_t>)) {
+            auto opt = any_cast<util::Optional<int64_t>>(val);
+            if (!opt) {
+                return "null";
+            } else {
+                std::ostringstream o;
+                o << opt.value();
+                return o.str();
+            }
+        } else if (val.type() == typeid(int64_t)) {
             auto number = any_cast<int64_t>(val);
             std::ostringstream o;
             o << number;
             return o.str();
+        } else {
+            auto str = std::string(val.type().name());
+            throw std::logic_error(util::format("Unexpected type: %s", str));
         }
     }
 
@@ -228,7 +248,8 @@ inline StringData JavaContext::unbox(util::Any& v, bool, bool) const
         return StringData();
     }
     auto& value = any_cast<JStringAccessor&>(v);
-    return value;
+    StringData str = StringData(value);
+    return str;
 }
 
 template <>
@@ -238,7 +259,7 @@ inline BinaryData JavaContext::unbox(util::Any& v, bool, bool) const
         return BinaryData();
 
     auto& value = any_cast<OwnedBinaryData&>(v);
-    const auto& data = value.get();
+    const BinaryData& data = value.get();
     return data;
 }
 
