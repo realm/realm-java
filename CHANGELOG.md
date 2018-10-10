@@ -7,7 +7,7 @@
 
 ### Known Bugs
 * `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` has been rewritten to support import flags. It is currently 2x slower than in 5.7.0.
-* IllegalStateException thrown when trying to create an object with a primary key that already exists, will report "not implemented" instead of the correct primary key value.
+* IllegalStateException thrown when trying to create an object with a primary key that already exists when using `Realm.copyToRealm`, will always report "null" instead of the correct primary key value.
 
 ## 5.7.0 (2017-09-24)
 

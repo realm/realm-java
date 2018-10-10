@@ -70,7 +70,7 @@ public:
     // property and its index within the ObjectScehma's persisted_properties
     // array.
     util::Optional<util::Any> value_for_property(util::Any& dict,
-                                                 std::string const& prop_name,
+                                                 Property const& prop,
                                                  size_t /* property_index */) const
     {
         auto const& v = any_cast<AnyDict&>(dict);
@@ -157,7 +157,7 @@ public:
     // which means the input should only be valid types for primary keys:
     // StringData, int64_t and Optional<int64_t>
     std::string print(util::Any const& /*val*/) const {
-        return "not implemented";
+        return "null";
 
 // FIXME: Figure out why this doesn't work on some architectures (CI)
 // One example: https://ci.realm.io/blue/organizations/jenkins/realm%2Frealm-java/detail/PR-6224/26/pipeline
