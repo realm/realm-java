@@ -70,7 +70,7 @@ public:
     // property and its index within the ObjectScehma's persisted_properties
     // array.
     util::Optional<util::Any> value_for_property(util::Any& dict,
-                                                 Property const& prop,
+                                                 std::string const& prop_name,
                                                  size_t /* property_index */) const
     {
         auto const& v = any_cast<AnyDict&>(dict);
