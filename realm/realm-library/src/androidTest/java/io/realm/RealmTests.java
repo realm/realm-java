@@ -1503,22 +1503,26 @@ public class RealmTests {
     public void copyToRealm_duplicatedPrimaryKeyThrows() {
         final String[] PRIMARY_KEY_TYPES = {"String", "BoxedLong", "long"};
         for (String className : PRIMARY_KEY_TYPES) {
+            String expectedKey = null;
             try {
                 realm.beginTransaction();
                 switch (className) {
                     case "String": {
+                        expectedKey = "foo";
                         PrimaryKeyAsString obj = new PrimaryKeyAsString("foo");
                         realm.copyToRealm(obj);
                         realm.copyToRealm(obj);
                         break;
                     }
                     case "BoxedLong": {
+                        expectedKey = "1";
                         PrimaryKeyAsBoxedLong obj = new PrimaryKeyAsBoxedLong(1L, "boxedlong");
                         realm.copyToRealm(obj);
                         realm.copyToRealm(obj);
                         break;
                     }
                     case "long":
+                        expectedKey = "1";
                         PrimaryKeyAsLong obj = new PrimaryKeyAsLong(1L);
                         realm.copyToRealm(obj);
                         realm.copyToRealm(obj);
@@ -1528,7 +1532,7 @@ public class RealmTests {
                 fail("Null value as primary key already exists, but wasn't detected correctly");
             } catch (RealmPrimaryKeyConstraintException expected) {
                 assertTrue("Exception message is: " + expected.getMessage(),
-                        expected.getMessage().contains("with an existing primary key value"));
+                        expected.getMessage().contains("with an existing primary key value '"+ expectedKey +"'"));
             } finally {
                 realm.cancelTransaction();
             }

@@ -167,23 +167,11 @@ public:
             } else {
                 return std::string(str);
             }
-        } else if (val.type() == typeid(int64_t)) {
+        } else {
             auto number = any_cast<int64_t>(val);
             std::ostringstream o;
             o << number;
             return o.str();
-        } else if (val.type() == typeid(Optional<int64_t>)) {
-            auto opt = any_cast<Optional<int64_t>>(val);
-            if (!opt) {
-                return "null";
-            } else {
-                std::ostringstream o;
-                o << opt.value();
-                return o.str();
-            }
-        } else {
-            auto str = std::string(val.type().name());
-            throw std::logic_error(util::format("Unexpected type: %s", str));
         }
     }
 
