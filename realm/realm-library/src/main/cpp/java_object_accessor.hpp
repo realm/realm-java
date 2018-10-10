@@ -161,21 +161,21 @@ public:
             return "null";
         }
 
-        if (val.type() == typeid(StringData)) {
+        if (val.type().hash_code() == typeid(StringData).hash_code()) {
             auto str = any_cast<StringData>(val);
             if (str.is_null()) {
                 return "null";
             } else {
                 return std::string(str);
             }
-        } else if (val.type() == typeid(JStringAccessor)) {
+        } else if (val.type().hash_code() == typeid(JStringAccessor).hash_code()) {
             auto str = any_cast<JStringAccessor>(val);
             if (str.is_null()) {
                 return "null";
             } else {
                 return std::string(str);
             }
-        } else if (val.type() == typeid(util::Optional<int64_t>)) {
+        } else if (val.type().hash_code() == typeid(util::Optional<int64_t>).hash_code()) {
             auto opt = any_cast<util::Optional<int64_t>>(val);
             if (!opt) {
                 return "null";
@@ -184,7 +184,7 @@ public:
                 o << opt.value();
                 return o.str();
             }
-        } else if (val.type() == typeid(int64_t)) {
+        } else if (val.type().hash_code() == typeid(int64_t).hash_code()) {
             auto number = any_cast<int64_t>(val);
             std::ostringstream o;
             o << number;
