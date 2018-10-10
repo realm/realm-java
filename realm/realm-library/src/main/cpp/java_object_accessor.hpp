@@ -156,7 +156,7 @@ public:
     // This method should only be used when printing warnings about primary keys
     // which means the input should only be valid types for primary keys:
     // StringData, int64_t and Optional<int64_t>
-    std::string print(util::Any const& val) const {
+    std::string print(util::Any const& /*val*/) const {
         return "not implemented";
 
 // FIXME: Figure out why this doesn't work on some architectures (CI)
