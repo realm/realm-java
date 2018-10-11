@@ -33,6 +33,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -44,6 +46,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.Nullable;
+
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.log.LogLevel;
@@ -52,6 +57,7 @@ import io.realm.log.RealmLogger;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
+import kotlin.reflect.jvm.internal.impl.descriptors.deserialization.PlatformDependentDeclarationFilter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -1097,5 +1103,54 @@ public class NotificationsTest {
                 realm.createObject(AllTypes.class).setColumnLong(5);
             }
         });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void diffedUpdates_ignoredFieldsAreNotListedAsChanged() {
+        realm = looperThread.getRealm();
+        AllJavaTypes obj;
+        realm.beginTransaction();
+        AllJavaTypes childObject = realm.copyToRealm(new AllJavaTypes(1));
+        obj = realm.copyToRealmOrUpdate(new AllJavaTypes(42));
+        obj.setFieldObject(childObject);
+        obj.setFieldList(new RealmList<>(childObject));
+        looperThread.keepStrongReference(obj);
+        realm.commitTransaction();
+        obj.addChangeListener((RealmObjectChangeListener<AllJavaTypes>) (object, changeSet) -> {
+            assertEquals(13, changeSet.getChangedFields().length);
+
+            // Object refs and lists are marked as changed even if they didn't
+            // This should be fixed by Object Store: https://github.com/realm/realm-object-store/pull/699/
+            List<String> changedFields = Arrays.asList(
+                    "fieldString",
+                    "fieldObject",
+                    "fieldList",
+                    "fieldStringList",
+                    "fieldBinaryList",
+                    "fieldBooleanList",
+                    "fieldLongList",
+                    "fieldIntegerList",
+                    "fieldShortList",
+                    "fieldByteList",
+                    "fieldDoubleList",
+                    "fieldFloatList",
+                    "fieldDateList");
+
+            for (int i = 0; i < changedFields.size(); i++) {
+                String field = changedFields.get(i);
+                assertEquals(field, changeSet.getChangedFields()[i]);
+            }
+
+            looperThread.testComplete();
+        });
+
+        realm.beginTransaction();
+        AllJavaTypes updatedObj = new AllJavaTypes(42);
+        updatedObj.setFieldString("updated");
+        obj.setFieldObject(childObject);
+        obj.setFieldList(new RealmList<>(childObject));
+        realm.copyToRealmOrUpdate(updatedObj, ImportFlag.DO_NOT_SET_SAME_VALUES);
+        realm.commitTransaction();
     }
 }

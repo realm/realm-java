@@ -15,9 +15,12 @@
  */
 package io.realm;
 
+import io.realm.annotations.Beta;
+
 /**
  * This class describe how data is saved to Realm when saving full objects.
  */
+@Beta
 public enum ImportFlag {
 
     /**
