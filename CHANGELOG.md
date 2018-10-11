@@ -8,7 +8,7 @@
 ### Known Bugs
 * `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` has been rewritten to support import flags. It is currently ~30% slower than in 5.7.0.
 * IllegalStateException thrown when trying to create an object with a primary key that already exists when using `Realm.copyToRealm`, will always report "null" instead of the correct primary key value.
-* When using `ImportFlag.DO_NOT_SET_SAME_VALUES`, lists and object references will still written and reported as changed, even if they didn't.
+* When using `ImportFlag.DO_NOT_SET_SAME_VALUES`, lists and object references will still be written and reported as changed, even if they didn't change.
 
 ## 5.7.0 (2017-09-24)
 
