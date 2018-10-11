@@ -30,7 +30,7 @@
 using namespace realm::_impl;
 
 namespace realm {
-using AnyDict = std::map<std::string, util::Any>;
+using AnyDict = std::vector<util::Any>; // Use column indexes as lookup keys
 using AnyVector = std::vector<util::Any>;
 
 struct RequiredFieldValueNotProvidedException : public std::logic_error {
@@ -70,12 +70,11 @@ public:
     // property and its index within the ObjectScehma's persisted_properties
     // array.
     util::Optional<util::Any> value_for_property(util::Any& dict,
-                                                 std::string const& prop_name,
-                                                 size_t /* property_index */) const
+                                                 Property const& prop,
+                                                 size_t /*property_index*/) const
     {
         auto const& v = any_cast<AnyDict&>(dict);
-        auto it = v.find(prop_name);
-        return it == v.end() ? util::none : util::make_optional(it->second);
+        return util::make_optional(v.at(prop.table_column));
     }
 
     // Get the default value for the given property in the given object schema,
@@ -85,7 +84,7 @@ public:
     // This implementation does not support default values; see the default
     // value tests for an example of one which does.
     util::Optional<util::Any>
-    default_value_for_property(ObjectSchema const&, std::string const&) const
+    default_value_for_property(ObjectSchema const&, Property const&) const
     {
         return util::none;
     }

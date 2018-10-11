@@ -42,6 +42,7 @@ public class RealmProxyMediatorGenerator {
     private final ProcessingEnvironment processingEnvironment;
     private final List<String> qualifiedModelClasses = new ArrayList<>();
     private final List<String> qualifiedProxyClasses = new ArrayList<>();
+    private final List<String> simpleModelClassNames = new ArrayList<>();
     private final List<String> internalClassNames = new ArrayList<>();
 
 
@@ -52,7 +53,9 @@ public class RealmProxyMediatorGenerator {
 
         for (ClassMetaData metadata : classesToValidate) {
             qualifiedModelClasses.add(metadata.getFullyQualifiedClassName());
-            qualifiedProxyClasses.add(REALM_PACKAGE_NAME + "." + Utils.getProxyClassName(metadata.getFullyQualifiedClassName()));
+            String qualifiedProxyClassName = REALM_PACKAGE_NAME + "." + Utils.getProxyClassName(metadata.getFullyQualifiedClassName());
+            qualifiedProxyClasses.add(qualifiedProxyClassName);
+            simpleModelClassNames.add(metadata.getSimpleJavaClassName());
             internalClassNames.add(metadata.getInternalClassName());
         }
     }
@@ -66,8 +69,7 @@ public class RealmProxyMediatorGenerator {
         writer.emitPackage(REALM_PACKAGE_NAME);
         writer.emitEmptyLine();
 
-        writer.emitImports(
-                "android.util.JsonReader",
+        List<String> imports  = new ArrayList<>(Arrays.asList("android.util.JsonReader",
                 "java.io.IOException",
                 "java.util.Collections",
                 "java.util.HashSet",
@@ -85,9 +87,9 @@ public class RealmProxyMediatorGenerator {
                 "io.realm.internal.OsSchemaInfo",
                 "io.realm.internal.OsObjectSchemaInfo",
                 "org.json.JSONException",
-                "org.json.JSONObject"
-        );
+                "org.json.JSONObject"));
 
+        writer.emitImports(imports);
         writer.emitEmptyLine();
 
         writer.emitAnnotation(RealmModule.class);
@@ -243,7 +245,8 @@ public class RealmProxyMediatorGenerator {
         emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return clazz.cast(%s.copyOrUpdate(realm, (%s) obj, update, cache, flags))", qualifiedProxyClasses.get(i), qualifiedModelClasses.get(i));
+                writer.emitStatement("%1$s columnInfo = (%1$s) realm.getSchema().getColumnInfo(%2$s.class)", Utils.getSimpleColumnInfoClassName(qualifiedModelClasses.get(i)), qualifiedModelClasses.get(i));
+                writer.emitStatement("return clazz.cast(%s.copyOrUpdate(realm, columnInfo, (%s) obj, update, cache, flags))", qualifiedProxyClasses.get(i), qualifiedModelClasses.get(i));
             }
         }, writer, false);
         writer.endMethod();
