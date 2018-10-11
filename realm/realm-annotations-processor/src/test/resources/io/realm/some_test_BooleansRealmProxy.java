@@ -38,6 +38,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         implements RealmObjectProxy, some_test_BooleansRealmProxyInterface {
 
     static final class BooleansColumnInfo extends ColumnInfo {
+        long maxColumnIndexValue;
         long doneIndex;
         long isReadyIndex;
         long mCompletedIndex;
@@ -50,6 +51,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
             this.isReadyIndex = addColumnDetails("isReady", "isReady", objectSchemaInfo);
             this.mCompletedIndex = addColumnDetails("mCompleted", "mCompleted", objectSchemaInfo);
             this.anotherBooleanIndex = addColumnDetails("anotherBoolean", "anotherBoolean", objectSchemaInfo);
+            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         BooleansColumnInfo(ColumnInfo src, boolean mutable) {
@@ -70,6 +72,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
             dst.isReadyIndex = src.isReadyIndex;
             dst.mCompletedIndex = src.mCompletedIndex;
             dst.anotherBooleanIndex = src.anotherBooleanIndex;
+            dst.maxColumnIndexValue = src.maxColumnIndexValue;
         }
     }
 
@@ -302,7 +305,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         return obj;
     }
 
-    public static some.test.Booleans copyOrUpdate(Realm realm, some.test.Booleans object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
+    public static some.test.Booleans copyOrUpdate(Realm realm, BooleansColumnInfo columnInfo, some.test.Booleans object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
@@ -318,10 +321,10 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
             return (some.test.Booleans) cachedRealmObject;
         }
 
-        return copy(realm, object, update, cache, flags);
+        return copy(realm, columnInfo, object, update, cache, flags);
     }
 
-    public static some.test.Booleans copy(Realm realm, some.test.Booleans newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
+    public static some.test.Booleans copy(Realm realm, BooleansColumnInfo columnInfo, some.test.Booleans newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.Booleans) cachedRealmObject;
@@ -330,13 +333,13 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         some_test_BooleansRealmProxyInterface realmObjectSource = (some_test_BooleansRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.Booleans.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
+        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
 
         // Add all non-"object reference" fields
-        builder.addBoolean("done", realmObjectSource.realmGet$done());
-        builder.addBoolean("isReady", realmObjectSource.realmGet$isReady());
-        builder.addBoolean("mCompleted", realmObjectSource.realmGet$mCompleted());
-        builder.addBoolean("anotherBoolean", realmObjectSource.realmGet$anotherBoolean());
+        builder.addBoolean(columnInfo.doneIndex, realmObjectSource.realmGet$done());
+        builder.addBoolean(columnInfo.isReadyIndex, realmObjectSource.realmGet$isReady());
+        builder.addBoolean(columnInfo.mCompletedIndex, realmObjectSource.realmGet$mCompleted());
+        builder.addBoolean(columnInfo.anotherBooleanIndex, realmObjectSource.realmGet$anotherBoolean());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.

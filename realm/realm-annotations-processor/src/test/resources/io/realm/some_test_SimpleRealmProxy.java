@@ -38,6 +38,7 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         implements RealmObjectProxy, some_test_SimpleRealmProxyInterface {
 
     static final class SimpleColumnInfo extends ColumnInfo {
+        long maxColumnIndexValue;
         long nameIndex;
         long ageIndex;
 
@@ -46,6 +47,7 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("Simple");
             this.nameIndex = addColumnDetails("name", "name", objectSchemaInfo);
             this.ageIndex = addColumnDetails("age", "age", objectSchemaInfo);
+            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         SimpleColumnInfo(ColumnInfo src, boolean mutable) {
@@ -64,6 +66,7 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
             final SimpleColumnInfo dst = (SimpleColumnInfo) rawDst;
             dst.nameIndex = src.nameIndex;
             dst.ageIndex = src.ageIndex;
+            dst.maxColumnIndexValue = src.maxColumnIndexValue;
         }
     }
 
@@ -230,7 +233,7 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         return obj;
     }
 
-    public static some.test.Simple copyOrUpdate(Realm realm, some.test.Simple object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
+    public static some.test.Simple copyOrUpdate(Realm realm, SimpleColumnInfo columnInfo, some.test.Simple object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
@@ -246,10 +249,10 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
             return (some.test.Simple) cachedRealmObject;
         }
 
-        return copy(realm, object, update, cache, flags);
+        return copy(realm, columnInfo, object, update, cache, flags);
     }
 
-    public static some.test.Simple copy(Realm realm, some.test.Simple newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
+    public static some.test.Simple copy(Realm realm, SimpleColumnInfo columnInfo, some.test.Simple newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.Simple) cachedRealmObject;
@@ -258,11 +261,11 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         some_test_SimpleRealmProxyInterface realmObjectSource = (some_test_SimpleRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.Simple.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
+        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
 
         // Add all non-"object reference" fields
-        builder.addString("name", realmObjectSource.realmGet$name());
-        builder.addInteger("age", realmObjectSource.realmGet$age());
+        builder.addString(columnInfo.nameIndex, realmObjectSource.realmGet$name());
+        builder.addInteger(columnInfo.ageIndex, realmObjectSource.realmGet$age());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.

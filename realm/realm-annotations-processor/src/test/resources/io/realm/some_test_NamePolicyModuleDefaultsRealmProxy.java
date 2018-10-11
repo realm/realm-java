@@ -38,6 +38,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         implements RealmObjectProxy, some_test_NamePolicyModuleDefaultsRealmProxyInterface {
 
     static final class NamePolicyModuleDefaultsColumnInfo extends ColumnInfo {
+        long maxColumnIndexValue;
         long firstNameIndex;
         long lastNameIndex;
 
@@ -46,6 +47,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("NamePolicyModuleDefaults");
             this.firstNameIndex = addColumnDetails("firstName", "FirstName", objectSchemaInfo);
             this.lastNameIndex = addColumnDetails("lastName", "LastName", objectSchemaInfo);
+            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         NamePolicyModuleDefaultsColumnInfo(ColumnInfo src, boolean mutable) {
@@ -64,6 +66,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
             final NamePolicyModuleDefaultsColumnInfo dst = (NamePolicyModuleDefaultsColumnInfo) rawDst;
             dst.firstNameIndex = src.firstNameIndex;
             dst.lastNameIndex = src.lastNameIndex;
+            dst.maxColumnIndexValue = src.maxColumnIndexValue;
         }
     }
 
@@ -238,7 +241,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         return obj;
     }
 
-    public static some.test.NamePolicyModuleDefaults copyOrUpdate(Realm realm, some.test.NamePolicyModuleDefaults object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
+    public static some.test.NamePolicyModuleDefaults copyOrUpdate(Realm realm, NamePolicyModuleDefaultsColumnInfo columnInfo, some.test.NamePolicyModuleDefaults object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
@@ -254,10 +257,10 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
             return (some.test.NamePolicyModuleDefaults) cachedRealmObject;
         }
 
-        return copy(realm, object, update, cache, flags);
+        return copy(realm, columnInfo, object, update, cache, flags);
     }
 
-    public static some.test.NamePolicyModuleDefaults copy(Realm realm, some.test.NamePolicyModuleDefaults newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
+    public static some.test.NamePolicyModuleDefaults copy(Realm realm, NamePolicyModuleDefaultsColumnInfo columnInfo, some.test.NamePolicyModuleDefaults newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.NamePolicyModuleDefaults) cachedRealmObject;
@@ -266,11 +269,11 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         some_test_NamePolicyModuleDefaultsRealmProxyInterface realmObjectSource = (some_test_NamePolicyModuleDefaultsRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.NamePolicyModuleDefaults.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
+        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
 
         // Add all non-"object reference" fields
-        builder.addString("FirstName", realmObjectSource.realmGet$firstName());
-        builder.addString("LastName", realmObjectSource.realmGet$lastName());
+        builder.addString(columnInfo.firstNameIndex, realmObjectSource.realmGet$firstName());
+        builder.addString(columnInfo.lastNameIndex, realmObjectSource.realmGet$lastName());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.

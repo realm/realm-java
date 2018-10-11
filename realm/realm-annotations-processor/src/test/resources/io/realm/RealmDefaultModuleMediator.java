@@ -86,7 +86,8 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         @SuppressWarnings("unchecked") Class<E> clazz = (Class<E>) ((obj instanceof RealmObjectProxy) ? obj.getClass().getSuperclass() : obj.getClass());
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            return clazz.cast(io.realm.some_test_AllTypesRealmProxy.copyOrUpdate(realm, (some.test.AllTypes) obj, update, cache, flags));
+            some_test_AllTypesRealmProxy.AllTypesColumnInfo columnInfo = (some_test_AllTypesRealmProxy.AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class);
+            return clazz.cast(io.realm.some_test_AllTypesRealmProxy.copyOrUpdate(realm, columnInfo, (some.test.AllTypes) obj, update, cache, flags));
         }
         throw getMissingProxyClassException(clazz);
     }

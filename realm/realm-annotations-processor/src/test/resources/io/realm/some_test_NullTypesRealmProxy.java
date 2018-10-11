@@ -38,6 +38,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         implements RealmObjectProxy, some_test_NullTypesRealmProxyInterface {
 
     static final class NullTypesColumnInfo extends ColumnInfo {
+        long maxColumnIndexValue;
         long fieldStringNotNullIndex;
         long fieldStringNullIndex;
         long fieldBooleanNotNullIndex;
@@ -124,6 +125,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             this.fieldFloatListNullIndex = addColumnDetails("fieldFloatListNull", "fieldFloatListNull", objectSchemaInfo);
             this.fieldDateListNotNullIndex = addColumnDetails("fieldDateListNotNull", "fieldDateListNotNull", objectSchemaInfo);
             this.fieldDateListNullIndex = addColumnDetails("fieldDateListNull", "fieldDateListNull", objectSchemaInfo);
+            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         NullTypesColumnInfo(ColumnInfo src, boolean mutable) {
@@ -181,6 +183,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             dst.fieldFloatListNullIndex = src.fieldFloatListNullIndex;
             dst.fieldDateListNotNullIndex = src.fieldDateListNotNullIndex;
             dst.fieldDateListNullIndex = src.fieldDateListNullIndex;
+            dst.maxColumnIndexValue = src.maxColumnIndexValue;
         }
     }
 
@@ -2190,7 +2193,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         return obj;
     }
 
-    public static some.test.NullTypes copyOrUpdate(Realm realm, some.test.NullTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
+    public static some.test.NullTypes copyOrUpdate(Realm realm, NullTypesColumnInfo columnInfo, some.test.NullTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
@@ -2206,10 +2209,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             return (some.test.NullTypes) cachedRealmObject;
         }
 
-        return copy(realm, object, update, cache, flags);
+        return copy(realm, columnInfo, object, update, cache, flags);
     }
 
-    public static some.test.NullTypes copy(Realm realm, some.test.NullTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
+    public static some.test.NullTypes copy(Realm realm, NullTypesColumnInfo columnInfo, some.test.NullTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.NullTypes) cachedRealmObject;
@@ -2218,49 +2221,49 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         some_test_NullTypesRealmProxyInterface realmObjectSource = (some_test_NullTypesRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.NullTypes.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
+        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
 
         // Add all non-"object reference" fields
-        builder.addString("fieldStringNotNull", realmObjectSource.realmGet$fieldStringNotNull());
-        builder.addString("fieldStringNull", realmObjectSource.realmGet$fieldStringNull());
-        builder.addBoolean("fieldBooleanNotNull", realmObjectSource.realmGet$fieldBooleanNotNull());
-        builder.addBoolean("fieldBooleanNull", realmObjectSource.realmGet$fieldBooleanNull());
-        builder.addByteArray("fieldBytesNotNull", realmObjectSource.realmGet$fieldBytesNotNull());
-        builder.addByteArray("fieldBytesNull", realmObjectSource.realmGet$fieldBytesNull());
-        builder.addInteger("fieldByteNotNull", realmObjectSource.realmGet$fieldByteNotNull());
-        builder.addInteger("fieldByteNull", realmObjectSource.realmGet$fieldByteNull());
-        builder.addInteger("fieldShortNotNull", realmObjectSource.realmGet$fieldShortNotNull());
-        builder.addInteger("fieldShortNull", realmObjectSource.realmGet$fieldShortNull());
-        builder.addInteger("fieldIntegerNotNull", realmObjectSource.realmGet$fieldIntegerNotNull());
-        builder.addInteger("fieldIntegerNull", realmObjectSource.realmGet$fieldIntegerNull());
-        builder.addInteger("fieldLongNotNull", realmObjectSource.realmGet$fieldLongNotNull());
-        builder.addInteger("fieldLongNull", realmObjectSource.realmGet$fieldLongNull());
-        builder.addFloat("fieldFloatNotNull", realmObjectSource.realmGet$fieldFloatNotNull());
-        builder.addFloat("fieldFloatNull", realmObjectSource.realmGet$fieldFloatNull());
-        builder.addDouble("fieldDoubleNotNull", realmObjectSource.realmGet$fieldDoubleNotNull());
-        builder.addDouble("fieldDoubleNull", realmObjectSource.realmGet$fieldDoubleNull());
-        builder.addDate("fieldDateNotNull", realmObjectSource.realmGet$fieldDateNotNull());
-        builder.addDate("fieldDateNull", realmObjectSource.realmGet$fieldDateNull());
-        builder.addStringList("fieldStringListNotNull", realmObjectSource.realmGet$fieldStringListNotNull());
-        builder.addStringList("fieldStringListNull", realmObjectSource.realmGet$fieldStringListNull());
-        builder.addByteArrayList("fieldBinaryListNotNull", realmObjectSource.realmGet$fieldBinaryListNotNull());
-        builder.addByteArrayList("fieldBinaryListNull", realmObjectSource.realmGet$fieldBinaryListNull());
-        builder.addBooleanList("fieldBooleanListNotNull", realmObjectSource.realmGet$fieldBooleanListNotNull());
-        builder.addBooleanList("fieldBooleanListNull", realmObjectSource.realmGet$fieldBooleanListNull());
-        builder.addLongList("fieldLongListNotNull", realmObjectSource.realmGet$fieldLongListNotNull());
-        builder.addLongList("fieldLongListNull", realmObjectSource.realmGet$fieldLongListNull());
-        builder.addIntegerList("fieldIntegerListNotNull", realmObjectSource.realmGet$fieldIntegerListNotNull());
-        builder.addIntegerList("fieldIntegerListNull", realmObjectSource.realmGet$fieldIntegerListNull());
-        builder.addShortList("fieldShortListNotNull", realmObjectSource.realmGet$fieldShortListNotNull());
-        builder.addShortList("fieldShortListNull", realmObjectSource.realmGet$fieldShortListNull());
-        builder.addByteList("fieldByteListNotNull", realmObjectSource.realmGet$fieldByteListNotNull());
-        builder.addByteList("fieldByteListNull", realmObjectSource.realmGet$fieldByteListNull());
-        builder.addDoubleList("fieldDoubleListNotNull", realmObjectSource.realmGet$fieldDoubleListNotNull());
-        builder.addDoubleList("fieldDoubleListNull", realmObjectSource.realmGet$fieldDoubleListNull());
-        builder.addFloatList("fieldFloatListNotNull", realmObjectSource.realmGet$fieldFloatListNotNull());
-        builder.addFloatList("fieldFloatListNull", realmObjectSource.realmGet$fieldFloatListNull());
-        builder.addDateList("fieldDateListNotNull", realmObjectSource.realmGet$fieldDateListNotNull());
-        builder.addDateList("fieldDateListNull", realmObjectSource.realmGet$fieldDateListNull());
+        builder.addString(columnInfo.fieldStringNotNullIndex, realmObjectSource.realmGet$fieldStringNotNull());
+        builder.addString(columnInfo.fieldStringNullIndex, realmObjectSource.realmGet$fieldStringNull());
+        builder.addBoolean(columnInfo.fieldBooleanNotNullIndex, realmObjectSource.realmGet$fieldBooleanNotNull());
+        builder.addBoolean(columnInfo.fieldBooleanNullIndex, realmObjectSource.realmGet$fieldBooleanNull());
+        builder.addByteArray(columnInfo.fieldBytesNotNullIndex, realmObjectSource.realmGet$fieldBytesNotNull());
+        builder.addByteArray(columnInfo.fieldBytesNullIndex, realmObjectSource.realmGet$fieldBytesNull());
+        builder.addInteger(columnInfo.fieldByteNotNullIndex, realmObjectSource.realmGet$fieldByteNotNull());
+        builder.addInteger(columnInfo.fieldByteNullIndex, realmObjectSource.realmGet$fieldByteNull());
+        builder.addInteger(columnInfo.fieldShortNotNullIndex, realmObjectSource.realmGet$fieldShortNotNull());
+        builder.addInteger(columnInfo.fieldShortNullIndex, realmObjectSource.realmGet$fieldShortNull());
+        builder.addInteger(columnInfo.fieldIntegerNotNullIndex, realmObjectSource.realmGet$fieldIntegerNotNull());
+        builder.addInteger(columnInfo.fieldIntegerNullIndex, realmObjectSource.realmGet$fieldIntegerNull());
+        builder.addInteger(columnInfo.fieldLongNotNullIndex, realmObjectSource.realmGet$fieldLongNotNull());
+        builder.addInteger(columnInfo.fieldLongNullIndex, realmObjectSource.realmGet$fieldLongNull());
+        builder.addFloat(columnInfo.fieldFloatNotNullIndex, realmObjectSource.realmGet$fieldFloatNotNull());
+        builder.addFloat(columnInfo.fieldFloatNullIndex, realmObjectSource.realmGet$fieldFloatNull());
+        builder.addDouble(columnInfo.fieldDoubleNotNullIndex, realmObjectSource.realmGet$fieldDoubleNotNull());
+        builder.addDouble(columnInfo.fieldDoubleNullIndex, realmObjectSource.realmGet$fieldDoubleNull());
+        builder.addDate(columnInfo.fieldDateNotNullIndex, realmObjectSource.realmGet$fieldDateNotNull());
+        builder.addDate(columnInfo.fieldDateNullIndex, realmObjectSource.realmGet$fieldDateNull());
+        builder.addStringList(columnInfo.fieldStringListNotNullIndex, realmObjectSource.realmGet$fieldStringListNotNull());
+        builder.addStringList(columnInfo.fieldStringListNullIndex, realmObjectSource.realmGet$fieldStringListNull());
+        builder.addByteArrayList(columnInfo.fieldBinaryListNotNullIndex, realmObjectSource.realmGet$fieldBinaryListNotNull());
+        builder.addByteArrayList(columnInfo.fieldBinaryListNullIndex, realmObjectSource.realmGet$fieldBinaryListNull());
+        builder.addBooleanList(columnInfo.fieldBooleanListNotNullIndex, realmObjectSource.realmGet$fieldBooleanListNotNull());
+        builder.addBooleanList(columnInfo.fieldBooleanListNullIndex, realmObjectSource.realmGet$fieldBooleanListNull());
+        builder.addLongList(columnInfo.fieldLongListNotNullIndex, realmObjectSource.realmGet$fieldLongListNotNull());
+        builder.addLongList(columnInfo.fieldLongListNullIndex, realmObjectSource.realmGet$fieldLongListNull());
+        builder.addIntegerList(columnInfo.fieldIntegerListNotNullIndex, realmObjectSource.realmGet$fieldIntegerListNotNull());
+        builder.addIntegerList(columnInfo.fieldIntegerListNullIndex, realmObjectSource.realmGet$fieldIntegerListNull());
+        builder.addShortList(columnInfo.fieldShortListNotNullIndex, realmObjectSource.realmGet$fieldShortListNotNull());
+        builder.addShortList(columnInfo.fieldShortListNullIndex, realmObjectSource.realmGet$fieldShortListNull());
+        builder.addByteList(columnInfo.fieldByteListNotNullIndex, realmObjectSource.realmGet$fieldByteListNotNull());
+        builder.addByteList(columnInfo.fieldByteListNullIndex, realmObjectSource.realmGet$fieldByteListNull());
+        builder.addDoubleList(columnInfo.fieldDoubleListNotNullIndex, realmObjectSource.realmGet$fieldDoubleListNotNull());
+        builder.addDoubleList(columnInfo.fieldDoubleListNullIndex, realmObjectSource.realmGet$fieldDoubleListNull());
+        builder.addFloatList(columnInfo.fieldFloatListNotNullIndex, realmObjectSource.realmGet$fieldFloatListNotNull());
+        builder.addFloatList(columnInfo.fieldFloatListNullIndex, realmObjectSource.realmGet$fieldFloatListNull());
+        builder.addDateList(columnInfo.fieldDateListNotNullIndex, realmObjectSource.realmGet$fieldDateListNotNull());
+        builder.addDateList(columnInfo.fieldDateListNullIndex, realmObjectSource.realmGet$fieldDateListNull());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.
@@ -2277,7 +2280,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (cachefieldObjectNull != null) {
                 realmObjectCopy.realmSet$fieldObjectNull(cachefieldObjectNull);
             } else {
-                realmObjectCopy.realmSet$fieldObjectNull(some_test_NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, update, cache, flags));
+                realmObjectCopy.realmSet$fieldObjectNull(some_test_NullTypesRealmProxy.copyOrUpdate(realm, (some_test_NullTypesRealmProxy.NullTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.NullTypes.class), fieldObjectNullObj, update, cache, flags));
             }
         }
 
