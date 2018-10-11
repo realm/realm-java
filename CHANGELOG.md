@@ -1,4 +1,4 @@
-## 5.8.0-BETA1 (YYYY-MM-DD)
+## 5.8.0-BETA1 (2018-10-11)
 
 ### Enhancements
 * Added new `ImportFlag` class that is used to specify additional behaviour when importing
