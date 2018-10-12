@@ -2,6 +2,7 @@ package io.realm.sync;
 
 import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.annotations.Index;
 import io.realm.annotations.RealmClass;
@@ -9,10 +10,27 @@ import io.realm.annotations.RealmField;
 import io.realm.annotations.Required;
 import io.realm.internal.annotations.ObjectServer;
 
+/**
+ * Subscriptions represent the data that a device is interested in from the server when using
+ * Query-based Realms.
+ * <p>
+ * They are created automatically when using {@link RealmQuery#findAllAsync()} or {@link RealmQuery#findAllAsync(String)}
+ * on those Realms, but can also be created manually.
+ * <p>
+ * As long as a any subscription exists that include a Object, that object will be present on the
+ * device. If an object is not covered by any subscription it will be removed from the device,
+ * but not the server.
+ * <p>
+ * Subscriptions are Realm objects, so deleting them by e.g. calling {@link RealmObject#deleteFromRealm()},
+ * is the same as calling {@link #unsubscribe()}.
+ */
 @ObjectServer
 @RealmClass(name = "__ResultSets")
 public class Subscription implements RealmModel {
 
+    /**
+     * The different states a Subscription can be in.
+     */
     public enum State {
         /**
          * FIXME
@@ -20,6 +38,7 @@ public class Subscription implements RealmModel {
         ERROR,  // An error occurred while creating or processing the partial sync subscription.
 
         // CREATING(2), // Not supported in Java
+
         PENDING, // The subscription was created, but has not yet been processed by the sync server.
 
         /**
@@ -45,31 +64,28 @@ public class Subscription implements RealmModel {
 
     private String query;
 
+    /**
+     * Returns the name of the subscription.
+     *
+     * @return the name of the subscription.
+     */
     public String getName() {
         return name;
     }
 
-
-    public <T extends RealmModel> RealmResults<T> getRemoteQueryResult(Class<T> queryClass) {
-        return null;
-    }
-
-    public <T extends RealmModel> RealmResults<T> getLocalQueryResult(Class<T> queryClass) {
-        return null;
-    }
-
-    public <T extends RealmModel> RealmResults<T> getRemoteQueryResultAsync(Class<T> queryClass) {
-        return null;
-    }
-
-    public <T extends RealmModel> RealmResults<T> getLocalQueryResultAsync(Class<T> queryClass) {
-        return null;
+    /**
+     * Returns a textual description of the query that created this subscription.
+     * @return
+     */
+    public String getQueryDescription() {
+        return query;
     }
 
     /**
-     * FIXME
+     * Returns the state of the subscription
      *
-     * @return
+     * @return the state of the subscription.
+     * @see State
      */
     public State getState () {
         if (RealmObject.isValid(this)) {
@@ -89,16 +105,23 @@ public class Subscription implements RealmModel {
     }
 
     /**
-     * FIXME
+     * Returns the error message if {@link #getState()} returned {@link State#ERROR}, otherwise
+     * the empty string is returned.
      *
-     * @return
+     * @return the error string if the subscription encountered an error.
      */
     public String getErrorMessage() {
         return errorMessage;
     }
 
     /**
-     * FIXME
+     * Cancels the subscription. If after this, some objects in the Realm are no longer part of any
+     * active subscription they will be removed locally from the device (but not on the server).
+     * <p>
+     * The effect of unsubscribing is not immediate. The local Realm must coordinate with the Realm
+     * Object Server before it can happen. When it happens, any objects removed due to unsubscribing
+     * will trigger a standard change notification, and from the perspective of the device it will
+     * look like the data was deleted.
      *
      * @throws IllegalStateException if the Realm is not in a write transaction.
      */

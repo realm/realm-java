@@ -1856,9 +1856,9 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * FIXME
+     * Returns a list of all subscriptions, regardless of their current {@link Subscription.State()}.
      *
-     * @return
+     * @return a list of all known subscriptions.
      */
     @Beta
     @ObjectServer
@@ -1867,25 +1867,27 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * FIXME
+     * Returns a list of all subscriptions that match a given pattern. {@code *} can be used to
+     * indicate any number of unknown characters and {@code ?} represents a single unknown character.
      *
-     * @param nameFilter
-     * @return
+     * @param namePattern which subscriptions to find.
+     * @ret list of subscriptions that match the pattern.
      */
     @Beta
     @ObjectServer
-    public RealmResults<Subscription> getSubscriptions(String nameFilter) {
-        return where(Subscription.class).like("name", nameFilter).findAll();
+    public RealmResults<Subscription> getSubscriptions(String namePattern) {
+        return where(Subscription.class).like("name", namePattern).findAll();
     }
 
     /**
-     * FIXME
+     * Returns the first subscription that matches the given name.
      *
-     * @param name
-     * @return
+     * @param name the name of the subscription to find.
+     * @return returns the subscription that matches the name or {@code null} if no subscription matches the name.
      */
     @Beta
     @ObjectServer
+    @Nullable
     public Subscription getSubscription(String name) {
         return where(Subscription.class).equalTo("name", name).findFirst();
     }

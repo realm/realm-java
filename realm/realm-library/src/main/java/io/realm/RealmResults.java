@@ -342,14 +342,4 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         }
     }
 
-    /**
-     * Returns the {@link Subscription} backing this query or {@code null} if the query is a local
-     * query or no subscription exists.
-     * @return
-     */
-    @Beta
-    @ObjectServer
-    public Subscription getSubscription() {
-        return null;
-    }
 }
