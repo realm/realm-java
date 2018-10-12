@@ -56,14 +56,16 @@ public class Subscription implements RealmModel {
         // Required by Realm.
     }
 
-
-    public Subscription(RealmQuery<?> query) {
-        return this(query.getDescription(), query)
-
-    }
-
+    /**
+     * Creates a unmanaged named subscription from a {@link RealmQuery}.
+     * This will not take effect until it has been added to the Realm.
+     *
+     * @param name name of the query.
+     * @param query the query to turn into a subscription.
+     */
     public Subscription(String name, RealmQuery<?> query) {
-
+        this.name = name;
+        this.query = query.getDescription();
     }
 
     @Index

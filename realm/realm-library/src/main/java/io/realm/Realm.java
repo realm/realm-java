@@ -1868,7 +1868,7 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Returns a list of all subscriptions, regardless of their current {@link Subscription.State()}.
+     * Returns a list of all known subscriptions, regardless of their status.
      *
      * @return a list of all known subscriptions.
      */
@@ -1883,7 +1883,7 @@ public class Realm extends BaseRealm {
      * indicate any number of unknown characters and {@code ?} represents a single unknown character.
      *
      * @param namePattern which subscriptions to find.
-     * @ret list of subscriptions that match the pattern.
+     * @return list of subscriptions that match the pattern.
      */
     @Beta
     @ObjectServer
