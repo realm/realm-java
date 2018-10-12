@@ -1997,11 +1997,18 @@ public class RealmQuery<E> {
     }
 
     /**
-     * FIXME
+     * Creates an anonymous subscription from this query or returns the existing Subscription if
+     * one already existed.
      *
-     * @return
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction.
      */
     public Subscription subscribe() {
+        String type = query.getTable().getClassName();
+        Name =
+
+
+        new Subscription()
        return null;
     }
 
@@ -2010,7 +2017,7 @@ public class RealmQuery<E> {
      * FIXME
      *
      * @param name
-     * @return
+     * @return the s
      */
     public Subscription subscribe(String name) {
         return null;
@@ -2022,9 +2029,9 @@ public class RealmQuery<E> {
      */
     public String getDescription() {
         StringBuilder sb = new StringBuilder('[');
-        sb.append(isDynamicQuery() ? className : clazz.getSimpleName());
+        sb.append(query.getTable().getClassName());
         sb.append("]: ");
-//         sb.append(nativeSerializeQuery()); // FIXME
+         sb.append(nativeSerializeQuery());
         return sb.toString();
     }
 
@@ -2152,4 +2159,6 @@ public class RealmQuery<E> {
     private SchemaConnector getSchemaConnector() {
         return new SchemaConnector(realm.getSchema());
     }
+
+//    private static native String nativeSerializeQuery(TableQuery query, Desc)
 }

@@ -52,6 +52,20 @@ public class Subscription implements RealmModel {
         INVALIDATED; // The subscription has been removed.
     }
 
+    public Subscription() {
+        // Required by Realm.
+    }
+
+
+    public Subscription(RealmQuery<?> query) {
+        return this(query.getDescription(), query)
+
+    }
+
+    public Subscription(String name, RealmQuery<?> query) {
+
+    }
+
     @Index
     @Required
     private String name;
