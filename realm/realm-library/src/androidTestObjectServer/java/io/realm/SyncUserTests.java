@@ -53,11 +53,10 @@ import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.util.SyncTestUtils;
 
-import static io.realm.util.SyncTestUtils.createNamedTestUser;
-import static io.realm.util.SyncTestUtils.createTestAdminUser;
-import static io.realm.util.SyncTestUtils.createTestUser;
+import static io.realm.SyncTestUtils.createNamedTestUser;
+import static io.realm.SyncTestUtils.createTestAdminUser;
+import static io.realm.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -94,15 +93,10 @@ public class SyncUserTests {
     @Rule
     public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
 
-    @BeforeClass
-    public static void initUserStore() {
-        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
-        UserStore userStore = new RealmFileUserStore();
-        SyncManager.setUserStore(userStore);
-    }
-
     @Before
     public void setUp() {
+        BaseRealm.applicationContext = null;
+        Realm.init(InstrumentationRegistry.getTargetContext());
         UserStore userStore = SyncManager.getUserStore();
         for (SyncUser syncUser : userStore.allUsers()) {
             userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
@@ -174,7 +168,7 @@ public class SyncUserTests {
     public void currentUser_returnsNullIfUserExpired() {
         // Add an expired user to the user store
         UserStore userStore = SyncManager.getUserStore();
-        userStore.put(SyncTestUtils.createTestUser(Long.MIN_VALUE));
+        userStore.put(createTestUser(Long.MIN_VALUE));
 
         // Invalid users should not be returned when asking the for the current user
         assertNull(SyncUser.current());
@@ -219,7 +213,7 @@ public class SyncUserTests {
     @Test
     public void currentUser_clearedOnLogout() {
         // Add 1 valid user to the user store
-        SyncUser user = SyncTestUtils.createTestUser(Long.MAX_VALUE);
+        SyncUser user = createTestUser(Long.MAX_VALUE);
         UserStore userStore = SyncManager.getUserStore();
         userStore.put(user);
 
@@ -242,8 +236,8 @@ public class SyncUserTests {
     public void all_validUsers() {
         // Add 1 expired user and 1 valid user to the user store
         UserStore userStore = SyncManager.getUserStore();
-        userStore.put(SyncTestUtils.createTestUser(Long.MIN_VALUE));
-        userStore.put(SyncTestUtils.createTestUser(Long.MAX_VALUE));
+        userStore.put(createTestUser(Long.MIN_VALUE));
+        userStore.put(createTestUser(Long.MAX_VALUE));
 
         Map<String, SyncUser> users = SyncUser.all();
         assertEquals(1, users.size());
@@ -262,7 +256,7 @@ public class SyncUserTests {
     @Test
     public void isAdmin_allUsers() {
         UserStore userStore = SyncManager.getUserStore();
-        SyncUser user = SyncTestUtils.createTestAdminUser();
+        SyncUser user = createTestAdminUser();
         assertTrue(user.isAdmin());
         userStore.put(user);
 
@@ -284,7 +278,7 @@ public class SyncUserTests {
 
     @Test
     public void toString_returnDescription() {
-        SyncUser user = SyncTestUtils.createTestUser("http://objectserver.realm.io/auth");
+        SyncUser user = createTestUser("http://objectserver.realm.io/auth");
         String str = user.toString();
         assertTrue(str != null && !str.isEmpty());
     }

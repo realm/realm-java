@@ -26,7 +26,6 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -36,8 +35,39 @@ import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class SyncSessionTests extends StandardIntegrationTest {
+
     @Rule
     public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
+
+    private interface SessionCallback {
+        void onReady(SyncSession session);
+    }
+
+    private SyncSession getSession() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        SyncConfiguration syncConfiguration = configFactory
+                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .build();
+        looperThread.closeAfterTest(Realm.getInstance(syncConfiguration));
+        return SyncManager.getSession(syncConfiguration);
+    }
+
+    private void getActiveSession(SessionCallback callback) {
+        SyncSession session = getSession();
+        if (session.isConnected()) {
+            callback.onReady(session);
+        } else {
+            session.addConnectionChangeListener(new ConnectionListener() {
+                @Override
+                public void onChange(ConnectionState oldState, ConnectionState newState) {
+                    if (newState == ConnectionState.CONNECTED) {
+                        session.removeConnectionChangeListener(this);
+                        callback.onReady(session);
+                    }
+                }
+            });
+        }
+    }
 
     @Test(timeout=3000)
     public void getState_active() {
@@ -513,18 +543,13 @@ public class SyncSessionTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void registerConnectionListener() {
-        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        SyncConfiguration syncConfiguration = configFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .build();
-        Realm realm = Realm.getInstance(syncConfiguration);
-        SyncSession session = SyncManager.getSession(syncConfiguration);
+        SyncSession session = getSession();
         session.addConnectionChangeListener((oldState, newState) -> {
             if (newState == ConnectionState.DISCONNECTED) {
                 looperThread.testComplete();
             }
         });
-        realm.close();
+        session.stop();
     }
 
     @Test
@@ -556,22 +581,47 @@ public class SyncSessionTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void isConnected() {
-        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        SyncConfiguration syncConfiguration = configFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .build();
-        looperThread.closeAfterTest(Realm.getInstance(syncConfiguration));
-        SyncSession session = SyncManager.getSession(syncConfiguration);
-        if (session.isConnected()) {
+        getActiveSession(session -> {
+            assertEquals(session.getConnectionState(), ConnectionState.CONNECTED);
+            assertTrue(session.isConnected());
             looperThread.testComplete();
-        } else {
-            session.addConnectionChangeListener(((oldState, newState) -> {
-                if (newState == ConnectionState.CONNECTED) {
-                    assertEquals(session.getConnectionState(), ConnectionState.CONNECTED);
-                    assertTrue(session.isConnected());
-                    looperThread.testComplete();
-                }
-            }));
-        }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void stopStartSession() {
+        getActiveSession(session -> {
+            assertEquals(SyncSession.State.ACTIVE, session.getState());
+            session.stop();
+            assertEquals(SyncSession.State.INACTIVE, session.getState());
+            session.start();
+            assertNotEquals(SyncSession.State.INACTIVE, session.getState());
+            looperThread.testComplete();
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void start_multipleTimes() {
+        getActiveSession(session -> {
+            session.start();
+            assertEquals(SyncSession.State.ACTIVE, session.getState());
+            session.start();
+            assertEquals(SyncSession.State.ACTIVE, session.getState());
+            looperThread.testComplete();
+        });
+    }
+
+
+    @Test
+    @RunTestInLooperThread
+    public void stop_multipleTimes() {
+        SyncSession session = getSession();
+        session.stop();
+        assertEquals(SyncSession.State.INACTIVE, session.getState());
+        session.stop();
+        assertEquals(SyncSession.State.INACTIVE, session.getState());
+        looperThread.testComplete();
     }
 }

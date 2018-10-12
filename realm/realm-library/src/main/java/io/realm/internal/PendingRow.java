@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
+import io.realm.internal.core.DescriptorOrdering;
 
 
 /**
@@ -37,10 +38,10 @@ public class PendingRow implements Row {
     private WeakReference<FrontEnd> frontEndRef;
     private boolean returnCheckedRow;
 
-    public PendingRow(OsSharedRealm sharedRealm, TableQuery query, @Nullable SortDescriptor sortDescriptor,
+    public PendingRow(OsSharedRealm sharedRealm, TableQuery query, DescriptorOrdering queryDescriptors,
                       final boolean returnCheckedRow) {
         this.sharedRealm = sharedRealm;
-        pendingOsResults = OsResults.createFromQuery(sharedRealm, query, sortDescriptor, null);
+        pendingOsResults = OsResults.createFromQuery(sharedRealm, query, queryDescriptors);
 
         listener = new RealmChangeListener<PendingRow>() {
             @Override

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.internal;
+package io.realm.internal.core;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,37 +24,40 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmFieldType;
 import io.realm.Sort;
+import io.realm.internal.Keep;
+import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
 
 /**
- * Java class to present the same name core class in Java. This can be converted to a cpp realm::SortDescriptor object
- * through realm::_impl::JavaSortDescriptor.
+ * Java wrapper class around `realm::SortDescriptor` and `realm::DistinctDescriptor` classes in C++.
+ * They can be converted between each other using realm::_impl::JavaQueryDescriptor.
  * <p>
  * NOTE: Since the column indices are determined when constructing the object with the given table's status, the indices
- * could be wrong when schema changes. Always create and consume the instance when needed, DON'T store a SortDescriptor
- * and use it whenever the ShareGroup can be in different versions.
+ * could be wrong when schema changes. Always create and consume the instance when needed, DON'T store a QueryDescriptor
+ * since it can be wrong if the SharedGroup has a different version.
  * <p>
- * Sort descriptors do not support Linking Objects, either internally or as terminal types.
+ * Query descriptors do not support Linking Objects, either internally or as terminal types.
  */
 @Keep
-public class SortDescriptor {
+public class QueryDescriptor {
     //@VisibleForTesting
-    final static Set<RealmFieldType> SORT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+    public final static Set<RealmFieldType> SORT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.FLOAT, RealmFieldType.DOUBLE,
             RealmFieldType.STRING, RealmFieldType.DATE)));
 
     //@VisibleForTesting
-    final static Set<RealmFieldType> DISTINCT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+    public final static Set<RealmFieldType> DISTINCT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.STRING, RealmFieldType.DATE)));
 
-    public static SortDescriptor getInstanceForSort(FieldDescriptor.SchemaProxy proxy, Table table, String fieldDescription, Sort sortOrder) {
+    public static QueryDescriptor getInstanceForSort(FieldDescriptor.SchemaProxy proxy, Table table, String fieldDescription, Sort sortOrder) {
         return getInstanceForSort(proxy, table, new String[] {fieldDescription}, new Sort[] {sortOrder});
     }
 
-    public static SortDescriptor getInstanceForSort(FieldDescriptor.SchemaProxy proxy, Table table, String[] fieldDescriptions, Sort[] sortOrders) {
+    public static QueryDescriptor getInstanceForSort(FieldDescriptor.SchemaProxy proxy, Table table, String[] fieldDescriptions, Sort[] sortOrders) {
         //noinspection ConstantConditions
         if (sortOrders == null || sortOrders.length == 0) {
             throw new IllegalArgumentException("You must provide at least one sort order.");
@@ -65,15 +68,15 @@ public class SortDescriptor {
         return getInstance(proxy, table, fieldDescriptions, sortOrders, FieldDescriptor.OBJECT_LINK_FIELD_TYPE, SORT_VALID_FIELD_TYPES, "Sort is not supported");
     }
 
-    public static SortDescriptor getInstanceForDistinct(FieldDescriptor.SchemaProxy proxy, Table table, String fieldDescription) {
+    public static QueryDescriptor getInstanceForDistinct(FieldDescriptor.SchemaProxy proxy, Table table, String fieldDescription) {
         return getInstanceForDistinct(proxy, table, new String[] {fieldDescription});
     }
 
-    public static SortDescriptor getInstanceForDistinct(FieldDescriptor.SchemaProxy proxy, Table table, String[] fieldDescriptions) {
+    public static QueryDescriptor getInstanceForDistinct(FieldDescriptor.SchemaProxy proxy, Table table, String[] fieldDescriptions) {
         return getInstance(proxy, table, fieldDescriptions, null, FieldDescriptor.NO_LINK_FIELD_TYPE, DISTINCT_VALID_FIELD_TYPES, "Distinct is not supported");
     }
 
-    private static SortDescriptor getInstance(
+    private static QueryDescriptor getInstance(
             FieldDescriptor.SchemaProxy proxy,
             Table table,
             String[] fieldDescriptions,
@@ -89,20 +92,20 @@ public class SortDescriptor {
 
         long[][] columnIndices = new long[fieldDescriptions.length][];
 
-        // Force aggressive parsing of the FieldDescriptors, so that only valid SortDescriptor objects are created.
+        // Force aggressive parsing of the FieldDescriptors, so that only valid QueryDescriptor objects are created.
         for (int i = 0; i < fieldDescriptions.length; i++) {
             FieldDescriptor descriptor = FieldDescriptor.createFieldDescriptor(proxy, table, fieldDescriptions[i], legalInternalTypes, null);
             checkFieldType(descriptor, legalTerminalTypes, message, fieldDescriptions[i]);
             columnIndices[i] = descriptor.getColumnIndices();
         }
 
-        return new SortDescriptor(table, columnIndices, sortOrders);
+        return new QueryDescriptor(table, columnIndices, sortOrders);
     }
 
     // Internal use only. For JNI testing.
     //@VisibleForTesting
-    static SortDescriptor getTestInstance(Table table, long[] columnIndices) {
-        return new SortDescriptor(table, new long[][] {columnIndices}, null);
+    public static QueryDescriptor getTestInstance(Table table, long[] columnIndices) {
+        return new QueryDescriptor(table, new long[][] {columnIndices}, null);
     }
 
     // could do this in the field descriptor, but this provides a better error message
@@ -118,7 +121,7 @@ public class SortDescriptor {
     private final long[][] columnIndices;
     private final boolean[] ascendings;
 
-    private SortDescriptor(Table table, long[][] columnIndices, @Nullable Sort[] sortOrders) {
+    private QueryDescriptor(Table table, long[][] columnIndices, @Nullable Sort[] sortOrders) {
         this.table = table;
         this.columnIndices = columnIndices;
         if (sortOrders != null) {
@@ -133,13 +136,15 @@ public class SortDescriptor {
 
     // Called by JNI.
     @SuppressWarnings("unused")
-    long[][] getColumnIndices() {
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public long[][] getColumnIndices() {
         return columnIndices;
     }
 
     // Called by JNI.
     @SuppressWarnings("unused")
-    boolean[] getAscendings() {
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public boolean[] getAscendings() {
         return ascendings;
     }
 

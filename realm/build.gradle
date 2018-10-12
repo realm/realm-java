@@ -1,9 +1,7 @@
-project.ext.minSdkVersion = 9
-project.ext.compileSdkVersion = 26
-project.ext.buildToolsVersion = '27.0.2'
-
 buildscript {
-    ext.kotlin_version = '1.2.40'
+    def projectDependencies = new Properties()
+    projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
+    ext.kotlin_version = '1.2.50'
     ext.dokka_version = '0.9.16'
     repositories {
         mavenLocal()
@@ -14,14 +12,14 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0-alpha06'
+        classpath "com.android.tools.build:gradle:${projectDependencies.get('GRADLE_BUILD_TOOLS')}"
         classpath 'de.undercouch:gradle-download-task:3.3.0'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
         classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
         classpath 'com.github.skhatri:gradle-s3-plugin:1.0.4'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.2'
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.4'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${projectDependencies.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${projectDependencies.get('GRADLE_BINTRAY_PLUGIN')}"
         classpath "io.realm:realm-transformer:${file('../version.txt').text.trim()}"
         classpath "io.realm:realm-library-build-transformer:${file('../version.txt').text.trim()}"
         classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.13'
@@ -36,6 +34,12 @@ allprojects {
     props.each { key, val ->
         project.ext.set(key, val)
     }
+
+    def projectDependencies = new Properties()
+    projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
+    project.ext.minSdkVersion = 9
+    project.ext.compileSdkVersion = 26
+    project.ext.buildToolsVersion = projectDependencies.get("ANDROID_BUILD_TOOLS")
 
     group = 'io.realm'
     version = file("${rootDir}/../version.txt").text.trim()

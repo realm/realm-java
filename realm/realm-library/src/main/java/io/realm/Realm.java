@@ -66,10 +66,8 @@ import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
@@ -78,7 +76,6 @@ import io.realm.sync.Subscription;
 import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.ClassPrivileges;
 import io.realm.sync.permissions.RealmPermissions;
-import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
 
 /**
@@ -1058,8 +1055,13 @@ public class Realm extends BaseRealm {
         if (objects == null) {
             return new ArrayList<>();
         }
+        ArrayList realmObjects;
+        if (objects instanceof Collection) {
+            realmObjects = new ArrayList<>(((Collection) objects).size());
+        } else {
+            realmObjects = new ArrayList<>();
+        }
         Map<RealmModel, RealmObjectProxy> cache = new HashMap<>();
-        ArrayList<E> realmObjects = new ArrayList<>();
         for (E object : objects) {
             checkNotNullObject(object);
             realmObjects.add(copyOrUpdate(object, false, cache));
@@ -1229,8 +1231,13 @@ public class Realm extends BaseRealm {
             return new ArrayList<>(0);
         }
 
+        ArrayList realmObjects;
+        if (objects instanceof Collection) {
+            realmObjects = new ArrayList<>(((Collection) objects).size());
+        } else {
+            realmObjects = new ArrayList<>();
+        }
         Map<RealmModel, RealmObjectProxy> cache = new HashMap<>();
-        ArrayList<E> realmObjects = new ArrayList<>();
         for (E object : objects) {
             checkNotNullObject(object);
             realmObjects.add(copyOrUpdate(object, true, cache));
@@ -1288,7 +1295,12 @@ public class Realm extends BaseRealm {
             return new ArrayList<>(0);
         }
 
-        ArrayList<E> unmanagedObjects = new ArrayList<>();
+        ArrayList unmanagedObjects;
+        if (realmObjects instanceof Collection) {
+            unmanagedObjects = new ArrayList<>(((Collection) realmObjects).size());
+        } else {
+            unmanagedObjects = new ArrayList<>();
+        }
         Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new HashMap<>();
         for (E object : realmObjects) {
             checkValidObjectForDetach(object);

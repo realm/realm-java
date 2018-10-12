@@ -39,11 +39,14 @@ class PluginTest {
 
     private Project project
     private String currentVersion
+    private Properties projectDependencies
 
     @Before
     void setUp() {
         project = ProjectBuilder.builder().build()
         currentVersion = new File("../version.txt").text.trim()
+        projectDependencies = new Properties()
+        projectDependencies.load(new FileInputStream("../dependencies.list"))
     }
 
     @Test
@@ -55,7 +58,7 @@ class PluginTest {
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             }
         }
@@ -91,7 +94,7 @@ class PluginTest {
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             }
         }

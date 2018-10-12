@@ -66,8 +66,8 @@ public class ObjectServerFacade {
     public void realmClosed(RealmConfiguration configuration) {
     }
 
-    public Object[] getUserAndServerUrl(RealmConfiguration config) {
-        return new Object[8];
+    public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
+        return new Object[11];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -121,10 +121,6 @@ public class ObjectServerFacade {
 
     public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
         // Do nothing
-    }
-
-    public OsResults createSubscriptionAwareResults(OsSharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor, String name) {
-        throw new IllegalStateException("Should only be called by builds supporting Sync");
     }
 
 }

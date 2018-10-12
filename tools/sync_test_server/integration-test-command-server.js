@@ -141,21 +141,29 @@ function stopRealmObjectServer(onSuccess, onError) {
         onSuccess("No ROS process found or the process has been killed before");
     }
     if (syncServerChildProcess) {
-        syncServerChildProcess.on('exit', function(code) {
-            // Manually kill sub process started by node that actually runs ROS.
-            // It is not killed when killing the process running NPM
-            exec('fuser -k 9443/tcp', (error, stdout, stderr) => {
-                if (error) {
-                    onError(error)
-                    return;
-                }
-                winston.info(`command-server: Stopping process: '${stdout}'`)
-                syncServerChildProcess.removeAllListeners('exit');
-                syncServerChildProcess = null;
-                onSuccess();
+
+        // Work-around for https://github.com/realm/realm-java/issues/6137
+        // Pull the log file before removing it and output all of it to this process
+        // so we can capture it. This means the logs won't show up until ROS is stopped
+        exec('cat /ros/log.txt', (error, stdout, stderr) => {
+            winston.info(`Realm Object Server Logs:\n${stdout}`);
+            syncServerChildProcess.on('exit', function(code) {
+                // Manually kill sub process started by node that actually runs ROS.
+                // It is not killed when killing the process running NPM
+                exec('fuser -k 9443/tcp', (error, stdout, stderr) => {
+                    if (error) {
+                        onError(error)
+                        return;
+                    }
+                    winston.info(`command-server: Stopping process: '${stdout}'`)
+                    syncServerChildProcess.removeAllListeners('exit');
+                    syncServerChildProcess = null;
+                    onSuccess();
+                });
             });
+            syncServerChildProcess.kill('SIGINT');
         });
-        syncServerChildProcess.kill('SIGINT');
+
     }
 }
 

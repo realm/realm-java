@@ -1,12 +1,15 @@
 buildscript {
-    ext.kotlin_version = '1.2.40'
+    def properties = new Properties()
+    properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
+
+    ext.kotlin_version = '1.2.50'
     repositories {
         google()
         jcenter()
     }
     dependencies {
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.2'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${properties.get('GRADLE_BINTRAY_PLUGIN')}"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -20,7 +23,6 @@ allprojects {
 }
 
 apply plugin: 'kotlin'
-apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
@@ -62,14 +64,12 @@ sourceSets {
 dependencies {
     compile gradleApi()
     compile "io.realm:realm-annotations:${version}"
+    compileOnly "com.android.tools.build:gradle:${properties.get("GRADLE_BUILD_TOOLS")}"
     compileOnly 'com.android.tools.build:gradle:3.1.1'
     compile 'org.javassist:javassist:3.21.0-GA'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
 
-    testCompile localGroovy()
-    testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
-        exclude module: 'groovy-all'
-    }
+    testCompile 'junit:junit:4.12'
 }
 
 // for Ant filter
@@ -83,10 +83,6 @@ task generateVersionClass(type: Copy) {
 }
 
 compileJava.dependsOn generateVersionClass
-compileGroovy.dependsOn = compileGroovy.taskDependencies.values - 'compileJava'
-compileKotlin.dependsOn compileGroovy
-compileKotlin.classpath += files(compileGroovy.destinationDir)
-classes.dependsOn compileKotlin
 
 def commonPom = {
     licenses {
