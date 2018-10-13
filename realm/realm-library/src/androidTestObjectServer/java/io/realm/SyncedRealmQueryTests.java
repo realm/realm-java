@@ -84,7 +84,7 @@ public class SyncedRealmQueryTests {
         realm.beginTransaction();
         RealmQuery<AllTypes> query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, "foo");
         Subscription sub = query.subscribe();
-        assertTrue(sub.getName().startsWith("[AllTypes]: "));
+        assertTrue(sub.getName().startsWith("[AllTypes] "));
         assertEquals(Subscription.State.PENDING, sub.getState());
         assertEquals("", sub.getErrorMessage());
         assertEquals(query.getDescription(), sub.getQueryDescription());
