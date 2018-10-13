@@ -4,6 +4,7 @@ import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import io.realm.annotations.Beta;
 import io.realm.annotations.Index;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.RealmField;
@@ -26,6 +27,7 @@ import io.realm.internal.annotations.ObjectServer;
  */
 @ObjectServer
 @RealmClass(name = "__ResultSets")
+@Beta
 public class Subscription extends RealmObject {
 
     /**
@@ -33,23 +35,29 @@ public class Subscription extends RealmObject {
      */
     public enum State {
         /**
-         * FIXME
+         * An error occurred while creating or processing the subscription.
+         * See {@link #getErrorMessage()} for details on what went wrong.
          */
-        ERROR,  // An error occurred while creating or processing the partial sync subscription.
-
-        // CREATING(2), // Not supported in Java
-
-        PENDING, // The subscription was created, but has not yet been processed by the sync server.
+        ERROR,
 
         /**
-         * FIXME
+         * The subscription has been created, but has not yet been processed by the sync
+         * server.
          */
-        COMPLETE, // The subscription has been processed by the sync server and data is being synced to the device.
+        PENDING,
 
         /**
-         * FIXME
+         * The subscription has been processed by the Realm Object Server and data is being synced
+         * to the device.
          */
-        INVALIDATED; // The subscription has been removed.
+        ACTIVE,
+
+        /**
+         * The subscription has been removed. Data is no longer being synchronized from the Realm
+         * Object Server, and the objects covered by this subscription might be deleted from the
+         * device if no other subscriptions include them.
+         */
+        INVALIDATED
     }
 
     public Subscription() {
@@ -107,7 +115,7 @@ public class Subscription extends RealmObject {
      * @see State
      */
     public State getState () {
-        if (RealmObject.isValid(this)) {
+        if (!RealmObject.isValid(this)) {
             return State.INVALIDATED;
         } else {
             switch (status) {
@@ -116,7 +124,7 @@ public class Subscription extends RealmObject {
                 case 0:
                     return State.PENDING;
                 case 1:
-                    return State.COMPLETE;
+                    return State.ACTIVE;
                 default:
                     throw new IllegalArgumentException("Unknown subscription state value: " + status);
             }

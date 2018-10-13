@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
 import io.realm.annotations.Required;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
@@ -2024,6 +2025,7 @@ public class RealmQuery<E> {
     @Beta
     public Subscription subscribe() {
         StringBuilder sb = new StringBuilder("[");
+        sb.append((table != null) ? table.getClassName() : "");
         sb.append("]: ");
         sb.append(nativeSerializeQuery(query.getNativePtr(), queryDescriptors.getNativePtr()));
         String name = sb.toString();
@@ -2036,8 +2038,8 @@ public class RealmQuery<E> {
      *
      * @return the name of the query.
      * @return the subscription representing this query.
-     * @throws IllegalStateException if this method is not called inside a write transaction or if
-     * the query is on a {@link DynamicRealm}
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
      * @throws IllegalArgumentException if a subscription for a different query with the same name
      * already exists.
      */
@@ -2046,13 +2048,19 @@ public class RealmQuery<E> {
     public Subscription subscribe(String name) {
         realm.checkIfValid();
         if (realm instanceof DynamicRealm) {
-            throw new IllegalStateException("'subscribe' is not available for queries on Dynamic Realms");
+            throw new IllegalStateException("'subscribe' is not available for queries on Dynamic Realms.");
+        }
+        if (!ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(realm.getConfiguration())) {
+            throw new IllegalStateException("'subscribe' is only available on Query-based Realms.");
+        }
+        if (osList != null) {
+            throw new IllegalStateException("Cannot create subscriptions for queries based on a 'RealmList.'");
         }
         if (!realm.isInTransaction()) {
-            throw new IllegalStateException("'subscribe' can only be called inside a write transaction");
+            throw new IllegalStateException("'subscribe' can only be called inside a write transaction.");
         }
         if (TextUtils.isEmpty(name)) {
-            throw new IllegalArgumentException("Non-empty 'name' required");
+            throw new IllegalArgumentException("Non-empty 'name' required.");
         }
         Realm r = (Realm) realm;
         Subscription subscription = r.getSubscription(name);
