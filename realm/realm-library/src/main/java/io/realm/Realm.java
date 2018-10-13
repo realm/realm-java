@@ -1882,13 +1882,17 @@ public class Realm extends BaseRealm {
      * Returns a list of all subscriptions that match a given pattern. {@code *} can be used to
      * indicate any number of unknown characters and {@code ?} represents a single unknown character.
      *
-     * @param namePattern which subscriptions to find.
+     * @param pattern which subscriptions to find.
      * @return list of subscriptions that match the pattern.
+     * @throws IllegalArgumentException if an empty or {@code null} pattern is provided.
      */
     @Beta
     @ObjectServer
-    public RealmResults<Subscription> getSubscriptions(String namePattern) {
-        return where(Subscription.class).like("name", namePattern).findAll();
+    public RealmResults<Subscription> getSubscriptions(String pattern) {
+        if (Util.isEmptyString(pattern)) {
+            throw new IllegalArgumentException("Non-empty 'pattern' required");
+        }
+        return where(Subscription.class).like("name", pattern).findAll();
     }
 
     /**

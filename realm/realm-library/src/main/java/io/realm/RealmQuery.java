@@ -2057,7 +2057,7 @@ public class RealmQuery<E> {
         Realm r = (Realm) realm;
         Subscription subscription = r.getSubscription(name);
         if (subscription == null) {
-            subscription = r.copyFromRealm(new Subscription(name, this));
+            subscription = r.copyToRealm(new Subscription(name, this));
         } else {
             if (!getDescription().equals(subscription.getQueryDescription())) {
                 throw new IllegalArgumentException("Trying to use the same name for a different subscription that already exists: " + name);

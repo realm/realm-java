@@ -26,7 +26,7 @@ import io.realm.internal.annotations.ObjectServer;
  */
 @ObjectServer
 @RealmClass(name = "__ResultSets")
-public class Subscription implements RealmModel {
+public class Subscription extends RealmObject {
 
     /**
      * The different states a Subscription can be in.
@@ -66,6 +66,8 @@ public class Subscription implements RealmModel {
     public Subscription(String name, RealmQuery<?> query) {
         this.name = name;
         this.query = query.getDescription();
+        this.status = 0;
+        this.errorMessage = "";
     }
 
     @Index
@@ -78,6 +80,7 @@ public class Subscription implements RealmModel {
     @RealmField(name = "error_message")
     private String errorMessage;
 
+    @Required
     private String query;
 
     /**
@@ -131,13 +134,16 @@ public class Subscription implements RealmModel {
     }
 
     /**
-     * Cancels the subscription. If after this, some objects in the Realm are no longer part of any
-     * active subscription they will be removed locally from the device (but not on the server).
+     * Cancels the subscription. After this, if the objects covered by the subscription are not
+     * part of any other subscription, they will be removed locally from the device (but not on the
+     * server).
      * <p>
      * The effect of unsubscribing is not immediate. The local Realm must coordinate with the Realm
-     * Object Server before it can happen. When it happens, any objects removed due to unsubscribing
-     * will trigger a standard change notification, and from the perspective of the device it will
-     * look like the data was deleted.
+     * Object Server before it can happen. When it happens, any objects removed will trigger a standard
+     * change notification, and from the perspective of the device it will look like they where
+     * deleted.
+     * <p>
+     * Calling this method is the equivalent of calling {@link RealmObject#deleteFromRealm()}.
      *
      * @throws IllegalStateException if the Realm is not in a write transaction.
      */
