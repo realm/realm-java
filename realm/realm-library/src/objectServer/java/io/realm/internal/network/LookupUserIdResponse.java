@@ -15,11 +15,14 @@
  */
 package io.realm.internal.network;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
@@ -27,21 +30,19 @@ import io.realm.log.RealmLog;
 import okhttp3.Response;
 
 /**
- * Class wrapping the response from `GET /api/providers/:provider/accounts/:provider_id`
+ * Class wrapping the response from `GET /auth/users/:userId`
  */
 public class LookupUserIdResponse extends AuthServerResponse {
 
-    private static final String JSON_FIELD_PROVIDER = "provider";
-    private static final String JSON_FIELD_PROVIDER_ID = "provider_id";
-    private static final String JSON_FIELD_USER = "user";
-    private static final String JSON_FIELD_USER_ID = "id";
-    private static final String JSON_FIELD_USER_IS_ADMIN = "isAdmin";
+    private static final String JSON_FIELD_USER_ID = "user_id";
+    private static final String JSON_FIELD_USER_IS_ADMIN = "is_admin";
+    private static final String JSON_FIELD_METADATA = "metadata";
+    private static final String JSON_FIELD_ACCOUNTS = "accounts";
 
-    private final String providerId;
-    private final String provider;
     private final String userId;
     private final Boolean isAdmin;
-
+    private final Map<String, String> metadata;
+    private final Map<String, String> accounts;
     /**
      * Helper method for creating the proper lookup user response. This method will set the appropriate error
      * depending on any HTTP response codes or I/O errors.
@@ -82,63 +83,44 @@ public class LookupUserIdResponse extends AuthServerResponse {
         RealmLog.debug("LookupUserIdResponse - Error: " + error);
         setError(error);
         this.error = error;
-        this.providerId = null;
-        this.provider = null;
         this.userId = null;
         this.isAdmin = null;
+        this.metadata = new HashMap<>();
+        this.accounts = new HashMap<>();
     }
 
     private LookupUserIdResponse(String serverResponse) {
         ObjectServerError error;
-        String provider;
-        String providerId;
         String userId;
         Boolean isAdmin;
         String message;
+        Map<String, String> metadata;
+        Map<String, String> accounts;
         try {
             JSONObject obj = new JSONObject(serverResponse);
-            provider = obj.getString(JSON_FIELD_PROVIDER);
-            providerId = obj.getString(JSON_FIELD_PROVIDER_ID);
-            JSONObject jsonUser = obj.getJSONObject(JSON_FIELD_USER);
-            if (jsonUser != null) {
-                userId = jsonUser.optString(JSON_FIELD_USER_ID, null);
-                // can not use optBoolean since `null` is not permitted as default value
-                // (we need it for the Boolean boxed type)
-                isAdmin = jsonUser.has(JSON_FIELD_USER_IS_ADMIN) ? jsonUser.getBoolean(JSON_FIELD_USER_IS_ADMIN) : null;
-                error = null;
+            userId = obj.getString(JSON_FIELD_USER_ID);
+            isAdmin = obj.getBoolean(JSON_FIELD_USER_IS_ADMIN);
+            metadata = jsonToMap(obj.getJSONArray(JSON_FIELD_METADATA), "key", "value");
+            accounts = jsonToMap(obj.getJSONArray(JSON_FIELD_ACCOUNTS), "provider", "provider_id");
+            error = null;
 
-                message = String.format(Locale.US, "Identity %s; Path %b", userId, isAdmin);
-
-            } else {
-                userId = null;
-                isAdmin = null;
-                error = null;
-                message = "user = null";
-            }
+            message = String.format(Locale.US, "Identity %s; Path %b", userId, isAdmin);
 
         } catch (JSONException e) {
-            provider = null;
-            providerId = null;
             userId = null;
             isAdmin = null;
+            metadata = new HashMap<>();
+            accounts = new HashMap<>();
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, e);
             message = String.format(Locale.US, "Error %s", error.getErrorMessage());
         }
 
         RealmLog.debug("LookupUserIdResponse. " + message);
         setError(error);
-        this.providerId = providerId;
-        this.provider = provider;
         this.userId = userId;
         this.isAdmin = isAdmin;
-    }
-
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public String getProvider() {
-        return provider;
+        this.metadata = metadata;
+        this.accounts = accounts;
     }
 
     public String getUserId() {
@@ -147,5 +129,26 @@ public class LookupUserIdResponse extends AuthServerResponse {
 
     public boolean isAdmin() {
         return isAdmin;
+    }
+
+    public Map<String, String> getMetadata() { return metadata; }
+
+    public Map<String, String> getAccounts() { return accounts; }
+
+    // Assume arrays of key/value irrespectively of what they are named.
+    // Throws if this is not the case
+    private static Map<String, String> jsonToMap(JSONArray array, String keyName, String valueName) throws JSONException {
+        Map<String, String> map = new HashMap<>();
+        if (array == null) {
+            return map;
+        }
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject obj = array.getJSONObject(i);
+            if (obj.length() != 2) {
+                throw new IllegalStateException("Array object not a key/value object. Has " + obj.length() + " fields");
+            }
+            map.put(obj.getString(keyName), obj.getString(valueName));
+        }
+        return map;
     }
 }

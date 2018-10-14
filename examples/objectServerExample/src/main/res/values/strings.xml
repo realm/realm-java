@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Object Server Example</string>
+    <string name="realm_logo">Realm Logo</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="create_account">Create account and login</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
 </resources>

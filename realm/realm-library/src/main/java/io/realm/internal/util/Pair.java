@@ -17,16 +17,19 @@
 package io.realm.internal.util;
 
 /**
- * Copy from the Android framework to avoid the dependency on Android classes + slight adjustment
- * to support older versions of Android.
- *
- * Original source: https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/util/Pair.java
- *
  * Container to ease passing around a tuple of two objects. This object provides a sensible
  * implementation of equals(), returning true if equals() is true on each of the contained
  * objects.
  */
 public class Pair<F, S> {
+    /**
+     * Implementation notes:
+     *
+     * Copy from the Android framework to avoid the dependency on Android classes + slight adjustment
+     * to support older versions of Android.
+     *
+     * Original source: https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/util/Pair.java
+     */
     public F first;
     public S second;
 
@@ -85,6 +88,6 @@ public class Pair<F, S> {
      * @return a Pair that is templatized with the types of a and b.
      */
     public static <A, B> Pair <A, B> create(A a, B b) {
-        return new Pair<A, B>(a, b);
+        return new Pair<>(a, b);
     }
 }

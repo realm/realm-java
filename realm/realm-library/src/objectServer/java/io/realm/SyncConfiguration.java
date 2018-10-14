@@ -27,39 +27,61 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import io.reactivex.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
 /**
- * An {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
+ * A {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
  * Object Server.
  * <p>
  * A valid {@link SyncUser} is required to create a {@link SyncConfiguration}. See {@link SyncCredentials} and
- * {@link SyncUser#loginAsync(SyncCredentials, String, SyncUser.Callback)} for more information on
- * how to get a user object.
+ * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)} for more information on how to get a user object.
  * <p>
  * A minimal {@link SyncConfiguration} can be found below.
  * <pre>
  * {@code
- * SyncConfiguration config = new SyncConfiguration.Builder(context)
- *   .serverUrl("realm://objectserver.realm.io/~/default")
- *   .user(myUser)
- *   .build();
+ * SyncUser user = SyncUser.current();
+ * String url = "realm://myinstance.cloud.realm.io/default";
+ * SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
  * }
  * </pre>
  *
+ * Synchronized Realms come in two forms:
+ * <ul>
+ *     <li>
+ *         <b>Query-based synchronization:</b>
+ *         This is the default mode. The Realm will only synchronize data you have queried for.
+ *         This means the Realm on the device is initially empty and will gradually fill up as
+ *         you start to query for data. This is useful if the server side Realm is too large
+ *         to fit on the device or contains data from multiple users. Data synchronized this way
+ *         can also be removed from the device again without being deleted on the server.
+ *     </li>
+ *     <li>
+ *         <b>Full synchronization</b>
+ *         Enable this mode by setting {@link Builder#fullSynchronization()}. In this mode
+ *         the entire Realm is synchronized in the background without having to query for
+ *         data first. This means that data generally will be available quicker but should only
+ *         be used if the server side Realm is small and doesn't contain data the device is not
+ *         allowed to see.
+ *     </li>
+ * </ul>
+ * <p>
  * Synchronized Realms only support additive migrations which can be detected and performed automatically, so
  * the following builder options are not accessible compared to a normal Realm:
  *
@@ -70,6 +92,9 @@ import io.realm.rx.RxObservableFactory;
  *
  * Synchronized Realms are created by using {@link Realm#getInstance(RealmConfiguration)} and
  * {@link Realm#getDefaultInstance()} like ordinary unsynchronized Realms.
+ *
+ * @see <a href="https://docs.realm.io/platform/using-synced-realms/syncing-data">The docs</a> for more
+ * information about the two types of synchronization.
  */
 public class SyncConfiguration extends RealmConfiguration {
 
@@ -78,46 +103,43 @@ public class SyncConfiguration extends RealmConfiguration {
     static final int MAX_FULL_PATH_LENGTH = 256;
     static final int MAX_FILE_NAME_LENGTH = 255;
     private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
-private final URI serverUrl;
+    private final URI serverUrl;
     private final SyncUser user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
     private final boolean syncClientValidateSsl;
-    @Nullable
-    private final String serverCertificateAssetName;
-    @Nullable
-    private final String serverCertificateFilePath;
+    @Nullable private final String serverCertificateAssetName;
+    @Nullable private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
+    private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
+    private final boolean isPartial;
+    @Nullable private final String syncUrlPrefix;
 
     private SyncConfiguration(File directory,
-                                String filename,
-                                String canonicalPath,
-                                @Nullable
-                                String assetFilePath,
-                                @Nullable
-                                byte[] key,
-                                long schemaVersion,
-                                @Nullable
-                                RealmMigration migration,
-                                boolean deleteRealmIfMigrationNeeded,
-                                OsRealmConfig.Durability durability,
-                                RealmProxyMediator schemaMediator,
-                                @Nullable
-                                RxObservableFactory rxFactory,
-                                @Nullable
-                                Realm.Transaction initialDataTransaction,
-                                boolean readOnly,
-                                SyncUser user,
-                                URI serverUrl,
-                                SyncSession.ErrorHandler errorHandler,
-                                boolean deleteRealmOnLogout,
-                                boolean syncClientValidateSsl,
-                                @Nullable
-                                String serverCertificateAssetName,
-                                @Nullable
-                                String serverCertificateFilePath,
-                                boolean waitForInitialData
-    ) {
+                              String filename,
+                              String canonicalPath,
+                              @Nullable String assetFilePath,
+                              @Nullable byte[] key,
+                              long schemaVersion,
+                              @Nullable RealmMigration migration,
+                              boolean deleteRealmIfMigrationNeeded,
+                              OsRealmConfig.Durability durability,
+                              RealmProxyMediator schemaMediator,
+                              @Nullable RxObservableFactory rxFactory,
+                              @Nullable Realm.Transaction initialDataTransaction,
+                              boolean readOnly,
+                              SyncUser user,
+                              URI serverUrl,
+                              SyncSession.ErrorHandler errorHandler,
+                              boolean deleteRealmOnLogout,
+                              boolean syncClientValidateSsl,
+                              @Nullable String serverCertificateAssetName,
+                              @Nullable String serverCertificateFilePath,
+                              boolean waitForInitialData,
+                              OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
+                              boolean isPartial,
+                              CompactOnLaunchCallback compactOnLaunch,
+                              @Nullable String syncUrlPrefix) {
         super(directory,
                 filename,
                 canonicalPath,
@@ -131,7 +153,8 @@ private final URI serverUrl;
                 rxFactory,
                 initialDataTransaction,
                 readOnly,
-                null
+                compactOnLaunch,
+                false
         );
 
         this.user = user;
@@ -142,6 +165,56 @@ private final URI serverUrl;
         this.serverCertificateAssetName = serverCertificateAssetName;
         this.serverCertificateFilePath = serverCertificateFilePath;
         this.waitForInitialData = waitForInitialData;
+        this.sessionStopPolicy = sessionStopPolicy;
+        this.isPartial = isPartial;
+        this.syncUrlPrefix = syncUrlPrefix;
+    }
+
+    /**
+     * Returns a {@link RealmConfiguration} appropriate to open a read-only, non-synced Realm to recover any pending changes.
+     * This is useful when trying to open a backup/recovery Realm (after a client reset).
+     *
+     * @param canonicalPath the absolute path to the Realm file defined by this configuration.
+     * @param encryptionKey the key used to encrypt/decrypt the Realm file.
+     * @param modules if specified it will restricts Realm schema to the provided module.
+     * @return RealmConfiguration that can be used offline
+     */
+    public static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, @Nullable Object... modules) {
+        HashSet<Object> validatedModules = new HashSet<>();
+        if (modules != null && modules.length > 0) {
+            for (Object module : modules) {
+                if (!module.getClass().isAnnotationPresent(RealmModule.class)) {
+                    throw new IllegalArgumentException(module.getClass().getCanonicalName() + " is not a RealmModule. " +
+                            "Add @RealmModule to the class definition.");
+                }
+                validatedModules.add(module);
+            }
+        } else {
+            if (Realm.getDefaultModule() != null) {
+                validatedModules.add(Realm.getDefaultModule());
+            }
+        }
+
+        RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
+        return forRecovery(canonicalPath, encryptionKey, schemaMediator);
+    }
+
+    /**
+     * Returns a {@link RealmConfiguration} appropriate to open a read-only, non-synced Realm to recover any pending changes.
+     * This is useful when trying to open a backup/recovery Realm (after a client reset).
+     *
+     * Note: This will use the default Realm module (composed of all {@link RealmModel}), and
+     * assume no encryption should be used as well.
+     *
+     * @param canonicalPath the absolute path to the Realm file defined by this configuration.
+     * @return RealmConfiguration that can be used offline
+     */
+    public static RealmConfiguration forRecovery(String canonicalPath) {
+        return forRecovery(canonicalPath, null);
+    }
+
+    static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
+        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true);
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -150,6 +223,49 @@ private final URI serverUrl;
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Could not replace '/~/' with a valid user ID.", e);
         }
+    }
+
+    /**
+     * Creates an automatic default configuration based on the the currently logged in user.
+     * <p>
+     * This configuration will point to the default Realm on the server where the user was
+     * authenticated.
+     *
+     * @throws IllegalStateException if no user are logged in, or multiple users have. Only one should
+     * be logged in when calling this method.
+     * @return The constructed {@link SyncConfiguration}.
+     * @deprecated use {@link SyncUser#getDefaultConfiguration()} instead.
+     */
+    @Deprecated
+    @Beta
+    public static SyncConfiguration automatic() {
+        SyncUser user = SyncUser.current();
+        if (user == null) {
+            throw new IllegalStateException("No user was logged in.");
+        }
+        return user.getDefaultConfiguration();
+    }
+
+    /**
+     * Creates an automatic default configuration for the provided user.
+     * <p>
+     * This configuration will point to the default Realm on the server where the user was
+     * authenticated.
+     *
+     * @throws IllegalArgumentException if no user was provided or the user isn't valid.
+     * @return The constructed {@link SyncConfiguration}.
+     * @deprecated use {@link SyncUser#getDefaultConfiguration()} instead.
+     */
+    @Deprecated
+    @Beta
+    public static SyncConfiguration automatic(SyncUser user) {
+        if (user == null) {
+            throw new IllegalArgumentException("Non-null 'user' required.");
+        }
+        if (!user.isValid()) {
+            throw new IllegalArgumentException("User is no logger valid.  Log the user in again.");
+        }
+        return user.getDefaultConfiguration();
     }
 
     // Extract the full server path, minus the file name
@@ -298,6 +414,48 @@ private final URI serverUrl;
     }
 
     /**
+     * NOTE: Only for internal usage. May change without warning.
+     *
+     * Returns the stop policy for the session for this Realm once the Realm has been closed.
+     *
+     * @return the stop policy used by the session once the Realm is closed.
+     */
+    public OsRealmConfig.SyncSessionStopPolicy getSessionStopPolicy() {
+        return sessionStopPolicy;
+    }
+
+    /**
+     * Whether this configuration is for a query-based Realm.
+     * <p>
+     * Query-based synchronization allows a synchronized Realm to be opened in such a way that
+     * only objects queried by the user are synchronized to the device.
+     *
+     * @return {@code true} to open a query-based Realm {@code false} otherwise.
+     * @deprecated use {@link #isFullySynchronizedRealm()} instead.
+     */
+    @Deprecated
+    public boolean isPartialRealm() {
+        return isPartial;
+    }
+
+    /**
+     * Returns whether this configuration is for a fully synchronized Realm or not.
+     *
+     * @see Builder#fullSynchronization() for more details.
+     */
+    public boolean isFullySynchronizedRealm() {
+        return !isPartial;
+    }
+
+    /**
+     * Returns the url prefix used when establishing a sync connection to the Realm Object Server.
+     */
+    @Nullable
+    public String getUrlPrefix() {
+        return syncUrlPrefix;
+    }
+
+    /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */
     public static final class Builder  {
@@ -331,9 +489,14 @@ private final URI serverUrl;
         private String serverCertificateAssetName;
         @Nullable
         private String serverCertificateFilePath;
+        private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
+        private boolean isPartial = true; // Partial Synchronization is enabled by default
+        private CompactOnLaunchCallback compactOnLaunch;
+        private String syncUrlPrefix = null;
 
         /**
-         * Creates an instance of the Builder for the SyncConfiguration.
+         * Creates an instance of the Builder for the SyncConfiguration. This SyncConfiguration
+         * will be for a fully synchronized Realm.
          * <p>
          * Opening a synchronized Realm requires a valid user and an unique URI that identifies that Realm. In URIs,
          * {@code /~/} can be used as a placeholder for a user ID in case the Realm should only be available to one
@@ -358,9 +521,12 @@ private final URI serverUrl;
          *            assume the file is located on the same server returned by {@link SyncUser#getAuthenticationUrl()}.
          *
          * @see SyncUser#isValid()
+         * @deprecated Use {@link SyncUser#createConfiguration(String)} instead.
          */
+        @Deprecated
         public Builder(SyncUser user, String uri) {
             this(BaseRealm.applicationContext, user, uri);
+            fullSynchronization();
         }
 
         Builder(Context context, SyncUser user, String url) {
@@ -566,6 +732,18 @@ private final URI serverUrl;
         }
 
         /**
+         * DEBUG method. This makes it possible to define different policies for when a session should be stopped when
+         * the Realm is closed.
+         *
+         * @param policy how a session for a Realm should behave when the Realm is closed.
+         */
+        SyncConfiguration.Builder sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy policy) {
+            sessionStopPolicy = policy;
+            return this;
+        }
+
+
+        /**
          * Sets the schema version of the Realm.
          * <p>
          * Synced Realms only support additive schema changes which can be applied without requiring a manual
@@ -619,6 +797,43 @@ private final URI serverUrl;
                     addModule(module);
                 }
             }
+            return this;
+        }
+
+        /**
+         * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
+         * current schema for this Realm with the schema defined by the provided modules.
+         * <p>
+         * A reference to the default Realm module containing all Realm classes in the project (but not dependencies),
+         * can be found using {@link Realm#getDefaultModule()}. Combining the schema from the app project and a library
+         * dependency is thus done using the following code:
+         * <p>
+         * {@code builder.modules(Realm.getDefaultMode(), new MyLibraryModule()); }
+         * <p>
+         * @param modules list of modules tthe first Realm module (required).
+         * @throws IllegalArgumentException if any of the modules don't have the {@link RealmModule} annotation.
+         * @see Realm#getDefaultModule()
+         */
+        public Builder modules(Iterable<Object> modules) {
+            this.modules.clear();
+            if (modules != null) {
+                for (Object module : modules) {
+                    addModule(module);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Adds a module to the already defined modules.
+         */
+        public Builder addModule(Object module) {
+            //noinspection ConstantConditions
+            if (module != null) {
+                checkModule(module);
+                modules.add(module);
+            }
+
             return this;
         }
 
@@ -745,6 +960,73 @@ private final URI serverUrl;
             return this;
         }
 
+        /**
+         * Setting this will open a query-based Realm.
+         *
+         * @see #isPartialRealm()
+         * @deprecated Use {@link SyncUser#createConfiguration(String)} instead.
+         */
+        @Deprecated
+        public SyncConfiguration.Builder partialRealm() {
+            this.isPartial = true;
+            return this;
+        }
+
+        /**
+         * Define this Realm as a fully synchronized Realm.
+         * <p>
+         * Full synchronization, unlike the default query-based synchronization, will transparently
+         * synchronize the entire Realm without needing to query for the data. This option is
+         * useful if the serverside Realm is small and all the data in the Realm should be
+         * available to the user.
+         */
+        public SyncConfiguration.Builder fullSynchronization() {
+            this.isPartial = false;
+            return this;
+        }
+
+        /**
+         * Setting this will cause Realm to compact the Realm file if the Realm file has grown too large and a
+         * significant amount of space can be recovered. See {@link DefaultCompactOnLaunchCallback} for details.
+         */
+        public SyncConfiguration.Builder compactOnLaunch() {
+            return compactOnLaunch(new DefaultCompactOnLaunchCallback());
+        }
+
+        /**
+         * Sets this to determine if the Realm file should be compacted before returned to the user. It is passed the
+         * total file size (data + free space) and the bytes used by data in the file.
+         *
+         * @param compactOnLaunch a callback called when opening a Realm for the first time during the life of a process
+         *                        to determine if it should be compacted before being returned to the user. It is passed
+         *                        the total file size (data + free space) and the bytes used by data in the file.
+         */
+        public SyncConfiguration.Builder compactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
+            //noinspection ConstantConditions
+            if (compactOnLaunch == null) {
+                throw new IllegalArgumentException("A non-null compactOnLaunch must be provided");
+            }
+            this.compactOnLaunch = compactOnLaunch;
+            return this;
+        }
+
+        /**
+         * The prefix that is prepended to the path in the HTTP request that initiates a sync
+         * connection to the Realm Object Server. The value specified must match the server’s
+         * configuration otherwise the device will not be able to create a connection. If no value
+         * is specified then the default {@code /realm-sync} path is used.
+         *
+         * @param urlPrefix The prefix to append to the sync connection url.
+         * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
+         */
+        public SyncConfiguration.Builder urlPrefix(String urlPrefix) {
+            if (Util.isEmptyString(urlPrefix)) {
+                throw new IllegalArgumentException("Non-empty 'urlPrefix' required");
+            }
+            this.syncUrlPrefix = urlPrefix;
+            return this;
+        }
+
         private String MD5(String in) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -763,7 +1045,7 @@ private final URI serverUrl;
 
         /**
          * Setting this will cause the local Realm file used to synchronize changes to be deleted if the {@link SyncUser}
-         * owning this Realm logs out from the device using {@link SyncUser#logout()}.
+         * owning this Realm logs out from the device using {@link SyncUser#logOut()}.
          * <p>
          * The default behavior is that the Realm file is allowed to stay behind, making it possible for users to log
          * in again and have access to their data faster.
@@ -865,6 +1147,11 @@ private final URI serverUrl;
                 }
             }
 
+            // If query based sync is enabled, also add support for Object Level Permissions
+            if (isPartial) {
+                addModule(new ObjectPermissionsModule());
+            }
+
             return new SyncConfiguration(
                     // Realm Configuration options
                     realmFileDirectory,
@@ -889,16 +1176,12 @@ private final URI serverUrl;
                     syncClientValidateSsl,
                     serverCertificateAssetName,
                     serverCertificateFilePath,
-                    waitForServerChanges
+                    waitForServerChanges,
+                    sessionStopPolicy,
+                    isPartial,
+                    compactOnLaunch,
+                    syncUrlPrefix
             );
-        }
-
-        private void addModule(Object module) {
-            //noinspection ConstantConditions
-            if (module != null) {
-                checkModule(module);
-                modules.add(module);
-            }
         }
 
         private void checkModule(Object module) {

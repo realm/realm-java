@@ -19,7 +19,7 @@ package io.realm.examples.rxjava;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 import android.widget.Button;
 
@@ -31,7 +31,7 @@ import io.realm.examples.rxjava.gotchas.GotchasActivity;
 import io.realm.examples.rxjava.retrofit.RetrofitExample;
 import io.realm.examples.rxjava.throttle.ThrottleSearchActivity;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     private ViewGroup container;
     private final TreeMap<String, Class<? extends Activity>> buttons = new TreeMap<String, Class<? extends Activity>>() {{
@@ -45,7 +45,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        container = (ViewGroup) findViewById(R.id.list);
+        container = findViewById(R.id.list);
         setupButtons();
     }
 
@@ -53,12 +53,7 @@ public class MainActivity extends Activity {
         for (final Map.Entry<String, Class<? extends Activity>> entry : buttons.entrySet()) {
             Button button = new Button(this);
             button.setText(entry.getKey());
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startActivity(entry.getValue());
-                }
-            });
+            button.setOnClickListener(view -> startActivity(entry.getValue()));
             container.addView(button);
         }
     }

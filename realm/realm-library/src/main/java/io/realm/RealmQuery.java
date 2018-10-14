@@ -24,15 +24,19 @@ import java.util.Locale;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Required;
-import io.realm.internal.Collection;
-import io.realm.internal.LinkView;
+import io.realm.internal.OsList;
+import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
+import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SortDescriptor;
+import io.realm.internal.SubscriptionAwareOsResults;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
+import io.realm.internal.Util;
+import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.fields.FieldDescriptor;
+import io.realm.internal.sync.SubscriptionAction;
 
 
 /**
@@ -43,7 +47,7 @@ import io.realm.internal.fields.FieldDescriptor;
  * RealmObject class is refactored care has to be taken to not break any queries.
  * <p>
  * A {@link io.realm.Realm} is unordered, which means that there is no guarantee that querying a Realm will return the
- * objects in the order they where inserted. Use {@link #findAllSorted(String)} and similar methods if a specific order
+ * objects in the order they where inserted. Use {@link #sort(String)} (String)} and similar methods if a specific order
  * is required.
  * <p>
  * A RealmQuery cannot be passed between different threads.
@@ -53,7 +57,7 @@ import io.realm.internal.fields.FieldDescriptor;
  * @see Realm#where(Class)
  * @see RealmResults#where()
  */
-public class RealmQuery<E extends RealmModel> {
+public class RealmQuery<E> {
 
     private final Table table;
     private final BaseRealm realm;
@@ -61,7 +65,10 @@ public class RealmQuery<E extends RealmModel> {
     private final RealmObjectSchema schema;
     private Class<E> clazz;
     private String className;
-    private LinkView linkView;
+    private final boolean forValues;
+    private final OsList osList;
+    private DescriptorOrdering queryDescriptors = new DescriptorOrdering();
+
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
     private static final String ASYNC_QUERY_WRONG_THREAD_MESSAGE = "Async query cannot be created on current thread.";
@@ -74,7 +81,7 @@ public class RealmQuery<E extends RealmModel> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
-    public static <E extends RealmModel> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
+    static <E extends RealmModel> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
         return new RealmQuery<>(realm, clazz);
     }
 
@@ -86,7 +93,7 @@ public class RealmQuery<E extends RealmModel> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
-    public static <E extends RealmModel> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
+    static <E extends RealmModel> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
         return new RealmQuery<>(realm, className);
     }
 
@@ -98,7 +105,7 @@ public class RealmQuery<E extends RealmModel> {
      * to run it.
      */
     @SuppressWarnings("unchecked")
-    public static <E extends RealmModel> RealmQuery<E> createQueryFromResult(RealmResults<E> queryResults) {
+    static <E> RealmQuery<E> createQueryFromResult(RealmResults<E> queryResults) {
         //noinspection ConstantConditions
         return (queryResults.classSpec == null)
                 ? new RealmQuery(queryResults, queryResults.className)
@@ -113,63 +120,102 @@ public class RealmQuery<E extends RealmModel> {
      * to run it.
      */
     @SuppressWarnings("unchecked")
-    public static <E extends RealmModel> RealmQuery<E> createQueryFromList(RealmList<E> list) {
+    static <E> RealmQuery<E> createQueryFromList(RealmList<E> list) {
         //noinspection ConstantConditions
         return (list.clazz == null)
-                ? new RealmQuery(list.realm, list.view, list.className)
-                : new RealmQuery(list.realm, list.view, list.clazz);
+                ? new RealmQuery(list.realm, list.getOsList(), list.className)
+                : new RealmQuery(list.realm, list.getOsList(), list.clazz);
+    }
+
+    private static boolean isClassForRealmModel(Class<?> clazz) {
+        return RealmModel.class.isAssignableFrom(clazz);
     }
 
     private RealmQuery(Realm realm, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.schema = realm.getSchema().getSchemaForClass(clazz);
-        this.table = schema.getTable();
-        this.linkView = null;
-        this.query = table.where();
+        this.forValues = !isClassForRealmModel(clazz);
+        if (forValues) {
+            // TODO implement this
+            this.schema = null;
+            this.table = null;
+            this.osList = null;
+            this.query = null;
+        } else {
+            //noinspection unchecked
+            this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
+            this.table = schema.getTable();
+            this.osList = null;
+            this.query = table.where();
+        }
     }
 
     private RealmQuery(RealmResults<E> queryResults, Class<E> clazz) {
         this.realm = queryResults.realm;
         this.clazz = clazz;
-        this.schema = realm.getSchema().getSchemaForClass(clazz);
-        this.table = queryResults.getTable();
-        this.linkView = null;
-        this.query = queryResults.getCollection().where();
+        this.forValues = !isClassForRealmModel(clazz);
+        if (forValues) {
+            // TODO implement this
+            this.schema = null;
+            this.table = null;
+            this.osList = null;
+            this.query = null;
+        } else {
+            //noinspection unchecked
+            this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
+            this.table = queryResults.getTable();
+            this.osList = null;
+            this.query = queryResults.getOsResults().where();
+        }
     }
 
-    private RealmQuery(BaseRealm realm, LinkView linkView, Class<E> clazz) {
+    private RealmQuery(BaseRealm realm, OsList osList, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.schema = realm.getSchema().getSchemaForClass(clazz);
-        this.table = schema.getTable();
-        this.linkView = linkView;
-        this.query = linkView.where();
+        this.forValues = !isClassForRealmModel(clazz);
+        if (forValues) {
+            // TODO implement this
+            this.schema = null;
+            this.table = null;
+            this.osList = null;
+            this.query = null;
+        } else {
+            //noinspection unchecked
+            this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
+            this.table = schema.getTable();
+            this.osList = osList;
+            this.query = osList.getQuery();
+        }
     }
 
     private RealmQuery(BaseRealm realm, String className) {
         this.realm = realm;
         this.className = className;
+        this.forValues = false;
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = table.where();
+        this.osList = null;
     }
 
     private RealmQuery(RealmResults<DynamicRealmObject> queryResults, String className) {
         this.realm = queryResults.realm;
         this.className = className;
+        this.forValues = false;
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
-        this.query = queryResults.getCollection().where();
+        this.query = queryResults.getOsResults().where();
+        this.osList = null;
     }
 
-    private RealmQuery(BaseRealm realm, LinkView linkView, String className) {
+    private RealmQuery(BaseRealm realm, OsList osList, String className) {
         this.realm = realm;
         this.className = className;
+        this.forValues = false;
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
-        this.linkView = linkView;
-        this.query = linkView.where();
+        this.query = osList.getQuery();
+        this.osList = osList;
     }
 
     /**
@@ -183,8 +229,8 @@ public class RealmQuery<E extends RealmModel> {
             return false;
         }
 
-        if (linkView != null) {
-            return linkView.isAttached();
+        if (osList != null) {
+            return osList.isValid();
         }
         return table != null && table.isValid();
     }
@@ -474,12 +520,12 @@ public class RealmQuery<E extends RealmModel> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or
-     * empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field.
      */
-    public RealmQuery<E> in(String fieldName, String[] values) {
+    public RealmQuery<E> in(String fieldName, @Nullable String[] values) {
         return in(fieldName, values, Case.SENSITIVE);
     }
 
@@ -487,18 +533,18 @@ public class RealmQuery<E extends RealmModel> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a String field or {@code values} is {@code null} or
-     * empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a String field.
      */
-    public RealmQuery<E> in(String fieldName, String[] values, Case casing) {
+    public RealmQuery<E> in(String fieldName, @Nullable String[] values, Case casing) {
         realm.checkIfValid();
 
-        //noinspection ConstantConditions
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
+            alwaysFalse();
+            return this;
         }
         beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0], casing);
         for (int i = 1; i < values.length; i++) {
@@ -511,184 +557,196 @@ public class RealmQuery<E extends RealmModel> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Byte field or {@code values} is {@code null} or
-     * empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Byte field.
      */
-    public RealmQuery<E> in(String fieldName, Byte[] values) {
+    public RealmQuery<E> in(String fieldName, @Nullable Byte[] values) {
         realm.checkIfValid();
 
-        //noinspection ConstantConditions
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
         }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Short field or {@code values} is {@code null} or
-     * empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Short field.
      */
-    public RealmQuery<E> in(String fieldName, Short[] values) {
+    public RealmQuery<E> in(String fieldName, @Nullable Short[] values) {
         realm.checkIfValid();
 
-        //noinspection ConstantConditions
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
         }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Integer field or {@code values} is {@code null}
+     * @throws java.lang.IllegalArgumentException if the field isn't a Integer field.
+     */
+    public RealmQuery<E> in(String fieldName, @Nullable Integer[] values) {
+        realm.checkIfValid();
+
+        if (values == null || values.length == 0) {
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
+        }
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Long field.
+     * empty.
+     */
+    public RealmQuery<E> in(String fieldName, @Nullable Long[] values) {
+        realm.checkIfValid();
+
+        if (values == null || values.length == 0) {
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
+        }
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Double field.
+     * empty.
+     */
+    public RealmQuery<E> in(String fieldName, @Nullable Double[] values) {
+        realm.checkIfValid();
+
+        if (values == null || values.length == 0) {
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
+        }
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Float field.
+     */
+    public RealmQuery<E> in(String fieldName, @Nullable Float[] values) {
+        realm.checkIfValid();
+
+        if (values == null || values.length == 0) {
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
+        }
+    }
+
+    /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Boolean.
      * or empty.
      */
-    public RealmQuery<E> in(String fieldName, Integer[] values) {
+    public RealmQuery<E> in(String fieldName, @Nullable Boolean[] values) {
         realm.checkIfValid();
 
         //noinspection ConstantConditions
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
         }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
+     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *               match any results.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Long field or {@code values} is {@code null} or
-     * empty.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Date field.
      */
-    public RealmQuery<E> in(String fieldName, Long[] values) {
+    public RealmQuery<E> in(String fieldName, @Nullable Date[] values) {
         realm.checkIfValid();
 
-        //noinspection ConstantConditions
         if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
+            alwaysFalse();
+            return this;
+        } else {
+            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
+            for (int i = 1; i < values.length; i++) {
+                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            }
+            return endGroupWithoutThreadValidation();
         }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
-    }
-
-    /**
-     * In comparison. This allows you to test if objects match any value in an array of values.
-     *
-     * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
-     * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Double field or {@code values} is {@code null} or
-     * empty.
-     */
-    public RealmQuery<E> in(String fieldName, Double[] values) {
-        realm.checkIfValid();
-
-        //noinspection ConstantConditions
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
-        }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
-    }
-
-    /**
-     * In comparison. This allows you to test if objects match any value in an array of values.
-     *
-     * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
-     * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Float field or {@code values} is {@code null} or
-     * empty.
-     */
-    public RealmQuery<E> in(String fieldName, Float[] values) {
-        realm.checkIfValid();
-
-        //noinspection ConstantConditions
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
-        }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
-    }
-
-    /**
-     * In comparison. This allows you to test if objects match any value in an array of values.
-     *
-     * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
-     * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Boolean field or {@code values} is {@code null}
-     * or empty.
-     */
-    public RealmQuery<E> in(String fieldName, Boolean[] values) {
-        realm.checkIfValid();
-
-        //noinspection ConstantConditions
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
-        }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
-    }
-
-    /**
-     * In comparison. This allows you to test if objects match any value in an array of values.
-     *
-     * @param fieldName the field to compare.
-     * @param values array of values to compare with and it cannot be null or empty.
-     * @return the query object.
-     * @throws java.lang.IllegalArgumentException if the field isn't a Date field or {@code values} is {@code null} or
-     * empty.
-     */
-    public RealmQuery<E> in(String fieldName, Date[] values) {
-        realm.checkIfValid();
-
-        //noinspection ConstantConditions
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException(EMPTY_VALUES);
-        }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
-        }
-        return endGroupWithoutThreadValidation();
     }
 
     /**
@@ -1485,6 +1543,17 @@ public class RealmQuery<E extends RealmModel> {
     }
 
     /**
+     * Logical-and two conditions
+     * Realm automatically applies logical-and between all query statements, so this is intended only as a mean to increase readability.
+     *
+     * @return the query object
+     */
+    public RealmQuery<E> and() {
+        realm.checkIfValid();
+        return this;
+    }
+
+    /**
      * Negate condition.
      *
      * @return the query object.
@@ -1528,69 +1597,6 @@ public class RealmQuery<E extends RealmModel> {
         this.query.isNotEmpty(fd.getColumnIndices(), fd.getNativeTablePointers());
 
         return this;
-    }
-
-    /**
-     * Returns a distinct set of objects of a specific class. If the result is sorted, the first
-     * object will be returned in case of multiple occurrences, otherwise it is undefined which
-     * object is returned.
-     * <p>
-     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
-     *
-     * @param fieldName the field name.
-     * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
-     * to linked fields.
-     */
-    public RealmResults<E> distinct(String fieldName) {
-        realm.checkIfValid();
-
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
-        return createRealmResults(query, null, distinctDescriptor, true);
-    }
-
-    /**
-     * Asynchronously returns a distinct set of objects of a specific class. If the result is
-     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
-     * undefined which object is returned.
-     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
-     *
-     * @param fieldName the field name.
-     * @return immediately a {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
-     * query completes.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
-     * to linked fields.
-     */
-    public RealmResults<E> distinctAsync(String fieldName) {
-        realm.checkIfValid();
-
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), query.getTable(), fieldName);
-        return createRealmResults(query, null, distinctDescriptor, false);
-    }
-
-    /**
-     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
-     * given, all unique combinations of values in the fields will be returned. In case of multiple
-     * matches, it is undefined which object is returned. Unless the result is sorted, then the
-     * first object will be returned.
-     *
-     * @param firstFieldName first field name to use when finding distinct objects.
-     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
-     * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
-     * is an unsupported type, or points to a linked field.
-     */
-    public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
-        realm.checkIfValid();
-
-        String[] fieldNames = new String[1 + remainingFieldNames.length];
-
-        fieldNames[0] = firstFieldName;
-        System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
-        SortDescriptor distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
-        return createRealmResults(query, null, distinctDescriptor, true);
     }
 
     /**
@@ -1742,8 +1748,12 @@ public class RealmQuery<E extends RealmModel> {
      */
     public long count() {
         realm.checkIfValid();
-
-        return this.query.count();
+        // The fastest way of doing `count()` is going through `TableQuery.count()`. Unfortunately
+        // doing this does not correctly apply all side effects of queries (like subscriptions). Also
+        // some queries constructs, like doing distinct is not easily supported this way.
+        // In order to get the best of both worlds we thus need to create a Java RealmResults object
+        // and then directly access the `Results` class from Object Store.
+        return lazyFindAll().size();
     }
 
     /**
@@ -1756,13 +1766,31 @@ public class RealmQuery<E extends RealmModel> {
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         realm.checkIfValid();
-
-        return createRealmResults(query, null, null, true);
+        return createRealmResults(query, queryDescriptors, true, SubscriptionAction.NO_SUBSCRIPTION);
     }
 
     /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field name.
-     * This method is only available from a Looper thread.
+     * The same as {@link #findAll()} expect the RealmResult is not forcefully evaluated. This
+     * means this method will return a more "pure" wrapper around the Object Store Results class.
+     *
+     * This can be useful for internal usage where we still want to take advantage of optimizations
+     * and additional functionality provided by Object Store, but do not wish to trigger the query
+     * unless needed.
+     */
+    private OsResults lazyFindAll() {
+        realm.checkIfValid();
+        return createRealmResults(
+                query,
+                queryDescriptors,
+                false,
+                SubscriptionAction.NO_SUBSCRIPTION).osResults;
+    }
+
+    /**
+     * Finds all objects that fulfill the query conditions. This method is only available from a Looper thread.
+     * <p>
+     * If the Realm is a Query-based synchronized Realms, this method will also create an anonymous subscription
+     * that will download all server data matching the query.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
@@ -1772,122 +1800,77 @@ public class RealmQuery<E extends RealmModel> {
         realm.checkIfValid();
 
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, null, null, false);
+        SubscriptionAction subscriptionAction;
+        
+        // Don't create subscriptions for list queries as they are always part of an object covered by another query.
+        if (realm.sharedRealm.isPartial() && osList == null) {
+            subscriptionAction = SubscriptionAction.ANONYMOUS_SUBSCRIPTION;
+        }  else {
+            subscriptionAction = SubscriptionAction.NO_SUBSCRIPTION;
+        }
+        return createRealmResults(query, queryDescriptors, false, subscriptionAction);
     }
 
     /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field name.
+     * Finds all objects that fulfill the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
+     *
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm.
+     */
+    public RealmResults<E> findAllAsync(String subscriptionName) {
+        realm.checkIfValid();
+        realm.checkIfPartialRealm();
+        if (osList != null) {
+            throw new IllegalStateException("Cannot create subscriptions for queries based on a 'RealmList'");
+        }
+        if (Util.isEmptyString(subscriptionName)) {
+            throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
+        }
+
+        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
+        return createRealmResults(query, queryDescriptors, false, SubscriptionAction.create(subscriptionName));
+    }
+
+    /**
+     * Sorts the query result by the specific field name in ascending order.
+     * <p>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     *
+     * @param fieldName the field name to sort by.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
+     */
+    public RealmQuery<E> sort(String fieldName) {
+        realm.checkIfValid();
+        return sort(fieldName, Sort.ASCENDING);
+    }
+
+    /**
+     * Sorts the query result by the specified field name and order.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName the field name to sort by.
      * @param sortOrder how to sort the results.
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
      */
-    @SuppressWarnings("unchecked")
-    public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
+    public RealmQuery<E> sort(String fieldName, Sort sortOrder) {
         realm.checkIfValid();
-
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldName, sortOrder);
-        return createRealmResults(query, sortDescriptor, null, true);
+        return sort(new String[] { fieldName}, new Sort[] { sortOrder});
     }
 
     /**
-     * Similar to {@link #findAllSorted(String, Sort)} but runs asynchronously on a worker thread
-     * (need a Realm opened from a looper thread to work).
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    public RealmResults<E> findAllSortedAsync(final String fieldName, final Sort sortOrder) {
-        realm.checkIfValid();
-
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldName, sortOrder);
-        return createRealmResults(query, sortDescriptor, null, false);
-    }
-
-
-    /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field name in ascending order.
-     * <p>
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
-     *
-     * @param fieldName the field name to sort by.
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    public RealmResults<E> findAllSorted(String fieldName) {
-        return findAllSorted(fieldName, Sort.ASCENDING);
-    }
-
-    /**
-     * Similar to {@link #findAllSorted(String)} but runs asynchronously on a worker thread.
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if the field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    public RealmResults<E> findAllSortedAsync(String fieldName) {
-        return findAllSortedAsync(fieldName, Sort.ASCENDING);
-    }
-
-    /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field names.
-     * <p>
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
-     *
-     * @param fieldNames an array of field names to sort by.
-     * @param sortOrders how to sort the field names.
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     */
-    public RealmResults<E> findAllSorted(String[] fieldNames, Sort[] sortOrders) {
-        realm.checkIfValid();
-
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
-        return createRealmResults(query, sortDescriptor, null, true);
-    }
-
-    private boolean isDynamicQuery() {
-        return className != null;
-    }
-
-    /**
-     * Similar to {@link #findAllSorted(String[], Sort[])} but runs asynchronously.
-     * from a worker thread.
-     * This method is only available from a Looper thread.
-     *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
-     * @see io.realm.RealmResults
-     */
-    public RealmResults<E> findAllSortedAsync(String[] fieldNames, final Sort[] sortOrders) {
-        realm.checkIfValid();
-
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
-        return createRealmResults(query, sortDescriptor, null, false);
-    }
-
-    /**
-     * Finds all objects that fulfill the query conditions and sorted by specific field names in ascending order.
+     * Sorts the query result by the specific field names in the provided orders. {@code fieldName2} is only used
+     * in case of equal values in {@code fieldName1}.
      * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
@@ -1896,28 +1879,136 @@ public class RealmQuery<E extends RealmModel> {
      * @param sortOrder1 sort order for first field
      * @param fieldName2 second field name
      * @param sortOrder2 sort order for second field
-     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     * objects is returned.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
      */
-    public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
-        return findAllSorted(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
+    public RealmQuery<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
+        realm.checkIfValid();
+        return sort(new String[] { fieldName1, fieldName2 }, new Sort[] { sortOrder1, sortOrder2 });
     }
 
     /**
-     * Similar to {@link #findAllSorted(String, Sort, String, Sort)} but runs asynchronously on a worker thread
-     * This method is only available from a Looper thread.
+     * Sorts the query result by the specific field names in the provided orders. Later fields will only be used
+     * if the previous field values are equal.
+     * <p>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist or it belongs to a child
-     * {@link RealmObject} or a child {@link RealmList}.
+     * @param fieldNames an array of field names to sort by.
+     * @param sortOrders how to sort the field names.
+     * @throws IllegalArgumentException if the field name does not exist.
+     * @throws IllegalStateException if a sorting order was already defined.
      */
-    public RealmResults<E> findAllSortedAsync(String fieldName1, Sort sortOrder1,
-            String fieldName2, Sort sortOrder2) {
-        return findAllSortedAsync(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
+    public RealmQuery<E> sort(String[] fieldNames, Sort[] sortOrders) {
+        realm.checkIfValid();
+        QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
+        queryDescriptors.appendSort(sortDescriptor);
+        return this;
+    }
+
+    /**
+     * Selects a distinct set of objects of a specific class. If the result is sorted, the first object will be
+     * returned in case of multiple occurrences, otherwise it is undefined which object is returned.
+     * <p>
+     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
+     *
+     * @param fieldName the field name.
+     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
+     * to linked fields.
+     * @throws IllegalStateException if distinct field names were already defined.
+     */
+    public RealmQuery<E> distinct(String fieldName) {
+        return distinct(fieldName, new String[]{});
+    }
+
+    /**
+     * Selects a distinct set of objects of a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     * @throws IllegalStateException if distinct field names were already defined.
+     */
+    public RealmQuery<E> distinct(String firstFieldName, String... remainingFieldNames) {
+        realm.checkIfValid();
+        QueryDescriptor distinctDescriptor;
+        if (remainingFieldNames.length == 0) {
+            distinctDescriptor = QueryDescriptor.getInstanceForDistinct(getSchemaConnector(), table, firstFieldName);
+        } else {
+            String[] fieldNames = new String[1 + remainingFieldNames.length];
+            fieldNames[0] = firstFieldName;
+            System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
+            distinctDescriptor = QueryDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
+        }
+        queryDescriptors.appendDistinct(distinctDescriptor);
+        return this;
+    }
+
+    /**
+     * Limits the number of objects returned in case the query matched more objects.
+     * <p>
+     * Note that when using this method in combination with {@link #sort(String)} and
+     * {@link #distinct(String)} they will be executed in the order they where added which can
+     * affect the end result.
+     *
+     * @param limit a limit that is {@code &ge; 1}.
+     * @throws IllegalArgumentException if the provided {@code limit} is less than 1.
+     */
+    public RealmQuery<E> limit(long limit) {
+        realm.checkIfValid();
+        if (limit < 1) {
+            throw new IllegalArgumentException("Only positive numbers above 0 is allowed. Yours was: " + limit);
+        }
+        queryDescriptors.setLimit(limit);
+        return this;
+    }
+
+    /**
+     * This predicate will always match.
+     */
+    public RealmQuery<E> alwaysTrue() {
+        realm.checkIfValid();
+        query.alwaysTrue();
+        return this;
+    }
+
+    /**
+     * This predicate will never match, resulting in the query always returning 0 results.
+     */
+    public RealmQuery<E> alwaysFalse() {
+        realm.checkIfValid();
+        query.alwaysFalse();
+        return this;
+    }
+
+    /**
+     * Returns the {@link Realm} instance to which this query belongs.
+     * <p>
+     * Calling {@link Realm#close()} on the returned instance is discouraged as it is the same as
+     * calling it on the original Realm instance which may cause the Realm to fully close invalidating the
+     * query.
+     *
+     * @return {@link Realm} instance this query belongs to.
+     * @throws IllegalStateException if the Realm is an instance of {@link DynamicRealm} or the
+     * {@link Realm} was already closed.
+     */
+    public Realm getRealm() {
+        if (realm == null) {
+            return null;
+        }
+        realm.checkIfValid();
+        if (!(realm instanceof Realm)) {
+            throw new IllegalStateException("This method is only available for typed Realms");
+        }
+        return (Realm) realm;
+    }
+
+    private boolean isDynamicQuery() {
+        return className != null;
     }
 
     /**
@@ -1930,8 +2021,14 @@ public class RealmQuery<E extends RealmModel> {
     public E findFirst() {
         realm.checkIfValid();
 
+        if (forValues) {
+            // TODO implement this;
+            return null;
+        }
+
         long tableRowIndex = getSourceRowIndexForFirstObject();
-        return (tableRowIndex < 0) ? null : realm.get(clazz, className, tableRowIndex);
+        //noinspection unchecked
+        return (tableRowIndex < 0) ? null : (E) realm.get((Class<? extends RealmModel>) clazz, className, tableRowIndex);
     }
 
     /**
@@ -1947,12 +2044,16 @@ public class RealmQuery<E extends RealmModel> {
     public E findFirstAsync() {
         realm.checkIfValid();
 
+        if (forValues) {
+            throw new UnsupportedOperationException("findFirstAsync() available only when type parameter 'E' is implementing RealmModel.");
+        }
+
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         Row row;
         if (realm.isInTransaction()) {
             // It is not possible to create async query inside a transaction. So immediately query the first object.
             // See OS Results::prepare_async()
-            row = new Collection(realm.sharedRealm, query).firstUncheckedRow();
+            row = OsResults.createFromQuery(realm.sharedRealm, query).firstUncheckedRow();
         } else {
             // prepares an empty reference of the RealmObject which is backed by a pending query,
             // then update it once the query complete in the background.
@@ -1960,15 +2061,18 @@ public class RealmQuery<E extends RealmModel> {
             // TODO: The performance by the pending query will be a little bit worse than directly calling core's
             // Query.find(). The overhead comes with core needs to add all the row indices to the vector. However this
             // can be optimized by adding support of limit in OS's Results which is supported by core already.
-            row = new PendingRow(realm.sharedRealm, query, null, isDynamicQuery());
+            row = new PendingRow(realm.sharedRealm, query, queryDescriptors, isDynamicQuery());
         }
         final E result;
         if (isDynamicQuery()) {
             //noinspection unchecked
             result = (E) new DynamicRealmObject(realm, row);
         } else {
-            result = realm.getConfiguration().getSchemaMediator().newInstance(
-                    clazz, realm, row, realm.getSchema().getColumnInfo(clazz),
+            //noinspection unchecked
+            final Class<? extends RealmModel> modelClass = (Class<? extends RealmModel>) clazz;
+            //noinspection unchecked
+            result = (E) realm.getConfiguration().getSchemaMediator().newInstance(
+                    modelClass, realm, row, realm.getSchema().getColumnInfo(modelClass),
                     false, Collections.<String>emptyList());
         }
 
@@ -1980,25 +2084,42 @@ public class RealmQuery<E extends RealmModel> {
         return result;
     }
 
+
     private RealmResults<E> createRealmResults(TableQuery query,
-            @Nullable SortDescriptor sortDescriptor,
-            @Nullable SortDescriptor distinctDescriptor,
-            boolean loadResults) {
+                                               DescriptorOrdering queryDescriptors,
+                                               boolean loadResults,
+                                               SubscriptionAction subscriptionAction) {
         RealmResults<E> results;
-        Collection collection = new Collection(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
-        if (isDynamicQuery()) {
-            results = new RealmResults<>(realm, collection, className);
+        OsResults osResults;
+        if (subscriptionAction.shouldCreateSubscriptions()) {
+            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors, subscriptionAction.getName());
         } else {
-            results = new RealmResults<>(realm, collection, clazz);
+            osResults = OsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors);
+        }
+
+        if (isDynamicQuery()) {
+            results = new RealmResults<>(realm, osResults, className);
+        } else {
+            results = new RealmResults<>(realm, osResults, clazz);
         }
         if (loadResults) {
             results.load();
         }
+
         return results;
     }
 
     private long getSourceRowIndexForFirstObject() {
-        return this.query.find();
+        if (!queryDescriptors.isEmpty()) {
+            RealmObjectProxy obj = (RealmObjectProxy) findAll().first(null);
+            if (obj != null) {
+                return obj.realmGet$proxyState().getRow$realm().getIndex();
+            } else {
+                return -1;
+            }
+        } else {
+            return this.query.find();
+        }
     }
 
     private SchemaConnector getSchemaConnector() {

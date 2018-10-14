@@ -35,7 +35,7 @@ import io.realm.internal.ManagableObject;
  *
  * @param <E> type of {@link RealmObject} stored in the collection.
  */
-public interface RealmCollection<E extends RealmModel> extends Collection<E>, ManagableObject {
+public interface RealmCollection<E> extends Collection<E>, ManagableObject {
 
     /**
      * Returns a {@link RealmQuery}, which can be used to query for specific objects from this collection.

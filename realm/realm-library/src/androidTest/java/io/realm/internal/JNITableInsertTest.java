@@ -48,7 +48,7 @@ public class JNITableInsertTest {
 
     @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
 
     private List<Object> value = new ArrayList<>();
 
@@ -56,7 +56,7 @@ public class JNITableInsertTest {
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
     }
 
     @After

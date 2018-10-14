@@ -19,6 +19,7 @@ package io.realm.gradle
 import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryPlugin
 import com.neenbedankt.gradle.androidapt.AndroidAptPlugin
+import io.realm.gradle.RealmPluginExtension
 import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -41,14 +42,27 @@ class Realm implements Plugin<Project> {
         }
 
         def syncEnabledDefault = false
-        def dependencyConfigurationName = getDependencyConfigurationName(project)
-        project.extensions.create('realm', RealmPluginExtension, project, syncEnabledDefault, dependencyConfigurationName)
-
         def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
         def isKotlinProject = project.plugins.findPlugin('kotlin-android') != null
+        def useKotlinExtensionsDefault = isKotlinProject
         def hasAnnotationProcessorConfiguration = project.getConfigurations().findByName('annotationProcessor') != null
         // TODO add a parameter in 'realm' block if this should be specified by users
         def preferAptOnKotlinProject = false
+        def dependencyConfigurationName = getDependencyConfigurationName(project)
+        def extension = project.extensions.create('realm', RealmPluginExtension)
+        extension.addPropertyListener(RealmPluginExtension.KEY_KOTLIN_EXTENSIONS_ENABLED, new RealmPluginExtension.PropertyChangedListener<Boolean>() {
+            @Override
+            void onChange(Boolean checked) {
+                setDependencies(project, dependencyConfigurationName, extension.syncEnabled, extension.kotlinExtensionsEnabled)
+            }
+        })
+        extension.addPropertyListener(RealmPluginExtension.KEY_SYNC_ENABLED, new RealmPluginExtension.PropertyChangedListener<Boolean>() {
+            @Override
+            void onChange(Boolean checked) {
+                setDependencies(project, dependencyConfigurationName, extension.syncEnabled, extension.kotlinExtensionsEnabled)
+            }
+        })
+        extension.kotlinExtensionsEnabled = useKotlinExtensionsDefault
 
         if (shouldApplyAndroidAptPlugin(usesAptPlugin, isKotlinProject,
                                         hasAnnotationProcessorConfiguration, preferAptOnKotlinProject)) {
@@ -111,5 +125,33 @@ class Realm implements Plugin<Project> {
         }
         // for any Java Projects where user did not apply 'android-apt' plugin manually.
         return !hasAnnotationProcessorConfiguration
+    }
+
+    // This will setup the required dependencies.
+    // Due to how Gradle works, we have no choice but to run this code every time any of the parameters
+    // in the Realm extension is changed.
+    private static void setDependencies(Project project, String dependencyConfigurationName, boolean syncEnabled, boolean kotlinExtensionsEnabled) {
+        // remove libraries first
+        def iterator = project.getConfigurations().getByName(dependencyConfigurationName).getDependencies().iterator()
+        while (iterator.hasNext()) {
+            def item = iterator.next()
+            if (item.group == 'io.realm') {
+                if (item.name.startsWith('realm-android-library')) {
+                    iterator.remove()
+                }
+                if (item.name.startsWith('realm-android-kotlin-extensions')) {
+                    iterator.remove()
+                }
+            }
+        }
+
+        // then add again
+        def syncArtifactName = "realm-android-library${syncEnabled ? '-object-server' : ''}"
+        project.dependencies.add(dependencyConfigurationName, "io.realm:${syncArtifactName}:${Version.VERSION}")
+
+        if (kotlinExtensionsEnabled) {
+            def kotlinExtArtifactName = "realm-android-kotlin-extensions${syncEnabled ? '-object-server' : ''}"
+            project.dependencies.add(dependencyConfigurationName, "io.realm:${kotlinExtArtifactName}:${Version.VERSION}")
+        }
     }
 }

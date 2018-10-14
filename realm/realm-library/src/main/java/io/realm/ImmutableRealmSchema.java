@@ -16,11 +16,17 @@
 
 package io.realm;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 
 /**
- * Immutable {@link RealmSchema}.
+ * Immutable {@link RealmSchema} used by {@link Realm}.
+ *
+ * @see MutableRealmSchema for schema support for {@link DynamicRealm}.
  */
 class ImmutableRealmSchema extends RealmSchema {
 
@@ -42,7 +48,26 @@ class ImmutableRealmSchema extends RealmSchema {
     }
 
     @Override
+    public Set<RealmObjectSchema> getAll() {
+        // Only return schema objects for classes defined by the schema in the RealmConfiguration
+        RealmProxyMediator schemaMediator = realm.getConfiguration().getSchemaMediator();
+        Set<Class<? extends RealmModel>> classes = schemaMediator.getModelClasses();
+        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(classes.size());
+        for (Class<? extends RealmModel> clazz : classes) {
+            String className = schemaMediator.getSimpleClassName(clazz);
+            RealmObjectSchema objectSchema = get(className);
+            schemas.add(objectSchema);
+        }
+        return schemas;
+    }
+
+    @Override
     public RealmObjectSchema create(String className) {
+        throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
+    }
+
+    @Override
+    public RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName, Class<?> fieldType, FieldAttribute... attributes) {
         throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
     }
 

@@ -19,6 +19,8 @@ package io.realm.internal.network;
 import java.net.URI;
 import java.net.URL;
 
+import javax.annotation.Nullable;
+
 import io.realm.SyncCredentials;
 import io.realm.SyncUser;
 import io.realm.internal.objectserver.Token;
@@ -30,6 +32,24 @@ import io.realm.internal.objectserver.Token;
  * only responsible for executing a given network request.
  */
 public interface AuthenticationServer {
+
+    /**
+     * Overrides the default header name used to send Realm Object Server credentials.
+     * The Realm Object Server must be setup to handle this specifically.
+     */
+    void setAuthorizationHeaderName(String headerName, @Nullable String host);
+
+    /**
+     * Add a custom header that should be applied to all HTTP requests made by the authentication
+     * server.
+     */
+    void addHeader(String headerName, String headerValue, @Nullable String host);
+
+    /**
+     * Clear any custom header settings (Authorization and others).
+     */
+    void clearCustomHeaderSettings();
+
     /**
      * Login a User on the Object Server. This will create a "UserToken" (Currently called RefreshToken) that acts as
      * the users credentials.
@@ -73,4 +93,25 @@ public interface AuthenticationServer {
      * what is needed will depend on what type of {@link SyncCredentials} was used.
      */
     LookupUserIdResponse retrieveUser(Token adminToken, String provider, String providerId, URL authenticationUrl);
+
+    /**
+     * Request a password reset for the user identified by the provided email.
+     */
+    UpdateAccountResponse requestPasswordReset(String email, URL authenticationUrl);
+
+    /**
+     * Complete a password reset by sending the one-time token and the new password.
+     */
+    UpdateAccountResponse completePasswordReset(String token, String newPassword, URL authenticationUrl);
+
+    /**
+     * Request an email confirmation.
+     */
+    UpdateAccountResponse requestEmailConfirmation(String email, URL authenticationUrl);
+
+    /**
+     * Complete an email confirmation by sending the token contained in the email.
+     */
+    UpdateAccountResponse confirmEmail(String confirmationToken, URL authenticationUrl);
+
 }

@@ -19,20 +19,25 @@ package io.realm;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InterruptedIOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.annotation.Nullable;
 
 import io.realm.internal.Keep;
 import io.realm.internal.SyncObjectServerFacade;
@@ -48,15 +53,23 @@ import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 
 /**
- * This class represents the connection to the Realm Object Server for one {@link SyncConfiguration}.
+ * A session controls how data is synchronized between a single Realm on the device and the server
+ * Realm on the Realm Object Server.
  * <p>
- * A Session is created by opening a Realm instance using that configuration. Once a session has been created,
+ * A Session is created by opening a Realm instance using a {@link SyncConfiguration}. Once a session has been created,
  * it will continue to exist until the app is closed or all threads using this {@link SyncConfiguration} closes their respective {@link Realm}s.
  * <p>
- * A session is fully controlled by Realm, but can provide additional information in case of errors.
- * It is passed along in all {@link SyncSession.ErrorHandler}s.
+ * A session is controlled by Realm, but can provide additional information in case of errors.
+ * These errors are passed along in the {@link SyncSession.ErrorHandler}.
  * <p>
- * This object is thread safe.
+ * When creating a session, Realm will establish a connection to the server. This connection is
+ * controlled by Realm and might be shared between multiple sessions. It is possible to get insight
+ * into the connection using {@link #addConnectionChangeListener(ConnectionListener)} and {@link #isConnected()}.
+ * <p>
+ * The session itself has a different lifecycle than the underlying connection. The state of the session
+ * can be found using {@link #getState()}.
+ * <p>
+ * The {@link SyncSession} object is thread safe.
  */
 @Keep
 public class SyncSession {
@@ -68,12 +81,15 @@ public class SyncSession {
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
     private RealmAsyncTask networkRequest;
-    private NetworkStateReceiver.ConnectionListener networkListener;
     private RealmAsyncTask refreshTokenTask;
     private RealmAsyncTask refreshTokenNetworkRequest;
     private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
     private volatile boolean isClosed = false;
     private final AtomicReference<WaitForSessionWrapper> waitingForServerChanges = new AtomicReference<>(null);
+
+    // Keeps track of how many times `uploadAllLocalChanges()` or `downloadAllServerChanges()` have
+    // been called. This is needed so we can correctly ignore canceled requests.
+    private final AtomicInteger waitCounter = new AtomicInteger(0);
     private final Object waitForChangesMutex = new Object();
 
     // We need JavaId -> Listener so C++ can trigger callbacks without keeping a reference to the
@@ -96,11 +112,67 @@ public class SyncSession {
     private static final byte STATE_VALUE_INACTIVE = 3;
     private static final byte STATE_VALUE_ERROR = 4;
 
+    // List of Java connection change listeners
+    private final CopyOnWriteArrayList<ConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
+
+    // Reference to the token representing the native listener for connection changes
+    // Only one native listener is used for all Java listeners
+    private long nativeConnectionListenerToken;
+
+    // represent different states as defined in SyncSession::PublicConnectionState 'sync_session.hpp'
+    // saved here instead of as constants in ConnectionState.java to enable static checking by JNI
+    static final byte CONNECTION_VALUE_DISCONNECTED = 0;
+    static final byte CONNECTION_VALUE_CONNECTING = 1;
+    static final byte CONNECTION_VALUE_CONNECTED = 2;
+
+    private URI resolvedRealmURI;
+
+    /**
+     * Enum describing the states a SyncSession can be in. The initial state is
+     * {@link State#INACTIVE}.
+     * <p>
+     * A Realm will automatically synchronize data with the server if the session is either {@link State#ACTIVE}
+     * or {@link State#DYING} and {@link #isConnected()} returns {@code true}.
+     */
     public enum State {
-        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
-        ACTIVE(STATE_VALUE_ACTIVE),
-        DYING(STATE_VALUE_DYING),
+
+        /**
+         * This is the initial state. The session is closed. No data is being synchronized. The session
+         * will automatically transition to {@link #WAITING_FOR_ACCESS_TOKEN} when a Realm is opened.
+         */
         INACTIVE(STATE_VALUE_INACTIVE),
+
+        /**
+         * The user is attempting to synchronize data but needs a valid access token to do so. Realm
+         * will either use a cached token or automatically try to acquire one based on the current
+         * users login. This requires a network connection.
+         * <p>
+         * Data cannot be synchronized in this state.
+         * <p>
+         * Once a valid token is acquired, the session will transition to {@link #ACTIVE}.
+         */
+        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
+
+        /**
+         * The Realm is open and data will be synchronized between the device and the server
+         * if the underlying connection is {@link ConnectionState#CONNECTED}.
+         * <p>
+         * The session will remain in this state until either the current login expires or the Realm
+         * is closed. In the first case, the session will transition to {@link #WAITING_FOR_ACCESS_TOKEN},
+         * in the second case, it will become {@link #DYING}.
+         */
+        ACTIVE(STATE_VALUE_ACTIVE),
+
+        /**
+         * The Realm was closed, but still contains data that needs to be synchronized to the server.
+         * The session will attempt to upload all local data before going {@link #INACTIVE}.
+         */
+        DYING(STATE_VALUE_DYING),
+
+        /**
+         * DEPRECATED: This is never used. Errors are reported to {@link ErrorHandler} instead.
+         */
+        @Deprecated
         ERROR(STATE_VALUE_ERROR);
 
         final byte value;
@@ -109,7 +181,7 @@ public class SyncSession {
             this.value = value;
         }
 
-        static State fromByte(byte value) {
+        static State fromNativeValue(long value) {
             State[] stateCodes = values();
             for (State state : stateCodes) {
                 if (state.value == value) {
@@ -117,7 +189,7 @@ public class SyncSession {
                 }
             }
 
-            throw new IllegalArgumentException("Unknown state code: " + value);
+            throw new IllegalArgumentException("Unknown session state code: " + value);
         }
     }
 
@@ -162,9 +234,10 @@ public class SyncSession {
         ErrorCode errCode = ErrorCode.fromInt(errorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
+            RealmConfiguration backupRealmConfiguration = SyncConfiguration.forRecovery(errorMessage, configuration.getEncryptionKey(), configuration.getSchemaMediator());
             errorHandler.onError(this, new ClientResetRequiredError(errCode, "A Client Reset is required. " +
                     "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
-                    errorMessage, getConfiguration()));
+                    configuration, backupRealmConfiguration));
         } else {
             errorHandler.onError(this, new ObjectServerError(errCode, errorMessage));
         }
@@ -180,14 +253,45 @@ public class SyncSession {
      * @return the state of the session.
      * @see SyncSession.State
      */
-    @SuppressWarnings("unused")
     public State getState() {
         byte state = nativeGetState(configuration.getPath());
         if (state == -1) {
             // session was not found, probably the Realm was closed
             throw new IllegalStateException("Could not find session, Realm was probably closed");
         }
-        return State.fromByte(state);
+        return State.fromNativeValue(state);
+    }
+
+    /**
+     * Get the current state of the connection used by the session as defined in {@link ConnectionState}.
+     *
+     * @return the state of connection used by the session.
+     * @see ConnectionState
+     */
+    public ConnectionState getConnectionState() {
+        byte state = nativeGetConnectionState(configuration.getPath());
+        if (state == -1) {
+            // session was not found, probably the Realm was closed
+            throw new IllegalStateException("Could not find session, Realm was probably closed");
+        }
+        return ConnectionState.fromNativeValue(state);
+    }
+
+    /**
+     * Checks if the session is connected to the server and can synchronize data.
+     *
+     * This is a best guess effort. To conserve battery the underlying implementation uses heartbeats
+     * to  detect if the connection is still available. So if no data is actively being synced
+     * and some time has elapsed since the last heartbeat, the connection could have been dropped but
+     * this method will still return {@code true}.
+     *
+     * @return {@code true} if the session is connected and ready to synchronize data, {@code false}
+     * if not or if it is in the process of connecting.
+     */
+    public boolean isConnected() {
+        ConnectionState connectionState = ConnectionState.fromNativeValue(nativeGetConnectionState(configuration.getPath()));
+        State sessionState = getState();
+        return (sessionState == State.ACTIVE || sessionState == State.DYING) && connectionState == ConnectionState.CONNECTED;
     }
 
     synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {
@@ -202,7 +306,13 @@ public class SyncSession {
             RealmLog.debug("Trying unknown listener failed: " + listenerId);
         }
     }
-    
+
+    void notifyConnectionListeners(ConnectionState oldState, ConnectionState newState) {
+        for (ConnectionListener listener : connectionListeners) {
+            listener.onChange(oldState, newState);
+        }
+    }
+
     /**
      * Adds a progress listener tracking changes that need to be downloaded from the Realm Object
      * Server.
@@ -289,6 +399,36 @@ public class SyncSession {
         }
     }
 
+    /**
+     * Adds a listener tracking changes to the connection backing this session. See {@link ConnectionState}
+     * for further details.
+     *
+     * @param listener the listener to register.
+     * @throws IllegalArgumentException if the listener is {@code null}.
+     * @see ConnectionState
+     */
+    public synchronized void addConnectionChangeListener(ConnectionListener listener) {
+        checkNonNullListener(listener);
+        if (connectionListeners.isEmpty()) {
+            nativeConnectionListenerToken = nativeAddConnectionListener(configuration.getPath());
+        }
+        connectionListeners.add(listener);
+    }
+
+    /**
+     * Removes a previously registered {@link ConnectionListener}.
+     *
+     * @param listener listener to remove
+     * @throws IllegalArgumentException if the listener is {@code null}.
+     */
+    public synchronized void removeConnectionChangeListener(ConnectionListener listener) {
+        checkNonNullListener(listener);
+        connectionListeners.remove(listener);
+        if (connectionListeners.isEmpty()) {
+            nativeRemoveConnectionListener(nativeConnectionListenerToken, configuration.getPath());
+        }
+    }
+
     void close() {
         isClosed = true;
         if (networkRequest != null) {
@@ -305,10 +445,18 @@ public class SyncSession {
     // If the native listener was successfully registered, Object Store guarantees that this method will be called at
     // least once, even if the session is closed.
     @SuppressWarnings("unused")
-    private void notifyAllChangesSent(Long errorcode, String errorMessage) {
+    private void notifyAllChangesSent(int callbackId, Long errorcode, String errorMessage) {
         WaitForSessionWrapper wrapper = waitingForServerChanges.get();
         if (wrapper != null) {
-            wrapper.handleResult(errorcode, errorMessage);
+            // Only react to callback if the callback is "active"
+            // A callback can only become inactive if the thread was interrupted:
+            // 1. Call `downloadAllServerChanges()` (callback = 1)
+            // 2. Interrupt it
+            // 3. Call `uploadAllLocalChanges()` ( callback = 2)
+            // 4. Sync notifies session that callback:1 is done. It should be ignored.
+            if (waitCounter.get() == callbackId) {
+                wrapper.handleResult(errorcode, errorMessage);
+            }
         }
     }
 
@@ -363,6 +511,41 @@ public class SyncSession {
     }
 
     /**
+     * Attempts to start the session and enable synchronization with the Realm Object Server.
+     * <p>
+     * This happens automatically when opening the Realm instance, so doing it manually should only
+     * be needed if the session was stopped using {@link #stop()}.
+     * <p>
+     * If the session was already started, calling this method will do nothing.
+     * <p>
+     * A session is considered started if {@link #getState()} returns either {@link State#ACTIVE} or
+     * {@link State#WAITING_FOR_ACCESS_TOKEN}. If the session is {@link State#DYING}, the session
+     * will be moved back to {@link State#ACTIVE}.
+     *
+     * @see #getState()
+     * @see #stop()
+     */
+    public synchronized void start() {
+        nativeStart(configuration.getPath());
+    }
+
+    /**
+     * Stops any synchronization with the Realm Object Server until the Realm is re-opened again
+     * after fully closing it.
+     * <p>
+     * Synchronization can be re-enabled by calling {@link #start()} again.
+     * <p>
+     * If the session is already stopped, calling this method will do nothing.
+     */
+    public synchronized void stop() {
+        nativeStop(configuration.getPath());
+    }
+
+    void setResolvedRealmURI(URI resolvedRealmURI) {
+        this.resolvedRealmURI = resolvedRealmURI;
+    }
+
+    /**
      * This method should only be called when guarded by the {@link #waitForChangesMutex}.
      * It will block into all changes have been either uploaded or downloaded depending on the chosen direction.
      *
@@ -373,11 +556,13 @@ public class SyncSession {
             throw new IllegalArgumentException("Unknown direction: " + direction);
         }
         if (!isClosed) {
+            String realmPath = configuration.getPath();
             WaitForSessionWrapper wrapper = new WaitForSessionWrapper();
             waitingForServerChanges.set(wrapper);
+            int callbackId = waitCounter.incrementAndGet();
             boolean listenerRegistered = (direction == DIRECTION_DOWNLOAD)
-                    ? nativeWaitForDownloadCompletion(configuration.getPath())
-                    : nativeWaitForUploadCompletion(configuration.getPath());
+                    ? nativeWaitForDownloadCompletion(callbackId, realmPath)
+                    : nativeWaitForUploadCompletion(callbackId, realmPath);
             if (!listenerRegistered) {
                 waitingForServerChanges.set(null);
                 String errorMsg = "";
@@ -390,7 +575,12 @@ public class SyncSession {
 
                 throw new ObjectServerError(ErrorCode.UNKNOWN, errorMsg + " Has the SyncClient been started?");
             }
-            wrapper.waitForServerChanges();
+            try {
+                wrapper.waitForServerChanges();
+            } catch(InterruptedException e) {
+                waitingForServerChanges.set(null); // Ignore any results being sent if the wait was interrupted.
+                throw e;
+            }
 
             // This might return after the session was closed. In that case, just ignore any result
             try {
@@ -408,6 +598,12 @@ public class SyncSession {
     private void checkIfNotOnMainThread(String errorMessage) {
         if (new AndroidCapabilities().isMainThread()) {
             throw new IllegalStateException(errorMessage);
+        }
+    }
+
+    private void checkNonNullListener(@Nullable Object listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Non-null 'listener' required.");
         }
     }
 
@@ -483,35 +679,16 @@ public class SyncSession {
                 try {
                     JSONObject refreshTokenJSON = new JSONObject(refreshToken);
                     Token newRefreshToken = Token.from(refreshTokenJSON.getJSONObject("userToken"));
-                    if (newRefreshToken.hashCode() != getUser().getAccessToken().hashCode()) {
+                    if (newRefreshToken.hashCode() != getUser().getRefreshToken().hashCode()) {
                         RealmLog.debug("Session[%s]: Access token updated", configuration.getPath());
                         getUser().setRefreshToken(newRefreshToken);
                     }
                 } catch (JSONException e) {
-                    RealmLog.error(e,"Session[%s]: Can not parse the refresh_token into a valid JSONObject: ", configuration.getPath());
+                    RealmLog.error(e, "Session[%s]: Can not parse the refresh_token into a valid JSONObject: ", configuration.getPath());
                 }
             }
-            if (!onGoingAccessTokenQuery.getAndSet(true)) {
-                if (NetworkStateReceiver.isOnline(SyncObjectServerFacade.getApplicationContext())) {
-                    authenticateRealm(authServer);
-
-                } else {
-                    // Wait for connection to become available, before trying again.
-                    // The Session might potentially stay in this state for the lifetime of the application.
-                    // This is acceptable.
-                    networkListener = new NetworkStateReceiver.ConnectionListener() {
-                        @Override
-                        public void onChange(boolean connectionAvailable) {
-                            if (connectionAvailable) {
-                                if (!onGoingAccessTokenQuery.getAndSet(true)) {
-                                    authenticateRealm(authServer);
-                                }
-                                NetworkStateReceiver.removeListener(this);
-                            }
-                        }
-                    };
-                    NetworkStateReceiver.addListener(networkListener);
-                }
+            if (!onGoingAccessTokenQuery.get() && NetworkStateReceiver.isOnline(SyncObjectServerFacade.getApplicationContext())) {
+                authenticateRealm(authServer);
             }
         }
         return null;
@@ -524,14 +701,15 @@ public class SyncSession {
         }
         clearScheduledAccessTokenRefresh();
 
+        onGoingAccessTokenQuery.set(true);
         // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
         Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
             @Override
             protected AuthenticateResponse execute() {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
                     return authServer.loginToRealm(
-                            getUser().getAccessToken(), //refresh token in fact
-                            configuration.getServerUrl(),
+                            getUser().getRefreshToken(), //refresh token in fact
+                            resolvedRealmURI,
                             getUser().getAuthenticationUrl()
                     );
                 }
@@ -559,7 +737,12 @@ public class SyncSession {
                 onGoingAccessTokenQuery.set(false);
                 RealmLog.debug("Session[%s]: Failed to get access token (%s)", configuration.getPath(),
                         response.getError().getErrorCode());
-                if (!isClosed && !Thread.currentThread().isInterrupted()) {
+                if (!isClosed
+                        && !Thread.currentThread().isInterrupted()
+                        // We might be interrupted while negotiating an access token with the Realm Object Server
+                        // This will result in a InterruptedIOException from OkHttp. We should ignore this as
+                        // well.
+                        && !(response.getError().getException() instanceof InterruptedIOException)) {
                     errorHandler.onError(SyncSession.this, response.getError());
                 }
             }
@@ -568,6 +751,7 @@ public class SyncSession {
     }
 
     private void scheduleRefreshAccessToken(final AuthenticationServer authServer, long expireDateInMs) {
+        onGoingAccessTokenQuery.set(true);
         // calculate the delay time before which we should refresh the access_token,
         // we adjust to 10 second to proactively refresh the access_token before the session
         // hit the expire date on the token
@@ -608,7 +792,7 @@ public class SyncSession {
             @Override
             protected AuthenticateResponse execute() {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
-                    return authServer.refreshUser(getUser().getAccessToken(), configuration.getServerUrl(), getUser().getAuthenticationUrl());
+                    return authServer.refreshUser(getUser().getRefreshToken(), resolvedRealmURI, getUser().getAuthenticationUrl());
                 }
                 return null;
             }
@@ -697,10 +881,15 @@ public class SyncSession {
         }
     }
 
+    private static native long nativeAddConnectionListener(String localRealmPath);
+    private static native void nativeRemoveConnectionListener(long listenerId, String localRealmPath);
     private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
     private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
-    private native boolean nativeWaitForDownloadCompletion(String localRealmPath);
-    private native boolean nativeWaitForUploadCompletion(String localRealmPath);
+    private native boolean nativeWaitForDownloadCompletion(int callbackId, String localRealmPath);
+    private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
     private static native byte nativeGetState(String localRealmPath);
+    private static native byte nativeGetConnectionState(String localRealmPath);
+    private static native void nativeStart(String localRealmPath);
+    private static native void nativeStop(String localRealmPath);
 }

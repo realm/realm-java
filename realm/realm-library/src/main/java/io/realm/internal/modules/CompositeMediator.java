@@ -31,6 +31,7 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmModel;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsSchemaInfo;
@@ -46,6 +47,7 @@ import io.realm.internal.Util;
 public class CompositeMediator extends RealmProxyMediator {
 
     private final Map<Class<? extends RealmModel>, RealmProxyMediator> mediators;
+    private final Map<String, Class<? extends RealmModel>> internalClassNames = new HashMap<>();
 
     public CompositeMediator(RealmProxyMediator... mediators) {
         final HashMap<Class<? extends RealmModel>, RealmProxyMediator> tempMediators = new HashMap<>();
@@ -53,7 +55,23 @@ public class CompositeMediator extends RealmProxyMediator {
         if (mediators != null) {
             for (RealmProxyMediator mediator : mediators) {
                 for (Class<? extends RealmModel> realmClass : mediator.getModelClasses()) {
+                    // Verify that the module doesn't contain conflicting definitions for the same
+                    // underlying internal name. Can only happen if we add a module from a library
+                    // and a module from the app at the same time.
+                    String newInternalName = mediator.getSimpleClassName(realmClass);
+                    Class existingClass = internalClassNames.get(newInternalName);
+                    if (existingClass != null && !existingClass.equals(realmClass)) {
+                         throw new IllegalStateException(String.format("It is not allowed for two different " +
+                                 "model classes to share the same internal name in Realm. The " +
+                                 "classes %s and %s are being included from the modules '%s' and '%s' " +
+                                 "and they share the same internal name '%s'.", existingClass, realmClass,
+                                 tempMediators.get(existingClass), mediator,
+                                 newInternalName));
+                    }
+
+                    // Store mapping between
                     tempMediators.put(realmClass, mediator);
+                    internalClassNames.put(newInternalName, realmClass);
                 }
             }
         }
@@ -62,8 +80,7 @@ public class CompositeMediator extends RealmProxyMediator {
 
     @Override
     public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
-        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
-                new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
+        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap = new HashMap<>();
         for (RealmProxyMediator mediator : mediators.values()) {
             infoMap.putAll(mediator.getExpectedObjectSchemaInfoMap());
         }
@@ -77,15 +94,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public List<String> getFieldNames(Class<? extends RealmModel> clazz) {
+    protected String getSimpleClassNameImpl(Class<? extends RealmModel> clazz) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.getFieldNames(clazz);
-    }
-
-    @Override
-    public String getTableName(Class<? extends RealmModel> clazz) {
-        RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.getTableName(clazz);
+        return mediator.getSimpleClassName(clazz);
     }
 
     @Override
@@ -166,7 +177,7 @@ public class CompositeMediator extends RealmProxyMediator {
     private RealmProxyMediator getMediator(Class<? extends RealmModel> clazz) {
         RealmProxyMediator mediator = mediators.get(clazz);
         if (mediator == null) {
-            throw new IllegalArgumentException(clazz.getSimpleName() + " is not part of the schema for this Realm");
+            throw new RealmException(clazz.getSimpleName() + " is not part of the schema for this Realm");
         }
         return mediator;
     }

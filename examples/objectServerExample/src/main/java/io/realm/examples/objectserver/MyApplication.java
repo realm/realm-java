@@ -31,7 +31,7 @@ public class MyApplication extends Application {
 
         // Enable full log output when debugging
         if (BuildConfig.DEBUG) {
-            RealmLog.setLevel(Log.VERBOSE);
+            RealmLog.setLevel(Log.DEBUG);
         }
     }
 }

@@ -15,9 +15,13 @@
  */
 
 #include "io_realm_internal_UncheckedRow.h"
+#include "io_realm_internal_Property.h"
+
+#include "java_accessor.hpp"
 #include "util.hpp"
 
 using namespace realm;
+using namespace realm::_impl;
 
 static void finalize_unchecked_row(jlong ptr);
 
@@ -68,7 +72,13 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
                                                                                jlong columnIndex)
 {
     TR_ENTER_PTR(nativeRowPtr)
-    return static_cast<jint>(ROW(nativeRowPtr)->get_column_type(S(columnIndex))); // noexcept
+    auto column_type = ROW(nativeRowPtr)->get_column_type(S(columnIndex)); // noexcept
+    if (column_type != type_Table) {
+        return static_cast<jint>(column_type);
+    }
+    // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
+    return static_cast<jint>(ROW(nativeRowPtr)->get_table()->get_descriptor()->get_subdescriptor(S(columnIndex))->get_column_type(S(0))
+                             + io_realm_internal_Property_TYPE_ARRAY); // noexcept
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetIndex(JNIEnv* env, jobject, jlong nativeRowPtr)
@@ -161,22 +171,12 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetByteAr
         return nullptr;
     }
 
-    BinaryData bin = ROW(nativeRowPtr)->get_binary(S(columnIndex));
-    if (bin.is_null()) {
-        return nullptr;
+    try {
+        BinaryData bin = ROW(nativeRowPtr)->get_binary(S(columnIndex));
+        return JavaClassGlobalDef::new_byte_array(env, bin);
     }
-    else if (bin.size() <= MAX_JSIZE) {
-        jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
-        if (jresult) {
-            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()),
-                                    reinterpret_cast<const jbyte*>(bin.data())); // throws
-        }
-        return jresult;
-    }
-    else {
-        ThrowException(env, IllegalArgument, "Length of ByteArray is larger than an Int.");
-        return nullptr;
-    }
+    CATCH_STD()
+    return nullptr;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLink(JNIEnv* env, jobject, jlong nativeRowPtr,
@@ -203,19 +203,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNullLink(
     }
 
     return to_jbool(ROW(nativeRowPtr)->is_null_link(S(columnIndex)));
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLinkView(JNIEnv* env, jobject,
-                                                                              jlong nativeRowPtr, jlong columnIndex)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_VALID(env, ROW(nativeRowPtr))) {
-        return 0;
-    }
-
-    LinkViewRef* link_view_ptr =
-        const_cast<LinkViewRef*>(&(LangBindHelper::get_linklist_ptr(*ROW(nativeRowPtr), S(columnIndex))));
-    return reinterpret_cast<jlong>(link_view_ptr);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetLong(JNIEnv* env, jobject, jlong nativeRowPtr,
@@ -318,30 +305,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetByteArray(JN
         return;
     }
 
-    jbyte* bytePtr = nullptr;
     try {
-        if (value == nullptr) {
-            if (!(ROW(nativeRowPtr)->get_table()->is_nullable(S(columnIndex)))) {
-                ThrowNullValueException(env, ROW(nativeRowPtr)->get_table(), S(columnIndex));
-                return;
-            }
-            ROW(nativeRowPtr)->set_binary(S(columnIndex), BinaryData());
+        auto& row = *reinterpret_cast<realm::Row*>(nativeRowPtr);
+        if (value == nullptr && !(row.get_table()->is_nullable(S(columnIndex)))) {
+            ThrowNullValueException(env, ROW(nativeRowPtr)->get_table(), S(columnIndex));
+            return;
         }
-        else {
-            bytePtr = env->GetByteArrayElements(value, NULL);
-            if (!bytePtr) {
-                ThrowException(env, IllegalArgument, "doByteArray");
-                return;
-            }
-            size_t dataLen = S(env->GetArrayLength(value));
-            ROW(nativeRowPtr)->set_binary(S(columnIndex), BinaryData(reinterpret_cast<char*>(bytePtr), dataLen));
-        }
+
+        JByteArrayAccessor jarray_accessor(env, value);
+        row.set_binary(static_cast<size_t>(columnIndex), jarray_accessor.transform<BinaryData>());
     }
     CATCH_STD()
-
-    if (bytePtr) {
-        env->ReleaseByteArrayElements(value, bytePtr, JNI_ABORT);
-    }
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetLink(JNIEnv* env, jobject, jlong nativeRowPtr,

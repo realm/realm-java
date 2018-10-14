@@ -761,6 +761,25 @@ public class RealmAsyncQueryTests {
         });
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void findFirstAsync_withSorting() {
+        Realm realm = looperThread.getRealm();
+        realm.beginTransaction();
+        realm.insert(new Dog("Milo"));
+        realm.insert(new Dog("Fido"));
+        realm.insert(new Dog("Bella"));
+        realm.commitTransaction();
+
+        Dog dog = realm.where(Dog.class).sort("name").findFirstAsync();
+        dog.addChangeListener((Dog d) -> {
+            assertTrue(d.isValid());
+            assertEquals("Bella", d.getName());
+            looperThread.testComplete();
+        });
+        looperThread.keepStrongReference(dog);
+    }
+
     // **************************************
     // *** 'findAllSorted' async queries  ***
     // **************************************
@@ -768,13 +787,14 @@ public class RealmAsyncQueryTests {
     // similar UC as #testFindAllAsync using 'findAllSorted'
     @Test
     @RunTestInLooperThread
-    public void findAllSortedAsync() throws Throwable {
+    public void sort_async() throws Throwable {
         final Realm realm = looperThread.getRealm();
         populateTestRealm(realm, 10);
 
         final RealmResults<AllTypes> results = realm.where(AllTypes.class)
                 .between("columnLong", 0, 4)
-                .findAllSortedAsync("columnString", Sort.DESCENDING);
+                .sort("columnString", Sort.DESCENDING)
+                .findAllAsync();
 
         assertFalse(results.isLoaded());
         assertEquals(0, results.size());
@@ -878,16 +898,16 @@ public class RealmAsyncQueryTests {
 
     @Test
     @RunTestInLooperThread
-    public void distinctAsync() throws Throwable {
+    public void distinct_async() throws Throwable {
         Realm realm = looperThread.getRealm();
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // Must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).distinctAsync("indexBoolean");
-        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class).distinctAsync("indexLong");
-        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).distinctAsync("indexDate");
-        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).distinctAsync("indexString");
+        final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class).distinct("indexBoolean").findAllAsync();
+        final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class).distinct("indexLong").findAllAsync();
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class).distinct("indexDate").findAllAsync();
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class).distinct("indexString").findAllAsync();
 
         assertFalse(distinctBool.isLoaded());
         assertTrue(distinctBool.isValid());
@@ -954,7 +974,7 @@ public class RealmAsyncQueryTests {
 
     @Test
     @RunTestInLooperThread()
-    public void distinctAsync_rememberQueryParams() {
+    public void distinct_async_rememberQueryParams() {
         final Realm realm = looperThread.getRealm();
         realm.beginTransaction();
         final int TEST_SIZE = 10;
@@ -965,7 +985,8 @@ public class RealmAsyncQueryTests {
 
         RealmResults<AllJavaTypes> results = realm.where(AllJavaTypes.class)
                 .notEqualTo(AllJavaTypes.FIELD_ID, TEST_SIZE / 2)
-                .distinctAsync(AllJavaTypes.FIELD_ID);
+                .distinct(AllJavaTypes.FIELD_ID)
+                .findAllAsync();
 
         results.addChangeListener(new RealmChangeListener<RealmResults<AllJavaTypes>>() {
             @Override
@@ -986,13 +1007,17 @@ public class RealmAsyncQueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         final RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class)
-                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_BOOL);
+                .distinct(AnnotationIndexTypes.FIELD_NOT_INDEX_BOOL)
+                .findAllAsync();
         final RealmResults<AnnotationIndexTypes> distinctLong = realm.where(AnnotationIndexTypes.class)
-                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_LONG);
+                .distinct(AnnotationIndexTypes.FIELD_NOT_INDEX_LONG)
+                .findAllAsync();
         final RealmResults<AnnotationIndexTypes> distinctDate = realm.where(AnnotationIndexTypes.class)
-                .distinctAsync(AnnotationIndexTypes.FIELD_NOT_INDEX_DATE);
+                .distinct(AnnotationIndexTypes.FIELD_NOT_INDEX_DATE)
+                .findAllAsync();
         final RealmResults<AnnotationIndexTypes> distinctString = realm.where(AnnotationIndexTypes.class)
-                .distinctAsync(AnnotationIndexTypes.FIELD_INDEX_STRING);
+                .distinct(AnnotationIndexTypes.FIELD_INDEX_STRING)
+                .findAllAsync();
 
         assertFalse(distinctBool.isLoaded());
         assertTrue(distinctBool.isValid());
@@ -1066,7 +1091,7 @@ public class RealmAsyncQueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         try {
-            realm.where(AnnotationIndexTypes.class).distinctAsync("doesNotExist");
+            realm.where(AnnotationIndexTypes.class).distinct("doesNotExist").findAllAsync();
             fail();
         } catch (IllegalArgumentException ignored) {
             looperThread.testComplete();
@@ -1093,10 +1118,10 @@ public class RealmAsyncQueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmResults<AllTypes> findAllAsync = realm.where(AllTypes.class).findAllAsync();
-        RealmResults<AllTypes> findAllSorted = realm.where(AllTypes.class).findAllSortedAsync("columnString", Sort.ASCENDING);
-        RealmResults<AllTypes> findAllSortedMulti = realm.where(AllTypes.class).findAllSortedAsync(new String[]{"columnString", "columnLong"},
-                new Sort[]{Sort.ASCENDING, Sort.DESCENDING});
-        RealmResults<AnnotationIndexTypes> findDistinct = realm.where(AnnotationIndexTypes.class).distinctAsync("indexString");
+        RealmResults<AllTypes> findAllSorted = realm.where(AllTypes.class).sort("columnString", Sort.ASCENDING).findAllAsync();
+        RealmResults<AllTypes> findAllSortedMulti = realm.where(AllTypes.class).sort(new String[]{"columnString", "columnLong"},
+                new Sort[]{Sort.ASCENDING, Sort.DESCENDING}).findAllAsync();
+        RealmResults<AnnotationIndexTypes> findDistinct = realm.where(AnnotationIndexTypes.class).distinct("indexString").findAllAsync();
 
         looperThread.keepStrongReference(findAllAsync);
         looperThread.keepStrongReference(findAllSorted);
@@ -1263,7 +1288,7 @@ public class RealmAsyncQueryTests {
         Realm realm = looperThread.getRealm();
 
         // 1. Makes sure that async query is not started.
-        final RealmResults<AllTypes> result = realm.where(AllTypes.class).findAllSortedAsync(AllTypes.FIELD_STRING);
+        final RealmResults<AllTypes> result = realm.where(AllTypes.class).sort(AllTypes.FIELD_STRING).findAllAsync();
         looperThread.keepStrongReference(result);
         result.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
             @Override

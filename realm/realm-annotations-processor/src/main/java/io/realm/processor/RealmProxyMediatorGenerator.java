@@ -40,8 +40,10 @@ import static io.realm.processor.Constants.REALM_PACKAGE_NAME;
 public class RealmProxyMediatorGenerator {
     private final String className;
     private final ProcessingEnvironment processingEnvironment;
-    private final List<String> qualifiedModelClasses = new ArrayList<String>();
-    private final List<String> qualifiedProxyClasses = new ArrayList<String>();
+    private final List<String> qualifiedModelClasses = new ArrayList<>();
+    private final List<String> qualifiedProxyClasses = new ArrayList<>();
+    private final List<String> internalClassNames = new ArrayList<>();
+
 
     public RealmProxyMediatorGenerator(ProcessingEnvironment processingEnvironment,
             String className, Set<ClassMetaData> classesToValidate) {
@@ -49,9 +51,9 @@ public class RealmProxyMediatorGenerator {
         this.className = className;
 
         for (ClassMetaData metadata : classesToValidate) {
-            String simpleName = metadata.getSimpleClassName();
             qualifiedModelClasses.add(metadata.getFullyQualifiedClassName());
-            qualifiedProxyClasses.add(REALM_PACKAGE_NAME + "." + getProxyClassName(simpleName));
+            qualifiedProxyClasses.add(REALM_PACKAGE_NAME + "." + Utils.getProxyClassName(metadata.getFullyQualifiedClassName()));
+            internalClassNames.add(metadata.getInternalClassName());
         }
     }
 
@@ -76,11 +78,9 @@ public class RealmProxyMediatorGenerator {
                 "java.util.Iterator",
                 "java.util.Collection",
                 "io.realm.internal.ColumnInfo",
-                "io.realm.internal.SharedRealm",
                 "io.realm.internal.RealmObjectProxy",
                 "io.realm.internal.RealmProxyMediator",
                 "io.realm.internal.Row",
-                "io.realm.internal.Table",
                 "io.realm.internal.OsSchemaInfo",
                 "io.realm.internal.OsObjectSchemaInfo",
                 "org.json.JSONException",
@@ -100,8 +100,7 @@ public class RealmProxyMediatorGenerator {
         emitFields(writer);
         emitGetExpectedObjectSchemaInfoMap(writer);
         emitCreateColumnInfoMethod(writer);
-        emitGetFieldNamesMethod(writer);
-        emitGetTableNameMethod(writer);
+        emitGetSimpleClassNameMethod(writer);
         emitNewInstanceMethod(writer);
         emitGetClassModelList(writer);
         emitCopyToRealmMethod(writer);
@@ -119,7 +118,7 @@ public class RealmProxyMediatorGenerator {
     private void emitFields(JavaWriter writer) throws IOException {
         writer.emitField("Set<Class<? extends RealmModel>>", "MODEL_CLASSES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true);
-        writer.emitStatement("Set<Class<? extends RealmModel>> modelClasses = new HashSet<Class<? extends RealmModel>>()");
+        writer.emitStatement("Set<Class<? extends RealmModel>> modelClasses = new HashSet<Class<? extends RealmModel>>(%s)", qualifiedModelClasses.size());
         for (String clazz : qualifiedModelClasses) {
             writer.emitStatement("modelClasses.add(%s.class)", clazz);
         }
@@ -137,7 +136,7 @@ public class RealmProxyMediatorGenerator {
 
         writer.emitStatement(
                 "Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap = " +
-                        "new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>()");
+                        "new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>(%s)", qualifiedProxyClasses.size());
         for (int i = 0; i < qualifiedProxyClasses.size(); i++) {
             writer.emitStatement("infoMap.put(%s.class, %s.getExpectedObjectSchemaInfo())",
                     qualifiedModelClasses.get(i), qualifiedProxyClasses.get(i));
@@ -169,36 +168,18 @@ public class RealmProxyMediatorGenerator {
         writer.emitEmptyLine();
     }
 
-    private void emitGetFieldNamesMethod(JavaWriter writer) throws IOException {
-        writer.emitAnnotation("Override");
-        writer.beginMethod(
-                "List<String>",
-                "getFieldNames",
-                EnumSet.of(Modifier.PUBLIC),
-                "Class<? extends RealmModel>", "clazz"
-        );
-        emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
-            @Override
-            public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.getFieldNames()", qualifiedProxyClasses.get(i));
-            }
-        }, writer);
-        writer.endMethod();
-        writer.emitEmptyLine();
-    }
-
-    private void emitGetTableNameMethod(JavaWriter writer) throws IOException {
+    private void emitGetSimpleClassNameMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod(
                 "String",
-                "getTableName",
+                "getSimpleClassNameImpl",
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmModel>", "clazz"
         );
         emitMediatorShortCircuitSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.getTableName()", qualifiedProxyClasses.get(i));
+                writer.emitStatement("return \"%s\"", internalClassNames.get(i));
             }
         }, writer);
         writer.endMethod();
@@ -492,10 +473,6 @@ public class RealmProxyMediatorGenerator {
         writer.emitStatement("throw getMissingProxyClassException(clazz)");
     }
 
-
-    private String getProxyClassName(String clazz) {
-        return clazz + Constants.PROXY_SUFFIX;
-    }
 
     private interface ProxySwitchStatement {
         void emitStatement(int i, JavaWriter writer) throws IOException;

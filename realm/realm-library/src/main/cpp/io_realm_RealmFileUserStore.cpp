@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-#include <jni.h>
-#include <jni_util/log.hpp>
 #include "io_realm_RealmFileUserStore.h"
-#include "sync/sync_manager.hpp"
-#include "sync/sync_user.hpp"
+
+#include <sync/sync_manager.hpp>
+#include <sync/sync_user.hpp>
+
+#include "java_class_global_def.hpp"
 #include "util.hpp"
+#include "jni_util/log.hpp"
 
 using namespace realm;
+using namespace realm::_impl;
 
 static const char* ERR_COULD_NOT_ALLOCATE_MEMORY = "Could not allocate memory to return all users.";
 
@@ -113,7 +116,7 @@ JNIEXPORT jobjectArray JNICALL Java_io_realm_RealmFileUserStore_nativeGetAllUser
     auto all_users = SyncManager::shared().all_logged_in_users();
     if (!all_users.empty()) {
         size_t len = all_users.size();
-        jobjectArray users_token = env->NewObjectArray(len, java_lang_string, 0);
+        jobjectArray users_token = env->NewObjectArray(len, JavaClassGlobalDef::java_lang_string(), 0);
         if (users_token == nullptr) {
             ThrowException(env, OutOfMemory, ERR_COULD_NOT_ALLOCATE_MEMORY);
             return nullptr;

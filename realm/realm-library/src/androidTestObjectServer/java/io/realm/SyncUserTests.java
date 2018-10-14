@@ -20,6 +20,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -35,8 +36,6 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -44,18 +43,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.realm.entities.AllTypesModelModule;
 import io.realm.entities.StringOnly;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.StringOnlyModule;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.util.SyncTestUtils;
 
-import static io.realm.util.SyncTestUtils.createTestAdminUser;
-import static io.realm.util.SyncTestUtils.createTestUser;
+import static io.realm.SyncTestUtils.createNamedTestUser;
+import static io.realm.SyncTestUtils.createTestAdminUser;
+import static io.realm.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -92,16 +93,28 @@ public class SyncUserTests {
     @Rule
     public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
 
-    @BeforeClass
-    public static void initUserStore() {
-        Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
-        UserStore userStore = new RealmFileUserStore();
-        SyncManager.setUserStore(userStore);
-    }
-
     @Before
     public void setUp() {
-        SyncManager.reset();
+        BaseRealm.applicationContext = null;
+        Realm.init(InstrumentationRegistry.getTargetContext());
+        UserStore userStore = SyncManager.getUserStore();
+        for (SyncUser syncUser : userStore.allUsers()) {
+            userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
+        }
+    }
+
+    @After
+    public void after() {
+        if (!looperThread.isRuleUsed() || looperThread.isTestComplete()) {
+            UserFactory.logoutAllUsers();
+        } else {
+            looperThread.runAfterTest(new Runnable() {
+                @Override
+                public void run() {
+                    UserFactory.logoutAllUsers();
+                }
+            });
+        }
     }
 
     private static SyncUser createFakeUser(String id) {
@@ -125,8 +138,8 @@ public class SyncUserTests {
     public void equals_loggedOutUser() {
         final SyncUser user1 = createFakeUser("id_value");
         final SyncUser user2 = createFakeUser("id_value");
-        user1.logout();
-        user2.logout();
+        user1.logOut();
+        user2.logOut();
         assertTrue(user1.equals(user2));
     }
 
@@ -139,7 +152,7 @@ public class SyncUserTests {
     @Test
     public void hashCode_loggedOutUser() {
         final SyncUser user = createFakeUser("id_value");
-        user.logout();
+        user.logOut();
         assertNotEquals(0, user.hashCode());
     }
 
@@ -155,10 +168,10 @@ public class SyncUserTests {
     public void currentUser_returnsNullIfUserExpired() {
         // Add an expired user to the user store
         UserStore userStore = SyncManager.getUserStore();
-        userStore.put(SyncTestUtils.createTestUser(Long.MIN_VALUE));
+        userStore.put(createTestUser(Long.MIN_VALUE));
 
         // Invalid users should not be returned when asking the for the current user
-        assertNull(SyncUser.currentUser());
+        assertNull(SyncUser.current());
     }
 
     @Test
@@ -175,12 +188,12 @@ public class SyncUserTests {
                     return getNewRandomUser();
                 }
             });
-            SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
-            SyncUser.login(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+            SyncUser.logIn(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
+            SyncUser.logIn(SyncCredentials.facebook("foo"), "http:/test.realm.io/auth");
 
-            // 2. Verify currentUser() now throws
+            // 2. Verify current() now throws
             try {
-                SyncUser.currentUser();
+                SyncUser.current();
                 fail();
             } catch (IllegalStateException ignore) {
             }
@@ -200,15 +213,15 @@ public class SyncUserTests {
     @Test
     public void currentUser_clearedOnLogout() {
         // Add 1 valid user to the user store
-        SyncUser user = SyncTestUtils.createTestUser(Long.MAX_VALUE);
+        SyncUser user = createTestUser(Long.MAX_VALUE);
         UserStore userStore = SyncManager.getUserStore();
         userStore.put(user);
 
-        SyncUser savedUser = SyncUser.currentUser();
+        SyncUser savedUser = SyncUser.current();
         assertEquals(user, savedUser);
         assertNotNull(savedUser);
-        savedUser.logout();
-        assertNull(SyncUser.currentUser());
+        savedUser.logOut();
+        assertNull(SyncUser.current());
     }
 
     // `all()` returns an empty list if no users are logged in
@@ -223,8 +236,8 @@ public class SyncUserTests {
     public void all_validUsers() {
         // Add 1 expired user and 1 valid user to the user store
         UserStore userStore = SyncManager.getUserStore();
-        userStore.put(SyncTestUtils.createTestUser(Long.MIN_VALUE));
-        userStore.put(SyncTestUtils.createTestUser(Long.MAX_VALUE));
+        userStore.put(createTestUser(Long.MIN_VALUE));
+        userStore.put(createTestUser(Long.MAX_VALUE));
 
         Map<String, SyncUser> users = SyncUser.all();
         assertEquals(1, users.size());
@@ -243,7 +256,7 @@ public class SyncUserTests {
     @Test
     public void isAdmin_allUsers() {
         UserStore userStore = SyncManager.getUserStore();
-        SyncUser user = SyncTestUtils.createTestAdminUser();
+        SyncUser user = createTestAdminUser();
         assertTrue(user.isAdmin());
         userStore.put(user);
 
@@ -259,38 +272,13 @@ public class SyncUserTests {
         AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
         when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenReturn(SyncTestUtils.createLoginResponse(Long.MAX_VALUE));
 
-        SyncUser user = SyncUser.login(SyncCredentials.facebook("foo"), "http://bar.com/auth");
-        assertEquals(user, SyncUser.currentUser());
-    }
-
-    @Test
-    public void getManagementRealm() {
-        SyncUser user = SyncTestUtils.createTestUser();
-        Realm managementRealm = user.getManagementRealm();
-        assertNotNull(managementRealm);
-        managementRealm.close();
-    }
-
-    @Test
-    public void getManagementRealm_enforceTLS() throws URISyntaxException {
-        // Non TLS
-        SyncUser user = SyncTestUtils.createTestUser("http://objectserver.realm.io/auth");
-        Realm managementRealm = user.getManagementRealm();
-        SyncConfiguration config = (SyncConfiguration) managementRealm.getConfiguration();
-        assertEquals(new URI("realm://objectserver.realm.io/" + user.getIdentity() + "/__management"), config.getServerUrl());
-        managementRealm.close();
-
-        // TLS
-        user = SyncTestUtils.createTestUser("https://objectserver.realm.io/auth");
-        managementRealm = user.getManagementRealm();
-        config = (SyncConfiguration) managementRealm.getConfiguration();
-        assertEquals(new URI("realms://objectserver.realm.io/" + user.getIdentity() + "/__management"), config.getServerUrl());
-        managementRealm.close();
+        SyncUser user = SyncUser.logIn(SyncCredentials.facebook("foo"), "http://bar.com/auth");
+        assertEquals(user, SyncUser.current());
     }
 
     @Test
     public void toString_returnDescription() {
-        SyncUser user = SyncTestUtils.createTestUser("http://objectserver.realm.io/auth");
+        SyncUser user = createTestUser("http://objectserver.realm.io/auth");
         String str = user.toString();
         assertTrue(str != null && !str.isEmpty());
     }
@@ -304,7 +292,7 @@ public class SyncUserTests {
         SyncManager.setAuthServerImpl(authServer);
         try {
             SyncCredentials credentials = SyncCredentials.accessToken("foo", "bar");
-            SyncUser user = SyncUser.login(credentials, "http://ros.realm.io/auth");
+            SyncUser user = SyncUser.logIn(credentials, "http://ros.realm.io/auth");
             assertTrue(user.isValid());
         } finally {
             SyncManager.setAuthServerImpl(originalServer);
@@ -333,9 +321,9 @@ public class SyncUserTests {
                 String input = url[0];
                 String normalizedInput = url[1];
                 SyncCredentials credentials = SyncCredentials.accessToken("token", UUID.randomUUID().toString());
-                SyncUser user = SyncUser.login(credentials, input);
+                SyncUser user = SyncUser.logIn(credentials, input);
                 assertEquals(normalizedInput, user.getAuthenticationUrl().toString());
-                user.logout();
+                user.logOut();
             }
         } finally {
             SyncManager.setAuthServerImpl(originalServer);
@@ -365,7 +353,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
-        user.changePasswordAsync("password", new SyncUser.Callback() {
+        user.changePasswordAsync("password", new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -383,7 +371,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
 
         thrown.expect(IllegalStateException.class);
-        user.changePasswordAsync("user-id", "new", new SyncUser.Callback() {
+        user.changePasswordAsync("user-id", "new", new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
                 fail();
@@ -426,6 +414,51 @@ public class SyncUserTests {
     }
 
     @Test
+    @RunTestInLooperThread(emulateMainThread = true)
+    public void getPermissionManager_isReferenceCounted() {
+        SyncUser user = createTestUser();
+        PermissionManager pm1 = user.getPermissionManager();
+        PermissionManager pm2 = user.getPermissionManager();
+        assertTrue(pm1 == pm2);
+        assertFalse(pm1.isClosed());
+        pm1.close();
+        assertFalse(pm1.isClosed());
+        pm1.close();
+        assertTrue(pm1.isClosed());
+        looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread(emulateMainThread = true)
+    public void getPermissionManger_instanceUniqueToUser() {
+        SyncUser user1 = createNamedTestUser("user1");
+        SyncUser user2 = createNamedTestUser("user2");
+        PermissionManager pm1 = user1.getPermissionManager();
+        PermissionManager pm2 = user2.getPermissionManager();
+
+        try {
+            assertFalse(pm1 == pm2);
+            assertFalse(pm1.equals(pm2));
+            looperThread.testComplete();
+        } finally {
+            pm1.close();
+            pm2.close();
+            user1.logOut();
+            user2.logOut();
+        }
+    }
+
+    @Test
+    public void getPermissionManager_throwOnNonLooperThread() {
+        SyncUser user = createTestUser();
+        try {
+            user.getPermissionManager();
+            fail();
+        } catch (IllegalStateException e) {
+        }
+    }
+
+    @Test
     public void allSessions() {
         String url1 = "realm://objectserver.realm.io/default";
         String url2 = "realm://objectserver.realm.io/~/default";
@@ -433,7 +466,7 @@ public class SyncUserTests {
         SyncUser user = createTestUser();
         assertEquals(0, user.allSessions().size());
 
-        SyncConfiguration configuration1 = new SyncConfiguration.Builder(user, url1).build();
+        SyncConfiguration configuration1 = user.createConfiguration(url1).modules(new AllTypesModelModule()).build();
         Realm realm1 = Realm.getInstance(configuration1);
         List<SyncSession> allSessions = user.allSessions();
         assertEquals(1, allSessions.size());
@@ -442,7 +475,7 @@ public class SyncUserTests {
         assertEquals(user, session.getUser());
         assertEquals(url1, session.getServerUrl().toString());
 
-        SyncConfiguration configuration2 = new SyncConfiguration.Builder(user, url2).build();
+        SyncConfiguration configuration2 = user.createConfiguration(url2).modules(new AllTypesModelModule()).build();
         Realm realm2 = Realm.getInstance(configuration2);
         allSessions = user.allSessions();
         assertEquals(2, allSessions.size());
@@ -481,11 +514,11 @@ public class SyncUserTests {
         //       since the user is not persisted in the UserStore
         //       isValid() requires SyncManager.getUserStore().isActive(identity)
         //       to return true as well.
-        Token accessToken = syncUser.getAccessToken();
-        assertNotNull(accessToken);
+        Token refreshToken = syncUser.getRefreshToken();
+        assertNotNull(refreshToken);
         // refresh token should expire in 10 years (July 23, 2027)
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(accessToken.expiresMs());
+        calendar.setTimeInMillis(refreshToken.expiresMs());
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         int month = calendar.get(Calendar.MONTH);
         int year = calendar.get(Calendar.YEAR);
@@ -505,8 +538,7 @@ public class SyncUserTests {
         Realm.init(InstrumentationRegistry.getTargetContext());
 
         SyncUser user = createTestUser();
-        SyncConfiguration syncConfiguration = new SyncConfiguration
-                .Builder(user, "realm://127.0.0.1:9080/~/tests")
+        SyncConfiguration syncConfiguration = user.createConfiguration("realm://127.0.0.1:9080/~/tests")
                 .modules(new StringOnlyModule())
                 .build();
 
@@ -517,7 +549,7 @@ public class SyncUserTests {
                 realm.createObject(StringOnly.class).setChars("1");
             }
         });
-        user.logout();
+        user.logOut();
         realm.close();
 
         final File realmPath = new File (syncConfiguration.getPath());

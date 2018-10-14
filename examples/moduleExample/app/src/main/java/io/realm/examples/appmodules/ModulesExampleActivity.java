@@ -75,7 +75,7 @@ public class ModulesExampleActivity extends Activity {
                 .modules(new ZooAnimalsModule(), new CreepyAnimalsModule())
                 .build();
 
-        // Multiple Realms can be open at the same time
+        // Multiple Realms can be opened at the same time
         showStatus("Opening multiple Realms");
         Realm defaultRealm = Realm.getInstance(defaultConfig);
         final Realm farmRealm = Realm.getInstance(farmAnimalsConfig);

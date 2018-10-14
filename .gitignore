@@ -1,6 +1,7 @@
 # Gradle build artifacts
 build
 realm/build
+!realm-transformer/src/main/kotlin/io/realm/transformer/build
 
 # Gradle cache
 .gradle
@@ -12,6 +13,7 @@ local.properties
 core
 core-*
 realm-sync-android-*
+!realm/realm-library/src/main/java/io/realm/internal/core/
 
 # Android Studio
 .idea

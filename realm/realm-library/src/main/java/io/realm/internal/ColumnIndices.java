@@ -55,7 +55,7 @@ public final class ColumnIndices {
             new HashMap<String, ColumnInfo>();
 
     private final RealmProxyMediator mediator;
-    // Due to the nature of Object Store's Realm::m_schema, SharedRealm's OsObjectSchemaInfo object is fixed after set.
+    // Due to the nature of Object Store's Realm::m_schema, OsSharedRealm's OsObjectSchemaInfo object is fixed after set.
     private final OsSchemaInfo osSchemaInfo;
 
 
@@ -88,7 +88,7 @@ public final class ColumnIndices {
     }
 
     /**
-     * Returns the {@link ColumnInfo} for the passed class name.
+     * Returns the {@link ColumnInfo} for the provided internal class name.
      *
      * @param simpleClassName the simple name of the class for which to get the ColumnInfo.
      * @return the corresponding {@link ColumnInfo} object.
@@ -100,7 +100,7 @@ public final class ColumnIndices {
         if (columnInfo == null) {
             Set<Class<? extends RealmModel>> modelClasses = mediator.getModelClasses();
             for (Class<? extends RealmModel> modelClass : modelClasses) {
-                if (modelClass.getSimpleName().equals(simpleClassName)) {
+                if (mediator.getSimpleClassName(modelClass).equals(simpleClassName)) {
                     columnInfo = getColumnInfo(modelClass);
                     simpleClassNameToColumnInfoMap.put(simpleClassName, columnInfo);
                     break;

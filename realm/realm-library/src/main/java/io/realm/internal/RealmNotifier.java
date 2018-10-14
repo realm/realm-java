@@ -74,11 +74,11 @@ public abstract class RealmNotifier implements Closeable {
                 }
             };
 
-    protected RealmNotifier(@Nullable SharedRealm sharedRealm) {
+    protected RealmNotifier(@Nullable OsSharedRealm sharedRealm) {
         this.sharedRealm = sharedRealm;
     }
 
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
     // TODO: The only reason we have this is that async transactions is not supported by OS yet. And OS is using ALopper
     // which will be using a different message queue from which java is using to deliver remote Realm changes message.
     // We need a way to deliver the async transaction onSuccess callback to the caller thread after the caller Realm
@@ -88,6 +88,13 @@ public abstract class RealmNotifier implements Closeable {
     // This list is NOT supposed to be thread safe!
     private List<Runnable> transactionCallbacks = new ArrayList<Runnable>();
 
+    // List of runnables called when Object Store is about to start sending out notifications about
+    // a version update for the current thread.
+    private List<Runnable> startSendingNotificationsCallbacks = new ArrayList<>();
+
+    // List of runnables called when Object Store has finished sending out notifications for the
+    // version of the Realm on this thread.
+    private List<Runnable> finishedSendingNotificationsCallbacks = new ArrayList<>();
 
     // Called from JavaBindingContext::did_change.
     // This will be called in the caller thread when:
@@ -115,7 +122,7 @@ public abstract class RealmNotifier implements Closeable {
     // Called from JavaBindingContext::before_notify.
     // This will be called in the caller thread when:
     // 1. Get changed notification by this/other Realm instances.
-    // 2. SharedRealm::refresh called.
+    // 2. OsSharedRealm::refresh called.
     // In both cases, this will be called before the any other callbacks (changed callbacks, async query callbacks.).
     // Package protected to avoid finding class by name in JNI.
     @SuppressWarnings("unused")
@@ -124,16 +131,34 @@ public abstract class RealmNotifier implements Closeable {
         sharedRealm.invalidateIterators();
     }
 
+    // Called from JavaBindingContext::will_send_notifications
+    // This will be called before any change notifications are delivered when updating a
+    // Realm version. This will be triggered even if no change listeners are registered.
+    void willSendNotifications() {
+        for (int i = 0; i < startSendingNotificationsCallbacks.size(); i++) {
+            startSendingNotificationsCallbacks.get(i).run();
+        }
+    }
+
+    // Called from JavaBindingContext::will_send_notifications
+    void didSendNotifications() {
+        for (int i = 0; i < startSendingNotificationsCallbacks.size(); i++) {
+            finishedSendingNotificationsCallbacks.get(i).run();
+        }
+    }
+
     /**
-     * Called when close SharedRealm to clean up any event left in to queue.
+     * Called when close OsSharedRealm to clean up any event left in to queue.
      */
     @Override
     public void close() {
         removeAllChangeListeners();
+        startSendingNotificationsCallbacks.clear();
+        finishedSendingNotificationsCallbacks.clear();
     }
 
     public <T> void addChangeListener(T observer, RealmChangeListener<T> realmChangeListener) {
-        RealmObserverPair observerPair = new RealmObserverPair<T>(observer, realmChangeListener);
+        RealmObserverPair observerPair = new RealmObserverPair<>(observer, realmChangeListener);
         realmObserverPairs.add(observerPair);
     }
 
@@ -164,5 +189,13 @@ public abstract class RealmNotifier implements Closeable {
 
     public int getListenersListSize() {
         return realmObserverPairs.size();
+    }
+
+    public void addBeginSendingNotificationsCallback(Runnable runnable) {
+        startSendingNotificationsCallbacks.add(runnable);
+    }
+
+    public void addFinishedSendingNotificationsCallback(Runnable runnable) {
+        finishedSendingNotificationsCallbacks.add(runnable);
     }
 }

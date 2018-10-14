@@ -28,48 +28,30 @@ namespace jni_util {
 // RAII wrapper for weak global ref.
 class JavaGlobalWeakRef {
 public:
-    JavaGlobalWeakRef()
-        : m_weak(nullptr)
-    {
-    }
-    JavaGlobalWeakRef(JNIEnv* env, jobject obj)
-        : m_weak(obj ? env->NewWeakGlobalRef(obj) : nullptr)
-    {
-    }
-    ~JavaGlobalWeakRef()
-    {
-        if (m_weak) {
-            JniUtils::get_env()->DeleteWeakGlobalRef(m_weak);
-        }
-    }
+    JavaGlobalWeakRef();
+    JavaGlobalWeakRef(JNIEnv*, jobject);
+    ~JavaGlobalWeakRef();
 
-    JavaGlobalWeakRef(JavaGlobalWeakRef&& rhs)
-        : m_weak(rhs.m_weak)
-    {
-        rhs.m_weak = nullptr;
-    }
-    JavaGlobalWeakRef& operator=(JavaGlobalWeakRef&& rhs)
-    {
-        this->~JavaGlobalWeakRef();
-        new (this) JavaGlobalWeakRef(std::move(rhs));
-        return *this;
-    }
+    JavaGlobalWeakRef(JavaGlobalWeakRef&&);
+    JavaGlobalWeakRef& operator=(JavaGlobalWeakRef&&);
 
-    JavaGlobalWeakRef(const JavaGlobalWeakRef&) = delete;
-    JavaGlobalWeakRef& operator=(const JavaGlobalWeakRef&) = delete;
+    JavaGlobalWeakRef(const JavaGlobalWeakRef&);
+    JavaGlobalWeakRef& operator=(const JavaGlobalWeakRef&);
 
     inline operator bool() const noexcept
     {
         return m_weak != nullptr;
     }
 
+    JavaGlobalRef global_ref(JNIEnv* env = nullptr) const;
+
     using Callback = void(JNIEnv* env, jobject obj);
 
     // Acquire a local ref and run the callback with it if the weak ref is valid. The local ref will be deleted after
     // callback finished. Return false if the weak ref is not valid anymore.
-    bool call_with_local_ref(JNIEnv* env, std::function<Callback> callback);
+    bool call_with_local_ref(JNIEnv* env, std::function<Callback> callback) const ;
     // Try to get an JNIEnv for current thread then run the callback.
-    bool call_with_local_ref(std::function<Callback> callback);
+    bool call_with_local_ref(std::function<Callback> callback) const;
 
 private:
     jweak m_weak;

@@ -33,7 +33,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 public class jUnit4ExampleTest {
 
     @Rule
-    public ActivityTestRule<ExampleActivity> mActivityRule = new ActivityTestRule<ExampleActivity>(ExampleActivity.class);
+    public ActivityTestRule<ExampleActivity> mActivityRule = new ActivityTestRule<>(ExampleActivity.class);
 
     @Test
     public void testShouldBeAbleToLaunchActivityAndSeeRealmResults() {

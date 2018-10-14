@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import io.realm.log.RealmLog;
-
 /**
  * The default implementation for determining if a file should be compacted or not. This implementation will only
  * trigger if the file is above 50 MB and more than 50% can be reclaimed.

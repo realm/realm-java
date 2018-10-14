@@ -123,6 +123,17 @@ public class ISO8601UtilsTest extends AndroidTestCase {
         assertEquals(dateZeroSecondAndMillis, d);
     }
 
+    public void testTimeZoneDesignator() throws java.text.ParseException {
+        Date d = ISO8601Utils.parse("2007-08-13T21:51+02:00", new ParsePosition(0));
+        assertEquals(dateZeroSecondAndMillis, d);
+
+        d = ISO8601Utils.parse("2007-08-13T21:51+0200", new ParsePosition(0));
+        assertEquals(dateZeroSecondAndMillis, d);
+
+        d = ISO8601Utils.parse("2007-08-13T21:51+02", new ParsePosition(0));
+        assertEquals(dateZeroSecondAndMillis, d);
+    }
+
     public void testParseRfc3339Examples() throws java.text.ParseException {
         // Two digit milliseconds.
         Date d = ISO8601Utils.parse("1985-04-12T23:20:50.52Z", new ParsePosition(0));

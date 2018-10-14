@@ -18,7 +18,6 @@ import java.net.URL;
 import io.realm.internal.network.AuthenticateRequest;
 import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.objectserver.Token;
-import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -39,8 +38,8 @@ public class AuthenticateRequestTests {
 
     @Test
     public void realmLogin() throws URISyntaxException, JSONException {
-        Token t = SyncTestUtils.createTestUser().getAccessToken();
-        AuthenticateRequest request = AuthenticateRequest.realmLogin(t, new URI("realm://objectserver/" + t.identity() + "/default"));
+        Token t = SyncTestUtils.createTestUser().getRefreshToken();
+        AuthenticateRequest request = AuthenticateRequest.realmLogin(t, new URI("realm://objectserver/" + t.identity() + "/default").getPath());
 
         JSONObject obj = new JSONObject(request.toJson());
         assertEquals("/" + t.identity() + "/default", obj.get("path"));
@@ -60,8 +59,8 @@ public class AuthenticateRequestTests {
 
     @Test
     public void userRefresh() throws URISyntaxException, JSONException {
-        Token t = SyncTestUtils.createTestUser().getAccessToken();
-        AuthenticateRequest request = AuthenticateRequest.userRefresh(t, new URI("realm://objectserver/" + t.identity() + "/default"));
+        Token t = SyncTestUtils.createTestUser().getRefreshToken();
+        AuthenticateRequest request = AuthenticateRequest.userRefresh(t, new URI("realm://objectserver/" + t.identity() + "/default").getPath());
 
         JSONObject obj = new JSONObject(request.toJson());
         assertTrue(obj.has("path"));
@@ -78,7 +77,7 @@ public class AuthenticateRequestTests {
         SyncManager.setAuthServerImpl(authServer);
 
         try {
-            SyncUser.login(SyncCredentials.facebook("foo"), "http://foo.bar/auth");
+            SyncUser.logIn(SyncCredentials.facebook("foo"), "http://foo.bar/auth");
             fail();
         } catch (ObjectServerError e) {
             assertEquals(ErrorCode.ACCESS_DENIED, e.getErrorCode());

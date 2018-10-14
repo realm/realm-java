@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 android {
@@ -9,21 +8,21 @@ android {
     defaultConfig {
         applicationId "io.realm.examples.threads"
         targetSdkVersion rootProject.sdkVersion
-        minSdkVersion 15
+        minSdkVersion rootProject.minSdkVersion
         versionCode 1
         versionName "1.0"
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.debug
         }
-    }
-    command {
-        monkey.events 2000
+        debug {
+            minifyEnabled true
+        }
     }
 }
 
 dependencies {
-    //noinspection GradleDependency
-    implementation 'com.android.support:appcompat-v7:24.0.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
 }

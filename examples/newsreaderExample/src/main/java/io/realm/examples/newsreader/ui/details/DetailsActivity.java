@@ -58,7 +58,7 @@ public class DetailsActivity extends AppCompatActivity {
         // Setup initial views
         setContentView(R.layout.activity_details);
         ButterKnife.bind(this);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         loaderView.setVisibility(View.VISIBLE);
 

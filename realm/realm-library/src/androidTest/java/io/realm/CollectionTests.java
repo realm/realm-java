@@ -84,7 +84,7 @@ public abstract class CollectionTests {
     protected void populateRealm(Realm realm, int objects) {
         realm.beginTransaction();
         realm.delete(AllJavaTypes.class);
-        realm.delete(NonLatinFieldNames.class);
+         realm.delete(NonLatinFieldNames.class);
         if (objects > 0) {
             for (int i = 0; i < objects; i++) {
                 AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i);
@@ -98,7 +98,7 @@ public abstract class CollectionTests {
 
             // Adds all items to the RealmList on the first object.
             AllJavaTypes firstObj = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_ID, 0).findFirst();
-            RealmResults<AllJavaTypes> listData = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_ID, Sort.ASCENDING);
+            RealmResults<AllJavaTypes> listData = realm.where(AllJavaTypes.class).sort(AllJavaTypes.FIELD_ID, Sort.ASCENDING).findAll();
             RealmList<AllJavaTypes> list = firstObj.getFieldList();
             for (int i = 0; i < listData.size(); i++) {
                 list.add(listData.get(i));
@@ -202,7 +202,7 @@ public abstract class CollectionTests {
                     obj.setFieldString(arg);
                 }
                 realm.commitTransaction();
-                orderedCollection = realm.where(AllJavaTypes.class).findAllSorted(AllJavaTypes.FIELD_STRING);
+                    orderedCollection = realm.where(AllJavaTypes.class).sort(AllJavaTypes.FIELD_STRING).findAll();
                 break;
 
             case REALMRESULTS_SNAPSHOT_LIST_BASE:
@@ -238,5 +238,9 @@ public abstract class CollectionTests {
     boolean isSnapshot(CollectionClass collectionClass) {
         return collectionClass == CollectionClass.REALMRESULTS_SNAPSHOT_LIST_BASE ||
                 collectionClass == CollectionClass.REALMRESULTS_SNAPSHOT_RESULTS_BASE;
+    }
+
+    boolean isRealmList(ManagedCollection collectionClass) {
+        return collectionClass == ManagedCollection.MANAGED_REALMLIST;
     }
 }

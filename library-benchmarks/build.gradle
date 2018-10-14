@@ -1,11 +1,14 @@
 buildscript {
+    def properties = new Properties()
+    properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
+
     repositories {
         mavenLocal()
         google()
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-alpha4'
+        classpath "com.android.tools.build:gradle:${properties.get("GRADLE_BUILD_TOOLS")}"
         classpath "io.realm:realm-gradle-plugin:${file("${rootDir}/../version.txt").text.trim()}"
     }
 }
@@ -13,6 +16,7 @@ buildscript {
 allprojects {
     def props = new Properties()
     props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.load(new FileInputStream("${rootDir}/../dependencies.list"))
     props.each { key, val ->
         project.ext.set(key, val)
     }
@@ -20,18 +24,19 @@ allprojects {
 
 task wrapper(type: Wrapper) {
     gradleVersion = project.gradleVersion
+    distributionType = 'all'
 }
 
 apply plugin: 'com.android.library'
 apply plugin: 'realm-android'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+    compileSdkVersion 27
+    buildToolsVersion "${project.ext.get("ANDROID_BUILD_TOOLS")}"
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 22 // Below 23 to avoid new permission system introduced in M
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -53,8 +58,8 @@ repositories {
 }
 
 dependencies {
-    androidTestImplementation 'com.android.support.test:runner:0.5'
-    androidTestImplementation 'com.android.support.test:rules:0.5'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test:rules:1.0.1'
     androidTestImplementation 'junit:junit:4.12'
     androidTestImplementation 'dk.ilios:spanner:0.6.0'
     androidTestImplementation 'com.opencsv:opencsv:3.4'

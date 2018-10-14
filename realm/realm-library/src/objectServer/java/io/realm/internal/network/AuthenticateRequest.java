@@ -56,11 +56,11 @@ public class AuthenticateRequest {
     /**
      * Generates a request for refreshing a user token.
      */
-    public static AuthenticateRequest userRefresh(Token userToken, URI serverUrl) {
+    public static AuthenticateRequest userRefresh(Token userToken, String serverUrl) {
         return new AuthenticateRequest("realm",
                 userToken.value(),
                 SyncManager.APP_ID,
-                serverUrl.getPath(),
+                serverUrl,
                 Collections.<String, Object>emptyMap()
         );
     }
@@ -68,12 +68,12 @@ public class AuthenticateRequest {
     /**
      * Generates a request for accessing a Realm
      */
-    public static AuthenticateRequest realmLogin(Token userToken, URI serverUrl) {
+    public static AuthenticateRequest realmLogin(Token userToken, String serverUrl) {
         // Authenticate a given Realm path using an already logged in user.
         return new AuthenticateRequest("realm",
                 userToken.value(),
                 SyncManager.APP_ID,
-                serverUrl.getPath(),
+                serverUrl,
                 Collections.<String, Object>emptyMap()
         );
     }

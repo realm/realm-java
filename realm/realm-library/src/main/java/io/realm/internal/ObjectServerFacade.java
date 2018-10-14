@@ -66,8 +66,8 @@ public class ObjectServerFacade {
     public void realmClosed(RealmConfiguration configuration) {
     }
 
-    public Object[] getUserAndServerUrl(RealmConfiguration config) {
-        return new Object[6];
+    public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
+        return new Object[11];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -86,7 +86,7 @@ public class ObjectServerFacade {
     }
 
     // If no session yet exists for this path. Wrap a new Java Session around an existing OS one.
-    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
+    public void wrapObjectStoreSessionIfRequired(OsRealmConfig config) {
     }
 
     public String getSyncServerCertificateAssetName(RealmConfiguration config) {
@@ -114,4 +114,13 @@ public class ObjectServerFacade {
     public boolean wasDownloadInterrupted(Throwable throwable) {
         return false;
     }
+
+    public boolean isPartialRealm(RealmConfiguration configuration) {
+        return false;
+    }
+
+    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
+        // Do nothing
+    }
+
 }

@@ -45,6 +45,18 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_BINARY = "fieldBinary";
     public static final String FIELD_OBJECT = "fieldObject";
     public static final String FIELD_LIST = "fieldList";
+
+    public static final String FIELD_STRING_LIST = "fieldStringList";
+    public static final String FIELD_BINARY_LIST = "fieldBinaryList";
+    public static final String FIELD_BOOLEAN_LIST = "fieldBooleanList";
+    public static final String FIELD_LONG_LIST = "fieldLongList";
+    public static final String FIELD_INTEGER_LIST = "fieldIntegerList";
+    public static final String FIELD_SHORT_LIST = "fieldShortList";
+    public static final String FIELD_BYTE_LIST = "fieldByteList";
+    public static final String FIELD_DOUBLE_LIST = "fieldDoubleList";
+    public static final String FIELD_FLOAT_LIST = "fieldFloatList";
+    public static final String FIELD_DATE_LIST = "fieldDateList";
+
     public static final String FIELD_LO_OBJECT = "objectParents";
     public static final String FIELD_LO_LIST = "listParents";
 
@@ -76,6 +88,17 @@ public class AllJavaTypes extends RealmObject {
     private byte[] fieldBinary;
     private AllJavaTypes fieldObject;
     private RealmList<AllJavaTypes> fieldList;
+
+    private RealmList<String> fieldStringList;
+    private RealmList<byte[]> fieldBinaryList;
+    private RealmList<Boolean> fieldBooleanList;
+    private RealmList<Long> fieldLongList;
+    private RealmList<Integer> fieldIntegerList;
+    private RealmList<Short> fieldShortList;
+    private RealmList<Byte> fieldByteList;
+    private RealmList<Double> fieldDoubleList;
+    private RealmList<Float> fieldFloatList;
+    private RealmList<Date> fieldDateList;
 
     @LinkingObjects(FIELD_OBJECT)
     private final RealmResults<AllJavaTypes> objectParents = null;
@@ -201,6 +224,86 @@ public class AllJavaTypes extends RealmObject {
 
     public void setFieldList(RealmList<AllJavaTypes> columnRealmList) {
         this.fieldList = columnRealmList;
+    }
+
+    public RealmList<String> getFieldStringList() {
+        return fieldStringList;
+    }
+
+    public void setFieldStringList(RealmList<String> fieldStringList) {
+        this.fieldStringList = fieldStringList;
+    }
+
+    public RealmList<byte[]> getFieldBinaryList() {
+        return fieldBinaryList;
+    }
+
+    public void setFieldBinaryList(RealmList<byte[]> fieldBinaryList) {
+        this.fieldBinaryList = fieldBinaryList;
+    }
+
+    public RealmList<Boolean> getFieldBooleanList() {
+        return fieldBooleanList;
+    }
+
+    public void setFieldBooleanList(RealmList<Boolean> fieldBooleanList) {
+        this.fieldBooleanList = fieldBooleanList;
+    }
+
+    public RealmList<Long> getFieldLongList() {
+        return fieldLongList;
+    }
+
+    public void setFieldLongList(RealmList<Long> fieldLongList) {
+        this.fieldLongList = fieldLongList;
+    }
+
+    public RealmList<Integer> getFieldIntegerList() {
+        return fieldIntegerList;
+    }
+
+    public void setFieldIntegerList(RealmList<Integer> fieldIntegerList) {
+        this.fieldIntegerList = fieldIntegerList;
+    }
+
+    public RealmList<Short> getFieldShortList() {
+        return fieldShortList;
+    }
+
+    public void setFieldShortList(RealmList<Short> fieldShortList) {
+        this.fieldShortList = fieldShortList;
+    }
+
+    public RealmList<Byte> getFieldByteList() {
+        return fieldByteList;
+    }
+
+    public void setFieldByteList(RealmList<Byte> fieldByteList) {
+        this.fieldByteList = fieldByteList;
+    }
+
+    public RealmList<Double> getFieldDoubleList() {
+        return fieldDoubleList;
+    }
+
+    public void setFieldDoubleList(RealmList<Double> fieldDoubleList) {
+        this.fieldDoubleList = fieldDoubleList;
+    }
+
+    public RealmList<Float> getFieldFloatList() {
+        return fieldFloatList;
+    }
+
+    public void setFieldFloatList(RealmList<Float> fieldFloatList) {
+        this.fieldFloatList = fieldFloatList;
+    }
+
+    public RealmList<Date> getFieldDateList() {
+        return fieldDateList;
+    }
+
+    public void setFieldDateList(RealmList<Date> fieldDateList) {
+        this.fieldDateList = fieldDateList;
     }
 
     public RealmResults<AllJavaTypes> getObjectParents() {

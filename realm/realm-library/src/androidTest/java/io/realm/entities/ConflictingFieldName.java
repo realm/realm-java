@@ -26,11 +26,11 @@ public class ConflictingFieldName extends RealmObject {
     private String isCompleted;
     private String currentTableVersion;
 
-    public String getRealm() {
+    public String getRealmString() {
         return realm;
     }
 
-    public void setRealm(String realm) {
+    public void setRealmString(String realm) {
         this.realm = realm;
     }
 

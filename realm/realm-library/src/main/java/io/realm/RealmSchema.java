@@ -25,10 +25,10 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.util.Pair;
-
 
 /**
  * Class for interacting with the Realm schema. This makes it possible to inspect, add, delete and change the classes in
@@ -66,13 +66,6 @@ public abstract class RealmSchema {
     }
 
     /**
-     * @deprecated {@link RealmSchema} doesn't have to be released manually.
-     */
-    @Deprecated
-    public void close() {
-    }
-
-    /**
      * Returns the {@link RealmObjectSchema} for a given class. If this {@link RealmSchema} is immutable, an immutable
      * {@link RealmObjectSchema} will be returned. Otherwise, it returns an mutable {@link RealmObjectSchema}.
      *
@@ -89,17 +82,7 @@ public abstract class RealmSchema {
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
-    public Set<RealmObjectSchema> getAll() {
-        int tableCount = (int) realm.getSharedRealm().size();
-        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
-        for (int i = 0; i < tableCount; i++) {
-            RealmObjectSchema objectSchema = get(Table.getClassNameForTable(realm.getSharedRealm().getTableName(i)));
-            if (objectSchema != null) {
-                schemas.add(objectSchema);
-            }
-        }
-        return schemas;
-    }
+    public abstract Set<RealmObjectSchema> getAll();
 
     /**
      * Adds a new class to the Realm.
@@ -109,6 +92,22 @@ public abstract class RealmSchema {
      * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable.
      */
     public abstract RealmObjectSchema create(String className);
+
+    /**
+     * Adds a new class to the Realm with a primary key field defined.
+     *
+     * @param className           name of the class.
+     * @param primaryKeyFieldName name of the primary key field.
+     * @param fieldType           type of field to add. Only {@code byte}, {@code short}, {@code int}, {@code long}
+     *                            and their boxed types or the {@code String} is supported.
+     * @param attributes          set of attributes for this field. This method implicitly adds
+     *                            {@link FieldAttribute#PRIMARY_KEY} and {@link FieldAttribute#INDEXED} attributes to
+     *                            the field.
+     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable.
+     * @return a Realm schema object for that class.
+     */
+    public abstract RealmObjectSchema createWithPrimaryKeyField(String className, String primaryKeyFieldName, Class<?> fieldType,
+                                                       FieldAttribute... attributes);
 
     /**
      * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
@@ -174,7 +173,9 @@ public abstract class RealmSchema {
             table = classToTable.get(originalClass);
         }
         if (table == null) {
-            table = realm.getSharedRealm().getTable(realm.getConfiguration().getSchemaMediator().getTableName(originalClass));
+            String tableName = Table.getTableNameForClass(
+                    realm.getConfiguration().getSchemaMediator().getSimpleClassName(originalClass));
+            table = realm.getSharedRealm().getTable(tableName);
             classToTable.put(originalClass, table);
         }
         if (isProxyClass(originalClass, clazz)) {

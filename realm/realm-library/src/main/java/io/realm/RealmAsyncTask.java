@@ -17,7 +17,7 @@
 package io.realm;
 
 /**
- * Represents a pending asynchronous Realm transaction.
+ * Represents a pending asynchronous Realm task, like asynchronous transactions.
  * <p>
  * Users are responsible for maintaining a reference to {@code RealmAsyncTask} in order to call {@link #cancel()} in
  * case of a configuration change for example (to avoid memory leak, as the transaction will post the result to the

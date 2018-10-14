@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,38 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.realm.examples.objectserver.model;
 
-import io.realm.RealmList;
+import io.realm.MutableRealmInteger;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.Required;
 
 /**
- * Counter class that is eventually consistent. Two devices can simultaneous increment this and eventually reach
- * the same value.
- *
- * @see <href ref="https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type">Conflict Free Replicated Data Structures</href>
+ * A named, conflict-free replicated data-type.
  */
 public class CRDTCounter extends RealmObject {
-
     @PrimaryKey
-    private long id;
-    private RealmList<CounterOperation> operations;
+    private String name;
 
-    public CRDTCounter() {
-        // Required by Realm
-    }
+    @Required
+    public final MutableRealmInteger counter = MutableRealmInteger.valueOf(0L);
 
-    public CRDTCounter(long id) {
-        this.id = id;
-    }
+    // Required for Realm
+    public CRDTCounter() {}
 
-    public long getCount() {
-        return operations.where().sum("adjustment").longValue();
-    }
+    public CRDTCounter(String name) { this.name = name; }
 
-    public void add(long val) {
-        operations.add(new CounterOperation(val));
-    }
+    public String getName() { return name; }
+
+    public long getCount() { return counter.get().longValue(); }
+    public void incrementCounter(long delta) { counter.increment(delta); }
 }

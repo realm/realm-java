@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import java.util.Locale;
+
 import io.realm.RealmFieldType;
 
 
@@ -53,19 +55,6 @@ public class CheckedRow extends UncheckedRow {
     public static CheckedRow get(NativeContext context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.getNativePtr(), index);
         return new CheckedRow(context, table, nativeRowPointer);
-    }
-
-    /**
-     * Gets the row object associated to an index in a {@link LinkView}.
-     *
-     * @param context the Realm context.
-     * @param linkView the {@link LinkView} holding the row.
-     * @param index the index of the row.
-     * @return a checked instance of {@link Row} for the {@link LinkView} and index specified.
-     */
-    public static CheckedRow get(NativeContext context, LinkView linkView, long index) {
-        long nativeRowPointer = linkView.nativeGetRow(linkView.getNativePtr(), index);
-        return new CheckedRow(context, linkView.getTargetTable(), nativeRowPointer);
     }
 
     /**
@@ -109,6 +98,28 @@ public class CheckedRow extends UncheckedRow {
     }
 
     @Override
+    public OsList getModelList(long columnIndex) {
+        RealmFieldType fieldType = getTable().getColumnType(columnIndex);
+        if (fieldType != RealmFieldType.LIST) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.US, "Field '%s' is not a 'RealmList'.",
+                            getTable().getColumnName(columnIndex)));
+        }
+        return super.getModelList(columnIndex);
+    }
+
+    @Override
+    public OsList getValueList(long columnIndex, RealmFieldType fieldType) {
+        final RealmFieldType actualFieldType = getTable().getColumnType(columnIndex);
+        if (fieldType != actualFieldType) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.US, "The type of field '%1$s' is not 'RealmFieldType.%2$s'.",
+                            getTable().getColumnName(columnIndex), fieldType.name()));
+        }
+        return super.getValueList(columnIndex, fieldType);
+    }
+
+    @Override
     protected native long nativeGetColumnCount(long nativeTablePtr);
 
     @Override
@@ -143,9 +154,6 @@ public class CheckedRow extends UncheckedRow {
 
     @Override
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
-
-    @Override
-    protected native long nativeGetLinkView(long nativePtr, long columnIndex);
 
     @Override
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);

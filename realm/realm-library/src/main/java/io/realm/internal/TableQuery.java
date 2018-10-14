@@ -614,6 +614,13 @@ public class TableQuery implements NativeObject {
         return nativeCount(nativePtr, start, end, limit);
     }
 
+    /**
+     * Returns only the number of matching objects.
+     * This method is very fast compared to evaluating a query completely, but it does not
+     * goes around any logic implemented in Object Store and other parts of the API that works
+     * on query results. So the primary use case for this method is testing.
+     */
+    @Deprecated
     public long count() {
         validateQuery();
         return nativeCount(nativePtr, 0, Table.INFINITE, Table.INFINITE);
@@ -627,6 +634,14 @@ public class TableQuery implements NativeObject {
 
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
+    }
+
+    public void alwaysTrue() {
+        nativeAlwaysTrue(nativePtr);
+    }
+
+    public void alwaysFalse() {
+        nativeAlwaysFalse(nativePtr);
     }
 
     private native String nativeValidateQuery(long nativeQueryPtr);
@@ -716,6 +731,10 @@ public class TableQuery implements NativeObject {
     private native void nativeIsEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
 
     private native void nativeIsNotEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
+
+    private native void nativeAlwaysTrue(long nativeQueryPtr);
+
+    private native void nativeAlwaysFalse(long nativeQueryPtr);
 
     private native long nativeFind(long nativeQueryPtr, long fromTableRow);
 

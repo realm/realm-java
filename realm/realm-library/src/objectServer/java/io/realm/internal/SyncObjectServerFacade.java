@@ -23,6 +23,7 @@ import android.net.ConnectivityManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import io.realm.RealmConfiguration;
 import io.realm.SyncConfiguration;
@@ -32,6 +33,7 @@ import io.realm.SyncUser;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -84,7 +86,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public Object[] getUserAndServerUrl(RealmConfiguration config) {
+    public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             SyncUser user = syncConfig.getUser();
@@ -92,9 +94,25 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String rosUserIdentity = user.getIdentity();
             String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
             String rosSerializedUser = user.toJson();
-            return new Object[]{rosUserIdentity, rosServerUrl, syncRealmAuthUrl, rosSerializedUser, syncConfig.syncClientValidateSsl(), syncConfig.getServerCertificateFilePath()};
+            byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
+            String urlPrefix = syncConfig.getUrlPrefix();
+            String customAuthorizationHeaderName = SyncManager.getAuthorizationHeaderName(syncConfig.getServerUrl());
+            Map<String, String> customHeaders = SyncManager.getCustomRequestHeaders(syncConfig.getServerUrl());
+            return new Object[]{
+                    rosUserIdentity,
+                    rosServerUrl,
+                    syncRealmAuthUrl,
+                    rosSerializedUser,
+                    syncConfig.syncClientValidateSsl(),
+                    syncConfig.getServerCertificateFilePath(),
+                    sessionStopPolicy,
+                    !syncConfig.isFullySynchronizedRealm(),
+                    urlPrefix,
+                    customAuthorizationHeaderName,
+                    customHeaders
+            };
         } else {
-            return new Object[6];
+            return new Object[11];
         }
     }
 
@@ -103,9 +121,9 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public void wrapObjectStoreSessionIfRequired(RealmConfiguration config) {
-        if (config instanceof SyncConfiguration) {
-            SyncManager.getSession((SyncConfiguration) config);
+    public void wrapObjectStoreSessionIfRequired(OsRealmConfig config) {
+        if (config.getRealmConfiguration() instanceof SyncConfiguration) {
+            SyncManager.getOrCreateSession((SyncConfiguration) config.getRealmConfiguration(), config.getResolvedRealmURI());
         }
     }
 
@@ -172,5 +190,20 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @Override
     public boolean wasDownloadInterrupted(Throwable throwable) {
         return (throwable instanceof DownloadingRealmInterruptedException);
+    }
+
+    @Override
+    public boolean isPartialRealm(RealmConfiguration configuration) {
+        if (configuration instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            return !syncConfig.isFullySynchronizedRealm();
+        }
+        
+        return false;
+    }
+
+    @Override
+    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
+        builder.addModule(new ObjectPermissionsModule());
     }
 }

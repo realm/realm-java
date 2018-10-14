@@ -17,6 +17,7 @@
             android:layout_height="72dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="24dp"
+            android:contentDescription="@string/realm_logo"
             android:src="@drawable/logo"/>
 
         <android.support.design.widget.TextInputLayout
@@ -29,7 +30,7 @@
                 android:id="@+id/input_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Username"
+                android:hint="@string/username"
                 android:inputType="text"/>
         </android.support.design.widget.TextInputLayout>
 
@@ -43,7 +44,7 @@
                 android:id="@+id/input_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Password"
+                android:hint="@string/password"
                 android:inputType="textPassword"/>
         </android.support.design.widget.TextInputLayout>
 
@@ -54,7 +55,7 @@
             android:layout_marginBottom="12dp"
             android:layout_marginTop="24dp"
             android:padding="12dp"
-            android:text="Login" />
+            android:text="@string/login" />
 
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/button_create"
@@ -62,6 +63,6 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:padding="12dp"
-            android:text="Create account and login" />
+            android:text="@string/create_account" />
     </LinearLayout>
 </ScrollView>

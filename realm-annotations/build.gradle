@@ -1,10 +1,13 @@
 buildscript {
+    def properties = new Properties()
+    properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
+
     repositories {
         jcenter()
     }
     dependencies {
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.2'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${properties.get('GRADLE_BINTRAY_PLUGIN')}"
     }
 }
 
@@ -22,11 +25,11 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'com.jfrog.bintray'
 
-sourceCompatibility = '1.6'
-targetCompatibility = '1.6'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 group = 'io.realm'
-version = file("${projectDir}/../version.txt").text.trim();
+version = file("${projectDir}/../version.txt").text.trim()
 
 def commonPom = {
     licenses {
@@ -114,4 +117,5 @@ artifactory {
 
 task wrapper(type: Wrapper) {
     gradleVersion = project.gradleVersion
+    distributionType = 'all'
 }

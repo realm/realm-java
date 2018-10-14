@@ -158,6 +158,10 @@ public class ISO8601Utils {
             } else if (timezoneIndicator == '+' || timezoneIndicator == '-') {
                 String timezoneOffset = date.substring(offset);
                 offset += timezoneOffset.length();
+                // Convert 2-digit time zone designator to 4-digit designator
+                if (timezoneOffset.length() == 3) {
+                    timezoneOffset += "00";
+                }
                 // 18-Jun-2015, tatu: Minor simplification, skip offset of "+0000"/"+00:00"
                 if ("+0000".equals(timezoneOffset) || "+00:00".equals(timezoneOffset)) {
                     timezone = TIMEZONE_Z;

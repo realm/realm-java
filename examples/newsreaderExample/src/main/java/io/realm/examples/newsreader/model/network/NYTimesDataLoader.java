@@ -24,15 +24,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
 import io.realm.Realm;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
-import retrofit.JacksonConverterFactory;
-import retrofit.Retrofit;
-import retrofit.RxJavaCallAdapterFactory;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import rx.subjects.BehaviorSubject;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.Retrofit;
 import timber.log.Timber;
 
 /**
@@ -49,7 +49,7 @@ public class NYTimesDataLoader {
 
     public NYTimesDataLoader() {
         Retrofit retrofit = new Retrofit.Builder()
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(JacksonConverterFactory.create())
                 .baseUrl("http://api.nytimes.com/")
                 .build();
@@ -69,19 +69,13 @@ public class NYTimesDataLoader {
         nyTimesService.topStories(sectionKey, apiKey)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<NYTimesResponse<List<NYTimesStory>>>() {
-                    @Override
-                    public void call(NYTimesResponse<List<NYTimesStory>> response) {
-                        Timber.d("Success - Data received: %s", sectionKey);
-                        processAndAddData(realm, response.section, response.results);
-                        networkInUse.onNext(false);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        networkInUse.onNext(false);
-                        Timber.d("Failure: Data not loaded: %s - %s", sectionKey, throwable.toString());
-                    }
+                .subscribe(response -> {
+                    Timber.d("Success - Data received: %s", sectionKey);
+                    processAndAddData(realm, response.section, response.results);
+                    networkInUse.onNext(false);
+                }, throwable -> {
+                    networkInUse.onNext(false);
+                    Timber.d("Failure: Data not loaded: %s - %s", sectionKey, throwable.toString());
                 });
     }
 
@@ -89,35 +83,27 @@ public class NYTimesDataLoader {
     private void processAndAddData(final Realm realm, final String sectionKey, final List<NYTimesStory> stories) {
         if (stories.isEmpty()) return;
 
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                for (NYTimesStory story : stories) {
-                    Date parsedPublishedDate = inputDateFormat.parse(story.getPublishedDate(), new ParsePosition(0));
-                    story.setSortTimeStamp(parsedPublishedDate.getTime());
-                    story.setPublishedDate(outputDateFormat.format(parsedPublishedDate));
+        realm.executeTransactionAsync(r -> {
+            for (NYTimesStory story : stories) {
+                Date parsedPublishedDate = inputDateFormat.parse(story.getPublishedDate(), new ParsePosition(0));
+                story.setSortTimeStamp(parsedPublishedDate.getTime());
+                story.setPublishedDate(outputDateFormat.format(parsedPublishedDate));
 
-                    // Find existing story in Realm (if any)
-                    // If it exists, we need to merge the local state with the remote, because the local state
-                    // contains more info than is available on the server.
-                    NYTimesStory persistedStory = realm.where(NYTimesStory.class).equalTo(NYTimesStory.URL, story.getUrl()).findFirst();
-                    if (persistedStory != null) {
-                        // Only local state is the `read` boolean.
-                        story.setRead(persistedStory.isRead());
-                   }
+                // Find existing story in Realm (if any)
+                // If it exists, we need to merge the local state with the remote, because the local state
+                // contains more info than is available on the server.
+                NYTimesStory persistedStory = r.where(NYTimesStory.class).equalTo(NYTimesStory.URL, story.getUrl()).findFirst();
+                if (persistedStory != null) {
+                    // Only local state is the `read` boolean.
+                    story.setRead(persistedStory.isRead());
+                }
 
-                    // Only create or update the local story if needed
-                    if (persistedStory == null || !persistedStory.getUpdatedDate().equals(story.getUpdatedDate())) {
-                        story.setApiSection(sectionKey);
-                        realm.copyToRealmOrUpdate(story);
-                    }
+                // Only create or update the local story if needed
+                if (persistedStory == null || !persistedStory.getUpdatedDate().equals(story.getUpdatedDate())) {
+                    story.setApiSection(sectionKey);
+                    r.copyToRealmOrUpdate(story);
                 }
             }
-        }, new Realm.Transaction.OnError() {
-            @Override
-            public void onError(Throwable throwable) {
-                Timber.e(throwable, "Could not save data");
-            }
-        });
+        }, throwable -> Timber.e(throwable, "Could not save data"));
     }
 }

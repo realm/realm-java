@@ -169,6 +169,7 @@ public class ThreadFragment extends Fragment {
     public void onStop() {
         super.onStop();
         // Remember to close the Realm instance when done with it.
+        dotsView.setRealmResults(null);
         realm.close();
     }
 }

@@ -51,6 +51,9 @@ public final class RealmLog {
      * @param level see {@link LogLevel}.
      */
     public static void setLevel(int level) {
+        if (level < LogLevel.ALL || level > LogLevel.OFF) {
+            throw new IllegalArgumentException("Invalid log level: " + level);
+        }
         nativeSetLogLevel(level);
     }
 

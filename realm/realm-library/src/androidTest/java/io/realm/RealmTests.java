@@ -96,13 +96,14 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
 import io.realm.entities.RandomPrimaryKey;
+import io.realm.entities.StringAndInt;
 import io.realm.entities.StringOnly;
 import io.realm.entities.StringOnlyReadOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
-import io.realm.internal.SharedRealm;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
@@ -110,7 +111,6 @@ import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
-import io.realm.util.ExceptionHolder;
 import io.realm.util.RealmThread;
 
 import static io.realm.TestHelper.testNoObjectFound;
@@ -118,7 +118,6 @@ import static io.realm.TestHelper.testOneObjectFound;
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
@@ -128,7 +127,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 
 
 @RunWith(AndroidJUnit4.class)
@@ -212,7 +210,7 @@ public class RealmTests {
         assertTrue(realmFile.setWritable(false));
 
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+            Realm.getInstance(configFactory.createConfigurationBuilder()
                     .directory(folder)
                     .name(REALM_FILE)
                     .build());
@@ -232,7 +230,7 @@ public class RealmTests {
         assertTrue(realmFile.setWritable(false));
 
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(context).directory(folder).name(REALM_FILE).build());
+            Realm.getInstance(configFactory.createConfigurationBuilder().directory(folder).name(REALM_FILE).build());
             fail();
         } catch (RealmFileException expected) {
             assertEquals(RealmFileException.Kind.PERMISSION_DENIED, expected.getKind());
@@ -284,6 +282,21 @@ public class RealmTests {
         populateTestRealm();
         RealmResults<AllTypes> resultList = realm.where(AllTypes.class).findAll();
         assertEquals(TEST_DATA_SIZE, resultList.size());
+    }
+
+    @Test
+    public void where_throwsIfClassArgIsNotASubtype() {
+        try {
+            realm.where(RealmObject.class);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        try {
+            realm.where(RealmModel.class);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
     // Note that this test is relying on the values set while initializing the test dataset
@@ -651,13 +664,13 @@ public class RealmTests {
 
     @Test
     public void executeTransaction_null() {
-        SharedRealm.VersionID oldVersion = realm.sharedRealm.getVersionID();
+        OsSharedRealm.VersionID oldVersion = realm.sharedRealm.getVersionID();
         try {
             realm.executeTransaction(null);
             fail("null transaction should throw");
         } catch (IllegalArgumentException ignored) {
         }
-        SharedRealm.VersionID newVersion = realm.sharedRealm.getVersionID();
+        OsSharedRealm.VersionID newVersion = realm.sharedRealm.getVersionID();
         assertEquals(oldVersion, newVersion);
     }
 
@@ -1047,7 +1060,7 @@ public class RealmTests {
     @Test
     public void compactRealm_onExternalStorage() {
         final File externalFilesDir = context.getExternalFilesDir(null);
-        final RealmConfiguration config = new RealmConfiguration.Builder()
+        final RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .directory(externalFilesDir)
                 .name("external.realm")
                 .build();
@@ -1060,15 +1073,24 @@ public class RealmTests {
         Realm.deleteRealm(config);
     }
 
-    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
-        return populateTestRealmAndCompactOnLaunch(compactOnLaunch, 100);
+    private void populateTestRealmForCompact(Realm realm, int sizeInMB) {
+        byte[] oneMBData = new byte[1024 * 1024];
+        realm.beginTransaction();
+        for (int i = 0; i < sizeInMB; i++) {
+            realm.createObject(AllTypes.class).setColumnBinary(oneMBData);
+        }
+        realm.commitTransaction();
     }
 
-    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch, int objects) {
+    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch) {
+        return populateTestRealmAndCompactOnLaunch(compactOnLaunch, 1);
+    }
+
+    private Pair<Long, Long> populateTestRealmAndCompactOnLaunch(CompactOnLaunchCallback compactOnLaunch, int sizeInMB) {
         final String REALM_NAME = "test.realm";
         RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
         Realm realm = Realm.getInstance(realmConfig);
-        populateTestRealm(realm, objects);
+        populateTestRealmForCompact(realm, sizeInMB);
         realm.beginTransaction();
         realm.deleteAll();
         realm.commitTransaction();
@@ -1131,12 +1153,23 @@ public class RealmTests {
                 })
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
+        realm.close();
+        // WARNING: We need to init the schema first and close the Realm to make sure the relevant logic works in Object
+        // Store. See https://github.com/realm/realm-object-store/blob/master/src/shared_realm.cpp#L58
+        // Called once.
+        assertEquals(1, compactOnLaunchCount.get());
+
+        realm = Realm.getInstance(realmConfig);
+        // Called 2 more times. The PK table migration logic (the old PK bug) needs to open/close the Realm once.
+        assertEquals(3, compactOnLaunchCount.get());
 
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 Realm bgRealm = Realm.getInstance(realmConfig);
                 bgRealm.close();
+                // compactOnLaunch should not be called anymore!
+                assertEquals(3, compactOnLaunchCount.get());
             }
         });
         thread.start();
@@ -1149,8 +1182,6 @@ public class RealmTests {
 
         realm.close();
 
-        // FIXME: It should be 1. Current compactOnLaunch is called each time a Realm is opened on a new thread.
-        assertNotEquals(1, compactOnLaunchCount.get());
         assertEquals(3, compactOnLaunchCount.get());
     }
 
@@ -1162,7 +1193,7 @@ public class RealmTests {
                 final long thresholdSize = 50 * 1024 * 1024;
                 return (totalBytes > thresholdSize) && (((double) usedBytes / (double) totalBytes) < 0.5);
             }
-        }, 100);
+        }, 1);
         final long thresholdSize = 50 * 1024 * 1024;
         assertTrue(results.first < thresholdSize);
         assertEquals(results.first, results.second);
@@ -1195,7 +1226,7 @@ public class RealmTests {
 
     @Test
     public void defaultCompactOnLaunch() throws IOException {
-        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 30000);
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 50);
         final long thresholdSize = 50 * 1024 * 1024;
         assertTrue(results.first > thresholdSize);
         assertTrue(results.first > results.second);
@@ -1215,7 +1246,7 @@ public class RealmTests {
 
     @Test
     public void defaultCompactOnLaunch_insufficientAmount() throws IOException {
-        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 100);
+        Pair<Long, Long> results = populateTestRealmAndCompactOnLaunch(null, 1);
         final long thresholdSize = 50 * 1024 * 1024;
         assertTrue(results.first < thresholdSize);
         assertEquals(results.first, results.second);
@@ -1284,6 +1315,14 @@ public class RealmTests {
         allTypes.setColumnRealmObject(dog);
         allTypes.setColumnRealmList(list);
 
+        allTypes.setColumnStringList(new RealmList<String>("1"));
+        allTypes.setColumnBinaryList(new RealmList<byte[]>(new byte[] {1}));
+        allTypes.setColumnBooleanList(new RealmList<Boolean>(true));
+        allTypes.setColumnLongList(new RealmList<Long>(1L));
+        allTypes.setColumnDoubleList(new RealmList<Double>(1D));
+        allTypes.setColumnFloatList(new RealmList<Float>(1F));
+        allTypes.setColumnDateList(new RealmList<Date>(new Date(1L)));
+
         realm.beginTransaction();
         AllTypes realmTypes = realm.copyToRealm(allTypes);
         realm.commitTransaction();
@@ -1298,7 +1337,22 @@ public class RealmTests {
         assertArrayEquals(allTypes.getColumnBinary(), realmTypes.getColumnBinary());
         assertEquals(allTypes.getColumnRealmObject().getName(), dog.getName());
         assertEquals(list.size(), realmTypes.getColumnRealmList().size());
+        //noinspection ConstantConditions
         assertEquals(list.get(0).getName(), realmTypes.getColumnRealmList().get(0).getName());
+        assertEquals(1, realmTypes.getColumnStringList().size());
+        assertEquals("1", realmTypes.getColumnStringList().get(0));
+        assertEquals(1, realmTypes.getColumnBooleanList().size());
+        assertEquals(true, realmTypes.getColumnBooleanList().get(0));
+        assertEquals(1, realmTypes.getColumnBinaryList().size());
+        assertArrayEquals(new byte[] {1}, realmTypes.getColumnBinaryList().get(0));
+        assertEquals(1, realmTypes.getColumnLongList().size());
+        assertEquals((Long) 1L, realmTypes.getColumnLongList().get(0));
+        assertEquals(1, realmTypes.getColumnDoubleList().size());
+        assertEquals((Double) 1D, realmTypes.getColumnDoubleList().get(0));
+        assertEquals(1, realmTypes.getColumnFloatList().size());
+        assertEquals((Float) 1F, realmTypes.getColumnFloatList().get(0));
+        assertEquals(1, realmTypes.getColumnDateList().size());
+        assertEquals(new Date(1), realmTypes.getColumnDateList().get(0));
     }
 
     @Test
@@ -1373,8 +1427,8 @@ public class RealmTests {
         oneCyclicType.setName("One");
         CyclicType anotherCyclicType = new CyclicType();
         anotherCyclicType.setName("Two");
-        oneCyclicType.setObjects(new RealmList(anotherCyclicType));
-        anotherCyclicType.setObjects(new RealmList(oneCyclicType));
+        oneCyclicType.setObjects(new RealmList<>(anotherCyclicType));
+        anotherCyclicType.setObjects(new RealmList<>(oneCyclicType));
 
         realm.beginTransaction();
         CyclicType realmObject = realm.copyToRealm(oneCyclicType);
@@ -1394,6 +1448,15 @@ public class RealmTests {
         assertEquals("", realmTypes.getColumnString());
         assertEquals(new Date(0), realmTypes.getColumnDate());
         assertArrayEquals(new byte[0], realmTypes.getColumnBinary());
+
+        assertNotNull(realmTypes.getColumnRealmList());
+        assertNotNull(realmTypes.getColumnStringList());
+        assertNotNull(realmTypes.getColumnBinaryList());
+        assertNotNull(realmTypes.getColumnBooleanList());
+        assertNotNull(realmTypes.getColumnLongList());
+        assertNotNull(realmTypes.getColumnDoubleList());
+        assertNotNull(realmTypes.getColumnFloatList());
+        assertNotNull(realmTypes.getColumnDateList());
     }
 
     // Check that using copyToRealm will set the primary key directly instead of first setting
@@ -1693,6 +1756,13 @@ public class RealmTests {
                 obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
                 obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
                 obj.setColumnBoxedBoolean(true);
+                obj.setColumnStringList(new RealmList<>("1"));
+                obj.setColumnBooleanList(new RealmList<>(false));
+                obj.setColumnBinaryList(new RealmList<>(new byte[] {1}));
+                obj.setColumnLongList(new RealmList<>(1L));
+                obj.setColumnDoubleList(new RealmList<>(1D));
+                obj.setColumnFloatList(new RealmList<>(1F));
+                obj.setColumnDateList(new RealmList<>(new Date(1L)));
                 realm.copyToRealm(obj);
 
                 AllTypesPrimaryKey obj2 = new AllTypesPrimaryKey();
@@ -1706,6 +1776,13 @@ public class RealmTests {
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
                 obj2.setColumnBoxedBoolean(false);
+                obj2.setColumnStringList(new RealmList<>("2", "3"));
+                obj2.setColumnBooleanList(new RealmList<>(true, false));
+                obj2.setColumnBinaryList(new RealmList<>(new byte[] {2}, new byte[] {3}));
+                obj2.setColumnLongList(new RealmList<>(2L, 3L));
+                obj2.setColumnDoubleList(new RealmList<>(2D, 3D));
+                obj2.setColumnFloatList(new RealmList<>(2F, 3F));
+                obj2.setColumnDateList(new RealmList<>(new Date(2L), new Date(3L)));
                 realm.copyToRealmOrUpdate(obj2);
             }
         });
@@ -1725,6 +1802,40 @@ public class RealmTests {
         assertEquals(1, obj.getColumnRealmList().size());
         assertEquals("Dog4", obj.getColumnRealmList().get(0).getName());
         assertFalse(obj.getColumnBoxedBoolean());
+        assertEquals(2, obj.getColumnStringList().size());
+        assertEquals("2", obj.getColumnStringList().get(0));
+        assertEquals("3", obj.getColumnStringList().get(1));
+        assertEquals(2, obj.getColumnBooleanList().size());
+        assertEquals(true, obj.getColumnBooleanList().get(0));
+        assertEquals(false, obj.getColumnBooleanList().get(1));
+        assertEquals(2, obj.getColumnBinaryList().size());
+        assertArrayEquals(new byte[] {2}, obj.getColumnBinaryList().get(0));
+        assertArrayEquals(new byte[] {3}, obj.getColumnBinaryList().get(1));
+        assertEquals(2, obj.getColumnLongList().size());
+        assertEquals((Long) 2L, obj.getColumnLongList().get(0));
+        assertEquals((Long) 3L, obj.getColumnLongList().get(1));
+        assertEquals(2, obj.getColumnDoubleList().size());
+        assertEquals((Double) 2D, obj.getColumnDoubleList().get(0));
+        assertEquals((Double) 3D, obj.getColumnDoubleList().get(1));
+        assertEquals(2, obj.getColumnFloatList().size());
+        assertEquals((Float) 2F, obj.getColumnFloatList().get(0));
+        assertEquals((Float) 3F, obj.getColumnFloatList().get(1));
+        assertEquals(2, obj.getColumnDateList().size());
+        assertEquals(new Date(2L), obj.getColumnDateList().get(0));
+        assertEquals(new Date(3L), obj.getColumnDateList().get(1));
+    }
+
+    @Test
+    public void copyToRealmOrUpdate_overrideOwnList() {
+        realm.beginTransaction();
+        AllJavaTypes managedObj = realm.createObject(AllJavaTypes.class, 1);
+        managedObj.getFieldList().add(managedObj);
+        AllJavaTypes unmanagedObj = realm.copyFromRealm(managedObj);
+        unmanagedObj.setFieldList(managedObj.getFieldList());
+
+        managedObj = realm.copyToRealmOrUpdate(unmanagedObj);
+        assertEquals(1, managedObj.getFieldList().size());
+        assertEquals(1, managedObj.getFieldList().first().getFieldId());
     }
 
     @Test
@@ -2166,7 +2277,7 @@ public class RealmTests {
         File tempDirRenamed = new File(configFactory.getRoot(), "delete_test_dir_2");
         assertTrue(tempDir.mkdir());
 
-        final RealmConfiguration configuration = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+        final RealmConfiguration configuration = configFactory.createConfigurationBuilder()
                 .directory(tempDir)
                 .build();
 
@@ -2205,8 +2316,11 @@ public class RealmTests {
 
         assertTrue(Realm.deleteRealm(configuration));
 
-        // Directory should be empty now.
-        assertEquals(0, tempDir.listFiles().length);
+        assertEquals(1, tempDir.listFiles().length);
+
+        // Lock file should never be deleted
+        File lockFile = new File(configuration.getPath() + ".lock");
+        assertTrue(lockFile.exists());
     }
 
     // Tests that all methods that require a transaction. (ie. any function that mutates Realm data)
@@ -2744,6 +2858,17 @@ public class RealmTests {
             list.add(listItem);
             obj.setFieldList(list);
 
+            obj.setFieldStringList(new RealmList<>("2", "3"));
+            obj.setFieldBooleanList(new RealmList<>(true, false));
+            obj.setFieldBinaryList(new RealmList<>(new byte[] {2}, new byte[] {3}));
+            obj.setFieldLongList(new RealmList<>(2L, 3L));
+            obj.setFieldIntegerList(new RealmList<>(2, 3));
+            obj.setFieldShortList(new RealmList<>((short) 2, (short) 3));
+            obj.setFieldByteList(new RealmList<>((byte) 2, (byte) 3));
+            obj.setFieldDoubleList(new RealmList<>(2D, 3D));
+            obj.setFieldFloatList(new RealmList<>(2F, 3F));
+            obj.setFieldDateList(new RealmList<>(new Date(2L), new Date(3L)));
+
             managedObj = realm.copyToRealm(obj);
         }
         realm.commitTransaction();
@@ -2761,10 +2886,41 @@ public class RealmTests {
         assertEquals(fieldDoubleValue, managedObj.getFieldDouble(), 0D);
         assertEquals(fieldBooleanValue, managedObj.isFieldBoolean());
         assertEquals(fieldDateValue, managedObj.getFieldDate());
-        assertTrue(Arrays.equals(fieldBinaryValue, managedObj.getFieldBinary()));
+        assertArrayEquals(fieldBinaryValue, managedObj.getFieldBinary());
         assertEquals(fieldObjectIntValue, managedObj.getFieldObject().getFieldInt());
         assertEquals(1, managedObj.getFieldList().size());
         assertEquals(fieldListIntValue, managedObj.getFieldList().first().getFieldInt());
+
+        assertEquals(2, managedObj.getFieldStringList().size());
+        assertEquals("2", managedObj.getFieldStringList().get(0));
+        assertEquals("3", managedObj.getFieldStringList().get(1));
+        assertEquals(2, managedObj.getFieldBooleanList().size());
+        assertEquals(true, managedObj.getFieldBooleanList().get(0));
+        assertEquals(false, managedObj.getFieldBooleanList().get(1));
+        assertEquals(2, managedObj.getFieldBinaryList().size());
+        assertArrayEquals(new byte[] {2}, managedObj.getFieldBinaryList().get(0));
+        assertArrayEquals(new byte[] {3}, managedObj.getFieldBinaryList().get(1));
+        assertEquals(2, managedObj.getFieldLongList().size());
+        assertEquals((Long) 2L, managedObj.getFieldLongList().get(0));
+        assertEquals((Long) 3L, managedObj.getFieldLongList().get(1));
+        assertEquals(2, managedObj.getFieldIntegerList().size());
+        assertEquals((Integer) 2, managedObj.getFieldIntegerList().get(0));
+        assertEquals((Integer) 3, managedObj.getFieldIntegerList().get(1));
+        assertEquals(2, managedObj.getFieldShortList().size());
+        assertEquals((Short) (short) 2, managedObj.getFieldShortList().get(0));
+        assertEquals((Short) (short) 3, managedObj.getFieldShortList().get(1));
+        assertEquals(2, managedObj.getFieldByteList().size());
+        assertEquals((Byte) (byte) 2, managedObj.getFieldByteList().get(0));
+        assertEquals((Byte) (byte) 3, managedObj.getFieldByteList().get(1));
+        assertEquals(2, managedObj.getFieldDoubleList().size());
+        assertEquals((Double) 2D, managedObj.getFieldDoubleList().get(0));
+        assertEquals((Double) 3D, managedObj.getFieldDoubleList().get(1));
+        assertEquals(2, managedObj.getFieldFloatList().size());
+        assertEquals((Float) 2F, managedObj.getFieldFloatList().get(0));
+        assertEquals((Float) 3F, managedObj.getFieldFloatList().get(1));
+        assertEquals(2, managedObj.getFieldDateList().size());
+        assertEquals(new Date(2L), managedObj.getFieldDateList().get(0));
+        assertEquals(new Date(3L), managedObj.getFieldDateList().get(1));
 
         // Makes sure that excess object by default value is not created.
         assertEquals(2, realm.where(RandomPrimaryKey.class).count());
@@ -2800,6 +2956,17 @@ public class RealmTests {
             list.add(listItem);
             obj.setFieldList(list);
 
+            obj.setFieldStringList(new RealmList<>("2", "3"));
+            obj.setFieldBooleanList(new RealmList<>(true, false));
+            obj.setFieldBinaryList(new RealmList<>(new byte[] {2}, new byte[] {3}));
+            obj.setFieldLongList(new RealmList<>(2L, 3L));
+            obj.setFieldIntegerList(new RealmList<>(2, 3));
+            obj.setFieldShortList(new RealmList<>((short) 2, (short) 3));
+            obj.setFieldByteList(new RealmList<>((byte) 2, (byte) 3));
+            obj.setFieldDoubleList(new RealmList<>(2D, 3D));
+            obj.setFieldFloatList(new RealmList<>(2F, 3F));
+            obj.setFieldDateList(new RealmList<>(new Date(2L), new Date(3L)));
+
             managedObj = realm.copyToRealm(obj);
         }
         realm.commitTransaction();
@@ -2818,10 +2985,42 @@ public class RealmTests {
         assertEquals(managedObj.getFieldDouble(), copy.getFieldDouble(), 0D);
         assertEquals(managedObj.isFieldBoolean(), copy.isFieldBoolean());
         assertEquals(managedObj.getFieldDate(), copy.getFieldDate());
-        assertTrue(Arrays.equals(managedObj.getFieldBinary(), copy.getFieldBinary()));
+        assertArrayEquals(managedObj.getFieldBinary(), copy.getFieldBinary());
         assertEquals(managedObj.getFieldObject().getFieldInt(), copy.getFieldObject().getFieldInt());
         assertEquals(1, copy.getFieldList().size());
+        //noinspection ConstantConditions
         assertEquals(managedObj.getFieldList().first().getFieldInt(), copy.getFieldList().first().getFieldInt());
+
+        assertEquals(2, managedObj.getFieldStringList().size());
+        assertEquals("2", managedObj.getFieldStringList().get(0));
+        assertEquals("3", managedObj.getFieldStringList().get(1));
+        assertEquals(2, managedObj.getFieldBooleanList().size());
+        assertEquals(true, managedObj.getFieldBooleanList().get(0));
+        assertEquals(false, managedObj.getFieldBooleanList().get(1));
+        assertEquals(2, managedObj.getFieldBinaryList().size());
+        assertArrayEquals(new byte[] {2}, managedObj.getFieldBinaryList().get(0));
+        assertArrayEquals(new byte[] {3}, managedObj.getFieldBinaryList().get(1));
+        assertEquals(2, managedObj.getFieldLongList().size());
+        assertEquals((Long) 2L, managedObj.getFieldLongList().get(0));
+        assertEquals((Long) 3L, managedObj.getFieldLongList().get(1));
+        assertEquals(2, managedObj.getFieldIntegerList().size());
+        assertEquals((Integer) 2, managedObj.getFieldIntegerList().get(0));
+        assertEquals((Integer) 3, managedObj.getFieldIntegerList().get(1));
+        assertEquals(2, managedObj.getFieldShortList().size());
+        assertEquals((Short) (short) 2, managedObj.getFieldShortList().get(0));
+        assertEquals((Short) (short) 3, managedObj.getFieldShortList().get(1));
+        assertEquals(2, managedObj.getFieldByteList().size());
+        assertEquals((Byte) (byte) 2, managedObj.getFieldByteList().get(0));
+        assertEquals((Byte) (byte) 3, managedObj.getFieldByteList().get(1));
+        assertEquals(2, managedObj.getFieldDoubleList().size());
+        assertEquals((Double) 2D, managedObj.getFieldDoubleList().get(0));
+        assertEquals((Double) 3D, managedObj.getFieldDoubleList().get(1));
+        assertEquals(2, managedObj.getFieldFloatList().size());
+        assertEquals((Float) 2F, managedObj.getFieldFloatList().get(0));
+        assertEquals((Float) 3F, managedObj.getFieldFloatList().get(1));
+        assertEquals(2, managedObj.getFieldDateList().size());
+        assertEquals(new Date(2L), managedObj.getFieldDateList().get(0));
+        assertEquals(new Date(3L), managedObj.getFieldDateList().get(1));
     }
 
     // Tests close Realm in another thread different from where it is created.
@@ -3115,7 +3314,7 @@ public class RealmTests {
     @Test
     public void copyFromRealm() {
         populateTestRealm();
-        AllTypes realmObject = realm.where(AllTypes.class).findAllSorted("columnLong").first();
+        AllTypes realmObject = realm.where(AllTypes.class).sort("columnLong").findAll().first();
         AllTypes unmanagedObject = realm.copyFromRealm(realmObject);
         assertArrayEquals(realmObject.getColumnBinary(), unmanagedObject.getColumnBinary());
         assertEquals(realmObject.getColumnString(), unmanagedObject.getColumnString());
@@ -3129,7 +3328,7 @@ public class RealmTests {
     @Test
     public void copyFromRealm_newCopyEachTime() {
         populateTestRealm();
-        AllTypes realmObject = realm.where(AllTypes.class).findAllSorted("columnLong").first();
+        AllTypes realmObject = realm.where(AllTypes.class).sort("columnLong").findAll().first();
         AllTypes unmanagedObject1 = realm.copyFromRealm(realmObject);
         AllTypes unmanagedObject2 = realm.copyFromRealm(realmObject);
         assertFalse(unmanagedObject1 == unmanagedObject2);
@@ -3516,50 +3715,38 @@ public class RealmTests {
     }
 
     @Test
-    public void removeChangeListenerThrowExceptionOnNonLooperThread() {
+    public void removeChangeListenerThrowExceptionOnWrongThread() {
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(realmConfig);
-                try {
-                    realm.removeChangeListener(new RealmChangeListener<Realm>() {
-                        @Override
-                        public void onChange(Realm object) {
-                        }
-                    });
-                    fail("Should not be able to invoke removeChangeListener");
-                } catch (IllegalStateException ignored) {
-                } finally {
-                    realm.close();
-                    signalTestFinished.countDown();
-                }
+        Realm realm = Realm.getInstance(realmConfig);
+        Thread thread = new Thread(() -> {
+            try {
+                realm.removeChangeListener(object -> {});
+                fail("Should not be able to invoke removeChangeListener");
+            } catch (IllegalStateException ignored) {
+            } finally {
+                signalTestFinished.countDown();
             }
         });
         thread.start();
-
         try {
             TestHelper.awaitOrFail(signalTestFinished);
         } finally {
             thread.interrupt();
+            realm.close();
         }
     }
 
     @Test
-    public void removeAllChangeListenersThrowExceptionOnNonLooperThread() {
+    public void removeAllChangeListenersThrowExceptionOnWrongThreadThread() {
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(realmConfig);
-                try {
-                    realm.removeAllChangeListeners();
-                    fail("Should not be able to invoke removeChangeListener");
-                } catch (IllegalStateException ignored) {
-                } finally {
-                    realm.close();
-                    signalTestFinished.countDown();
-                }
+        Realm realm = Realm.getInstance(realmConfig);
+        Thread thread = new Thread(() -> {
+            try {
+                realm.removeAllChangeListeners();
+                fail("Should not be able to invoke removeChangeListener");
+            } catch (IllegalStateException ignored) {
+            } finally {
+                signalTestFinished.countDown();
             }
         });
         thread.start();
@@ -3568,6 +3755,7 @@ public class RealmTests {
             TestHelper.awaitOrFail(signalTestFinished);
         } finally {
             thread.interrupt();
+            realm.close();
         }
     }
 
@@ -3591,6 +3779,41 @@ public class RealmTests {
         assertEquals(0, realm.where(Cat.class).count());
         assertTrue(realm.isEmpty());
     }
+
+    // Test for https://github.com/realm/realm-java/issues/5745
+    @Test
+    public void deleteAll_realmWithMoreTables() {
+        realm.close();
+        RealmConfiguration config1 = configFactory.createConfigurationBuilder()
+                .name("deleteAllTest.realm")
+                .schema(StringOnly.class, StringAndInt.class)
+                .build();
+        realm = Realm.getInstance(config1);
+        realm.executeTransaction(r -> {
+            r.createObject(StringOnly.class);
+            r.createObject(StringAndInt.class);
+        });
+        realm.close();
+
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder()
+                .name("deleteAllTest.realm")
+                .schema(StringOnly.class)
+                .build();
+
+        realm = Realm.getInstance(config2);
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+        assertTrue(realm.isEmpty());
+        realm.close();
+
+        // deleteAll() will only delete tables part of the schema, so reopening with the old
+        // should reveal the old data
+        realm = Realm.getInstance(config1);
+        assertFalse(realm.isEmpty());
+        assertEquals(1, realm.where(StringAndInt.class).count());
+    }
+
 
     @Test
     public void waitForChange_emptyDataChange() throws InterruptedException {
@@ -3833,7 +4056,6 @@ public class RealmTests {
     @Test
     public void waitForChange_onLooperThread() throws Throwable {
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
-        final ExceptionHolder bgError = new ExceptionHolder();
 
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -3843,8 +4065,7 @@ public class RealmTests {
                 try {
                     realm.waitForChange();
                     fail();
-                } catch (Throwable expected) {
-                    bgError.setException(expected);
+                } catch (IllegalStateException ignored) {
                 } finally {
                     realm.close();
                     bgRealmClosed.countDown();
@@ -3854,10 +4075,6 @@ public class RealmTests {
         thread.start();
 
         TestHelper.awaitOrFail(bgRealmClosed);
-        if (bgError.getException() instanceof AssertionError) {
-            throw bgError.getException();
-        }
-        assertEquals(IllegalStateException.class, bgError.getException().getClass());
     }
 
     // Cannot wait inside of a transaction.
@@ -3951,8 +4168,8 @@ public class RealmTests {
                 .name("schemaChangeTest")
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
-        StringOnlyRealmProxy.StringOnlyColumnInfo columnInfo
-                = (StringOnlyRealmProxy.StringOnlyColumnInfo) realm.getSchema().getColumnInfo(StringOnly.class);
+        io_realm_entities_StringOnlyRealmProxy.StringOnlyColumnInfo columnInfo
+                = (io_realm_entities_StringOnlyRealmProxy.StringOnlyColumnInfo) realm.getSchema().getColumnInfo(StringOnly.class);
         assertEquals(0, columnInfo.charsIndex);
 
         realm.beginTransaction();
@@ -4048,14 +4265,14 @@ public class RealmTests {
         realm.close();
         realm = null;
 
-        final File namedPipeDir = SharedRealm.getTemporaryDirectory();
+        final File namedPipeDir = OsSharedRealm.getTemporaryDirectory();
         assertTrue(namedPipeDir.isDirectory());
         TestHelper.deleteRecursively(namedPipeDir);
         //noinspection ResultOfMethodCallIgnored
         namedPipeDir.mkdirs();
 
         final File externalFilesDir = context.getExternalFilesDir(null);
-        final RealmConfiguration config = new RealmConfiguration.Builder()
+        final RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .directory(externalFilesDir)
                 .name("external.realm")
                 .build();
@@ -4137,6 +4354,7 @@ public class RealmTests {
         when(mockContext.getFilesDir()).then(new Answer<File>() {
             int calls = 0;
             File userFolder = tmpFolder.newFolder();
+
             @Override
             public File answer(InvocationOnMock invocationOnMock) throws Throwable {
                 calls++;
@@ -4286,6 +4504,30 @@ public class RealmTests {
             realm = Realm.getInstance(config);
             fail();
         } catch (RealmMigrationNeededException ignored) {
+        }
+    }
+
+    // https://github.com/realm/realm-java/issues/5570
+    @Test
+    public void getInstance_migrationExceptionThrows_migrationBlockDefiend_realmInstancesShouldBeClosed() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .name("readonly.realm")
+                .schema(StringOnlyReadOnly.class, AllJavaTypes.class)
+                .schemaVersion(2)
+                .assetFile("readonly.realm")
+                .migration(new RealmMigration() {
+                    @Override
+                    public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                    }
+                })
+                .build();
+
+        try {
+            realm = Realm.getInstance(config);
+            fail();
+        } catch (RealmMigrationNeededException ignored) {
+            // No Realm instance should be opened at this time.
+            Realm.deleteRealm(config);
         }
     }
 }

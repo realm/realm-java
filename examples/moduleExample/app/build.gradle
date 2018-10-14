@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'android-command'
 apply plugin: 'realm-android'
 
 android {
@@ -9,7 +8,7 @@ android {
     defaultConfig {
         applicationId 'io.realm.examples.appmodules'
         targetSdkVersion rootProject.sdkVersion
-        minSdkVersion 15
+        minSdkVersion rootProject.minSdkVersion
         versionCode 1
         versionName "1.0"
     }
@@ -29,10 +28,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
-    }
-
-    command {
-        monkey.events 2000
     }
 }
 

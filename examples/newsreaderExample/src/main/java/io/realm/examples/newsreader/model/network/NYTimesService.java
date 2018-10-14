@@ -19,11 +19,11 @@ package io.realm.examples.newsreader.model.network;
 
 import java.util.List;
 
+import io.reactivex.Observable;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Query;
-import rx.Observable;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 /**
  * Retrofit interface for the New York Times WebService

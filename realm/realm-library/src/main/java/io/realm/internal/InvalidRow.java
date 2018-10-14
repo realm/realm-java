@@ -105,7 +105,12 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public LinkView getLinkList(long columnIndex) {
+    public OsList getModelList(long columnIndex) {
+        throw getStubException();
+    }
+
+    @Override
+    public OsList getValueList(long columnIndex, RealmFieldType fieldType) {
         throw getStubException();
     }
 

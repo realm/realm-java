@@ -31,6 +31,7 @@ import java.util.Date;
 
 import io.realm.entities.IOSAllTypes;
 import io.realm.entities.IOSChild;
+import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -78,10 +79,10 @@ public class IOSRealmTests {
             configFactory.copyRealmFromAssets(context,
                     "ios/" + iosVersion + "-alltypes.realm", REALM_NAME);
             realm = Realm.getDefaultInstance();
-            RealmResults<IOSAllTypes> result = realm.where(IOSAllTypes.class).findAllSorted("id", Sort.ASCENDING);
+            RealmResults<IOSAllTypes> result = realm.where(IOSAllTypes.class).sort("id", Sort.ASCENDING).findAll();
             // Verifies metadata.
             Table table = realm.getTable(IOSAllTypes.class);
-            assertTrue(table.hasPrimaryKey());
+            assertEquals("id", OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), IOSAllTypes.CLASS_NAME));
             assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
             // Iterative check.
             for (int i = 0; i < 10; i++) {

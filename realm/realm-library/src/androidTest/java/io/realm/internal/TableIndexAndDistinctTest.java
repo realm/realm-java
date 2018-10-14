@@ -43,14 +43,14 @@ public class TableIndexAndDistinctTest {
 
     @SuppressWarnings("FieldCanBeLocal")
     private RealmConfiguration config;
-    private SharedRealm sharedRealm;
+    private OsSharedRealm sharedRealm;
     private Table table;
 
     @Before
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = SharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config);
 
         sharedRealm.beginTransaction();
     }

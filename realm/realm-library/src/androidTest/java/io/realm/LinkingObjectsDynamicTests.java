@@ -174,11 +174,6 @@ public class LinkingObjectsDynamicTests {
         for (RealmFieldType fieldType : RealmFieldType.values()) {
             try {
                 switch (fieldType) {
-                    // skip unsupported types
-                    case UNSUPPORTED_TABLE: // fall-through
-                    case UNSUPPORTED_MIXED: // fall-through
-                    case UNSUPPORTED_DATE:
-                        continue;
                     // skip valid types
                     case OBJECT: // fall-through
                     case LIST:
@@ -207,6 +202,41 @@ public class LinkingObjectsDynamicTests {
                     case DOUBLE:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE);
                         break;
+                    case INTEGER_LIST:
+                        // FIXME zaki50 enable this once Primitive List is implemented
+                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INT_LIST);
+                        //break;
+                        throw new IllegalArgumentException("Unexpected field type");
+                    case BOOLEAN_LIST:
+                        // FIXME zaki50 enable this once Primitive List is implemented
+                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_BOOLEAN_LIST);
+                        //break;
+                        throw new IllegalArgumentException("Unexpected field type");
+                    case STRING_LIST:
+                        // FIXME zaki50 enable this once Primitive List is implemented
+                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_STRING_LIST);
+                        //break;
+                        throw new IllegalArgumentException("Unexpected field type");
+                    case BINARY_LIST:
+                        // FIXME zaki50 enable this once Primitive List is implemented
+                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_BINARY_LIST);
+                        //break;
+                        throw new IllegalArgumentException("Unexpected field type");
+                    case DATE_LIST:
+                        // FIXME zaki50 enable this once Primitive List is implemented
+                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DATE_LIST);
+                        //break;
+                        throw new IllegalArgumentException("Unexpected field type");
+                    case FLOAT_LIST:
+                        // FIXME zaki50 enable this once Primitive List is implemented
+                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_FLOAT_LIST);
+                        //break;
+                        throw new IllegalArgumentException("Unexpected field type");
+                    case DOUBLE_LIST:
+                        // FIXME zaki50 enable this once Primitive List is implemented
+                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
+                        //break;
+                        throw new IllegalArgumentException("Unexpected field type");
                     default:
                         fail("unknown type: " + fieldType);
                         break;

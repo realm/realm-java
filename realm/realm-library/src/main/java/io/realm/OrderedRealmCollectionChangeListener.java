@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import javax.annotation.Nullable;
+
 /**
  * {@link OrderedRealmCollectionChangeListener} can be registered with a {@link RealmResults} to receive a notification
  * with a {@link OrderedCollectionChangeSet} to describe the details of what have been changed in the collection from
@@ -33,8 +35,7 @@ public interface OrderedRealmCollectionChangeListener<T> {
      * This will be called when the async query is finished the first time or the collection of objects has changed.
      *
      * @param t the collection this listener is registered to.
-     * @param changeSet object with information about which rows in the collection were added, removed or modified.
-     * {@code null} is returned the first time an async query is completed.
+     * @param changeSet object with information about the change.
      */
     void onChange(T t, OrderedCollectionChangeSet changeSet);
 }

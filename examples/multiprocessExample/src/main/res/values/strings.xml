@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Realm Multi Process example</string>
+    <string name="start_remote_service">Start remote service</string>
+</resources>
