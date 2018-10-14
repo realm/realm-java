@@ -88,6 +88,7 @@ public class SyncedRealmQueryTests {
         assertEquals(Subscription.State.PENDING, sub.getState());
         assertEquals("", sub.getErrorMessage());
         assertEquals(query.getDescription(), sub.getQueryDescription());
+        assertEquals("AllTypes", sub.getQueryClassName());
     }
 
     @Test
@@ -100,6 +101,7 @@ public class SyncedRealmQueryTests {
         assertEquals(Subscription.State.PENDING, sub.getState());
         assertEquals("", sub.getErrorMessage());
         assertEquals(query.getDescription(), sub.getQueryDescription());
+        assertEquals("AllTypes", sub.getQueryClassName());
     }
 
     @Test

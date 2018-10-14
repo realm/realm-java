@@ -1,9 +1,22 @@
+/*
+ * Copyright 2018 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.realm.sync;
 
-import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
-import io.realm.RealmResults;
 import io.realm.annotations.Beta;
 import io.realm.annotations.Index;
 import io.realm.annotations.RealmClass;
@@ -24,6 +37,10 @@ import io.realm.internal.annotations.ObjectServer;
  * <p>
  * Subscriptions are Realm objects, so deleting them by e.g. calling {@link RealmObject#deleteFromRealm()},
  * is the same as calling {@link #unsubscribe()}.
+ * <p>
+ * <b>Warning:</b> Instances of this class should never be created directly through
+ * {@link io.realm.Realm#createObject(Class)} but only by using {@link RealmQuery#subscribe()} or
+ * {@link RealmQuery#subscribe(String)}.
  */
 @ObjectServer
 @RealmClass(name = "__ResultSets")
@@ -38,26 +55,42 @@ public class Subscription extends RealmObject {
          * An error occurred while creating or processing the subscription.
          * See {@link #getErrorMessage()} for details on what went wrong.
          */
-        ERROR,
+        ERROR((byte) -1),
 
         /**
          * The subscription has been created, but has not yet been processed by the sync
          * server.
          */
-        PENDING,
+        PENDING((byte) 0),
 
         /**
          * The subscription has been processed by the Realm Object Server and data is being synced
          * to the device.
          */
-        ACTIVE,
+        ACTIVE((byte) 1),
 
         /**
          * The subscription has been removed. Data is no longer being synchronized from the Realm
          * Object Server, and the objects covered by this subscription might be deleted from the
          * device if no other subscriptions include them.
          */
-        INVALIDATED
+        INVALIDATED(null);
+
+
+        private final Byte nativeValue;
+
+        State(Byte nativeValue) {
+            this.nativeValue = nativeValue;
+        }
+
+        /**
+         * Returns the native value representing this state.
+         *
+         * @return the native value representing this state.
+         */
+        public Byte getValue() {
+            return nativeValue;
+        }
     }
 
     public Subscription() {
@@ -76,17 +109,25 @@ public class Subscription extends RealmObject {
         this.query = query.getDescription();
         this.status = 0;
         this.errorMessage = "";
+        this.matchesProperty = "";
     }
 
     @Index
     @Required
     private String name;
 
+    /**
+     * The underlying representation of the State
+     */
     private byte status;
 
     @Required
-    @RealmField(name = "error_message")
+    @RealmField("error_message")
     private String errorMessage;
+
+    @Required
+    @RealmField("matches_property")
+    private String matchesProperty;
 
     @Required
     private String query;
@@ -102,10 +143,22 @@ public class Subscription extends RealmObject {
 
     /**
      * Returns a textual description of the query that created this subscription.
-     * @return
+     *
+     * @return a textual description of the query
      */
     public String getQueryDescription() {
         return query;
+    }
+
+    /**
+     * Returns the internal name of the Class being queried.
+     *
+     * @return the internal name of the of the class being queried.
+     */
+    public String getQueryClassName() {
+        // Strip the __matches suffix to end up with the class being queried.
+        String classQueried = matchesProperty;
+        return classQueried.substring(0, classQueried.length() - "_matches".length());
     }
 
     /**
@@ -157,5 +210,16 @@ public class Subscription extends RealmObject {
      */
     public void unsubscribe() {
         RealmObject.deleteFromRealm(this);
+    }
+
+    @Override
+    public String toString() {
+        return "Subscription{" +
+                "name='" + name + '\'' +
+                ", status=" + getState().toString() +
+                ", errorMessage='" + errorMessage + '\'' +
+                ", className='" + getQueryClassName() + '\'' +
+                ", query='" + query + '\'' +
+                '}';
     }
 }

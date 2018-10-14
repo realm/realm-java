@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import android.os.SystemClock;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -286,47 +288,28 @@ final class RealmCache {
             Class<E> realmClass) {
 
         RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.valueOf(realmClass));
+        boolean firstRealmInstanceInProcess = (getTotalGlobalRefCount() == 0);
+        boolean realmFileExistsOnDisk = configuration.realmExists();
 
-        if (getTotalGlobalRefCount() == 0) {
+        if (firstRealmInstanceInProcess) {
             copyAssetFileIfNeeded(configuration);
-            boolean fileExists = configuration.realmExists();
-
             OsSharedRealm sharedRealm = null;
             try {
-                if (configuration.isSyncConfiguration()) {
-                    // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
-                    // before proceeding. We need to open the Realm instance first to start any potential underlying
-                    // SyncSession so this will work. TODO: This needs to be decoupled.
-                    if (!fileExists) {
-                        sharedRealm = OsSharedRealm.getInstance(configuration);
-                        try {
-                            ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
-                        } catch (Throwable t) {
-                            // If an error happened while downloading initial data, we need to reset the file so we can
-                            // download it again on the next attempt.
-                            sharedRealm.close();
-                            sharedRealm = null;
-                            // FIXME: We don't have a way to ensure that the Realm instance on client thread has been
-                            //        closed for now.
-                            // https://github.com/realm/realm-java/issues/5416
-                            BaseRealm.deleteRealm(configuration);
-                            throw t;
-                        }
-                    }
-                } else {
-                    if (fileExists) {
-                        // Primary key problem only exists before we release sync.
-                        sharedRealm = OsSharedRealm.getInstance(configuration);
-                        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
-                    }
-                }
+                sharedRealm = OsSharedRealm.getInstance(configuration);
+                downloadRemoteChangesIfNeeded(sharedRealm, realmFileExistsOnDisk);
+                migratePrimaryKeyTablesIfNeeded(sharedRealm, realmFileExistsOnDisk);
+            } catch (Throwable t) {
+                sharedRealm.close();
+                sharedRealm = null;
+                deleteRealmFileOnDisk(configuration);
+                throw t;
             } finally {
                 if (sharedRealm != null) {
                     sharedRealm.close();
                 }
             }
 
-            // We are holding the lock, and we can set the invalidated configuration since there is no global ref to it.
+            // We are holding the lock, and we can set the valid configuration since there is no global ref to it.
             this.configuration = configuration;
         } else {
             // Throws exception if validation failed.
@@ -340,6 +323,17 @@ final class RealmCache {
             if (realmClass == Realm.class) {
                 // RealmMigrationNeededException might be thrown here.
                 realm = Realm.createInstance(this);
+
+                // If `waitForInitialRemoteData` data is set, we also want to ensure that all subscriptions
+                // are fully ready before proceeding. The `initialData` block is only executed for
+                // normal Realms, so initial subscriptions can only be created for those as well. Most
+                // of the Realm is initialized during a write (for atomicity). So we cannot download
+                // subscription data until all other initializers have run. At this point we also have access
+                // to all normal APIs as the schema is fully initialized.
+                // We the Realm file is new also need to reset it at this point as from the perspective of the
+                // user, it has not yet been opened.
+                synchronizeInitialSubscriptionsIfNeeded((Realm) realm, realmFileExistsOnDisk);
+
             } else if (realmClass == DynamicRealm.class) {
                 realm = DynamicRealm.createInstance(this);
             } else {
@@ -359,6 +353,80 @@ final class RealmCache {
 
         //noinspection unchecked
         return (E) refAndCount.localRealm.get();
+    }
+
+    /**
+     * Synchronize all initial subscriptions to disk (if needed).
+     *
+     * If this fails for a new Realm file, the file will be deleted so a new attempt can be done later.
+     * Old Realm files will be left alone.
+     *
+     * This method is not threadsafe. Synchronization should happen outside it.
+     *
+     * @param realm Realm instance to synchronize instances for. It is safe to close this Realm if an exception is thrown.
+     * @param realmFileExistedOnDisk {@code true} if the file existed on disk before trying to open the Realm.
+     */
+    private static void synchronizeInitialSubscriptionsIfNeeded(Realm realm, boolean realmFileExistedOnDisk) {
+        if (!realmFileExistedOnDisk) {
+            try {
+                ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialSubscriptions(realm);
+            } catch (Throwable t) {
+                realm.close();
+                deleteRealmFileOnDisk(realm.getConfiguration());
+            }
+        }
+    }
+
+    /**
+     * Downloads all known server changes before opening the Realm for real which will validate
+     * schemas, call initial data blocks and so on.
+     */
+    private static void downloadRemoteChangesIfNeeded(OsSharedRealm sharedRealm, boolean realmFileExistsOnDisk) {
+        RealmConfiguration configuration = sharedRealm.getConfiguration();
+        if (!realmFileExistsOnDisk && configuration.isSyncConfiguration()) {
+            // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
+            // before proceeding. We need to open the Realm instance first to start any potential underlying
+            // SyncSession so this will work.
+            ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
+            sharedRealm.refresh();
+        }
+    }
+
+    private static void migratePrimaryKeyTablesIfNeeded(OsSharedRealm sharedRealm, boolean realmFileExistsOnDisk) {
+        // Primary key problem only exists before we release sync.
+        RealmConfiguration configuration = sharedRealm.getConfiguration();
+        if (realmFileExistsOnDisk && !configuration.isSyncConfiguration()) {
+            Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
+        }
+    }
+
+    /**
+     * Attempts to delete the underlying Realm. Any errors happening here will just be
+     * outputted to logcat instead of thrown as this method is only called from other exception
+     * handlers which have more important exceptions to show to the user.
+     *
+     * This method is not threadsafe. Synchronization should happen outside it.
+     */
+    private static void deleteRealmFileOnDisk(RealmConfiguration configuration) {
+        // FIXME: We don't have a way to ensure that the Realm instance on client thread has been closed for now.
+        // https://github.com/realm/realm-java/issues/5416
+        int attempts = 5;
+        boolean success = false;
+        while (attempts > 0 && !success) {
+            try {
+                success = BaseRealm.deleteRealm(configuration);
+            } catch (IllegalStateException e) {
+                attempts--;
+                RealmLog.warn("Sync server still holds a reference to the Realm. It cannot be deleted. Retrying " + attempts + " more times");
+                if (attempts > 0) {
+                    SystemClock.sleep(15);
+                }
+            }
+        }
+
+        if (!success) {
+            RealmLog.error("Failed to delete the underlying Realm file: " + configuration.getPath());
+        }
     }
 
     /**

@@ -126,10 +126,10 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ThrowException(env, kind, e.what());
     }
 #if REALM_ENABLE_SYNC
-    catch (partial_sync::InvalidRealmStateException e) {
+    catch (partial_sync::InvalidRealmStateException& e) {
         ThrowException(env, IllegalState, e.what());
     }
-    catch (partial_sync::ExistingSubscriptionException e) {
+    catch (partial_sync::ExistingSubscriptionException& e) {
         ThrowException(env, IllegalArgument, e.what());
     }
 #endif
