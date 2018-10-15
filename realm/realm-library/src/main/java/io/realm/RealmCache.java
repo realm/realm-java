@@ -295,16 +295,30 @@ final class RealmCache {
             copyAssetFileIfNeeded(configuration);
             OsSharedRealm sharedRealm = null;
             try {
-                sharedRealm = OsSharedRealm.getInstance(configuration);
-                downloadRemoteChangesIfNeeded(sharedRealm, realmFileExistsOnDisk);
-                migratePrimaryKeyTablesIfNeeded(sharedRealm, realmFileExistsOnDisk);
-            } catch (Throwable t) {
-                if (sharedRealm != null) {
-                    sharedRealm.close();
+                if (configuration.isSyncConfiguration()) {
+                    // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
+                    // before proceeding. We need to open the Realm instance first to start any potential underlying
+                    // SyncSession so this will work.
+                    if (!realmFileExistsOnDisk) {
+                        sharedRealm = OsSharedRealm.getInstance(configuration);
+                        try {
+                            ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
+                        } catch (Throwable t) {
+                            // If an error happened while downloading initial data, we need to reset the file so we can
+                            // download it again on the next attempt.
+                            sharedRealm.close();
+                            sharedRealm = null;
+                            deleteRealmFileOnDisk(configuration);
+                            throw t;
+                        }
+                    }
+                } else {
+                    if (realmFileExistsOnDisk) {
+                        // Primary key problem only exists before we release sync.
+                        sharedRealm = OsSharedRealm.getInstance(configuration);
+                        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
+                    }
                 }
-                sharedRealm = null;
-                deleteRealmFileOnDisk(configuration);
-                throw t;
             } finally {
                 if (sharedRealm != null) {
                     sharedRealm.close();
@@ -376,29 +390,6 @@ final class RealmCache {
                 realm.close();
                 deleteRealmFileOnDisk(realm.getConfiguration());
             }
-        }
-    }
-
-    /**
-     * Downloads all known server changes before opening the Realm for real which will validate
-     * schemas, call initial data blocks and so on.
-     */
-    private static void downloadRemoteChangesIfNeeded(OsSharedRealm sharedRealm, boolean realmFileExistsOnDisk) {
-        RealmConfiguration configuration = sharedRealm.getConfiguration();
-        if (!realmFileExistsOnDisk && configuration.isSyncConfiguration()) {
-            // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
-            // before proceeding. We need to open the Realm instance first to start any potential underlying
-            // SyncSession so this will work.
-            ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
-            sharedRealm.refresh();
-        }
-    }
-
-    private static void migratePrimaryKeyTablesIfNeeded(OsSharedRealm sharedRealm, boolean realmFileExistsOnDisk) {
-        // Primary key problem only exists before we release sync.
-        RealmConfiguration configuration = sharedRealm.getConfiguration();
-        if (realmFileExistsOnDisk && !configuration.isSyncConfiguration()) {
-            Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
         }
     }
 
