@@ -39,5 +39,8 @@
     <Match>
         <Class name="io.realm.io_realm_sync_permissions_PermissionUserRealmProxy"/>
     </Match>
+    <Match>
+        <Class name="io.realm.io_realm_sync_SubscriptionRealmProxy"/>
+    </Match>
 
 </FindBugsFilter>

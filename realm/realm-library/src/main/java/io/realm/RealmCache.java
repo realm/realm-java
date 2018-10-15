@@ -299,7 +299,9 @@ final class RealmCache {
                 downloadRemoteChangesIfNeeded(sharedRealm, realmFileExistsOnDisk);
                 migratePrimaryKeyTablesIfNeeded(sharedRealm, realmFileExistsOnDisk);
             } catch (Throwable t) {
-                sharedRealm.close();
+                if (sharedRealm != null) {
+                    sharedRealm.close();
+                }
                 sharedRealm = null;
                 deleteRealmFileOnDisk(configuration);
                 throw t;
