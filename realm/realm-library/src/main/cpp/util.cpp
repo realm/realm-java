@@ -30,6 +30,8 @@
 #include "results.hpp"
 #include "list.hpp"
 #include "java_exception_def.hpp"
+#include "java_object_accessor.hpp"
+#include "object.hpp"
 
 #include "jni_util/java_exception_thrower.hpp"
 
@@ -119,6 +121,12 @@ void ConvertException(JNIEnv* env, const char* file, int line)
             kind = IllegalState;
         }
         ThrowException(env, kind, e.what());
+    }
+    catch(realm::MissingPropertyValueException e) {
+        ThrowException(env, IllegalArgument, e.what());
+    }
+    catch(realm::RequiredFieldValueNotProvidedException e) {
+        ThrowException(env, IllegalArgument, e.what());
     }
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());

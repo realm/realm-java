@@ -1,3 +1,15 @@
+## 5.8.0-BETA1 (2018-10-11)
+
+### Enhancements
+* Added new `ImportFlag` class that is used to specify additional behaviour when importing
+  data into Realm [#6224](https://github.com/realm/realm-java/pull/6224).
+* Added support for `ImportFlag` to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()` [#6224](https://github.com/realm/realm-java/pull/6224).
+
+### Known Bugs
+* `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` has been rewritten to support import flags. It is currently ~30% slower than in 5.7.0.
+* IllegalStateException thrown when trying to create an object with a primary key that already exists when using `Realm.copyToRealm`, will always report "null" instead of the correct primary key value.
+* When using `ImportFlag.DO_NOT_SET_SAME_VALUES`, lists will still be written and reported as changed, even if they didn't change.
+
 ## 5.7.0 (2017-09-24)
 
 ## Enhancements

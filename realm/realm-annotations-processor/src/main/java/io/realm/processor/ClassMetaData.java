@@ -63,6 +63,8 @@ public class ClassMetaData {
     private final String javaClassName; // Model class simple name as defined in Java.
     private final List<RealmFieldElement> fields = new ArrayList<>(); // List of all fields in the class except those @Ignored.
     private final List<RealmFieldElement> indexedFields = new ArrayList<>(); // list of all fields marked @Index.
+    private final List<RealmFieldElement> objectReferenceFields = new ArrayList<>(); // List of all fields that reference a Realm Object either directly or in a List
+    private final List<RealmFieldElement> basicTypeFields = new ArrayList<>(); // List of all fields that reference basic types, i.e. no references to other Realm Objects
     private final Set<Backlink> backlinks = new LinkedHashSet<>();
     private final Set<RealmFieldElement> nullableFields = new LinkedHashSet<>(); // Set of fields which can be nullable
     private final Set<RealmFieldElement> nullableValueListFields = new LinkedHashSet<>(); // Set of fields whose elements can be nullable
@@ -164,8 +166,25 @@ public class ClassMetaData {
         return packageName + "." + javaClassName;
     }
 
+    /**
+     * Returns all persistable fields in this model class
+     */
     public List<RealmFieldElement> getFields() {
         return Collections.unmodifiableList(fields);
+    }
+
+    /**
+     * Returns all persistable fields that reference other Realm objects.
+     */
+    public List<RealmFieldElement> getObjectReferenceFields() {
+        return Collections.unmodifiableList(objectReferenceFields);
+    }
+
+    /**
+     * Returns all persistable fields that contain a basic type, this include lists of primitives.
+     */
+    public List<RealmFieldElement> getBasicTypeFields() {
+        return Collections.unmodifiableList(basicTypeFields);
     }
 
     public Set<Backlink> getBacklinkFields() {
@@ -576,6 +595,11 @@ public class ClassMetaData {
 
         // Standard field that appears to be valid (more fine grained checks might fail later).
         fields.add(field);
+        if (Utils.isRealmModel(field) || Utils.isRealmModelList(field)) {
+            objectReferenceFields.add(field);
+        } else {
+            basicTypeFields.add(field);
+        }
 
         return true;
     }

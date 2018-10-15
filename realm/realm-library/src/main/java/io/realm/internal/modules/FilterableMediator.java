@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.ImportFlag;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.internal.ColumnInfo;
@@ -114,9 +115,9 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache) {
+    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
         checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
-        return originalMediator.copyOrUpdate(realm, object, update, cache);
+        return originalMediator.copyOrUpdate(realm, object, update, cache, flags);
     }
 
     @Override

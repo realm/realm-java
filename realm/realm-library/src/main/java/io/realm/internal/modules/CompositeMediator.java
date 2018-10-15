@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.ImportFlag;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.exceptions.RealmException;
@@ -116,9 +117,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache) {
+    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        return mediator.copyOrUpdate(realm, object, update, cache);
+        return mediator.copyOrUpdate(realm, object, update, cache, flags);
     }
 
     @Override
