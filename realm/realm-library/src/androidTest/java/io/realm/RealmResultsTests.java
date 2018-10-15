@@ -21,6 +21,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -34,11 +35,15 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.DefaultValueOfField;
 import io.realm.entities.Dog;
+import io.realm.entities.MappedAllJavaTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import io.realm.entities.PrimaryKeyAsLong;
+import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringOnly;
 import io.realm.internal.OsResults;
@@ -54,7 +59,7 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class RealmResultsTests extends CollectionTests {
 
-    private final static int TEST_DATA_SIZE = 2516;
+    private final static int TEST_DATA_SIZE = 100;
     private final static long YEAR_MILLIS = TimeUnit.DAYS.toMillis(365);
     private final static long DECADE_MILLIS = 10 * TimeUnit.DAYS.toMillis(365);
 
@@ -707,6 +712,170 @@ public class RealmResultsTests extends CollectionTests {
             collection.getRealm();
             fail();
         } catch (IllegalStateException ignore) {
+        }
+    }
+
+    @Test
+    public void setValue() {
+
+    }
+
+    @Test
+    public void setValue_implicitConversions() {
+
+    }
+
+    private void populateMappedAllJavaTypes(int objects) {
+        realm.beginTransaction();
+        realm.deleteAll();
+        for (int i = 0; i < objects; ++i) {
+            MappedAllJavaTypes obj = realm.createObject(MappedAllJavaTypes.class, i);
+            obj.fieldBoolean =  ((i % 2) == 0);
+            obj.fieldBinary = (new byte[]{1, 2, 3});
+            obj.fieldDate = (new Date(YEAR_MILLIS * (i - objects / 2)));
+            obj.fieldDouble = (Math.PI + i);
+            obj.fieldFloat = (1.234567f + i);
+            obj.fieldString = ("test data " + i);
+            obj.fieldLong = i;
+            obj.fieldObject = obj;
+            obj.fieldList.add(obj);
+        }
+        realm.commitTransaction();
+    }
+
+
+    enum BulkSetMethods {
+//        NULL,
+        BOOLEAN,
+//        BINARY,
+//        BYTE,
+//        SHORT,
+//        INTEGER,
+//        LONG,
+//        FLOAT,
+//        DOUBLE,
+//        DATE,
+        // OBJECT,
+        // LIST
+    }
+
+    interface ElementValidator<T> {
+        void validate(T obj);
+    }
+
+    private <T extends RealmModel> void assertElements(RealmResults<T> collection, ElementValidator<T> validator) {
+        for (T obj : collection) {
+            validator.validate(obj);
+        }
+    }
+
+    @Test
+    public void set_specificType() {
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
+        realm.beginTransaction();
+        for (BulkSetMethods type : BulkSetMethods.values()) {
+            switch(type) {
+                case BOOLEAN:
+                    collection.setBoolean(AllTypes.FIELD_BOOLEAN, true);
+                    assertElements(collection, obj -> assertTrue(obj.isColumnBoolean()));
+                    break;
+                default:
+                    fail("Unknown type: " + type);
+            }
+        }
+    }
+
+    @Test
+    public void set_specificType_wrongFieldNameThrows() {
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
+        realm.beginTransaction();
+        for (BulkSetMethods type : BulkSetMethods.values()) {
+            try {
+                switch(type) {
+                    case BOOLEAN: collection.setBoolean("foo", true); break;
+                    default:
+                        fail("Unknown type: " + type);
+                }
+                fail(type + " should have thrown an exception");
+            } catch (IllegalArgumentException e) {
+                assertTrue(e.getMessage().contains("does not exist"));
+            }
+        }
+    }
+
+    @Test
+    public void set_specificType_wrongTypeThrows() {
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
+        realm.beginTransaction();
+        for (BulkSetMethods type : BulkSetMethods.values()) {
+            try {
+                switch(type) {
+                    case BOOLEAN: collection.setBoolean(AllTypes.FIELD_STRING, true); break;
+                    default:
+                        fail("Unknown type: " + type);
+                }
+                fail(type + " should have thrown an exception");
+            } catch (IllegalArgumentException e) {
+                assertTrue(e.getMessage().contains("is not of the expected type"));
+            }
+        }
+    }
+
+    @Test
+    @Ignore("Types not implemented yet")
+    public void set_specificType_primaryKeyFieldThrows() {
+        realm.beginTransaction();
+        try {
+            RealmResults<PrimaryKeyAsString> collection = realm.where(PrimaryKeyAsString.class).findAll();
+            collection.setString(PrimaryKeyAsString.FIELD_ID, "foo");
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+
+        try {
+            RealmResults<PrimaryKeyAsLong> collection = realm.where(PrimaryKeyAsLong.class).findAll();
+            collection.setLong(PrimaryKeyAsLong.FIELD_ID, 42);
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
+
+    @Test
+    public void set_specificType_usesModelClassNameOnTypedRealms() {
+        populateMappedAllJavaTypes(5);
+        RealmResults<MappedAllJavaTypes> collection = realm.where(MappedAllJavaTypes.class).findAll();
+        realm.beginTransaction();
+        for (BulkSetMethods type : BulkSetMethods.values()) {
+            switch(type) {
+                case BOOLEAN:
+                    collection.setBoolean("fieldBoolean", true);
+                    assertElements(collection, obj -> assertTrue(obj.fieldBoolean));
+                    break;
+                default:
+                    fail("Unknown type: " + type);
+            }
+        }
+    }
+
+    @Test
+    public void set_specificType_usesInternalNameOnDynamicRealms() {
+        populateMappedAllJavaTypes(5);
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        dynamicRealm.beginTransaction();
+        try {
+            RealmResults<DynamicRealmObject> collection = dynamicRealm.where("MappedAllJavaTypes").findAll();
+            for (BulkSetMethods type : BulkSetMethods.values()) {
+                switch(type) {
+                    case BOOLEAN:
+                        collection.setBoolean("field_boolean", true);
+                        assertElements(collection, obj -> assertTrue(obj.getBoolean("field_boolean")));
+                        break;
+                    default:
+                        fail("Unknown type: " + type);
+                }
+            }
+        } finally {
+            dynamicRealm.close();
         }
     }
 }

@@ -128,6 +128,9 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch(realm::RequiredFieldValueNotProvidedException e) {
         ThrowException(env, IllegalArgument, e.what());
     }
+    catch(Results::InvalidPropertyException e) {
+        ThrowException(env, IllegalArgument, e.what());
+    }
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
     }

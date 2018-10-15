@@ -22,6 +22,7 @@
 #include <realm/util/optional.hpp>
 
 #include "java_class_global_def.hpp"
+#include "java_object_accessor.hpp"
 #include "java_query_descriptor.hpp"
 #include "observable_collection_wrapper.hpp"
 #include "util.hpp"
@@ -328,9 +329,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetNull(JNIEnv* /*
     // FIXME
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBoolean(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/, jboolean /*value*/)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBoolean(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jboolean value)
 {
-    // FIXME
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+        JavaContext ctx(env, wrapper->collection().get_realm(), wrapper->collection().get_object_schema());
+        JStringAccessor prop_name(env, j_field_name);
+        wrapper->collection().set_property_value(ctx, prop_name, util::Any(value));
+    }
+    CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetInt(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/, jlong /*value*/)

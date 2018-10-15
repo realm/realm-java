@@ -29,7 +29,6 @@ import io.reactivex.Observable;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
@@ -160,7 +159,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * field type.
      */
     public void setValue(String fieldName, Object value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         boolean isString = (value instanceof String);
         String strValue = isString ? (String) value : null;
 
@@ -235,7 +234,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalStateException if the field cannot hold {@code null} values.
      */
     public void setNull(String fieldName) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         realm.checkIfValid();
         osResults.setNull(fieldName);
     }
@@ -248,7 +247,9 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a boolean field.
      */
     public void setBoolean(String fieldName, boolean value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.BOOLEAN);
         realm.checkIfValid();
         osResults.setBoolean(fieldName, value);
     }
@@ -261,7 +262,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an integer field.
      */
     public void setByte(String fieldName, byte value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         realm.checkIfValid();
         osResults.setInt(fieldName, value);
     }
@@ -274,7 +275,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an integer field.
      */
     public void setShort(String fieldName, short value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         realm.checkIfValid();
         osResults.setInt(fieldName, value);
     }
@@ -287,7 +288,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an integer field.
      */
     public void setInt(String fieldName, int value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         realm.checkIfValid();
         osResults.setInt(fieldName, value);
     }
@@ -300,7 +301,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an integer field.
      */
     public void setLong(String fieldName, long value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         realm.checkIfValid();
         osResults.setInt(fieldName, value);
     }
@@ -313,7 +314,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a float field.
      */
     public void setFloat(String fieldName, float value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         realm.checkIfValid();
         osResults.setFloat(fieldName, value);
     }
@@ -326,7 +327,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a double field.
      */
     public void setDouble(String fieldName, double value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         realm.checkIfValid();
         osResults.setDouble(fieldName, value);
     }
@@ -339,7 +340,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a String field.
      */
     public void setString(String fieldName, String value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         checkNotNull(value);
         realm.checkIfValid();
         osResults.setString(fieldName, value);
@@ -353,7 +354,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a binary field.
      */
     public void setBlob(String fieldName, byte[] value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         checkNotNull(value);
         realm.checkIfValid();
         osResults.setBlob(fieldName, value);
@@ -367,7 +368,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a date field.
      */
     public void setDate(String fieldName, Date value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         checkNotNull(value);
         realm.checkIfValid();
         osResults.setDate(fieldName, value);
@@ -381,7 +382,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an Object reference field.
      */
     public void setObject(String fieldName, RealmModel value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         checkNotNull(value);
         realm.checkIfValid();
         if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
@@ -404,7 +405,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * objects in the list are not managed.
      */
     public void setList(String fieldName, RealmList<?> value) {
-        checkFieldName(fieldName);
+        checkNonEmptyFieldName(fieldName);
         if (!value.isManaged()) {
             throw new IllegalArgumentException("Only managed RealmLists can be added to objects");
         }
@@ -616,7 +617,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         }
     }
 
-    private void checkFieldName(String fieldName) {
+    private void checkNonEmptyFieldName(String fieldName) {
         if (Util.isEmptyString(fieldName)) {
             throw new IllegalArgumentException("Non-empty 'fieldname' required.");
         }
@@ -628,5 +629,26 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         }
     }
 
+    private void checkType(String fieldName, RealmFieldType expectedFieldType) {
+        String className = osResults.getTable().getClassName();
+        RealmFieldType fieldType = realm.getSchema().get(className).getFieldType(fieldName);
+        if (fieldType != expectedFieldType) {
+            throw new IllegalArgumentException(String.format("The field '%s.%s' is not of the expected type. " +
+                    "Actual: %s, Expected: %s", className, fieldName, fieldType, expectedFieldType));
+        }
+    }
 
+    private String mapFieldNameToInternalName(String fieldName) {
+        if (realm instanceof Realm) {
+            // We only need to map field names from typed Realms.
+            String className = osResults.getTable().getClassName();
+            String mappedFieldName = realm.getSchema().getColumnInfo(className).getInternalFieldName(fieldName);
+            if (mappedFieldName == null) {
+                throw new IllegalArgumentException(String.format("Field '%s' does not exists.", fieldName));
+            } else {
+                fieldName = mappedFieldName;
+            }
+        }
+        return fieldName;
+    }
 }
