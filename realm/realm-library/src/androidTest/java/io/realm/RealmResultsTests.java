@@ -715,16 +715,6 @@ public class RealmResultsTests extends CollectionTests {
         }
     }
 
-    @Test
-    public void setValue() {
-
-    }
-
-    @Test
-    public void setValue_implicitConversions() {
-
-    }
-
     private void populateMappedAllJavaTypes(int objects) {
         realm.beginTransaction();
         realm.deleteAll();
@@ -743,17 +733,34 @@ public class RealmResultsTests extends CollectionTests {
         realm.commitTransaction();
     }
 
+    private void populateAllJavaTypes(int objects) {
+        realm.beginTransaction();
+        realm.deleteAll();
+        for (int i = 0; i < objects; ++i) {
+            AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i);
+            obj.setFieldBoolean((i % 2) == 0);
+            obj.setFieldBinary(new byte[]{1, 2, 3});
+            obj.setFieldDate(new Date(YEAR_MILLIS * (i - objects / 2)));
+            obj.setFieldDouble(Math.PI + i);
+            obj.setFieldFloat(1.234567f + i);
+            obj.setFieldString("test data " + i);
+            obj.setFieldLong(i);
+            obj.setFieldObject(obj);
+            obj.getFieldList().add(obj);
+        }
+        realm.commitTransaction();
+    }
 
     enum BulkSetMethods {
-//        NULL,
+        STRING,
         BOOLEAN,
+        BYTE,
+        SHORT,
+        INTEGER,
+        LONG,
+        FLOAT,
+        DOUBLE,
 //        BINARY,
-//        BYTE,
-//        SHORT,
-//        INTEGER,
-//        LONG,
-//        FLOAT,
-//        DOUBLE,
 //        DATE,
         // OBJECT,
         // LIST
@@ -770,14 +777,60 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    public void setValue() {
+        // FIXME
+    }
+
+    @Test
+    public void setValue_implicitConversions() {
+        // FIXME
+    }
+
+    @Test
+    public void setNull() {
+        // FIXME
+    }
+
+    @Test
     public void set_specificType() {
-        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
+        populateAllJavaTypes(5);
+        RealmResults<AllJavaTypes> collection = realm.where(AllJavaTypes.class).findAll();
         realm.beginTransaction();
         for (BulkSetMethods type : BulkSetMethods.values()) {
             switch(type) {
+                case STRING:
+                    collection.setString(AllJavaTypes.FIELD_STRING, "foo");
+                    assertElements(collection, obj -> assertEquals("foo", obj.getFieldString()));
+                    collection.setString(AllJavaTypes.FIELD_STRING, null);
+                    assertElements(collection, obj -> assertEquals(null, obj.getFieldString()));
+                    break;
                 case BOOLEAN:
-                    collection.setBoolean(AllTypes.FIELD_BOOLEAN, true);
-                    assertElements(collection, obj -> assertTrue(obj.isColumnBoolean()));
+                    collection.setBoolean(AllJavaTypes.FIELD_BOOLEAN, true);
+                    assertElements(collection, obj -> assertTrue(obj.isFieldBoolean()));
+                    break;
+                case BYTE:
+                    collection.setByte(AllJavaTypes.FIELD_BYTE, (byte) 1);
+                    assertElements(collection, obj -> assertEquals((byte)1, obj.getFieldByte()));
+                    break;
+                case SHORT:
+                    collection.setShort(AllJavaTypes.FIELD_SHORT, (short) 2);
+                    assertElements(collection, obj -> assertEquals((short)2, obj.getFieldShort()));
+                    break;
+                case INTEGER:
+                    collection.setInt(AllJavaTypes.FIELD_INT, 3);
+                    assertElements(collection, obj -> assertEquals(3, obj.getFieldInt()));
+                    break;
+                case LONG:
+                    collection.setLong(AllJavaTypes.FIELD_LONG, 4L);
+                    assertElements(collection, obj -> assertEquals(4L, obj.getFieldLong()));
+                    break;
+                case FLOAT:
+                    collection.setFloat(AllJavaTypes.FIELD_FLOAT, 1.23F);
+                    assertElements(collection, obj -> assertEquals(1.23F, obj.getFieldFloat(), 0F));
+                    break;
+                case DOUBLE:
+                    collection.setDouble(AllJavaTypes.FIELD_DOUBLE, 1.234);
+                    assertElements(collection, obj -> assertEquals(1.234, obj.getFieldDouble(), 0F));
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -787,12 +840,20 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     public void set_specificType_wrongFieldNameThrows() {
+        populateAllJavaTypes(5);
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
         realm.beginTransaction();
         for (BulkSetMethods type : BulkSetMethods.values()) {
             try {
                 switch(type) {
+                    case STRING: collection.setString("foo", "bar"); break;
                     case BOOLEAN: collection.setBoolean("foo", true); break;
+                    case BYTE: collection.setByte("foo", (byte) 1); break;
+                    case SHORT: collection.setShort("foo", (short) 2); break;
+                    case INTEGER: collection.setInt("foo", 3); break;
+                    case LONG: collection.setLong("foo", 4L); break;
+                    case FLOAT: collection.setFloat("foo", 1.23F); break;
+                    case DOUBLE: collection.setDouble("foo", 1.234); break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -805,12 +866,20 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     public void set_specificType_wrongTypeThrows() {
+        populateAllJavaTypes(5);
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
         realm.beginTransaction();
         for (BulkSetMethods type : BulkSetMethods.values()) {
             try {
                 switch(type) {
+                    case STRING: collection.setString(AllTypes.FIELD_BOOLEAN, "foo"); break;
                     case BOOLEAN: collection.setBoolean(AllTypes.FIELD_STRING, true); break;
+                    case BYTE: collection.setByte(AllTypes.FIELD_STRING, (byte) 1); break;
+                    case SHORT: collection.setShort(AllTypes.FIELD_STRING, (short) 2); break;
+                    case INTEGER: collection.setInt(AllTypes.FIELD_STRING, 3); break;
+                    case LONG:collection.setLong(AllTypes.FIELD_STRING, 4L); break;
+                    case FLOAT: collection.setFloat(AllTypes.FIELD_STRING, 1.23F); break;
+                    case DOUBLE: collection.setDouble(AllTypes.FIELD_STRING, 1.234); break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -822,12 +891,12 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    @Ignore("Types not implemented yet")
     public void set_specificType_primaryKeyFieldThrows() {
+        populateAllJavaTypes(5);
         realm.beginTransaction();
         try {
             RealmResults<PrimaryKeyAsString> collection = realm.where(PrimaryKeyAsString.class).findAll();
-            collection.setString(PrimaryKeyAsString.FIELD_ID, "foo");
+            collection.setString(PrimaryKeyAsString.FIELD_PRIMARY_KEY, "foo");
             fail();
         } catch (IllegalStateException ignore) {
         }
@@ -841,15 +910,43 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    public void set_specificType_usesModelClassNameOnTypedRealms() {
+    public void set_specificType_modelClassNameOnTypedRealms() {
         populateMappedAllJavaTypes(5);
         RealmResults<MappedAllJavaTypes> collection = realm.where(MappedAllJavaTypes.class).findAll();
         realm.beginTransaction();
         for (BulkSetMethods type : BulkSetMethods.values()) {
             switch(type) {
+                case STRING:
+                    collection.setString("fieldString", "foo");
+                    assertElements(collection, obj -> assertEquals("foo", obj.fieldString));
+                    break;
                 case BOOLEAN:
                     collection.setBoolean("fieldBoolean", true);
                     assertElements(collection, obj -> assertTrue(obj.fieldBoolean));
+                    break;
+                case BYTE:
+                    collection.setByte("fieldByte", (byte) 1);
+                    assertElements(collection, obj -> assertEquals((byte) 1, obj.fieldByte));
+                    break;
+                case SHORT:
+                    collection.setShort("fieldShort", (short) 2);
+                    assertElements(collection, obj -> assertEquals((short) 2, obj.fieldShort));
+                    break;
+                case INTEGER:
+                    collection.setInt("fieldInt", 3);
+                    assertElements(collection, obj -> assertEquals(3, obj.fieldInt));
+                    break;
+                case LONG:
+                    collection.setLong("fieldLong", 4L);
+                    assertElements(collection, obj -> assertEquals(4L, obj.fieldLong));
+                    break;
+                case FLOAT:
+                    collection.setFloat("fieldFloat", 1.23F);
+                    assertElements(collection, obj -> assertEquals(1.23F, obj.fieldFloat, 0F));
+                    break;
+                case DOUBLE:
+                    collection.setDouble("fieldDouble", 1.234);
+                    assertElements(collection, obj -> assertEquals(1.234, obj.fieldDouble, 0F));
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -858,7 +955,7 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    public void set_specificType_usesInternalNameOnDynamicRealms() {
+    public void set_specificType_internalNameOnDynamicRealms() {
         populateMappedAllJavaTypes(5);
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         dynamicRealm.beginTransaction();
@@ -866,9 +963,35 @@ public class RealmResultsTests extends CollectionTests {
             RealmResults<DynamicRealmObject> collection = dynamicRealm.where("MappedAllJavaTypes").findAll();
             for (BulkSetMethods type : BulkSetMethods.values()) {
                 switch(type) {
+                    case STRING:
+                        collection.setString("field_string", "foo");
+                        assertElements(collection, obj -> assertEquals("foo", obj.getString("field_string")));
+                        break;
                     case BOOLEAN:
                         collection.setBoolean("field_boolean", true);
                         assertElements(collection, obj -> assertTrue(obj.getBoolean("field_boolean")));
+                        break;
+                    case BYTE:
+                        collection.setByte("field_byte", (byte) 1);
+                        assertElements(collection, obj -> assertEquals((byte) 1, obj.getByte("field_byte")));
+                        break;
+                    case SHORT:
+                        collection.setShort("field_short", (short) 2);
+                        assertElements(collection, obj -> assertEquals((short) 2, obj.getShort("field_short")));
+                        break;
+                    case INTEGER:
+                        collection.setInt("field_int", 3);
+                        assertElements(collection, obj -> assertEquals(3, obj.getInt("field_int")));
+                        break;
+                    case LONG:
+                        collection.setLong("field_long", 4L);
+                        assertElements(collection, obj -> assertEquals(4L, obj.getLong("field_long")));
+                        break;
+                    case FLOAT:
+                        collection.setFloat("field_float", 1.23F);
+                        assertElements(collection, obj -> assertEquals(1.23F, obj.getFloat("field_float"), 0F));
+                        break;
+                    case DOUBLE:
                         break;
                     default:
                         fail("Unknown type: " + type);

@@ -263,6 +263,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setByte(String fieldName, byte value) {
         checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.INTEGER);
         realm.checkIfValid();
         osResults.setInt(fieldName, value);
     }
@@ -276,6 +278,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setShort(String fieldName, short value) {
         checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.INTEGER);
         realm.checkIfValid();
         osResults.setInt(fieldName, value);
     }
@@ -289,6 +293,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setInt(String fieldName, int value) {
         checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.INTEGER);
         realm.checkIfValid();
         osResults.setInt(fieldName, value);
     }
@@ -302,6 +308,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setLong(String fieldName, long value) {
         checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.INTEGER);
         realm.checkIfValid();
         osResults.setInt(fieldName, value);
     }
@@ -315,6 +323,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setFloat(String fieldName, float value) {
         checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.FLOAT);
         realm.checkIfValid();
         osResults.setFloat(fieldName, value);
     }
@@ -328,6 +338,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setDouble(String fieldName, double value) {
         checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.DOUBLE);
         realm.checkIfValid();
         osResults.setDouble(fieldName, value);
     }
@@ -339,9 +351,10 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @param value new value for the field.
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a String field.
      */
-    public void setString(String fieldName, String value) {
+    public void setString(String fieldName, @Nullable String value) {
         checkNonEmptyFieldName(fieldName);
-        checkNotNull(value);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.STRING);
         realm.checkIfValid();
         osResults.setString(fieldName, value);
     }
@@ -353,9 +366,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @param value new value for the field.
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a binary field.
      */
-    public void setBlob(String fieldName, byte[] value) {
+    public void setBlob(String fieldName, @Nullable byte[] value) {
         checkNonEmptyFieldName(fieldName);
-        checkNotNull(value);
         realm.checkIfValid();
         osResults.setBlob(fieldName, value);
     }
@@ -367,9 +379,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @param value new value for the field.
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a date field.
      */
-    public void setDate(String fieldName, Date value) {
+    public void setDate(String fieldName, @Nullable Date value) {
         checkNonEmptyFieldName(fieldName);
-        checkNotNull(value);
         realm.checkIfValid();
         osResults.setDate(fieldName, value);
     }

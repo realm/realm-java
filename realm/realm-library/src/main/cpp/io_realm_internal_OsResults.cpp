@@ -324,51 +324,71 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeDeleteFirst(JN
     return JNI_FALSE;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetNull(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/)
-{
-    // FIXME
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBoolean(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jboolean value)
-{
-    TR_ENTER_PTR(native_ptr)
+static inline void update_objects(JNIEnv* env, jlong results_ptr, jstring& j_field_name, util::Any& value) {
     try {
-        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(results_ptr);
         JavaContext ctx(env, wrapper->collection().get_realm(), wrapper->collection().get_object_schema());
         JStringAccessor prop_name(env, j_field_name);
-        wrapper->collection().set_property_value(ctx, prop_name, util::Any(value));
+        wrapper->collection().set_property_value(ctx, prop_name, value);
     }
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetInt(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/, jlong /*value*/)
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetNull(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name)
 {
-    // FIXME
+    TR_ENTER_PTR(native_ptr)
+    auto value = util::Any();
+    update_objects(env, native_ptr, j_field_name, value);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetFloat(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/, jfloat /*value*/)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBoolean(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jboolean j_value)
 {
-    // FIXME
+    TR_ENTER_PTR(native_ptr)
+    util::Any value(j_value);
+    update_objects(env, native_ptr, j_field_name, value);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetDouble(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/, jdouble /*value*/)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetInt(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong j_value)
 {
-    // FIXME
+    TR_ENTER_PTR(native_ptr)
+    util::Any value(j_value);
+    update_objects(env, native_ptr, j_field_name, value);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetString(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/, jstring /*value*/)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetFloat(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jfloat j_value)
 {
-    // FIXME
+    TR_ENTER_PTR(native_ptr)
+    util::Any value(j_value);
+    update_objects(env, native_ptr, j_field_name, value);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBinary(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/, jbyteArray /*value*/)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetDouble(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jdouble j_value)
 {
-    // FIXME
+    TR_ENTER_PTR(native_ptr)
+    util::Any value(j_value);
+    update_objects(env, native_ptr, j_field_name, value);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetTimestamp(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/, jlong /*timestamp*/)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetString(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jstring j_value)
 {
-    // FIXME
+    TR_ENTER_PTR(native_ptr)
+    util::Any value(JStringAccessor(env, j_value));
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBinary(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jbyteArray j_value)
+{
+    TR_ENTER_PTR(native_ptr)
+    util::Any value(j_value);
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetTimestamp(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong j_value)
+{
+    TR_ENTER_PTR(native_ptr)
+    util::Any value(j_value);
+    update_objects(env, native_ptr, j_field_name, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObject(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/, jlong /*row_ptr*/)
