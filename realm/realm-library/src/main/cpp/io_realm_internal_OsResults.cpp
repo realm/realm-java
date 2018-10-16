@@ -380,7 +380,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetString(JNIEnv* 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBinary(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jbyteArray j_value)
 {
     TR_ENTER_PTR(native_ptr)
-    util::Any value(j_value);
+    auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+    util::Any value(data);
     update_objects(env, native_ptr, j_field_name, value);
 }
 

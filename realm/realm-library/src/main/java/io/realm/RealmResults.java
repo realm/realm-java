@@ -368,6 +368,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setBlob(String fieldName, @Nullable byte[] value) {
         checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.BINARY);
         realm.checkIfValid();
         osResults.setBlob(fieldName, value);
     }

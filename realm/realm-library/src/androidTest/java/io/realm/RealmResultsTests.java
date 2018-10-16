@@ -50,6 +50,7 @@ import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -759,7 +760,7 @@ public class RealmResultsTests extends CollectionTests {
         LONG,
         FLOAT,
         DOUBLE,
-//        BINARY,
+        BINARY,
         DATE,
         // OBJECT,
         // LIST
@@ -791,7 +792,7 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    public void set_specificType() {
+    public void setValue_specificType() {
         populateAllJavaTypes(5);
         RealmResults<AllJavaTypes> collection = realm.where(AllJavaTypes.class).findAll();
         realm.beginTransaction();
@@ -831,6 +832,12 @@ public class RealmResultsTests extends CollectionTests {
                     collection.setDouble(AllJavaTypes.FIELD_DOUBLE, 1.234);
                     assertElements(collection, obj -> assertEquals(1.234, obj.getFieldDouble(), 0F));
                     break;
+                case BINARY:
+                    collection.setBlob(AllJavaTypes.FIELD_BINARY, new byte[]{1,2,3});
+                    assertElements(collection, obj -> assertArrayEquals(new byte[]{1,2,3}, obj.getFieldBinary()));
+                    collection.setBlob(AllJavaTypes.FIELD_BINARY, null);
+                    assertElements(collection, obj -> assertNull(obj.getFieldBinary()));
+                    break;
                 case DATE:
                     collection.setDate(AllJavaTypes.FIELD_DATE, new Date(1000));
                     assertElements(collection, obj -> assertEquals(new Date(1000), obj.getFieldDate()));
@@ -844,7 +851,7 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    public void set_specificType_wrongFieldNameThrows() {
+    public void setValue_specificType_wrongFieldNameThrows() {
         populateAllJavaTypes(5);
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
         realm.beginTransaction();
@@ -859,6 +866,7 @@ public class RealmResultsTests extends CollectionTests {
                     case LONG: collection.setLong("foo", 4L); break;
                     case FLOAT: collection.setFloat("foo", 1.23F); break;
                     case DOUBLE: collection.setDouble("foo", 1.234); break;
+                    case BINARY: collection.setBlob("foo", new byte[]{1,2,3}); break;
                     case DATE: collection.setDate("foo", new Date(1000)); break;
                     default:
                         fail("Unknown type: " + type);
@@ -871,7 +879,7 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    public void set_specificType_wrongTypeThrows() {
+    public void setValue_specificType_wrongTypeThrows() {
         populateAllJavaTypes(5);
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
         realm.beginTransaction();
@@ -886,6 +894,7 @@ public class RealmResultsTests extends CollectionTests {
                     case LONG:collection.setLong(AllTypes.FIELD_STRING, 4L); break;
                     case FLOAT: collection.setFloat(AllTypes.FIELD_STRING, 1.23F); break;
                     case DOUBLE: collection.setDouble(AllTypes.FIELD_STRING, 1.234); break;
+                    case BINARY: collection.setBlob(AllTypes.FIELD_STRING, new byte[]{1,2,3}); break;
                     case DATE: collection.setDate(AllTypes.FIELD_STRING, new Date(1000)); break;
                     default:
                         fail("Unknown type: " + type);
@@ -898,7 +907,7 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    public void set_specificType_primaryKeyFieldThrows() {
+    public void setValue_specificType_primaryKeyFieldThrows() {
         populateAllJavaTypes(5);
         realm.beginTransaction();
         try {
@@ -917,7 +926,7 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    public void set_specificType_modelClassNameOnTypedRealms() {
+    public void setValue_specificType_modelClassNameOnTypedRealms() {
         populateMappedAllJavaTypes(5);
         RealmResults<MappedAllJavaTypes> collection = realm.where(MappedAllJavaTypes.class).findAll();
         realm.beginTransaction();
@@ -955,6 +964,10 @@ public class RealmResultsTests extends CollectionTests {
                     collection.setDouble("fieldDouble", 1.234);
                     assertElements(collection, obj -> assertEquals(1.234, obj.fieldDouble, 0F));
                     break;
+                case BINARY:
+                    collection.setBlob("fieldBinary", new byte[]{1,2,3});
+                    assertElements(collection, obj -> assertArrayEquals(new byte[]{1,2,3}, obj.fieldBinary));
+                    break;
                 case DATE:
                     collection.setDate("fieldDate", new Date(1000));
                     assertElements(collection, obj -> assertEquals(new Date(1000), obj.fieldDate));
@@ -966,7 +979,7 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    public void set_specificType_internalNameOnDynamicRealms() {
+    public void setValue_specificType_internalNameOnDynamicRealms() {
         populateMappedAllJavaTypes(5);
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         dynamicRealm.beginTransaction();
@@ -1005,6 +1018,10 @@ public class RealmResultsTests extends CollectionTests {
                     case DOUBLE:
                         collection.setDouble("field_double", 1.234);
                         assertElements(collection, obj -> assertEquals(1.234, obj.getDouble("field_double"), 0F));
+                        break;
+                    case BINARY:
+                        collection.setBlob("field_binary", new byte[]{1,2,3});
+                        assertElements(collection, obj -> assertArrayEquals(new byte[]{1,2,3}, obj.getBlob("field_binary")));
                         break;
                     case DATE:
                         collection.setDate("field_date", new Date(1000));
