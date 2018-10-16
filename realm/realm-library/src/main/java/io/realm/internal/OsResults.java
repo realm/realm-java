@@ -423,7 +423,7 @@ public class OsResults implements NativeObject, ObservableCollection {
         nativeSetString(nativePtr, fieldName, value);
     }
 
-    public void setBlob(String fieldName, byte[] value) {
+    public void setBlob(String fieldName, @Nullable byte[] value) {
         nativeSetBinary(nativePtr, fieldName, value);
     }
 
