@@ -21,7 +21,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -761,7 +760,7 @@ public class RealmResultsTests extends CollectionTests {
         FLOAT,
         DOUBLE,
 //        BINARY,
-//        DATE,
+        DATE,
         // OBJECT,
         // LIST
     }
@@ -832,6 +831,12 @@ public class RealmResultsTests extends CollectionTests {
                     collection.setDouble(AllJavaTypes.FIELD_DOUBLE, 1.234);
                     assertElements(collection, obj -> assertEquals(1.234, obj.getFieldDouble(), 0F));
                     break;
+                case DATE:
+                    collection.setDate(AllJavaTypes.FIELD_DATE, new Date(1000));
+                    assertElements(collection, obj -> assertEquals(new Date(1000), obj.getFieldDate()));
+                    collection.setDate(AllJavaTypes.FIELD_DATE, null);
+                    assertElements(collection, obj -> assertEquals(null, obj.getFieldDate()));
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -854,6 +859,7 @@ public class RealmResultsTests extends CollectionTests {
                     case LONG: collection.setLong("foo", 4L); break;
                     case FLOAT: collection.setFloat("foo", 1.23F); break;
                     case DOUBLE: collection.setDouble("foo", 1.234); break;
+                    case DATE: collection.setDate("foo", new Date(1000)); break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -880,6 +886,7 @@ public class RealmResultsTests extends CollectionTests {
                     case LONG:collection.setLong(AllTypes.FIELD_STRING, 4L); break;
                     case FLOAT: collection.setFloat(AllTypes.FIELD_STRING, 1.23F); break;
                     case DOUBLE: collection.setDouble(AllTypes.FIELD_STRING, 1.234); break;
+                    case DATE: collection.setDate(AllTypes.FIELD_STRING, new Date(1000)); break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -948,6 +955,10 @@ public class RealmResultsTests extends CollectionTests {
                     collection.setDouble("fieldDouble", 1.234);
                     assertElements(collection, obj -> assertEquals(1.234, obj.fieldDouble, 0F));
                     break;
+                case DATE:
+                    collection.setDate("fieldDate", new Date(1000));
+                    assertElements(collection, obj -> assertEquals(new Date(1000), obj.fieldDate));
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -992,6 +1003,12 @@ public class RealmResultsTests extends CollectionTests {
                         assertElements(collection, obj -> assertEquals(1.23F, obj.getFloat("field_float"), 0F));
                         break;
                     case DOUBLE:
+                        collection.setDouble("field_double", 1.234);
+                        assertElements(collection, obj -> assertEquals(1.234, obj.getDouble("field_double"), 0F));
+                        break;
+                    case DATE:
+                        collection.setDate("field_date", new Date(1000));
+                        assertElements(collection, obj -> assertEquals(new Date(1000), obj.getDate("field_date")));
                         break;
                     default:
                         fail("Unknown type: " + type);

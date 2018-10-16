@@ -381,6 +381,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setDate(String fieldName, @Nullable Date value) {
         checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.DATE);
         realm.checkIfValid();
         osResults.setDate(fieldName, value);
     }

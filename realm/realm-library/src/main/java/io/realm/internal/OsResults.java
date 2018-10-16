@@ -419,7 +419,7 @@ public class OsResults implements NativeObject, ObservableCollection {
         nativeSetDouble(nativePtr, fieldName, value);
     }
 
-    public void setString(String fieldName, String value) {
+    public void setString(String fieldName, @Nullable String value) {
         nativeSetString(nativePtr, fieldName, value);
     }
 
@@ -427,8 +427,12 @@ public class OsResults implements NativeObject, ObservableCollection {
         nativeSetBinary(nativePtr, fieldName, value);
     }
 
-    public void setDate(String fieldName, Date timestamp) {
-        nativeSetTimestamp(nativePtr, fieldName, timestamp.getTime());
+    public void setDate(String fieldName, @Nullable Date timestamp) {
+        if (timestamp == null) {
+            nativeSetNull(nativePtr, fieldName);
+        } else {
+            nativeSetTimestamp(nativePtr, fieldName, timestamp.getTime());
+        }
     }
 
     public void setObject(String fieldName, Row row) {
@@ -568,9 +572,9 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native void nativeSetDouble(long nativePtr, String fieldName, double value);
 
-    private static native void nativeSetString(long nativePtr, String fieldName, String value);
+    private static native void nativeSetString(long nativePtr, String fieldName, @Nullable String value);
 
-    private static native void nativeSetBinary(long nativePtr, String fieldName, byte[] value);
+    private static native void nativeSetBinary(long nativePtr, String fieldName, @Nullable byte[] value);
 
     private static native void nativeSetTimestamp(long nativePtr, String fieldName, long value);
 
