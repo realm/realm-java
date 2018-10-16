@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.internal.CheckedRow;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -216,8 +217,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             setDate(fieldName, (Date) value);
         } else if (value instanceof byte[]) {
             setBlob(fieldName, (byte[]) value);
-        } else if (valueClass == DynamicRealmObject.class) {
-            setObject(fieldName, (DynamicRealmObject) value);
+        } else if (value instanceof RealmModel) {
+            setObject(fieldName, (RealmModel) value);
         } else if (valueClass == RealmList.class) {
             RealmList<?> list = (RealmList<?>) value;
             setList(fieldName, list);
@@ -396,18 +397,35 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @param value new value for the field.
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an Object reference field.
      */
-    public void setObject(String fieldName, RealmModel value) {
+    public void setObject(String fieldName, @Nullable RealmModel value) {
         checkNonEmptyFieldName(fieldName);
-        checkNotNull(value);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.OBJECT);
         realm.checkIfValid();
-        if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
-            throw new IllegalArgumentException("'value' is not a valid a valid, managed Realm object.");
+
+        Row row = null;
+        if (value != null) {
+            if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
+                throw new IllegalArgumentException("'value' is not a valid a valid, managed Realm object.");
+            }
+            ProxyState proxyState = ((RealmObjectProxy) value).realmGet$proxyState();
+            if (!proxyState.getRealm$realm().getPath().equals(realm.getPath())) {
+                throw new IllegalArgumentException("'value' does not belong to the same Realm as the RealmResults.");
+            }
+
+            // Check that type matches the expected one
+            Table currentTable = osResults.getTable();
+            long columnIndex = currentTable.getColumnIndex(fieldName);
+            Table expectedTable = currentTable.getLinkTarget(columnIndex);
+            Table inputTable = proxyState.getRow$realm().getTable();
+            if (!expectedTable.hasSameSchema(inputTable)) {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "Type of object is wrong. Was '%s', expected '%s'",
+                        inputTable.getClassName(), expectedTable.getClassName()));
+            }
+            row = proxyState.getRow$realm();
         }
-        ProxyState proxyState = ((RealmObjectProxy) value).realmGet$proxyState();
-        if (!proxyState.getRealm$realm().getPath().equals(realm.getPath())) {
-            throw new IllegalArgumentException("'value' does not belong to the same Realm as the RealmResults.");
-        }
-        Row row = proxyState.getRow$realm();
+
         osResults.setObject(fieldName, row);
     }
 

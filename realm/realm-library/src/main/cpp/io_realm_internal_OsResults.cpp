@@ -392,9 +392,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetTimestamp(JNIEn
     update_objects(env, native_ptr, j_field_name, value);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObject(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/, jlong /*row_ptr*/)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObject(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong row_ptr)
 {
-    // FIXME
+    TR_ENTER_PTR(native_ptr)
+    util::Any value(*reinterpret_cast<Row*>(row_ptr));
+    update_objects(env, native_ptr, j_field_name, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetList(JNIEnv* /*env*/, jclass, jlong /*native_ptr*/, jstring /*j_field_name*/, jlong /*list_ptr*/)

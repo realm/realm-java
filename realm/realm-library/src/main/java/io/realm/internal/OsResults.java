@@ -435,19 +435,23 @@ public class OsResults implements NativeObject, ObservableCollection {
         }
     }
 
-    public void setObject(String fieldName, Row row) {
-        long rowPtr;
-        if (row instanceof UncheckedRow) {
-            // Normal Realms
-            rowPtr = ((UncheckedRow) row).getNativePtr();
-        } else if (row instanceof CheckedRow) {
-            // Dynamic Realms
-            rowPtr = ((CheckedRow) row).getNativePtr();
+    public void setObject(String fieldName, @Nullable Row row) {
+        if (row == null) {
+            setNull(fieldName);
         } else {
-            // Should never happen, but just in case.
-            throw new UnsupportedOperationException("Unsupported Row type: " + row.getClass().getCanonicalName());
+            long rowPtr;
+            if (row instanceof UncheckedRow) {
+                // Normal Realms
+                rowPtr = ((UncheckedRow) row).getNativePtr();
+            } else if (row instanceof CheckedRow) {
+                // Dynamic Realms
+                rowPtr = ((CheckedRow) row).getNativePtr();
+            } else {
+                // Should never happen, but just in case.
+                throw new UnsupportedOperationException("Unsupported Row type: " + row.getClass().getCanonicalName());
+            }
+            nativeSetObject(nativePtr, fieldName, rowPtr);
         }
-        nativeSetObject(nativePtr, fieldName, rowPtr);
     }
 
     public void setList(String fieldName, RealmList<? extends RealmModel> list) {

@@ -762,8 +762,18 @@ public class RealmResultsTests extends CollectionTests {
         DOUBLE,
         BINARY,
         DATE,
-        // OBJECT,
-        // LIST
+        OBJECT,
+        // MODEL_LIST,
+        // STRING_VALUE_LIST,
+        // BOOLEAN_VALUE_LIST,
+        // BYTE_VALUE_LIST,
+        // SHORT_VALUE_LIST,
+        // INTEGER_VALUE_LIST,
+        // LONG_VALUE_LIST,
+        // FLOAT_VALUE_LIST,
+        // DOUBLE_VALUE_LIST,
+        // BINARY_VALUE_LIST,
+        // DATE_VALUE_LIST,
     }
 
     interface ElementValidator<T> {
@@ -844,9 +854,54 @@ public class RealmResultsTests extends CollectionTests {
                     collection.setDate(AllJavaTypes.FIELD_DATE, null);
                     assertElements(collection, obj -> assertEquals(null, obj.getFieldDate()));
                     break;
+                case OBJECT:
+                    AllJavaTypes childObj = realm.createObject(AllJavaTypes.class, 42);
+                    collection.setObject(AllJavaTypes.FIELD_OBJECT, childObj);
+                    assertElements(collection, obj -> assertEquals(childObj, obj.getFieldObject()));
+                    collection.setObject(AllJavaTypes.FIELD_OBJECT, null);
+                    assertElements(collection, obj -> assertNull(obj.getFieldObject()));
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
+        }
+    }
+
+    @Test
+    public void setObject_unmanagedObjectThrows() {
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
+        realm.beginTransaction();
+        try {
+            collection.setObject(AllTypes.FIELD_REALMOBJECT, new Dog());
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue("Wrong error message: " + e.getMessage(), e.getMessage().contains("is not a valid a valid, managed Realm object."));
+        }
+    }
+
+    @Test
+    public void setObject_wrongObjectTypeThrows() {
+        RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
+        realm.beginTransaction();
+        try {
+            collection.setObject(AllTypes.FIELD_REALMOBJECT, realm.createObject(AllTypes.class));
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue("Wrong error message: " + e.getMessage(), e.getMessage().equals("Type of object is wrong. Was 'AllTypes', expected 'Dog'"));
+        } finally {
+            realm.cancelTransaction();
+        }
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        RealmResults<DynamicRealmObject> dynamicCollection = dynamicRealm.where("AllTypes").findAll();
+        dynamicRealm.beginTransaction();
+        try {
+            dynamicCollection.setObject(AllTypes.FIELD_REALMOBJECT, dynamicRealm.createObject("AllTypes"));
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue("Wrong error message: " + e.getMessage(), e.getMessage().equals("Type of object is wrong. Was 'AllTypes', expected 'Dog'"));
+        } finally {
+            dynamicRealm.close();
         }
     }
 
@@ -868,6 +923,7 @@ public class RealmResultsTests extends CollectionTests {
                     case DOUBLE: collection.setDouble("foo", 1.234); break;
                     case BINARY: collection.setBlob("foo", new byte[]{1,2,3}); break;
                     case DATE: collection.setDate("foo", new Date(1000)); break;
+                    case OBJECT: collection.setObject("foo", realm.createObject(AllTypes.class)); break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -896,6 +952,7 @@ public class RealmResultsTests extends CollectionTests {
                     case DOUBLE: collection.setDouble(AllTypes.FIELD_STRING, 1.234); break;
                     case BINARY: collection.setBlob(AllTypes.FIELD_STRING, new byte[]{1,2,3}); break;
                     case DATE: collection.setDate(AllTypes.FIELD_STRING, new Date(1000)); break;
+                    case OBJECT: collection.setObject(AllTypes.FIELD_STRING, realm.createObject(Dog.class)); break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -972,6 +1029,11 @@ public class RealmResultsTests extends CollectionTests {
                     collection.setDate("fieldDate", new Date(1000));
                     assertElements(collection, obj -> assertEquals(new Date(1000), obj.fieldDate));
                     break;
+                case OBJECT:
+                    MappedAllJavaTypes childObj = realm.createObject(MappedAllJavaTypes.class, 42);
+                    collection.setObject("fieldObject", childObj);
+                    assertElements(collection, obj -> assertEquals(childObj, obj.fieldObject));
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -1026,6 +1088,11 @@ public class RealmResultsTests extends CollectionTests {
                     case DATE:
                         collection.setDate("field_date", new Date(1000));
                         assertElements(collection, obj -> assertEquals(new Date(1000), obj.getDate("field_date")));
+                        break;
+                    case OBJECT:
+                        DynamicRealmObject childObj = dynamicRealm.createObject("MappedAllJavaTypes", 42);
+                        collection.setObject("field_object", childObj);
+                        assertElements(collection, obj -> assertEquals(childObj, obj.getObject("field_object")));
                         break;
                     default:
                         fail("Unknown type: " + type);
