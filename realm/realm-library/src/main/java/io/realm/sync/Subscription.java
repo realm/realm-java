@@ -132,6 +132,9 @@ public class Subscription extends RealmObject {
     @Required
     private String query;
 
+    @RealmField("query_parse_counter")
+    private int queryParseCounter;
+
     /**
      * Returns the name of the subscription.
      *
