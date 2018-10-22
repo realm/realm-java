@@ -25,17 +25,17 @@ import io.realm.annotations.Required;
 import io.realm.internal.annotations.ObjectServer;
 
 /**
- * Subscriptions represent the data that a device is interested in from the server when using
+ * Subscriptions represents the data from the server that a device is interested in when using
  * Query-based Realms.
  * <p>
  * They are created automatically when using {@link RealmQuery#findAllAsync()} or {@link RealmQuery#findAllAsync(String)}
- * on those Realms, but can also be created manually.
+ * on those Realms, but can also be created manually using {@link RealmQuery#subscribe()} and {@link RealmQuery#subscribe(String)}.
  * <p>
- * As long as a any subscription exists that include a Object, that object will be present on the
- * device. If an object is not covered by any subscription it will be removed from the device,
+ * As long as any subscription exist that include an object, that object will be present on the
+ * device. If an object is not covered by an active subscription it will be removed from the device,
  * but not the server.
  * <p>
- * Subscriptions are Realm objects, so deleting them by e.g. calling {@link RealmObject#deleteFromRealm()},
+ * Subscriptions are Realm objects, so deleting them e.g. by calling {@link RealmObject#deleteFromRealm()},
  * is the same as calling {@link #unsubscribe()}.
  * <p>
  * <b>Warning:</b> Instances of this class should never be created directly through

@@ -26,7 +26,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 
-import io.realm.ObjectServerError;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
@@ -187,7 +186,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     if (!syncConfig.isFullySynchronizedRealm()) {
                         // For Query-based Realms we want to upload all our local changes
                         // first since those might include subscriptions the server need to process.
-                        // This means that once `downloadAllServerChanges` complete all
+                        // This means that once `downloadAllServerChanges` completes all
                         // initial subscriptions will also have been downloaded.
                         session.uploadAllLocalChanges();
                     }

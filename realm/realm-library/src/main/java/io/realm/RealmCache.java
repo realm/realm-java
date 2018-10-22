@@ -341,13 +341,9 @@ final class RealmCache {
                 realm = Realm.createInstance(this);
 
                 // If `waitForInitialRemoteData` data is set, we also want to ensure that all subscriptions
-                // are fully ready before proceeding. The `initialData` block is only executed for
-                // normal Realms, so initial subscriptions can only be created for those as well. Most
-                // of the Realm is initialized during a write (for atomicity). So we cannot download
-                // subscription data until all other initializers have run. At this point we also have access
-                // to all normal APIs as the schema is fully initialized.
-                // We the Realm file is new also need to reset it at this point as from the perspective of the
-                // user, it has not yet been opened.
+                // are fully ACTIVE before proceeding. Most of the Realm is initialized during a write
+                // transaction. So we cannot download subscription data until all other initializers have run.
+                // At this point we also have access to all normal APIs as the schema is fully initialized.
                 synchronizeInitialSubscriptionsIfNeeded((Realm) realm, realmFileExistsOnDisk);
 
             } else if (realmClass == DynamicRealm.class) {
@@ -374,8 +370,8 @@ final class RealmCache {
     /**
      * Synchronize all initial subscriptions to disk (if needed).
      *
-     * If this fails for a new Realm file, the file will be deleted so a new attempt can be done later.
-     * Old Realm files will be left alone.
+     * If activating the subscriptions fails for a new Realm file, the file will be deleted so a new
+     * attempt can be done later. Old Realm files will be left alone.
      *
      * This method is not threadsafe. Synchronization should happen outside it.
      *
