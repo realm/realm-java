@@ -126,9 +126,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         realm.createObject(StringOnly.class).setChars("Hi Alice");
         realm.commitTransaction();
 
-        // STEP 2: make sure the changes gets to the server
-        SyncManager.getSession(configWithEncryption).uploadAllLocalChanges();
-
+        // STEP 2: Close the Realm and log the user out to forget about it.
         realm.close();
         user.logOut();
 

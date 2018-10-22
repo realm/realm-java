@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import javax.annotation.Nullable;
-
 import io.realm.RealmChangeListener;
 import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.sync.OsSubscription;
@@ -85,6 +83,7 @@ public class SubscriptionAwareOsResults extends OsResults {
         // errors and a completed subscription
         if (delayedNotificationPtr == 0
                 && subscription != null
+                && !firstCallback
                 && subscription.getState() != OsSubscription.SubscriptionState.ERROR
                 && subscription.getState() != OsSubscription.SubscriptionState.COMPLETE) {
             return;
