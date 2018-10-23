@@ -1,10 +1,10 @@
-## 5.7.1 (2017-10-22)
+## 5.7.1 (2018-10-22)
 
 ### Fixes
 * `RealmResults` listeners not triggering the initial callback for Query-based Realm when the device is offline. Since 5.0.0 [#6235](https://github.com/realm/realm-java/issues/6235). 
 
 
-## 5.7.0 (2017-09-24)
+## 5.7.0 (2018-09-24)
 
 ## Enhancements
 * [ObjectServer] Devices will now report download progress for read-only Realms which 
