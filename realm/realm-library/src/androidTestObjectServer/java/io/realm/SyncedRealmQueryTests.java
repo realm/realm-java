@@ -118,9 +118,8 @@ public class SyncedRealmQueryTests {
 
     @Test
     public void subscribe_throwOnDynamicRealm() {
-        realm = getPartialRealm(); // Build schema
-        DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
-        realm.close();
+        getPartialRealm().close(); // Build schema
+        dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         dynamicRealm.beginTransaction();
         RealmQuery<DynamicRealmObject> query = dynamicRealm.where(AllTypes.CLASS_NAME);
         try {

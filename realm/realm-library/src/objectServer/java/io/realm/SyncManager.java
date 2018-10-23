@@ -725,29 +725,13 @@ public class SyncManager {
      * Only call this method when testing.
      */
     static synchronized void reset() {
-        // Work around the fact that underlying sessions might not be killed immediately
-        // Which can cause quite a lot of flaky tests
-        int attempts = 5;
-        boolean success = false;
-        while (!success && attempts > 0) {
-            try {
-                nativeReset();
-                sessions.clear();
-                hostRestrictedAuthorizationHeaderName.clear();
-                globalAuthorizationHeaderName = "Authorization";
-                hostRestrictedCustomHeaders.clear();
-                globalCustomHeaders.clear();
-                authServer.clearCustomHeaderSettings();
-                success = true;
-            } catch (RealmError e) {
-                if (e.getMessage().contains("Assertion failed: no_active_sessions")) {
-                    attempts--;
-                    SystemClock.sleep(500);
-                } else {
-                    throw e;
-                }
-            }
-        }
+        nativeReset();
+        sessions.clear();
+        hostRestrictedAuthorizationHeaderName.clear();
+        globalAuthorizationHeaderName = "Authorization";
+        hostRestrictedCustomHeaders.clear();
+        globalCustomHeaders.clear();
+        authServer.clearCustomHeaderSettings();
     }
 
     /**
