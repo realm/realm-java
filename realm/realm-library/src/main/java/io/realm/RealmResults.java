@@ -24,16 +24,13 @@ import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
-import io.realm.annotations.Beta;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsResults;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-import io.realm.internal.annotations.ObjectServer;
 import io.realm.log.RealmLog;
 import io.realm.rx.CollectionChange;
-import io.realm.sync.Subscription;
 
 /**
  * This class holds all the matches of a {@link RealmQuery} for a given Realm. The objects are not copied from
@@ -341,5 +338,4 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
         }
     }
-
 }

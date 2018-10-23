@@ -353,7 +353,7 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
         Realm realm = Realm.getInstance(partialSyncConfig);
         looperThread.closeAfterTest(realm);
 
-        // Check the state of subscriptions
+        // Check the state of subscriptions. Sync automatically creates subscriptions for fine-grained permission classes.
         assertEquals(6, realm.getSubscriptions().size());
         assertTrue(realm.getSubscriptions().where().equalTo("status", 0).findAll().isEmpty());
         Subscription sub = realm.getSubscription("my-sub");
@@ -387,6 +387,7 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
             Subscription sub = r.getSubscription("my-sub");
             assertEquals(Subscription.State.ACTIVE, sub.getState());
             sub.unsubscribe();
+            assertEquals(Subscription.State.INVALIDATED, sub.getState());
         });
 
         // Objects should eventually disappear from the device
@@ -397,6 +398,42 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
             }
         });
     }
+
+
+    @Test
+    @RunTestInLooperThread
+    public void deletingSubscriptionObjectUnsubscribes() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        createServerData(user, Constants.SYNC_SERVER_URL);
+
+        // Create partial Realm that will wait for the subscriptions
+        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .name("partialSync")
+                .initialData(r -> {
+                    r.where(PartialSyncObjectA.class).greaterThan("number", 5).subscribe("my-sub");
+                })
+                .waitForInitialRemoteData()
+                .addModule(new PartialSyncModule())
+                .build();
+        Realm realm = Realm.getInstance(partialSyncConfig);
+        looperThread.closeAfterTest(realm);
+
+        realm.executeTransaction(r -> {
+            Subscription sub = r.getSubscription("my-sub");
+            assertEquals(Subscription.State.ACTIVE, sub.getState());
+            sub.deleteFromRealm(); // Equivalent of calling `sub.unsubscribe()`.
+            assertEquals(Subscription.State.INVALIDATED, sub.getState());
+        });
+
+        // Objects should eventually disappear from the device
+        RealmResults<PartialSyncObjectA> results = realm.where(PartialSyncObjectA.class).findAll();
+        results.addChangeListener((objects, changeSet) -> {
+            if (objects.isEmpty()) {
+                looperThread.testComplete();
+            }
+        });
+    }
+
 
     private Realm getPartialRealm(SyncUser user) {
         final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
