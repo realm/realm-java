@@ -185,7 +185,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                 try {
                     if (!syncConfig.isFullySynchronizedRealm()) {
                         // For Query-based Realms we want to upload all our local changes
-                        // first since those might include subscriptions the server need to process.
+                        // first since those might include subscriptions the server needs to process.
                         // This means that once `downloadAllServerChanges` completes all
                         // initial subscriptions will also have been downloaded.
                         session.uploadAllLocalChanges();

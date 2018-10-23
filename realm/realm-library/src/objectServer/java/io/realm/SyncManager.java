@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.os.SystemClock;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,6 +46,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.exceptions.RealmError;
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
 import io.realm.internal.network.AuthenticationServer;
@@ -446,7 +449,7 @@ public class SyncManager {
     }
 
     /**
-     * Retruns the all valid sessions belonging to the user.
+     * Returns the all valid sessions belonging to the user.
      *
      * @param syncUser the user to use.
      * @return the all valid sessions belonging to the user.
@@ -722,13 +725,29 @@ public class SyncManager {
      * Only call this method when testing.
      */
     static synchronized void reset() {
-        nativeReset();
-        sessions.clear();
-        hostRestrictedAuthorizationHeaderName.clear();
-        globalAuthorizationHeaderName = "Authorization";
-        hostRestrictedCustomHeaders.clear();
-        globalCustomHeaders.clear();
-        authServer.clearCustomHeaderSettings();
+        // Work around the fact that underlying sessions might not be killed immediately
+        // Which can cause quite a lot of flaky tests
+        int attempts = 5;
+        boolean success = false;
+        while (!success && attempts > 0) {
+            try {
+                nativeReset();
+                sessions.clear();
+                hostRestrictedAuthorizationHeaderName.clear();
+                globalAuthorizationHeaderName = "Authorization";
+                hostRestrictedCustomHeaders.clear();
+                globalCustomHeaders.clear();
+                authServer.clearCustomHeaderSettings();
+                success = true;
+            } catch (RealmError e) {
+                if (e.getMessage().contains("Assertion failed: no_active_sessions")) {
+                    attempts--;
+                    SystemClock.sleep(500);
+                } else {
+                    throw e;
+                }
+            }
+        }
     }
 
     /**

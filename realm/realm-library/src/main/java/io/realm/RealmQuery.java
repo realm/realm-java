@@ -2050,7 +2050,7 @@ public class RealmQuery<E> {
     public Subscription subscribe(String name) {
         realm.checkIfValid();
         if (realm instanceof DynamicRealm) {
-            throw new IllegalStateException("'subscribe' is not available for queries on Dynamic Realms.");
+            throw new IllegalStateException("'subscribe' is not supported for queries on Dynamic Realms.");
         }
         if (osList != null) {
             throw new IllegalStateException("Cannot create subscriptions for queries based on a 'RealmList. Subscribe to the object holding the list instead.'");

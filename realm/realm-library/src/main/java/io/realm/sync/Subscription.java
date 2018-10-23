@@ -147,7 +147,7 @@ public class Subscription extends RealmObject {
     /**
      * Returns a textual description of the query that created this subscription.
      *
-     * @return a textual description of the query
+     * @return a textual description of the query.
      */
     public String getQueryDescription() {
         return query;

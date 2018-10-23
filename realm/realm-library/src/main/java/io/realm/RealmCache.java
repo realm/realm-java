@@ -289,7 +289,7 @@ final class RealmCache {
 
         RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.valueOf(realmClass));
         boolean firstRealmInstanceInProcess = (getTotalGlobalRefCount() == 0);
-        boolean realmFileExistsOnDisk = configuration.realmExists();
+        boolean realmFileIsBeingCreated = !configuration.realmExists();
 
         if (firstRealmInstanceInProcess) {
             copyAssetFileIfNeeded(configuration);
@@ -299,7 +299,7 @@ final class RealmCache {
                     // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
                     // before proceeding. We need to open the Realm instance first to start any potential underlying
                     // SyncSession so this will work.
-                    if (!realmFileExistsOnDisk) {
+                    if (realmFileIsBeingCreated) {
                         sharedRealm = OsSharedRealm.getInstance(configuration);
                         try {
                             ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
@@ -313,7 +313,7 @@ final class RealmCache {
                         }
                     }
                 } else {
-                    if (realmFileExistsOnDisk) {
+                    if (!realmFileIsBeingCreated) {
                         // Primary key problem only exists before we release sync.
                         sharedRealm = OsSharedRealm.getInstance(configuration);
                         Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
@@ -344,7 +344,7 @@ final class RealmCache {
                 // are fully ACTIVE before proceeding. Most of the Realm is initialized during a write
                 // transaction. So we cannot download subscription data until all other initializers have run.
                 // At this point we also have access to all normal APIs as the schema is fully initialized.
-                synchronizeInitialSubscriptionsIfNeeded((Realm) realm, realmFileExistsOnDisk);
+                synchronizeInitialSubscriptionsIfNeeded((Realm) realm, realmFileIsBeingCreated);
 
             } else if (realmClass == DynamicRealm.class) {
                 realm = DynamicRealm.createInstance(this);
@@ -376,10 +376,10 @@ final class RealmCache {
      * This method is not threadsafe. Synchronization should happen outside it.
      *
      * @param realm Realm instance to synchronize instances for. It is safe to close this Realm if an exception is thrown.
-     * @param realmFileExistedOnDisk {@code true} if the file existed on disk before trying to open the Realm.
+     * @param  {@code true} if the file existed on disk before trying to open the Realm.
      */
-    private static void synchronizeInitialSubscriptionsIfNeeded(Realm realm, boolean realmFileExistedOnDisk) {
-        if (!realmFileExistedOnDisk) {
+    private static void synchronizeInitialSubscriptionsIfNeeded(Realm realm, boolean realmFileIsBeingCreated) {
+        if (realmFileIsBeingCreated) {
             try {
                 ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialSubscriptions(realm);
             } catch (Throwable t) {
