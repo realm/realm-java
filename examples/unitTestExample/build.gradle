@@ -22,7 +22,7 @@ android {
             signingConfig signingConfigs.debug
         }
         debug {
-            minifyEnabled true
+            minifyEnabled false
         }
     }
 
@@ -30,13 +30,19 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
 }
 
 
 dependencies {
-    implementation 'com.android.support:appcompat-v7:27.0.2'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
 
-    testImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
+    testImplementation 'io.reactivex.rxjava2:rxjava:2.1.13'
 
     // Testing
     testImplementation 'junit:junit:4.12'
@@ -50,9 +56,9 @@ dependencies {
     testImplementation "org.powermock:powermock-classloading-xstream:1.6.5"
 
 
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
     // Set this dependency to use JUnit 4 rules
-    androidTestImplementation 'com.android.support.test:rules:1.0.1'
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
     // Set this dependency to build and run Espresso tests
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:2.2.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }

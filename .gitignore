@@ -13,6 +13,7 @@ local.properties
 core
 core-*
 realm-sync-android-*
+!realm/realm-library/src/main/java/io/realm/internal/core/
 
 # Android Studio
 .idea

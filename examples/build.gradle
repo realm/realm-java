@@ -1,6 +1,8 @@
+def projectDependencies = new Properties()
+projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
 project.ext.sdkVersion = 27
 project.ext.minSdkVersion = 15
-project.ext.buildTools = '27.0.2'
+project.ext.buildTools = projectDependencies.get("ANDROID_BUILD_TOOLS")
 
 // Don't cache SNAPSHOT (changing) dependencies.
 configurations.all {
@@ -21,6 +23,7 @@ allprojects {
 
     def props = new Properties()
     props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.load(new FileInputStream("${rootDir}/../dependencies.list"))
     props.each { key, val ->
         project.ext.set(key, val)
     }
@@ -33,8 +36,8 @@ allprojects {
             maven { url 'https://jitpack.io' }
         }
         dependencies {
-            classpath 'com.android.tools.build:gradle:3.1.0-alpha06'
-            classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+            classpath "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
+            classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${props.get('GRADLE_BINTRAY_PLUGIN')}"
             classpath "io.realm:realm-gradle-plugin:${currentVersion}"
         }
     }

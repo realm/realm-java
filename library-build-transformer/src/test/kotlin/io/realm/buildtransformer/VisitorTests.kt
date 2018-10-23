@@ -16,14 +16,15 @@
 package io.realm.buildtransformer
 
 import io.realm.buildtransformer.asm.ClassPoolTransformer
+import io.realm.buildtransformer.ext.packageHierarchyRootDir
+import io.realm.buildtransformer.ext.shouldBeDeleted
 import io.realm.buildtransformer.testclasses.*
+import io.realm.internal.annotations.CustomAnnotation
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.io.File
 import kotlin.reflect.KClass
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.fail
 
 class VisitorTests {
 
@@ -41,6 +42,7 @@ class VisitorTests {
         assetDefaultConstructorExists(c)
         assertFieldExists("field2", c)
         assertFieldRemoved("field1", c)
+        assertTrue(c.getField("field2").isAnnotationPresent(CustomAnnotation::class.java))
     }
 
     @Test
@@ -86,7 +88,7 @@ class VisitorTests {
         ).forEach { inputClasses.add(getClassFile(it)) }
         val transformer = ClassPoolTransformer(qualifiedAnnotationName, inputClasses)
         val outputFiles: Set<File> = transformer.transform()
-        assertEquals(1, outputFiles.size) // Only top level file is saved.
+        assertEquals(1, outputFiles.filter { !it.shouldBeDeleted }.size) // Only top level file is saved.
         assertTrue(outputFiles.first().name.endsWith("NestedTestClass.class"))
     }
 
@@ -97,7 +99,7 @@ class VisitorTests {
     private fun assertFieldRemoved(fieldName: String, clazz: Class<*>) {
         try {
             clazz.getField(fieldName)
-            fail("Field $fieldName has not been removed");
+            fail("Field $fieldName has not been removed")
         } catch (e: NoSuchFieldException) {
         }
     }
@@ -126,7 +128,7 @@ class VisitorTests {
         val inputClasses: MutableSet<File> = mutableSetOf()
         pool.forEach { inputClasses.add(getClassFile(it)) }
         val transformer = ClassPoolTransformer(qualifiedAnnotationName, inputClasses)
-        val outputFiles: Set<File> = transformer.transform()
+        val outputFiles: Set<File> = transformer.transform().filter { !it.shouldBeDeleted }.toSet()
         @Suppress("UNCHECKED_CAST")
         return classLoader.loadClass(clazz.java.name, outputFiles) as Class<T>
     }
@@ -137,6 +139,10 @@ class VisitorTests {
 
     private fun getClassFile(clazz: Class<*>): File {
         val filePath = "${clazz.name.replace(".", "/")}.class"
-        return File(classLoader.getResource(filePath).file)
+        val file = File(classLoader.getResource(filePath).file)
+        // Extension properties must be initialized before they can be read
+        file.shouldBeDeleted = false
+        file.packageHierarchyRootDir = ""
+        return file
     }
 }

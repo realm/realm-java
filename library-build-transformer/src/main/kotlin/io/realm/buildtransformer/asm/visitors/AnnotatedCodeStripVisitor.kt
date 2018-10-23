@@ -17,6 +17,7 @@ package io.realm.buildtransformer.asm.visitors
 
 import io.realm.buildtransformer.ByteCodeMethodName
 import io.realm.buildtransformer.ByteCodeTypeDescriptor
+import io.realm.buildtransformer.FieldName
 import io.realm.buildtransformer.logger
 import org.objectweb.asm.*
 import org.objectweb.asm.AnnotationVisitor
@@ -28,14 +29,17 @@ import org.objectweb.asm.AnnotationVisitor
 class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
                                 private val markedClasses: Set<String>,
                                 private val markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>,
+                                private val markedFields: Map<ByteCodeTypeDescriptor, Set<FieldName>>,
                                 classWriter: ClassVisitor) : ClassVisitor(Opcodes.ASM6, classWriter) {
 
     var deleteClass: Boolean = false
     private lateinit var markedMethodsInClass: Set<ByteCodeMethodName>
+    private lateinit var markedFieldsInClass: Set<FieldName>
 
     override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
         // Only process this class if it or its super class doesn't have the given annotation
         markedMethodsInClass = markedMethods[name!!]!!
+        markedFieldsInClass = markedFields[name]!!
         deleteClass = (markedClasses.contains(name) || markedClasses.contains(superName))
         if (!deleteClass) {
             super.visit(version, access, name, signature, superName, interfaces)
@@ -54,21 +58,12 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
         }
     }
 
-    override fun visitField(access: Int, name: String?, descriptor: String?, signature: String?, value: Any?): FieldVisitor {
-        return object: FieldVisitor(api) {
-            var ignoreField = false
-            override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor? {
-                ignoreField = (annotationDescriptor == descriptor)
-                return null
-            }
-            override fun visitEnd() {
-                if (!ignoreField) {
-                    // Call super ClassVisitor directly
-                    this@AnnotatedCodeStripVisitor.cv.visitField(access, name, descriptor, signature, value)
-                } else {
-                    logger.debug("Removing field: $name")
-                }
-            }
+    override fun visitField(access: Int, name: String?, descriptor: String?, signature: String?, value: Any?): FieldVisitor? {
+        return if (!markedFieldsInClass.contains(name)) {
+            super.visitField(access, name, descriptor, signature, value)
+        } else {
+            logger.debug("Removing field: $name")
+            null
         }
     }
 

@@ -392,7 +392,7 @@ task bintrayRealm(type: GradleBuild) {
     description = 'Publish the Realm AAR and AP to Bintray'
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
-    tasks = ['bintrayUpload']
+    tasks = ['bintrayUploadAll']
     startParameter.projectProperties = gradle.startParameter.projectProperties
     if (project.hasProperty('buildTargetABIs')) {
         startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
