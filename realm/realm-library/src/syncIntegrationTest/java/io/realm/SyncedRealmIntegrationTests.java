@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.Random;
 import java.util.UUID;
 
+import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -439,4 +440,31 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         looperThread.closeAfterTest(realm);
     }
 
+
+    /**
+     * Tests https://github.com/realm/realm-java/issues/6235
+     * This checks that the INITIAL callback is called for query-based notifications even when
+     * the device is offline.
+     */
+    @Test
+    @RunTestInLooperThread
+    public void listenersTriggerWhenOffline() {
+        SyncUser user = SyncTestUtils.createTestUser(); // Creating a fake user will make it behave as "offline"
+        String url = "http://foo.com/offlineListeners";
+        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, url)
+                .build();
+        Realm realm = Realm.getInstance(config);
+        looperThread.closeAfterTest(realm);
+
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+
+        looperThread.keepStrongReference(results);
+        results.addChangeListener((objects, changeSet) -> {
+            if(changeSet.getState() == OrderedCollectionChangeSet.State.INITIAL) {
+                assertTrue(results.isLoaded());
+                assertFalse(changeSet.isCompleteResult());
+                looperThread.testComplete();
+            }
+        });
+    }
 }
