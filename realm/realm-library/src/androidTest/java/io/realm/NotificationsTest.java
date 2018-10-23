@@ -1118,29 +1118,8 @@ public class NotificationsTest {
         looperThread.keepStrongReference(obj);
         realm.commitTransaction();
         obj.addChangeListener((RealmObjectChangeListener<AllJavaTypes>) (object, changeSet) -> {
-            assertEquals(12, changeSet.getChangedFields().length);
-
-            // Object refs and lists are marked as changed even if they didn't
-            // This should be fixed by Object Store: https://github.com/realm/realm-object-store/pull/699/
-            List<String> changedFields = Arrays.asList(
-                    "fieldString",
-                    "fieldList",
-                    "fieldStringList",
-                    "fieldBinaryList",
-                    "fieldBooleanList",
-                    "fieldLongList",
-                    "fieldIntegerList",
-                    "fieldShortList",
-                    "fieldByteList",
-                    "fieldDoubleList",
-                    "fieldFloatList",
-                    "fieldDateList");
-
-            for (int i = 0; i < changedFields.size(); i++) {
-                String field = changedFields.get(i);
-                assertEquals(field, changeSet.getChangedFields()[i]);
-            }
-
+            assertEquals(1, changeSet.getChangedFields().length);
+            assertEquals("fieldString", changeSet.getChangedFields()[0]);
             looperThread.testComplete();
         });
 

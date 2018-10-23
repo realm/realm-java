@@ -15,6 +15,28 @@
 * None
 
 
+## 5.8.0-BETA3 (YYYY-MM-DD)
+
+### Enhancements
+* None
+
+### Fixed
+* When using `ImportFlag.DO_NOT_SET_SAME_VALUES`, lists will still be written and reported as changed, even if they didn't change.
+ (Issue [#6224](https://github.com/realm/realm-java/pull/6224), since 5.8.0-BETA1).
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Known Bugs
+* `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` has been rewritten to support import flags. It is currently ~30% slower than in 5.7.0.
+* IllegalStateException thrown when trying to create an object with a primary key that already exists when using `Realm.copyToRealm`, will always report "null" instead of the correct primary key value.
+
+
+### Internal
+* Updated to Object Store commit: 1f91c82eb34cf4eaa2900794a9268390876f19f1
+
 
 ## 5.8.0-BETA2 (2018-10-19)
 
@@ -36,6 +58,7 @@
 
 ### Internal
 * None
+
 
 ## 5.8.0-BETA1 (2018-10-11)
 

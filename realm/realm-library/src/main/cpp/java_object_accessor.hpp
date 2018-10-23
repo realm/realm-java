@@ -138,7 +138,7 @@ public:
     // using the provided value. If `update` is true then upsert semantics
     // should be used for this.
     template<typename T>
-    T unbox(util::Any& /*v*/, bool /*create*/= false, bool /*update*/= false, bool /*diff_on_update*/= false) const {
+    T unbox(util::Any& /*v*/, bool /*create*/= false, bool /*update*/= false, bool /*diff_on_update*/= false, size_t /*current_row*/ = realm::npos) const {
         throw std::logic_error("Missing template specialization"); // All types should have specialized templates
     }
 
@@ -219,35 +219,35 @@ private:
 };
 
 template <>
-inline bool JavaContext::unbox(util::Any& v, bool, bool, bool) const
+inline bool JavaContext::unbox(util::Any& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Boolean");
     return any_cast<jboolean>(v) == JNI_TRUE;
 }
 
 template <>
-inline int64_t JavaContext::unbox(util::Any& v, bool, bool, bool) const
+inline int64_t JavaContext::unbox(util::Any& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Long");
     return static_cast<int64_t>(any_cast<jlong>(v));
 }
 
 template <>
-inline double JavaContext::unbox(util::Any& v, bool, bool, bool) const
+inline double JavaContext::unbox(util::Any& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Double");
     return static_cast<double>(any_cast<jdouble>(v));
 }
 
 template <>
-inline float JavaContext::unbox(util::Any& v, bool, bool, bool) const
+inline float JavaContext::unbox(util::Any& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Float");
     return static_cast<float>(any_cast<jfloat>(v));
 }
 
 template <>
-inline StringData JavaContext::unbox(util::Any& v, bool, bool, bool) const
+inline StringData JavaContext::unbox(util::Any& v, bool, bool, bool, size_t) const
 {
     if (!v.has_value()) {
         return StringData();
@@ -258,7 +258,7 @@ inline StringData JavaContext::unbox(util::Any& v, bool, bool, bool) const
 }
 
 template <>
-inline BinaryData JavaContext::unbox(util::Any& v, bool, bool, bool) const
+inline BinaryData JavaContext::unbox(util::Any& v, bool, bool, bool, size_t) const
 {
     if (!v.has_value())
         return BinaryData();
@@ -269,13 +269,13 @@ inline BinaryData JavaContext::unbox(util::Any& v, bool, bool, bool) const
 }
 
 template <>
-inline Timestamp JavaContext::unbox(util::Any& v, bool, bool, bool) const
+inline Timestamp JavaContext::unbox(util::Any& v, bool, bool, bool, size_t) const
 {
     return v.has_value() ? from_milliseconds(any_cast<jlong>(v)) : Timestamp();
 }
 
 template <>
-inline RowExpr JavaContext::unbox(util::Any& v, bool create, bool update, bool diff_on_update) const
+inline RowExpr JavaContext::unbox(util::Any& v, bool create, bool update, bool diff_on_update, size_t current_row) const
 {
     if (auto row = any_cast<Row>(&v))
         return *row;
@@ -287,35 +287,35 @@ inline RowExpr JavaContext::unbox(util::Any& v, bool create, bool update, bool d
         return RowExpr();
 
     REALM_ASSERT(object_schema);
-    return Object::create(const_cast<JavaContext&>(*this), realm, *object_schema, v, update, diff_on_update).row();
+    return Object::create(const_cast<JavaContext&>(*this), realm, *object_schema, v, update, diff_on_update, current_row).row();
 }
 
 template <>
-inline util::Optional<bool> JavaContext::unbox(util::Any& v, bool, bool, bool) const
+inline util::Optional<bool> JavaContext::unbox(util::Any& v, bool, bool, bool, size_t) const
 {
     return v.has_value() ? util::make_optional(any_cast<jboolean>(v) == JNI_TRUE) : util::none;
 }
 
 template <>
-inline util::Optional<int64_t> JavaContext::unbox(util::Any& v, bool, bool, bool) const
+inline util::Optional<int64_t> JavaContext::unbox(util::Any& v, bool, bool, bool, size_t) const
 {
     return v.has_value() ? util::make_optional(static_cast<int64_t>(any_cast<jlong>(v))) : util::none;
 }
 
 template <>
-inline util::Optional<double> JavaContext::unbox(util::Any& v, bool, bool, bool) const
+inline util::Optional<double> JavaContext::unbox(util::Any& v, bool, bool, bool, size_t) const
 {
     return v.has_value() ? util::make_optional(any_cast<jdouble>(v)) : util::none;
 }
 
 template <>
-inline util::Optional<float> JavaContext::unbox(util::Any& v, bool, bool, bool) const
+inline util::Optional<float> JavaContext::unbox(util::Any& v, bool, bool, bool, size_t) const
 {
     return v.has_value() ? util::make_optional(any_cast<jfloat>(v)) : util::none;
 }
 
 template <>
-inline Mixed JavaContext::unbox(util::Any&, bool, bool, bool) const
+inline Mixed JavaContext::unbox(util::Any&, bool, bool, bool, size_t) const
 {
     REALM_TERMINATE("'Mixed' not supported");
 }
