@@ -519,22 +519,6 @@ public class Table implements NativeObject {
         nativeRemoveSearchIndex(nativePtr, columnIndex);
     }
 
-    /*
-     * 1) Migration required to fix https://github.com/realm/realm-java/issues/1059
-     * This will convert INTEGER column to the corresponding STRING column if needed.
-     * Any database created on Realm-Java 0.80.1 and below will have this error.
-     *
-     * 2) Migration required to fix: https://github.com/realm/realm-java/issues/1703
-     * This will remove the prefix "class_" from all table names in the pk_column
-     * Any database created on Realm-Java 0.84.1 and below will have this error.
-     *
-     * The native method will begin a transaction and make the migration if needed.
-     * This function should not be called in a transaction.
-     */
-    public static void migratePrimaryKeyTableIfNeeded(OsSharedRealm sharedRealm) {
-        nativeMigratePrimaryKeyTableIfNeeded(sharedRealm.getNativePtr());
-    }
-
     public boolean hasSearchIndex(long columnIndex) {
         return nativeHasSearchIndex(nativePtr, columnIndex);
     }
@@ -785,8 +769,6 @@ public class Table implements NativeObject {
     public static native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data, boolean isDefault);
 
     public static native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value, boolean isDefault);
-
-    private static native void nativeMigratePrimaryKeyTableIfNeeded(long sharedRealmPtr);
 
     private native void nativeAddSearchIndex(long nativePtr, long columnIndex);
 

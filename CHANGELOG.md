@@ -279,6 +279,7 @@ This release is compatible with the Realm Object Server 3.0.0-beta.3 or later.
 * `realm.subscribeForObjects()` have been removed. Use `RealmQuery.findAllAsync(String subscriptionName)` and `RealmQuery.findAllAsync()` instead.
 * Removed previously deprecated `RealmQuery.findAllSorted()`, `RealmQuery.findAllSortedAsync()` `RealmQuery.distinct()` and `RealmQuery.distinctAsync()`.
 * Renamed `RealmQuery.distinctValues()` to `RealmQuery.distinct()`
+* Removing workarounds for old Realms versions [0.80.1](https://github.com/realm/realm-java/issues/1059), [0.84.1](https://github.com/realm/realm-java/issues/1703) and [2.0.0](https://github.com/realm/realm-java/pull/3488).
 
 ### Enhancements
 

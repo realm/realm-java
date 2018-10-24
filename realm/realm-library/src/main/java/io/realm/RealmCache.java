@@ -36,9 +36,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Capabilities;
 import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObjectStore;
-import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmNotifier;
-import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
@@ -289,43 +287,6 @@ final class RealmCache {
 
         if (getTotalGlobalRefCount() == 0) {
             copyAssetFileIfNeeded(configuration);
-            boolean fileExists = configuration.realmExists();
-
-            OsSharedRealm sharedRealm = null;
-            try {
-                if (configuration.isSyncConfiguration()) {
-                    // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
-                    // before proceeding. We need to open the Realm instance first to start any potential underlying
-                    // SyncSession so this will work. TODO: This needs to be decoupled.
-                    if (!fileExists) {
-                        sharedRealm = OsSharedRealm.getInstance(configuration);
-                        try {
-                            ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
-                        } catch (Throwable t) {
-                            // If an error happened while downloading initial data, we need to reset the file so we can
-                            // download it again on the next attempt.
-                            sharedRealm.close();
-                            sharedRealm = null;
-                            // FIXME: We don't have a way to ensure that the Realm instance on client thread has been
-                            //        closed for now.
-                            // https://github.com/realm/realm-java/issues/5416
-                            BaseRealm.deleteRealm(configuration);
-                            throw t;
-                        }
-                    }
-                } else {
-                    if (fileExists) {
-                        // Primary key problem only exists before we release sync.
-                        sharedRealm = OsSharedRealm.getInstance(configuration);
-                        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
-                    }
-                }
-            } finally {
-                if (sharedRealm != null) {
-                    sharedRealm.close();
-                }
-            }
-
             // We are holding the lock, and we can set the invalidated configuration since there is no global ref to it.
             this.configuration = configuration;
         } else {
@@ -336,6 +297,11 @@ final class RealmCache {
         if (refAndCount.localRealm.get() == null) {
             // Creates a new local Realm instance
             BaseRealm realm;
+            boolean fileExists = configuration.realmExists();
+
+            if (configuration.isSyncConfiguration() && !fileExists) {
+                ObjectServerFacade.getSyncFacadeIfPossible().downloadRemoteChanges(configuration);
+            }
 
             if (realmClass == Realm.class) {
                 // RealmMigrationNeededException might be thrown here.
