@@ -20,6 +20,7 @@
 #define REALM_JAVA_OBJECT_ACCESSOR
 
 #include <cstddef>
+#include <type_traits>
 
 #include "java_accessor.hpp"
 #include "java_class_global_def.hpp"
@@ -31,110 +32,221 @@
 
 using namespace realm::_impl;
 
+#define REALM_FOR_EACH_JAVA_VALUE_TYPE(X) \
+    X(Integer) \
+    X(String) \
+    X(Boolean) \
+    X(Float) \
+    X(Double) \
+    X(Date) \
+    X(Binary) \
+    X(Object) \
+    X(List) \
+
+
 namespace realm {
-    
+
+struct JavaValue;
+
+enum class JavaValueType {
+    Empty,
+#define REALM_DEFINE_JAVA_VALUE_TYPE(x) x,
+    REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_DEFINE_JAVA_VALUE_TYPE)
+#undef REALM_DEFINE_JAVA_VALUE_TYPE
+    NumValueTypes
+};
+
+
+template <JavaValueType> struct JavaValueTypeRepr;
+template <> struct JavaValueTypeRepr<JavaValueType::Integer> { using Type = jlong; };
+template <> struct JavaValueTypeRepr<JavaValueType::String>  { using Type = std::string; };
+template <> struct JavaValueTypeRepr<JavaValueType::Boolean> { using Type = jboolean; };
+template <> struct JavaValueTypeRepr<JavaValueType::Float>   { using Type = jfloat; };
+template <> struct JavaValueTypeRepr<JavaValueType::Double>  { using Type = jdouble; };
+template <> struct JavaValueTypeRepr<JavaValueType::Date>    { using Type = Timestamp; };
+template <> struct JavaValueTypeRepr<JavaValueType::Binary>  { using Type = OwnedBinaryData; };
+template <> struct JavaValueTypeRepr<JavaValueType::Object>  { using Type = Row*; };
+template <> struct JavaValueTypeRepr<JavaValueType::List>    { using Type = std::vector<JavaValue>; };
+
+
 // Tagged union class representing all the values Java can send to Object Store
-struct JavaValueType {
-    enum { Empty, Integer, String, Boolean, Float, Double, Date, Binary, Object, List } type;
-    union Value {
-        bool empty;
-        jlong val_int;
-        JStringAccessor val_string;
-        jboolean val_bool;
-        jfloat val_float;
-        jdouble val_double;
-        Timestamp val_timestamp;
-        OwnedBinaryData val_binary;
-        Row* val_object;
-        std::vector<JavaValueType> val_list; // Replace with each type of list?
-//        Value() : empty(true) {};
-//        Value(jlong val) : val_int(val) {};
-//        Value(JStringAccessor val) : val_string(std::move(val)) {};
-//        Value(jboolean val) : val_bool(val) {};
-//        Value(jfloat val) : val_float(val) {};
-//        Value(jdouble val) : val_double(val) {};
-//        Value(Timestamp val) : val_timestamp(val) {};
-//        Value(OwnedBinaryData val) : val_binary(std::move(val)) {};
-//        Value(Row* val) : val_object(val) {};
-//        Value(std::vector<JavaValueType> val) : val_list(std::move(val)) {};
-//        ~Value() {
-//            // Deleted due to non-trivial members. No idea what to do here?
-//        }
-    } value;
+struct JavaValue {
+    using Storage = std::aligned_storage_t<std::max(
+#define REALM_GET_SIZE_OF_JAVA_VALUE_TYPE_REPR(x) \
+        sizeof(JavaValueTypeRepr<JavaValueType::x>::Type),
+        REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_GET_SIZE_OF_JAVA_VALUE_TYPE_REPR)
+        0
+#undef REALM_GET_SIZE_OF_JAVA_VALUE_TYPE_REPR
+        ), std::max(
+#define REALM_GET_ALIGN_OF_JAVA_VALUE_TYPE_REPR(x) \
+        alignof(JavaValueTypeRepr<JavaValueType::x>::Type),
+        REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_GET_ALIGN_OF_JAVA_VALUE_TYPE_REPR)
+        0
+#undef REALM_GET_ALIGN_OF_JAVA_VALUE_TYPE_REPR
+        )>;
+
+    Storage m_storage;
+    JavaValueType m_type;
 
     // Initializer constructors
-    JavaValueType() : type(Empty), value() {};
-    JavaValueType(jlong val) : type(Integer), value(val) {};
-    JavaValueType(JStringAccessor val) : type(String), value(val) {};
-    JavaValueType(jboolean val) : type(Boolean), value(val) {};
-    JavaValueType(jfloat val) : type(Float), value(val) {};
-    JavaValueType(jdouble val) : type(Double), value(val) {};
-    JavaValueType(Timestamp val) : type(Date), value(val) {};
-    JavaValueType(OwnedBinaryData val) : type(Binary), value(val) {};
-    JavaValueType(Row* val) : type(Object), value(val) {};
-    JavaValueType(std::vector<JavaValueType> val) : type(List), value(val) {};
+    JavaValue() : m_type(JavaValueType::Empty) {}
+
+#define REALM_DEFINE_JAVA_VALUE_TYPE_CONSTRUCTOR(x) \
+    explicit JavaValue(JavaValueTypeRepr<JavaValueType::x>::Type value) : m_type(JavaValueType::x) \
+    { \
+        new(&m_storage) JavaValueTypeRepr<JavaValueType::x>::Type{std::move(value)};
+    }
+    REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_DEFINE_JAVA_VALUE_TYPE_CONSTRUCTOR)
+#undef REALM_DEFINE_JAVA_VALUE_TYPE_CONSTRUCTOR
 
     // Copy constructors
-    JavaValueType(const realm::JavaValueType& jvt) : type(jvt.type) {
-        switch(jvt.type) {
-            case Empty: value.empty = true; break;
-            case Integer:break;
-            case String:break;
-            case Boolean:break;
-            case Float:break;
-            case Double:break;
-            case Date:break;
-            case Binary:break;
-            case Object:break;
-            case List:break;
-        }
-    };
+    JavaValue(const JavaValue& jvt) : m_type(JavaValueType::Empty) {
+        *this = jvt;
+    }
 
     // Move constructor
-    JavaValueType(JavaValueType&& jvt) : type(jvt.type), value(jvt.value) {
-        jvt.value = nullptr;
-        jvt.type = nullptr;
+    JavaValueType(JavaValue&& jvt) : m_type(JavaValueType::Empty) {
+        *this = std::move(jvt);
     }
 
-//    JavaValueType& operator=(JavaValueType const& rhs)
-//    {
-//        // FIXME: This is probably not correct, no idea why it is needed in the first place.
-//        type = rhs.type;
-//        value = rhs.value;
-//        return *this;
-//    }
-
-    bool has_value() const {
-        return type != Empty;
+    ~JavaValue()
+    {
+        clear();
     }
 
-    jlong get_int() const { return value.val_int; };
-    JStringAccessor get_string() const { return value.val_string; };
-    std::vector<JavaValueType> get_list() const { return value.val_list; };
+    JavaValue& operator=(const JavaValue& rhs)
+    {
+       clear();
+       switch (rhs.m_type) {
+#define REALM_DEFINE_JAVA_VALUE_COPY_ASSIGNMENT(x) \
+           case JavaValueType::x: { \
+               using T = JavaValueTypeRepr<JavaValueType::x>::Type; \
+               new(&m_storage) T{*reinterpret_cast<const T*>(&other.m_storage)}; \
+               break; \
+           }
+        REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_DEFINE_JAVA_VALUE_COPY_ASSIGNMENT)
+#undef REALM_DEFINE_JAVA_VALUE_COPY_ASSIGNMENT
+           default: REALM_ASSERT(rhs.m_type == JavaValueType::Empty);
+        }
+        m_type = rhs.m_type;
+        return *this;
+    }
 
-    ~JavaValueType() {
-        // Do stuff
+    JavaValue& operator=(JavaValue&& rhs)
+    {
+       clear();
+       switch (rhs.m_type) {
+           case JavaValueType::Empty: break; // Do nothing
+#define REALM_DEFINE_JAVA_VALUE_COPY_ASSIGNMENT(x) \
+           case JavaValueType::x: { \
+               using T = JavaValueTypeRepr<JavaValueType::x>::Type; \
+               new(&m_storage) T{std::move(*reinterpret_cast<T*>(&other.m_storage))}; \
+               break; \
+           }
+        REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_DEFINE_JAVA_VALUE_COPY_ASSIGNMENT)
+#undef REALM_DEFINE_JAVA_VALUE_COPY_ASSIGNMENT
+           default: REALM_TERMINATE("Invalid type");
+        }
+        m_type = rhs.m_type;
+        return *this;
+    }
+
+    bool has_value() const noexcept
+    {
+        return m_type != JavaValueType::Empty;
+    }
+
+    JavaValueType get_type() const noexcept
+    {
+        return m_type;
+    }
+
+    template <JavaValueType type>
+    typename const JavaValueTypeRepr<type>::Type& get_as() const noexcept
+    {
+        REALM_ASSERT(m_type == type);
+        return *reinterpret_cast<const JavaValueTypeRepr<type>::Type*>(&m_storage);
+    }
+
+    auto& get_int() const noexcept
+    {
+        return get_as<JavaValueType::Integer>();
+    }
+
+    auto& get_boolean() const noexcept
+    {
+        return get_as<JavaValueType::Boolean>();
+    }
+
+    auto& get_string() const noexcept
+    {
+        return get_as<JavaValueType::String>();
+    }
+
+    auto& get_float() const noexcept
+    {
+        return get_as<JavaValueType::Float>();
+    }
+
+    auto& get_double() const noexcept
+    {
+        return get_as<JavaValueType::Double>();
+    }
+
+    auto& get_list() const noexcept
+    {
+        return get_as<JavaValueType::List>();
+    }
+
+    auto& get_date() const noexcept
+    {
+        return get_as<JavaValueType::Date>();
+    }
+
+    auto& get_binary() const noexcept
+    {
+        return get_as<JavaValueType::Binary>();
+    }
+
+    auto& get_object() const noexcept
+    {
+        return get_as<JavaValueType::Object>();
+    }
+
+    void clear() noexcept
+    {
+        switch (m_type) {
+            case JavaValueType::Empty: break; // Do nothing
+#define REALM_DEFINE_JAVA_VALUE_DESTROY(x) \
+            case JavaValueType::x: { \
+                using T = JavaValueTypeRepr<JavaValueType::x>::Type; \
+                reinterpret_cast<T*>(&m_storage)->~T(); \
+                break; \
+            }
+            REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_DEFINE_JAVA_VALUE_DESTROY)
+#undef REALM_DEFINE_JAVA_VALUE_DESTROY
+            default: REALM_TERMINATE("Invalid type.");
+        }
+        m_type = JavaValueType::Empty;
     }
 
     // Returns a string representation of the value contained in this object.
     std::string to_string() {
-        switch(type) {
-            case Empty: return "null";
-            case Integer: return "not implemented";
-            case String: return std::string(value.val_string);
-            case Boolean: return "not implemented";
-            case Float: return "not implemented";
-            case Double: return "not implemented";
-            case Date: return "not implemented";
-            case Binary: return "not implemented";
-            case Object: return "not implemented";
-            case List: return "not implemented";
+        switch(m_type) {
+            case JavaValueType::Empty: return "null";
+            case JavaValueType::Integer: return "not implemented";
+            case JavaValueType::String: return std::string(value.val_string);
+            case JavaValueType::Boolean: return "not implemented";
+            case JavaValueType::Float: return "not implemented";
+            case JavaValueType::Double: return "not implemented";
+            case JavaValueType::Date: return "not implemented";
+            case JavaValueType::Binary: return "not implemented";
+            case JavaValueType::Object: return "not implemented";
+            case JavaValueType::List: return "not implemented";
         }
     }
 };
 
-using AnyDict = std::vector<JavaValueType>; // Use column indexes as lookup keys
-using AnyVector = std::vector<JavaValueType>;
 
 struct RequiredFieldValueNotProvidedException : public std::logic_error {
     const std::string object_type;
@@ -172,11 +284,11 @@ public:
     // value present. The property is identified both by the name of the
     // property and its index within the ObjectScehma's persisted_properties
     // array.
-    util::Optional<JavaValueType> value_for_property(JavaValueType& dict,
+    util::Optional<JavaValue> value_for_property(JavaValue& dict,
                                                  Property const& prop,
                                                  size_t /*property_index*/) const
     {
-        std::vector<JavaValueType> list = dict.get_list();
+        const std::vector<JavaValue>& list = dict.get_list();
         auto property_value = list.at(prop.table_column);
         return util::make_optional(property_value);
     }
@@ -187,7 +299,7 @@ public:
     //
     // This implementation does not support default values; see the default
     // value tests for an example of one which does.
-    util::Optional<JavaValueType>
+    util::Optional<JavaValue>
     default_value_for_property(ObjectSchema const&, Property const&) const
     {
         return util::none;
@@ -195,9 +307,9 @@ public:
 
     // Invoke `fn` with each of the values from an enumerable type
     template<typename Func>
-    void enumerate_list(JavaValueType& value, Func&& fn) {
+    void enumerate_list(JavaValue& value, Func&& fn) {
         if (value.type == JavaValueType::List) {
-            for (auto&& v : value.get_list()) {
+            for (const auto& v : value.get_list()) {
                 fn(v);
             }
         } else {
@@ -206,7 +318,7 @@ public:
     }
 
     // Determine if `value` boxes the same List as `list`
-    bool is_same_list(List const& /*list*/, JavaValueType const& /*value*/)
+    bool is_same_list(List const& /*list*/, JavaValue const& /*value*/)
     {
 //        if (auto list2 = any_cast<List>(&value))
 //            return list == *list2;
@@ -247,13 +359,13 @@ public:
     // using the provided value. If `update` is true then upsert semantics
     // should be used for this.
     template<typename T>
-    T unbox(JavaValueType& /*v*/, bool /*create*/= false, bool /*update*/= false, bool /*diff_on_update*/= false, size_t /*current_row*/ = realm::npos) const {
+    T unbox(JavaValue& /*v*/, bool /*create*/= false, bool /*update*/= false, bool /*diff_on_update*/= false, size_t /*current_row*/ = realm::npos) const {
         throw std::logic_error("Missing template specialization"); // All types should have specialized templates
     }
 
-    bool is_null(JavaValueType const& v) const noexcept { return !v.has_value(); }
-    JavaValueType null_value() const noexcept { return {}; }
-    util::Optional<JavaValueType> no_value() const noexcept { return {}; }
+    bool is_null(JavaValue const& v) const noexcept { return !v.has_value(); }
+    JavaValue null_value() const noexcept { return {}; }
+    util::Optional<JavaValue> no_value() const noexcept { return {}; }
 
     // KVO hooks which will be called before and after modying a property from
     // within Object::create().
@@ -264,7 +376,7 @@ public:
     // This method should only be used when printing warnings about primary keys
     // which means the input should only be valid types for primary keys:
     // StringData, int64_t and Optional<int64_t>
-    std::string print(JavaValueType const& /*val*/) const {
+    std::string print(JavaValue const& /*val*/) const {
         return "null";
 
 // FIXME: Figure out why this doesn't work on some architectures (CI)
@@ -312,14 +424,14 @@ public:
     // Cocoa allows supplying fewer values than there are properties when
     // creating objects using an array of values. Other bindings should not
     // mimick this behavior so just return false here.
-    bool allow_missing(JavaValueType const&) const { return false; }
+    bool allow_missing(JavaValue const&) const { return false; }
 
 private:
     JNIEnv* m_env;
     std::shared_ptr<Realm> realm;
     const ObjectSchema* object_schema = nullptr;
 
-    inline void check_value_not_null(JavaValueType& v, const char* expected_type) const
+    inline void check_value_not_null(JavaValue& v, const char* expected_type) const
     {
         if (!v.has_value()) {
             throw RequiredFieldValueNotProvidedException(std::string(expected_type));
@@ -328,31 +440,31 @@ private:
 };
 
 template <>
-inline bool JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
+inline bool JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Boolean");
-    return v.value.val_bool == JNI_TRUE;
+    return v.get_bool() == JNI_TRUE;
 }
 
 template <>
-inline int64_t JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
+inline int64_t JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Long");
-    return static_cast<int64_t>(v.value.val_int);
+    return static_cast<int64_t>(v.get_int());
 }
 
 template <>
-inline double JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
+inline double JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Double");
-    return static_cast<double>(v.value.val_double);
+    return static_cast<double>(v.get_double());
 }
 
 template <>
 inline float JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Float");
-    return static_cast<float>(v.value.val_float);
+    return static_cast<float>(v.get_float());
 }
 
 template <>
@@ -362,7 +474,7 @@ inline StringData JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t)
         return StringData();
     }
 
-    return StringData(v.value.val_string);
+    return StringData(v.get_string());
 }
 
 template <>
@@ -371,22 +483,22 @@ inline BinaryData JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t)
     if (!v.has_value()) {
         return BinaryData();
     } else {
-        return v.value.val_binary.get();
+        return v.get_binary().get();
     }
 }
 
 template <>
 inline Timestamp JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
 {
-    return v.has_value() ? v.value.val_timestamp : Timestamp();
+    return v.has_value() ? v.get_date() : Timestamp();
 }
 
 template <>
-inline RowExpr JavaContext::unbox(JavaValueType& v, bool create, bool update, bool diff_on_update, size_t current_row) const
+inline RowExpr JavaContext::unbox(JavaValue& v, bool create, bool update, bool diff_on_update, size_t current_row) const
 {
 // FIXME
     if (v.type == JavaValueType::Object) {
-        return *v.value.val_object;
+        return *v.get_object();
     } else if (!create) {
         return RowExpr();
     }
@@ -404,27 +516,27 @@ inline RowExpr JavaContext::unbox(JavaValueType& v, bool create, bool update, bo
 }
 
 template <>
-inline util::Optional<bool> JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
+inline util::Optional<bool> JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
 {
-    return v.has_value() ? util::make_optional(v.value.val_bool == JNI_TRUE) : util::none;
+    return v.has_value() ? util::make_optional(v.get_bool() == JNI_TRUE) : util::none;
 }
 
 template <>
-inline util::Optional<int64_t> JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
+inline util::Optional<int64_t> JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
 {
-    return v.has_value() ? util::make_optional(static_cast<int64_t>(v.value.val_int)) : util::none;
+    return v.has_value() ? util::make_optional(static_cast<int64_t>(v.get_integer())) : util::none;
 }
 
 template <>
-inline util::Optional<double> JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
+inline util::Optional<double> JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
 {
-    return v.has_value() ? util::make_optional(v.value.val_double) : util::none;
+    return v.has_value() ? util::make_optional(v.get_double()) : util::none;
 }
 
 template <>
-inline util::Optional<float> JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
+inline util::Optional<float> JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
 {
-    return v.has_value() ? util::make_optional(v.value.val_float) : util::none;
+    return v.has_value() ? util::make_optional(v.get_float()) : util::none;
 }
 
 template <>
