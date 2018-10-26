@@ -695,19 +695,27 @@ public class DynamicRealmTests {
     @Test
     @RunTestInLooperThread
     public void getInstanceAsync_nullConfigShouldThrow() {
-        thrown.expect(IllegalArgumentException.class);
-        DynamicRealm.getInstanceAsync(null, new DynamicRealm.Callback() {
-            @Override
-            public void onSuccess(DynamicRealm realm) {
-                fail();
-            }
-        });
+        try {
+            //noinspection ConstantConditions
+            DynamicRealm.getInstanceAsync(null, new DynamicRealm.Callback() {
+                @Override
+                public void onSuccess(DynamicRealm realm) {
+                    fail();
+                }
+            });
+        } catch (IllegalArgumentException ignored) {
+        }
+        looperThread.testComplete();
     }
 
     @Test
     @RunTestInLooperThread
     public void getInstanceAsync_nullCallbackShouldThrow() {
-        thrown.expect(IllegalArgumentException.class);
-        DynamicRealm.getInstanceAsync(defaultConfig, null);
+        try {
+            //noinspection ConstantConditions
+            DynamicRealm.getInstanceAsync(defaultConfig, null);
+        } catch (IllegalArgumentException ignored) {
+        }
+        looperThread.testComplete();
     }
 }

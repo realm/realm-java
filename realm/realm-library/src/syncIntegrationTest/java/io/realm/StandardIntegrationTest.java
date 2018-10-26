@@ -48,7 +48,7 @@ public abstract class StandardIntegrationTest extends BaseIntegrationTest {
     }
 
     @After
-    public void teardownTest() {
+    public void teardownTest() throws IOException {
         if (!looperThread.isRuleUsed() || looperThread.isTestComplete()) {
             // Non-looper tests can reset here
             SyncTestUtils.restoreEnvironmentAfterTest();
@@ -57,7 +57,11 @@ public abstract class StandardIntegrationTest extends BaseIntegrationTest {
             looperThread.runAfterTest(new Runnable() {
                 @Override
                 public void run() {
-                    SyncTestUtils.restoreEnvironmentAfterTest();
+                    try {
+                        SyncTestUtils.restoreEnvironmentAfterTest();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             });
         }
