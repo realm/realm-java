@@ -25,7 +25,7 @@ using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-typedef std::vector<JavaValueType> OsObjectData;
+typedef std::vector<JavaValue> OsObjectData;
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeDestroyBuilder(JNIEnv*, jclass, jlong data_ptr)
 {
@@ -36,16 +36,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
 JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeCreateBuilder(JNIEnv*, jclass, jlong size)
 {
     TR_ENTER()
-    auto list = new std::vector<JavaValueType>(size);
+    auto list = new std::vector<JavaValue>(size);
     return reinterpret_cast<jlong>(list);
 }
 
-static inline void add_property(JNIEnv* env, jlong data_ptr, jlong column_index, JavaValueType& value)
+static inline void add_property(JNIEnv* env, jlong data_ptr, jlong column_index, JavaValue const& value)
 {
     try {
         OsObjectData* data = reinterpret_cast<OsObjectData*>(data_ptr);
-        auto it = data->begin();
-        data->insert(it + column_index, value);
+        data->at(column_index) = std::move(value);
     }
     CATCH_STD()
 }
@@ -53,42 +52,44 @@ static inline void add_property(JNIEnv* env, jlong data_ptr, jlong column_index,
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddNull
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_index)
 {
-    auto value = JavaValueType();
+    const JavaValue value = JavaValue();
     add_property(env, data_ptr, column_index, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddString
     (JNIEnv* env, jclass, jlong data_ptr, jlong column_index, jstring j_value)
 {
-    auto value = JavaValueType(JStringAccessor(env, j_value));
-    add_property(env, data_ptr, column_index, value);
+    JStringAccessor value(env, j_value);
+    std::string string_value(value);
+    const JavaValue wrapped_value(string_value);
+    add_property(env, data_ptr, column_index, wrapped_value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddInteger
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_index, jlong j_value)
 {
-    auto value = JavaValueType(j_value);
+    const JavaValue value(j_value);
     add_property(env, data_ptr, column_index, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddFloat
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_index, jfloat j_value)
 {
-    auto value = JavaValueType(j_value);
+    const JavaValue value(j_value);
     add_property(env, data_ptr, column_index, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDouble
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_index, jdouble j_value)
 {
-    auto value = JavaValueType(j_value);
+    const JavaValue value(j_value);
     add_property(env, data_ptr, column_index, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddBoolean
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_index, jboolean j_value)
 {
-    auto value = JavaValueType(j_value);
+    const JavaValue value(j_value);
     add_property(env, data_ptr, column_index, value);
 }
 
@@ -96,14 +97,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_index, jbyteArray j_value)
 {
     auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
-    auto value = JavaValueType(data);
+    const JavaValue value(data);
     add_property(env, data_ptr, column_index, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDate
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_index, jlong j_value)
 {
-    auto value = JavaValueType(j_value);
+    const JavaValue value(from_milliseconds(j_value));
     add_property(env, data_ptr, column_index, value);
 }
 
@@ -111,7 +112,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObject
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_index, jlong row_ptr)
 {
-    auto value = JavaValueType(reinterpret_cast<Row*>(row_ptr));
+    const JavaValue value(reinterpret_cast<Row*>(row_ptr));
     add_property(env, data_ptr, column_index, value);
 }
 
@@ -135,7 +136,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativ
         const auto& schema = shared_realm->schema();
         const ObjectSchema& object_schema = get_schema(schema, table);
         JavaContext ctx(env, shared_realm, object_schema);
-        JavaValueType values = JavaValueType(*reinterpret_cast<OsObjectData*>(builder_ptr));
+        auto list = *reinterpret_cast<OsObjectData*>(builder_ptr);
+        JavaValue values = JavaValue(list);
         Object obj = Object::create(ctx, shared_realm, object_schema, values, update_existing, ignore_same_values);
         return reinterpret_cast<jlong>(new Row(obj.row()));
     }
@@ -147,7 +149,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativ
         (JNIEnv* env, jclass, jlong list_size)
 {
     try {
-        auto list = new std::vector<JavaValueType>();
+        auto list = new std::vector<JavaValue>();
         list->reserve(list_size);
         return reinterpret_cast<jlong>(list);
     }
@@ -159,8 +161,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_index, jlong list_ptr)
 {
     try {
-        auto list = reinterpret_cast<std::vector<JavaValueType>*>(list_ptr);
-        auto value = JavaValueType((*list));
+        auto list = reinterpret_cast<std::vector<JavaValue>*>(list_ptr);
+        const JavaValue value((*list));
         add_property(env, data_ptr, column_index, value);
         delete list;
     }
@@ -172,21 +174,21 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_index, jlongArray row_ptrs)
 {
     auto rows = JLongArrayAccessor(env, row_ptrs);
-    auto list = std::vector<JavaValueType>();
+    auto list = std::vector<JavaValue>();
     list.reserve(rows.size());
     for (jsize i = 0; i < rows.size(); ++i) {
-        auto item = JavaValueType(reinterpret_cast<Row*>(rows[i]));
+        auto item = JavaValue(reinterpret_cast<Row*>(rows[i]));
         list.push_back(item);
     }
-    auto value = JavaValueType(list);
+    JavaValue value(list);
     add_property(env, data_ptr, column_index, value);
 }
 
-static inline void add_list_element(JNIEnv* env, jlong list_ptr, JavaValueType& value)
+static inline void add_list_element(JNIEnv* env, jlong list_ptr, JavaValue const& value)
 {
     try {
-        auto list = reinterpret_cast<std::vector<JavaValueType>*>(list_ptr);
-        list->push_back(value);
+        auto list = reinterpret_cast<std::vector<JavaValue>*>(list_ptr);
+        list->push_back(std::move(value));
     }
     CATCH_STD()
 }
@@ -194,42 +196,44 @@ static inline void add_list_element(JNIEnv* env, jlong list_ptr, JavaValueType& 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddNullListItem
         (JNIEnv* env, jclass, jlong list_ptr)
 {
-    auto value = JavaValueType();
+    const JavaValue value = JavaValue();
     add_list_element(env, list_ptr, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddIntegerListItem
         (JNIEnv* env, jclass, jlong list_ptr, jlong j_value)
 {
-    auto value = JavaValueType(j_value);
+    const JavaValue value(j_value);
     add_list_element(env, list_ptr, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddStringListItem
     (JNIEnv* env, jclass, jlong list_ptr, jstring j_value)
 {
-    auto value = JavaValueType(JStringAccessor(env, j_value));
-    add_list_element(env, list_ptr, value);
+    JStringAccessor value(env, j_value);
+    std::string string_value(value);
+    const JavaValue wrapped_value(string_value);
+    add_list_element(env, list_ptr, wrapped_value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddFloatListItem
         (JNIEnv* env, jclass, jlong list_ptr, jfloat j_value)
 {
-    auto value = JavaValueType(j_value);
+    const JavaValue value(j_value);
     add_list_element(env, list_ptr, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDoubleListItem
         (JNIEnv* env, jclass, jlong list_ptr, jdouble j_value)
 {
-    auto value = JavaValueType(j_value);
+    const JavaValue value(j_value);
     add_list_element(env, list_ptr, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddBooleanListItem
         (JNIEnv* env, jclass, jlong list_ptr, jboolean j_value)
 {
-    auto value = JavaValueType(j_value);
+    const JavaValue value(j_value);
     add_list_element(env, list_ptr, value);
 }
 
@@ -237,20 +241,20 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
         (JNIEnv* env, jclass, jlong list_ptr, jbyteArray j_value)
 {
     auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
-    auto value = JavaValueType(data);
+    const JavaValue value(data);
     add_list_element(env, list_ptr, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDateListItem
         (JNIEnv* env, jclass, jlong list_ptr, jlong j_value)
 {
-    auto value = JavaValueType(j_value);
+    const JavaValue value(from_milliseconds(j_value));
     add_list_element(env, list_ptr, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectListItem
         (JNIEnv* env, jclass, jlong list_ptr, jlong row_ptr)
 {
-    auto value = JavaValueType(reinterpret_cast<Row*>(row_ptr));
+    const JavaValue value(reinterpret_cast<Row*>(row_ptr));
     add_list_element(env, list_ptr, value);
 }

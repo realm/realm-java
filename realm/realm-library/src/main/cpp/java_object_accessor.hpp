@@ -19,6 +19,7 @@
 #ifndef REALM_JAVA_OBJECT_ACCESSOR
 #define REALM_JAVA_OBJECT_ACCESSOR
 
+#include <algorithm>
 #include <cstddef>
 #include <type_traits>
 
@@ -56,13 +57,22 @@ enum class JavaValueType {
     NumValueTypes
 };
 
+// Ugly work-around for initializer lists having problems on GCC 4.9
+template <class T> constexpr T realm_max(T a) {
+    return a;
+}
+
+template <class T, class... Rest> constexpr T realm_max(T a, T b, Rest... rest) {
+    return a > realm_max(b, rest...) ? a : realm_max(b, rest...);
+}
+
 
 template <JavaValueType> struct JavaValueTypeRepr;
 template <> struct JavaValueTypeRepr<JavaValueType::Integer> { using Type = jlong; };
 template <> struct JavaValueTypeRepr<JavaValueType::String>  { using Type = std::string; };
 template <> struct JavaValueTypeRepr<JavaValueType::Boolean> { using Type = jboolean; };
 template <> struct JavaValueTypeRepr<JavaValueType::Float>   { using Type = jfloat; };
-template <> struct JavaValueTypeRepr<JavaValueType::Double>  { using Type = jdouble; };
+template <> struct JavaValueTypeRepr<JavaValueType::Double>  { using Type = jdouble; };
 template <> struct JavaValueTypeRepr<JavaValueType::Date>    { using Type = Timestamp; };
 template <> struct JavaValueTypeRepr<JavaValueType::Binary>  { using Type = OwnedBinaryData; };
 template <> struct JavaValueTypeRepr<JavaValueType::Object>  { using Type = Row*; };
@@ -71,17 +81,17 @@ template <> struct JavaValueTypeRepr<JavaValueType::List>    { using Type = std:
 
 // Tagged union class representing all the values Java can send to Object Store
 struct JavaValue {
-    using Storage = std::aligned_storage_t<std::max(
+    using Storage = std::aligned_storage_t<realm_max(
 #define REALM_GET_SIZE_OF_JAVA_VALUE_TYPE_REPR(x) \
         sizeof(JavaValueTypeRepr<JavaValueType::x>::Type),
         REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_GET_SIZE_OF_JAVA_VALUE_TYPE_REPR)
-        0
+        size_t(0)
 #undef REALM_GET_SIZE_OF_JAVA_VALUE_TYPE_REPR
-        ), std::max(
+        ), realm_max(
 #define REALM_GET_ALIGN_OF_JAVA_VALUE_TYPE_REPR(x) \
         alignof(JavaValueTypeRepr<JavaValueType::x>::Type),
         REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_GET_ALIGN_OF_JAVA_VALUE_TYPE_REPR)
-        0
+        size_t(0)
 #undef REALM_GET_ALIGN_OF_JAVA_VALUE_TYPE_REPR
         )>;
 
@@ -94,7 +104,7 @@ struct JavaValue {
 #define REALM_DEFINE_JAVA_VALUE_TYPE_CONSTRUCTOR(x) \
     explicit JavaValue(JavaValueTypeRepr<JavaValueType::x>::Type value) : m_type(JavaValueType::x) \
     { \
-        new(&m_storage) JavaValueTypeRepr<JavaValueType::x>::Type{std::move(value)};
+        new(&m_storage) JavaValueTypeRepr<JavaValueType::x>::Type{std::move(value)}; \
     }
     REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_DEFINE_JAVA_VALUE_TYPE_CONSTRUCTOR)
 #undef REALM_DEFINE_JAVA_VALUE_TYPE_CONSTRUCTOR
@@ -105,7 +115,7 @@ struct JavaValue {
     }
 
     // Move constructor
-    JavaValueType(JavaValue&& jvt) : m_type(JavaValueType::Empty) {
+    JavaValue(JavaValue&& jvt) : m_type(JavaValueType::Empty) {
         *this = std::move(jvt);
     }
 
@@ -121,7 +131,7 @@ struct JavaValue {
 #define REALM_DEFINE_JAVA_VALUE_COPY_ASSIGNMENT(x) \
            case JavaValueType::x: { \
                using T = JavaValueTypeRepr<JavaValueType::x>::Type; \
-               new(&m_storage) T{*reinterpret_cast<const T*>(&other.m_storage)}; \
+               new(&m_storage) T{*reinterpret_cast<const T*>(&rhs.m_storage)}; \
                break; \
            }
         REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_DEFINE_JAVA_VALUE_COPY_ASSIGNMENT)
@@ -140,7 +150,7 @@ struct JavaValue {
 #define REALM_DEFINE_JAVA_VALUE_COPY_ASSIGNMENT(x) \
            case JavaValueType::x: { \
                using T = JavaValueTypeRepr<JavaValueType::x>::Type; \
-               new(&m_storage) T{std::move(*reinterpret_cast<T*>(&other.m_storage))}; \
+               new(&m_storage) T{std::move(*reinterpret_cast<T*>(&rhs.m_storage))}; \
                break; \
            }
         REALM_FOR_EACH_JAVA_VALUE_TYPE(REALM_DEFINE_JAVA_VALUE_COPY_ASSIGNMENT)
@@ -162,10 +172,10 @@ struct JavaValue {
     }
 
     template <JavaValueType type>
-    typename const JavaValueTypeRepr<type>::Type& get_as() const noexcept
+    const typename JavaValueTypeRepr<type>::Type& get_as() const noexcept
     {
         REALM_ASSERT(m_type == type);
-        return *reinterpret_cast<const JavaValueTypeRepr<type>::Type*>(&m_storage);
+        return *reinterpret_cast<const typename JavaValueTypeRepr<type>::Type*>(&m_storage);
     }
 
     auto& get_int() const noexcept
@@ -231,18 +241,45 @@ struct JavaValue {
     }
 
     // Returns a string representation of the value contained in this object.
-    std::string to_string() {
+    std::string to_string() const {
+        std::ostringstream ss;
         switch(m_type) {
-            case JavaValueType::Empty: return "null";
-            case JavaValueType::Integer: return "not implemented";
-            case JavaValueType::String: return std::string(value.val_string);
-            case JavaValueType::Boolean: return "not implemented";
-            case JavaValueType::Float: return "not implemented";
-            case JavaValueType::Double: return "not implemented";
-            case JavaValueType::Date: return "not implemented";
-            case JavaValueType::Binary: return "not implemented";
-            case JavaValueType::Object: return "not implemented";
-            case JavaValueType::List: return "not implemented";
+            case JavaValueType::Empty:
+                return "null";
+            case JavaValueType::Integer:
+                ss << static_cast<int64_t>(get_int());
+                return std::string(ss.str());
+            case JavaValueType::String:
+                return get_string();
+            case JavaValueType::Boolean:
+                return (get_boolean() == JNI_TRUE) ? "true" : "false";
+            case JavaValueType::Float:
+                ss << static_cast<float>(get_float());
+                return std::string(ss.str());
+            case JavaValueType::Double:
+                ss << static_cast<double>(get_double());
+                return std::string(ss.str());
+            case JavaValueType::Date:
+                ss << get_date();
+                return std::string(ss.str());
+            case JavaValueType::Binary:
+                ss << "Blob[";
+                ss << get_binary().size();
+                ss << "]";
+                return std::string(ss.str());
+            case JavaValueType::Object:
+                ss << "Object[Type: ";
+                ss << get_object()->get_table()->get_name();
+                ss << ", rowIndex: ";
+                ss << get_object()->get_index();
+                ss << "]";
+                return std::string(ss.str());
+            case JavaValueType::List:
+                ss << "List[size: ";
+                ss << get_list().size();
+                ss << "]";
+                return std::string(ss.str());
+            default: REALM_TERMINATE("Invalid type.");
         }
     }
 };
@@ -308,7 +345,7 @@ public:
     // Invoke `fn` with each of the values from an enumerable type
     template<typename Func>
     void enumerate_list(JavaValue& value, Func&& fn) {
-        if (value.type == JavaValueType::List) {
+        if (value.get_type() == JavaValueType::List) {
             for (const auto& v : value.get_list()) {
                 fn(v);
             }
@@ -359,7 +396,7 @@ public:
     // using the provided value. If `update` is true then upsert semantics
     // should be used for this.
     template<typename T>
-    T unbox(JavaValue& /*v*/, bool /*create*/= false, bool /*update*/= false, bool /*diff_on_update*/= false, size_t /*current_row*/ = realm::npos) const {
+    T unbox(JavaValue const& /*v*/, bool /*create*/= false, bool /*update*/= false, bool /*diff_on_update*/= false, size_t /*current_row*/ = realm::npos) const {
         throw std::logic_error("Missing template specialization"); // All types should have specialized templates
     }
 
@@ -376,49 +413,8 @@ public:
     // This method should only be used when printing warnings about primary keys
     // which means the input should only be valid types for primary keys:
     // StringData, int64_t and Optional<int64_t>
-    std::string print(JavaValue const& /*val*/) const {
-        return "null";
-
-// FIXME: Figure out why this doesn't work on some architectures (CI)
-// One example: https://ci.realm.io/blue/organizations/jenkins/realm%2Frealm-java/detail/PR-6224/26/pipeline
-//        if (!val.has_value() ||  val.type() == typeid(void)) {
-//            return "null";
-//        }
-//
-//        if (val.type() == typeid(StringData)) {
-//            auto str = any_cast<StringData>(val);
-//            if (str.is_null()) {
-//                return "null";
-//            } else {
-//                return std::string(str);
-//            }
-//        } else if (val.type() == typeid(JStringAccessor)) {
-//            auto str = any_cast<JStringAccessor>(val);
-//            if (str.is_null()) {
-//                return "null";
-//            } else {
-//                return std::string(str);
-//            }
-//        } else if (val.type() == typeid(std::string)) {
-//            return any_cast<std::string>(val);
-//        } else if (val.type() == typeid(util::Optional<int64_t>)) {
-//            auto opt = any_cast<util::Optional<int64_t>>(val);
-//            if (!opt) {
-//                return "null";
-//            } else {
-//                std::ostringstream o;
-//                o << opt.value();
-//                return o.str();
-//            }
-//        } else if (val.type() == typeid(int64_t)) {
-//            auto number = any_cast<int64_t>(val);
-//            std::ostringstream o;
-//            o << number;
-//            return o.str();
-//        } else {
-//            auto str = std::string(val.type().name());
-//            throw std::logic_error(util::format("Unexpected type: %s", str));
-//        }
+    std::string print(JavaValue const& val) const {
+        return val.to_string();
     }
 
     // Cocoa allows supplying fewer values than there are properties when
@@ -431,7 +427,7 @@ private:
     std::shared_ptr<Realm> realm;
     const ObjectSchema* object_schema = nullptr;
 
-    inline void check_value_not_null(JavaValue& v, const char* expected_type) const
+    inline void check_value_not_null(JavaValue const& v, const char* expected_type) const
     {
         if (!v.has_value()) {
             throw RequiredFieldValueNotProvidedException(std::string(expected_type));
@@ -440,35 +436,35 @@ private:
 };
 
 template <>
-inline bool JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
+inline bool JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Boolean");
-    return v.get_bool() == JNI_TRUE;
+    return v.get_boolean() == JNI_TRUE;
 }
 
 template <>
-inline int64_t JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
+inline int64_t JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Long");
     return static_cast<int64_t>(v.get_int());
 }
 
 template <>
-inline double JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
+inline double JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Double");
     return static_cast<double>(v.get_double());
 }
 
 template <>
-inline float JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
+inline float JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t) const
 {
     check_value_not_null(v, "Float");
     return static_cast<float>(v.get_float());
 }
 
 template <>
-inline StringData JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
+inline StringData JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t) const
 {
     if (!v.has_value()) {
         return StringData();
@@ -478,7 +474,7 @@ inline StringData JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t)
 }
 
 template <>
-inline BinaryData JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
+inline BinaryData JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t) const
 {
     if (!v.has_value()) {
         return BinaryData();
@@ -488,16 +484,16 @@ inline BinaryData JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t)
 }
 
 template <>
-inline Timestamp JavaContext::unbox(JavaValueType& v, bool, bool, bool, size_t) const
+inline Timestamp JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t) const
 {
     return v.has_value() ? v.get_date() : Timestamp();
 }
 
 template <>
-inline RowExpr JavaContext::unbox(JavaValue& v, bool create, bool update, bool diff_on_update, size_t current_row) const
+inline RowExpr JavaContext::unbox(JavaValue const& v, bool create, bool update, bool diff_on_update, size_t current_row) const
 {
 // FIXME
-    if (v.type == JavaValueType::Object) {
+    if (v.get_type() == JavaValueType::Object) {
         return *v.get_object();
     } else if (!create) {
         return RowExpr();
@@ -516,31 +512,31 @@ inline RowExpr JavaContext::unbox(JavaValue& v, bool create, bool update, bool d
 }
 
 template <>
-inline util::Optional<bool> JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
+inline util::Optional<bool> JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t) const
 {
-    return v.has_value() ? util::make_optional(v.get_bool() == JNI_TRUE) : util::none;
+    return v.has_value() ? util::make_optional(v.get_boolean() == JNI_TRUE) : util::none;
 }
 
 template <>
-inline util::Optional<int64_t> JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
+inline util::Optional<int64_t> JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t) const
 {
-    return v.has_value() ? util::make_optional(static_cast<int64_t>(v.get_integer())) : util::none;
+    return v.has_value() ? util::make_optional(static_cast<int64_t>(v.get_int())) : util::none;
 }
 
 template <>
-inline util::Optional<double> JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
+inline util::Optional<double> JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t) const
 {
     return v.has_value() ? util::make_optional(v.get_double()) : util::none;
 }
 
 template <>
-inline util::Optional<float> JavaContext::unbox(JavaValue& v, bool, bool, bool, size_t) const
+inline util::Optional<float> JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t) const
 {
     return v.has_value() ? util::make_optional(v.get_float()) : util::none;
 }
 
 template <>
-inline Mixed JavaContext::unbox(JavaValueType&, bool, bool, bool, size_t) const
+inline Mixed JavaContext::unbox(JavaValue const&, bool, bool, bool, size_t) const
 {
     REALM_TERMINATE("'Mixed' not supported");
 }

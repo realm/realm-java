@@ -68,8 +68,8 @@ public class CopyToRealmBenchmarks {
             obj.setColumnBoolean(true);
             obj.setColumnDate(new Date(1000));
             obj.setColumnBinary(new byte[] {1,2,3});
-//            obj.setColumnRealmObject(obj);
-//            obj.setColumnRealmList(new RealmList<>(obj, obj, obj));
+            obj.setColumnRealmObject(obj);
+            obj.setColumnRealmList(new RealmList<>(obj, obj, obj));
             obj.setColumnBooleanList(new RealmList<>(true, false, true));
             obj.setColumnStringList(new RealmList<>("foo", "bar", "baz"));
             obj.setColumnBinaryList(new RealmList<>(new byte[]{0,1,2},new byte[]{2,3,4},new byte[]{4,5,6}));

@@ -1501,9 +1501,8 @@ public class RealmTests {
     }
 
     @Test
-    @Ignore("FIXME: Figure out why  java.lang.IllegalStateException: Unexpected type: s is thrown on CI")
     public void copyToRealm_duplicatedPrimaryKeyThrows() {
-        final String[] PRIMARY_KEY_TYPES = { "String", "BoxedLong", "long" }; // long fails
+        final String[] PRIMARY_KEY_TYPES = { "String", "BoxedLong", "long" };
         for (String className : PRIMARY_KEY_TYPES) {
             String expectedKey = null;
             try {
