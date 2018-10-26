@@ -66,7 +66,6 @@ template <class T, class... Rest> constexpr T realm_max(T a, T b, Rest... rest) 
     return a > realm_max(b, rest...) ? a : realm_max(b, rest...);
 }
 
-
 template <JavaValueType> struct JavaValueTypeRepr;
 template <> struct JavaValueTypeRepr<JavaValueType::Integer> { using Type = jlong; };
 template <> struct JavaValueTypeRepr<JavaValueType::String>  { using Type = std::string; };
@@ -77,7 +76,6 @@ template <> struct JavaValueTypeRepr<JavaValueType::Date>    { using Type = Time
 template <> struct JavaValueTypeRepr<JavaValueType::Binary>  { using Type = OwnedBinaryData; };
 template <> struct JavaValueTypeRepr<JavaValueType::Object>  { using Type = Row*; };
 template <> struct JavaValueTypeRepr<JavaValueType::List>    { using Type = std::vector<JavaValue>; };
-
 
 // Tagged union class representing all the values Java can send to Object Store
 struct JavaValue {
@@ -357,29 +355,28 @@ public:
     // Determine if `value` boxes the same List as `list`
     bool is_same_list(List const& /*list*/, JavaValue const& /*value*/)
     {
-//        if (auto list2 = any_cast<List>(&value))
-//            return list == *list2;
+        // Lists from Java are currently never the same as the ones found in Object Store.
         return false;
     }
 
-    // Convert from core types to the boxed type
-    // These are currently not used as Proxy objects read directly from the Row objects
-    // This implementation is thus entirely untested.
-//    JavaValueType box(BinaryData v) const { return reinterpret_cast<jobject>(JavaClassGlobalDef::new_byte_array(m_env, v)); }
-//    JavaValueType box(List /*v*/) const { REALM_TERMINATE("'List' not implemented"); }
-//    JavaValueType box(Object /*v*/) const { REALM_TERMINATE("'Object' not implemented"); }
-//    JavaValueType box(Results /*v*/) const { REALM_TERMINATE("'Results' not implemented"); }
-//    JavaValueType box(StringData v) const { return reinterpret_cast<jobject>(to_jstring(m_env, v)); }
-//    JavaValueType box(Timestamp v) const { return JavaClassGlobalDef::new_date(m_env, v); }
-//    JavaValueType box(bool v) const { return _impl::JavaClassGlobalDef::new_boolean(m_env, v); }
-//    JavaValueType box(double v) const { return _impl::JavaClassGlobalDef::new_double(m_env, v); }
-//    JavaValueType box(float v) const { return _impl::JavaClassGlobalDef::new_float(m_env, v); }
-//    JavaValueType box(int64_t v) const { return _impl::JavaClassGlobalDef::new_long(m_env, v); }
-//    JavaValueType box(util::Optional<bool> v) const { return v ? _impl::JavaClassGlobalDef::new_boolean(m_env, v.value()) : nullptr; }
-//    JavaValueType box(util::Optional<double> v) const { return v ? _impl::JavaClassGlobalDef::new_double(m_env, v.value()) : nullptr; }
-//    JavaValueType box(util::Optional<float> v) const { return v ? _impl::JavaClassGlobalDef::new_float(m_env, v.value()) : nullptr; }
-//    JavaValueType box(util::Optional<int64_t> v) const { return v ? _impl::JavaClassGlobalDef::new_long(m_env, v.value()) : nullptr; }
-//    JavaValueType box(RowExpr) const { REALM_TERMINATE("'RowExpr' not implemented"); }
+    // Convert from core types to the boxed type. These are currently not used as Proxy objects read
+    // directly from the Row objects. This implementation is thus only here as a reminder of which
+    // method signatures to add if needed.
+    // JavaValueType box(BinaryData v) const { return reinterpret_cast<jobject>(JavaClassGlobalDef::new_byte_array(m_env, v)); }
+    // JavaValueType box(List /*v*/) const { REALM_TERMINATE("'List' not implemented"); }
+    // JavaValueType box(Object /*v*/) const { REALM_TERMINATE("'Object' not implemented"); }
+    // JavaValueType box(Results /*v*/) const { REALM_TERMINATE("'Results' not implemented"); }
+    // JavaValueType box(StringData v) const { return reinterpret_cast<jobject>(to_jstring(m_env, v)); }
+    // JavaValueType box(Timestamp v) const { return JavaClassGlobalDef::new_date(m_env, v); }
+    // JavaValueType box(bool v) const { return _impl::JavaClassGlobalDef::new_boolean(m_env, v); }
+    // JavaValueType box(double v) const { return _impl::JavaClassGlobalDef::new_double(m_env, v); }
+    // JavaValueType box(float v) const { return _impl::JavaClassGlobalDef::new_float(m_env, v); }
+    // JavaValueType box(int64_t v) const { return _impl::JavaClassGlobalDef::new_long(m_env, v); }
+    // JavaValueType box(util::Optional<bool> v) const { return v ? _impl::JavaClassGlobalDef::new_boolean(m_env, v.value()) : nullptr; }
+    // JavaValueType box(util::Optional<double> v) const { return v ? _impl::JavaClassGlobalDef::new_double(m_env, v.value()) : nullptr; }
+    // JavaValueType box(util::Optional<float> v) const { return v ? _impl::JavaClassGlobalDef::new_float(m_env, v.value()) : nullptr; }
+    // JavaValueType box(util::Optional<int64_t> v) const { return v ? _impl::JavaClassGlobalDef::new_long(m_env, v.value()) : nullptr; }
+    // JavaValueType box(RowExpr) const { REALM_TERMINATE("'RowExpr' not implemented"); }
 
     // Mixed type is only supported by the Cocoa binding to enable reading
     // old Realm files that may have used them. All other bindings can ignore it.
@@ -410,8 +407,8 @@ public:
     void did_change() {}
 
     // Get a string representation of the given value for use in error messages.
-    // This method should only be used when printing warnings about primary keys
-    // which means the input should only be valid types for primary keys:
+    // This method is currently only used when printing warnings about primary keys
+    // which means the output only need to be valid for the primary key types:
     // StringData, int64_t and Optional<int64_t>
     std::string print(JavaValue const& val) const {
         return val.to_string();

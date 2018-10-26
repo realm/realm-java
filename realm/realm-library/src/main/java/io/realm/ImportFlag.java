@@ -18,7 +18,9 @@ package io.realm;
 import io.realm.annotations.Beta;
 
 /**
- * This class describe how data is saved to Realm when saving full objects.
+ * This class describe how data is saved to Realm when saving whole objects.
+ *
+ * @see Realm#copyToRealm(RealmModel, ImportFlag...)
  */
 @Beta
 public enum ImportFlag {
@@ -58,7 +60,7 @@ public enum ImportFlag {
      * This is normally the desired behaviour as the final object is the merged result of the latest
      * changes from both devices, however if all the fields in an object are considered an atomic
      * unit, then this flag should not be set as it will ensure that all fields are set and thus have
-     * the same "age" when importing data using methods like {@link Realm#copyToRealmOrUpdate(RealmModel, ImportFlag...)}.
+     * the same "age" when data are sent to the server.
      */
     DO_NOT_SET_SAME_VALUES,
 
