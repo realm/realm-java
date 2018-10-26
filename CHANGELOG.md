@@ -23,7 +23,7 @@ This release contains all changes in 5.8.0-BETA1 and 5.8.0-BETA2.
 * Added support for `ImportFlag`s to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()`. This makes it possible to choose a mode so only fields that actually changed are written to disk. This improves notifications and Object Server performance. [#6224](https://github.com/realm/realm-java/pull/6224).
 
 ### Fixed
-* Known bugs introduced in 5.8.0-BETA1 and 5.8.0-BETA2 regarding the use of `ImportFlag`.
+* All known bugs introduced in 5.8.0-BETA1 and 5.8.0-BETA2. See the release notes for these releases.
 
 ### Compatibility
 * Realm Object Server: 3.11.0 or later.
