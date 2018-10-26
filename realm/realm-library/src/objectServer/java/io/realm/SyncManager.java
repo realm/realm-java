@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.os.SystemClock;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,6 +46,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.exceptions.RealmError;
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
 import io.realm.internal.network.AuthenticationServer;
@@ -446,7 +449,7 @@ public class SyncManager {
     }
 
     /**
-     * Retruns the all valid sessions belonging to the user.
+     * Returns the all valid sessions belonging to the user.
      *
      * @param syncUser the user to use.
      * @return the all valid sessions belonging to the user.

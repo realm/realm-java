@@ -17,16 +17,23 @@
 package io.realm;
 
 
+import android.text.TextUtils;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.Beta;
 import io.realm.annotations.Required;
+import io.realm.internal.CheckedRow;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
+import io.realm.internal.UncheckedRow;
+import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -37,6 +44,7 @@ import io.realm.internal.Util;
 import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.fields.FieldDescriptor;
 import io.realm.internal.sync.SubscriptionAction;
+import io.realm.sync.Subscription;
 
 
 /**
@@ -2007,6 +2015,63 @@ public class RealmQuery<E> {
         return (Realm) realm;
     }
 
+    /**
+     * Creates an anonymous subscription from this query or returns the existing Subscription if
+     * one already existed.
+     *
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction or if
+     * the query is on a {@link DynamicRealm}
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribe() {
+        StringBuilder sb = new StringBuilder("[");
+        sb.append((table != null) ? table.getClassName() : "");
+        sb.append("] ");
+        sb.append(nativeSerializeQuery(query.getNativePtr(), queryDescriptors.getNativePtr()));
+        String name = sb.toString();
+        return subscribe(name);
+    }
+
+    /**
+     * Creates an anonymous subscription from this query or returns the existing Subscription if
+     * one already existed.
+     *
+     * @return the name of the query.
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
+     * @throws IllegalArgumentException if a subscription for a different query with the same name
+     * already exists.
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribe(String name) {
+        realm.checkIfValid();
+        if (realm instanceof DynamicRealm) {
+            throw new IllegalStateException("'subscribe' is not supported for queries on Dynamic Realms.");
+        }
+        if (osList != null) {
+            throw new IllegalStateException("Cannot create subscriptions for queries based on a 'RealmList. Subscribe to the object holding the list instead.'");
+        }
+        if (TextUtils.isEmpty(name)) {
+            throw new IllegalArgumentException("Non-empty 'name' required.");
+        }
+        long rowIndex = nativeSubscribe(realm.getSharedRealm().getNativePtr(), name, query.getNativePtr(), queryDescriptors.getNativePtr());
+        CheckedRow row = ((Realm) realm).getTable(Subscription.class).getCheckedRow(rowIndex);
+        return realm.get(Subscription.class, null, row);
+    }
+
+    /**
+     * Returns a textual description of this query.
+     *
+     * @return the textual description of the query.
+     */
+    public String getDescription() {
+        return nativeSerializeQuery(query.getNativePtr(), queryDescriptors.getNativePtr());
+    }
+
     private boolean isDynamicQuery() {
         return className != null;
     }
@@ -2125,4 +2190,8 @@ public class RealmQuery<E> {
     private SchemaConnector getSchemaConnector() {
         return new SchemaConnector(realm.getSchema());
     }
+
+    private static native String nativeSerializeQuery(long tableQueryPtr, long descriptorPtr);
+    private static native long nativeSubscribe(long sharedRealmPtr, String name, long tableQueryPtr, long descriptorPtr);
+
 }

@@ -20,6 +20,7 @@ import android.content.Context;
 
 import java.lang.reflect.InvocationTargetException;
 
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
 
@@ -98,13 +99,14 @@ public class ObjectServerFacade {
     }
 
     /**
-     * Block until all latest changes have been downloaded from the server.
+     * Block until all latest changes have been downloaded from the server. This should only
+     * be called the first time a Realm file is created.
      *
      * @throws {@code DownloadingRealmInterruptedException} if the thread was interrupted while blocked waiting for
      * this to complete.
      */
     @SuppressWarnings("JavaDoc")
-    public void downloadRemoteChanges(RealmConfiguration config) {
+    public void downloadInitialRemoteChanges(RealmConfiguration config) {
         // Do nothing
     }
 
@@ -123,4 +125,14 @@ public class ObjectServerFacade {
         // Do nothing
     }
 
+    /**
+     * If the Realm is a Query-based Realm, ensure that all subscriptions are ACTIVE before
+     * proceeding. This should only be called when opening a Realm for the first time.
+     *
+     * @throws {@code DownloadingRealmInterruptedException} if the thread was interrupted while blocked waiting for
+     * this to complete.
+     */
+    public void downloadInitialSubscriptions(Realm realm) {
+        // Do nothing
+    }
 }

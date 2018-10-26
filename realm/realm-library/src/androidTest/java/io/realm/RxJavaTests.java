@@ -57,15 +57,10 @@ public class RxJavaTests {
 
     @Rule
     public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
+
     @Rule
-    public final RunInLooperThread looperThread = new RunInLooperThread() {
-        @Override
-        public void looperTearDown() {
-            if (subscription != null && !subscription.isDisposed()) {
-                subscription.dispose();
-            }
-        }
-    };
+    public final RunInLooperThread looperThread = new RunInLooperThread();
+
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
@@ -76,6 +71,11 @@ public class RxJavaTests {
     public void setUp() throws Exception {
         // For non-LooperThread tests.
         realm = Realm.getInstance(configFactory.createConfiguration());
+        looperThread.runAfterTest(() -> {
+            if (subscription != null && !subscription.isDisposed()) {
+                subscription.dispose();
+            }
+        });
     }
 
     @After
@@ -936,30 +936,16 @@ public class RxJavaTests {
         realm.commitTransaction();
 
         for (int i = 0; i < TEST_SIZE; i++) {
-            // Doesn't keep a reference to the Observable.
             realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, i).findAllAsync().asFlowable()
-                    .filter(new Predicate<RealmResults<AllTypes>>() {
-                        @Override
-                        public boolean test(RealmResults<AllTypes> results) throws Exception {
-                            return results.isLoaded();
-                        }
-                    })
+                    .filter(results -> results.isLoaded())
                     .take(1) // Unsubscribes from Realm.
-                    .subscribe(new Consumer<RealmResults<AllTypes>>() {
-                        @Override
-                        public void accept(RealmResults<AllTypes> allTypes) throws Exception {
-                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
-                            Runtime.getRuntime().gc();
-                            if (innerCounter.incrementAndGet() == TEST_SIZE) {
-                                looperThread.testComplete();
-                            }
+                    .subscribe(allTypes -> {
+                        // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
+                        Runtime.getRuntime().gc();
+                        if (innerCounter.incrementAndGet() == TEST_SIZE) {
+                            looperThread.testComplete();
                         }
-                    }, new Consumer<Throwable>() {
-                        @Override
-                        public void accept(Throwable throwable) throws Exception {
-                            fail(throwable.toString());
-                        }
-                    });
+                    }, throwable -> fail(throwable.toString()));
         }
     }
 
@@ -972,6 +958,7 @@ public class RxJavaTests {
         final int TEST_SIZE = 50;
         final AtomicLong innerCounter = new AtomicLong();
         final DynamicRealm realm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        looperThread.closeAfterTest(realm);
 
         realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -995,7 +982,6 @@ public class RxJavaTests {
                             // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
                             Runtime.getRuntime().gc();
                             if (innerCounter.incrementAndGet() == TEST_SIZE) {
-                                realm.close();
                                 looperThread.testComplete();
                             }
                         }
@@ -1061,6 +1047,7 @@ public class RxJavaTests {
         final int TEST_SIZE = 50;
         final AtomicLong innerCounter = new AtomicLong();
         final DynamicRealm realm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        looperThread.closeAfterTest(realm);
 
         realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -1084,7 +1071,6 @@ public class RxJavaTests {
                             // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
                             Runtime.getRuntime().gc();
                             if (innerCounter.incrementAndGet() == TEST_SIZE) {
-                                realm.close();
                                 looperThread.testComplete();
                             }
                         }

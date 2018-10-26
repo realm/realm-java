@@ -4363,6 +4363,7 @@ public class RealmTests {
                 fail();
             }
         });
+        looperThread.testComplete();
     }
 
     @Test
@@ -4370,6 +4371,7 @@ public class RealmTests {
     public void getInstanceAsync_nullCallbackShouldThrow() {
         thrown.expect(IllegalArgumentException.class);
         Realm.getInstanceAsync(realmConfig, null);
+        looperThread.testComplete();
     }
 
     // Verify that the logic for waiting for the users file dir to be come available isn't totally broken
