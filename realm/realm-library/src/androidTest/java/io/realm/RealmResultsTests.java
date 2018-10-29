@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.reactivex.Flowable;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.DefaultValueOfField;
@@ -791,17 +790,241 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     public void setValue() {
-        // FIXME
+        populateAllJavaTypes(5);
+        RealmResults<AllJavaTypes> collection = realm.where(AllJavaTypes.class).findAll();
+        realm.beginTransaction();
+        for (BulkSetMethods type : BulkSetMethods.values()) {
+            switch(type) {
+                case STRING:
+                    collection.setValue(AllJavaTypes.FIELD_STRING, "foo");
+                    assertElements(collection, obj -> assertEquals("foo", obj.getFieldString()));
+                    collection.setValue(AllJavaTypes.FIELD_STRING, null);
+                    assertElements(collection, obj -> assertEquals(null, obj.getFieldString()));
+                    break;
+                case BOOLEAN:
+                    collection.setValue(AllJavaTypes.FIELD_BOOLEAN, true);
+                    assertElements(collection, obj -> assertTrue(obj.isFieldBoolean()));
+                    break;
+                case BYTE:
+                    collection.setValue(AllJavaTypes.FIELD_BYTE, (byte) 1);
+                    assertElements(collection, obj -> assertEquals((byte)1, obj.getFieldByte()));
+                    break;
+                case SHORT:
+                    collection.setValue(AllJavaTypes.FIELD_SHORT, (short) 2);
+                    assertElements(collection, obj -> assertEquals((short)2, obj.getFieldShort()));
+                    break;
+                case INTEGER:
+                    collection.setValue(AllJavaTypes.FIELD_INT, 3);
+                    assertElements(collection, obj -> assertEquals(3, obj.getFieldInt()));
+                    break;
+                case LONG:
+                    collection.setValue(AllJavaTypes.FIELD_LONG, 4L);
+                    assertElements(collection, obj -> assertEquals(4L, obj.getFieldLong()));
+                    break;
+                case FLOAT:
+                    collection.setValue(AllJavaTypes.FIELD_FLOAT, 1.23F);
+                    assertElements(collection, obj -> assertEquals(1.23F, obj.getFieldFloat(), 0F));
+                    break;
+                case DOUBLE:
+                    collection.setValue(AllJavaTypes.FIELD_DOUBLE, 1.234);
+                    assertElements(collection, obj -> assertEquals(1.234, obj.getFieldDouble(), 0F));
+                    break;
+                case BINARY:
+                    collection.setValue(AllJavaTypes.FIELD_BINARY, new byte[]{1,2,3});
+                    assertElements(collection, obj -> assertArrayEquals(new byte[]{1,2,3}, obj.getFieldBinary()));
+                    collection.setValue(AllJavaTypes.FIELD_BINARY, null);
+                    assertElements(collection, obj -> assertNull(obj.getFieldBinary()));
+                    break;
+                case DATE:
+                    collection.setValue(AllJavaTypes.FIELD_DATE, new Date(1000));
+                    assertElements(collection, obj -> assertEquals(new Date(1000), obj.getFieldDate()));
+                    collection.setValue(AllJavaTypes.FIELD_DATE, null);
+                    assertElements(collection, obj -> assertEquals(null, obj.getFieldDate()));
+                    break;
+                case OBJECT: {
+                    AllJavaTypes childObj = realm.createObject(AllJavaTypes.class, 42);
+                    collection.setValue(AllJavaTypes.FIELD_OBJECT, childObj);
+                    assertElements(collection, obj -> assertEquals(childObj, obj.getFieldObject()));
+                    collection.setValue(AllJavaTypes.FIELD_OBJECT, null);
+                    assertElements(collection, obj -> assertNull(obj.getFieldObject()));
+                    break;
+                }
+                case MODEL_LIST: {
+                    AllJavaTypes childObj = realm.createObject(AllJavaTypes.class, 43);
+                    collection.setValue(AllJavaTypes.FIELD_LIST, new RealmList<>(childObj));
+                    assertElements(collection, obj -> {
+                        assertEquals(1, obj.getFieldList().size());
+                        assertEquals(childObj, obj.getFieldList().first());
+                    });
+                    break;
+                }
+                case STRING_VALUE_LIST: {
+                    RealmList<String> list = new RealmList<>("Foo", "Bar");
+                    collection.setValue(AllJavaTypes.FIELD_STRING_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals("Foo", obj.getFieldStringList().first());
+                        assertEquals("Bar", obj.getFieldStringList().last());
+                    });
+                    break;
+                }
+                case BOOLEAN_VALUE_LIST: {
+                    RealmList<Boolean> list = new RealmList<>(true, false);
+                    collection.setValue(AllJavaTypes.FIELD_BOOLEAN_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertTrue(obj.getFieldBooleanList().first());
+                        assertFalse(obj.getFieldBooleanList().last());
+                    });
+                    break;
+                }
+                case BYTE_VALUE_LIST: {
+                    RealmList<Byte> list = new RealmList<>((byte) 1, (byte) 2);
+                    collection.setValue(AllJavaTypes.FIELD_BYTE_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(Byte.valueOf((byte) 1), obj.getFieldByteList().first());
+                        assertEquals(Byte.valueOf((byte) 2), obj.getFieldByteList().last());
+                    });
+                    break;
+                }
+                case SHORT_VALUE_LIST: {
+                    RealmList<Short> list = new RealmList<>((short) 1, (short) 2);
+                    collection.setValue(AllJavaTypes.FIELD_SHORT_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(Short.valueOf((short) 1), obj.getFieldShortList().first());
+                        assertEquals(Short.valueOf((short) 2), obj.getFieldShortList().last());
+                    });
+                    break;
+                }
+                case INTEGER_VALUE_LIST: {
+                    RealmList<Integer> list = new RealmList<>(1, 2);
+                    collection.setValue(AllJavaTypes.FIELD_INTEGER_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(Integer.valueOf(1), obj.getFieldIntegerList().first());
+                        assertEquals(Integer.valueOf(2), obj.getFieldIntegerList().last());
+                    });
+                    break;
+                }
+                case LONG_VALUE_LIST: {
+                    RealmList<Long> list = new RealmList<>(1L, 2L);
+                    collection.setValue(AllJavaTypes.FIELD_LONG_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(Long.valueOf(1), obj.getFieldLongList().first());
+                        assertEquals(Long.valueOf(2), obj.getFieldLongList().last());
+                    });
+                    break;
+                }
+                case FLOAT_VALUE_LIST: {
+                    RealmList<Float> list = new RealmList<>(1.1F, 2.2F);
+                    collection.setValue(AllJavaTypes.FIELD_FLOAT_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(1.1F, obj.getFieldFloatList().first(), 0F);
+                        assertEquals(2.2F, obj.getFieldFloatList().last(), 0F);
+                    });
+                    break;
+                }
+                case DOUBLE_VALUE_LIST: {
+                    RealmList<Double> list = new RealmList<>(1.1D, 2.2D);
+                    collection.setValue(AllJavaTypes.FIELD_DOUBLE_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(1.1D, obj.getFieldDoubleList().first(), 0D);
+                        assertEquals(2.2D, obj.getFieldDoubleList().last(), 0D);
+                    });
+                    break;
+                }
+                case BINARY_VALUE_LIST: {
+                    RealmList<byte[]> list = new RealmList<>(new byte[] {1,2,3}, new byte[] {2,3,4});
+                    collection.setValue(AllJavaTypes.FIELD_BINARY_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertArrayEquals(new byte[] {1,2,3}, obj.getFieldBinaryList().first());
+                        assertArrayEquals(new byte[] {2,3,4}, obj.getFieldBinaryList().last());
+                    });
+                    break;
+                }
+                case DATE_VALUE_LIST:  {
+                    RealmList<Date> list = new RealmList<>(new Date(1000), new Date(2000));
+                    collection.setValue(AllJavaTypes.FIELD_DATE_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(new Date(1000), obj.getFieldDateList().first());
+                        assertEquals(new Date(2000), obj.getFieldDateList().last());
+                    });
+                    break;
+                }
+                default:
+                    fail("Unknown type: " + type);
+            }
+        }
     }
 
     @Test
     public void setValue_implicitConversions() {
-        // FIXME
-    }
+        populateAllJavaTypes(5);
+        RealmResults<AllJavaTypes> collection = realm.where(AllJavaTypes.class).findAll();
+        realm.beginTransaction();
+        for (BulkSetMethods type : BulkSetMethods.values()) {
+            switch(type) {
+                case BOOLEAN:
+                    collection.setValue(AllJavaTypes.FIELD_BOOLEAN, "true");
+                    assertElements(collection, obj -> assertTrue(obj.isFieldBoolean()));
+                    collection.setValue(AllJavaTypes.FIELD_BOOLEAN, "FALSE");
+                    assertElements(collection, obj -> assertFalse(obj.isFieldBoolean()));
+                    collection.setValue(AllJavaTypes.FIELD_BOOLEAN, "True");
+                    assertElements(collection, obj -> assertTrue(obj.isFieldBoolean()));
+                    collection.setValue(AllJavaTypes.FIELD_BOOLEAN, "false");
+                    assertElements(collection, obj -> assertFalse(obj.isFieldBoolean()));
+                    collection.setValue(AllJavaTypes.FIELD_BOOLEAN, "TRUE");
+                    assertElements(collection, obj -> assertTrue(obj.isFieldBoolean()));
+                    break;
+                case BYTE:
+                    collection.setValue(AllJavaTypes.FIELD_BYTE, "1");
+                    assertElements(collection, obj -> assertEquals((byte)1, obj.getFieldByte()));
+                    break;
+                case SHORT:
+                    collection.setValue(AllJavaTypes.FIELD_SHORT, "2");
+                    assertElements(collection, obj -> assertEquals((short)2, obj.getFieldShort()));
+                    break;
+                case INTEGER:
+                    collection.setValue(AllJavaTypes.FIELD_INT, "3");
+                    assertElements(collection, obj -> assertEquals(3, obj.getFieldInt()));
+                    break;
+                case LONG:
+                    collection.setValue(AllJavaTypes.FIELD_LONG, Long.toString(Long.MAX_VALUE));
+                    assertElements(collection, obj -> assertEquals(Long.MAX_VALUE, obj.getFieldLong()));
+                    break;
+                case FLOAT:
+                    collection.setValue(AllJavaTypes.FIELD_FLOAT, "1.23F");
+                    assertElements(collection, obj -> assertEquals(1.23F, obj.getFieldFloat(), 0F));
+                    break;
+                case DOUBLE:
+                    collection.setValue(AllJavaTypes.FIELD_DOUBLE, "1.234");
+                    assertElements(collection, obj -> assertEquals(1.234, obj.getFieldDouble(), 0F));
+                    break;
+                case DATE:
+                    collection.setValue(AllJavaTypes.FIELD_DATE, "1000");
+                    assertElements(collection, obj -> assertEquals(new Date(1000), obj.getFieldDate()));
+                    collection.setValue(AllJavaTypes.FIELD_DATE, "/Date(2000+0000)/");
+                    assertElements(collection, obj -> assertEquals(new Date(2000), obj.getFieldDate()));
+                    break;
 
-    @Test
-    public void setNull() {
-        // FIXME
+                // These types do not offer any implicit conversion
+                case STRING:
+                case BINARY:
+                case OBJECT:
+                case MODEL_LIST:
+                case STRING_VALUE_LIST:
+                case BOOLEAN_VALUE_LIST:
+                case BYTE_VALUE_LIST:
+                case SHORT_VALUE_LIST:
+                case INTEGER_VALUE_LIST:
+                case LONG_VALUE_LIST:
+                case FLOAT_VALUE_LIST:
+                case DOUBLE_VALUE_LIST:
+                case BINARY_VALUE_LIST:
+                case DATE_VALUE_LIST:
+                    continue;
+
+                default:
+                    fail("Unknown type: " + type);
+            }
+        }
     }
 
     @Test
@@ -1025,7 +1248,7 @@ public class RealmResultsTests extends CollectionTests {
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
         realm.beginTransaction();
         try {
-            collection.setList(AllTypes.FIELD_REALMLIST, new RealmList<>(realm.createObject(AllJavaTypes.class)));
+            collection.setList(AllTypes.FIELD_REALMLIST, new RealmList<>(realm.createObject(AllTypes.class)));
             fail();
         } catch (IllegalArgumentException e) {
             assertTrue("Wrong error message: " + e.getMessage(), e.getMessage().equals("Type of object is wrong. Was 'AllTypes', expected 'Dog'"));
@@ -1037,7 +1260,7 @@ public class RealmResultsTests extends CollectionTests {
         RealmResults<DynamicRealmObject> dynamicCollection = dynamicRealm.where("AllTypes").findAll();
         dynamicRealm.beginTransaction();
         try {
-            dynamicCollection.setList(AllTypes.FIELD_REALMLIST, new RealmList<>(dynamicRealm.createObject("AllJavaTypes")));
+            dynamicCollection.setList(AllTypes.FIELD_REALMLIST, new RealmList<>(dynamicRealm.createObject("AllTypes")));
             fail();
         } catch (IllegalArgumentException e) {
             assertTrue("Wrong error message: " + e.getMessage(), e.getMessage().equals("Type of object is wrong. Was 'AllTypes', expected 'Dog'"));
