@@ -25,6 +25,7 @@ This release also contains all changes in 5.8.0-BETA1 and 5.8.0-BETA2.
 * [ObjectServer] Added `RealmQuery.subscribe()` and `RealmQuery.subscribe(String name)` to subscribe immediately inside a transaction. These API's are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
 * [ObjectServer] Added support for subscribing directly inside `SyncConfiguration.initialData()`. This can be coupled with `SyncConfiguration.waitForInitialRemoteData()` in order to block a Realm from opening until the initial subscriptions are ready and have downloaded data. This API are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
 * Added support for `ImportFlag`s to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()`. This makes it possible to choose a mode so only fields that actually changed are written to disk. This improves notifications and Object Server performance. [#6224](https://github.com/realm/realm-java/pull/6224).
+* Added support for bulk updating the same property in all objects part of a query result using `RealmResults.setValue(String fieldName, Object value)` or one of the specialized overrides that have been added for all supported types, e.g. `RealmResults.setString(String fieldName, String value)` [#762](https://github.com/realm/realm-java/issues/762).
 
 ### Fixed
 * All known bugs introduced in 5.8.0-BETA1 and 5.8.0-BETA2. See the release notes for these releases.

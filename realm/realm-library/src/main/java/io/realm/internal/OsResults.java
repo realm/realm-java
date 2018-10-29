@@ -16,20 +16,21 @@
 
 package io.realm.internal;
 
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
-import java.util.Locale;
 import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
+import io.realm.MutableRealmInteger;
 import io.realm.OrderedRealmCollectionChangeListener;
-import io.realm.ProxyState;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.core.QueryDescriptor;
+import io.realm.internal.objectstore.OsObjectBuilder;
 
 
 /**
@@ -454,8 +455,89 @@ public class OsResults implements NativeObject, ObservableCollection {
         }
     }
 
-    public void setList(String fieldName, RealmList<? extends RealmModel> list) {
+    public void setModelList(String fieldName, RealmList<? extends RealmModel> list) {
         // FIXME
+    }
+
+
+    // Interface wrapping adding the specific list tye
+    private interface AddListTypeDelegate<T> {
+        void addList(OsObjectBuilder builder, RealmList<T> list);
+    }
+
+    // Helper method for adding specific types of lists.
+    private <T> void addTypeSpecificList(String fieldName, RealmList<T> list, AddListTypeDelegate<T> delegate) {
+        //noinspection unchecked
+        OsObjectBuilder builder = new OsObjectBuilder(getTable(), 0, Collections.EMPTY_SET);
+        delegate.addList(builder, list);
+        try {
+            nativeSetList(nativePtr, fieldName, builder.getNativePtr());
+        } finally {
+            builder.close();
+        }
+    }
+
+    public void setStringList(String fieldName, RealmList<String> list) {
+        addTypeSpecificList(fieldName, list, (builder, lst) -> {
+            builder.addStringList(0, lst);
+
+        });
+    }
+
+    public void setByteList(String fieldName, RealmList<Byte> list) {
+        addTypeSpecificList(fieldName, list, (builder, lst) -> {
+            builder.addByteList(0, lst);
+
+        });
+    }
+
+    public void setShortList(String fieldName, RealmList<Short> list) {
+        addTypeSpecificList(fieldName, list, (builder, lst) -> {
+            builder.addShortList(0, lst);
+
+        });
+    }
+
+    public void setIntegerList(String fieldName, RealmList<Integer> list) {
+        addTypeSpecificList(fieldName, list, (builder, lst) -> {
+            builder.addIntegerList(0, lst);
+        });
+    }
+
+    public void setLongList(String fieldName, RealmList<Long> list) {
+        addTypeSpecificList(fieldName, list, (builder, lst) -> {
+            builder.addLongList(0, lst);
+        });
+    }
+
+    public void setBooleanList(String fieldName, RealmList<Boolean> list) {
+        addTypeSpecificList(fieldName, list, (builder, lst) -> {
+            builder.addBooleanList(0, lst);
+        });
+    }
+
+    public void setByteArrayList(String fieldName, RealmList<byte[]> list) {
+        addTypeSpecificList(fieldName, list, (builder, lst) -> {
+            builder.addByteArrayList(0, lst);
+        });
+    }
+
+    public void setDateList(String fieldName, RealmList<Date> list) {
+        addTypeSpecificList(fieldName, list, (builder, lst) -> {
+            builder.addDateList(0, lst);
+        });
+    }
+
+    public void setFloatList(String fieldName, RealmList<Float> list) {
+        addTypeSpecificList(fieldName, list, (builder, lst) -> {
+            builder.addFloatList(0, lst);
+        });
+    }
+
+    public void setDoubleList(String fieldName, RealmList<Double> list) {
+        addTypeSpecificList(fieldName, list, (builder, lst) -> {
+            builder.addDoubleList(0, lst);
+        });
     }
 
     public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
@@ -584,7 +666,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native void nativeSetObject(long nativePtr, String fieldName, long rowNativePtr);
 
-    private static native void nativeSetList(long nativePtr, String fieldName, long listNativePtr);
+    private static native void nativeSetList(long nativePtr, String fieldName, long builderNativePtr);
 
     // Non-static, we need this OsResults object in JNI.
     private native void nativeStartListening(long nativePtr);

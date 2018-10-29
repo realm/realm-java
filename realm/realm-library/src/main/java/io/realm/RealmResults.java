@@ -20,6 +20,7 @@ import android.annotation.SuppressLint;
 import android.os.Looper;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Locale;
 
 import javax.annotation.Nullable;
@@ -28,6 +29,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -37,6 +39,8 @@ import io.realm.internal.Util;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
 import io.realm.rx.CollectionChange;
+
+import static io.realm.RealmFieldType.LIST;
 
 /**
  * This class holds all the matches of a {@link RealmQuery} for a given Realm. The objects are not copied from
@@ -159,8 +163,10 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * the argument didn't match the field type or could not be converted to match the underlying
      * field type.
      */
-    public void setValue(String fieldName, Object value) {
+    public void setValue(String fieldName, @Nullable Object value) {
         checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        realm.checkIfValid();
         boolean isString = (value instanceof String);
         String strValue = isString ? (String) value : null;
 
@@ -169,6 +175,13 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         if (!schema.hasField(fieldName)) {
             throw new IllegalArgumentException(String.format("Field '%s' could not be found in class '%s'", fieldName, className));
         }
+
+        // null values exit early
+        if (value == null) {
+            osResults.setNull(fieldName);
+            return;
+        }
+
         // Does implicit conversion if needed.
         RealmFieldType type = schema.getFieldType(fieldName);
         if (isString && type != RealmFieldType.STRING) {
@@ -196,6 +209,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             }
         }
 
+        //noinspection ConstantConditions
         Class<?> valueClass = value.getClass();
         if (valueClass == Boolean.class) {
             setBoolean(fieldName, (Boolean) value);
@@ -212,6 +226,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         } else if (valueClass == Double.class) {
             setDouble(fieldName, (Double) value);
         } else if (valueClass == String.class) {
+            //noinspection ConstantConditions
             setString(fieldName, (String) value);
         } else if (value instanceof Date) {
             setDate(fieldName, (Date) value);
@@ -430,18 +445,102 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     /**
-     * Replaces the RealmList on all objects in this collection at the given field.
+     * Replaces the RealmList at the given field on all objects in this collection.
+     *
      *
      * @param fieldName name of the field to update.
-     * @param value new value for the field.
-     * @throws IllegalArgumentException if field name doesn't exist, isn't a RealmList field or if the
-     * objects in the list are not managed.
+     * @param list new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, isn't a RealmList field , if the
+     * objects in the list are not managed or the type of the objects in the list are wrong.
      */
-    public void setList(String fieldName, RealmList<?> value) {
+    @SuppressWarnings("unchecked")
+    public <T> void setList(String fieldName, RealmList<T> list) {
         checkNonEmptyFieldName(fieldName);
-        if (!value.isManaged()) {
-            throw new IllegalArgumentException("Only managed RealmLists can be added to objects");
+        fieldName = mapFieldNameToInternalName(fieldName);
+        realm.checkIfValid();
+
+        //noinspection ConstantConditions
+        if (list == null) {
+            throw new IllegalArgumentException("Non-null 'list' required");
         }
+
+        // Due to type erasure it is not to have multiple overloaded methods with the same signature.
+        // So instead we fake  it by checking the first element in the list and verifies that
+        // against the underlying type.
+        RealmFieldType columnType = realm.getSchema().getSchemaForClass(osResults.getTable().getClassName()).getFieldType(fieldName);
+        switch (columnType) {
+            case LIST:
+                checkTypeOfListElements(list, RealmObjectProxy.class);
+                setModelList(fieldName, (RealmList<RealmObjectProxy>) list);
+                break;
+            case INTEGER_LIST:
+                // Integers are a bit annoying as they are all stored as the same type in Core
+                // but the Java type system cannot seamlessly translate between e.g Short and Long.
+                Class<?> listType = getListType(list);
+                if (listType.equals(Integer.class)) {
+                    osResults.setIntegerList(fieldName, (RealmList<Integer>) list);
+                } else if (listType.equals(Long.class)) {
+                    osResults.setLongList(fieldName, (RealmList<Long>) list);
+                } else if (listType.equals(Short.class)) {
+                    osResults.setShortList(fieldName, (RealmList<Short>) list);
+                } else if (listType.equals(Byte.class)) {
+                    osResults.setByteList(fieldName, (RealmList<Byte>) list);
+                } else {
+                    throw new IllegalArgumentException(String.format("List contained the wrong type of elements. " +
+                            "Elements that can be mapped to Integers was expected, but the actual type is '%s'",
+                            listType));
+                }
+                break;
+            case BOOLEAN_LIST:
+                checkTypeOfListElements(list, Boolean.class);
+                osResults.setBooleanList(fieldName, (RealmList<Boolean>) list);
+                break;
+            case STRING_LIST:
+                checkTypeOfListElements(list, String.class);
+                osResults.setStringList(fieldName, (RealmList<String>) list);
+                break;
+            case BINARY_LIST:
+                checkTypeOfListElements(list, byte[].class);
+                osResults.setByteArrayList(fieldName, (RealmList<byte[]>) list);
+                break;
+            case DATE_LIST:
+                checkTypeOfListElements(list, Date.class);
+                osResults.setDateList(fieldName, (RealmList<Date>) list);
+                break;
+            case FLOAT_LIST:
+                checkTypeOfListElements(list, Float.class);
+                osResults.setFloatList(fieldName, (RealmList<Float>) list);
+                break;
+            case DOUBLE_LIST:
+                checkTypeOfListElements(list, Double.class);
+                osResults.setDoubleList(fieldName, (RealmList<Double>) list);
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("Field '%s' is not a list but a %s", fieldName, columnType));
+        }
+    }
+
+    private Class<?> getListType(RealmList list) {
+        if (!list.isEmpty()) {
+            return list.first().getClass();
+        } else {
+            return Long.class; // Any valid type that maps to INTEGER will do.
+        }
+    }
+
+    private <T> void checkTypeOfListElements(RealmList<T> list, Class<?> clazz) {
+        if (!list.isEmpty()) {
+            T element = list.first();
+            Class<?> elementType = element.getClass();
+            if (!(elementType.isAssignableFrom(clazz))) {
+                throw new IllegalArgumentException(String.format("List contained the wrong type of elements. Elements of type '%s' was " +
+                        "expected, but the actual type is '%s'", clazz, elementType));
+            }
+        }
+    }
+
+    private void setModelList(String fieldName, RealmList<RealmObjectProxy> list) {
+
     }
 
     /**

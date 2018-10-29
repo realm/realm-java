@@ -15,6 +15,7 @@
  */
 package io.realm.internal.objectstore;
 
+import java.io.Closeable;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -58,7 +59,7 @@ import io.realm.internal.UncheckedRow;
  * that can guide any architectural design and the only way to really find out is to build out each
  * solution and benchmark it.
  */
-public class OsObjectBuilder {
+public class OsObjectBuilder implements Closeable {
 
     private final Table table;
     private final long sharedRealmPtr;
@@ -356,23 +357,48 @@ public class OsObjectBuilder {
         nativeStopList(builderPtr, columnIndex, listPtr);
     }
 
+    /**
+     * Updates any existing object if it exists, otherwise creates a new one.
+     *
+     * The builder is automatically closed after calling this method.
+     */
     public void updateExistingObject() {
         try {
             nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, true, ignoreFieldsWithSameValue);
         } finally {
-            nativeDestroyBuilder(builderPtr);
+            close();
         }
     }
 
+    /**
+     * Create a new object.
+     *
+     * The builder is automatically closed after calling this method.
+     */
     public UncheckedRow createNewObject() {
         UncheckedRow row;
         try {
             long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, false, false);
             row = new UncheckedRow(context, table, rowPtr);
         } finally {
-            nativeDestroyBuilder(builderPtr);
+            close();
         }
         return row;
+    }
+
+    /**
+     * Returns the underlying native pointer representing this builder.
+     */
+    public long getNativePtr() {
+        return builderPtr;
+    }
+
+    /**
+     * Manually closes the underlying Builder
+     */
+    @Override
+    public void close() {
+        nativeDestroyBuilder(builderPtr);
     }
 
     private interface ItemCallback<T>  {
