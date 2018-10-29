@@ -417,8 +417,11 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.OBJECT);
         realm.checkIfValid();
+        Row row = checkRealmObjectConstraints(fieldName, value);
+        osResults.setObject(fieldName, row);
+    }
 
-        Row row = null;
+    private Row checkRealmObjectConstraints(String fieldName, @Nullable RealmModel value) {
         if (value != null) {
             if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
                 throw new IllegalArgumentException("'value' is not a valid a valid, managed Realm object.");
@@ -438,10 +441,10 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                         "Type of object is wrong. Was '%s', expected '%s'",
                         inputTable.getClassName(), expectedTable.getClassName()));
             }
-            row = proxyState.getRow$realm();
+            return proxyState.getRow$realm();
         }
 
-        osResults.setObject(fieldName, row);
+        return null;
     }
 
     /**
@@ -470,8 +473,9 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         RealmFieldType columnType = realm.getSchema().getSchemaForClass(osResults.getTable().getClassName()).getFieldType(fieldName);
         switch (columnType) {
             case LIST:
-                checkTypeOfListElements(list, RealmObjectProxy.class);
-                setModelList(fieldName, (RealmList<RealmObjectProxy>) list);
+                checkTypeOfListElements(list, RealmModel.class);
+                checkRealmObjectConstraints(fieldName, (RealmModel) list.first(null));
+                osResults.setModelList(fieldName, (RealmList<? extends RealmModel>) list);
                 break;
             case INTEGER_LIST:
                 // Integers are a bit annoying as they are all stored as the same type in Core
@@ -532,15 +536,11 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         if (!list.isEmpty()) {
             T element = list.first();
             Class<?> elementType = element.getClass();
-            if (!(elementType.isAssignableFrom(clazz))) {
+            if (!(clazz.isAssignableFrom(elementType))) {
                 throw new IllegalArgumentException(String.format("List contained the wrong type of elements. Elements of type '%s' was " +
                         "expected, but the actual type is '%s'", clazz, elementType));
             }
         }
-    }
-
-    private void setModelList(String fieldName, RealmList<RealmObjectProxy> list) {
-
     }
 
     /**

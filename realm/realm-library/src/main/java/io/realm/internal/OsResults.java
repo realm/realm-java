@@ -455,11 +455,6 @@ public class OsResults implements NativeObject, ObservableCollection {
         }
     }
 
-    public void setModelList(String fieldName, RealmList<? extends RealmModel> list) {
-        // FIXME
-    }
-
-
     // Interface wrapping adding the specific list tye
     private interface AddListTypeDelegate<T> {
         void addList(OsObjectBuilder builder, RealmList<T> list);
@@ -537,6 +532,12 @@ public class OsResults implements NativeObject, ObservableCollection {
     public void setDoubleList(String fieldName, RealmList<Double> list) {
         addTypeSpecificList(fieldName, list, (builder, lst) -> {
             builder.addDoubleList(0, lst);
+        });
+    }
+
+    public void setModelList(String fieldName, RealmList<? extends RealmModel> list) {
+        addTypeSpecificList(fieldName, list, (builder, lst) -> {
+            builder.addObjectList(0, lst);
         });
     }
 
