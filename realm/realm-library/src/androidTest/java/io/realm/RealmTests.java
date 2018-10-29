@@ -1501,9 +1501,8 @@ public class RealmTests {
     }
 
     @Test
-    @Ignore("FIXME: Figure out why  java.lang.IllegalStateException: Unexpected type: s is thrown on CI")
     public void copyToRealm_duplicatedPrimaryKeyThrows() {
-        final String[] PRIMARY_KEY_TYPES = { "String", "BoxedLong", "long" }; // long fails
+        final String[] PRIMARY_KEY_TYPES = { "String", "BoxedLong", "long" };
         for (String className : PRIMARY_KEY_TYPES) {
             String expectedKey = null;
             try {
@@ -4364,6 +4363,7 @@ public class RealmTests {
                 fail();
             }
         });
+        looperThread.testComplete();
     }
 
     @Test
@@ -4371,6 +4371,7 @@ public class RealmTests {
     public void getInstanceAsync_nullCallbackShouldThrow() {
         thrown.expect(IllegalArgumentException.class);
         Realm.getInstanceAsync(realmConfig, null);
+        looperThread.testComplete();
     }
 
     // Verify that the logic for waiting for the users file dir to be come available isn't totally broken

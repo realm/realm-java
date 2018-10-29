@@ -128,7 +128,7 @@ public class AuthTests extends StandardIntegrationTest {
                         .build();
 
                 final Realm realm = Realm.getInstance(config);
-                looperThread.addTestRealm(realm);
+                looperThread.closeAfterTest(realm);
                 assertTrue(config.getUser().isValid());
                 looperThread.testComplete();
             }
@@ -153,7 +153,7 @@ public class AuthTests extends StandardIntegrationTest {
                         .build();
 
                 final Realm realm = Realm.getInstance(config);
-                looperThread.addTestRealm(realm);
+                looperThread.closeAfterTest(realm);
                 assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
                 assertTrue(config.getUser().isValid());
                 looperThread.testComplete();
@@ -179,7 +179,7 @@ public class AuthTests extends StandardIntegrationTest {
                         .build();
 
                 final Realm realm = Realm.getInstance(config);
-                looperThread.addTestRealm(realm);
+                looperThread.closeAfterTest(realm);
                 assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
                 assertTrue(config.getUser().isValid());
                 looperThread.testComplete();
@@ -205,7 +205,7 @@ public class AuthTests extends StandardIntegrationTest {
                         .build();
 
                 final Realm realm = Realm.getInstance(config);
-                looperThread.addTestRealm(realm);
+                looperThread.closeAfterTest(realm);
                 assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
                 assertTrue(config.getUser().isValid());
                 looperThread.testComplete();

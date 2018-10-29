@@ -1,3 +1,65 @@
+## X.Y.Z (YYYY-MM-DD)
+
+### Enhancements
+* None
+
+### Fixed
+* ?? (Issue [#??](https://github.com/realm/realm-java/issues/??), since ??).
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None
+
+
+## 5.8.0 (YYYY-MM-DD)
+
+This release also contains all changes in 5.8.0-BETA1 and 5.8.0-BETA2.
+
+### Enhancements
+* [ObjectServer] Added Subscription class available to Query-based Realms. This exposes a Subscription more directly. This class is in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
+* [ObjectServer] Added `Realm.getSubscriptions()`, `Realm.getSubscriptions(String pattern)` and `Realm.getSubscription` to make it easier to find existing subscriptions. These API's are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
+* [ObjectServer] Added `RealmQuery.subscribe()` and `RealmQuery.subscribe(String name)` to subscribe immediately inside a transaction. These API's are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
+* [ObjectServer] Added support for subscribing directly inside `SyncConfiguration.initialData()`. This can be coupled with `SyncConfiguration.waitForInitialRemoteData()` in order to block a Realm from opening until the initial subscriptions are ready and have downloaded data. This API are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
+* Added support for `ImportFlag`s to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()`. This makes it possible to choose a mode so only fields that actually changed are written to disk. This improves notifications and Object Server performance. [#6224](https://github.com/realm/realm-java/pull/6224).
+
+### Fixed
+* All known bugs introduced in 5.8.0-BETA1 and 5.8.0-BETA2. See the release notes for these releases.
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: 1f91c82eb34cf4eaa2900794a9268390876f19f1
+
+
+## 5.8.0-BETA2 (2018-10-19)
+
+### Enhancements
+* None
+
+### Fixed
+* `RealmResults` listeners not triggering the initial callback for Query-based Realm when the device is offline [#6235](https://github.com/realm/realm-java/issues/6235). 
+
+### Known Bugs
+* `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` has been rewritten to support import flags. It is currently ~30% slower than in 5.7.0.
+* IllegalStateException thrown when trying to create an object with a primary key that already exists when using `Realm.copyToRealm`, will always report "null" instead of the correct primary key value.
+* When using `ImportFlag.DO_NOT_SET_SAME_VALUES`, lists will still be written and reported as changed, even if they didn't change.
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None
+
+
 ## 5.8.0-BETA1 (2018-10-11)
 
 ### Enhancements
@@ -5,21 +67,53 @@
   data into Realm [#6224](https://github.com/realm/realm-java/pull/6224).
 * Added support for `ImportFlag` to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()` [#6224](https://github.com/realm/realm-java/pull/6224).
 
+### Fixed
+* None
+
 ### Known Bugs
 * `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` has been rewritten to support import flags. It is currently ~30% slower than in 5.7.0.
 * IllegalStateException thrown when trying to create an object with a primary key that already exists when using `Realm.copyToRealm`, will always report "null" instead of the correct primary key value.
 * When using `ImportFlag.DO_NOT_SET_SAME_VALUES`, lists will still be written and reported as changed, even if they didn't change.
 
-## 5.7.0 (2017-09-24)
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
-## Enhancements
+### Internal
+* None
+
+
+## 5.7.1 (2018-10-22)
+
+### Enhancements
+* None
+
+### Fixed
+* [ObjectServer] `RealmResults` listeners not triggering the initial callback for Query-based Realm when the device is offline. (Issue [#6235](https://github.com/realm/realm-java/issues/6235), since 5.0.0).
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: 362b886628b3aefc5b7a0bc32293d794dc1d4ad5
+
+
+## 5.7.0 (2018-09-24)
+
+### Enhancements
 * [ObjectServer] Devices will now report download progress for read-only Realms which 
   will allow the server to compact files sooner, saving server space. This does not affect 
   the client. You will need to upgrade your Realm Object Server to at least version 3.11.0 
   or use [Realm Cloud](https://cloud.realm.io). If you try to connect to a ROS v3.10.x or 
   previous, you will see an error like `Wrong protocol version in Sync HTTP request, 
   client protocol version = 25, server protocol version = 24`.
-  
+
+### Fixed
+* None
+
 ### Compatibility
 * Realm Object Server: 3.11.0 or later.
 * File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
@@ -44,7 +138,7 @@
   `sort()` would always be applied before `distinct()`.
 * Building with Android App Bundle is now supported ([#5977](https://github.com/realm/realm-java/issues/5977)).
 
-### Fixes
+### Fixed
 * None
 
 ### Compatibility
@@ -60,7 +154,6 @@
 ## 5.5.0 (2018-08-31)
 
 ### Enhancements
-
 * [ObjectServer] Added `ConnectionState` enum describing the states a connection can be in.
 * [ObjectServer] Added `SyncSession.isConnected()` and `SyncSession.getConnectionState()`.
 * [ObjectServer] Added support for observing connection changes for a session using `SyncSession.addConnectionChangeListener()` and `SyncSession.removeConnectionChangeListener()`.
@@ -76,18 +169,15 @@
   * `SyncManager.addCustomRequestHeaders(Map<String, String> headers, String host)`
   * `SyncConfiguration.Builder.urlPrefix(String prefix)`
  
-### Bug Fixes
-
+### Fixed
 * Methods and classes requiring synchronized Realms have been removed from the standard AAR package. They are now only visible when enabling synchronized Realms in Gradle. The methods and classes will still be visible in the source files and docs, but annotated with `@ObjectServer` (#5799).
 
 ### Internal
-
 * Updated to Realm Sync 3.9.4
 * Updated to Realm Core 5.8.0
 * Updated to Object Store commit: b0fc2814d9e6061ce5ba1da887aab6cfba4755ca
 
 ### Credits
-
 * Thanks to @lucasdornelasv for improving the performance of `Realm.copyToRealm()`, `Realm.copyToRealmOrUpdate()` and `Realm.copyFromRealm()` #(6124). 
 
 

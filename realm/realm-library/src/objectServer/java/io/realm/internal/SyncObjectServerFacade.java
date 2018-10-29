@@ -23,9 +23,12 @@ import android.net.ConnectivityManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
 
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
@@ -34,6 +37,7 @@ import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.sync.permissions.ObjectPermissionsModule;
+import io.realm.sync.Subscription;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -173,12 +177,19 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public void downloadRemoteChanges(RealmConfiguration config) {
+    public void downloadInitialRemoteChanges(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             if (syncConfig.shouldWaitForInitialRemoteData()) {
                 SyncSession session = SyncManager.getSession(syncConfig);
                 try {
+                    if (!syncConfig.isFullySynchronizedRealm()) {
+                        // For Query-based Realms we want to upload all our local changes
+                        // first since those might include subscriptions the server needs to process.
+                        // This means that once `downloadAllServerChanges` completes all
+                        // initial subscriptions will also have been downloaded.
+                        session.uploadAllLocalChanges();
+                    }
                     session.downloadAllServerChanges();
                 } catch (InterruptedException e) {
                     throw new DownloadingRealmInterruptedException(syncConfig, e);
@@ -205,5 +216,41 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @Override
     public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
         builder.addModule(new ObjectPermissionsModule());
+    }
+
+    @Override
+    public void downloadInitialSubscriptions(Realm realm) {
+        if (isPartialRealm(realm.getConfiguration())) {
+            SyncConfiguration syncConfig = (SyncConfiguration) realm.getConfiguration();
+            if (syncConfig.shouldWaitForInitialRemoteData()) {
+                RealmResults<Subscription> pendingSubscriptions = realm.where(Subscription.class)
+                        .equalTo("status", Subscription.State.PENDING.getValue())
+                        .findAll();
+                SyncSession session = SyncManager.getSession(syncConfig);
+
+                // Continue once all subscriptions are either ACTIVE or ERROR'ed.
+                while (!pendingSubscriptions.isEmpty()) {
+                    try {
+                        session.uploadAllLocalChanges(); // Uploads subscriptions (if any)
+                        session.downloadAllServerChanges(); // Download subscriptions (if any)
+                    } catch (InterruptedException e) {
+                        throw new DownloadingRealmInterruptedException(syncConfig, e);
+                    }
+                    realm.refresh();
+                }
+
+                // If some of the subscriptions failed to become ACTIVE, report them and cancel opening
+                // the Realm. Note, this should only happen if the client is contacting an older
+                // version of the server which are lacking query support for features available
+                // in the client SDK.
+                RealmResults<Subscription> failedSubscriptions = realm.where(Subscription.class)
+                        .equalTo("status", Subscription.State.ERROR.getValue())
+                        .findAll();
+                if (!failedSubscriptions.isEmpty()) {
+                    String errorMessage = "Some initial subscriptions encountered errors:" + Arrays.toString(failedSubscriptions.toArray());
+                    throw new DownloadingRealmInterruptedException(syncConfig, errorMessage);
+                }
+            }
+        }
     }
 }

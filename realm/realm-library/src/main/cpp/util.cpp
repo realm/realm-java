@@ -32,6 +32,9 @@
 #include "java_exception_def.hpp"
 #include "java_object_accessor.hpp"
 #include "object.hpp"
+#if REALM_ENABLE_SYNC
+#include "sync/partial_sync.hpp"
+#endif
 
 #include "jni_util/java_exception_thrower.hpp"
 
@@ -131,6 +134,14 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch(Results::InvalidPropertyException e) {
         ThrowException(env, IllegalArgument, e.what());
     }
+#if REALM_ENABLE_SYNC
+    catch (partial_sync::InvalidRealmStateException& e) {
+        ThrowException(env, IllegalState, e.what());
+    }
+    catch (partial_sync::ExistingSubscriptionException& e) {
+        ThrowException(env, IllegalArgument, e.what());
+    }
+#endif
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
     }
