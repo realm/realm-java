@@ -33,7 +33,7 @@ import static org.junit.Assert.fail;
 public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
 
     @Rule
-    public Timeout globalTimeout = Timeout.seconds(10);
+    public Timeout globalTimeout = Timeout.seconds(30);
 
     // Make sure the encryption is local, i.e after deleting a synced Realm
     // re-open it again with no (or different) key, should be possible.
