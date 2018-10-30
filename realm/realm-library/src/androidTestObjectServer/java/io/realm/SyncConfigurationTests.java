@@ -37,10 +37,9 @@ import java.util.Map;
 import io.realm.entities.StringOnly;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
-import io.realm.util.SyncTestUtils;
 
-import static io.realm.util.SyncTestUtils.createNamedTestUser;
-import static io.realm.util.SyncTestUtils.createTestUser;
+import static io.realm.SyncTestUtils.createNamedTestUser;
+import static io.realm.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -485,7 +484,7 @@ public class SyncConfigurationTests {
 
     @Test
     public void getDefaultConfiguration_isFullySynchronized() {
-        SyncUser user = SyncTestUtils.createTestUser();
+        SyncUser user = createTestUser();
         SyncConfiguration config = user.getDefaultConfiguration();
         assertFalse(config.isFullySynchronizedRealm());
     }
@@ -513,7 +512,7 @@ public class SyncConfigurationTests {
             String authUrl = (String) test[0];
             String realmUrl = (String) test[1];
 
-            SyncUser user = SyncTestUtils.createTestUser(authUrl);
+            SyncUser user = createTestUser(authUrl);
             SyncConfiguration config = user.getDefaultConfiguration();
             URI url = config.getServerUrl();
             assertEquals(realmUrl, url.toString());

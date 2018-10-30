@@ -30,6 +30,7 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
+import io.realm.SyncTestUtils;
 import io.realm.SyncUser;
 import io.realm.SyncUserInfo;
 import io.realm.TestHelper;
@@ -41,7 +42,6 @@ import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.util.SyncTestUtils;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -128,7 +128,7 @@ public class AuthTests extends StandardIntegrationTest {
                         .build();
 
                 final Realm realm = Realm.getInstance(config);
-                looperThread.addTestRealm(realm);
+                looperThread.closeAfterTest(realm);
                 assertTrue(config.getUser().isValid());
                 looperThread.testComplete();
             }
@@ -153,7 +153,7 @@ public class AuthTests extends StandardIntegrationTest {
                         .build();
 
                 final Realm realm = Realm.getInstance(config);
-                looperThread.addTestRealm(realm);
+                looperThread.closeAfterTest(realm);
                 assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
                 assertTrue(config.getUser().isValid());
                 looperThread.testComplete();
@@ -179,7 +179,7 @@ public class AuthTests extends StandardIntegrationTest {
                         .build();
 
                 final Realm realm = Realm.getInstance(config);
-                looperThread.addTestRealm(realm);
+                looperThread.closeAfterTest(realm);
                 assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
                 assertTrue(config.getUser().isValid());
                 looperThread.testComplete();
@@ -205,7 +205,7 @@ public class AuthTests extends StandardIntegrationTest {
                         .build();
 
                 final Realm realm = Realm.getInstance(config);
-                looperThread.addTestRealm(realm);
+                looperThread.closeAfterTest(realm);
                 assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
                 assertTrue(config.getUser().isValid());
                 looperThread.testComplete();

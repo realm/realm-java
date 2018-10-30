@@ -16,22 +16,34 @@
 
 package io.realm.internal.network;
 
+import android.util.Log;
+
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
 
 import io.realm.SyncCredentials;
 import io.realm.internal.Util;
 import io.realm.internal.objectserver.Token;
+import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import okhttp3.Call;
 import okhttp3.ConnectionPool;
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okio.Buffer;
 
 public class OkHttpAuthenticationServer implements AuthenticationServer {
 
@@ -40,16 +52,81 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
     private static final String ACTION_LOOKUP_USER_ID = "users/:provider:/:providerId:"; // Auth end point for looking up user id
     private static final String ACTION_UPDATE_ACCOUNT = "password/updateAccount"; // Password reset and email confirmation
+    private static final Charset UTF8 = Charset.forName("UTF-8");
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(new Interceptor() {
+                @Override
+                public Response intercept(Chain chain) throws IOException {
+                    Request request = chain.request();
+                    if (RealmLog.getLevel() <= LogLevel.TRACE) {
+                        StringBuilder sb = new StringBuilder(request.method());
+                        sb.append(' ');
+                        sb.append(request.url());
+                        sb.append('\n');
+                        sb.append(request.headers());
+                        if (request.body() != null) {
+                            // Stripped down version of https://github.com/square/okhttp/blob/master/okhttp-logging-interceptor/src/main/java/okhttp3/logging/HttpLoggingInterceptor.java
+                            // We only expect request context to be JSON.
+                            Buffer buffer = new Buffer();
+                            request.body().writeTo(buffer);
+                            sb.append(buffer.readString(UTF8));
+                        }
+                        RealmLog.trace("HTTP Request = \n%s", sb);
+                    }
+                    return chain.proceed(request);
+                }
+            })
             // using custom Connection Pool to evict idle connection after 5 seconds rather than 5 minutes (which is the default)
             // keeping idle connection on the pool will prevent the ROS to be stopped, since the HttpUtils#stopSyncServer query
             // will not return before the tests timeout (ex 10 seconds for AuthTests)
             .connectionPool(new ConnectionPool(5, 5, TimeUnit.SECONDS))
             .build();
+
+    private Map<String, Map<String, String>> customHeaders = new LinkedHashMap<>();
+    private Map<String, String> customAuthorizationHeaders = new HashMap<>();
+
+    public OkHttpAuthenticationServer() {
+        initHeaders();
+    }
+
+    private void initHeaders() {
+        customAuthorizationHeaders.put("", "Authorization"); // Default value for authorization header
+        customHeaders.put("", new LinkedHashMap<>()); // Add holder for headers used across all hosts
+    }
+
+    @Override
+    public void setAuthorizationHeaderName(String headerName, @Nullable String host) {
+        if (Util.isEmptyString(host)) {
+            customAuthorizationHeaders.put("", headerName);
+        } else {
+            customAuthorizationHeaders.put(host, headerName);
+        }
+    }
+
+    @Override
+    public void addHeader(String headerName, String headerValue, @Nullable String host) {
+        if (Util.isEmptyString(host)) {
+            customHeaders.get("").put(headerName, headerValue);
+        } else {
+            Map<String, String> headers = customHeaders.get(host);
+            if (headers == null) {
+                headers = new LinkedHashMap<>();
+                customHeaders.put(host, headers);
+            }
+            headers.put(headerName, headerValue);
+        }
+    }
+
+    @Override
+    public void clearCustomHeaderSettings() {
+        customAuthorizationHeaders.clear();
+        customHeaders.clear();
+        initHeaders();
+    }
 
     /**
      * Authenticate the given credentials on the specified Realm Authentication Server.
@@ -237,9 +314,28 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Accept", "application/json");
 
+        // Add custom headers used by all hosts
+        for (Map.Entry<String, String> entry : customHeaders.get("").entrySet()) {
+            builder.addHeader(entry.getKey(), entry.getValue());
+        }
+
+        // add custom headers used by specific host (may override g
+        Map<String, String> customHeaders = this.customHeaders.get(url.getHost());
+        if (customHeaders != null) {
+            for (Map.Entry<String, String> entry : customHeaders.entrySet()) {
+                builder.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+
         // Only add Authorization header for those API's that require it.
+        // Use the defined custom authorization name if one is available for this host.
         if (!Util.isEmptyString(authToken)) {
-            builder.addHeader("Authorization", authToken);
+            String headerName = customAuthorizationHeaders.get(url.getHost());
+            if (headerName != null) {
+                builder.addHeader(headerName, authToken);
+            } else {
+                builder.addHeader(customAuthorizationHeaders.get(""), authToken);
+            }
         }
 
         return builder;

@@ -18,8 +18,54 @@ package io.realm.gradle;
 
 import org.gradle.api.tasks.Input;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class RealmPluginExtension {
 
-    @Input public boolean syncEnabled = false;
-    @Input public boolean kotlinExtensionsEnabled = false;
+    public static final String KEY_SYNC_ENABLED = "syncEnabled";
+    public static final String KEY_KOTLIN_EXTENSIONS_ENABLED = "kotlinExtensionsEnabled";
+
+    private boolean syncEnabled;
+    private boolean kotlinExtensionsEnabled;
+    private Map<String, PropertyChangedListener> listeners = new LinkedHashMap<>();
+
+    @Input
+    public boolean isSyncEnabled() {
+        return syncEnabled;
+    }
+
+    public void setSyncEnabled(boolean syncEnabled) {
+        this.syncEnabled = syncEnabled;
+        notifyChange(KEY_SYNC_ENABLED, syncEnabled);
+    }
+
+    @Input
+    public boolean isKotlinExtensionsEnabled() {
+        return kotlinExtensionsEnabled;
+    }
+
+    public void setKotlinExtensionsEnabled(boolean kotlinExtensionsEnabled) {
+        this.kotlinExtensionsEnabled = kotlinExtensionsEnabled;
+        notifyChange(KEY_KOTLIN_EXTENSIONS_ENABLED, kotlinExtensionsEnabled);
+    }
+
+    public void addPropertyListener(String property, PropertyChangedListener listener) {
+        listeners.put(property, listener);
+    }
+
+    private void notifyChange(String key, Object value) {
+        PropertyChangedListener listener = listeners.get(key);
+        if (listener != null) {
+            // Up to users of the API to use the correct generic type, otherwise it will crash
+            // at runtime.
+            //noinspection unchecked
+            listener.onChange(value);
+        }
+    }
+
+    // Callback triggered when the extension property is changed
+    public interface PropertyChangedListener<T> {
+        void onChange(T value);
+    }
 }

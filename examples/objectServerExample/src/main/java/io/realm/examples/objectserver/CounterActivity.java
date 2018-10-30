@@ -34,11 +34,13 @@ import javax.annotation.Nonnull;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Progress;
 import io.realm.ProgressListener;
 import io.realm.ProgressMode;
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
@@ -47,7 +49,6 @@ import io.realm.examples.objectserver.model.CRDTCounter;
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 public class CounterActivity extends AppCompatActivity {
-    private static final String REALM_URL = "realm://" + BuildConfig.OBJECT_SERVER_IP + ":9080/~/default";
 
     private final ProgressListener downloadListener = new ProgressListener() {
         @Override
@@ -79,7 +80,7 @@ public class CounterActivity extends AppCompatActivity {
 
     @BindView(R.id.text_counter) TextView counterView;
     @BindView(R.id.progressbar) MaterialProgressBar progressBar;
-    private CRDTCounter counter; // Keep strong reference to counter to keep change listeners alive.
+    private RealmResults<CRDTCounter> counters; // Keep strong reference to counter to keep change listeners alive.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,7 +96,7 @@ public class CounterActivity extends AppCompatActivity {
         if (user == null) { return; }
 
         // Create a RealmConfiguration for our user
-        SyncConfiguration config = user.createConfiguration(REALM_URL)
+        SyncConfiguration config = user.createConfiguration(BuildConfig.REALM_URL)
                 .initialData(new Realm.Transaction() {
                     @Override
                     public void execute(@Nonnull Realm realm) {
@@ -108,11 +109,16 @@ public class CounterActivity extends AppCompatActivity {
         realm = Realm.getInstance(config);
 
         counterView.setText("-");
-        counter = realm.where(CRDTCounter.class).equalTo("name", user.getIdentity()).findFirstAsync();
-        counter.addChangeListener(new RealmChangeListener<CRDTCounter>() {
+        counters = realm.where(CRDTCounter.class).equalTo("name", user.getIdentity()).findAllAsync();
+        counters.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<CRDTCounter>>() {
             @Override
-            public void onChange(@Nonnull CRDTCounter counter) {
-                counterView.setText((!counter.isValid()) ? "-" : String.format(Locale.US, "%d", counter.getCount()));
+            public void onChange(RealmResults<CRDTCounter> counters, OrderedCollectionChangeSet changeSet) {
+                if (counters.isValid() && !counters.isEmpty()) {
+                    CRDTCounter counter = counters.first();
+                    counterView.setText(String.format(Locale.US, "%d", counter.getCount()));
+                } else {
+                    counterView.setText("-");
+                }
             }
         });
 
@@ -132,7 +138,7 @@ public class CounterActivity extends AppCompatActivity {
         }
         closeRealm();
         user = null;
-        counter = null;
+        counters = null;
     }
 
     @Override

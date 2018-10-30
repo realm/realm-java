@@ -121,7 +121,8 @@ abstract class BaseRealm implements Closeable {
             initializationCallback = new OsSharedRealm.InitializationCallback() {
                 @Override
                 public void onInit(OsSharedRealm sharedRealm) {
-                    initialDataTransaction.execute(Realm.createInstance(sharedRealm));
+                    Realm instance = Realm.createInstance(sharedRealm);
+                    initialDataTransaction.execute(instance);
                 }
             };
         }

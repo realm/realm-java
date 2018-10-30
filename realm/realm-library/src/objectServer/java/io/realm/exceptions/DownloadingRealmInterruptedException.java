@@ -28,4 +28,7 @@ public class DownloadingRealmInterruptedException extends RuntimeException {
         super("Realm was interrupted while downloading the latest changes from the server: " + syncConfig.getPath(),
                 exception);
     }
+    public DownloadingRealmInterruptedException(SyncConfiguration syncConfig, String message) {
+        super("Realm was interrupted while downloading the latest changes from the server: " + syncConfig.getPath() + "\n" + message);
+    }
 }

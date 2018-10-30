@@ -16,17 +16,16 @@
 
 package io.realm.internal;
 
-import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
-import io.realm.internal.sync.OsSubscription;
+import io.realm.internal.core.DescriptorOrdering;
+import io.realm.internal.core.QueryDescriptor;
 
 
 /**
@@ -284,18 +283,14 @@ public class OsResults implements NativeObject, ObservableCollection {
         return new OsResults(realm, srcTable, backlinksPtr);
     }
 
-    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query,
-                                            @Nullable SortDescriptor sortDescriptor,
-                                            @Nullable SortDescriptor distinctDescriptor) {
+    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query, DescriptorOrdering queryDescriptors) {
         query.validateQuery();
-        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
-                sortDescriptor,
-                distinctDescriptor);
+        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), queryDescriptors.getNativePtr());
         return new OsResults(sharedRealm, query.getTable(), ptr);
     }
 
     public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query) {
-        return createFromQuery(sharedRealm, query, null, null);
+        return createFromQuery(sharedRealm, query, new DescriptorOrdering());
     }
 
     OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
@@ -371,11 +366,11 @@ public class OsResults implements NativeObject, ObservableCollection {
         nativeClear(nativePtr);
     }
 
-    public OsResults sort(SortDescriptor sortDescriptor) {
+    public OsResults sort(QueryDescriptor sortDescriptor) {
         return new OsResults(sharedRealm, table, nativeSort(nativePtr, sortDescriptor));
     }
 
-    public OsResults distinct(SortDescriptor distinctDescriptor) {
+    public OsResults distinct(QueryDescriptor distinctDescriptor) {
         return new OsResults(sharedRealm, table, nativeDistinct(nativePtr, distinctDescriptor));
     }
 
@@ -480,8 +475,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native long nativeGetFinalizerPtr();
 
-    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-                                                     @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
+    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long descriptorOrderingPtr);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 
@@ -499,9 +493,9 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
 
-    private static native long nativeSort(long nativePtr, SortDescriptor sortDesc);
+    private static native long nativeSort(long nativePtr, QueryDescriptor sortDesc);
 
-    private static native long nativeDistinct(long nativePtr, SortDescriptor distinctDesc);
+    private static native long nativeDistinct(long nativePtr, QueryDescriptor distinctDesc);
 
     private static native boolean nativeDeleteFirst(long nativePtr);
 

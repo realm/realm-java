@@ -66,18 +66,16 @@ import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
+import io.realm.sync.Subscription;
 import io.realm.sync.permissions.ClassPermissions;
 import io.realm.sync.permissions.ClassPrivileges;
 import io.realm.sync.permissions.RealmPermissions;
-import io.realm.sync.permissions.RealmPrivileges;
 import io.realm.sync.permissions.Role;
 
 /**
@@ -1057,8 +1055,13 @@ public class Realm extends BaseRealm {
         if (objects == null) {
             return new ArrayList<>();
         }
+        ArrayList realmObjects;
+        if (objects instanceof Collection) {
+            realmObjects = new ArrayList<>(((Collection) objects).size());
+        } else {
+            realmObjects = new ArrayList<>();
+        }
         Map<RealmModel, RealmObjectProxy> cache = new HashMap<>();
-        ArrayList<E> realmObjects = new ArrayList<>();
         for (E object : objects) {
             checkNotNullObject(object);
             realmObjects.add(copyOrUpdate(object, false, cache));
@@ -1228,8 +1231,13 @@ public class Realm extends BaseRealm {
             return new ArrayList<>(0);
         }
 
+        ArrayList realmObjects;
+        if (objects instanceof Collection) {
+            realmObjects = new ArrayList<>(((Collection) objects).size());
+        } else {
+            realmObjects = new ArrayList<>();
+        }
         Map<RealmModel, RealmObjectProxy> cache = new HashMap<>();
-        ArrayList<E> realmObjects = new ArrayList<>();
         for (E object : objects) {
             checkNotNullObject(object);
             realmObjects.add(copyOrUpdate(object, true, cache));
@@ -1287,7 +1295,12 @@ public class Realm extends BaseRealm {
             return new ArrayList<>(0);
         }
 
-        ArrayList<E> unmanagedObjects = new ArrayList<>();
+        ArrayList unmanagedObjects;
+        if (realmObjects instanceof Collection) {
+            unmanagedObjects = new ArrayList<>(((Collection) realmObjects).size());
+        } else {
+            unmanagedObjects = new ArrayList<>();
+        }
         Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new HashMap<>();
         for (E object : realmObjects) {
             checkValidObjectForDetach(object);
@@ -1852,6 +1865,47 @@ public class Realm extends BaseRealm {
         return where(ClassPermissions.class)
                 .equalTo("name", configuration.getSchemaMediator().getSimpleClassName(clazz))
                 .findFirst();
+    }
+
+    /**
+     * Returns a list of all known subscriptions, regardless of their status.
+     *
+     * @return a list of all known subscriptions.
+     */
+    @Beta
+    @ObjectServer
+    public RealmResults<Subscription> getSubscriptions() {
+        return where(Subscription.class).findAll();
+    }
+
+    /**
+     * Returns a list of all subscriptions that match a given pattern. {@code *} can be used to
+     * indicate any number of unknown characters and {@code ?} represents a single unknown character.
+     *
+     * @param pattern which subscriptions to find.
+     * @return list of subscriptions that match the pattern.
+     * @throws IllegalArgumentException if an empty or {@code null} pattern is provided.
+     */
+    @Beta
+    @ObjectServer
+    public RealmResults<Subscription> getSubscriptions(String pattern) {
+        if (Util.isEmptyString(pattern)) {
+            throw new IllegalArgumentException("Non-empty 'pattern' required");
+        }
+        return where(Subscription.class).like("name", pattern).findAll();
+    }
+
+    /**
+     * Returns the first subscription that matches the given name.
+     *
+     * @param name the name of the subscription to find.
+     * @return returns the subscription that matches the name or {@code null} if no subscription matches the name.
+     */
+    @Beta
+    @ObjectServer
+    @Nullable
+    public Subscription getSubscription(String name) {
+        return where(Subscription.class).equalTo("name", name).findFirst();
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {

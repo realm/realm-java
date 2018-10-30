@@ -44,20 +44,24 @@ public abstract class StandardIntegrationTest extends BaseIntegrationTest {
 
     @Before
     public void setupTest() throws IOException {
-        prepareEnvironmentForTest();
+        SyncTestUtils.prepareEnvironmentForTest();
     }
 
     @After
-    public void teardownTest() {
+    public void teardownTest() throws IOException {
         if (!looperThread.isRuleUsed() || looperThread.isTestComplete()) {
             // Non-looper tests can reset here
-            restoreEnvironmentAfterTest();
+            SyncTestUtils.restoreEnvironmentAfterTest();
         } else {
             // Otherwise we need to wait for the test to complete
             looperThread.runAfterTest(new Runnable() {
                 @Override
                 public void run() {
-                    restoreEnvironmentAfterTest();
+                    try {
+                        SyncTestUtils.restoreEnvironmentAfterTest();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             });
         }

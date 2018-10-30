@@ -6,7 +6,7 @@
     "scripts": {
         "build": "rm -rf dist; ./node_modules/.bin/tsc",
         "clean": "rm -rf dist",
-        "start": "npm run build && node dist/index.js"
+        "start": "npm run build && NODE_TLS_REJECT_UNAUTHORIZED=0 node dist/index.js"
     },
     "devDependencies": {
         "typescript": "2.5.3"

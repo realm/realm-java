@@ -17,6 +17,7 @@ import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
+import io.realm.SyncTestUtils;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.entities.StringOnly;
@@ -24,7 +25,6 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -126,9 +126,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         realm.createObject(StringOnly.class).setChars("Hi Alice");
         realm.commitTransaction();
 
-        // STEP 2: make sure the changes gets to the server
-        SyncManager.getSession(configWithEncryption).uploadAllLocalChanges();
-
+        // STEP 2: Close the Realm and log the user out to forget about it.
         realm.close();
         user.logOut();
 
