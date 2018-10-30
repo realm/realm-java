@@ -481,7 +481,7 @@ public class SyncSession {
         // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
-            waitForChanges(DIRECTION_DOWNLOAD, -1, null);
+            waitForChanges(DIRECTION_DOWNLOAD, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -494,6 +494,7 @@ public class SyncSession {
      *
      * @throws IllegalStateException if called on the Android main thread.
      * @throws InterruptedException if the timeout was hit or the thread was interrupted while downloading was in progress.
+     * The download will continue in the background even after this exception is thrown.
      * @throws IllegalArgumentException if {@code timeout} is less than {@code 0} or {@code unit} is {@code null}.
      * @return {@code true} if the data was downloaded before the timeout. {@code false} if the operation timed out or otherwise failed.
      */
@@ -533,7 +534,7 @@ public class SyncSession {
         // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
-            waitForChanges(DIRECTION_UPLOAD, -1, null);
+            waitForChanges(DIRECTION_UPLOAD, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -542,10 +543,11 @@ public class SyncSession {
      * timeout was hit. This will involve network access, so calling this method should only be done from a non-UI
      * thread.
      * <p>
-     * This method cannot be called before the session has been started.
+     * This method cannot be called before the Realm has been opened and the session has been started.
      *
      * @throws IllegalStateException if called on the Android main thread.
      * @throws InterruptedException if the timeout was hit or the thread was interrupted while downloading was in progress.
+     * The upload will continue in the background even after this exception is thrown.
      * @throws IllegalArgumentException if {@code timeout} is less than {@code 0} or {@code unit} is {@code null}.
      * @return {@code true} if the data was uploaded before the timeout. {@code false} if the operation timed out or otherwise failed.
      */
@@ -603,12 +605,12 @@ public class SyncSession {
      * This method should only be called when guarded by the {@link #waitForChangesMutex}.
      * It will block into all changes have been either uploaded or downloaded depending on the chosen direction.
      *
-     * @param direction either {@link #DIRECTION_DOWNLOAD} or {@link #DIRECTION_UPLOAD}
-     * @param timeout timeout parameter. If less than 0, no timeout is applied.
-     * @param unit timeout unit. If `timeout` is less than 0, this is not used and can be null.
+     * @param direction either {@link #DIRECTION_DOWNLOAD} or {@link #DIRECTION_UPLOAD}.
+     * @param timeout timeout parameter.
+     * @param unit timeout unit.
      * @return {@code true} if the job completed before the timeout was hit, {@code false}
      */
-    private boolean waitForChanges(int direction, long timeout, @Nullable TimeUnit unit) throws InterruptedException {
+    private boolean waitForChanges(int direction, long timeout, TimeUnit unit) throws InterruptedException {
         if (direction != DIRECTION_DOWNLOAD && direction != DIRECTION_UPLOAD) {
             throw new IllegalArgumentException("Unknown direction: " + direction);
         }
@@ -635,7 +637,9 @@ public class SyncSession {
             }
             try {
                 result = wrapper.waitForServerChanges(timeout, unit);
+                RealmLog.error("Success: " + result);
             } catch(InterruptedException e) {
+                RealmLog.error("Download interrupted");
                 waitingForServerChanges.set(null); // Ignore any results being sent if the wait was interrupted.
                 throw e;
             }
@@ -667,6 +671,7 @@ public class SyncSession {
         //noinspection ConstantConditions
         if (unit == null) {
             throw new IllegalArgumentException("Non-null 'unit' required");
+        }
     }
 
     private void checkNonNullListener(@Nullable Object listener) {
@@ -915,14 +920,9 @@ public class SyncSession {
          * Block until the wait either completes, timeouts or is terminated for other reasons.
          * Timeouts are only applied if `timeout` >= 0.
          */
-        public boolean waitForServerChanges(long timeout, @Nullable TimeUnit unit) throws InterruptedException {
+        public boolean waitForServerChanges(long timeout, TimeUnit unit) throws InterruptedException {
             if (!resultReceived) {
-                if (timeout >= 0) {
-                    //noinspection ConstantConditions
-                    return waiter.await(timeout, unit);
-                } else {
-                    waiter.await();
-                }
+                return waiter.await(timeout, unit);
             }
             return isSuccess();
         }
