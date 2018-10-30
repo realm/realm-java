@@ -490,7 +490,7 @@ public class SyncSession {
      * or the specified timeout was hit. This will involve network access, so calling this method should only be done
      * from a non-UI thread.
      * <p>
-     * This method cannot be called before the session has been started.
+     * This method cannot be called before the Realm has been opened.
      *
      * @throws IllegalStateException if called on the Android main thread.
      * @throws InterruptedException if the timeout was hit or the thread was interrupted while downloading was in progress.
@@ -519,7 +519,7 @@ public class SyncSession {
      * <p>
      * If the device is offline, this method might never return.
      * <p>
-     * This method cannot be called before the session has been started.
+     * This method cannot be called before the Realm has been opened.
      *
      * @throws IllegalStateException if called on the Android main thread.
      * @throws InterruptedException if the thread was interrupted while downloading was in progress.
@@ -543,7 +543,7 @@ public class SyncSession {
      * timeout was hit. This will involve network access, so calling this method should only be done from a non-UI
      * thread.
      * <p>
-     * This method cannot be called before the Realm has been opened and the session has been started.
+     * This method cannot be called before the Realm has been opened.
      *
      * @throws IllegalStateException if called on the Android main thread.
      * @throws InterruptedException if the timeout was hit or the thread was interrupted while downloading was in progress.
@@ -666,7 +666,7 @@ public class SyncSession {
 
     private void checkTimeout(long timeout, TimeUnit unit) {
         if (timeout < 0) {
-            throw new IllegalArgumentException("'timeout' most be >= 0. It was: " + timeout);
+            throw new IllegalArgumentException("'timeout' must be >= 0. It was: " + timeout);
         }
         //noinspection ConstantConditions
         if (unit == null) {

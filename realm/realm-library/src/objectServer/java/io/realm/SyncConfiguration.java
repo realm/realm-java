@@ -978,7 +978,7 @@ public class SyncConfiguration extends RealmConfiguration {
          */
         public Builder waitForInitialRemoteData(long timeout, TimeUnit unit) {
             if (timeout < 0) {
-                throw new IllegalArgumentException("'timeout' most be >= 0. It was: " + timeout);
+                throw new IllegalArgumentException("'timeout' must be >= 0. It was: " + timeout);
             }
             //noinspection ConstantConditions
             if (unit == null) {
