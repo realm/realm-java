@@ -74,7 +74,7 @@ template <> struct JavaValueTypeRepr<JavaValueType::Float>   { using Type = jflo
 template <> struct JavaValueTypeRepr<JavaValueType::Double>  { using Type = jdouble; };
 template <> struct JavaValueTypeRepr<JavaValueType::Date>    { using Type = Timestamp; };
 template <> struct JavaValueTypeRepr<JavaValueType::Binary>  { using Type = OwnedBinaryData; };
-template <> struct JavaValueTypeRepr<JavaValueType::Object>  { using Type = Row*; };
+template <> struct JavaValueTypeRepr<JavaValueType::Object>  { using Type = RowExpr*; };
 template <> struct JavaValueTypeRepr<JavaValueType::List>    { using Type = std::vector<JavaValue>; };
 
 // Tagged union class representing all the values Java can send to Object Store
@@ -489,21 +489,11 @@ inline Timestamp JavaContext::unbox(JavaValue const& v, bool, bool, bool, size_t
 template <>
 inline RowExpr JavaContext::unbox(JavaValue const& v, bool create, bool update, bool diff_on_update, size_t current_row) const
 {
-// FIXME
     if (v.get_type() == JavaValueType::Object) {
         return *v.get_object();
     } else if (!create) {
         return RowExpr();
     }
-//    if (auto row = any_cast<Row>(&v))
-//        return *row;
-//    if (auto object = any_cast<Object>(&v))
-//        return object->row();
-//    if (auto row = any_cast<RowExpr>(&v))
-//        return *row;
-//    if (!create)
-//        return RowExpr();
-
     REALM_ASSERT(object_schema);
     return Object::create(const_cast<JavaContext&>(*this), realm, *object_schema, v, update, diff_on_update, current_row).row();
 }
