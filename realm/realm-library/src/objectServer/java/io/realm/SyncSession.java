@@ -487,15 +487,15 @@ public class SyncSession {
 
     /**
      * Calling this method will block until all known remote changes have been downloaded and applied to the Realm
-     * or the specified timeout was hit. This will involve network access, so calling this method should only be done
+     * or the specified timeout is hit. This will involve network access, so calling this method should only be done
      * from a non-UI thread.
      * <p>
      * This method cannot be called before the Realm has been opened.
      *
      * @throws IllegalStateException if called on the Android main thread.
-     * @throws InterruptedException if the timeout was hit or the thread was interrupted while downloading was in progress.
+     * @throws InterruptedException if the download took longer than the specified timeout or the thread was interrupted while downloading was in progress.
      * The download will continue in the background even after this exception is thrown.
-     * @throws IllegalArgumentException if {@code timeout} is less than {@code 0} or {@code unit} is {@code null}.
+     * @throws IllegalArgumentException if {@code timeout} is less than or equal to {@code 0} or {@code unit} is {@code null}.
      * @return {@code true} if the data was downloaded before the timeout. {@code false} if the operation timed out or otherwise failed.
      */
     public boolean downloadAllServerChanges(long timeout, TimeUnit unit) throws InterruptedException {
@@ -540,15 +540,15 @@ public class SyncSession {
 
     /**
      * Calling this method will block until all known local changes have been uploaded to the server or the specified
-     * timeout was hit. This will involve network access, so calling this method should only be done from a non-UI
+     * timeout is hit. This will involve network access, so calling this method should only be done from a non-UI
      * thread.
      * <p>
      * This method cannot be called before the Realm has been opened.
      *
      * @throws IllegalStateException if called on the Android main thread.
-     * @throws InterruptedException if the timeout was hit or the thread was interrupted while downloading was in progress.
+     * @throws InterruptedException if the upload took longer than the specified timeout or the thread was interrupted while uploading was in progress.
      * The upload will continue in the background even after this exception is thrown.
-     * @throws IllegalArgumentException if {@code timeout} is less than {@code 0} or {@code unit} is {@code null}.
+     * @throws IllegalArgumentException if {@code timeout} is less than or equal to {@code 0} or {@code unit} is {@code null}.
      * @return {@code true} if the data was uploaded before the timeout. {@code false} if the operation timed out or otherwise failed.
      */
     public boolean uploadAllLocalChanges(long timeout, TimeUnit unit) throws InterruptedException {
@@ -665,8 +665,8 @@ public class SyncSession {
     }
 
     private void checkTimeout(long timeout, TimeUnit unit) {
-        if (timeout < 0) {
-            throw new IllegalArgumentException("'timeout' must be >= 0. It was: " + timeout);
+        if (timeout <= 0) {
+            throw new IllegalArgumentException("'timeout' must be > 0. It was: " + timeout);
         }
         //noinspection ConstantConditions
         if (unit == null) {
