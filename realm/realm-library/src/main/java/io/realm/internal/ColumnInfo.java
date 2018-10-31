@@ -155,7 +155,7 @@ public abstract class ColumnInfo {
     }
 
     /**
-     * Returns the internal field name that corrosponds to the name found in the Java model class.
+     * Returns the internal field name that corresponds to the name found in the Java model class.
      * @param javaFieldName the field name in the Java model class.
      * @return the internal field name or {@code null} if the java name doesn't exists.
      */

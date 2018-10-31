@@ -409,7 +409,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * Sets a reference to another object on the given field in all of the objects in the collection.
      *
      * @param fieldName name of the field to update.
-     * @param value new value for the field.
+     * @param value new object referenced by this field.
      * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an Object reference field.
      */
     public void setObject(String fieldName, @Nullable RealmModel value) {
@@ -424,7 +424,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     private Row checkRealmObjectConstraints(String fieldName, @Nullable RealmModel value) {
         if (value != null) {
             if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
-                throw new IllegalArgumentException("'value' is not a valid a valid, managed Realm object.");
+                throw new IllegalArgumentException("'value' is not a valid, managed Realm object.");
             }
             ProxyState proxyState = ((RealmObjectProxy) value).realmGet$proxyState();
             if (!proxyState.getRealm$realm().getPath().equals(realm.getPath())) {
@@ -467,7 +467,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             throw new IllegalArgumentException("Non-null 'list' required");
         }
 
-        // Due to type erasure it is not to have multiple overloaded methods with the same signature.
+        // Due to type erasure of generics it is not possible to have multiple overloaded methods with the same signature.
         // So instead we fake  it by checking the first element in the list and verifies that
         // against the underlying type.
         RealmFieldType columnType = realm.getSchema().getSchemaForClass(osResults.getTable().getClassName()).getFieldType(fieldName);
