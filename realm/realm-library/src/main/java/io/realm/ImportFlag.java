@@ -61,7 +61,9 @@ public enum ImportFlag {
      * changes from both devices, however if all the fields in an object are considered an atomic
      * unit, then this flag should not be set as it will ensure that all fields are set and thus have
      * the same "age" when data are sent to the server.
+     *
+     * @see <a href="https://docs.realm.io/platform/self-hosted/customize/conflict-resolution">Docs on conflict resolution</a>
      */
-    DO_NOT_SET_SAME_VALUES,
+    CHECK_SAME_VALUES_BEFORE_SET,
 
 }

@@ -166,7 +166,7 @@ public class OsObjectBuilder {
         this.tablePtr = table.getNativePtr();
         this.builderPtr = nativeCreateBuilder(maxColumnIndex + 1);
         this.context = sharedRealm.context;
-        this.ignoreFieldsWithSameValue = flags.contains(ImportFlag.DO_NOT_SET_SAME_VALUES);
+        this.ignoreFieldsWithSameValue = flags.contains(ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
     }
 
     public void addInteger(long columnIndex, Byte val) {

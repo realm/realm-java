@@ -1128,7 +1128,7 @@ public class NotificationsTest {
         updatedObj.setFieldString("updated");
         updatedObj.setFieldObject(childObject);
         updatedObj.setFieldList(new RealmList<>(childObject));
-        realm.copyToRealmOrUpdate(updatedObj, ImportFlag.DO_NOT_SET_SAME_VALUES);
+        realm.copyToRealmOrUpdate(updatedObj, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
         realm.commitTransaction();
     }
 }
