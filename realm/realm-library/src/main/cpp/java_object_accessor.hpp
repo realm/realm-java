@@ -401,8 +401,8 @@ public:
     JavaValue null_value() const noexcept { return {}; }
     util::Optional<JavaValue> no_value() const noexcept { return {}; }
 
-    // KVO hooks which will be called before and after modying a property from
-    // within Object::create().
+    // Hooks which will be called before and after modifying a property from
+    // within Object::create(). These are not currently used.
     void will_change(Object const&, Property const&) {}
     void did_change() {}
 
