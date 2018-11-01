@@ -22,6 +22,7 @@
 * [ObjectServer] Added `Realm.getSubscriptions()`, `Realm.getSubscriptions(String pattern)` and `Realm.getSubscription` to make it easier to find existing subscriptions. These API's are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
 * [ObjectServer] Added `RealmQuery.subscribe()` and `RealmQuery.subscribe(String name)` to subscribe immediately inside a transaction. These API's are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
 * [ObjectServer] Added support for subscribing directly inside `SyncConfiguration.initialData()`. This can be coupled with `SyncConfiguration.waitForInitialRemoteData()` in order to block a Realm from opening until the initial subscriptions are ready and have downloaded data. This API are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
+* [ObjectServer] Improved performance when merging changes from the server.
 
 ### Fixed
 * ?? (Issue [#??](https://github.com/realm/realm-java/issues/??), since ??).
@@ -32,7 +33,9 @@
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
-* None
+* Updated to Object Store commit: f0dfe6c03be49194bc40777901059eaf55e7bff6
+* Updated Realm Sync to 3.13.1
+* Updated Realm Core to 5.12.0
 
 
 ## 5.7.1 (2018-10-22)
