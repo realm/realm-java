@@ -525,6 +525,8 @@ abstract class BaseRealm implements Closeable {
      * @return the privileges granted the current user for the object.
      * @throws IllegalArgumentException if the object is either null, unmanaged or not part of this Realm.
      */
+    @Beta
+    @ObjectServer
     public ObjectPrivileges getPrivileges(RealmModel object) {
         checkIfValid();
         //noinspection ConstantConditions
