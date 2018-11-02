@@ -189,7 +189,7 @@ public class MutableRealmIntegerTests {
             MutableRealmIntegerTypes c2 = realm.copyToRealm(c1);
             fail("should not be able to copy a null value to a @Required MutableRealmInteger");
         } catch(IllegalArgumentException ignore) {
-            checkException(ignore, "is not nullable");
+            checkException(ignore, "Missing value for property");
         }
         realm.commitTransaction();
     }
@@ -429,7 +429,7 @@ public class MutableRealmIntegerTests {
             obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, in);
             fail("Attempt to set @Required Mutable Realm Integer null, from JSON, should fail");
         } catch (IllegalArgumentException ignore) {
-            checkException(ignore, "is not nullable");
+            checkException(ignore, "Missing value for property");
         }
         realm.commitTransaction();
     }

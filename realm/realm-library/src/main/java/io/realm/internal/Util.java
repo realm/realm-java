@@ -22,12 +22,17 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
+import io.realm.ImportFlag;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
@@ -146,5 +151,24 @@ public class Util {
             realmDeleted = true;
         }
         return realmDeleted;
+    }
+
+    /**
+     * Converts a var arg argument list to a set ignoring any duplicates and null values.
+     */
+    public static <T> Set<T> toSet(T... items) {
+        //noinspection ConstantConditions
+        if (items == null) {
+            return Collections.emptySet();
+        } else {
+            Set<T> set = new LinkedHashSet<>();
+            for (int i = 0; i < items.length; i++) {
+                T item = items[i];
+                if (item != null) {
+                    set.add(item);
+                }
+            }
+            return set;
+        }
     }
 }
