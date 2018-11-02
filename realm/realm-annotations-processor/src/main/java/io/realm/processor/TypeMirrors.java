@@ -17,6 +17,7 @@
 package io.realm.processor;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.VariableElement;
@@ -75,6 +76,7 @@ class TypeMirrors {
         if (!Utils.isRealmList(field)) {
             return null;
         }
-        return ((DeclaredType) field.asType()).getTypeArguments().get(0);
+        List<? extends TypeMirror> typeArguments = ((DeclaredType) field.asType()).getTypeArguments();
+        return (!typeArguments.isEmpty()) ? typeArguments.get(0) : null;
     }
 }

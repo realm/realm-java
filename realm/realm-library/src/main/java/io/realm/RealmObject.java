@@ -65,7 +65,7 @@ import io.realm.rx.ObjectChange;
  * A RealmObject cannot be passed between different threads.
  *
  * @see Realm#createObject(Class)
- * @see Realm#copyToRealm(RealmModel)
+ * @see Realm#copyToRealm(RealmModel, ImportFlag...)
  */
 
 @RealmClass
@@ -259,7 +259,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * <p>
      * <p>
      * It is possible to create a managed object from an unmanaged object by using
-     * {@link Realm#copyToRealm(RealmModel)}. An unmanaged object can be created from a managed object by using
+     * {@link Realm#copyToRealm(RealmModel, ImportFlag...)}. An unmanaged object can be created from a managed object by using
      * {@link Realm#copyFromRealm(RealmModel)}.
      *
      * @return {@code true} if the object is managed, {@code false} if it is unmanaged.
@@ -283,7 +283,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * <p>
      * <p>
      * It is possible to create a managed object from an unmanaged object by using
-     * {@link Realm#copyToRealm(RealmModel)}. An unmanaged object can be created from a managed object by using
+     * {@link Realm#copyToRealm(RealmModel, ImportFlag...)}. An unmanaged object can be created from a managed object by using
      * {@link Realm#copyFromRealm(RealmModel)}.
      *
      * @return {@code true} if the object is managed, {@code false} if it is unmanaged.
