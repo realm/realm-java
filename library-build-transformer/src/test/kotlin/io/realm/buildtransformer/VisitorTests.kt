@@ -24,6 +24,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.io.File
+import java.lang.reflect.Method
 import kotlin.reflect.KClass
 
 class VisitorTests {
@@ -49,8 +50,10 @@ class VisitorTests {
     fun removeMethods() {
         val c: Class<SimpleTestMethods> = modifyClass(SimpleTestMethods::class)
         assetDefaultConstructorExists(c)
-        assertMethodExists("bar", c)
-        assertMethodRemoved("foo", c)
+        assertMethodExists(c, "bar", emptyArray());
+        assertMethodExists(c, "foo1", arrayOf(String::class.java, String::class.java))
+        assertMethodRemoved(c, "foo", emptyArray());
+        assertMethodRemoved(c, "foo1", arrayOf(String::class.java))
     }
 
     @Test
@@ -108,16 +111,17 @@ class VisitorTests {
         clazz.getField(fieldName)
     }
 
-    private fun assertMethodRemoved(methodName: String, clazz: Class<*>) {
+    private fun assertMethodRemoved(clazz: Class<*>, methodName: String, parameterTypes: Array<Class<*>>) {
         try {
-            clazz.getMethod(methodName)
+            clazz.getMethod(methodName, *parameterTypes);
             fail("Method $methodName has not been removed");
         } catch (e: NoSuchMethodException) {
         }
     }
 
-    private fun assertMethodExists(methodName: String, clazz: Class<*>) {
-        clazz.getMethod(methodName) // Will throw exception if it doesn't
+    private fun assertMethodExists(clazz: Class<*>, methodName: String, parameterTypes: Array<Class<*>>) {
+        val method: Method = clazz.getMethod(methodName, *parameterTypes) // Will throw exception if it doesn't exists
+        assertNotNull(method)
     }
 
     private fun <T: Any> modifyClass(clazz: KClass<T>): Class<T> {

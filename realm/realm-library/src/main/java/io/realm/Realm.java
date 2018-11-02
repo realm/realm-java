@@ -261,6 +261,56 @@ public class Realm extends BaseRealm {
      * @see #getDefaultInstance()
      */
     public static synchronized void init(Context context) {
+        initializeRealm(context, "");
+    }
+
+
+    /**
+     * Initializes the Realm library and creates a default configuration that is ready to use. It is required to call
+     * this method before interacting with any other of the Realm API's.
+     * <p>
+     * A good place is in an {@link android.app.Application} subclass:
+     * <pre>
+     * {@code
+     * public class MyApplication extends Application {
+     *   \@Override
+     *   public void onCreate() {
+     *     super.onCreate();
+     *     Realm.init(this, "MyApp/" + BuildConfig.VERSION_NAME);
+     *   }
+     * }
+     * }
+     * </pre>
+     * <p>
+     * Remember to register it in the {@code AndroidManifest.xml} file:
+     * <pre>
+     * {@code
+     * <?xml version="1.0" encoding="utf-8"?>
+     * <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.realm.example">
+     * <application android:name=".MyApplication">
+     *   // ...
+     * </application>
+     * </manifest>
+     * }
+     * </pre>
+     *
+     * @param context the Application Context.
+     * @param userAgent optional user defined string that will be sent to the Realm Object Server
+     *                  as part of a {@code User-Agent} header when a session is established.
+     * @throws IllegalArgumentException if a {@code null} context or userAgent is provided.
+     * @throws IllegalStateException if {@link Context#getFilesDir()} could not be found.
+     * @see #getDefaultInstance()
+     */
+    @ObjectServer
+    public static synchronized void init(Context context, String userAgent) {
+        //noinspection ConstantConditions
+        if (userAgent == null) {
+            throw new IllegalArgumentException("Non-null 'userAgent' required.");
+        }
+        initializeRealm(context, userAgent);
+    }
+
+    private static void initializeRealm(Context context, String userAgent) {
         if (BaseRealm.applicationContext == null) {
             //noinspection ConstantConditions
             if (context == null) {
@@ -269,7 +319,7 @@ public class Realm extends BaseRealm {
             checkFilesDirAvailable(context);
             RealmCore.loadLibrary(context);
             setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
-            ObjectServerFacade.getSyncFacadeIfPossible().init(context);
+            ObjectServerFacade.getSyncFacadeIfPossible().init(context, userAgent);
             if (context.getApplicationContext() != null) {
                 BaseRealm.applicationContext = context.getApplicationContext();
             } else {

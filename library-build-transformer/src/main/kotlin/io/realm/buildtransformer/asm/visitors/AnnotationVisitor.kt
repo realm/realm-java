@@ -53,10 +53,12 @@ class AnnotationVisitor(private val annotationDescriptor: String) : ClassVisitor
 
     override fun visitMethod(access: Int, name: String?, descriptor: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor {
         val parentVisitor = super.visitMethod(access, name, descriptor, signature, exceptions)
+        val methodDescriptor: String = descriptor!!
+        val methodName: String = name!!;
         return object: MethodVisitor(api, parentVisitor) {
             override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor? {
                 if (descriptor == annotationDescriptor) {
-                    annotatedMethodsInClass.add(name!!)
+                    annotatedMethodsInClass.add(methodName + methodDescriptor) // Use name + return type + parameters to uniquely identify method
                 }
                 return super.visitAnnotation(descriptor, visible)
             }
