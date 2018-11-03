@@ -33,12 +33,12 @@ import static org.junit.Assert.fail;
 public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
 
     @Rule
-    public Timeout globalTimeout = Timeout.seconds(10);
+    public Timeout globalTimeout = Timeout.seconds(30);
 
     // Make sure the encryption is local, i.e after deleting a synced Realm
     // re-open it again with no (or different) key, should be possible.
     @Test
-    public void setEncryptionKey_canReOpenRealmWithoutKey() {
+    public void setEncryptionKey_canReOpenRealmWithoutKey() throws InterruptedException {
 
         // STEP 1: open a synced Realm using a local encryption key
         String username = UUID.randomUUID().toString();
@@ -68,7 +68,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         realm.commitTransaction();
 
         // STEP 2:  make sure the changes gets to the server
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
+        SyncManager.getSession(configWithEncryption).uploadAllLocalChanges();
         realm.close();
         user.logOut();
 
@@ -185,7 +185,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         realm.commitTransaction();
 
         // STEP 2: make sure the changes gets to the server
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));  // FIXME: Replace with Sync Progress Notifications once available.
+        SyncManager.getSession(configWithEncryption).uploadAllLocalChanges();
         realm.close();
 
         // STEP 3: prepare a synced Realm for client B (admin user)
@@ -216,14 +216,13 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         adminRealm.beginTransaction();
         adminRealm.createObject(StringOnly.class).setChars("Hi Bob");
         adminRealm.commitTransaction();
-
-        SystemClock.sleep(TimeUnit.SECONDS.toMillis(2));
+        SyncManager.getSession(adminConfigWithEncryption).uploadAllLocalChanges();
         adminRealm.close();
 
         // STEP 4: client A can see changes from client B (although they're using different encryption keys)
         realm = Realm.getInstance(configWithEncryption);
         SyncManager.getSession(configWithEncryption).downloadAllServerChanges();// force download latest commits from ROS
-        realm.refresh();//FIXME not calling refresh will still point to the previous version of the Realm without the latest admin commit  "Hi Bob"
+        realm.refresh(); // Not calling refresh will still point to the previous version of the Realm without the latest admin commit  "Hi Bob"
         assertEquals(2, realm.where(StringOnly.class).count());
 
         adminRealm = Realm.getInstance(adminConfigWithEncryption);

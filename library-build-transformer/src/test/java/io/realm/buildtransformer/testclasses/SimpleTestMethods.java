@@ -29,6 +29,10 @@ public class SimpleTestMethods {
         return "foo1";
     }
 
+    public String foo1(String input, String donRemoveThis) {
+        return "foo1"; // Only methods matching the exact signature should be removed
+    }
+
     public String bar() {
         return "bar";
     }
