@@ -26,6 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.StringOnly;
@@ -402,12 +403,105 @@ public class SessionTests {
 
     @Test
     @UiThreadTest
+    public void uploadAllLocalChanges_withTimeout_throwsOnUiThread() throws InterruptedException {
+        Realm realm = Realm.getInstance(configuration);
+        try {
+            SyncManager.getOrCreateSession(configuration, null).uploadAllLocalChanges(30, TimeUnit.SECONDS);
+            fail("Should throw an IllegalStateException on Ui Thread");
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
+    public void uploadAllLocalChanges_withTimeout_invalidParametersThrows() throws InterruptedException {
+        Realm realm = Realm.getInstance(configuration);
+        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        try {
+            try {
+                session.uploadAllLocalChanges(-1, TimeUnit.SECONDS);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+
+            try {
+                //noinspection ConstantConditions
+                session.uploadAllLocalChanges(1, null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
+    public void uploadAllLocalChanges_returnFalseWhenTimedOut() throws InterruptedException {
+        Realm realm = Realm.getInstance(configuration);
+        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        try {
+            assertFalse(session.uploadAllLocalChanges(100, TimeUnit.MILLISECONDS));
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
+    @UiThreadTest
     public void downloadAllServerChanges_throwsOnUiThread() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
         try {
             SyncManager.getOrCreateSession(configuration, null).downloadAllServerChanges();
             fail("Should throw an IllegalStateException on Ui Thread");
         } catch (IllegalStateException ignored) {
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void downloadAllServerChanges_withTimeout_throwsOnUiThread() throws InterruptedException {
+        Realm realm = Realm.getInstance(configuration);
+        try {
+            SyncManager.getOrCreateSession(configuration, null).downloadAllServerChanges(30, TimeUnit.SECONDS);
+            fail("Should throw an IllegalStateException on Ui Thread");
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.close();
+        }
+    }
+
+
+    @Test
+    public void downloadAllServerChanges_withTimeout_invalidParametersThrows() throws InterruptedException {
+        Realm realm = Realm.getInstance(configuration);
+        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        try {
+            try {
+                session.downloadAllServerChanges(-1, TimeUnit.SECONDS);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+
+            try {
+                //noinspection ConstantConditions
+                session.downloadAllServerChanges(1, null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
+    public void downloadAllServerChanges_returnFalseWhenTimedOut() throws InterruptedException {
+        Realm realm = Realm.getInstance(configuration);
+        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        try {
+            assertFalse(session.downloadAllServerChanges(100, TimeUnit.MILLISECONDS));
         } finally {
             realm.close();
         }
