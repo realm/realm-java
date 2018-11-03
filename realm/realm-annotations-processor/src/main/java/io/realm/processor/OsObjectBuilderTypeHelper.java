@@ -69,7 +69,7 @@ public class OsObjectBuilderTypeHelper {
     }
 
     /**
-     * Returns the method name name used by the OsObjectBuilder for the given type, e.g. `addInteger`
+     * Returns the method name used by the OsObjectBuilder for the given type, e.g. `addInteger`
      * or `addIntegerList`.
      */
     public static String getOsObjectBuilderName(VariableElement field) {

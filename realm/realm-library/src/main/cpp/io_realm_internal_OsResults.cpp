@@ -396,7 +396,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetTimestamp(JNIEn
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObject(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong row_ptr)
 {
     TR_ENTER_PTR(native_ptr)
-    JavaValue value(reinterpret_cast<Row*>(row_ptr));
+    JavaValue value(reinterpret_cast<RowExpr*>(row_ptr));
     update_objects(env, native_ptr, j_field_name, value);
 }
 

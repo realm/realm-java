@@ -131,9 +131,6 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch(realm::RequiredFieldValueNotProvidedException e) {
         ThrowException(env, IllegalArgument, e.what());
     }
-    catch(Results::InvalidPropertyException e) {
-        ThrowException(env, IllegalArgument, e.what());
-    }
 #if REALM_ENABLE_SYNC
     catch (partial_sync::InvalidRealmStateException& e) {
         ThrowException(env, IllegalState, e.what());

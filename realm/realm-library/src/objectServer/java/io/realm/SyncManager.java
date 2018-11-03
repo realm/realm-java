@@ -749,7 +749,7 @@ public class SyncManager {
                 true);
     }
 
-    protected static native void nativeInitializeSyncManager(String syncBaseDir);
+    protected static native void nativeInitializeSyncManager(String syncBaseDir, String userAgent);
     private static native void nativeReset();
     private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
     private static native void nativeReconnect();

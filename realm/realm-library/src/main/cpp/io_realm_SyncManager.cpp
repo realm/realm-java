@@ -92,12 +92,13 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNIEnv* env, jclass, jstring sync_base_dir)
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNIEnv* env, jclass, jstring j_sync_base_dir, jstring j_user_agent_info)
 {
     TR_ENTER()
     try {
-        JStringAccessor base_file_path(env, sync_base_dir); // throws
-        SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
+        JStringAccessor base_file_path(env, j_sync_base_dir); // throws
+        JStringAccessor user_agent_info(env, j_user_agent_info); // throws
+        SyncManager::shared().configure(base_file_path, SyncManager::MetadataMode::NoEncryption, user_agent_info);
 
         static AndroidClientListener client_thread_listener(env);
         // Register Sync Client thread start/stop callback

@@ -16,10 +16,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
@@ -641,5 +643,27 @@ public class SyncSessionTests extends StandardIntegrationTest {
             assertEquals(SyncSession.State.INACTIVE, session.getState());
             looperThread.testComplete();
         });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void waitForInitialRemoteData_throwsOnTimeout() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        SyncConfiguration syncConfiguration = configFactory
+                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .initialData(bgRealm -> {
+                    for (int i = 0; i < 100; i++) {
+                        bgRealm.createObject(AllTypes.class);
+                    }
+                })
+                .waitForInitialRemoteData(1, TimeUnit.MILLISECONDS)
+                .build();
+
+        try {
+            Realm.getInstance(syncConfiguration);
+            fail("This should have timed out");
+        } catch (DownloadingRealmInterruptedException ignore) {
+        }
+        looperThread.testComplete();
     }
 }

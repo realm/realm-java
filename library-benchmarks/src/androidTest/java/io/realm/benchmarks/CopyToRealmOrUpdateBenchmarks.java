@@ -1,5 +1,4 @@
-/*
- * Copyright 2017 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,7 +115,7 @@ public class CopyToRealmOrUpdateBenchmarks {
     @Benchmark
     public void copyToRealmOrDiffedUpdate_complexObjects(long reps) {
         for (long i = 0; i < reps; i++) {
-            realm.copyToRealmOrUpdate(complextTestObjects, ImportFlag.DO_NOT_SET_SAME_VALUES);
+            realm.copyToRealmOrUpdate(complextTestObjects, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
         }
     }
 
@@ -130,7 +129,7 @@ public class CopyToRealmOrUpdateBenchmarks {
     @Benchmark
     public void copyToRealmOrDiffedUpdate_simpleObjects(long reps) {
         for (long i = 0; i < reps; i++) {
-            realm.copyToRealm(simpleTestObjects, ImportFlag.DO_NOT_SET_SAME_VALUES);
+            realm.copyToRealm(simpleTestObjects, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
         }
     }
 
