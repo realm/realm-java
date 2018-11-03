@@ -637,9 +637,7 @@ public class SyncSession {
             }
             try {
                 result = wrapper.waitForServerChanges(timeout, unit);
-                RealmLog.error("Success: " + result);
             } catch(InterruptedException e) {
-                RealmLog.error("Download interrupted");
                 waitingForServerChanges.set(null); // Ignore any results being sent if the wait was interrupted.
                 throw e;
             }
