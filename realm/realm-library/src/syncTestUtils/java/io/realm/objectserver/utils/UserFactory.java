@@ -153,13 +153,16 @@ public class UserFactory {
         final HandlerThread ht = new HandlerThread("LoggingOutUsersThread");
         ht.start();
         Handler handler = new Handler(ht.getLooper());
-        handler.post(() -> {
-            Map<String, SyncUser> users = SyncUser.all();
-            for (SyncUser user : users.values()) {
-                user.logOut();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Map<String, SyncUser> users = SyncUser.all();
+                for (SyncUser user : users.values()) {
+                    user.logOut();
+                }
+                TestHelper.waitForNetworkThreadExecutorToFinish();
+                allUsersLoggedOut.countDown();
             }
-            TestHelper.waitForNetworkThreadExecutorToFinish();
-            allUsersLoggedOut.countDown();
         });
         TestHelper.awaitOrFail(allUsersLoggedOut);
         ht.quit();

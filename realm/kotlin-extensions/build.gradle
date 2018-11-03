@@ -61,10 +61,6 @@ android {
                 '../realm-library/src/syncTestUtils/java',
         ]
     }
-    compileOptions {
-        targetCompatibility 1.8
-        sourceCompatibility 1.8
-    }
 }
 
 dependencies {
