@@ -455,6 +455,10 @@ public:
         return m_is_null || m_size == 0;
     }
 
+    bool is_null() {
+        return m_is_null;
+    }
+
     operator realm::StringData() const
     {
         // To solve the link issue by directly using Table::max_string_size

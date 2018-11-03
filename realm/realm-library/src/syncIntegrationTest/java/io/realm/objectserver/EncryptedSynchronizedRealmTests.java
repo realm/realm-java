@@ -216,7 +216,6 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         adminRealm.beginTransaction();
         adminRealm.createObject(StringOnly.class).setChars("Hi Bob");
         adminRealm.commitTransaction();
-
         SyncManager.getSession(adminConfigWithEncryption).uploadAllLocalChanges();
         adminRealm.close();
 

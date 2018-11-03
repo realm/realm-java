@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.ImportFlag;
 import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
@@ -17,6 +18,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
+import io.realm.internal.objectstore.OsObjectBuilder;
 import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,6 +38,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         implements RealmObjectProxy, some_test_BooleansRealmProxyInterface {
 
     static final class BooleansColumnInfo extends ColumnInfo {
+        long maxColumnIndexValue;
         long doneIndex;
         long isReadyIndex;
         long mCompletedIndex;
@@ -47,6 +51,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
             this.isReadyIndex = addColumnDetails("isReady", "isReady", objectSchemaInfo);
             this.mCompletedIndex = addColumnDetails("mCompleted", "mCompleted", objectSchemaInfo);
             this.anotherBooleanIndex = addColumnDetails("anotherBoolean", "anotherBoolean", objectSchemaInfo);
+            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         BooleansColumnInfo(ColumnInfo src, boolean mutable) {
@@ -67,6 +72,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
             dst.isReadyIndex = src.isReadyIndex;
             dst.mCompletedIndex = src.mCompletedIndex;
             dst.anotherBooleanIndex = src.anotherBooleanIndex;
+            dst.maxColumnIndexValue = src.maxColumnIndexValue;
         }
     }
 
@@ -290,7 +296,16 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         return realm.copyToRealm(obj);
     }
 
-    public static some.test.Booleans copyOrUpdate(Realm realm, some.test.Booleans object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    private static some_test_BooleansRealmProxy newProxyInstance(BaseRealm realm, Row row) {
+        // Ignore default values to avoid creating uexpected objects from RealmModel/RealmList fields
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
+        objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.Booleans.class), false, Collections.<String>emptyList());
+        io.realm.some_test_BooleansRealmProxy obj = new io.realm.some_test_BooleansRealmProxy();
+        objectContext.clear();
+        return obj;
+    }
+
+    public static some.test.Booleans copyOrUpdate(Realm realm, BooleansColumnInfo columnInfo, some.test.Booleans object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
@@ -306,27 +321,33 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
             return (some.test.Booleans) cachedRealmObject;
         }
 
-        return copy(realm, object, update, cache);
+        return copy(realm, columnInfo, object, update, cache, flags);
     }
 
-    public static some.test.Booleans copy(Realm realm, some.test.Booleans newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.Booleans copy(Realm realm, BooleansColumnInfo columnInfo, some.test.Booleans newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.Booleans) cachedRealmObject;
         }
 
-        // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
-        some.test.Booleans realmObject = realm.createObjectInternal(some.test.Booleans.class, false, Collections.<String>emptyList());
-        cache.put(newObject, (RealmObjectProxy) realmObject);
-
         some_test_BooleansRealmProxyInterface realmObjectSource = (some_test_BooleansRealmProxyInterface) newObject;
-        some_test_BooleansRealmProxyInterface realmObjectCopy = (some_test_BooleansRealmProxyInterface) realmObject;
 
-        realmObjectCopy.realmSet$done(realmObjectSource.realmGet$done());
-        realmObjectCopy.realmSet$isReady(realmObjectSource.realmGet$isReady());
-        realmObjectCopy.realmSet$mCompleted(realmObjectSource.realmGet$mCompleted());
-        realmObjectCopy.realmSet$anotherBoolean(realmObjectSource.realmGet$anotherBoolean());
-        return realmObject;
+        Table table = realm.getTable(some.test.Booleans.class);
+        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
+
+        // Add all non-"object reference" fields
+        builder.addBoolean(columnInfo.doneIndex, realmObjectSource.realmGet$done());
+        builder.addBoolean(columnInfo.isReadyIndex, realmObjectSource.realmGet$isReady());
+        builder.addBoolean(columnInfo.mCompletedIndex, realmObjectSource.realmGet$mCompleted());
+        builder.addBoolean(columnInfo.anotherBooleanIndex, realmObjectSource.realmGet$anotherBoolean());
+
+        // Create the underlying object and cache it before setting any object/objectlist references
+        // This will allow us to break any circular dependencies by using the object cache.
+        Row row = builder.createNewObject();
+        io.realm.some_test_BooleansRealmProxy realmObjectCopy = newProxyInstance(realm, row);
+        cache.put(newObject, realmObjectCopy);
+
+        return realmObjectCopy;
     }
 
     public static long insert(Realm realm, some.test.Booleans object, Map<RealmModel,Long> cache) {

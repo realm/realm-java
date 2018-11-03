@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.ImportFlag;
 import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
@@ -17,6 +18,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
+import io.realm.internal.objectstore.OsObjectBuilder;
 import io.realm.log.RealmLog;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,6 +38,7 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         implements RealmObjectProxy, some_test_NamePolicyMixedClassSettingsRealmProxyInterface {
 
     static final class NamePolicyMixedClassSettingsColumnInfo extends ColumnInfo {
+        long maxColumnIndexValue;
         long firstNameIndex;
         long lastNameIndex;
 
@@ -43,6 +47,7 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("customName");
             this.firstNameIndex = addColumnDetails("firstName", "first_name", objectSchemaInfo);
             this.lastNameIndex = addColumnDetails("lastName", "LastName", objectSchemaInfo);
+            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         NamePolicyMixedClassSettingsColumnInfo(ColumnInfo src, boolean mutable) {
@@ -61,6 +66,7 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
             final NamePolicyMixedClassSettingsColumnInfo dst = (NamePolicyMixedClassSettingsColumnInfo) rawDst;
             dst.firstNameIndex = src.firstNameIndex;
             dst.lastNameIndex = src.lastNameIndex;
+            dst.maxColumnIndexValue = src.maxColumnIndexValue;
         }
     }
 
@@ -226,7 +232,16 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         return realm.copyToRealm(obj);
     }
 
-    public static some.test.NamePolicyMixedClassSettings copyOrUpdate(Realm realm, some.test.NamePolicyMixedClassSettings object, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    private static some_test_NamePolicyMixedClassSettingsRealmProxy newProxyInstance(BaseRealm realm, Row row) {
+        // Ignore default values to avoid creating uexpected objects from RealmModel/RealmList fields
+        final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
+        objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.NamePolicyMixedClassSettings.class), false, Collections.<String>emptyList());
+        io.realm.some_test_NamePolicyMixedClassSettingsRealmProxy obj = new io.realm.some_test_NamePolicyMixedClassSettingsRealmProxy();
+        objectContext.clear();
+        return obj;
+    }
+
+    public static some.test.NamePolicyMixedClassSettings copyOrUpdate(Realm realm, NamePolicyMixedClassSettingsColumnInfo columnInfo, some.test.NamePolicyMixedClassSettings object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
@@ -242,25 +257,31 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
             return (some.test.NamePolicyMixedClassSettings) cachedRealmObject;
         }
 
-        return copy(realm, object, update, cache);
+        return copy(realm, columnInfo, object, update, cache, flags);
     }
 
-    public static some.test.NamePolicyMixedClassSettings copy(Realm realm, some.test.NamePolicyMixedClassSettings newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
+    public static some.test.NamePolicyMixedClassSettings copy(Realm realm, NamePolicyMixedClassSettingsColumnInfo columnInfo, some.test.NamePolicyMixedClassSettings newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.NamePolicyMixedClassSettings) cachedRealmObject;
         }
 
-        // rejecting default values to avoid creating unexpected objects from RealmModel/RealmList fields.
-        some.test.NamePolicyMixedClassSettings realmObject = realm.createObjectInternal(some.test.NamePolicyMixedClassSettings.class, false, Collections.<String>emptyList());
-        cache.put(newObject, (RealmObjectProxy) realmObject);
-
         some_test_NamePolicyMixedClassSettingsRealmProxyInterface realmObjectSource = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) newObject;
-        some_test_NamePolicyMixedClassSettingsRealmProxyInterface realmObjectCopy = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) realmObject;
 
-        realmObjectCopy.realmSet$firstName(realmObjectSource.realmGet$firstName());
-        realmObjectCopy.realmSet$lastName(realmObjectSource.realmGet$lastName());
-        return realmObject;
+        Table table = realm.getTable(some.test.NamePolicyMixedClassSettings.class);
+        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
+
+        // Add all non-"object reference" fields
+        builder.addString(columnInfo.firstNameIndex, realmObjectSource.realmGet$firstName());
+        builder.addString(columnInfo.lastNameIndex, realmObjectSource.realmGet$lastName());
+
+        // Create the underlying object and cache it before setting any object/objectlist references
+        // This will allow us to break any circular dependencies by using the object cache.
+        Row row = builder.createNewObject();
+        io.realm.some_test_NamePolicyMixedClassSettingsRealmProxy realmObjectCopy = newProxyInstance(realm, row);
+        cache.put(newObject, realmObjectCopy);
+
+        return realmObjectCopy;
     }
 
     public static long insert(Realm realm, some.test.NamePolicyMixedClassSettings object, Map<RealmModel,Long> cache) {
