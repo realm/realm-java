@@ -296,7 +296,7 @@ public class Realm extends BaseRealm {
      *
      * @param context the Application Context.
      * @param userAgent optional user defined string that will be sent to the Realm Object Server
-     *                  as part of a {@code User-Agent} header when a session is established.
+     * as part of a {@code User-Agent} header when a session is established.
      * @throws IllegalArgumentException if a {@code null} context or userAgent is provided.
      * @throws IllegalStateException if {@link Context#getFilesDir()} could not be found.
      * @see #getDefaultInstance()

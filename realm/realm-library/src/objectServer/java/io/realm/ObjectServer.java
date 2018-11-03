@@ -60,7 +60,7 @@ class ObjectServer {
             sb.append(")");
 
             // Setup User part of User-Agent string
-            if (!appDefinedUserAgent.isEmpty()) {
+            if (!Util.isEmptyString(appDefinedUserAgent)) {
                 sb.append(" ");
                 sb.append(appDefinedUserAgent);
             }
@@ -98,6 +98,6 @@ class ObjectServer {
         // Configure default UserStore
         UserStore userStore = new RealmFileUserStore();
 
-        SyncManager.init(appId, userAgent, userStore);
+        SyncManager.init(appId, userStore);
     }
 }

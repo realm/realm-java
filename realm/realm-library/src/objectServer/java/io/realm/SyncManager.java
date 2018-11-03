@@ -93,11 +93,6 @@ public class SyncManager {
     public static String APP_ID = null;
 
     /**
-     * User-Agent string sent to the Realm Object Server when a session is established.
-     */
-    public static String USER_AGENT = "";
-
-    /**
      * Thread pool used when doing network requests against the Realm Object Server.
      * <p>
      * This pool is only exposed for testing purposes and replacing it while the queue is not
@@ -161,9 +156,8 @@ public class SyncManager {
     static volatile SyncSession.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
 
     // Initialize the SyncManager
-    static void init(String appId, String userAgent, UserStore userStore) {
+    static void init(String appId, UserStore userStore) {
         SyncManager.APP_ID = appId;
-        SyncManager.USER_AGENT = userAgent;
         SyncManager.userStore = userStore;
     }
 
