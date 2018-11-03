@@ -42,6 +42,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static io.realm.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class SyncManagerTests {
@@ -188,6 +189,7 @@ public class SyncManagerTests {
     private void tryCase(Runnable runnable) {
         try {
             runnable.run();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -243,7 +245,6 @@ public class SyncManagerTests {
 
     @Test
     public void addCustomRequestHeaders_illegalArgumentThrows() {
-        tryCase(() -> SyncManager.addCustomRequestHeaders(null));
         tryCase(() -> SyncManager.addCustomRequestHeaders(Collections.emptyMap(), null));
         tryCase(() -> SyncManager.addCustomRequestHeaders(Collections.emptyMap(), ""));
     }
@@ -283,6 +284,7 @@ public class SyncManagerTests {
         Map<String, String> inputHeaders = new LinkedHashMap<>();
         inputHeaders.put("header1", "value1");
         inputHeaders.put("header2", "value2");
+        SyncManager.addCustomRequestHeaders(null);
         SyncManager.addCustomRequestHeaders(inputHeaders);
         Map<String, String> outputHeaders = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
         assertEquals(2, outputHeaders.size());

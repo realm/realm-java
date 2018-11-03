@@ -227,8 +227,11 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     public void testComplete() {
         // Close all resources and run any after test tasks
         // Post as runnable to ensure that this code runs on the correct thread.
-        postRunnable(() -> {
-            closeTestResources();
+        postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                closeTestResources();
+            }
         });
     }
 
