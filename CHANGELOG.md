@@ -24,6 +24,7 @@ This release also contains all changes in 5.8.0-BETA1 and 5.8.0-BETA2.
 * [ObjectServer] Added `Realm.getSubscriptions()`, `Realm.getSubscriptions(String pattern)` and `Realm.getSubscription` to make it easier to find existing subscriptions. These API's are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
 * [ObjectServer] Added `RealmQuery.subscribe()` and `RealmQuery.subscribe(String name)` to subscribe immediately inside a transaction. These API's are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
 * [ObjectServer] Added support for subscribing directly inside `SyncConfiguration.initialData()`. This can be coupled with `SyncConfiguration.waitForInitialRemoteData()` in order to block a Realm from opening until the initial subscriptions are ready and have downloaded data. This API are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
+* [ObjectServer] Improved performance when merging changes from the server.
 * Added support for `ImportFlag`s to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()`. This makes it possible to choose a mode so only fields that actually changed are written to disk. This improves notifications and Object Server performance. [#6224](https://github.com/realm/realm-java/pull/6224).
 
 ### Fixed
@@ -35,7 +36,9 @@ This release also contains all changes in 5.8.0-BETA1 and 5.8.0-BETA2.
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
-* Updated to Object Store commit: 1f91c82eb34cf4eaa2900794a9268390876f19f1
+* Updated to Object Store commit: f0dfe6c03be49194bc40777901059eaf55e7bff6
+* Updated Realm Sync to 3.13.1
+* Updated Realm Core to 5.12.0
 
 
 ## 5.8.0-BETA2 (2018-10-19)
@@ -79,9 +82,6 @@ This release also contains all changes in 5.8.0-BETA1 and 5.8.0-BETA2.
 * Realm Object Server: 3.11.0 or later.
 * File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
-
-### Internal
-* None
 
 
 ## 5.7.1 (2018-10-22)

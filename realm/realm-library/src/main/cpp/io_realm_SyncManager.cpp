@@ -97,7 +97,8 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNI
     TR_ENTER()
     try {
         JStringAccessor base_file_path(env, sync_base_dir); // throws
-        SyncManager::shared().configure_file_system(base_file_path, SyncManager::MetadataMode::NoEncryption);
+        std::string user_agent_info(""); // TODO Add support for this
+        SyncManager::shared().configure(base_file_path, SyncManager::MetadataMode::NoEncryption, user_agent_info);
 
         static AndroidClientListener client_thread_listener(env);
         // Register Sync Client thread start/stop callback
