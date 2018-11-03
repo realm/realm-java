@@ -71,6 +71,14 @@ public class Utils {
         }
     }
 
+    public static String getModelClassQualifiedName(VariableElement field) {
+        if (typeUtils.isAssignable(field.asType(), realmList)) {
+            return getGenericTypeQualifiedName(field);
+        } else {
+            return getFieldTypeQualifiedName(field);
+        }
+    }
+
     /**
      * @return the proxy class name for a given clazz
      */
@@ -402,5 +410,14 @@ public class Utils {
         // which should make it possible for the annotation processor to read the value from the
         // proxy class, even for files in other jar files.
         return "io.realm." + Utils.getProxyClassName(qualifiedClassName) + ".ClassNameHelper.INTERNAL_CLASS_NAME";
+    }
+
+    /**
+     * Returns a simple reference to the ColumnInfo class inside this model class, i.e. the package
+     * name is not prefixed.
+     */
+    public static String getSimpleColumnInfoClassName(String qualifiedModelClassName) {
+        String simpleModelClassName = Utils.stripPackage(qualifiedModelClassName);
+        return Utils.getProxyClassName(qualifiedModelClassName) + "." + simpleModelClassName + "ColumnInfo";
     }
 }

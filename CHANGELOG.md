@@ -1,4 +1,4 @@
-## 5.?.? (2018-mm-dd)
+## X.Y.Z (YYYY-MM-DD)
 
 ### Enhancements
 * None
@@ -15,13 +15,46 @@
 * None
 
 
-## 5.7.1 (2018-10-22)
+## 5.8.0 (YYYY-MM-DD)
+
+This release also contains all changes in 5.8.0-BETA1 and 5.8.0-BETA2.
+
+### Enhancements
+* [ObjectServer] Added Subscription class available to Query-based Realms. This exposes a Subscription more directly. This class is in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
+* [ObjectServer] Added `Realm.getSubscriptions()`, `Realm.getSubscriptions(String pattern)` and `Realm.getSubscription` to make it easier to find existing subscriptions. These API's are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
+* [ObjectServer] Added `RealmQuery.subscribe()` and `RealmQuery.subscribe(String name)` to subscribe immediately inside a transaction. These API's are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
+* [ObjectServer] Added support for subscribing directly inside `SyncConfiguration.initialData()`. This can be coupled with `SyncConfiguration.waitForInitialRemoteData()` in order to block a Realm from opening until the initial subscriptions are ready and have downloaded data. This API are in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
+* [ObjectServer] Improved performance when merging changes from the server.
+* [ObjectServer] Added support for timeouts when uploading or downloading data manually using `SyncSession.downloadAllServerChanges(long timeout, TimeUnit unit)` and `SyncSession.uploadAllLocalChanges(long timeout, TimeUnit unit)`. [#6073](https://github.com/realm/realm-java/pull/6073)
+* [ObjectServer] Added support for timing out when downloading initial data for synchronized Realms using `SyncConfiguration.waitForInitialRemoteData(long timeout, TimeUnit unit)`. [#6247](https://github.com/realm/realm-java/issues/6247)
+* Added support for `ImportFlag`s to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()`. This makes it possible to choose a mode so only fields that actually changed are written to disk. This improves notifications and Object Server performance. [#6224](https://github.com/realm/realm-java/pull/6224).
+
+### Fixed
+* All known bugs introduced in 5.8.0-BETA1 and 5.8.0-BETA2. See the release notes for these releases.
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: f0dfe6c03be49194bc40777901059eaf55e7bff6
+* Updated Realm Sync to 3.13.1
+* Updated Realm Core to 5.12.0
+
+
+## 5.8.0-BETA2 (2018-10-19)
 
 ### Enhancements
 * None
 
 ### Fixed
-* `RealmResults` listeners not triggering the initial callback for Query-based Realm when the device is offline. (Issue [#6235](https://github.com/realm/realm-java/issues/6235), since 5.0.0).
+* `RealmResults` listeners not triggering the initial callback for Query-based Realm when the device is offline [#6235](https://github.com/realm/realm-java/issues/6235). 
+
+### Known Bugs
+* `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` has been rewritten to support import flags. It is currently ~30% slower than in 5.7.0.
+* IllegalStateException thrown when trying to create an object with a primary key that already exists when using `Realm.copyToRealm`, will always report "null" instead of the correct primary key value.
+* When using `ImportFlag.DO_NOT_SET_SAME_VALUES`, lists will still be written and reported as changed, even if they didn't change.
 
 ### Compatibility
 * Realm Object Server: 3.11.0 or later.
@@ -30,6 +63,44 @@
 
 ### Internal
 * None
+
+
+## 5.8.0-BETA1 (2018-10-11)
+
+### Enhancements
+* Added new `ImportFlag` class that is used to specify additional behaviour when importing
+  data into Realm [#6224](https://github.com/realm/realm-java/pull/6224).
+* Added support for `ImportFlag` to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()` [#6224](https://github.com/realm/realm-java/pull/6224).
+
+### Fixed
+* None
+
+### Known Bugs
+* `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` has been rewritten to support import flags. It is currently ~30% slower than in 5.7.0.
+* IllegalStateException thrown when trying to create an object with a primary key that already exists when using `Realm.copyToRealm`, will always report "null" instead of the correct primary key value.
+* When using `ImportFlag.DO_NOT_SET_SAME_VALUES`, lists will still be written and reported as changed, even if they didn't change.
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+
+## 5.7.1 (2018-10-22)
+
+### Enhancements
+* None
+
+### Fixed
+* [ObjectServer] `RealmResults` listeners not triggering the initial callback for Query-based Realm when the device is offline. (Issue [#6235](https://github.com/realm/realm-java/issues/6235), since 5.0.0).
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: 362b886628b3aefc5b7a0bc32293d794dc1d4ad5
 
 
 ## 5.7.0 (2018-09-24)

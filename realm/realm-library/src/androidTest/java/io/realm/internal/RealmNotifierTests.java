@@ -100,8 +100,8 @@ public class RealmNotifierTests {
             public void onChange(OsSharedRealm sharedRealm) {
                 // Transaction has been committed in core, but commitTransaction hasn't returned in java.
                 assertFalse(commitReturns.get());
-                looperThread.testComplete();
                 sharedRealm.close();
+                looperThread.testComplete();
             }
         });
         sharedRealm.beginTransaction();

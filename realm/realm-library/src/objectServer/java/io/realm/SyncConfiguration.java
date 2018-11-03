@@ -27,9 +27,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Locale;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -111,6 +110,7 @@ public class SyncConfiguration extends RealmConfiguration {
     @Nullable private final String serverCertificateAssetName;
     @Nullable private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
+    private final long initialDataTimeoutMillis;
     private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
     private final boolean isPartial;
     @Nullable private final String syncUrlPrefix;
@@ -136,6 +136,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               @Nullable String serverCertificateAssetName,
                               @Nullable String serverCertificateFilePath,
                               boolean waitForInitialData,
+                              long initialDataTimeoutMillis,
                               OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
                               boolean isPartial,
                               CompactOnLaunchCallback compactOnLaunch,
@@ -165,6 +166,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.serverCertificateAssetName = serverCertificateAssetName;
         this.serverCertificateFilePath = serverCertificateFilePath;
         this.waitForInitialData = waitForInitialData;
+        this.initialDataTimeoutMillis = initialDataTimeoutMillis;
         this.sessionStopPolicy = sessionStopPolicy;
         this.isPartial = isPartial;
         this.syncUrlPrefix = syncUrlPrefix;
@@ -408,6 +410,18 @@ public class SyncConfiguration extends RealmConfiguration {
         return waitForInitialData;
     }
 
+    /**
+     * Returns the timeout defined when downloading any initial data the first time the Realm is opened.
+     * <p>
+     * This value is only applicable if {@link #shouldWaitForInitialRemoteData()} returns {@code true}.
+     *
+     * @return the time Realm will wait for all changes to be downloaded before it is aborted and an exception is thrown.
+     * @see SyncConfiguration.Builder#waitForInitialRemoteData(long, TimeUnit)
+     */
+    public long getInitialRemoteDataTimeout(TimeUnit unit) {
+        return unit.convert(initialDataTimeoutMillis, TimeUnit.MILLISECONDS);
+    }
+
     @Override
     boolean isSyncConfiguration() {
         return true;
@@ -479,6 +493,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
         private boolean readOnly = false;
         private boolean waitForServerChanges = false;
+        private long initialDataTimeoutMillis = Long.MAX_VALUE;
         // sync specific
         private boolean deleteRealmOnLogout = false;
         private URI serverUrl;
@@ -928,7 +943,7 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
-        /*
+        /**
          * Setting this will cause the Realm to download all known changes from the server the first time a Realm is
          * opened. The Realm will not open until all the data has been downloaded. This means that if a device is
          * offline the Realm will not open.
@@ -942,6 +957,35 @@ public class SyncConfiguration extends RealmConfiguration {
          */
         public Builder waitForInitialRemoteData() {
             this.waitForServerChanges = true;
+            this.initialDataTimeoutMillis = Long.MAX_VALUE;
+            return this;
+        }
+
+        /**
+         * Setting this will cause the Realm to download all known changes from the server the first time a Realm is
+         * opened. The Realm will not open until all the data has been downloaded. This means that if a device is
+         * offline the Realm will not open.
+         * <p>
+         * Since downloading all changes can be an lengthy operation that might block the UI thread, Realms with this
+         * setting enabled should only be opened on background threads or with
+         * {@link Realm#getInstanceAsync(RealmConfiguration, Realm.Callback)} on the UI thread.
+         * <p>
+         * This check is only enforced the first time a Realm is created. If you otherwise want to make sure a Realm
+         * has the latest changes, use {@link SyncSession#downloadAllServerChanges()}.
+         *
+         * @param timeout how long to wait for the download to complete before an {@link io.realm.exceptions.DownloadingRealmInterruptedException} is thrown.
+         * @param unit the unit of time used to define the timeout.
+         */
+        public Builder waitForInitialRemoteData(long timeout, TimeUnit unit) {
+            if (timeout < 0) {
+                throw new IllegalArgumentException("'timeout' must be >= 0. It was: " + timeout);
+            }
+            //noinspection ConstantConditions
+            if (unit == null) {
+                throw new IllegalArgumentException("Non-null 'unit' required");
+            }
+            this.waitForServerChanges = true;
+            this.initialDataTimeoutMillis = unit.toMillis(timeout);
             return this;
         }
 
@@ -1177,6 +1221,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     serverCertificateAssetName,
                     serverCertificateFilePath,
                     waitForServerChanges,
+                    initialDataTimeoutMillis,
                     sessionStopPolicy,
                     isPartial,
                     compactOnLaunch,

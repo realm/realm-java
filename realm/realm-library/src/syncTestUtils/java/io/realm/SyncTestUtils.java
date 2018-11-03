@@ -60,8 +60,22 @@ public class SyncTestUtils {
         }
     }
 
-    public static void prepareEnvironmentForTest() throws IOException {
-        deleteRosFiles();
+    public static void prepareEnvironmentForTest(){
+        Realm.init(InstrumentationRegistry.getTargetContext());
+        originalLogLevel = RealmLog.getLevel();
+        RealmLog.setLevel(LogLevel.DEBUG);
+    }
+
+    /**
+     * Tries to restore the environment as best as possible after a test.
+     */
+    public static void restoreEnvironmentAfterTest() throws IOException {
+        // Block until all users are logged out
+        UserFactory.logoutAllUsers();
+
+        // Reset log level
+        RealmLog.setLevel(originalLogLevel);
+
         if (BaseRealm.applicationContext != null) {
             // Realm was already initialized. Reset all internal state
             // in order to be able fully re-initialize.
@@ -74,20 +88,8 @@ public class SyncTestUtils {
             SyncManager.reset();
             BaseRealm.applicationContext = null; // Required for Realm.init() to work
         }
+        deleteRosFiles();
         Realm.init(InstrumentationRegistry.getTargetContext());
-        originalLogLevel = RealmLog.getLevel();
-        RealmLog.setLevel(LogLevel.DEBUG);
-    }
-
-    /**
-     * Tries to restore the environment as best as possible after a test.
-     */
-    public static void restoreEnvironmentAfterTest() {
-        // Block until all users are logged out
-        UserFactory.logoutAllUsers();
-
-        // Reset log level
-        RealmLog.setLevel(originalLogLevel);
     }
 
     // Cleanup filesystem to make sure nothing lives for the next test.

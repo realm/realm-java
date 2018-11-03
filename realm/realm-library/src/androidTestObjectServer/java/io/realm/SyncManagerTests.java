@@ -96,6 +96,8 @@ public class SyncManagerTests {
             userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
         }
         SyncManager.reset();
+        BaseRealm.applicationContext = null; // Required for Realm.init() to work
+        Realm.init(InstrumentationRegistry.getTargetContext());
     }
 
     @Test

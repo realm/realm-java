@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
@@ -79,8 +80,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
             assertTrue(Realm.deleteRealm(config));
         } catch (IllegalStateException e) {
             // FIXME: We don't have a way to ensure that the Realm instance on client thread has been
-            //        closed for now.
-            // https://github.com/realm/realm-java/issues/5416
+            // closed for now https://github.com/realm/realm-java/issues/5416
             if (e.getMessage().contains("It's not allowed to delete the file")) {
                 // retry after 1 second
                 SystemClock.sleep(1000);
@@ -375,18 +375,20 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     private void runJavaRequestCustomHeadersTest() {
         SyncCredentials credentials = SyncCredentials.nickname("test", false);
 
+        AtomicBoolean headerSet = new AtomicBoolean(false);
         RealmLog.setLevel(LogLevel.ALL);
-        RealmLog.add(new RealmLogger() {
-            @Override
-            public void log(int level, String tag, @Nullable Throwable throwable, @Nullable String message) {
-                if (level == LogLevel.TRACE
-                        && message.contains("Foo: bar")
-                        && message.contains("RealmAuth: ")) {
-                    RealmLog.remove(this);
-                    looperThread.testComplete();
-                }
-            };
+        RealmLogger logger = (level, tag, throwable, message) -> {
+            if (level == LogLevel.TRACE
+                    && message.contains("Foo: bar")
+                    && message.contains("RealmAuth: ")) {
+                headerSet.set(true);
+            }
+        };
+        looperThread.runAfterTest(() -> {
+            RealmLog.remove(logger);
         });
+        RealmLog.add(logger);
+
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         try {
             user.changePassword("foo");
@@ -395,6 +397,9 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
                 throw e;
             }
         }
+
+        assertTrue(headerSet.get());
+        looperThread.testComplete();
     }
 
     // Test that auth header renaming, custom headers and url prefix are all propagated correctly
@@ -434,19 +439,20 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
                 })
                 .build();
 
+        AtomicBoolean headersSet = new AtomicBoolean(false);
         RealmLog.setLevel(LogLevel.ALL);
-        RealmLog.add(new RealmLogger() {
-            @Override
-            public void log(int level, String tag, @Nullable Throwable throwable, @Nullable String message) {
-                if (tag.equals("REALM_SYNC")
-                        && message.contains("GET /foo/%2Fdefault%2F__partial%")
-                        && message.contains("TestAuth: Realm-Access-Token version=1")
-                        && message.contains("Test: test")) {
-                    RealmLog.remove(this);
-                    looperThread.testComplete();
-                }
+        RealmLogger logger = (level, tag, throwable, message) -> {
+            if (tag.equals("REALM_SYNC")
+                    && message.contains("GET /foo/%2Fdefault%2F__partial%")
+                    && message.contains("TestAuth: Realm-Access-Token version=1")
+                    && message.contains("Test: test")) {
+                looperThread.testComplete();
             }
+        };
+        looperThread.runAfterTest(() -> {
+            RealmLog.remove(logger);
         });
+        RealmLog.add(logger);
         Realm realm = Realm.getInstance(config);
         looperThread.closeAfterTest(realm);
     }

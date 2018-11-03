@@ -475,17 +475,18 @@ public class LinkingObjectsDynamicTests {
         });
 
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        try {
-            final DynamicRealmObject targetAsync = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
-                    .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirstAsync();
-            // precondition
-            assertFalse(targetAsync.isLoaded());
+        looperThread.closeAfterTest(dynamicRealm);
+        final DynamicRealmObject targetAsync = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirstAsync();
+        // precondition
+        assertFalse(targetAsync.isLoaded());
 
-            thrown.expect(IllegalStateException.class);
+        try {
             targetAsync.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
-        } finally {
-            dynamicRealm.close();
+            fail();
+        } catch (IllegalStateException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
@@ -505,25 +506,26 @@ public class LinkingObjectsDynamicTests {
         });
 
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        looperThread.closeAfterTest(dynamicRealm);
+        final DynamicRealmObject target = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
+
+        dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                target.deleteFromRealm();
+            }
+        });
+
+        // precondition
+        assertFalse(target.isValid());
+
         try {
-            final DynamicRealmObject target = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
-                    .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
-
-            dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
-                @Override
-                public void execute(DynamicRealm realm) {
-                    target.deleteFromRealm();
-                }
-            });
-
-            // precondition
-            assertFalse(target.isValid());
-
-            thrown.expect(IllegalStateException.class);
             target.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
-        } finally {
-            dynamicRealm.close();
+            fail();
+        } catch (IllegalStateException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
