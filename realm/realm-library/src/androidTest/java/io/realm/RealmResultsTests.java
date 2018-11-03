@@ -1201,7 +1201,7 @@ public class RealmResultsTests extends CollectionTests {
             collection.setObject(AllTypes.FIELD_REALMOBJECT, new Dog());
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue("Wrong error message: " + e.getMessage(), e.getMessage().contains("is not a valid a valid, managed Realm object."));
+            assertTrue("Wrong error message: " + e.getMessage(), e.getMessage().contains("is not a valid, managed Realm object."));
         }
     }
 
@@ -1239,7 +1239,7 @@ public class RealmResultsTests extends CollectionTests {
             collection.setList(AllTypes.FIELD_REALMLIST, new RealmList<>(new Dog()));
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue("Wrong error message: " + e.getMessage(), e.getMessage().contains("is not a valid a valid, managed Realm object."));
+            assertTrue("Wrong error message: " + e.getMessage(), e.getMessage().contains("is not a valid, managed Realm object."));
         }
     }
 
