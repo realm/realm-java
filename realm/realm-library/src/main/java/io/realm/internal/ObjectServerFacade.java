@@ -55,10 +55,8 @@ public class ObjectServerFacade {
 
     /**
      * Initializes the Object Server library
-     *
-     * @param context
      */
-    public void init(Context context) {
+    public void init(Context context, String userAgent) {
     }
 
     /**

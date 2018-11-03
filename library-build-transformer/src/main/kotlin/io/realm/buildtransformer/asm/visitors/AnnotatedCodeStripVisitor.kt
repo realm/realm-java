@@ -68,10 +68,10 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
     }
 
     override fun visitMethod(access: Int, name: ByteCodeMethodName?, descriptor: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-        return if (!markedMethodsInClass.contains(name)) {
+        return if (!markedMethodsInClass.contains(name + descriptor)) {
             super.visitMethod(access, name, descriptor, signature, exceptions)
         } else {
-            logger.debug("Removing method: $name")
+            logger.debug("Removing method: $name $descriptor")
             null
         }
     }

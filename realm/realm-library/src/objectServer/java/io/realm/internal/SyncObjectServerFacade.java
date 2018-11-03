@@ -50,16 +50,16 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     private static volatile Method removeSessionMethod;
 
     @Override
-    public void init(Context context) {
+    public void init(Context context, String userAgent) {
         // Trying to keep things out the public API is no fun :/
         // Just use reflection on init. It is a one-time method call so should be acceptable.
         //noinspection TryWithIdenticalCatches
         try {
             // FIXME: Reflection can be avoided by moving some functions of SyncManager and ObjectServer out of public
             Class<?> syncManager = Class.forName("io.realm.ObjectServer");
-            Method method = syncManager.getDeclaredMethod("init", Context.class);
+            Method method = syncManager.getDeclaredMethod("init", Context.class, String.class);
             method.setAccessible(true);
-            method.invoke(null, context);
+            method.invoke(null, context, userAgent);
         } catch (NoSuchMethodException e) {
             throw new RealmException("Could not initialize the Realm Object Server", e);
         } catch (InvocationTargetException e) {
