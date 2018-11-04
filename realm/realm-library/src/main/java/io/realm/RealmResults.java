@@ -166,7 +166,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     public void setValue(String fieldName, @Nullable Object value) {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         boolean isString = (value instanceof String);
         String strValue = isString ? (String) value : null;
 
@@ -238,7 +238,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             RealmList<?> list = (RealmList<?>) value;
             setList(fieldName, list);
         } else {
-            throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
+            throw new IllegalArgumentException("Value is of a type not supported: " + value.getClass());
         }
     }
 
@@ -251,7 +251,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setNull(String fieldName) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         osResults.setNull(fieldName);
     }
 
@@ -266,7 +266,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.BOOLEAN);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         osResults.setBoolean(fieldName, value);
     }
 
@@ -275,13 +275,13 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
-     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an integer field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a byte field.
      */
     public void setByte(String fieldName, byte value) {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.INTEGER);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         osResults.setInt(fieldName, value);
     }
 
@@ -290,13 +290,13 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
-     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an integer field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a short field.
      */
     public void setShort(String fieldName, short value) {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.INTEGER);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         osResults.setInt(fieldName, value);
     }
 
@@ -311,7 +311,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.INTEGER);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         osResults.setInt(fieldName, value);
     }
 
@@ -320,13 +320,13 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
-     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an integer field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a long field.
      */
     public void setLong(String fieldName, long value) {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.INTEGER);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         osResults.setInt(fieldName, value);
     }
 
@@ -341,7 +341,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.FLOAT);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         osResults.setFloat(fieldName, value);
     }
 
@@ -356,7 +356,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.DOUBLE);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         osResults.setDouble(fieldName, value);
     }
 
@@ -371,7 +371,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.STRING);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         osResults.setString(fieldName, value);
     }
 
@@ -386,7 +386,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.BINARY);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         osResults.setBlob(fieldName, value);
     }
 
@@ -401,7 +401,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.DATE);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         osResults.setDate(fieldName, value);
     }
 
@@ -416,7 +416,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.OBJECT);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
         Row row = checkRealmObjectConstraints(fieldName, value);
         osResults.setObject(fieldName, row);
     }
@@ -460,7 +460,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     public <T> void setList(String fieldName, RealmList<T> list) {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
-        realm.checkIfValid();
+        realm.checkIfValidAndInTransaction();
 
         //noinspection ConstantConditions
         if (list == null) {

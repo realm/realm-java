@@ -455,7 +455,7 @@ public class OsResults implements NativeObject, ObservableCollection {
         }
     }
 
-    // Interface wrapping adding the specific list tye
+    // Interface wrapping adding the specific list type
     private interface AddListTypeDelegate<T> {
         void addList(OsObjectBuilder builder, RealmList<T> list);
     }
@@ -475,21 +475,18 @@ public class OsResults implements NativeObject, ObservableCollection {
     public void setStringList(String fieldName, RealmList<String> list) {
         addTypeSpecificList(fieldName, list, (builder, lst) -> {
             builder.addStringList(0, lst);
-
         });
     }
 
     public void setByteList(String fieldName, RealmList<Byte> list) {
         addTypeSpecificList(fieldName, list, (builder, lst) -> {
             builder.addByteList(0, lst);
-
         });
     }
 
     public void setShortList(String fieldName, RealmList<Short> list) {
         addTypeSpecificList(fieldName, list, (builder, lst) -> {
             builder.addShortList(0, lst);
-
         });
     }
 

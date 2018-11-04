@@ -402,8 +402,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObject(JNIEnv* 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetList(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong builder_ptr)
 {
-    // OsObjectBuilder have been used to build up the list we want to insert. The list is always
-    // assumed to be at index = 0;
+    // OsObjectBuilder has been used to build up the list we want to insert. This means the
+    // fake object described by the OsObjectBuilder only contains one property, namely the list we
+    // want to insert and this list is assumed to be at index = 0.
     std::vector<JavaValue> builder = *reinterpret_cast<std::vector<JavaValue>*>(builder_ptr);
     REALM_ASSERT_DEBUG(builder.size() == 1);
     update_objects(env, native_ptr, j_field_name, builder[0]);
