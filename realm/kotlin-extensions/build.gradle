@@ -61,6 +61,12 @@ android {
                 '../realm-library/src/syncTestUtils/java',
         ]
     }
+
+    // Required from Kotlin 1.1.2
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
 }
 
 dependencies {

@@ -17,7 +17,7 @@
 
 ## 5.8.0 (YYYY-MM-DD)
 
-This release also contains all changes in 5.8.0-BETA1 and 5.8.0-BETA2.
+This release also contains all changes from 5.8.0-BETA1 and 5.8.0-BETA2.
 
 ### Enhancements
 * [ObjectServer] Added Subscription class available to Query-based Realms. This exposes a Subscription more directly. This class is in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
@@ -28,6 +28,7 @@ This release also contains all changes in 5.8.0-BETA1 and 5.8.0-BETA2.
 * [ObjectServer] Added support for timeouts when uploading or downloading data manually using `SyncSession.downloadAllServerChanges(long timeout, TimeUnit unit)` and `SyncSession.uploadAllLocalChanges(long timeout, TimeUnit unit)`. [#6073](https://github.com/realm/realm-java/pull/6073)
 * [ObjectServer] Added support for timing out when downloading initial data for synchronized Realms using `SyncConfiguration.waitForInitialRemoteData(long timeout, TimeUnit unit)`. [#6247](https://github.com/realm/realm-java/issues/6247)
 * Added support for `ImportFlag`s to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()`. This makes it possible to choose a mode so only fields that actually changed are written to disk. This improves notifications and Object Server performance. [#6224](https://github.com/realm/realm-java/pull/6224).
+* Added support for bulk updating the same property in all objects that are part of a query result using `RealmResults.setValue(String fieldName, Object value)` or one of the specialized overrides that have been added for all supported types, e.g. `RealmResults.setString(String fieldName, String value)` [#762](https://github.com/realm/realm-java/issues/762).
 
 ### Fixed
 * All known bugs introduced in 5.8.0-BETA1 and 5.8.0-BETA2. See the release notes for these releases.
