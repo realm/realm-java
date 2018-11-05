@@ -16,7 +16,7 @@
 
 
 #include "java_accessor.hpp"
-#include "java_sort_descriptor.hpp"
+#include "java_query_descriptor.hpp"
 #include "util.hpp"
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
@@ -25,7 +25,7 @@ using namespace realm;
 using namespace realm::_impl;
 using namespace realm::jni_util;
 
-SortDescriptor JavaSortDescriptor::sort_descriptor() const noexcept
+SortDescriptor JavaQueryDescriptor::sort_descriptor() const noexcept
 {
     if (m_sort_desc_obj == nullptr) {
         return SortDescriptor();
@@ -34,7 +34,7 @@ SortDescriptor JavaSortDescriptor::sort_descriptor() const noexcept
     return SortDescriptor(*get_table_ptr(), get_column_indices(), get_ascendings());
 }
 
-DistinctDescriptor JavaSortDescriptor::distinct_descriptor() const noexcept
+DistinctDescriptor JavaQueryDescriptor::distinct_descriptor() const noexcept
 {
     if (m_sort_desc_obj == nullptr) {
         return DistinctDescriptor();
@@ -42,14 +42,14 @@ DistinctDescriptor JavaSortDescriptor::distinct_descriptor() const noexcept
     return DistinctDescriptor(*get_table_ptr(), get_column_indices());
 }
 
-Table* JavaSortDescriptor::get_table_ptr() const noexcept
+Table* JavaQueryDescriptor::get_table_ptr() const noexcept
 {
     static JavaMethod get_table_ptr_method(m_env, get_sort_desc_class(), "getTablePtr", "()J");
     jlong table_ptr = m_env->CallLongMethod(m_sort_desc_obj, get_table_ptr_method);
     return reinterpret_cast<Table*>(table_ptr);
 }
 
-std::vector<std::vector<size_t>> JavaSortDescriptor::get_column_indices() const noexcept
+std::vector<std::vector<size_t>> JavaQueryDescriptor::get_column_indices() const noexcept
 {
     static JavaMethod get_column_indices_method(m_env, get_sort_desc_class(), "getColumnIndices", "()[[J");
     jobjectArray column_indices =
@@ -69,7 +69,7 @@ std::vector<std::vector<size_t>> JavaSortDescriptor::get_column_indices() const 
     return indices;
 }
 
-std::vector<bool> JavaSortDescriptor::get_ascendings() const noexcept
+std::vector<bool> JavaQueryDescriptor::get_ascendings() const noexcept
 {
     static JavaMethod get_ascendings_method(m_env, get_sort_desc_class(), "getAscendings", "()[Z");
 
@@ -90,9 +90,9 @@ std::vector<bool> JavaSortDescriptor::get_ascendings() const noexcept
     return ascending_list;
 }
 
-JavaClass const& JavaSortDescriptor::get_sort_desc_class() const noexcept
+JavaClass const& JavaQueryDescriptor::get_sort_desc_class() const noexcept
 {
-    static JavaClass sort_desc_class(m_env, "io/realm/internal/SortDescriptor");
+    static JavaClass sort_desc_class(m_env, "io/realm/internal/core/QueryDescriptor");
     return sort_desc_class;
 }
 

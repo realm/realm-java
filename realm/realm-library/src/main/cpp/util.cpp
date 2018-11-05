@@ -30,6 +30,11 @@
 #include "results.hpp"
 #include "list.hpp"
 #include "java_exception_def.hpp"
+#include "java_object_accessor.hpp"
+#include "object.hpp"
+#if REALM_ENABLE_SYNC
+#include "sync/partial_sync.hpp"
+#endif
 
 #include "jni_util/java_exception_thrower.hpp"
 
@@ -50,7 +55,7 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch (JavaExceptionThrower& e) {
         e.throw_java_exception(env);
     }
-    catch (bad_alloc& e) {
+    catch (std::bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, OutOfMemory, ss.str());
     }
@@ -62,7 +67,7 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, BadVersion, ss.str());
     }
-    catch (invalid_argument& e) {
+    catch (std::invalid_argument& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
@@ -120,6 +125,20 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         }
         ThrowException(env, kind, e.what());
     }
+    catch(realm::MissingPropertyValueException e) {
+        ThrowException(env, IllegalArgument, e.what());
+    }
+    catch(realm::RequiredFieldValueNotProvidedException e) {
+        ThrowException(env, IllegalArgument, e.what());
+    }
+#if REALM_ENABLE_SYNC
+    catch (partial_sync::InvalidRealmStateException& e) {
+        ThrowException(env, IllegalState, e.what());
+    }
+    catch (partial_sync::ExistingSubscriptionException& e) {
+        ThrowException(env, IllegalArgument, e.what());
+    }
+#endif
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
     }
@@ -314,7 +333,7 @@ private:
     {
         size_t size;
         if (int_cast_with_overflow_detect(e->GetStringLength(s), size))
-            throw runtime_error("String size overflow");
+            throw std::runtime_error("String size overflow");
         return size;
     }
 };
@@ -390,7 +409,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
     if (str.size() <= stack_buf_size) {
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
         if (retcode != 0) {
-            throw runtime_error(string_to_hex("Failure when converting short string to UTF-16", str, in_begin, in_end,
+            throw std::runtime_error(string_to_hex("Failure when converting short string to UTF-16", str, in_begin, in_end,
                                               out_curr, out_end, size_t(0), retcode));
         }
         if (in_begin == in_end) {
@@ -403,11 +422,11 @@ jstring to_jstring(JNIEnv* env, StringData str)
         size_t error_code;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end, error_code);
         if (in_begin2 != in_end) {
-            throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr,
+            throw std::runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr,
                                               out_end, size, error_code));
         }
         if (int_add_with_overflow_detect(size, stack_buf_size)) {
-            throw runtime_error("String size overflow");
+            throw std::runtime_error("String size overflow");
         }
         dyn_buf.reset(new jchar[size]);
         out_curr = copy(out_begin, out_curr, dyn_buf.get());
@@ -415,7 +434,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
         out_end = dyn_buf.get() + size;
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
         if (retcode != 0) {
-            throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end,
+            throw std::runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end,
                                               out_curr, out_end, size_t(0), retcode));
         }
         REALM_ASSERT(in_begin == in_end);
@@ -424,7 +443,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
 transcode_complete : {
     jsize out_size;
     if (int_cast_with_overflow_detect(out_curr - out_begin, out_size)) {
-        throw runtime_error("String size overflow");
+        throw std::runtime_error("String size overflow");
     }
 
     return env->NewString(out_begin, out_size);
@@ -472,11 +491,11 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         char* out_end = m_data.get() + buf_size;
         size_t error_code;
         if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end, error_code)) {
-            throw invalid_argument(
+            throw std::invalid_argument(
                 string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         if (in_begin != in_end) {
-            throw invalid_argument(
+            throw std::invalid_argument(
                 string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         m_size = out_begin - m_data.get();

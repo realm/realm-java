@@ -2,6 +2,7 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -11,6 +12,7 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
@@ -19,15 +21,18 @@ import io.realm.SyncUser;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PartialSyncModule;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.model.PartialSyncObjectB;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.sync.Subscription;
 
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -295,6 +300,140 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
         assertTrue(result.isEmpty());
         looperThread.testComplete();
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void downloadLimitedData() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        createServerData(user, Constants.SYNC_SERVER_URL);
+        Realm realm = getPartialRealm(user);
+        looperThread.closeAfterTest(realm);
+
+        RealmResults<PartialSyncObjectA> results = realm.where(PartialSyncObjectA.class)
+                .notEqualTo("string", "")
+                .distinct("string")
+                .sort("string", Sort.ASCENDING)
+                .limit(2)
+                .findAllAsync();
+        looperThread.keepStrongReference(results);
+
+        results.addChangeListener((objects, changeSet) -> {
+            RealmLog.error(changeSet.getState().toString());
+            if (changeSet.getState() == OrderedCollectionChangeSet.State.ERROR) {
+                RealmLog.error(changeSet.getError().toString());
+            }
+            if (changeSet.isCompleteResult()) {
+                assertEquals(2, results.size());
+                PartialSyncObjectA obj = objects.first();
+                assertEquals(6, obj.getNumber());
+                assertEquals("partial", obj.getString());
+                obj = objects.last();
+                assertEquals(0, obj.getNumber());
+                assertEquals("realm", obj.getString());
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void initialDataAndWaitForRemoteInitialData() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        createServerData(user, Constants.SYNC_SERVER_URL);
+
+        // Create partial Realm that will wait for the subscriptions
+        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .name("partialSync")
+                .initialData(r -> {
+                    r.where(PartialSyncObjectA.class).greaterThan("number", 5).subscribe("my-sub");
+                })
+                .waitForInitialRemoteData()
+                .modules(new PartialSyncModule())
+                .build();
+        Realm realm = Realm.getInstance(partialSyncConfig);
+        looperThread.closeAfterTest(realm);
+
+        // Check the state of subscriptions. Sync automatically creates subscriptions for fine-grained permission classes.
+        assertEquals(6, realm.getSubscriptions().size());
+        assertTrue(realm.getSubscriptions().where().equalTo("status", 0).findAll().isEmpty());
+        Subscription sub = realm.getSubscription("my-sub");
+        assertEquals(Subscription.State.ACTIVE, sub.getState());
+
+        // Check that data is downloaded
+        assertFalse(realm.isEmpty());
+        assertEquals(4, realm.where(PartialSyncObjectA.class).findAll().size());
+        looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void unsubscribe_synchronous() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        createServerData(user, Constants.SYNC_SERVER_URL);
+
+        // Create partial Realm that will wait for the subscriptions
+        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .name("partialSync")
+                .initialData(r -> {
+                    r.where(PartialSyncObjectA.class).greaterThan("number", 5).subscribe("my-sub");
+                })
+                .waitForInitialRemoteData()
+                .addModule(new PartialSyncModule())
+                .build();
+        Realm realm = Realm.getInstance(partialSyncConfig);
+        looperThread.closeAfterTest(realm);
+
+        realm.executeTransaction(r -> {
+            Subscription sub = r.getSubscription("my-sub");
+            assertEquals(Subscription.State.ACTIVE, sub.getState());
+            sub.unsubscribe();
+            assertEquals(Subscription.State.INVALIDATED, sub.getState());
+        });
+
+        // Objects should eventually disappear from the device
+        RealmResults<PartialSyncObjectA> results = realm.where(PartialSyncObjectA.class).findAll();
+        results.addChangeListener((objects, changeSet) -> {
+            if (objects.isEmpty()) {
+                looperThread.testComplete();
+            }
+        });
+    }
+
+
+    @Test
+    @RunTestInLooperThread
+    public void deletingSubscriptionObjectUnsubscribes() throws InterruptedException {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        createServerData(user, Constants.SYNC_SERVER_URL);
+
+        // Create partial Realm that will wait for the subscriptions
+        final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .name("partialSync")
+                .initialData(r -> {
+                    r.where(PartialSyncObjectA.class).greaterThan("number", 5).subscribe("my-sub");
+                })
+                .waitForInitialRemoteData()
+                .addModule(new PartialSyncModule())
+                .build();
+        Realm realm = Realm.getInstance(partialSyncConfig);
+        looperThread.closeAfterTest(realm);
+
+        realm.executeTransaction(r -> {
+            Subscription sub = r.getSubscription("my-sub");
+            assertEquals(Subscription.State.ACTIVE, sub.getState());
+            sub.deleteFromRealm(); // Equivalent of calling `sub.unsubscribe()`.
+            assertEquals(Subscription.State.INVALIDATED, sub.getState());
+        });
+
+        // Objects should eventually disappear from the device
+        RealmResults<PartialSyncObjectA> results = realm.where(PartialSyncObjectA.class).findAll();
+        results.addChangeListener((objects, changeSet) -> {
+            if (objects.isEmpty()) {
+                looperThread.testComplete();
+            }
+        });
+    }
+
 
     private Realm getPartialRealm(SyncUser user) {
         final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)

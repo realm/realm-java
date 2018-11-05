@@ -22,7 +22,7 @@ android {
             signingConfig signingConfigs.debug
         }
         debug {
-            minifyEnabled true
+            minifyEnabled false
         }
     }
 
@@ -30,17 +30,23 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
 }
 
 
 dependencies {
-    implementation 'com.android.support:appcompat-v7:27.0.2'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
 
-    testImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
+    testImplementation 'io.reactivex.rxjava2:rxjava:2.1.13'
 
     // Testing
     testImplementation 'junit:junit:4.12'
-    testImplementation "org.robolectric:robolectric:3.3.2"
+    testImplementation "org.robolectric:robolectric:3.8"
     testImplementation "org.mockito:mockito-core:1.10.19"
     testImplementation 'org.robolectric:shadows-support-v4:3.0'
 

@@ -92,6 +92,7 @@ public abstract class ColumnInfo {
 
     private final Map<String, ColumnDetails> indicesFromJavaFieldNames;
     private final Map<String, ColumnDetails> indicesFromColumnNames;
+    private final Map<String, String> javaFieldNameToInternalNames;
     private final boolean mutable;
 
     /**
@@ -120,6 +121,7 @@ public abstract class ColumnInfo {
     private ColumnInfo(int mapSize, boolean mutable) {
         this.indicesFromJavaFieldNames = new HashMap<>(mapSize);
         this.indicesFromColumnNames = new HashMap<>(mapSize);
+        this.javaFieldNameToInternalNames = new HashMap<>(mapSize);
         this.mutable = mutable;
     }
 
@@ -153,6 +155,16 @@ public abstract class ColumnInfo {
     }
 
     /**
+     * Returns the internal field name that corresponds to the name found in the Java model class.
+     * @param javaFieldName the field name in the Java model class.
+     * @return the internal field name or {@code null} if the java name doesn't exists.
+     */
+    @Nullable
+    public String getInternalFieldName(String javaFieldName) {
+        return javaFieldNameToInternalNames.get(javaFieldName);
+    }
+
+    /**
      * Makes this ColumnInfo an exact copy of {@code src}.
      *
      * @param src The source for the copy.  This instance will be an exact copy of {@code src} after return.
@@ -171,6 +183,8 @@ public abstract class ColumnInfo {
         indicesFromJavaFieldNames.putAll(src.indicesFromJavaFieldNames);
         indicesFromColumnNames.clear();
         indicesFromColumnNames.putAll(src.indicesFromColumnNames);
+        javaFieldNameToInternalNames.clear();
+        javaFieldNameToInternalNames.putAll(src.javaFieldNameToInternalNames);
         copy(src, this);
     }
 
@@ -238,6 +252,7 @@ public abstract class ColumnInfo {
         ColumnDetails cd = new ColumnDetails(property);
         indicesFromJavaFieldNames.put(javaFieldName, cd);
         indicesFromColumnNames.put(internalColumnName, cd);
+        javaFieldNameToInternalNames.put(javaFieldName, internalColumnName);
         return property.getColumnIndex();
     }
 

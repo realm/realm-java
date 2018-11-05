@@ -28,13 +28,18 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.Nullable;
+
+import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
+import io.realm.log.RealmLogger;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunTestInLooperThread;
 
@@ -75,8 +80,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
             assertTrue(Realm.deleteRealm(config));
         } catch (IllegalStateException e) {
             // FIXME: We don't have a way to ensure that the Realm instance on client thread has been
-            //        closed for now.
-            // https://github.com/realm/realm-java/issues/5416
+            // closed for now https://github.com/realm/realm-java/issues/5416
             if (e.getMessage().contains("It's not allowed to delete the file")) {
                 // retry after 1 second
                 SystemClock.sleep(1000);
@@ -284,7 +288,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         realm.close();
         user.logOut();
     }
-    
+
     @Test
     public void waitForInitialRemoteData_readOnlyTrue_throwsIfWrongServerSchema() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
@@ -371,13 +375,19 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     private void runJavaRequestCustomHeadersTest() {
         SyncCredentials credentials = SyncCredentials.nickname("test", false);
 
+        AtomicBoolean headerSet = new AtomicBoolean(false);
         RealmLog.setLevel(LogLevel.ALL);
-        RealmLog.add((level, tag, throwable, message) -> {
+        RealmLogger logger = (level, tag, throwable, message) -> {
             if (level == LogLevel.TRACE
                     && message.contains("Foo: bar")
                     && message.contains("RealmAuth: ")) {
-                looperThread.testComplete();
-            }});
+                headerSet.set(true);
+            }
+        };
+        looperThread.runAfterTest(() -> {
+            RealmLog.remove(logger);
+        });
+        RealmLog.add(logger);
 
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         try {
@@ -387,6 +397,9 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
                 throw e;
             }
         }
+
+        assertTrue(headerSet.get());
+        looperThread.testComplete();
     }
 
     // Test that auth header renaming, custom headers and url prefix are all propagated correctly
@@ -426,17 +439,49 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
                 })
                 .build();
 
+        AtomicBoolean headersSet = new AtomicBoolean(false);
         RealmLog.setLevel(LogLevel.ALL);
-        RealmLog.add((level, tag, throwable, message) -> {
+        RealmLogger logger = (level, tag, throwable, message) -> {
             if (tag.equals("REALM_SYNC")
                     && message.contains("GET /foo/%2Fdefault%2F__partial%")
                     && message.contains("TestAuth: Realm-Access-Token version=1")
                     && message.contains("Test: test")) {
                 looperThread.testComplete();
             }
+        };
+        looperThread.runAfterTest(() -> {
+            RealmLog.remove(logger);
         });
+        RealmLog.add(logger);
         Realm realm = Realm.getInstance(config);
         looperThread.closeAfterTest(realm);
     }
 
+
+    /**
+     * Tests https://github.com/realm/realm-java/issues/6235
+     * This checks that the INITIAL callback is called for query-based notifications even when
+     * the device is offline.
+     */
+    @Test
+    @RunTestInLooperThread
+    public void listenersTriggerWhenOffline() {
+        SyncUser user = SyncTestUtils.createTestUser(); // Creating a fake user will make it behave as "offline"
+        String url = "http://foo.com/offlineListeners";
+        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, url)
+                .build();
+        Realm realm = Realm.getInstance(config);
+        looperThread.closeAfterTest(realm);
+
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+
+        looperThread.keepStrongReference(results);
+        results.addChangeListener((objects, changeSet) -> {
+            if(changeSet.getState() == OrderedCollectionChangeSet.State.INITIAL) {
+                assertTrue(results.isLoaded());
+                assertFalse(changeSet.isCompleteResult());
+                looperThread.testComplete();
+            }
+        });
+    }
 }

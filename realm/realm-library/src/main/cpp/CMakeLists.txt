@@ -56,6 +56,7 @@ endif()
 string(TOLOWER ${CMAKE_BUILD_TYPE} build_type_FOLDER)
 set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/${REALM_FLAVOR}/${build_type_FOLDER}/)
 set(classes_LIST
+    io.realm.RealmQuery
     io.realm.internal.Table io.realm.internal.CheckedRow
     io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.OsSharedRealm io.realm.internal.TestUtil
@@ -64,6 +65,8 @@ set(classes_LIST
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
     io.realm.internal.OsObjectStore io.realm.internal.sync.OsSubscription
+    io.realm.internal.core.DescriptorOrdering
+    io.realm.internal.objectstore.OsObjectBuilder
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319

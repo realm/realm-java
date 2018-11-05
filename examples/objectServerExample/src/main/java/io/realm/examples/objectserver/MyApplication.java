@@ -27,7 +27,7 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Realm.init(this);
+        Realm.init(this, "ObjectServerExample/" + BuildConfig.VERSION_NAME);
 
         // Enable full log output when debugging
         if (BuildConfig.DEBUG) {

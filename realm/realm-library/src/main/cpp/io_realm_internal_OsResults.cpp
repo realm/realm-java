@@ -22,7 +22,8 @@
 #include <realm/util/optional.hpp>
 
 #include "java_class_global_def.hpp"
-#include "java_sort_descriptor.hpp"
+#include "java_object_accessor.hpp"
+#include "java_query_descriptor.hpp"
 #include "observable_collection_wrapper.hpp"
 #include "util.hpp"
 
@@ -41,9 +42,9 @@ static void finalize_results(jlong ptr)
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNIEnv* env, jclass,
-                                                                              jlong shared_realm_ptr, jlong query_ptr,
-                                                                              jobject j_sort_desc,
-                                                                              jobject j_distinct_desc)
+                                                                             jlong shared_realm_ptr,
+                                                                             jlong query_ptr,
+                                                                             jlong descriptor_ordering_ptr)
 {
     TR_ENTER()
     try {
@@ -53,13 +54,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNI
         }
 
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        DescriptorOrdering descriptor_ordering;
-        if (j_sort_desc) {
-            descriptor_ordering.append_sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor());
-        }
-        if (j_distinct_desc) {
-            descriptor_ordering.append_distinct(JavaSortDescriptor(env, j_distinct_desc).distinct_descriptor());
-        }
+        auto descriptor_ordering = *(reinterpret_cast<DescriptorOrdering*>(descriptor_ordering_ptr));
         Results results(shared_realm, *query, descriptor_ordering);
         auto wrapper = new ResultsWrapper(results);
 
@@ -219,7 +214,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeSort(JNIEnv* env,
     TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto sorted_result = wrapper->collection().sort(JavaSortDescriptor(env, j_sort_desc).sort_descriptor());
+        auto sorted_result = wrapper->collection().sort(JavaQueryDescriptor(env, j_sort_desc).sort_descriptor());
         return reinterpret_cast<jlong>(new ResultsWrapper(sorted_result));
     }
     CATCH_STD()
@@ -233,7 +228,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeDistinct(JNIEnv* 
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto distinct_result =
-            wrapper->collection().distinct(JavaSortDescriptor(env, j_distinct_desc).distinct_descriptor());
+            wrapper->collection().distinct(JavaQueryDescriptor(env, j_distinct_desc).distinct_descriptor());
         return reinterpret_cast<jlong>(new ResultsWrapper(distinct_result));
     }
     CATCH_STD()
@@ -327,6 +322,92 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeDeleteFirst(JN
     }
     CATCH_STD()
     return JNI_FALSE;
+}
+
+static inline void update_objects(JNIEnv* env, jlong results_ptr, jstring& j_field_name, JavaValue& value) {
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(results_ptr);
+        JavaContext ctx(env, wrapper->collection().get_realm(), wrapper->collection().get_object_schema());
+        JStringAccessor prop_name(env, j_field_name);
+        wrapper->collection().set_property_value(ctx, prop_name, value);
+    }
+    CATCH_STD()
+}
+
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetNull(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name)
+{
+    TR_ENTER_PTR(native_ptr)
+    auto value = JavaValue();
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBoolean(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jboolean j_value)
+{
+    TR_ENTER_PTR(native_ptr)
+    JavaValue value(j_value);
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetInt(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong j_value)
+{
+    TR_ENTER_PTR(native_ptr)
+    JavaValue value(j_value);
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetFloat(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jfloat j_value)
+{
+    TR_ENTER_PTR(native_ptr)
+    JavaValue value(j_value);
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetDouble(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jdouble j_value)
+{
+    TR_ENTER_PTR(native_ptr)
+    JavaValue value(j_value);
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetString(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jstring j_value)
+{
+    TR_ENTER_PTR(native_ptr)
+    JStringAccessor str(env, j_value);
+    JavaValue value = str.is_null() ? JavaValue() : JavaValue(std::string(str));
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBinary(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jbyteArray j_value)
+{
+    TR_ENTER_PTR(native_ptr)
+    auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+    JavaValue value(data);
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetTimestamp(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong j_value)
+{
+    TR_ENTER_PTR(native_ptr)
+    JavaValue value(from_milliseconds(j_value));
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObject(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong row_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    JavaValue value(reinterpret_cast<RowExpr*>(row_ptr));
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetList(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong builder_ptr)
+{
+    // OsObjectBuilder has been used to build up the list we want to insert. This means the
+    // fake object described by the OsObjectBuilder only contains one property, namely the list we
+    // want to insert and this list is assumed to be at index = 0.
+    std::vector<JavaValue> builder = *reinterpret_cast<std::vector<JavaValue>*>(builder_ptr);
+    REALM_ASSERT_DEBUG(builder.size() == 1);
+    update_objects(env, native_ptr, j_field_name, builder[0]);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeDelete(JNIEnv* env, jclass, jlong native_ptr,

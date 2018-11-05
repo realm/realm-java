@@ -18,12 +18,15 @@ package io.realm;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
+import android.os.Build;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 
 import io.realm.internal.Keep;
+import io.realm.internal.Util;
+import io.realm.log.RealmLog;
 
 /**
  * Internal initializer class for the Object Server.
@@ -33,13 +36,38 @@ import io.realm.internal.Keep;
 @Keep
 class ObjectServer {
 
-    public static void init(Context context) {
+    public static void init(Context context, String appDefinedUserAgent) {
         // Setup AppID
         String appId = "unknown";
         try {
             PackageInfo pi = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             appId = pi.packageName;
         } catch (Exception ignore) {
+        }
+
+        // Setup Realm part of User-Agent string
+        String userAgent = "Unknown"; // Fallback in case of anything going wrong
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("RealmJava/");
+            sb.append(BuildConfig.VERSION_NAME);
+            sb.append(" (");
+            sb.append(Util.isEmptyString(Build.DEVICE) ? "unknown-device" : Build.DEVICE);
+            sb.append(", ");
+            sb.append(Util.isEmptyString(Build.MODEL) ? "unknown-model" : Build.MODEL);
+            sb.append(", v");
+            sb.append(Build.VERSION.SDK_INT);
+            sb.append(")");
+
+            // Setup User part of User-Agent string
+            if (!Util.isEmptyString(appDefinedUserAgent)) {
+                sb.append(" ");
+                sb.append(appDefinedUserAgent);
+            }
+            userAgent = sb.toString();
+        } catch (Exception e) {
+            // Failures to construct the user agent should never cause the system itself to crash.
+            RealmLog.warn("Constructing User-Agent description failed.", e);
         }
 
         // init the "sync_manager.cpp" metadata Realm, this is also needed later, when re try
@@ -59,12 +87,12 @@ class ObjectServer {
                             "Directory '%s' for SyncManager cannot be created. ",
                             dir.getPath()));
                 }
-                SyncManager.nativeInitializeSyncManager(dir.getPath());
+                SyncManager.nativeInitializeSyncManager(dir.getPath(), userAgent);
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }
         } else {
-            SyncManager.nativeInitializeSyncManager(context.getFilesDir().getPath());
+            SyncManager.nativeInitializeSyncManager(context.getFilesDir().getPath(), userAgent);
         }
 
         // Configure default UserStore

@@ -30,14 +30,14 @@ public class NativeContext {
     private static final ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
     private static final Thread finalizingThread = new Thread(new FinalizerRunnable(referenceQueue));
     // Dummy context which will be used by native objects which's destructors are always thread safe.
-    static final NativeContext dummyContext = new NativeContext();
+    public static final NativeContext dummyContext = new NativeContext();
 
     static {
         finalizingThread.setName("RealmFinalizingDaemon");
         finalizingThread.start();
     }
 
-    void addReference(NativeObject referent) {
+    public void addReference(NativeObject referent) {
         new NativeObjectReference(this, referent, referenceQueue);
     }
 }
