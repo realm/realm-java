@@ -51,7 +51,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     private static volatile Method removeSessionMethod;
 
     @Override
-    public void init(Context context, String userAgent) {
+    public void initialize(Context context, String userAgent) {
         // Trying to keep things out the public API is no fun :/
         // Just use reflection on init. It is a one-time method call so should be acceptable.
         //noinspection TryWithIdenticalCatches

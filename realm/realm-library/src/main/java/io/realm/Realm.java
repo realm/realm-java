@@ -321,7 +321,7 @@ public class Realm extends BaseRealm {
             checkFilesDirAvailable(context);
             RealmCore.loadLibrary(context);
             setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
-            ObjectServerFacade.getSyncFacadeIfPossible().init(context, userAgent);
+            ObjectServerFacade.getSyncFacadeIfPossible().initialize(context, userAgent);
             if (context.getApplicationContext() != null) {
                 BaseRealm.applicationContext = context.getApplicationContext();
             } else {
