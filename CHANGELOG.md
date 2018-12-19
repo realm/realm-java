@@ -4,7 +4,7 @@
 * None
 
 ### Fixed
-* ?? (Issue [#??](https://github.com/realm/realm-java/issues/??), since ??).
+* Removed Java 8 bytecode. Resulted in errors like `D8: Invoke-customs are only supported starting with Android O (--min-api 26)` if not compiled with Java 8. (Issue [#6300](https://github.com/realm/realm-java/issues/6300), since 5.8.0).
 
 ### Compatibility
 * Realm Object Server: 3.11.0 or later.
