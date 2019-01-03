@@ -525,7 +525,7 @@ public class SessionTests {
         TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
         RealmLog.add(testLogger);
 
-        session.notifySessionError(3, "Unknown Error");
+        session.notifySessionError("unknown", 3, "Unknown Error");
         RealmLog.remove(testLogger);
 
         assertTrue(errorHandlerCalled.get());

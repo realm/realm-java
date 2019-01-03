@@ -65,9 +65,9 @@ public abstract class AuthServerResponse {
             String hint = obj.optString("hint", null);
             ErrorCode errorCode;
             if (obj.has("code")) {
-                errorCode = ErrorCode.fromInt(obj.getInt("code"));
+                errorCode = ErrorCode.fromNativeError(ErrorCode.Type.REALM_OBJECT_SERVER, obj.getInt("code"));
             } else if (obj.has("status")) {
-                errorCode = ErrorCode.fromInt(obj.getInt("status"));
+                errorCode = ErrorCode.fromNativeError(ErrorCode.Type.REALM_OBJECT_SERVER, obj.getInt("status"));
             } else {
                 errorCode = ErrorCode.UNKNOWN;
             }

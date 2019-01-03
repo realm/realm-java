@@ -271,6 +271,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         auto error_handler = [](std::shared_ptr<SyncSession> session, SyncError error) {
             realm::jni_util::Log::d("error_handler lambda invoked");
 
+            auto error_category = error.error_code.category().name();
             auto error_message = error.message;
             auto error_code = error.error_code.value();
             if (error.is_client_reset_requested()) {
@@ -282,9 +283,10 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             }
 
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
+            jstring jerror_category = to_jstring(env, error_category);
             jstring jerror_message = to_jstring(env, error_message);
             jstring jsession_path = to_jstring(env, session.get()->path());
-            env->CallStaticVoidMethod(sync_manager_class, java_error_callback_method, error_code, jerror_message,
+            env->CallStaticVoidMethod(sync_manager_class, java_error_callback_method, jerror_category, error_code, jerror_message,
                                       jsession_path);
             env->DeleteLocalRef(jerror_message);
             env->DeleteLocalRef(jsession_path);

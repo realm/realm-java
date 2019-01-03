@@ -5,6 +5,7 @@
 
 ### Fixed
 * ?? (Issue [#??](https://github.com/realm/realm-java/issues/??), since ??).
+* [ObjectServer] Native errors sometimes mapped to the wrong Java ErrorCode. [#6364](https://github.com/realm/realm-java/issues/6364)
 
 ### Compatibility
 * Realm Object Server: 3.11.0 or later.

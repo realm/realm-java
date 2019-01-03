@@ -227,11 +227,11 @@ public class SyncSession {
     }
 
     // This callback will happen on the thread running the Sync Client.
-    void notifySessionError(int errorCode, String errorMessage) {
+    void notifySessionError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
         if (errorHandler == null) {
             return;
         }
-        ErrorCode errCode = ErrorCode.fromInt(errorCode);
+        ErrorCode errCode = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
             RealmConfiguration backupRealmConfiguration = SyncConfiguration.forRecovery(errorMessage, configuration.getEncryptionKey(), configuration.getSchemaMediator());
