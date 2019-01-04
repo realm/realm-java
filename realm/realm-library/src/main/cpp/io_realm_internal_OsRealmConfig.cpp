@@ -263,7 +263,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // Doing the methods lookup from the thread that loaded the lib, to avoid
         // https://developer.android.com/training/articles/perf-jni.html#faq_FindClass
         static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
-                                                     "(ILjava/lang/String;Ljava/lang/String;)V", true);
+                                                     "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)V", true);
         static JavaMethod java_bind_session_method(env, sync_manager_class, "bindSessionWithConfig",
                                                    "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", true);
 
