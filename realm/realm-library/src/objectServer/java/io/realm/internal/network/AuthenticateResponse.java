@@ -136,7 +136,7 @@ public class AuthenticateResponse extends AuthServerResponse {
         } catch (JSONException ex) {
             accessToken = null;
             refreshToken = null;
-            String exceptionMessage = String.format(Locale.US, "Server response could not be parsed as JSON: \n %s", serverResponse);
+            String exceptionMessage = String.format(Locale.US, "Server response could not be parsed as JSON:%n%s", serverResponse);
             //noinspection ThrowableInstanceNeverThrown
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, exceptionMessage, ex);
             debugMessage = String.format(Locale.US, "Error %s", error.getErrorMessage());
