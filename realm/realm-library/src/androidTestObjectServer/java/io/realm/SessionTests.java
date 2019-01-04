@@ -529,7 +529,7 @@ public class SessionTests {
         RealmLog.remove(testLogger);
 
         assertTrue(errorHandlerCalled.get());
-        assertEquals("Unknown error code: 3", testLogger.message);
+        assertEquals("Unknown error code: 'unknown:3'", testLogger.message);
 
         realm.close();
     }

@@ -35,40 +35,40 @@ public enum ErrorCode {
     // The underlying type and error code should be part of the error message
     UNKNOWN(Type.UNKNOWN, -1),
 
-    // Realm Java errors (0-49)
-    IO_EXCEPTION(Type.AUTH, 0, Category.RECOVERABLE),   // Some IO error while either contacting the server or reading the response
-    JSON_EXCEPTION(Type.AUTH, 1),                       // JSON input could not be parsed correctly
-    CLIENT_RESET(Type.PROTOCOL, 7),                     // Client Reset required. Don't change this value without modifying io_realm_internal_OsSharedRealm.cpp
+    // Realm Java errors
+    IO_EXCEPTION(Type.JAVA, 0, Category.RECOVERABLE), // Some IO error while either contacting the server or reading the response
+    JSON_EXCEPTION(Type.AUTH, 1),                     // JSON input could not be parsed correctly
+    CLIENT_RESET(Type.PROTOCOL, 7),                   // Client Reset required. Don't change this value without modifying io_realm_internal_OsSharedRealm.cpp
 
     // Connection level and protocol errors from the native Sync Client
-    CONNECTION_CLOSED(Type.PROTOCOL, 100, Category.RECOVERABLE), // Connection closed (no error)
-    OTHER_ERROR(Type.PROTOCOL, 101),                 // Other connection level error
-    UNKNOWN_MESSAGE(Type.PROTOCOL, 102),             // Unknown type of input message
-    BAD_SYNTAX(Type.PROTOCOL, 103),                  // Bad syntax in input message head
-    LIMITS_EXCEEDED(Type.PROTOCOL, 104),             // Limits exceeded in input message
-    WRONG_PROTOCOL_VERSION(Type.PROTOCOL, 105),      // Wrong protocol version (CLIENT)
-    BAD_SESSION_IDENT(Type.PROTOCOL, 106),           // Bad session identifier in input message
-    REUSE_OF_SESSION_IDENT(Type.PROTOCOL, 107),      // Overlapping reuse of session identifier (BIND)
-    BOUND_IN_OTHER_SESSION(Type.PROTOCOL, 108),      // Client file bound in other session (IDENT)
-    BAD_MESSAGE_ORDER(Type.PROTOCOL, 109),           // Bad input message order
-    BAD_ORIGIN_FILE_IDENT(Type.PROTOCOL, 110),       // Bad origin file identifier in changeset header (DOWNLOAD)
-    BAD_CHANGESET_HEADER_SYNTAX(Type.PROTOCOL, 111), // Bad server version in changeset header (DOWNLOAD)
-    BAD_CHANGESET_SIZE(Type.PROTOCOL, 112),          // Bad size specified in changeset header (UPLOAD)
-    BAD_CHANGESETS(Type.PROTOCOL, 113),              // Bad changesets (UPLOAD)
+    CONNECTION_CLOSED(Type.PROTOCOL, 100, Category.RECOVERABLE),    // Connection closed (no error)
+    OTHER_ERROR(Type.PROTOCOL, 101),                                // Other connection level error
+    UNKNOWN_MESSAGE(Type.PROTOCOL, 102),                            // Unknown type of input message
+    BAD_SYNTAX(Type.PROTOCOL, 103),                                 // Bad syntax in input message head
+    LIMITS_EXCEEDED(Type.PROTOCOL, 104),                            // Limits exceeded in input message
+    WRONG_PROTOCOL_VERSION(Type.PROTOCOL, 105),                     // Wrong protocol version (CLIENT)
+    BAD_SESSION_IDENT(Type.PROTOCOL, 106),                          // Bad session identifier in input message
+    REUSE_OF_SESSION_IDENT(Type.PROTOCOL, 107),                     // Overlapping reuse of session identifier (BIND)
+    BOUND_IN_OTHER_SESSION(Type.PROTOCOL, 108),                     // Client file bound in other session (IDENT)
+    BAD_MESSAGE_ORDER(Type.PROTOCOL, 109),                          // Bad input message order
+    BAD_ORIGIN_FILE_IDENT(Type.PROTOCOL, 110),                      // Bad origin file identifier in changeset header (DOWNLOAD)
+    BAD_CHANGESET_HEADER_SYNTAX(Type.PROTOCOL, 111),                // Bad server version in changeset header (DOWNLOAD)
+    BAD_CHANGESET_SIZE(Type.PROTOCOL, 112),                         // Bad size specified in changeset header (UPLOAD)
+    BAD_CHANGESETS(Type.PROTOCOL, 113),                             // Bad changesets (UPLOAD)
 
     // These errors are now reported as Client errors instead
     @Deprecated
-    BAD_REQUEST_IDENT(Type.DEPRECATED, 113),          // Bad request identifier (MARK)
+    BAD_REQUEST_IDENT(Type.DEPRECATED, 113),           // Bad request identifier (MARK)
     @Deprecated
-    BAD_ERROR_CODE(Type.DEPRECATED, 114),             // Bad error code (ERROR)
+    BAD_ERROR_CODE(Type.DEPRECATED, 114),              // Bad error code (ERROR)
     @Deprecated
-    BAD_COMPRESSION(Type.DEPRECATED, 115),            // Bad compression (DOWNLOAD)
+    BAD_COMPRESSION(Type.DEPRECATED, 115),             // Bad compression (DOWNLOAD)
     @Deprecated
-    BAD_CLIENT_VERSION_DOWNLOAD(Type.DEPRECATED, 116),// Bad last integrated client version in changeset header (DOWNLOAD)
+    BAD_CLIENT_VERSION_DOWNLOAD(Type.DEPRECATED, 116), // Bad last integrated client version in changeset header (DOWNLOAD)
     @Deprecated
-    SSL_SERVER_CERT_REJECTED(Type.DEPRECATED, 117),   // SSL server certificate rejected
+    SSL_SERVER_CERT_REJECTED(Type.DEPRECATED, 117),    // SSL server certificate rejected
     @Deprecated
-    PONG_TIMEOUT(Type.DEPRECATED, 118),               // Timeout on reception of PONG response messsage
+    PONG_TIMEOUT(Type.DEPRECATED, 118),                // Timeout on reception of PONG response messsage
 
     // Session level errors from the native Sync Client
     SESSION_CLOSED("", 200, Category.RECOVERABLE),      // Session closed (no error)
@@ -90,32 +90,32 @@ public enum ErrorCode {
     BAD_CHANGESET("", 212),                             // Bad changeset (UPLOAD)
     DISABLED_SESSION("", 213),                          // Disabled session
     PARTIAL_SYNC_DISABLED("", 214),                     // Partial sync disabled (BIND)
-    SESSION_UNSUPPORTED_SESSION_FEATURE(Type.SESSION, 215),       // Unsupported session-level feature
-    SESSION_BAD_ORIGIN_FILE_IDENT(Type.SESSION, 216),       // Bad origin file identifier (UPLOAD)
+    SESSION_UNSUPPORTED_SESSION_FEATURE(Type.SESSION, 215),   // Unsupported session-level feature
+    SESSION_BAD_ORIGIN_FILE_IDENT(Type.SESSION, 216),         // Bad origin file identifier (UPLOAD)
 
     // Sync Network Client errors.
-    CLIENT_CONNECTION_CLOSED(Type.SESSION, 100), // Connection closed (no error)
-    CLIENT_UNKNOWN_MESSAGE(Type.SESSION, 101), // Unknown type of input message
-    CLIENT_LIMITS_EXCEEDED(Type.SESSION, 103), // Limits exceeded in input message
-    CLIENT_BAD_SESSION_IDENT(Type.SESSION, 104), // Bad session identifier in input message
-    CLIENT_BAD_MESSAGE_ORDER(Type.SESSION, 105), // Bad input message order
-    CLIENT_BAD_CLIENT_FILE_IDENT(Type.SESSION, 106), // Bad client file identifier (IDENT)
-    CLIENT_BAD_PROGRESS(Type.SESSION, 107), // Bad progress information (DOWNLOAD)
-    CLIENT_BAD_CHANGESET_HEADER_SYNTAX(Type.SESSION, 108), // Bad syntax in changeset header (DOWNLOAD)
-    CLIENT_BAD_CHANGESET_SIZE(Type.SESSION, 109), // Bad changeset size in changeset header (DOWNLOAD)
-    CLIENT_BAD_ORIGIN_FILE_IDENT(Type.SESSION, 110), // Bad origin file identifier in changeset header (DOWNLOAD)
-    CLIENT_BAD_SERVER_VERSION(Type.SESSION, 111), // Bad server version in changeset header (DOWNLOAD)
-    CLIENT_BAD_CHANGESET(Type.SESSION, 112), // Bad changeset (DOWNLOAD)
-    CLIENT_BAD_REQUEST_IDENT(Type.SESSION, 113), // Bad request identifier (MARK)
-    CLIENT_BAD_ERROR_CODE(Type.SESSION, 114), // Bad error code (ERROR)
-    CLIENT_BAD_COMPRESSION(Type.SESSION, 115), // Bad compression (DOWNLOAD)
-    CLIENT_BAD_CLIENT_VERSION(Type.SESSION, 116), // Bad last integrated client version in changeset header (DOWNLOAD)
-    CLIENT_SSL_SERVER_CERT_REJECTED(Type.SESSION, 117), // SSL server certificate rejected
-    CLIENT_PONG_TIMEOUT(Type.SESSION, 118), // Timeout on reception of PONG respone message
-    CLIENT_BAD_CLIENT_FILE_IDENT_SALT(Type.SESSION, 119), // Bad client file identifier salt (IDENT)
-    CLIENT_FILE_IDENT(Type.SESSION, 120), // Bad file identifier (ALLOC)
-    CLIENT_CONNECT_TIMEOUT(Type.SESSION, 121), // Sync connection was not fully established in time
-    CLIENT_BAD_TIMESTAMP(Type.SESSION, 122), // Bad timestamp (PONG)
+    CLIENT_CONNECTION_CLOSED(Type.SESSION, 100),            // Connection closed (no error)
+    CLIENT_UNKNOWN_MESSAGE(Type.SESSION, 101),              // Unknown type of input message
+    CLIENT_LIMITS_EXCEEDED(Type.SESSION, 103),              // Limits exceeded in input message
+    CLIENT_BAD_SESSION_IDENT(Type.SESSION, 104),            // Bad session identifier in input message
+    CLIENT_BAD_MESSAGE_ORDER(Type.SESSION, 105),            // Bad input message order
+    CLIENT_BAD_CLIENT_FILE_IDENT(Type.SESSION, 106),        // Bad client file identifier (IDENT)
+    CLIENT_BAD_PROGRESS(Type.SESSION, 107),                 // Bad progress information (DOWNLOAD)
+    CLIENT_BAD_CHANGESET_HEADER_SYNTAX(Type.SESSION, 108),  // Bad syntax in changeset header (DOWNLOAD)
+    CLIENT_BAD_CHANGESET_SIZE(Type.SESSION, 109),           // Bad changeset size in changeset header (DOWNLOAD)
+    CLIENT_BAD_ORIGIN_FILE_IDENT(Type.SESSION, 110),        // Bad origin file identifier in changeset header (DOWNLOAD)
+    CLIENT_BAD_SERVER_VERSION(Type.SESSION, 111),           // Bad server version in changeset header (DOWNLOAD)
+    CLIENT_BAD_CHANGESET(Type.SESSION, 112),                // Bad changeset (DOWNLOAD)
+    CLIENT_BAD_REQUEST_IDENT(Type.SESSION, 113),            // Bad request identifier (MARK)
+    CLIENT_BAD_ERROR_CODE(Type.SESSION, 114),               // Bad error code (ERROR)
+    CLIENT_BAD_COMPRESSION(Type.SESSION, 115),              // Bad compression (DOWNLOAD)
+    CLIENT_BAD_CLIENT_VERSION(Type.SESSION, 116),           // Bad last integrated client version in changeset header (DOWNLOAD)
+    CLIENT_SSL_SERVER_CERT_REJECTED(Type.SESSION, 117),     // SSL server certificate rejected
+    CLIENT_PONG_TIMEOUT(Type.SESSION, 118),                 // Timeout on reception of PONG respone message
+    CLIENT_BAD_CLIENT_FILE_IDENT_SALT(Type.SESSION, 119),   // Bad client file identifier salt (IDENT)
+    CLIENT_FILE_IDENT(Type.SESSION, 120),                   // Bad file identifier (ALLOC)
+    CLIENT_CONNECT_TIMEOUT(Type.SESSION, 121),              // Sync connection was not fully established in time
+    CLIENT_BAD_TIMESTAMP(Type.SESSION, 122),                // Bad timestamp (PONG)
 
     // 300 - 599 Reserved for Standard HTTP error codes
     MULTIPLE_CHOICES(Type.HTTP, 300),
@@ -295,7 +295,7 @@ public enum ErrorCode {
         public static final String AUTH = "auth"; // Errors from the Realm Object Server
         public static final String DEPRECATED = "deprecated"; // Deprecated errors
         public static final String HTTP = "http"; // Errors from the HTTP layer
-        public static final String OBJECT_STORE = "object-store"; // Errors from object store
+        public static final String JAVA = "java"; // Errors from the Java layer
         public static final String PROTOCOL = "realm::sync::ProtocolError"; // Protocol level errors from the native Sync Client
         public static final String SESSION = "realm::sync::Client::Error"; // Session level errors from the native Sync Client
         public static final String UNKNOWN = "unknown"; // Catch-all category
