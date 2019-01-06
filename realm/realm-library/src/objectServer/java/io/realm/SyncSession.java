@@ -239,7 +239,13 @@ public class SyncSession {
                     "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
                     configuration, backupRealmConfiguration));
         } else {
-            errorHandler.onError(this, new ObjectServerError(errCode, errorMessage));
+            ObjectServerError wrappedError;
+            if (errCode == ErrorCode.UNKNOWN) {
+                wrappedError = new ObjectServerError(nativeErrorCategory, nativeErrorCode, errorMessage);
+            } else {
+                wrappedError = new ObjectServerError(errCode, errorMessage);
+            }
+            errorHandler.onError(this, wrappedError);
         }
     }
 
