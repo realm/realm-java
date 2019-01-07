@@ -56,20 +56,6 @@ public enum ErrorCode {
     BAD_CHANGESET_SIZE(Type.PROTOCOL, 112),                         // Bad size specified in changeset header (UPLOAD)
     BAD_CHANGESETS(Type.PROTOCOL, 113),                             // Bad changesets (UPLOAD)
 
-    // These errors are now reported as Client errors instead
-    @Deprecated
-    BAD_REQUEST_IDENT(Type.DEPRECATED, 113),           // Bad request identifier (MARK)
-    @Deprecated
-    BAD_ERROR_CODE(Type.DEPRECATED, 114),              // Bad error code (ERROR)
-    @Deprecated
-    BAD_COMPRESSION(Type.DEPRECATED, 115),             // Bad compression (DOWNLOAD)
-    @Deprecated
-    BAD_CLIENT_VERSION_DOWNLOAD(Type.DEPRECATED, 116), // Bad last integrated client version in changeset header (DOWNLOAD)
-    @Deprecated
-    SSL_SERVER_CERT_REJECTED(Type.DEPRECATED, 117),    // SSL server certificate rejected
-    @Deprecated
-    PONG_TIMEOUT(Type.DEPRECATED, 118),                // Timeout on reception of PONG response messsage
-
     // Session level errors from the native Sync Client
     SESSION_CLOSED("", 200, Category.RECOVERABLE),      // Session closed (no error)
     OTHER_SESSION_ERROR("", 201, Category.RECOVERABLE), // Other session level error
@@ -94,6 +80,9 @@ public enum ErrorCode {
     SESSION_BAD_ORIGIN_FILE_IDENT(Type.SESSION, 216),         // Bad origin file identifier (UPLOAD)
 
     // Sync Network Client errors.
+    // TODO: All enums in here should be prefixed with `CLIENT_`, but in order to avoid
+    // breaking changes, this is not the case for all of them. This should be fixed in the
+    // next major release.
     CLIENT_CONNECTION_CLOSED(Type.SESSION, 100),            // Connection closed (no error)
     CLIENT_UNKNOWN_MESSAGE(Type.SESSION, 101),              // Unknown type of input message
     CLIENT_LIMITS_EXCEEDED(Type.SESSION, 103),              // Limits exceeded in input message
@@ -106,12 +95,12 @@ public enum ErrorCode {
     CLIENT_BAD_ORIGIN_FILE_IDENT(Type.SESSION, 110),        // Bad origin file identifier in changeset header (DOWNLOAD)
     CLIENT_BAD_SERVER_VERSION(Type.SESSION, 111),           // Bad server version in changeset header (DOWNLOAD)
     CLIENT_BAD_CHANGESET(Type.SESSION, 112),                // Bad changeset (DOWNLOAD)
-    CLIENT_BAD_REQUEST_IDENT(Type.SESSION, 113),            // Bad request identifier (MARK)
-    CLIENT_BAD_ERROR_CODE(Type.SESSION, 114),               // Bad error code (ERROR)
-    CLIENT_BAD_COMPRESSION(Type.SESSION, 115),              // Bad compression (DOWNLOAD)
-    CLIENT_BAD_CLIENT_VERSION(Type.SESSION, 116),           // Bad last integrated client version in changeset header (DOWNLOAD)
-    CLIENT_SSL_SERVER_CERT_REJECTED(Type.SESSION, 117),     // SSL server certificate rejected
-    CLIENT_PONG_TIMEOUT(Type.SESSION, 118),                 // Timeout on reception of PONG respone message
+    BAD_REQUEST_IDENT(Type.SESSION, 113),                   // Bad request identifier (MARK)
+    BAD_ERROR_CODE(Type.SESSION, 114),                      // Bad error code (ERROR)
+    BAD_COMPRESSION(Type.SESSION, 115),                     // Bad compression (DOWNLOAD)
+    BAD_CLIENT_VERSION_DOWNLOAD(Type.SESSION, 116),         // Bad last integrated client version in changeset header (DOWNLOAD)
+    SSL_SERVER_CERT_REJECTED(Type.SESSION, 117),            // SSL server certificate rejected
+    PONG_TIMEOUT(Type.SESSION, 118),                        // Timeout on reception of PONG respone message
     CLIENT_BAD_CLIENT_FILE_IDENT_SALT(Type.SESSION, 119),   // Bad client file identifier salt (IDENT)
     CLIENT_FILE_IDENT(Type.SESSION, 120),                   // Bad file identifier (ALLOC)
     CLIENT_CONNECT_TIMEOUT(Type.SESSION, 121),              // Sync connection was not fully established in time
@@ -179,11 +168,18 @@ public enum ErrorCode {
     EXPIRED_PERMISSION_OFFER(Type.AUTH, 701),
     AMBIGUOUS_PERMISSION_OFFER_TOKEN(Type.AUTH, 702),
     FILE_MAY_NOT_BE_SHARED(Type.AUTH, 703),
-    SERVER_MISCONFIGURATION(Type.AUTH, 801);
+    SERVER_MISCONFIGURATION(Type.AUTH, 801),
 
     // Generic system errors we want to enumerate specifically
+    CONNECTION_RESET_BY_PEER(Type.CONNECTION, 104, Category.RECOVERABLE), // ECONNRESET: Connection reset by peer
+    CONNECTION_SOCKET_SHUTDOWN(Type.CONNECTION, 110, Category.RECOVERABLE), // ESHUTDOWN: Can't send after socket shutdown
+    CONNECTION_REFUSED(Type.CONNECTION, 111, Category.RECOVERABLE), // ECONNREFUSED: Connection refused
+    CONNECTION_ADDRESS_IN_USE(Type.CONNECTION, 112, Category.RECOVERABLE), // EADDRINUSE: Address already i use
+    CONNECTION_CONNECTION_ABORTED(Type.CONNECTION, 113, Category.RECOVERABLE), // ECONNABORTED: Connection aborted
 
-
+    MISC_END_OF_INPUT(Type.MISC, 1), // End of input
+    MISC_PREMATURE_END_OF_INPUT(Type.MISC, 2), // Premature end of input. That is, end of input at an unexpected, or illegal place in an input stream.
+    MISC_DELIMITER_NOT_FOUND(Type.MISC, 3); // Delimiter not found
 
     private final String type;
     private final int code;
@@ -293,9 +289,11 @@ public enum ErrorCode {
 
     public static class Type {
         public static final String AUTH = "auth"; // Errors from the Realm Object Server
+        public static final String CONNECTION = "realm.basic_system"; // Connection/System errors from the native Sync Client
         public static final String DEPRECATED = "deprecated"; // Deprecated errors
         public static final String HTTP = "http"; // Errors from the HTTP layer
         public static final String JAVA = "java"; // Errors from the Java layer
+        public static final String MISC = "realm.util.misc_ext"; // Misc errors from the native Sync Client
         public static final String PROTOCOL = "realm::sync::ProtocolError"; // Protocol level errors from the native Sync Client
         public static final String SESSION = "realm::sync::Client::Error"; // Session level errors from the native Sync Client
         public static final String UNKNOWN = "unknown"; // Catch-all category
