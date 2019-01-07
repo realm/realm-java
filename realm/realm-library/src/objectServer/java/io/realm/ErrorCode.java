@@ -83,6 +83,7 @@ public enum ErrorCode {
     // TODO: All enums in here should be prefixed with `CLIENT_`, but in order to avoid
     // breaking changes, this is not the case for all of them. This should be fixed in the
     // next major release.
+    // See https://github.com/realm/realm-java/issues/6387
     CLIENT_CONNECTION_CLOSED(Type.SESSION, 100),            // Connection closed (no error)
     CLIENT_UNKNOWN_MESSAGE(Type.SESSION, 101),              // Unknown type of input message
     CLIENT_LIMITS_EXCEEDED(Type.SESSION, 103),              // Limits exceeded in input message
