@@ -81,7 +81,7 @@ public class ObjectServerError extends RuntimeException {
      * Errors happening while trying to authenticate a user.
      *
      * @param errorCode error code for this type of error.
-     * @param title Title for this type of error.
+     * @param title title for this type of error.
      * @param hint a hint for resolving the error.
      */
     public ObjectServerError(ErrorCode errorCode, String title, @Nullable String hint) {
