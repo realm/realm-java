@@ -13,6 +13,7 @@
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
+* Updated to Object Store commit: 9cae855e667948091198ecc18dabb8c92add7ee5
 * Updated Realm Sync to 3.14.13
 * Updated Realm Core to 5.12.7
 
