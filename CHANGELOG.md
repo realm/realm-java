@@ -1,9 +1,10 @@
 ## X.Y.Z (YYYY-MM-DD)
 
 ### Enhancements
-* None
+* Added better checks for detecting corrupted files, both before and after the file is written to disk.
 
 ### Fixed
+* [ObjectServer] Query-based Sync queries involving LIMIT, limited the result before permissions were evaluated. This could sometimes result in the wrong number of elements being returned.
 * Removed Java 8 bytecode. Resulted in errors like `D8: Invoke-customs are only supported starting with Android O (--min-api 26)` if not compiled with Java 8. (Issue [#6300](https://github.com/realm/realm-java/issues/6300), since 5.8.0).
 
 ### Compatibility
@@ -12,7 +13,8 @@
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
-* None
+* Updated Realm Sync to 3.14.13
+* Updated Realm Core to 5.12.7
 
 
 ## 5.8.0 (2018-11-06)
