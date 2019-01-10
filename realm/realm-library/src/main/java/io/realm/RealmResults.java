@@ -475,7 +475,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             case LIST:
                 checkTypeOfListElements(list, RealmModel.class);
                 checkRealmObjectConstraints(fieldName, (RealmModel) list.first(null));
-                osResults.setModelList(fieldName, (RealmList<? extends RealmModel>) list);
+                osResults.setModelList(fieldName, (RealmList<RealmModel>) list);
                 break;
             case INTEGER_LIST:
                 // Integers are a bit annoying as they are all stored as the same type in Core
