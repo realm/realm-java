@@ -164,6 +164,9 @@ public enum ErrorCode {
     ACCESS_DENIED(Type.AUTH, 614),
     EXPIRED_REFRESH_TOKEN(Type.AUTH, 615),
     INVALID_HOST(Type.AUTH, 616),
+    REALM_NOT_FOUND(Type.AUTH, 617),
+    UNKNOWN_USER(Type.AUTH, 618),
+    WRONG_REALM_TYPE(Type.AUTH, 619), // The Realm found on the server is of different type than the one requested.
 
     // Other Realm Object Server response errors
     EXPIRED_PERMISSION_OFFER(Type.AUTH, 701),
