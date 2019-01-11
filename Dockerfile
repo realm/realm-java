@@ -52,7 +52,7 @@ RUN sdkmanager --update
 # Accept all licenses
 RUN yes y | sdkmanager --licenses
 RUN sdkmanager 'platform-tools'
-RUN sdkmanager 'build-tools;27.0.1'
+RUN sdkmanager 'build-tools;28.0.3'
 RUN sdkmanager 'extras;android;m2repository'
 RUN sdkmanager 'platforms;android-27'
 RUN sdkmanager 'cmake;3.6.4111459'

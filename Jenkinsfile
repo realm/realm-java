@@ -232,9 +232,9 @@ def collectAarMetrics() {
     sh """set -xe
       cd realm/realm-library/build/outputs/aar
       unzip realm-android-library-${flavor}-release.aar -d unzipped${flavor}
-      find \$ANDROID_HOME -name dx | sort -r | head -n 1 > dx
-      \$(cat dx) --dex --output=temp${flavor}.dex unzipped${flavor}/classes.jar
-      cat temp${flavor}.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 \"%d\"' > methods${flavor}
+      find \$ANDROID_HOME -name d8 | sort -r | head -n 1 > d8
+      \$(cat d8) --release --output ./unzipped${flavor} unzipped${flavor}/classes.jar
+      cat ./unzipped${flavor}/temp${flavor}.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 \"%d\"' > methods${flavor}
     """
 
     def methods = readFile("realm/realm-library/build/outputs/aar/methods${flavor}")
