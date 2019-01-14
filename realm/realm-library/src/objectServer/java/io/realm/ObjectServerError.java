@@ -178,7 +178,7 @@ public class ObjectServerError extends RuntimeException {
         StringBuilder sb = new StringBuilder();
 
         sb.append(getErrorCode().name());
-        sb.append(" (");
+        sb.append("(");
         sb.append(getErrorType());
         sb.append(":");
         sb.append(getErrorIntValue());
