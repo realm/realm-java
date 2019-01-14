@@ -51,33 +51,33 @@ public enum ErrorCode {
     REUSE_OF_SESSION_IDENT(Type.PROTOCOL, 107),                     // Overlapping reuse of session identifier (BIND)
     BOUND_IN_OTHER_SESSION(Type.PROTOCOL, 108),                     // Client file bound in other session (IDENT)
     BAD_MESSAGE_ORDER(Type.PROTOCOL, 109),                          // Bad input message order
-    BAD_ORIGIN_FILE_IDENT(Type.PROTOCOL, 110),                      // Bad origin file identifier in changeset header (DOWNLOAD)
+    BAD_DECOMPRESSION(Type.PROTOCOL, 110),                          // Error in decompression (UPLOAD)
     BAD_CHANGESET_HEADER_SYNTAX(Type.PROTOCOL, 111),                // Bad server version in changeset header (DOWNLOAD)
     BAD_CHANGESET_SIZE(Type.PROTOCOL, 112),                         // Bad size specified in changeset header (UPLOAD)
     BAD_CHANGESETS(Type.PROTOCOL, 113),                             // Bad changesets (UPLOAD)
 
     // Session level errors from the native Sync Client
-    SESSION_CLOSED("", 200, Category.RECOVERABLE),      // Session closed (no error)
-    OTHER_SESSION_ERROR("", 201, Category.RECOVERABLE), // Other session level error
-    TOKEN_EXPIRED("", 202, Category.RECOVERABLE),       // Access token expired
+    SESSION_CLOSED(Type.PROTOCOL, 200, Category.RECOVERABLE),      // Session closed (no error)
+    OTHER_SESSION_ERROR(Type.PROTOCOL, 201, Category.RECOVERABLE), // Other session level error
+    TOKEN_EXPIRED(Type.PROTOCOL, 202, Category.RECOVERABLE),       // Access token expired
 
     // Session fatal: Auth wrong. Cannot be fixed without a new User/SyncConfiguration.
-    BAD_AUTHENTICATION("", 203),                        // Bad user authentication (BIND, REFRESH)
-    ILLEGAL_REALM_PATH("", 204),                        // Illegal Realm path (BIND)
-    NO_SUCH_PATH("", 205),                              // No such Realm (BIND)
-    PERMISSION_DENIED("", 206),                         // Permission denied (BIND, REFRESH)
+    BAD_AUTHENTICATION(Type.PROTOCOL, 203),                        // Bad user authentication (BIND, REFRESH)
+    ILLEGAL_REALM_PATH(Type.PROTOCOL, 204),                        // Illegal Realm path (BIND)
+    NO_SUCH_PATH(Type.PROTOCOL, 205),                              // No such Realm (BIND)
+    PERMISSION_DENIED(Type.PROTOCOL, 206),                         // Permission denied (BIND, REFRESH)
 
     // Fatal: Wrong server/client versions. Trying to sync incompatible files or the file was corrupted.
-    BAD_SERVER_FILE_IDENT("", 207),                     // Bad server file identifier (IDENT)
-    BAD_CLIENT_FILE_IDENT("", 208),                     // Bad client file identifier (IDENT)
-    BAD_SERVER_VERSION("", 209),                        // Bad server version (IDENT, UPLOAD)
-    BAD_CLIENT_VERSION("", 210),                        // Bad client version (IDENT, UPLOAD)
-    DIVERGING_HISTORIES("", 211),                       // Diverging histories (IDENT)
-    BAD_CHANGESET("", 212),                             // Bad changeset (UPLOAD)
-    DISABLED_SESSION("", 213),                          // Disabled session
-    PARTIAL_SYNC_DISABLED("", 214),                     // Partial sync disabled (BIND)
-    SESSION_UNSUPPORTED_SESSION_FEATURE(Type.SESSION, 215),   // Unsupported session-level feature
-    SESSION_BAD_ORIGIN_FILE_IDENT(Type.SESSION, 216),         // Bad origin file identifier (UPLOAD)
+    BAD_SERVER_FILE_IDENT(Type.PROTOCOL, 207),                     // Bad server file identifier (IDENT)
+    BAD_CLIENT_FILE_IDENT(Type.PROTOCOL, 208),                     // Bad client file identifier (IDENT)
+    BAD_SERVER_VERSION(Type.PROTOCOL, 209),                        // Bad server version (IDENT, UPLOAD)
+    BAD_CLIENT_VERSION(Type.PROTOCOL, 210),                        // Bad client version (IDENT, UPLOAD)
+    DIVERGING_HISTORIES(Type.PROTOCOL, 211),                       // Diverging histories (IDENT)
+    BAD_CHANGESET(Type.PROTOCOL, 212),                             // Bad changeset (UPLOAD)
+    DISABLED_SESSION(Type.PROTOCOL, 213),                          // Disabled session
+    PARTIAL_SYNC_DISABLED(Type.PROTOCOL, 214),                     // Partial sync disabled (BIND)
+    UNSUPPORTED_SESSION_FEATURE(Type.PROTOCOL, 215),               // Unsupported session-level feature
+    BAD_ORIGIN_FILE_IDENT(Type.PROTOCOL, 216),                     // Bad origin file identifier (UPLOAD)
 
     // Sync Network Client errors.
     // TODO: All enums in here should be prefixed with `CLIENT_`, but in order to avoid
