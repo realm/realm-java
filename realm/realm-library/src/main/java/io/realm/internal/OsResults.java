@@ -473,68 +473,101 @@ public class OsResults implements NativeObject, ObservableCollection {
     }
 
     public void setStringList(String fieldName, RealmList<String> list) {
-        addTypeSpecificList(fieldName, list, (builder, lst) -> {
-            builder.addStringList(0, lst);
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<String>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<String> list) {
+                builder.addStringList(0, list);
+            }
         });
     }
 
     public void setByteList(String fieldName, RealmList<Byte> list) {
-        addTypeSpecificList(fieldName, list, (builder, lst) -> {
-            builder.addByteList(0, lst);
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Byte>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Byte> list) {
+                builder.addByteList(0, list);
+            }
         });
     }
 
     public void setShortList(String fieldName, RealmList<Short> list) {
-        addTypeSpecificList(fieldName, list, (builder, lst) -> {
-            builder.addShortList(0, lst);
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Short>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Short> list) {
+                builder.addShortList(0, list);
+            }
         });
     }
 
     public void setIntegerList(String fieldName, RealmList<Integer> list) {
-        addTypeSpecificList(fieldName, list, (builder, lst) -> {
-            builder.addIntegerList(0, lst);
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Integer>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Integer> list) {
+                builder.addIntegerList(0, list);
+            }
         });
     }
 
     public void setLongList(String fieldName, RealmList<Long> list) {
-        addTypeSpecificList(fieldName, list, (builder, lst) -> {
-            builder.addLongList(0, lst);
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Long>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Long> list) {
+                builder.addLongList(0, list);
+            }
         });
     }
 
     public void setBooleanList(String fieldName, RealmList<Boolean> list) {
-        addTypeSpecificList(fieldName, list, (builder, lst) -> {
-            builder.addBooleanList(0, lst);
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Boolean>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Boolean> list) {
+                builder.addBooleanList(0, list);
+            }
         });
     }
 
     public void setByteArrayList(String fieldName, RealmList<byte[]> list) {
-        addTypeSpecificList(fieldName, list, (builder, lst) -> {
-            builder.addByteArrayList(0, lst);
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<byte[]>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<byte[]> list) {
+                builder.addByteArrayList(0, list);
+            }
         });
     }
 
     public void setDateList(String fieldName, RealmList<Date> list) {
-        addTypeSpecificList(fieldName, list, (builder, lst) -> {
-            builder.addDateList(0, lst);
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Date>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Date> list) {
+                builder.addDateList(0, list);
+            }
         });
     }
 
     public void setFloatList(String fieldName, RealmList<Float> list) {
-        addTypeSpecificList(fieldName, list, (builder, lst) -> {
-            builder.addFloatList(0, lst);
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Float>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Float> list) {
+                builder.addFloatList(0, list);
+            }
         });
     }
 
     public void setDoubleList(String fieldName, RealmList<Double> list) {
-        addTypeSpecificList(fieldName, list, (builder, lst) -> {
-            builder.addDoubleList(0, lst);
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Double>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Double> list) {
+                builder.addDoubleList(0, list);
+            }
         });
     }
 
-    public void setModelList(String fieldName, RealmList<? extends RealmModel> list) {
-        addTypeSpecificList(fieldName, list, (builder, lst) -> {
-            builder.addObjectList(0, lst);
+    public void setModelList(String fieldName, RealmList<RealmModel> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<RealmModel>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<RealmModel> list) {
+                builder.addObjectList(0, list);
+            }
         });
     }
 

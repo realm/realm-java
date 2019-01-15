@@ -24,6 +24,9 @@
 
 #endif
 
+#include <linux/errno.h>
+#include <realm/util/misc_ext_errors.hpp>
+
 #include "java_accessor.hpp"
 #include "util.hpp"
 #include "jni_util/java_method.hpp"
@@ -263,16 +266,19 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // Doing the methods lookup from the thread that loaded the lib, to avoid
         // https://developer.android.com/training/articles/perf-jni.html#faq_FindClass
         static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
-                                                     "(ILjava/lang/String;Ljava/lang/String;)V", true);
+                                                     "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)V", true);
         static JavaMethod java_bind_session_method(env, sync_manager_class, "bindSessionWithConfig",
                                                    "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", true);
 
         // error handler will be called form the sync client thread
         auto error_handler = [](std::shared_ptr<SyncSession> session, SyncError error) {
-            realm::jni_util::Log::d("error_handler lambda invoked");
-
+            auto error_category = error.error_code.category().name();
             auto error_message = error.message;
             auto error_code = error.error_code.value();
+
+            // All client reset errors will be in the protocol category. Re-assign the error code
+            // to a value not used by https://github.com/realm/realm-sync/blob/develop/src/realm/sync/protocol.hpp#L232
+            // This way we only have one error in Java representing Client Reset.
             if (error.is_client_reset_requested()) {
                 // Hack the error message to send information about the location of the backup.
                 // If more uses of the user_info map surfaces. Refactor this to send the full
@@ -281,10 +287,39 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                 error_code = 7; // See ErrorCode.java
             }
 
+            // System/Connection errors are defined by constants in
+            // https://android.googlesource.com/kernel/lk/+/upstream-master/include/errno.h
+            // However the integer values are not guaranteed to be stable according to POSIX.
+            //
+            // For this reason we manually map the constants to the error integer values defined in Java.
+            // For simplicity Java re-use the values currently defined in errno.h.
+            if (std::strcmp(error_category, "realm.basic_system") == 0) {
+                switch(error_code) {
+                    case ECONNRESET: error_code = 104; break;
+                    case ESHUTDOWN: error_code = 110; break;
+                    case ECONNREFUSED: error_code = 111; break;
+                    case EADDRINUSE: error_code = 112; break;
+                    case ECONNABORTED: error_code = 113; break;
+                    default:
+                        /* Do nothing */
+                        error_code = error_code;
+                }
+            } else if (std::strcmp(error_category, "realm.util.misc_ext") == 0) {
+                switch (util::MiscExtErrors(error_code)) {
+                    case util::MiscExtErrors::end_of_input: error_code = 1; break;
+                    case util::MiscExtErrors::premature_end_of_input: error_code = 2; break;
+                    case util::MiscExtErrors::delim_not_found: error_code = 3; break;
+                    default:
+                        /* Do nothing */
+                        error_code = error_code;
+                }
+            }
+
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
+            jstring jerror_category = to_jstring(env, error_category);
             jstring jerror_message = to_jstring(env, error_message);
             jstring jsession_path = to_jstring(env, session.get()->path());
-            env->CallStaticVoidMethod(sync_manager_class, java_error_callback_method, error_code, jerror_message,
+            env->CallStaticVoidMethod(sync_manager_class, java_error_callback_method, jerror_category, error_code, jerror_message,
                                       jsession_path);
             env->DeleteLocalRef(jerror_message);
             env->DeleteLocalRef(jsession_path);

@@ -32,7 +32,14 @@ import io.realm.internal.Util;
  */
 public class ObjectServerError extends RuntimeException {
 
+    // The Java representation of the error.
     private final ErrorCode error;
+
+    // The native error representation. Mostly relevant for ErrorCode.UNKNOWN
+    // where it can provide more details into the exact error.
+    private final String nativeErrorType;
+    private final int nativeErrorIntValue;
+
     private final String errorMessage;
     private final Throwable exception;
 
@@ -43,7 +50,21 @@ public class ObjectServerError extends RuntimeException {
      * @param errorMessage detailed error message.
      */
     public ObjectServerError(ErrorCode errorCode, String errorMessage) {
-        this(errorCode, errorMessage, (Throwable) null);
+        this(errorCode, errorCode.getType(), errorCode.intValue(), errorMessage, (Throwable) null);
+    }
+
+    /**
+     * Creates an unknown error that could not be mapped to any known error case.
+     * <p>
+     * This means that {@link #getErrorCode()} will return {@link ErrorCode#UNKNOWN}, but
+     * {@link #getErrorType()} and {@link #getErrorIntValue()} will return the underlying values
+     * which can help identify the real error.
+     *
+     * @param errorCode error code for this type of error.
+     * @param errorMessage detailed error message.
+     */
+    public ObjectServerError(String errorType, int errorCode, String errorMessage) {
+        this(ErrorCode.UNKNOWN, errorType, errorCode, errorMessage, null);
     }
 
     /**
@@ -57,23 +78,10 @@ public class ObjectServerError extends RuntimeException {
     }
 
     /**
-     * Generic error happening that could happen anywhere.
-     *
-     * @param errorCode error code for this type of error.
-     * @param errorMessage detailed error message.
-     * @param exception underlying exception if the error was caused by this.
-     */
-    public ObjectServerError(ErrorCode errorCode, @Nullable String errorMessage, @Nullable Throwable exception) {
-        this.error = errorCode;
-        this.errorMessage = errorMessage;
-        this.exception = exception;
-    }
-
-    /**
      * Errors happening while trying to authenticate a user.
      *
      * @param errorCode error code for this type of error.
-     * @param title Title for this type of error.
+     * @param title title for this type of error.
      * @param hint a hint for resolving the error.
      */
     public ObjectServerError(ErrorCode errorCode, String title, @Nullable String hint) {
@@ -81,7 +89,31 @@ public class ObjectServerError extends RuntimeException {
     }
 
     /**
-     * Returns the error code uniquely identifying this type of error.
+     * Generic error happening that could happen anywhere.
+     *
+     * @param errorCode error code for this type of error.
+     * @param errorMessage detailed error message.
+     * @param exception underlying exception if the error was caused by this.
+     */
+    public ObjectServerError(ErrorCode errorCode, @Nullable String errorMessage, @Nullable Throwable exception) {
+        this(errorCode, errorCode.getType(), errorCode.intValue(), errorMessage, exception);
+    }
+
+    public ObjectServerError(ErrorCode errorCode, String nativeErrorType, int nativeErrorCode,
+                             @Nullable String errorMessage, @Nullable Throwable exception) {
+        this.error = errorCode;
+        this.nativeErrorType = nativeErrorType;
+        this.nativeErrorIntValue = nativeErrorCode;
+        this.errorMessage = errorMessage;
+        this.exception = exception;
+    }
+
+    /**
+     * Returns the {@link ErrorCode} identifying the type of error.
+     * <p>
+     * If {@link ErrorCode#UNKNOWN} is returned, it means that the error could not be mapped to any
+     * known errors. In that case {@link #getErrorType()} and {@link #getErrorIntValue()} will
+     * return the underlying error information which can better identify the type of error.
      *
      * @return the error code identifying the type of error.
      * @see ErrorCode
@@ -91,10 +123,30 @@ public class ObjectServerError extends RuntimeException {
     }
 
     /**
+     * Returns a string describing the type of error it is.
+     *
+     * @return
+     */
+    public String getErrorType() {
+        return nativeErrorType;
+    }
+
+    /**
+     * Returns an integer representing this specific type of error. This value is only unique within
+     * the value provided by {@link #getErrorType()}.
+     *
+     * @return the integer value representing this type of error.
+     */
+    public int getErrorIntValue() {
+        return nativeErrorIntValue;
+    }
+
+    /**
      * Returns a more detailed error message about the cause of this error.
      *
      * @return a detailed error message or {@code null} if one was not available.
      */
+    @Nullable
     public String getErrorMessage() {
         return errorMessage;
     }
@@ -104,6 +156,7 @@ public class ObjectServerError extends RuntimeException {
      *
      * @return the underlying exception causing this error, or {@code null} if not caused by an exception.
      */
+    @Nullable
     public Throwable getException() {
         return exception;
     }
@@ -122,9 +175,16 @@ public class ObjectServerError extends RuntimeException {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(getErrorCode().toString());
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(getErrorCode().name());
+        sb.append("(");
+        sb.append(getErrorType());
+        sb.append(":");
+        sb.append(getErrorIntValue());
+        sb.append(')');
         if (errorMessage != null) {
-            sb.append('\n');
+            sb.append(": ");
             sb.append(errorMessage);
         }
         if (exception != null) {

@@ -502,12 +502,12 @@ public class SyncManager {
      * session to contact. If {@code path == null} all sessions are effected.
      */
     @SuppressWarnings("unused")
-    private static synchronized void notifyErrorHandler(int errorCode, String errorMessage, @Nullable String path) {
+    private static synchronized void notifyErrorHandler(String nativeErrorCategory, int nativeErrorCode, String errorMessage, @Nullable String path) {
         if (Util.isEmptyString(path)) {
             // notify all sessions
             for (SyncSession syncSession : sessions.values()) {
                     try {
-                        syncSession.notifySessionError(errorCode, errorMessage);
+                        syncSession.notifySessionError(nativeErrorCategory, nativeErrorCode, errorMessage);
                     } catch (Exception exception) {
                         RealmLog.error(exception);
                     }
@@ -516,7 +516,7 @@ public class SyncManager {
             SyncSession syncSession = sessions.get(path);
             if (syncSession != null) {
                 try {
-                    syncSession.notifySessionError(errorCode, errorMessage);
+                    syncSession.notifySessionError(nativeErrorCategory, nativeErrorCode, errorMessage);
                 } catch (Exception exception) {
                     RealmLog.error(exception);
                 }

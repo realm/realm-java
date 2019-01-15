@@ -1089,7 +1089,7 @@ public class PermissionManager implements Closeable {
             if (statusCode != null) {
                 RealmObject.removeAllChangeListeners(obj);
                 if (statusCode > 0) {
-                    ErrorCode errorCode = ErrorCode.fromInt(statusCode);
+                    ErrorCode errorCode = ErrorCode.fromNativeError(ErrorCode.Type.AUTH, statusCode);
                     String errorMsg = obj.getStatusMessage();
                     ObjectServerError error = new ObjectServerError(errorCode, errorMsg);
                     notifyCallbackWithError(error);
