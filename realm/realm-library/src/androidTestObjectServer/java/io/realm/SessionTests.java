@@ -525,11 +525,11 @@ public class SessionTests {
         TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
         RealmLog.add(testLogger);
 
-        session.notifySessionError(3, "Unknown Error");
+        session.notifySessionError("unknown", 3, "Unknown Error");
         RealmLog.remove(testLogger);
 
         assertTrue(errorHandlerCalled.get());
-        assertEquals("Unknown error code: 3", testLogger.message);
+        assertEquals("Unknown error code: 'unknown:3'", testLogger.message);
 
         realm.close();
     }

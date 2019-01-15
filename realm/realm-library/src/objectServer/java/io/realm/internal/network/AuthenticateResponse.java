@@ -122,27 +122,26 @@ public class AuthenticateResponse extends AuthServerResponse {
         ObjectServerError error;
         Token accessToken;
         Token refreshToken;
-        String message;
+        String debugMessage;
         try {
             JSONObject obj = new JSONObject(serverResponse);
-            accessToken = obj.has(JSON_FIELD_ACCESS_TOKEN) ?
-                    Token.from(obj.getJSONObject(JSON_FIELD_ACCESS_TOKEN)) : null;
-            refreshToken = obj.has(JSON_FIELD_REFRESH_TOKEN) ?
-                    Token.from(obj.getJSONObject(JSON_FIELD_REFRESH_TOKEN)) : null;
+            accessToken = obj.has(JSON_FIELD_ACCESS_TOKEN) ? Token.from(obj.getJSONObject(JSON_FIELD_ACCESS_TOKEN)) : null;
+            refreshToken = obj.has(JSON_FIELD_REFRESH_TOKEN) ? Token.from(obj.getJSONObject(JSON_FIELD_REFRESH_TOKEN)) : null;
             error = null;
             if (accessToken == null) {
-                message = "accessToken = null";
+                debugMessage = "accessToken = null";
             } else {
-                message = String.format(Locale.US, "Identity %s; Path %s", accessToken.identity(), accessToken.path());
+                debugMessage = String.format(Locale.US, "Identity %s; Path %s", accessToken.identity(), accessToken.path());
             }
         } catch (JSONException ex) {
             accessToken = null;
             refreshToken = null;
+            String exceptionMessage = String.format(Locale.US, "Server response could not be parsed as JSON:%n%s", serverResponse);
             //noinspection ThrowableInstanceNeverThrown
-            error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, ex);
-            message = String.format(Locale.US, "Error %s", error.getErrorMessage());
+            error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, exceptionMessage, ex);
+            debugMessage = String.format(Locale.US, "Error %s", error.getErrorMessage());
         }
-        RealmLog.debug("AuthenticateResponse. " + message);
+        RealmLog.debug("AuthenticateResponse. " + debugMessage);
         setError(error);
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
