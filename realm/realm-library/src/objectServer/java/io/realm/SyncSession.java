@@ -227,11 +227,11 @@ public class SyncSession {
     }
 
     // This callback will happen on the thread running the Sync Client.
-    void notifySessionError(int errorCode, String errorMessage) {
+    void notifySessionError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
         if (errorHandler == null) {
             return;
         }
-        ErrorCode errCode = ErrorCode.fromInt(errorCode);
+        ErrorCode errCode = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
             RealmConfiguration backupRealmConfiguration = SyncConfiguration.forRecovery(errorMessage, configuration.getEncryptionKey(), configuration.getSchemaMediator());
@@ -239,7 +239,13 @@ public class SyncSession {
                     "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
                     configuration, backupRealmConfiguration));
         } else {
-            errorHandler.onError(this, new ObjectServerError(errCode, errorMessage));
+            ObjectServerError wrappedError;
+            if (errCode == ErrorCode.UNKNOWN) {
+                wrappedError = new ObjectServerError(nativeErrorCategory, nativeErrorCode, errorMessage);
+            } else {
+                wrappedError = new ObjectServerError(errCode, errorMessage);
+            }
+            errorHandler.onError(this, wrappedError);
         }
     }
 
