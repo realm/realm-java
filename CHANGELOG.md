@@ -5,7 +5,7 @@
 * Added better checks for detecting corrupted files, both before and after the file is written to disk.
 
 ### Fixed
-* [ObjectServer] Native errors sometimes mapped to the wrong Java ErrorCode. [#6364](https://github.com/realm/realm-java/issues/6364)
+* [ObjectServer] Native errors sometimes mapped to the wrong Java ErrorCode. (Issue [#6364](https://github.com/realm/realm-java/issues/6364), since 2.0.0)
 * [ObjectServer] Query-based Sync queries involving LIMIT, limited the result before permissions were evaluated. This could sometimes result in the wrong number of elements being returned.
 * Removed Java 8 bytecode. Resulted in errors like `D8: Invoke-customs are only supported starting with Android O (--min-api 26)` if not compiled with Java 8. (Issue [#6300](https://github.com/realm/realm-java/issues/6300), since 5.8.0).
 
