@@ -1,4 +1,4 @@
-## X.Y.Z (YYYY-MM-DD)
+## 5.9.0(2019-01-15)
 
 ### Enhancements
 * [ObjectServer] Added `ObjectServerError.getErrorType()` and `ObjectServerError.getErrorType()` which returns the underlying native error information. This is especially relevant if `ObjectServerError.getErrorCode()` returns `UNKNOWN`. [#6364](https://github.com/realm/realm-java/issues/6364)
