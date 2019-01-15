@@ -1,10 +1,10 @@
-## X.Y.Z (YYYY-MM-DD)
+## 5.9.0(2019-01-15)
 
 ### Enhancements
+* [ObjectServer] Added `ObjectServerError.getErrorType()` and `ObjectServerError.getErrorType()` which returns the underlying native error information. This is especially relevant if `ObjectServerError.getErrorCode()` returns `UNKNOWN`. [#6364](https://github.com/realm/realm-java/issues/6364)
 * Added better checks for detecting corrupted files, both before and after the file is written to disk.
 
 ### Fixed
-* ?? (Issue [#??](https://github.com/realm/realm-java/issues/??), since ??).
 * [ObjectServer] Native errors sometimes mapped to the wrong Java ErrorCode. [#6364](https://github.com/realm/realm-java/issues/6364)
 * [ObjectServer] Query-based Sync queries involving LIMIT, limited the result before permissions were evaluated. This could sometimes result in the wrong number of elements being returned.
 * Removed Java 8 bytecode. Resulted in errors like `D8: Invoke-customs are only supported starting with Android O (--min-api 26)` if not compiled with Java 8. (Issue [#6300](https://github.com/realm/realm-java/issues/6300), since 5.8.0).
