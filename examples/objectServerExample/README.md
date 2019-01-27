@@ -10,11 +10,15 @@ injected into the build configuration.
 To use a different ObjectServer, simply put the server IP Address into
 the `build.gradle`, as indicated in the comments, on the lines like this:
 
-    buildConfigField "String", "OBJECT_SERVER_IP", "\"${host}\""
+    def rosUrl = "<INSERT_REALM_OBJECT_SERVER_URL>"
 
 For instance:
 
-    buildConfigField "String", "OBJECT_SERVER_IP", "192.168.0.1"
+    def rosUrl = "https://myinstance.us1.cloud.realm.io"
+
+or:
+
+    def rosUrl = "http://127.0.0.1:9080"
 
 To read more about the Realm Object Server and how to deploy it, see
 https://realm.io/news/introducing-realm-mobile-platform/

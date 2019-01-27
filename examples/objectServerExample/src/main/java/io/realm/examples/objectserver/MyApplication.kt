@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver;
+package io.realm.examples.objectserver
 
-import android.app.Application;
-import android.util.Log;
+import android.app.Application
+import android.util.Log
 
-import io.realm.Realm;
-import io.realm.log.RealmLog;
+import io.realm.Realm
+import io.realm.log.RealmLog
 
-public class MyApplication extends Application {
+class MyApplication : Application() {
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Realm.init(this, "ObjectServerExample/" + BuildConfig.VERSION_NAME);
+    override fun onCreate() {
+        super.onCreate()
+        Realm.init(this, "ObjectServerExample/" + BuildConfig.VERSION_NAME)
 
-        // Enable full log output when debugging
+        // Enable more
         if (BuildConfig.DEBUG) {
-            RealmLog.setLevel(Log.DEBUG);
+            RealmLog.setLevel(Log.DEBUG)
         }
     }
 }
