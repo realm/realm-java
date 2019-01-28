@@ -29,6 +29,7 @@ import android.widget.TextView
 import io.realm.*
 import io.realm.examples.objectserver.databinding.ActivityCounterBinding
 import io.realm.examples.objectserver.model.CRDTCounter
+import io.realm.kotlin.createObject
 import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar
@@ -92,8 +93,8 @@ class CounterActivity : AppCompatActivity() {
         user?.let {
 
             // Create a RealmConfiguration for our user
-            val config = user!!.createConfiguration(BuildConfig.REALM_URL)
-                    .initialData { realm -> realm.createObject(CRDTCounter::class.java, it.identity) }
+            val config = it.createConfiguration(BuildConfig.REALM_URL)
+                    .initialData { realm -> realm.createObject<CRDTCounter>(it.identity) }
                     .build()
 
             // This will automatically sync all changes in the background for as long as the Realm is open
@@ -101,7 +102,7 @@ class CounterActivity : AppCompatActivity() {
 
             counterView.text = "-"
             counters = realm.where<CRDTCounter>().equalTo("name", it.identity).findAllAsync()
-            counters.addChangeListener { counters, changeSet ->
+            counters.addChangeListener { counters, _ ->
                 if (counters.isValid && !counters.isEmpty()) {
                     val counter = counters.first()
                     counterView.text = String.format(Locale.US, "%d", counter!!.count)
@@ -121,7 +122,7 @@ class CounterActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        user?.let {
+        user?.run {
             session.run {
                 removeProgressListener(downloadListener)
                 removeProgressListener(uploadListener)
@@ -151,26 +152,20 @@ class CounterActivity : AppCompatActivity() {
     }
 
     private fun updateProgressBar(downloading: Boolean, uploading: Boolean) {
-        @ColorRes var color = android.R.color.black
-        var visibility = View.VISIBLE
-        if (downloading && uploading) {
-            color = R.color.progress_both
-        } else if (downloading) {
-            color = R.color.progress_download
-        } else if (uploading) {
-            color = R.color.progress_upload
-        } else {
-            visibility = View.GONE
+        @ColorRes val color = when {
+            downloading && uploading -> R.color.progress_both
+            downloading -> R.color.progress_download
+            uploading -> R.color.progress_upload
+            else -> android.R.color.black
         }
         progressBar.indeterminateDrawable.setColorFilter(resources.getColor(color), PorterDuff.Mode.SRC_IN)
-        progressBar.visibility = visibility
     }
 
     private fun adjustCounter(adjustment: Int) {
         // A synchronized Realm can get written to at any point in time, so doing synchronous writes on the UI
         // thread is HIGHLY discouraged as it might block longer than intended. Use only async transactions.
         realm.executeTransactionAsync { realm ->
-            val counter = realm.where(CRDTCounter::class.java).findFirst()
+            val counter = realm.where<CRDTCounter>().findFirst()
             counter?.incrementCounter(adjustment.toLong())
         }
     }

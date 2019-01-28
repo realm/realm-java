@@ -106,19 +106,9 @@ class LoginActivity : AppCompatActivity() {
         Toast.makeText(baseContext, errorMsg, Toast.LENGTH_LONG).show()
     }
 
-    private fun validate(): Boolean {
-        var valid = true
-        val email = username.text.toString()
-        val password = this.password.text.toString()
-
-        if (email.isEmpty()) {
-            valid = false
-        }
-
-        if (password.isEmpty()) {
-            valid = false
-        }
-
-        return valid
+    private fun validate(): Boolean = when {
+        username.text.toString().isEmpty() -> false
+        password.text.toString().isEmpty() -> false
+        else -> true
     }
 }

@@ -20,10 +20,10 @@ import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 import io.realm.annotations.Required
 
-/**
- * A named, conflict-free replicated data-type.
- */
-open class CRDTCounter(@PrimaryKey var name: String): RealmObject() {
+open class CRDTCounter : RealmObject() {
+
+    @PrimaryKey
+    var name: String = ""
 
     @Required
     private val counter = MutableRealmInteger.valueOf(0L)
@@ -31,11 +31,8 @@ open class CRDTCounter(@PrimaryKey var name: String): RealmObject() {
     val count: Long
         get() = this.counter.get()!!.toLong()
 
-    constructor() : this("") {
-        // Required by Realm
-    }
-
     fun incrementCounter(delta: Long) {
         counter.increment(delta)
     }
+
 }
