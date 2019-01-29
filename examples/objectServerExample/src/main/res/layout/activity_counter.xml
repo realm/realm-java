@@ -43,7 +43,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="top"
             android:indeterminate="true"
-            android:visibility="gone"
+            android:visibility="visible"
             app:mpb_progressStyle="horizontal" />
 
     </RelativeLayout>

@@ -78,7 +78,7 @@ class LoginActivity : AppCompatActivity() {
                 progressDialog.dismiss()
                 val errorMsg: String
                 when (error.errorCode) {
-                    ErrorCode.UNKNOWN_ACCOUNT -> errorMsg = "Account does not exists."
+                    ErrorCode.UNKNOWN_ACCOUNT -> errorMsg = "Account does not exist."
                     ErrorCode.INVALID_CREDENTIALS -> errorMsg = "User name and password does not match"
                     else -> errorMsg = error.toString()
                 }

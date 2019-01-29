@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2018 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,18 +90,18 @@ class CounterActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         user = loggedInUser
-        user?.let {
-
+        val user = user
+        if (user != null) {
             // Create a RealmConfiguration for our user
-            val config = it.createConfiguration(BuildConfig.REALM_URL)
-                    .initialData { realm -> realm.createObject<CRDTCounter>(it.identity) }
+            val config = user.createConfiguration(BuildConfig.REALM_URL)
+                    .initialData { realm -> realm.createObject<CRDTCounter>(user.identity) }
                     .build()
 
             // This will automatically sync all changes in the background for as long as the Realm is open
             realm = Realm.getInstance(config)
 
             counterView.text = "-"
-            counters = realm.where<CRDTCounter>().equalTo("name", it.identity).findAllAsync()
+            counters = realm.where<CRDTCounter>().equalTo("name", user.identity).findAllAsync()
             counters.addChangeListener { counters, _ ->
                 if (counters.isValid && !counters.isEmpty()) {
                     val counter = counters.first()
@@ -140,8 +140,9 @@ class CounterActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.action_logout -> {
                 realm.close()
-                user?.let  {
-                    it.logOut()
+                val user = user
+                if (user != null) {
+                    user.logOut()
                     this.user = loggedInUser
                 }
                 true
@@ -159,6 +160,7 @@ class CounterActivity : AppCompatActivity() {
             else -> android.R.color.black
         }
         progressBar.indeterminateDrawable.setColorFilter(resources.getColor(color), PorterDuff.Mode.SRC_IN)
+        progressBar.visibility = if (color == android.R.color.black) View.GONE else View.VISIBLE
     }
 
     private fun adjustCounter(adjustment: Int) {
