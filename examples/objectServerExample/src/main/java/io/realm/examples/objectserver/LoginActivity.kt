@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Realm Inc.
+ * Copyright 2019 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,11 +76,10 @@ class LoginActivity : AppCompatActivity() {
 
             override fun onError(error: ObjectServerError) {
                 progressDialog.dismiss()
-                val errorMsg: String
-                when (error.errorCode) {
-                    ErrorCode.UNKNOWN_ACCOUNT -> errorMsg = "Account does not exist."
-                    ErrorCode.INVALID_CREDENTIALS -> errorMsg = "User name and password does not match"
-                    else -> errorMsg = error.toString()
+                val errorMsg: String = when (error.errorCode) {
+                    ErrorCode.UNKNOWN_ACCOUNT -> getString(R.string.login_error_unknown_account)
+                    ErrorCode.INVALID_CREDENTIALS -> getString(R.string.login_error_invalid_credentials)
+                    else -> error.toString()
                 }
                 onLoginFailed(errorMsg)
             }

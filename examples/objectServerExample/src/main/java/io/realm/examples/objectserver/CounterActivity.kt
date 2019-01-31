@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Realm Inc.
+ * Copyright 2019 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import io.realm.examples.objectserver.model.CRDTCounter
 import io.realm.kotlin.createObject
 import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
+import io.realm.log.RealmLog
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -67,7 +68,8 @@ class CounterActivity : AppCompatActivity() {
 
             try {
                 user = SyncUser.current()
-            } catch (ignore: IllegalStateException) {
+            } catch (e: IllegalStateException) {
+                RealmLog.warn(e);
             }
 
             if (user == null) {
