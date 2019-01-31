@@ -38,7 +38,7 @@ android {
         //
         // If you're running a self-hosted version, use the hostname/IP address of the Realm Object
         // Server, e.g "http://127.0.0.1:9080".
-        def rosUrl = "https://cmelchior.us1.cloud.realm.io"
+        def rosUrl = "<INSERT_REALM_OBJECT_SERVER_URL>"
         def realmAuthUrl = "\"${rosUrl}/auth\""
         def realmUrl = "\"${rosUrl.replace("http", "realm")}/default\""
 
