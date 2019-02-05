@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2019 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.examples.objectserver.model
 
-package io.realm.examples.objectserver;
+import io.realm.MutableRealmInteger
+import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
+import io.realm.annotations.Required
 
-import android.app.Application;
-import android.util.Log;
+open class CRDTCounter : RealmObject() {
 
-import io.realm.Realm;
-import io.realm.log.RealmLog;
+    @PrimaryKey
+    var name: String = ""
 
-public class MyApplication extends Application {
+    @Required
+    private val counter = MutableRealmInteger.valueOf(0L)
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Realm.init(this, "ObjectServerExample/" + BuildConfig.VERSION_NAME);
+    val count: Long
+        get() = this.counter.get()!!.toLong()
 
-        // Enable full log output when debugging
-        if (BuildConfig.DEBUG) {
-            RealmLog.setLevel(Log.DEBUG);
-        }
+    fun incrementCounter(delta: Long) {
+        counter.increment(delta)
     }
+
 }

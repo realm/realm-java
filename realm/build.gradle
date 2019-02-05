@@ -38,7 +38,7 @@ allprojects {
     def projectDependencies = new Properties()
     projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
     project.ext.minSdkVersion = 9
-    project.ext.compileSdkVersion = 26
+    project.ext.compileSdkVersion = 27
     project.ext.buildToolsVersion = projectDependencies.get("ANDROID_BUILD_TOOLS")
 
     group = 'io.realm'
