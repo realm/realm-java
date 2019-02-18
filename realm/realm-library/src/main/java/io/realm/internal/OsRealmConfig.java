@@ -186,7 +186,7 @@ public class OsRealmConfig implements NativeObject {
                           @Nullable OsSharedRealm.MigrationCallback migrationCallback,
                           @Nullable OsSharedRealm.InitializationCallback initializationCallback) {
         this.realmConfiguration = config;
-        this.nativePtr = nativeCreate(config.getPath(), false, true);
+        this.nativePtr = nativeCreate(config.getPath(), config.getFifoFilesFallbackDir().getAbsolutePath(), false, true);
         NativeContext.dummyContext.addReference(this);
 
         // Retrieve Sync settings first. We need syncRealmUrl to identify if this is a SyncConfig
@@ -302,7 +302,7 @@ public class OsRealmConfig implements NativeObject {
         return context;
     }
 
-    private static native long nativeCreate(String path, boolean enableCache, boolean enableFormatUpdate);
+    private static native long nativeCreate(String path, String fifoFallbackPath, boolean enableCache, boolean enableFormatUpdate);
 
     private static native void nativeSetEncryptionKey(long nativePtr, byte[] key);
 

@@ -1094,4 +1094,10 @@ public class RealmConfigurationTests {
         } catch (IllegalStateException ignored) {
         }
     }
+
+    @Test
+    public void getFifoFilesFallbackDir() {
+        RealmConfiguration config = new RealmConfiguration.Builder().build();
+        assertEquals(InstrumentationRegistry.getTargetContext().getCacheDir(), config.getFifoFilesFallbackDir());
+    }
 }

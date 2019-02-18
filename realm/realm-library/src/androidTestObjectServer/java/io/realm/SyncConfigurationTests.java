@@ -519,4 +519,12 @@ public class SyncConfigurationTests {
             user.logOut();
         }
     }
+
+    @Test
+    public void getFifoFilesFallbackDir() {
+        SyncUser user = createTestUser();
+        SyncConfiguration config = user.getDefaultConfiguration();
+        assertEquals(InstrumentationRegistry.getTargetContext().getCacheDir(), config.getFifoFilesFallbackDir());
+    }
+
 }

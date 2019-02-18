@@ -90,6 +90,7 @@ public class RealmConfiguration {
     private final File realmDirectory;
     private final String realmFileName;
     private final String canonicalPath;
+    private final File fifoFilesFallbackDir;
     private final String assetFilePath;
     private final byte[] key;
     private final long schemaVersion;
@@ -112,6 +113,7 @@ public class RealmConfiguration {
     protected RealmConfiguration(@Nullable File realmDirectory,
             @Nullable String realmFileName,
             String canonicalPath,
+            File fifoFilesFallbackDir,
             @Nullable String assetFilePath,
             @Nullable byte[] key,
             long schemaVersion,
@@ -127,6 +129,7 @@ public class RealmConfiguration {
         this.realmDirectory = realmDirectory;
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
+        this.fifoFilesFallbackDir = fifoFilesFallbackDir;
         this.assetFilePath = assetFilePath;
         this.key = key;
         this.schemaVersion = schemaVersion;
@@ -234,6 +237,21 @@ public class RealmConfiguration {
     public String getPath() {
         return canonicalPath;
     }
+
+    /**
+     * Realm uses special files called FIFO's to control concurrent access to the Realm
+     * file itself. Normally these files are created next to the Realm file, but some
+     * filesystems do not allows this (e.g. FAT32). In that case Realm will create the files
+     * in this fallback directory. If this is not allowed, an exception is thrown when opening the
+     * Realm.
+     *
+     * @return path to the fallback directory used to write FIFO special files if the primary
+     * location is not writable.
+     */
+    public File getFifoFilesFallbackDir() {
+        return fifoFilesFallbackDir;
+    }
+
 
     /**
      * Checks if the Realm file defined by this configuration already exists.
@@ -466,6 +484,7 @@ public class RealmConfiguration {
         private Realm.Transaction initialDataTransaction;
         private boolean readOnly;
         private CompactOnLaunchCallback compactOnLaunch;
+        private File fifoFilesFallbackDir;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -490,6 +509,7 @@ public class RealmConfiguration {
         // Setups builder in its initial state.
         private void initializeBuilder(Context context) {
             this.directory = context.getFilesDir();
+            this.fifoFilesFallbackDir = context.getCacheDir();
             this.fileName = Realm.DEFAULT_REALM_NAME;
             this.key = null;
             this.schemaVersion = 0;
@@ -817,6 +837,7 @@ public class RealmConfiguration {
             return new RealmConfiguration(directory,
                     fileName,
                     getCanonicalPath(new File(directory, fileName)),
+                    fifoFilesFallbackDir,
                     assetFilePath,
                     key,
                     schemaVersion,

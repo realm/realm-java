@@ -118,6 +118,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private SyncConfiguration(File directory,
                               String filename,
                               String canonicalPath,
+                              File fifoFilesFallbackDir,
                               @Nullable String assetFilePath,
                               @Nullable byte[] key,
                               long schemaVersion,
@@ -144,6 +145,7 @@ public class SyncConfiguration extends RealmConfiguration {
         super(directory,
                 filename,
                 canonicalPath,
+                fifoFilesFallbackDir,
                 assetFilePath,
                 key,
                 schemaVersion,
@@ -216,7 +218,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true);
+        return new RealmConfiguration(null,null, canonicalPath, Realm.applicationContext.getCacheDir(), null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true);
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -478,6 +480,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private boolean overrideDefaultFolder = false;
         private String fileName;
         private boolean overrideDefaultLocalFileName = false;
+        private final File fifoFilesFallbackDir;
         @Nullable
         private byte[] key;
         private long schemaVersion = 0;
@@ -550,6 +553,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
             this.defaultFolder = new File(context.getFilesDir(), "realm-object-server");
+            this.fifoFilesFallbackDir = context.getCacheDir();
             if (Realm.getDefaultModule() != null) {
                 this.modules.add(Realm.getDefaultModule());
             }
@@ -1201,6 +1205,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     realmFileDirectory,
                     realmFileName,
                     getCanonicalPath(new File(realmFileDirectory, realmFileName)),
+                    fifoFilesFallbackDir,
                     null, // assetFile not supported by Sync. See https://github.com/realm/realm-sync/issues/241
                     key,
                     schemaVersion,

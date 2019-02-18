@@ -1,3 +1,20 @@
+## 5.9.1 (YYYY-MM-DD)
+
+### Enhancements
+* None
+
+### Fixed
+* Creating Realms on external storage should now work correctly on all file systems. ([#6416](https://github.com/realm/realm-java/issues/6416))
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: d0fb404fca67cd9dfdabb06e9d3f2ebb84d082e7
+
+
 ## 5.9.0(2019-01-15)
 
 ### Enhancements
