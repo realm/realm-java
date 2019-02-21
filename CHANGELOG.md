@@ -4,7 +4,7 @@
 * None
 
 ### Fixed
-* [ObjectServer] Reporting to many errors from the native layer resulted in a native crash with `local reference table overflow`. (Issue [#249](https://github.com/realm/realm-java-private/issues/249), since 5.9.0)
+* [ObjectServer] Reporting too many errors from the native layer resulted in a native crash with `local reference table overflow`. (Issue [#249](https://github.com/realm/realm-java-private/issues/249), since 5.9.0)
 
 ### Compatibility
 * Realm Object Server: 3.11.0 or later.
