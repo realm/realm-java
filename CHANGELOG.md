@@ -1,3 +1,19 @@
+## 5.9.1(2019-02-21)
+
+### Enhancements
+* None
+
+### Fixed
+* [ObjectServer] Reporting too many errors from the native layer resulted in a native crash with `local reference table overflow`. (Issue [#249](https://github.com/realm/realm-java-private/issues/249), since 5.9.0)
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None
+
 ## 5.9.0(2019-01-15)
 
 ### Enhancements

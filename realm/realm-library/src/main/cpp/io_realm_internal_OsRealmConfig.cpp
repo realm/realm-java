@@ -321,6 +321,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             jstring jsession_path = to_jstring(env, session.get()->path());
             env->CallStaticVoidMethod(sync_manager_class, java_error_callback_method, jerror_category, error_code, jerror_message,
                                       jsession_path);
+            env->DeleteLocalRef(jerror_category);
             env->DeleteLocalRef(jerror_message);
             env->DeleteLocalRef(jsession_path);
         };
