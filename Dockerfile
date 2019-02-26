@@ -65,7 +65,7 @@ RUN mkdir /opt/android-ndk-tmp && \
     ./android-ndk.bin && \
     mv android-ndk-r10e /opt/android-ndk && \
     rm -rf /opt/android-ndk-tmp && \
-    chmod -R a+rX /opt/android-ndk \
+    chmod -R a+rX /opt/android-ndk && \
     echo "Pkg.Desc = Android NDK\nPkg.Revision = 10.0.0" > /opt/android-ndk/source.properties
 
 # Make the SDK universally writable
