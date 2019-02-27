@@ -14,7 +14,7 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:${projectDependencies.get('GRADLE_BUILD_TOOLS')}"
         classpath 'de.undercouch:gradle-download-task:3.3.0'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
         classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
         classpath 'com.github.skhatri:gradle-s3-plugin:1.0.4'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.2'
@@ -35,9 +35,8 @@ allprojects {
         project.ext.set(key, val)
     }
     project.ext.minSdkVersion = 9
-    project.ext.compileSdkVersion = 26
+    project.ext.compileSdkVersion = 28
     project.ext.buildToolsVersion = projectDependencies.get("ANDROID_BUILD_TOOLS")
-
     group = 'io.realm'
     version = file("${rootDir}/../version.txt").text.trim()
     repositories {
