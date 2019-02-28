@@ -1,8 +1,8 @@
 buildscript {
     def projectDependencies = new Properties()
     projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
-    ext.kotlin_version = '1.2.50'
-    ext.dokka_version = '0.9.16'
+    ext.kotlin_version = '1.3.21'
+    ext.dokka_version = '0.9.17'
     repositories {
         mavenLocal()
         google()
@@ -14,7 +14,7 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:${projectDependencies.get('GRADLE_BUILD_TOOLS')}"
         classpath 'de.undercouch:gradle-download-task:3.3.0'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
         classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
         classpath 'com.github.skhatri:gradle-s3-plugin:1.0.4'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.2'
@@ -29,18 +29,14 @@ buildscript {
 }
 
 allprojects {
-    def props = new Properties()
-    props.load(new FileInputStream("${rootDir}/../realm.properties"))
-    props.each { key, val ->
-        project.ext.set(key, val)
-    }
-
     def projectDependencies = new Properties()
     projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
+    projectDependencies.each { key, val ->
+        project.ext.set(key, val)
+    }
     project.ext.minSdkVersion = 9
-    project.ext.compileSdkVersion = 27
+    project.ext.compileSdkVersion = 28
     project.ext.buildToolsVersion = projectDependencies.get("ANDROID_BUILD_TOOLS")
-
     group = 'io.realm'
     version = file("${rootDir}/../version.txt").text.trim()
     repositories {
@@ -48,9 +44,4 @@ allprojects {
         google()
         jcenter()
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = project.gradleVersion
-    distributionType = 'all'
 }

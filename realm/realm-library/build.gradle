@@ -286,7 +286,7 @@ task findbugs(type: FindBugs) {
     effort = "default"
     reportLevel = "medium"
     excludeFilter = file("${projectDir}/../config/findbugs/findbugs-filter.xml")
-    classes = files("${projectDir}/build/intermediates/classes")
+    classes = files("${projectDir}/build/intermediates/javac")
     source = fileTree('src/main/java/')
     classpath = files()
     reports {
