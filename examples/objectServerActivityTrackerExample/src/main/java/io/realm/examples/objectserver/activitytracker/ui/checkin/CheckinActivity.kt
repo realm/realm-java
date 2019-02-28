@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.checkin
+package io.realm.examples.objectserver.activitytracker.ui.checkin
 
 import android.content.Intent
 import android.os.Bundle
@@ -24,11 +24,11 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import io.realm.examples.objectserver.advanced.R
-import io.realm.examples.objectserver.advanced.databinding.ActivityCheckinBinding
-import io.realm.examples.objectserver.advanced.model.entities.ActivityId
-import io.realm.examples.objectserver.advanced.ui.BaseActivity
-import io.realm.examples.objectserver.advanced.ui.bookingslist.BookingsListActivity
+import io.realm.examples.objectserver.activitytracker.R
+import io.realm.examples.objectserver.activitytracker.databinding.ActivityCheckinBinding
+import io.realm.examples.objectserver.activitytracker.model.entities.ActivityId
+import io.realm.examples.objectserver.activitytracker.ui.BaseActivity
+import io.realm.examples.objectserver.activitytracker.ui.bookingslist.BookingsListActivity
 
 
 class CheckinActivity : BaseActivity() {

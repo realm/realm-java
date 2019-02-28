@@ -7,13 +7,13 @@
 
         <variable
             name="viewModel"
-            type="io.realm.examples.objectserver.advanced.ui.checkin.CheckinViewModel" />
+            type="io.realm.examples.objectserver.activitytracker.ui.checkin.CheckinViewModel" />
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="io.realm.examples.objectserver.advanced.io.realm.examples.objectserver.advanced.ui.checkin.CheckinActivity">
+        tools:context="io.realm.examples.objectserver.activitytracker.io.realm.examples.objectserver.activitytracker.ui.checkin.CheckinActivity">
 
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
@@ -53,15 +53,18 @@
                     android:onClick="@{() -> viewModel.checkedInGuestsSelected()}"
                     android:orientation="vertical">
 
-                    <androidx.appcompat.widget.AppCompatTextView
+
+                    <!--android:text="@{viewModel.checkedIn()}"-->
+
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@{viewModel.checkedIn()}"
+                        android:text="Foo"
                         android:textColor="@color/box_text_color"
                         android:textSize="24sp"
                         android:textStyle="bold" />
 
-                    <androidx.appcompat.widget.AppCompatTextView
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/checkin_checkedin"
@@ -80,10 +83,10 @@
                     android:onClick="@{() -> viewModel.remainingGuestsSelected()}"
                     android:orientation="vertical">
 
+                    <!--android:text="@{viewModel.remaining()}"-->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@{viewModel.remaining()}"
                         android:textColor="@color/box_text_color"
                         android:textSize="24sp"
                         android:textStyle="bold" />
@@ -107,15 +110,15 @@
                     android:onClick="@{() -> viewModel.adhocCheckinSelected()}"
                     android:orientation="vertical">
 
-                    <androidx.appcompat.widget.AppCompatTextView
+                    <!--android:text="@{viewModel.slotsAvailable()}"-->
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@{viewModel.slotsAvailable()}"
                         android:textColor="@color/box_text_color"
                         android:textSize="24sp"
                         android:textStyle="bold" />
 
-                    <androidx.appcompat.widget.AppCompatTextView
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:maxLines="1"
@@ -128,7 +131,7 @@
             </LinearLayout>
         </com.google.android.material.appbar.AppBarLayout>
 
-        <androidx.appcompat.widget.AppCompatTextView
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"

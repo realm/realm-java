@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.activitylist
+package io.realm.examples.objectserver.activitytracker.ui.activitylist
 
 import android.content.Intent
 import android.os.Bundle
@@ -25,11 +25,11 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.realm.examples.objectserver.advanced.R
-import io.realm.examples.objectserver.advanced.databinding.ActivityExcursionListBinding
-import io.realm.examples.objectserver.advanced.ui.BaseActivity
-import io.realm.examples.objectserver.advanced.ui.checkin.CheckinActivity
-import io.realm.examples.objectserver.advanced.ui.orderlist.OrdersActivity
+import io.realm.examples.objectserver.activitytracker.R
+import io.realm.examples.objectserver.activitytracker.databinding.ActivityExcursionListBinding
+import io.realm.examples.objectserver.activitytracker.ui.BaseActivity
+import io.realm.examples.objectserver.activitytracker.ui.checkin.CheckinActivity
+import io.realm.examples.objectserver.activitytracker.ui.orderlist.OrdersActivity
 
 class SelectActivityActivity : BaseActivity() {
 

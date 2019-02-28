@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.shared
+package io.realm.examples.objectserver.activitytracker.ui.shared
 
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable

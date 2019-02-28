@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.checkin
+package io.realm.examples.objectserver.activitytracker.ui.checkin
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
-import io.realm.examples.objectserver.advanced.model.entities.*
-import io.realm.examples.objectserver.advanced.ui.BaseViewModel
+import io.realm.examples.objectserver.activitytracker.model.entities.*
+import io.realm.examples.objectserver.activitytracker.ui.BaseViewModel
 import io.realm.RealmResults
 import io.realm.Sort
 import io.realm.kotlin.where

@@ -15,7 +15,7 @@
  */
 
 
-package io.realm.examples.objectserver.advanced.ui;
+package io.realm.examples.objectserver.activitytracker.ui;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

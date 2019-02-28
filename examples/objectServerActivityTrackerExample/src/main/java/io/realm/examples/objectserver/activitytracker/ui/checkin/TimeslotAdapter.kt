@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.checkin
+package io.realm.examples.objectserver.activitytracker.ui.checkin
 
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import io.realm.examples.objectserver.advanced.R
-import io.realm.examples.objectserver.advanced.RealmBaseAdapter
-import io.realm.examples.objectserver.advanced.model.entities.TimeSlot
+import io.realm.examples.objectserver.activitytracker.R
+import io.realm.examples.objectserver.activitytracker.RealmBaseAdapter
+import io.realm.examples.objectserver.activitytracker.model.entities.TimeSlot
 import io.realm.RealmResults
 
 

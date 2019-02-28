@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui;
+package io.realm.examples.objectserver.activitytracker.ui;
 
 import android.util.Log;
 

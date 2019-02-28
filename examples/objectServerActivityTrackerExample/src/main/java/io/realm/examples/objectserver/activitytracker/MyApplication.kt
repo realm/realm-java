@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced
+package io.realm.examples.objectserver.activitytracker
 
 import android.app.Application
-import io.realm.examples.objectserver.advanced.model.App
+import io.realm.examples.objectserver.activitytracker.model.App
 
 import io.realm.Realm
 import io.realm.SyncUser

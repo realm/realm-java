@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.bookingslist
+package io.realm.examples.objectserver.activitytracker.ui.bookingslist
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.LiveDataReactiveStreams
 import androidx.lifecycle.MutableLiveData
-import io.realm.examples.objectserver.advanced.model.entities.Booking
-import io.realm.examples.objectserver.advanced.model.entities.TimeSlot
-import io.realm.examples.objectserver.advanced.model.entities.TimeSlotId
-import io.realm.examples.objectserver.advanced.ui.BaseViewModel
+import io.realm.examples.objectserver.activitytracker.model.entities.Booking
+import io.realm.examples.objectserver.activitytracker.model.entities.TimeSlot
+import io.realm.examples.objectserver.activitytracker.model.entities.TimeSlotId
+import io.realm.examples.objectserver.activitytracker.ui.BaseViewModel
 import io.realm.Case
 import io.realm.Realm
 import io.realm.RealmResults

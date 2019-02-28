@@ -6,11 +6,11 @@
 
         <variable
             name="item"
-            type="io.realm.examples.objectserver.advanced.model.entities.Booking" />
+            type="io.realm.examples.objectserver.activitytracker.model.entities.Booking" />
 
         <variable
             name="vm"
-            type="io.realm.examples.objectserver.advanced.ui.bookingslist.BookingsListViewModel" />
+            type="io.realm.examples.objectserver.activitytracker.ui.bookingslist.BookingsListViewModel" />
     </data>
 
     <androidx.cardview.widget.CardView

@@ -6,11 +6,11 @@
 
         <variable
             name="item"
-            type="io.realm.examples.objectserver.advanced.model.entities.Activity" />
+            type="io.realm.examples.objectserver.activitytracker.model.entities.Activity" />
 
         <variable
             name="vm"
-            type="io.realm.examples.objectserver.advanced.ui.activitylist.SelectActivityViewModel" />
+            type="io.realm.examples.objectserver.activitytracker.ui.activitylist.SelectActivityViewModel" />
     </data>
 
     <androidx.cardview.widget.CardView

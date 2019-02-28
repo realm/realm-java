@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.orderlist
+package io.realm.examples.objectserver.activitytracker.ui.orderlist
 
 import android.os.Bundle
 import android.view.Menu
@@ -24,14 +24,14 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.realm.examples.objectserver.advanced.ui.BaseActivity
-import io.realm.examples.objectserver.advanced.R
+import io.realm.examples.objectserver.activitytracker.ui.BaseActivity
+import io.realm.examples.objectserver.activitytracker.R
 
 
 class OrdersActivity : BaseActivity() {
 
     private lateinit var viewModel: OrdersViewModel
-    private lateinit var binding: io.realm.examples.objectserver.advanced.databinding.ActivityOrderListBinding
+    private lateinit var binding: io.realm.examples.objectserver.activitytracker.databinding.ActivityOrderListBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

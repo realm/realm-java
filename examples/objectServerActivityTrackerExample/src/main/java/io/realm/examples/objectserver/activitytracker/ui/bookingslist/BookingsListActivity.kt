@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.bookingslist
+package io.realm.examples.objectserver.activitytracker.ui.bookingslist
 
 import android.os.Bundle
 import android.text.Editable
@@ -24,10 +24,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.realm.examples.objectserver.advanced.R
-import io.realm.examples.objectserver.advanced.databinding.ActivityBookingsListBinding
-import io.realm.examples.objectserver.advanced.model.entities.TimeSlotId
-import io.realm.examples.objectserver.advanced.ui.BaseActivity
+import io.realm.examples.objectserver.activitytracker.R
+import io.realm.examples.objectserver.activitytracker.databinding.ActivityBookingsListBinding
+import io.realm.examples.objectserver.activitytracker.model.entities.TimeSlotId
+import io.realm.examples.objectserver.activitytracker.ui.BaseActivity
 import java.util.*
 
 

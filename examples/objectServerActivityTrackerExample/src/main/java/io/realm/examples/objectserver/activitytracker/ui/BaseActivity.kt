@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui
+package io.realm.examples.objectserver.activitytracker.ui
 
 import android.content.Intent
 import android.view.Menu
@@ -22,8 +22,8 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import io.realm.examples.objectserver.advanced.R
-import io.realm.examples.objectserver.advanced.ui.login.LoginActivity
+import io.realm.examples.objectserver.activitytracker.R
+import io.realm.examples.objectserver.activitytracker.ui.login.LoginActivity
 import io.realm.SyncUser
 
 open class BaseActivity: AppCompatActivity() {

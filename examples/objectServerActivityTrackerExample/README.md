@@ -10,7 +10,7 @@ It makes it possible for the person in charge of the activity to handle checkins
 
 ## Requirements
 
-Two Query-based Realms must exist on the server. These must be called:
+Two Query-based reference Realms must exist on the server. These must be called:
 
 * `/demo1`
 * `/demo2`
@@ -19,7 +19,7 @@ They can be created using an Admin user through Realm Studio.
 
 ## Build project
 
-1) Edit `io.realm.examples.objectserver.advanced.Constants` and set the proper URL to the Realm Sync server
+1) Edit `io.realm.examples.objectserver.activitytracker.Constants` and set the proper URL to the Realm Sync server
 2) Compile and install the app `./gradlew clean installDebug`
 
 ## Technical Details
@@ -33,7 +33,7 @@ The app is built using the following frameworks/libraries:
 * Realm Java
 
 For the UI parts the project uses package-by-feature instead of package-by-layer, so e.g. everything
-related to the Excursion selection screen should be in the `io.realm.examples.objectserver.advanced.ui.excursionlist`
+related to the Excursion selection screen should be in the `io.realm.examples.objectserver.activitytracker.ui.excursionlist`
 package.
 
 The project uses an MVVM architecture. All logic related to controlling the UI should be in the 

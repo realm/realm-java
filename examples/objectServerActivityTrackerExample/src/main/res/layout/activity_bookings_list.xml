@@ -7,7 +7,7 @@
 
         <variable
             name="viewModel"
-            type="io.realm.examples.objectserver.advanced.ui.bookingslist.BookingsListViewModel" />
+            type="io.realm.examples.objectserver.activitytracker.ui.bookingslist.BookingsListViewModel" />
     </data>
 
     <RelativeLayout
@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/button_action"
-            tools:context="io.realm.examples.objectserver.advanced.io.realm.examples.objectserver.advanced.ui.orderlist.OrdersActivity">
+            tools:context="io.realm.examples.objectserver.activitytracker.io.realm.examples.objectserver.activitytracker.ui.orderlist.OrdersActivity">
 
             <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"

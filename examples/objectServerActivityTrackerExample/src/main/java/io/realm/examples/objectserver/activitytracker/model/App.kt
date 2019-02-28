@@ -1,9 +1,9 @@
-package io.realm.examples.objectserver.advanced.model
+package io.realm.examples.objectserver.activitytracker.model
 
-import io.realm.examples.objectserver.advanced.Constants
-import io.realm.examples.objectserver.advanced.model.entities.Guest
-import io.realm.examples.objectserver.advanced.model.entities.Order
-import io.realm.examples.objectserver.advanced.model.entities.Activity
+import io.realm.examples.objectserver.activitytracker.Constants
+import io.realm.examples.objectserver.activitytracker.model.entities.Guest
+import io.realm.examples.objectserver.activitytracker.model.entities.Order
+import io.realm.examples.objectserver.activitytracker.model.entities.Activity
 import io.realm.RealmConfiguration
 import io.realm.SyncUser
 import io.realm.kotlin.where

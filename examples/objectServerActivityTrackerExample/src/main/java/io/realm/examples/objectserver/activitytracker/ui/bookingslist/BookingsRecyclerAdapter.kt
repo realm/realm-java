@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.bookingslist
+package io.realm.examples.objectserver.activitytracker.ui.bookingslist
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import io.realm.examples.objectserver.advanced.databinding.ItemBookingsListBinding
-import io.realm.examples.objectserver.advanced.model.entities.Booking
-import io.realm.examples.objectserver.advanced.ui.RealmRecyclerViewAdapter
+import io.realm.examples.objectserver.activitytracker.databinding.ItemBookingsListBinding
+import io.realm.examples.objectserver.activitytracker.model.entities.Booking
+import io.realm.examples.objectserver.activitytracker.ui.RealmRecyclerViewAdapter
 import io.realm.OrderedRealmCollection
 
 
 class BookingsRecyclerAdapter(private val viewModel: BookingsListViewModel, data: OrderedRealmCollection<Booking>)
-    : io.realm.examples.objectserver.advanced.ui.RealmRecyclerViewAdapter<Booking, BookingsRecyclerAdapter.MyViewHolder>(data, true) {
+    : io.realm.examples.objectserver.activitytracker.ui.RealmRecyclerViewAdapter<Booking, BookingsRecyclerAdapter.MyViewHolder>(data, true) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -40,7 +40,7 @@ class BookingsRecyclerAdapter(private val viewModel: BookingsListViewModel, data
     }
 
     // See https://medium.com/androiddevelopers/android-data-binding-recyclerview-db7c40d9f0e4
-    inner class MyViewHolder(private val binding: io.realm.examples.objectserver.advanced.databinding.ItemBookingsListBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class MyViewHolder(private val binding: io.realm.examples.objectserver.activitytracker.databinding.ItemBookingsListBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Booking) {
             binding.item = item
             binding.vm = viewModel

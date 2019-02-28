@@ -7,13 +7,13 @@
 
         <variable
             name="viewModel"
-            type="io.realm.examples.objectserver.advanced.ui.activitylist.SelectActivityViewModel" />
+            type="io.realm.examples.objectserver.activitytracker.ui.activitylist.SelectActivityViewModel" />
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="io.realm.examples.objectserver.advanced.io.realm.examples.objectserver.advanced.ui.orderlist.OrdersActivity">
+        tools:context="io.realm.examples.objectserver.activitytracker.io.realm.examples.objectserver.activitytracker.ui.orderlist.OrdersActivity">
 
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"

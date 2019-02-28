@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.activitylist
+package io.realm.examples.objectserver.activitytracker.ui.activitylist
 
 import androidx.lifecycle.LiveData
-import io.realm.examples.objectserver.advanced.model.App
-import io.realm.examples.objectserver.advanced.model.entities.*
-import io.realm.examples.objectserver.advanced.ui.BaseViewModel
+import io.realm.examples.objectserver.activitytracker.model.App
+import io.realm.examples.objectserver.activitytracker.model.entities.*
+import io.realm.examples.objectserver.activitytracker.ui.BaseViewModel
 import io.realm.Realm
 import io.realm.RealmList
 import io.realm.RealmResults
@@ -33,7 +33,7 @@ class SelectActivityViewModel: BaseViewModel() {
         ExcursionDetails,
         Orders
     }
-    private val navigationTarget = io.realm.examples.objectserver.advanced.ui.SingleLiveEvent<Pair<NavigationTarget, ActivityId>>()
+    private val navigationTarget = io.realm.examples.objectserver.activitytracker.ui.SingleLiveEvent<Pair<NavigationTarget, ActivityId>>()
 
     /**
      * Returns the list of all available activities for the day

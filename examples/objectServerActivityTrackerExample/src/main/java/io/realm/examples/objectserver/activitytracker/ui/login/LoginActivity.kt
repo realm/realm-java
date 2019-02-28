@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.login
+package io.realm.examples.objectserver.activitytracker.ui.login
 
 import android.app.ProgressDialog
 import android.content.Intent
@@ -24,11 +24,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.databinding.DataBindingUtil
-import io.realm.examples.objectserver.advanced.Constants
-import io.realm.examples.objectserver.advanced.R
-import io.realm.examples.objectserver.advanced.databinding.ActivityLoginBinding
-import io.realm.examples.objectserver.advanced.model.App
-import io.realm.examples.objectserver.advanced.ui.activitylist.SelectActivityActivity
+import io.realm.examples.objectserver.activitytracker.Constants
+import io.realm.examples.objectserver.activitytracker.R
+import io.realm.examples.objectserver.activitytracker.databinding.ActivityLoginBinding
+import io.realm.examples.objectserver.activitytracker.model.App
+import io.realm.examples.objectserver.activitytracker.ui.activitylist.SelectActivityActivity
 import io.realm.ErrorCode
 import io.realm.ObjectServerError
 import io.realm.SyncCredentials

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.activitylist
+package io.realm.examples.objectserver.activitytracker.ui.activitylist
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import io.realm.examples.objectserver.advanced.databinding.ItemExcursionListBinding
-import io.realm.examples.objectserver.advanced.model.entities.Activity
+import io.realm.examples.objectserver.activitytracker.databinding.ItemExcursionListBinding
+import io.realm.examples.objectserver.activitytracker.model.entities.Activity
 import io.realm.OrderedRealmCollection
 
 
 class ActivityRecyclerAdapter(private val viewModel: SelectActivityViewModel, data: OrderedRealmCollection<Activity>)
-    : io.realm.examples.objectserver.advanced.ui.RealmRecyclerViewAdapter<Activity, ActivityRecyclerAdapter.MyViewHolder>(data, true) {
+    : io.realm.examples.objectserver.activitytracker.ui.RealmRecyclerViewAdapter<Activity, ActivityRecyclerAdapter.MyViewHolder>(data, true) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)

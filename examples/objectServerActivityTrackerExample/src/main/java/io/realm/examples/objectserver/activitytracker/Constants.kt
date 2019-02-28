@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced
+package io.realm.examples.objectserver.activitytracker
 
 internal object Constants {
     /**

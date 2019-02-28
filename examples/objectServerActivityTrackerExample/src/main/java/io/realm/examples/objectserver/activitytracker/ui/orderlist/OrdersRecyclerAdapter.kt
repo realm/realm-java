@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.orderlist
+package io.realm.examples.objectserver.activitytracker.ui.orderlist
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import io.realm.examples.objectserver.advanced.databinding.ItemOrderListBinding
-import io.realm.examples.objectserver.advanced.model.entities.Order
+import io.realm.examples.objectserver.activitytracker.databinding.ItemOrderListBinding
+import io.realm.examples.objectserver.activitytracker.model.entities.Order
 
 
 class OrdersRecyclerAdapter(private val viewModel: OrdersViewModel): RecyclerView.Adapter<OrdersRecyclerAdapter.MyViewHolder>() {

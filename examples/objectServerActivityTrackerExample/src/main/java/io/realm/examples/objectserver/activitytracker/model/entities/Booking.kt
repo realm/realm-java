@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.model.entities
+package io.realm.examples.objectserver.activitytracker.model.entities
 
 import io.realm.RealmObject
 import io.realm.RealmResults

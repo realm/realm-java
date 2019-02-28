@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui.orderlist
+package io.realm.examples.objectserver.activitytracker.ui.orderlist
 
 import android.os.HandlerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.LiveDataReactiveStreams
 import androidx.recyclerview.widget.DiffUtil
-import io.realm.examples.objectserver.advanced.model.App
-import io.realm.examples.objectserver.advanced.model.entities.Order
-import io.realm.examples.objectserver.advanced.ui.BaseViewModel
-import io.realm.examples.objectserver.advanced.ui.shared.createObservableForRealm
+import io.realm.examples.objectserver.activitytracker.model.App
+import io.realm.examples.objectserver.activitytracker.model.entities.Order
+import io.realm.examples.objectserver.activitytracker.ui.BaseViewModel
+import io.realm.examples.objectserver.activitytracker.ui.shared.createObservableForRealm
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers

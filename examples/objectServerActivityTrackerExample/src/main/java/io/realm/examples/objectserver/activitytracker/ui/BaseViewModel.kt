@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver.advanced.ui
+package io.realm.examples.objectserver.activitytracker.ui
 
 import androidx.lifecycle.ViewModel
-import io.realm.examples.objectserver.advanced.model.App
+import io.realm.examples.objectserver.activitytracker.model.App
 import io.realm.Realm
 
 /**

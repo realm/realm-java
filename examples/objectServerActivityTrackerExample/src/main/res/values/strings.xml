@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Activity Checkin Demo</string>
+    <string name="app_name">Activity Tracker Demo</string>
     <string name="action_settings">Logout</string>
     <string name="title_checkin">Checkin</string>
     <string name="title_select_activities">Activities</string>

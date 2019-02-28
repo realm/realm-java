@@ -21,7 +21,7 @@ android {
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
-        applicationId 'io.realm.examples.objectserver.advanced'
+        applicationId 'io.realm.examples.objectserver.activitytracker'
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion rootProject.minSdkVersion
         versionCode 1
