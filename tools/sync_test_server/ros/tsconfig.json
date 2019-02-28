@@ -17,7 +17,6 @@
         "es6",
         "dom.iterable",
         "scripthost",
-        "esnext",
         "esnext.asynciterable"
       ]
     },
