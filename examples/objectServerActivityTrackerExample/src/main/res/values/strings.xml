@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Activity Tracker Demo</string>
+    <string name="action_settings">Logout</string>
+    <string name="title_checkin">Checkin</string>
+    <string name="title_select_activities">Activities</string>
+
+    <!-- Strings related to login -->
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login_error_unknown_account">Account does not exist.</string>
+    <string name="login_error_invalid_credentials">User name and password do not match.</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="action_create_demo_data">Create demo data</string>
+
+    <!-- Other strings -->
+    <string name="project_description">Project description</string>
+    <string name="checkin_remaining">Remaining</string>
+    <string name="checkin_checkedin">Checked-in</string>
+    <string name="checkin_spots_available">Spots Available</string>
+    <string name="create_account">Create account and login</string>
+    <string name="login">Login</string>
+    <string name="action_goto_orders">Show Orders</string>
+    <string name="title_orders">Orders</string>
+    <string name="action_create_order">Create Order</string>
+
+</resources>

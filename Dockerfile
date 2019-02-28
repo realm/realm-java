@@ -46,16 +46,23 @@ RUN cd /opt && \
     rm -f android-tools-linux.zip
 
 # Grab what's needed in the SDK
-RUN mkdir "${ANDROID_HOME}/licenses" && \
-    echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "${ANDROID_HOME}/licenses/android-sdk-license"
 RUN sdkmanager --update
-# Accept all licenses
-RUN yes y | sdkmanager --licenses
-RUN sdkmanager 'platform-tools'
-RUN sdkmanager 'build-tools;28.0.3'
-RUN sdkmanager 'extras;android;m2repository'
-RUN sdkmanager 'platforms;android-27'
-RUN sdkmanager 'cmake;3.6.4111459'
+
+# Accept licenses before installing components, no need to echo y for each component
+# License is valid for all the standard components in versions installed from this file
+# Non-standard components: MIPS system images, preview versions, GDK (Google Glass) and Android Google TV require separate licenses, not accepted there
+RUN yes | sdkmanager --licenses
+
+# SDKs
+# Please keep these in descending order!
+# The `yes` is for accepting all non-standard tool licenses.
+# Please keep all sections in descending order!
+RUN yes | sdkmanager \
+    'platform-tools' \
+    'build-tools;28.0.3' \
+    'extras;android;m2repository' \
+    'platforms;android-27' \
+    'cmake;3.6.4111459'
 
 # Install the NDK
 RUN mkdir /opt/android-ndk-tmp && \

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+            name="item"
+            type="io.realm.examples.objectserver.activitytracker.model.entities.Booking" />
+
+        <variable
+            name="vm"
+            type="io.realm.examples.objectserver.activitytracker.ui.bookingslist.BookingsListViewModel" />
+    </data>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:onClick="@{() -> vm.toggleSelected(item)}"
+        card_view:cardBackgroundColor="@{item.selected ? @color/colorPrimaryVeryLight : @color/white}"
+        card_view:cardCornerRadius="8dp">
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:ellipsize="end"
+            android:minHeight="48dp"
+            android:padding="16dp"
+            android:text="@{item.guest.name}"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </androidx.cardview.widget.CardView>
+</layout>

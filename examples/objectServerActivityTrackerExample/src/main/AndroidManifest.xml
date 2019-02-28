@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.realm.examples.objectserver.activitytracker">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:name="io.realm.examples.objectserver.activitytracker.MyApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".ui.login.LoginActivity"
+            android:label="@string/app_name"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.checkin.CheckinActivity"
+            android:label="@string/title_checkin" />
+        <activity
+            android:name=".ui.activitylist.SelectActivityActivity"
+            android:label="@string/title_select_activities" />
+        <activity
+            android:name=".ui.orderlist.OrdersActivity"
+            android:label="@string/title_orders" />
+        <activity android:name=".ui.bookingslist.BookingsListActivity" />
+    </application>
+
+</manifest>
