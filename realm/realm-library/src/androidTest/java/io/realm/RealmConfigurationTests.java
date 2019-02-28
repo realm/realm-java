@@ -30,6 +30,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Set;
 
 import io.reactivex.Flowable;
@@ -611,7 +612,7 @@ public class RealmConfigurationTests {
 
         // Generates a different key and assigns it to the same variable.
         byte[] newKey = TestHelper.getRandomKey(67890);
-        assertArrayEquals(key, newKey);
+        assertFalse(Arrays.equals(key, newKey));
         key = newKey;
         assertArrayEquals(key, newKey);
 
