@@ -1,0 +1,31 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="io.realm.todo.ItemsTActivity">
+    <item
+        android:id="@+id/action_logout"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_create_demo_data"
+        android:orderInCategory="200"
+        android:title="@string/action_create_demo_data"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_goto_orders"
+        android:orderInCategory="300"
+        android:title="@string/action_goto_orders"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_create_order"
+        android:orderInCategory="400"
+        android:title="@string/action_create_order"
+        android:visible="false"
+        app:showAsAction="always" />
+</menu>

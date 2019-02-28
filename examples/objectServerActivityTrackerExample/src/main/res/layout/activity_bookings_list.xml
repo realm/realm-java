@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="io.realm.examples.objectserver.advanced.ui.bookingslist.BookingsListViewModel" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_action"
+            android:layout_width="match_parent"
+            android:layout_height="96dp"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom"
+            android:layout_margin="16dp"
+            android:onClick="@{() -> viewModel.actionSelected()}"
+            android:theme="@style/AppTheme.Button" />
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/button_action"
+            tools:context="io.realm.examples.objectserver.advanced.io.realm.examples.objectserver.advanced.ui.orderlist.OrdersActivity">
+
+            <com.google.android.material.appbar.AppBarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/AppTheme.AppBarOverlay">
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="?attr/colorPrimary"
+                    app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/text_search"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:background="@color/white"
+                    android:hint="Search for guests"
+                    android:padding="8dp"
+                    android:textColor="@color/PrimaryTextColor"
+                    android:textColorHint="@color/PrimaryTextColorLight" />
+
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <include layout="@layout/list" />
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </RelativeLayout>
+</layout>
+

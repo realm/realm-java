@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/text1"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:background="@color/white"
+    android:ellipsize="marquee"
+    android:gravity="center"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:singleLine="true"
+    android:textAppearance="?android:attr/textAppearanceLargePopupMenu"
+    android:textColor="@color/PrimaryTextColor"
+    android:textSize="20sp"
+    android:textStyle="bold" />
