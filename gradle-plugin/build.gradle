@@ -18,7 +18,6 @@ apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'com.jfrog.bintray'
 
 def props = new Properties()
-props.load(new FileInputStream("${rootDir}/../realm.properties"))
 props.load(new FileInputStream("${rootDir}/../dependencies.list"))
 props.each { key, val ->
     project.ext.set(key, val)
@@ -83,11 +82,6 @@ sourceSets {
 }
 
 compileJava.dependsOn generateVersionClass
-
-task wrapper(type: Wrapper) {
-    gradleVersion = project.gradleVersion
-    distributionType = 'all'
-}
 
 def commonPom = {
     licenses {

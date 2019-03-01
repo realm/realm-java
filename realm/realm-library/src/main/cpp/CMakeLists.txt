@@ -17,6 +17,13 @@
 ###########################################################################
 cmake_minimum_required(VERSION 3.6.0)
 
+FUNCTION(capitalizeFirstLetter var value)
+    string(SUBSTRING ${value} 0 1 firstLetter)
+    string(TOUPPER ${firstLetter} firstLetter)
+    string(REGEX REPLACE "^.(.*)" "${firstLetter}\\1" value "${value}")
+    set(${var} "${value}" PARENT_SCOPE)
+ENDFUNCTION(capitalizeFirstLetter)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 # find javah
@@ -52,9 +59,17 @@ else()
     set(build_SYNC ON)
 endif()
 
-# Generate JNI header files. Each build has its own JNI header in its build_dir/jni_include.
+# Format strings used to represent build parameters: Variant and Type
 string(TOLOWER ${CMAKE_BUILD_TYPE} build_type_FOLDER)
-set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/${REALM_FLAVOR}/${build_type_FOLDER}/)
+set(realmFlavorCap "")
+set(buildTypeCap "")
+capitalizeFirstLetter(realmFlavorCap "${REALM_FLAVOR}")
+capitalizeFirstLetter(buildTypeCap "${CMAKE_BUILD_TYPE}")
+
+# Generate JNI header files. Each build has its own JNI header in its build_dir/jni_include.
+# WARNING: The classes_PATH is not part the public API offered by the Android Gradle Plugin
+# so it might change without warning when upgrading the plugin.
+set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/javac/${REALM_FLAVOR}${buildTypeCap}/compile${realmFlavorCap}${buildTypeCap}JavaWithJavac/classes/)
 set(classes_LIST
     io.realm.RealmQuery
     io.realm.internal.Table io.realm.internal.CheckedRow

@@ -29,7 +29,15 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.test.AndroidTestCase;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -38,6 +46,10 @@ import java.util.concurrent.TimeUnit;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesModelModule;
 import io.realm.services.RemoteProcessService;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
 // This is built for testing multi processes related cases.
@@ -52,7 +64,9 @@ import io.realm.services.RemoteProcessService;
 //      1. Open two Realms
 //      B. Open three Realms
 //      2. assertTrue("OK, remote process win. You can open more Realms than I do in the main local process", false);
-public class RealmInterprocessTest extends AndroidTestCase {
+@Ignore // FIXME Needs to be upgraded to support JUnit4: https://github.com/realm/realm-java/issues/6452
+@RunWith(AndroidJUnit4.class)
+public class RealmInterprocessTest {
 
     private Realm testRealm;
     private Messenger remoteMessenger;
@@ -81,31 +95,31 @@ public class RealmInterprocessTest extends AndroidTestCase {
     // By overloading this method, we create a new thread and looper to run the real case. And use latch to wait until
     // it is finished. Then we can get rid of creating the thread in the test method, using array to store exception, many
     // levels of nested code. Make the test case more nature.
-    @Override
-    public void runBare() throws Throwable {
-        final Throwable[] throwableArray = new Throwable[1];
-        final CountDownLatch latch = new CountDownLatch(1);
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Looper.prepare();
-                try {
-                    RealmInterprocessTest.super.runBare();
-                } catch (Throwable throwable) {
-                    throwableArray[0] = throwable;
-                } finally {
-                    latch.countDown();
-                }
-            }
-        });
-
-        thread.start();
-        TestHelper.awaitOrFail(latch);
-
-        if (throwableArray[0] != null) {
-            throw throwableArray[0];
-        }
-    }
+//    @Override
+//    public void runBare() throws Throwable {
+//        final Throwable[] throwableArray = new Throwable[1];
+//        final CountDownLatch latch = new CountDownLatch(1);
+//        Thread thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                Looper.prepare();
+//                try {
+//                    RealmInterprocessTest.super.runBare();
+//                } catch (Throwable throwable) {
+//                    throwableArray[0] = throwable;
+//                } finally {
+//                    latch.countDown();
+//                }
+//            }
+//        });
+//
+//        thread.start();
+//        TestHelper.awaitOrFail(latch);
+//
+//        if (throwableArray[0] != null) {
+//            throw throwableArray[0];
+//        }
+//    }
 
     // Helper handler to make it easy to interact with remote service process.
     @SuppressLint("HandlerLeak") // SuppressLint bug, doesn't work
@@ -154,9 +168,8 @@ public class RealmInterprocessTest extends AndroidTestCase {
         }
     }
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         Realm.deleteRealm(getConfiguration());
 
         // Starts the testing service.
@@ -170,8 +183,8 @@ public class RealmInterprocessTest extends AndroidTestCase {
         return new RealmConfiguration.Builder(getContext()).modules(new AllTypesModelModule()).build();
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         int counter = 10;
         if (testRealm != null) {
             testRealm.close();
@@ -192,7 +205,6 @@ public class RealmInterprocessTest extends AndroidTestCase {
             Thread.sleep(300);
             counter--;
         }
-        super.tearDown();
     }
 
     // Calls this to trigger the next step of service process.
@@ -221,6 +233,10 @@ public class RealmInterprocessTest extends AndroidTestCase {
         return null;
     }
 
+    private Context getContext() {
+        return InstrumentationRegistry.getTargetContext();
+    }
+
     // Gets the remote process info if it is alive.
     private ActivityManager.RunningAppProcessInfo getRemoteProcessInfo() {
         ActivityManager manager = (ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
@@ -236,7 +252,9 @@ public class RealmInterprocessTest extends AndroidTestCase {
 
     // A. Opens a realm, closes it, then calls Runtime.getRuntime().exit(0).
     // 1. Waits 3 seconds to see if the service process existed.
-    public void testExitProcess() {
+    @Test
+    @UiThreadTest
+    public void exitProcess() {
         new InterprocessHandler(new Runnable() {
             @Override
             public void run() {
@@ -281,7 +299,9 @@ public class RealmInterprocessTest extends AndroidTestCase {
 
     // 1. Main process creates Realm, write one object.
     // A. Service process opens Realm, check if there is one and only one object.
-    public void testCreateInitialRealm() throws InterruptedException {
+    @Test
+    @UiThreadTest
+    public void createInitialRealm() throws InterruptedException {
         new InterprocessHandler(new Runnable() {
             @Override
             public void run() {
