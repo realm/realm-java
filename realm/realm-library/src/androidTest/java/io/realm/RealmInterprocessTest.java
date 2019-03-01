@@ -64,7 +64,7 @@ import static org.junit.Assert.fail;
 //      1. Open two Realms
 //      B. Open three Realms
 //      2. assertTrue("OK, remote process win. You can open more Realms than I do in the main local process", false);
-@Ignore // FIXME Needs to be upgraded to support JUnit4
+@Ignore // FIXME Needs to be upgraded to support JUnit4: https://github.com/realm/realm-java/issues/6452
 @RunWith(AndroidJUnit4.class)
 public class RealmInterprocessTest {
 
