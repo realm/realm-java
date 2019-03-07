@@ -15,6 +15,7 @@
  */
 package io.realm;
 
+import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -23,6 +24,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.rule.RunInLooperThread;
@@ -83,12 +88,19 @@ public class SyncedRealmQueryTests {
         realm = getPartialRealm();
         realm.beginTransaction();
         RealmQuery<AllTypes> query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, "foo");
+        Date now = new Date();
+        SystemClock.sleep(2);
         Subscription sub = query.subscribe();
         assertTrue(sub.getName().startsWith("[AllTypes] "));
         assertEquals(Subscription.State.PENDING, sub.getState());
         assertEquals("", sub.getErrorMessage());
         assertEquals(query.getDescription(), sub.getQueryDescription());
         assertEquals("AllTypes", sub.getQueryClassName());
+        assertTrue(now.getTime() < sub.getCreatedAt().getTime());
+        assertTrue(now.getTime() < sub.getUpdatedAt().getTime());
+        assertTrue(sub.getCreatedAt().getTime() == sub.getUpdatedAt().getTime());
+        assertEquals(Long.MAX_VALUE, sub.getTimeToLive());
+        assertEquals(new Date(Long.MAX_VALUE), sub.getExpiresAt());
     }
 
     @Test
@@ -102,6 +114,54 @@ public class SyncedRealmQueryTests {
         assertEquals("", sub.getErrorMessage());
         assertEquals(query.getDescription(), sub.getQueryDescription());
         assertEquals("AllTypes", sub.getQueryClassName());
+    }
+
+    @Test
+    public void subscribe_withTimeToLive() {
+        realm = getPartialRealm();
+        realm.beginTransaction();
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, "foo");
+        Date now = new Date();
+        SystemClock.sleep(2);
+        Subscription sub = query.subscribe("sub2", 0, TimeUnit.MILLISECONDS);
+        assertTrue(now.getTime() < sub.getCreatedAt().getTime());
+        assertEquals(sub.getCreatedAt(), sub.getUpdatedAt());
+        assertEquals(sub.getUpdatedAt(), sub.getExpiresAt());
+        assertEquals(0, sub.getTimeToLive());
+    }
+
+    @Test
+    public void subscription_setQuery() {
+        realm = getPartialRealm();
+        realm.beginTransaction();
+        RealmQuery<AllTypes> query1 = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, "foo");
+        Date now = new Date();
+        SystemClock.sleep(2);
+        Subscription sub = query1.subscribe("sub3");
+        RealmQuery<AllTypes> query2 = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_BOOLEAN, false);
+        assertEquals("AllTypes", sub.getQueryClassName());
+        assertTrue(now.getTime() < sub.getUpdatedAt().getTime());
+        Date query1Updated = sub.getUpdatedAt();
+        SystemClock.sleep(2);
+        sub.setQuery(query2);
+        assertEquals(query2.getDescription(), sub.getQueryDescription());
+        assertEquals("AllTypes", sub.getQueryClassName());
+        assertTrue(query1Updated.getTime() < sub.getUpdatedAt().getTime());
+    }
+
+    @Test
+    public void subscription_setQuery_wrongTypeThrows() {
+        realm = getPartialRealm();
+        realm.beginTransaction();
+        RealmQuery<AllTypes> query1 = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, "foo");
+        Subscription sub = query1.subscribe("sub4");
+        RealmQuery<AllJavaTypes> query2 = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_BOOLEAN, false);
+        try {
+            sub.setQuery(query2);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("It is only allowed to replace a query"));
+        }
     }
 
     @Test
@@ -177,4 +237,5 @@ public class SyncedRealmQueryTests {
         } catch (IllegalStateException ignore) {
         }
     }
+
 }

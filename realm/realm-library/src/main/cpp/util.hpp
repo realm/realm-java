@@ -510,6 +510,8 @@ inline jlong to_milliseconds(const realm::Timestamp& ts)
         return static_cast<jlong>(MIN_JLONG);
     } else if (seconds > 0 && sec_max_limit < seconds) {
         return static_cast<jlong>(MAX_JLONG);
+    } else {
+        result_ms = seconds * 1000; // Here it is safe to convert to milliseconds
     }
 
     // Convert nanoseconds to milliseconds and add to final result.

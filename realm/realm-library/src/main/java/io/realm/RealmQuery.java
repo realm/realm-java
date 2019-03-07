@@ -22,6 +22,7 @@ import android.text.TextUtils;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
@@ -144,7 +145,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO implement this
+            // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
             this.osList = null;
@@ -163,7 +164,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO implement this
+            // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
             this.osList = null;
@@ -182,7 +183,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO implement this
+            // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
             this.osList = null;
@@ -1831,7 +1832,39 @@ public class RealmQuery<E> {
      * @see io.realm.RealmResults
      * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm.
      */
+    @ObjectServer
     public RealmResults<E> findAllAsync(String subscriptionName) {
+        return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
+    }
+
+    /**
+     * FIXME
+     *
+     * @param subscriptionName
+     * @param update
+     * @return
+     */
+    @ObjectServer
+    public RealmResults<E> findAllAsync(String subscriptionName, boolean update) {
+        return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, update);
+    }
+
+    @ObjectServer
+    private RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit) {
+        return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
+    }
+
+    /**
+     * FIXME
+     *
+     * @param subscriptionName
+     * @param timeToLive
+     * @param timeUnit
+     * @param update
+     * @return
+     */
+    @ObjectServer
+    public RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit, boolean update) {
         realm.checkIfValid();
         realm.checkIfPartialRealm();
         if (osList != null) {
@@ -1840,10 +1873,12 @@ public class RealmQuery<E> {
         if (Util.isEmptyString(subscriptionName)) {
             throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
         }
-
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, queryDescriptors, false, SubscriptionAction.create(subscriptionName));
+        long timeToLiveMs = timeUnit.toMillis(timeToLive);
+        SubscriptionAction action = (update) ? SubscriptionAction.update(subscriptionName, timeToLiveMs) : SubscriptionAction.create(subscriptionName, timeToLiveMs);
+        return createRealmResults(query, queryDescriptors, false, action);
     }
+
 
     /**
      * Sorts the query result by the specific field name in ascending order.
@@ -2048,6 +2083,45 @@ public class RealmQuery<E> {
     @ObjectServer
     @Beta
     public Subscription subscribe(String name) {
+        return subscribe(name, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
+    }
+
+    /**
+     * FIXME
+     * @param name
+     * @param update
+     * @return
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribe(String name, boolean update) {
+        return subscribe(name, Long.MAX_VALUE, TimeUnit.MILLISECONDS, update);
+    }
+
+    /**
+     * FIXME
+     * @param name
+     * @param timeToLive
+     * @param timeUnit
+     * @return
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribe(String name, long timeToLive, TimeUnit timeUnit) {
+        return subscribe(name, timeToLive, timeUnit, false);
+    }
+
+    /**
+     * FIXME
+     * @param name
+     * @param timeToLive
+     * @param timeUnit
+     * @param update
+     * @return
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribe(String name, long timeToLive, TimeUnit timeUnit, boolean update) {
         realm.checkIfValid();
         if (realm instanceof DynamicRealm) {
             throw new IllegalStateException("'subscribe' is not supported for queries on Dynamic Realms.");
@@ -2058,10 +2132,20 @@ public class RealmQuery<E> {
         if (TextUtils.isEmpty(name)) {
             throw new IllegalArgumentException("Non-empty 'name' required.");
         }
-        long rowIndex = nativeSubscribe(realm.getSharedRealm().getNativePtr(), name, query.getNativePtr(), queryDescriptors.getNativePtr());
+        //noinspection ConstantConditions
+        if (timeUnit == null) {
+            throw new IllegalArgumentException("Non-null 'timeUnit' is required.");
+        }
+
+        // Convert timestamp to milliseconds and clamp at max
+        long timeToLiveMs = TimeUnit.MILLISECONDS.convert(timeToLive, timeUnit);
+
+        long rowIndex = nativeSubscribe(realm.getSharedRealm().getNativePtr(), name, query.getNativePtr(),
+                queryDescriptors.getNativePtr(), timeToLiveMs, update);
         CheckedRow row = ((Realm) realm).getTable(Subscription.class).getCheckedRow(rowIndex);
         return realm.get(Subscription.class, null, row);
     }
+
 
     /**
      * Returns a textual description of this query.
@@ -2070,6 +2154,16 @@ public class RealmQuery<E> {
      */
     public String getDescription() {
         return nativeSerializeQuery(query.getNativePtr(), queryDescriptors.getNativePtr());
+    }
+
+    /**
+     * Returns the internal Realm name of the type being queried.
+     *
+     * @return the internal name of the Realm model class being queried.
+     */
+    public String getTypeQueried() {
+        // TODO Revisit this when primitve list queries are implemented.
+        return table.getClassName();
     }
 
     private boolean isDynamicQuery() {
@@ -2192,6 +2286,7 @@ public class RealmQuery<E> {
     }
 
     private static native String nativeSerializeQuery(long tableQueryPtr, long descriptorPtr);
-    private static native long nativeSubscribe(long sharedRealmPtr, String name, long tableQueryPtr, long descriptorPtr);
+    private static native long nativeSubscribe(long sharedRealmPtr, String name, long tableQueryPtr,
+                                               long descriptorPtr, long timeToLiveMs, boolean update);
 
 }
