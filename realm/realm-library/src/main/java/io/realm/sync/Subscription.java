@@ -234,9 +234,10 @@ public class Subscription extends RealmObject {
     }
 
     /**
-     * Returns for how long the subscription must be kept alive after last being used.
+     * Returns for how long the subscription must be kept alive after last being used. The value
+     * returned are in milliseconds.
      *
-     * @return for how long the subscription must be kept alive after last being used.
+     * @return in milliseconds, for how long the subscription must be kept alive after last being used.
      */
     public long getTimeToLive() {
         return (timeToLive != null) ? timeToLive : Long.MAX_VALUE;
