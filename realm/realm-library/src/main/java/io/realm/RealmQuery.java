@@ -2070,10 +2070,11 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Creates an anonymous subscription from this query or returns the existing Subscription if
-     * one already existed.
+     * Creates an named subscription from this query or returns the existing Subscription if
+     * one already existed. Subscriptions created this way will live forever or until the
+     * subscription is manually deleted.
      *
-     * @return the name of the query.
+     * @return the name of the subscription representing this query.
      * @return the subscription representing this query.
      * @throws IllegalStateException if this method is not called inside a write transaction, if
      * the query is on a {@link DynamicRealm} or a {@link RealmList}.
@@ -2087,23 +2088,25 @@ public class RealmQuery<E> {
     }
 
     /**
-     * FIXME
-     * @param name
-     * @param update
-     * @return
-     */
-    @ObjectServer
-    @Beta
-    public Subscription subscribe(String name, boolean update) {
-        return subscribe(name, Long.MAX_VALUE, TimeUnit.MILLISECONDS, update);
-    }
-
-    /**
-     * FIXME
-     * @param name
-     * @param timeToLive
-     * @param timeUnit
-     * @return
+     * Creates an named subscription from this query or returns the existing Subscription if
+     * one already existed.
+     * <p>
+     * {@code timeToLive} indicates for how long Realm must keep the subscription alive after last
+     * being used. After this period expires Realm are allowed to delete the subscription.
+     * This happens automatically. The period is reset, whenever someone resubscribes or updates
+     * the subscription itself.
+     * </p>
+     * When a subscription is deleted, the data covered by the subscription is removed from the
+     * device, but not the server.
+     *
+     * @param name the name subscription representing this query.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
+     * @throws IllegalArgumentException if a subscription for a different query with the same name
+     * already exists.
      */
     @ObjectServer
     @Beta
@@ -2112,16 +2115,60 @@ public class RealmQuery<E> {
     }
 
     /**
-     * FIXME
-     * @param name
-     * @param timeToLive
-     * @param timeUnit
-     * @param update
-     * @return
+     * Creates an named subscription from this query or returns the existing Subscription if
+     * one already existed. If an existing subscription already exists and the existing query
+     * is different, it will be replaced by this query.
+     * <p>
+     * It is only allowed to update a subscription that queries for objects of the same type. If
+     * the existing subscription queries for objects of a different type, an {@link IllegalArgumentException}
+     * is thrown.
+     *
+     * @param name the name of the subscription.
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
+     * @throws IllegalArgumentException if this query are for other objects than those already being
+     * returned by an existing subscription.
      */
     @ObjectServer
     @Beta
-    public Subscription subscribe(String name, long timeToLive, TimeUnit timeUnit, boolean update) {
+    public Subscription subscribeOrUpdate(String name) {
+        return subscribe(name, Long.MAX_VALUE, TimeUnit.MILLISECONDS, true);
+    }
+
+    /**
+     * Creates an named subscription from this query or returns the existing Subscription if
+     * one already existed. If an existing subscription already exists and the existing query
+     * is different, it will be replaced by this query.
+     * <p>
+     * It is only allowed to update a subscription that queries for objects of the same type. If
+     * the existing subscription queries for objects of a different type, an {@link IllegalArgumentException}
+     * is thrown.
+     * <p>
+     * {@code timeToLive} indicates for how long Realm must keep the subscription alive after last
+     * being used. After this period expires Realm are allowed to delete the subscription.
+     * This happens automatically. The period is reset, whenever someone resubscribes or updates
+     * the subscription itself.
+     * </p>
+     * When a subscription is deleted, the data covered by the subscription is removed from the
+     * device, but not the server.
+     *
+     * @param name the name of the subscription.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
+     * @throws IllegalArgumentException if this query are for other objects than those already being
+     * returned by an existing subscription.
+     */
+    public Subscription subscribeOrUpdate(String name, long timeToLive, TimeUnit timeUnit) {
+        return subscribe(name, timeToLive, timeUnit, true);
+    }
+
+
+    @ObjectServer
+    private Subscription subscribe(String name, long timeToLive, TimeUnit timeUnit, boolean update) {
         realm.checkIfValid();
         if (realm instanceof DynamicRealm) {
             throw new IllegalStateException("'subscribe' is not supported for queries on Dynamic Realms.");
