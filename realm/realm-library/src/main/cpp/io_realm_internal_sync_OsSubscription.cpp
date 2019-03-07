@@ -39,14 +39,14 @@ static void finalize_subscription(jlong ptr)
     delete reinterpret_cast<SubscriptionWrapper*>(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_sync_OsSubscription_nativeCreate(JNIEnv* env, jclass, jlong results_ptr, jstring j_subscription_name)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_sync_OsSubscription_nativeCreateOrUpdate(JNIEnv* env, jclass, jlong results_ptr, jstring j_subscription_name, jlong time_to_live, jboolean update)
 {
     TR_ENTER()
     try {
         const auto results = reinterpret_cast<ResultsWrapper*>(results_ptr);
         JStringAccessor subscription_name(env, j_subscription_name);
         auto key = subscription_name.is_null_or_empty() ? util::none : util::Optional<std::string>(subscription_name);
-        auto subscription = partial_sync::subscribe(results->collection(), key);
+        auto subscription = partial_sync::subscribe(results->collection(), key, util::Optional<int64_t>(time_to_live), update);
         auto wrapper = new SubscriptionWrapper(std::move(subscription));
         return reinterpret_cast<jlong>(wrapper);
     }

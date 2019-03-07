@@ -1845,11 +1845,13 @@ public class RealmQuery<E> {
      * @return
      */
     @ObjectServer
+    @Beta
     public RealmResults<E> findAllAsync(String subscriptionName, boolean update) {
         return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, update);
     }
 
     @ObjectServer
+    @Beta
     private RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit) {
         return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
     }
@@ -1864,6 +1866,7 @@ public class RealmQuery<E> {
      * @return
      */
     @ObjectServer
+    @Beta
     public RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit, boolean update) {
         realm.checkIfValid();
         realm.checkIfPartialRealm();
@@ -2298,7 +2301,7 @@ public class RealmQuery<E> {
         RealmResults<E> results;
         OsResults osResults;
         if (subscriptionAction.shouldCreateSubscriptions()) {
-            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors, subscriptionAction.getName());
+            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors, subscriptionAction);
         } else {
             osResults = OsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors);
         }

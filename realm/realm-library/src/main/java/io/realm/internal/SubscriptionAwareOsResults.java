@@ -19,6 +19,7 @@ package io.realm.internal;
 import io.realm.RealmChangeListener;
 import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.sync.OsSubscription;
+import io.realm.internal.sync.SubscriptionAction;
 
 /**
  * Wrapper around Object Stores Results class that is capable of combining partial sync Subscription
@@ -38,17 +39,17 @@ public class SubscriptionAwareOsResults extends OsResults {
 
     public static SubscriptionAwareOsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query,
                                                              DescriptorOrdering queryDescriptors,
-                                                             String subscriptionName) {
+                                                             SubscriptionAction subscriptionInfo) {
         query.validateQuery();
         long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), queryDescriptors.getNativePtr());
-        return new SubscriptionAwareOsResults(sharedRealm, query.getTable(), ptr, subscriptionName);
+        return new SubscriptionAwareOsResults(sharedRealm, query.getTable(), ptr, subscriptionInfo);
     }
 
-    SubscriptionAwareOsResults(OsSharedRealm sharedRealm, Table table, long nativePtr, String subscriptionName) {
+    SubscriptionAwareOsResults(OsSharedRealm sharedRealm, Table table, long nativePtr, SubscriptionAction subscriptionInfo) {
         super(sharedRealm, table, nativePtr);
 
         this.firstCallback = true;
-        this.subscription = new OsSubscription(this, subscriptionName);
+        this.subscription = new OsSubscription(this, subscriptionInfo);
         this.subscription.addChangeListener(new RealmChangeListener<OsSubscription>() {
             @Override
             public void onChange(OsSubscription o) {
