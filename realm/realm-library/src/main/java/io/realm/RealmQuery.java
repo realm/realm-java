@@ -1827,10 +1827,11 @@ public class RealmQuery<E> {
      * that will synchronize all server data matching the query. Named subscriptions can be removed again by
      * calling {@code Realm.unsubscribe(subscriptionName}.
      *
+     * @param subscriptionName name of the underlying subscription being created.
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @see io.realm.RealmResults
-     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm.
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
      */
     @ObjectServer
     public RealmResults<E> findAllAsync(String subscriptionName) {
@@ -1838,11 +1839,19 @@ public class RealmQuery<E> {
     }
 
     /**
-     * FIXME
+     * Finds all objects that fulfill the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
      *
-     * @param subscriptionName
-     * @param update
-     * @return
+     * @param subscriptionName name of the underlying subscription being created.
+     * @param update if an existing subscription exists with a different query. It will be replaced with this
+     *               one instead of an error being reported through {@link OrderedRealmCollectionChangeListener}.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
      */
     @ObjectServer
     @Beta
@@ -1850,6 +1859,22 @@ public class RealmQuery<E> {
         return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, update);
     }
 
+    /**
+     * Finds all objects that fulfill the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
+     *
+     * @param subscriptionName name of the underlying subscription being created.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
+     *                   period Realm will automatically remove it.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
+     */
     @ObjectServer
     @Beta
     public RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit) {
@@ -1857,13 +1882,22 @@ public class RealmQuery<E> {
     }
 
     /**
-     * FIXME
+     * Finds all objects that fulfill the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
      *
-     * @param subscriptionName
-     * @param timeToLive
-     * @param timeUnit
-     * @param update
-     * @return
+     * @param subscriptionName name of the underlying subscription being created.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
+     *                   period Realm will automatically remove it.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @param update if an existing subscription exists with a different query. It will be replaced with this
+     *               one instead of an error being reported through {@link OrderedRealmCollectionChangeListener}.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
      */
     @ObjectServer
     @Beta
@@ -2103,7 +2137,8 @@ public class RealmQuery<E> {
      * device, but not the server.
      *
      * @param name the name subscription representing this query.
-     * @param timeToLive the amount of time the Subscription must be kept alive after last being used.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
+     *                   period Realm will automatically remove it.
      * @param timeUnit the unit for {@code timeToLive}.
      * @return the subscription representing this query.
      * @throws IllegalStateException if this method is not called inside a write transaction, if
@@ -2165,6 +2200,8 @@ public class RealmQuery<E> {
      * @throws IllegalArgumentException if this query are for other objects than those already being
      * returned by an existing subscription.
      */
+    @ObjectServer
+    @Beta
     public Subscription subscribeOrUpdate(String name, long timeToLive, TimeUnit timeUnit) {
         return subscribe(name, timeToLive, timeUnit, true);
     }
