@@ -1852,7 +1852,7 @@ public class RealmQuery<E> {
 
     @ObjectServer
     @Beta
-    private RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit) {
+    public RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit) {
         return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
     }
 
