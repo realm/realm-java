@@ -17,6 +17,7 @@ package io.realm.sync;
 
 import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
@@ -247,19 +248,23 @@ public class Subscription extends RealmObject {
      * Sets the time-to-live in milliseconds for this subscription. This defines for how long Realm
      * must keep the subscription alive after last being used.
      *
-     * @param timeToLiveMs for how long Realm must keep the subscription after last being used.
-     * @throws IllegalArgumentException if a negative time-to-live is given.
+     * @param timeToLive for how long Realm must keep the subscription after last being used.
+     * @param timeUnit time unit for {@code timeToLive}.
+     * @throws IllegalArgumentException if a negative time-to-live or null timeUnit is provided.
      */
-    public void setTimeToLive(long timeToLiveMs) {
-        if (timeToLiveMs < 0) {
-            throw new IllegalArgumentException("A negative time-to-live is not allowed: " + timeToLiveMs);
+    public void setTimeToLive(long timeToLive, TimeUnit timeUnit) {
+        if (timeToLive < 0) {
+            throw new IllegalArgumentException("A negative time-to-live is not allowed: " + timeToLive);
         }
-        this.timeToLive = timeToLiveMs;
+        if (timeUnit == null) {
+            throw new IllegalArgumentException("Non-null 'timeUnit' required.");
+        }
+        this.timeToLive = TimeUnit.MILLISECONDS.convert(timeToLive, timeUnit);
         long currentExpiryDate = getExpiresAt().getTime();
-        if (currentExpiryDate + timeToLiveMs < currentExpiryDate) {
+        if (currentExpiryDate + this.timeToLive < currentExpiryDate) {
             currentExpiryDate = Long.MAX_VALUE; // Clamp overflow to max
         } else {
-            currentExpiryDate = currentExpiryDate + timeToLiveMs;
+            currentExpiryDate = currentExpiryDate + this.timeToLive;
         }
         this.expiresAt = new Date(currentExpiryDate);
         this.updatedAt = new Date();

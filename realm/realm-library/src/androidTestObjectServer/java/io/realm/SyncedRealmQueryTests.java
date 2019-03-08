@@ -284,4 +284,42 @@ public class SyncedRealmQueryTests {
             assertTrue(e.getMessage().contains("It is only allowed to replace a query"));
         }
     }
+
+    @Test
+    public void subscription_setTimeToLive() {
+        realm = getPartialRealm();
+        realm.beginTransaction();
+        Subscription sub = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, "foo").subscribe();
+        assertEquals(Long.MAX_VALUE, sub.getExpiresAt().getTime());
+        assertEquals(Long.MAX_VALUE, sub.getTimeToLive());
+        Date now = new Date();
+        Date now_plus_1_sec = new Date(now.getTime() + 1000);
+        Date now_plus_11_sec = new Date(now.getTime() + 11000);
+        sub.setTimeToLive(10, TimeUnit.SECONDS);
+        assertEquals(10000, sub.getTimeToLive());
+        assertTrue(now.getTime() < sub.getUpdatedAt().getTime());
+        assertTrue(sub.getUpdatedAt().getTime() < now_plus_1_sec.getTime());
+        assertTrue(now.getTime() < sub.getExpiresAt().getTime());
+        assertTrue(sub.getExpiresAt().getTime() < now_plus_11_sec.getTime());
+    }
+
+    @Test
+    public void subscription_setTimeToLive_illegalValuesThrows() {
+        realm = getPartialRealm();
+        realm.beginTransaction();
+        Subscription sub = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, "foo").subscribe();
+        try {
+            sub.setTimeToLive(-1, TimeUnit.SECONDS);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("A negative time-to-live is not allowed"));
+        }
+        try {
+            sub.setTimeToLive(0, null);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Non-null 'timeUnit' required"));
+        }
+    }
+
 }
