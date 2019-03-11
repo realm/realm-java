@@ -2186,7 +2186,6 @@ public class RealmQuery<E> {
      * {@code timeToLive} indicates for how long Realm must keep the subscription alive after last
      * being used. After this period expires Realm are allowed to delete the subscription.
      * This happens automatically. The period is reset, whenever the subscription is resubscribed or updated
-     * the subscription itself.
      * </p>
      * When a subscription is deleted, the data covered by the subscription is removed from the
      * device, but not the server.
