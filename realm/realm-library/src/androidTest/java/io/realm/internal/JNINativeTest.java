@@ -43,7 +43,6 @@ public class JNINativeTest {
     public void clampMaxTimestamps() {
         assertEquals(Long.MAX_VALUE, TestUtil.getDateFromTimestamp(Long.MAX_VALUE, 999999999));
         assertEquals(Long.MAX_VALUE, TestUtil.getDateFromTimestamp((Long.MAX_VALUE / 1000) + 1, 0)); // 1 second above MAX in milliseconds
-
     }
 
     @Test
