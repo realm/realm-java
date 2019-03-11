@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.annotations.Beta;
@@ -195,6 +196,7 @@ public class Subscription extends RealmObject {
      *
      * @return when this subscription was initially created.
      */
+    @SuppressFBWarnings({"EI_EXPOSE_REP"})
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -212,6 +214,7 @@ public class Subscription extends RealmObject {
      *
      * @return the point in time this subscription was last used or updated.
      */
+    @SuppressFBWarnings({"EI_EXPOSE_REP"})
     public Date getUpdatedAt() {
         return updatedAt;
     }
@@ -226,6 +229,7 @@ public class Subscription extends RealmObject {
      *
      * @return the point in time after which Realm can safely delete this subscription.
      */
+    @SuppressFBWarnings({"EI_EXPOSE_REP"})
     public Date getExpiresAt() {
         if (expiresAt == null) {
             return new Date(Long.MAX_VALUE);
