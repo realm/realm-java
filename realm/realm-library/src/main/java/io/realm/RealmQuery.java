@@ -2176,7 +2176,7 @@ public class RealmQuery<E> {
 
     /**
      * Creates a named subscription from this query or returns the existing Subscription if
-     * one already existed. If an existing subscription already exists and the existing query
+     * one already existed. If a subscription already exists and the query
      * is different, it will be replaced by this query.
      * <p>
      * It is only allowed to update a subscription that queries for objects of the same type. If
