@@ -2126,7 +2126,7 @@ public class RealmQuery<E> {
 
     /**
      * Creates a named subscription from this query or returns the existing Subscription if
-     * one already existed.
+     * one already exists.
      * <p>
      * {@code timeToLive} indicates for how long Realm must keep the subscription alive after last
      * being used. After this period expires Realm are allowed to delete the subscription.
