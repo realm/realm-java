@@ -6,7 +6,7 @@
 * [ObjectServer] Added the option of setting a time-to-live for subscriptions. Setting this will automatically delete the subscription after the provided TTL has has expired and the subscription hasn't been used. (Issue [#6453](https://github.com/realm/realm-java/issues/6453))
 
 ## Fixed
-* Dates return from the Realm file no longer overflow or underflow if they exceed `Long.MAX_VALUE` or `Long.MIN_VALUE` but instead clamp to their respective value. (Issue [#2722](https://github.com/realm/realm-java/issues/2722)) 
+* Dates returned from the Realm file no longer overflow or underflow if they exceed `Long.MAX_VALUE` or `Long.MIN_VALUE` but instead clamp to their respective value. (Issue [#2722](https://github.com/realm/realm-java/issues/2722)) 
 
 ## Compatibility
 
