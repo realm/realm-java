@@ -71,13 +71,13 @@ In case you don't want to use the precompiled version, you can build Realm yours
  * Download & install the Android SDK **Build-Tools 27.0.2**, **Android Oreo (API 27)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
 
- * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
-You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
+ * Realm currently requires version r18b of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
+You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r18b`.
 
  * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
     ```
-    ndk.dir=/Users/brian/Library/Android/android-ndk-r10e/r10e
+    ndk.dir=/Users/<username>/Library/Android/android-ndk-r18b
 
     ```
 
@@ -85,7 +85,7 @@ You may unzip the file wherever you choose.  For macOS, a suggested location is 
 
     ```
     export ANDROID_HOME=~/Library/Android/sdk
-    export ANDROID_NDK_HOME=~/Library/Android/android-ndk-r10e
+    export ANDROID_NDK_HOME=~/Library/Android/android-ndk-r18b
     ```
 
  * If you are launching Android Studio from the macOS Finder, you should also run the following two commands:

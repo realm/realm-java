@@ -37,7 +37,7 @@ allprojects {
 
     def projectDependencies = new Properties()
     projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
-    project.ext.minSdkVersion = 9
+    project.ext.minSdkVersion = 21 // FIXME: Should be 16. Set to 21 currently due to OpenSSL
     project.ext.compileSdkVersion = 26
     project.ext.buildToolsVersion = projectDependencies.get("ANDROID_BUILD_TOOLS")
 
