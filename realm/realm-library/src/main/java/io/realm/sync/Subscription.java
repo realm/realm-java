@@ -146,6 +146,7 @@ public class Subscription extends RealmObject {
     /**
      * Field indicating when this subscription was created.
      */
+    @RealmField("created_at")
     private Date createdAt;
 
     /**
@@ -265,15 +266,15 @@ public class Subscription extends RealmObject {
         if (timeUnit == null) {
             throw new IllegalArgumentException("Non-null 'timeUnit' required.");
         }
+        this.updatedAt = new Date(System.currentTimeMillis());
         this.timeToLive = TimeUnit.MILLISECONDS.convert(timeToLive, timeUnit);
-        long currentExpiryDate = getExpiresAt().getTime();
-        if (currentExpiryDate + this.timeToLive < currentExpiryDate) {
-            currentExpiryDate = Long.MAX_VALUE; // Clamp overflow to max
+        long expiryTime = this.updatedAt.getTime();
+        if (expiryTime + this.timeToLive < expiryTime) {
+            expiryTime = Long.MAX_VALUE; // Clamp overflow to max
         } else {
-            currentExpiryDate = currentExpiryDate + this.timeToLive;
+            expiryTime = expiryTime + this.timeToLive;
         }
-        this.expiresAt = new Date(currentExpiryDate);
-        this.updatedAt = new Date();
+        this.expiresAt = new Date(expiryTime);
     }
 
     /**

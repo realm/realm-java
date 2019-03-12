@@ -161,7 +161,7 @@ public class SyncedRealmQueryTests {
         try {
             realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_BOOLEAN, false).subscribeOrUpdate(name);
             fail();
-        } catch (IllegalStateException ignore) {
+        } catch (IllegalArgumentException ignore) {
         }
     }
 
@@ -173,7 +173,7 @@ public class SyncedRealmQueryTests {
         realm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, "foo").subscribe(name, 10, TimeUnit.MILLISECONDS);
         RealmQuery<AllTypes> query = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_BOOLEAN, false);
         Subscription sub = query.subscribeOrUpdate(name, 20, TimeUnit.DAYS);
-        assertEquals(10, sub.getTimeToLive());
+        assertEquals(TimeUnit.MILLISECONDS.convert(20, TimeUnit.DAYS), sub.getTimeToLive());
         assertEquals(query.getDescription(), sub.getQueryDescription());
     }
 
@@ -289,17 +289,20 @@ public class SyncedRealmQueryTests {
     public void subscription_setTimeToLive() {
         realm = getPartialRealm();
         realm.beginTransaction();
+
         Subscription sub = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, "foo").subscribe();
         assertEquals(Long.MAX_VALUE, sub.getExpiresAt().getTime());
         assertEquals(Long.MAX_VALUE, sub.getTimeToLive());
+
         Date now = new Date();
         Date now_plus_1_sec = new Date(now.getTime() + 1000);
         Date now_plus_11_sec = new Date(now.getTime() + 11000);
+        SystemClock.sleep(2);
         sub.setTimeToLive(10, TimeUnit.SECONDS);
         assertEquals(10000, sub.getTimeToLive());
         assertTrue(now.getTime() < sub.getUpdatedAt().getTime());
-        assertTrue(sub.getUpdatedAt().getTime() < now_plus_1_sec.getTime());
         assertTrue(now.getTime() < sub.getExpiresAt().getTime());
+        assertTrue(sub.getUpdatedAt().getTime() < now_plus_1_sec.getTime());
         assertTrue(sub.getExpiresAt().getTime() < now_plus_11_sec.getTime());
     }
 
