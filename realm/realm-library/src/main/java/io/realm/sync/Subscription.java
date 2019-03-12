@@ -159,6 +159,7 @@ public class Subscription extends RealmObject {
      * <p>
      * This field plus {@link #timeToLive} defines {@link #expiresAt}.
      */
+    @RealmField("updated_at")
     private Date updatedAt;
 
     /**
@@ -167,6 +168,7 @@ public class Subscription extends RealmObject {
      * If {@code null} is returned, this subscription will live until manually deleted.
      */
     @Nullable
+    @RealmField("expires_at")
     private Date expiresAt;
 
     /**
@@ -178,6 +180,7 @@ public class Subscription extends RealmObject {
      * This field plus {@link #updatedAt} defines {@link #expiresAt}.
      */
     @Nullable
+    @RealmField("time_to_live")
     private Long timeToLive;
 
     /**
@@ -188,7 +191,6 @@ public class Subscription extends RealmObject {
     public String getName() {
         return name;
     }
-
 
     /**
      * Returns when this subscription was initially created. If {@code new Date(0)} is returned,
