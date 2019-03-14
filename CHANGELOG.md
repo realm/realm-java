@@ -9,8 +9,12 @@
 * Dates returned from the Realm file no longer overflow or underflow if they exceed `Long.MAX_VALUE` or `Long.MIN_VALUE` but instead clamp to their respective value. (Issue [#2722](https://github.com/realm/realm-java/issues/2722)) 
 
 ## Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ## Internal
+* Updated to Object Store commit: 4e7325b4df29b27f3d44faf7225a962a3d732450
 
 
 ## 5.9.1(2019-02-21)
