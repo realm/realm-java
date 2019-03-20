@@ -22,7 +22,6 @@ allprojects {
     def currentVersion = file("${rootDir}/../version.txt").text.trim()
 
     def props = new Properties()
-    props.load(new FileInputStream("${rootDir}/../realm.properties"))
     props.load(new FileInputStream("${rootDir}/../dependencies.list"))
     props.each { key, val ->
         project.ext.set(key, val)
@@ -75,9 +74,4 @@ allprojects {
             }
         }
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = project.gradleVersion
-    distributionType = 'all'
 }
