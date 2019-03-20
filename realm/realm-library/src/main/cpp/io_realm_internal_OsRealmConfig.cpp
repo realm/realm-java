@@ -76,16 +76,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsRealmConfig_nativeGetFinalizerP
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreate(JNIEnv* env, jclass, jstring j_realm_path,
+                                                                          jstring j_fifo_fallback_dir,
                                                                           jboolean enable_cache,
                                                                           jboolean enable_format_upgrade)
 {
     TR_ENTER()
     try {
         JStringAccessor realm_path(env, j_realm_path);
+        JStringAccessor fifo_fallback_dir(env, j_fifo_fallback_dir);
         auto* config_ptr = new Realm::Config();
         config_ptr->path = realm_path;
         config_ptr->cache = enable_cache;
         config_ptr->disable_format_upgrade = !enable_format_upgrade;
+        config_ptr->fifo_files_fallback_path = fifo_fallback_dir;
         return reinterpret_cast<jlong>(config_ptr);
     }
     CATCH_STD()

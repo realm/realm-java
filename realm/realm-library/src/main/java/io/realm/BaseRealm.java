@@ -128,6 +128,7 @@ abstract class BaseRealm implements Closeable {
         }
 
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(configuration)
+                .fifoFallbackDir(new File(BaseRealm.applicationContext.getFilesDir(), ".realm.temp"))
                 .autoUpdateNotification(true)
                 .migrationCallback(migrationCallback)
                 .schemaInfo(schemaInfo)
