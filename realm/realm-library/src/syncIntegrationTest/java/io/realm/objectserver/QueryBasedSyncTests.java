@@ -250,11 +250,11 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
         results.addChangeListener((objects, changeSet) -> {
             if (changeSet.isCompleteResult()) {
                 results.removeAllChangeListeners();
-                final Subscription sub1 = realm.getSubscription("test-ttl");
+                final Subscription sub = realm.getSubscription("test-ttl");
                 // Fuzzy check of expiresAt since we don't control exactly when the Subscription is created.
-                assertTrue(now.getTime() <= sub1.getExpiresAt().getTime());
-                assertTrue(sub1.getExpiresAt().getTime() < now_plus_10_sec.getTime());
-                assertEquals(5000, sub1.getTimeToLive());
+                assertTrue(now.getTime() <= sub.getExpiresAt().getTime());
+                assertTrue(sub.getExpiresAt().getTime() < now_plus_10_sec.getTime());
+                assertEquals(5000, sub.getTimeToLive());
                 looperThread.testComplete();
             }
         });

@@ -1878,7 +1878,7 @@ public class RealmQuery<E> {
     @ObjectServer
     @Beta
     public RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit) {
-        return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
+        return findAllAsync(subscriptionName, timeToLive, timeUnit, false);
     }
 
     /**
@@ -1909,6 +1909,13 @@ public class RealmQuery<E> {
         }
         if (Util.isEmptyString(subscriptionName)) {
             throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
+        }
+        if (timeToLive < 0) {
+            throw new IllegalArgumentException("Negative values for 'timeToLive' is not allowed: " + timeToLive);
+        }
+        //noinspection ConstantConditions
+        if (timeUnit == null) {
+            throw new IllegalArgumentException("Non-null 'timeUnit' required.");
         }
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
         long timeToLiveMs = timeUnit.toMillis(timeToLive);
