@@ -11,12 +11,6 @@ apply plugin: 'ch.netzwerg.release'
 
 def currentVersion = file("${projectDir}/version.txt").text.trim()
 
-def props = new Properties()
-props.load(new FileInputStream("${rootDir}/realm.properties"))
-props.each { key, val ->
-    project.ext.set(key, val)
-}
-
 task assembleAnnotations(type:GradleBuild) {
     group = 'Build'
     description = 'Assemble the Realm annotations'
@@ -483,9 +477,4 @@ release {
     push = false
     versionSuffix = '-SNAPSHOT'
     tagPrefix = 'v'
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = project.gradleVersion
-    distributionType = 'all'
 }

@@ -18,7 +18,6 @@ package io.realm.internal;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.MoreAsserts;
 
 import org.junit.After;
 import org.junit.Before;
@@ -37,6 +36,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 
@@ -97,7 +97,7 @@ public class JNIRowTest {
         assertEquals(1.3, row.getDouble(3), Double.MIN_NORMAL);
         assertEquals(true, row.getBoolean(4));
         assertEquals(new Date(0), row.getDate(5));
-        MoreAsserts.assertEquals(data, row.getBinaryByteArray(6));
+        assertArrayEquals(data, row.getBinaryByteArray(6));
 
         row.setString(0, "a");
         row.setLong(1, 1);
@@ -115,7 +115,7 @@ public class JNIRowTest {
         assertEquals(9.9, row.getDouble(3), Double.MIN_NORMAL);
         assertEquals(false, row.getBoolean(4));
         assertEquals(new Date(10000), row.getDate(5));
-        MoreAsserts.assertEquals(newData, row.getBinaryByteArray(6));
+        assertArrayEquals(newData, row.getBinaryByteArray(6));
     }
 
     @Test

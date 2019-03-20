@@ -8,9 +8,12 @@ REALM_SYNC_SHA256=7e8934a471fa714bf672a9575cd3112470c3294d55e7a13688d04569e707b8
 REALM_OBJECT_SERVER_VERSION=3.18.5
 
 # Common Android settings across projects
-GRADLE_BUILD_TOOLS=3.1.4
-ANDROID_BUILD_TOOLS=27.0.3
+GRADLE_BUILD_TOOLS=3.3.1
+ANDROID_BUILD_TOOLS=28.0.3
 
 # Common classpath dependencies
+# Gradle 5 is not supported yet: https://issuetracker.google.com/issues/126433059
+gradleVersion=4.10.1
+ndkVersion=r10e
 BUILD_INFO_EXTRACTOR_GRADLE=4.7.5
 GRADLE_BINTRAY_PLUGIN=1.8.4
