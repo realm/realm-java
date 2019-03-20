@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  * annotation are never allowed to hold {@code null} values even if the datatype would otherwise allow it.
  * Realm will throw an exception if you attempt to store null values into a list marked {@code \@Required}.
  * <p>
- * Compiling will fail if the {@link Required} annotation is put an a RealmList containing references to other
+ * Compiling will fail if the {@link Required} annotation is put an a {@link io.realm.RealmList} containing references to other
  * Realm objects.
  */
 @Retention(RetentionPolicy.RUNTIME)
