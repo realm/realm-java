@@ -287,7 +287,7 @@ public class Subscription extends RealmObject {
     }
 
     /**
-     * Replace the current query controlled by this subscription with a new query.
+     * Replaces the current query controlled by this subscription with a new query.
      *
      * @param query the query which should replace the current one.
      */
