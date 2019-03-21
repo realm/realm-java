@@ -154,11 +154,9 @@ public class Util {
             realmDeleted = true;
         }
 
-        if (fifoFile.exists()) {
-            if (!fifoFile.delete()) {
-                RealmLog.warn(String.format(Locale.ENGLISH,".note file at %s cannot be deleted",
+        if (fifoFile.exists() && !fifoFile.delete()) {
+            RealmLog.warn(String.format(Locale.ENGLISH,".note file at %s cannot be deleted",
                         fifoFile.getAbsolutePath()));
-            }
         }
 
         return realmDeleted;
