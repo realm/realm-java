@@ -1,3 +1,22 @@
+## 5.10.0(YYYY-MM-DD)
+
+## Enhancements
+* [ObjectServer] Added 4 new fields to query-based Subscriptions: `createdAt`, `updatedAt`, `expiresAt` and `timeToLive`. These make it possible to better reason about and control current subscriptions. (Issue [#6453](https://github.com/realm/realm-java/issues/6453))
+* [ObjectServer] Added the option of updating the query controlled by a Subscription using either `RealmQuery.findAllAsync(String name, boolean update)`,  `RealmQuery.subscribe(String name, boolean update)` or `Subscription.setQuery(RealmQuery query)`. (Issue [#6453](https://github.com/realm/realm-java/issues/6453))
+* [ObjectServer] Added the option of setting a time-to-live for subscriptions. Setting this will automatically delete the subscription after the provided TTL has expired and the subscription hasn't been used. (Issue [#6453](https://github.com/realm/realm-java/issues/6453))
+
+## Fixed
+* Dates returned from the Realm file no longer overflow or underflow if they exceed `Long.MAX_VALUE` or `Long.MIN_VALUE` but instead clamp to their respective value. (Issue [#2722](https://github.com/realm/realm-java/issues/2722)) 
+
+## Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats).
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+## Internal
+* Updated to Object Store commit: e9819ed9c77ed87b5d7bed416a76cd5bcf255802
+
+
 ## 5.9.1(2019-02-21)
 
 ### Enhancements

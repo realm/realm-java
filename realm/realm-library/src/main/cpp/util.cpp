@@ -138,6 +138,9 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch (partial_sync::ExistingSubscriptionException& e) {
         ThrowException(env, IllegalArgument, e.what());
     }
+    catch (partial_sync::QueryTypeMismatchException& e) {
+        ThrowException(env, IllegalArgument, e.what());
+    }
 #endif
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());

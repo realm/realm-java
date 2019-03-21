@@ -22,6 +22,7 @@ import android.text.TextUtils;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
@@ -144,7 +145,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO implement this
+            // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
             this.osList = null;
@@ -163,7 +164,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO implement this
+            // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
             this.osList = null;
@@ -182,7 +183,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO implement this
+            // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
             this.osList = null;
@@ -1826,12 +1827,81 @@ public class RealmQuery<E> {
      * that will synchronize all server data matching the query. Named subscriptions can be removed again by
      * calling {@code Realm.unsubscribe(subscriptionName}.
      *
+     * @param subscriptionName name of the underlying subscription being created.
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @see io.realm.RealmResults
-     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm.
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
      */
+    @ObjectServer
     public RealmResults<E> findAllAsync(String subscriptionName) {
+        return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
+    }
+
+    /**
+     * Finds all objects that fulfil the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
+     *
+     * @param subscriptionName name of the underlying subscription being created.
+     * @param update if an existing subscription exists with a different query. It will be replaced with this
+     *               one instead of an error being reported through {@link OrderedRealmCollectionChangeListener}.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
+     */
+    @ObjectServer
+    @Beta
+    public RealmResults<E> findAllAsync(String subscriptionName, boolean update) {
+        return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, update);
+    }
+
+    /**
+     * Finds all objects that fulfil the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
+     *
+     * @param subscriptionName name of the underlying subscription being created.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
+     *                   period Realm will automatically remove it.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
+     */
+    @ObjectServer
+    @Beta
+    public RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit) {
+        return findAllAsync(subscriptionName, timeToLive, timeUnit, false);
+    }
+
+    /**
+     * Finds all objects that fulfil the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
+     *
+     * @param subscriptionName name of the underlying subscription being created.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
+     *                   period Realm will automatically remove it.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @param update if an existing subscription exists with a different query. It will be replaced with this
+     *               one instead of an error being reported through {@link OrderedRealmCollectionChangeListener}.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
+     */
+    @ObjectServer
+    @Beta
+    public RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit, boolean update) {
         realm.checkIfValid();
         realm.checkIfPartialRealm();
         if (osList != null) {
@@ -1840,10 +1910,19 @@ public class RealmQuery<E> {
         if (Util.isEmptyString(subscriptionName)) {
             throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
         }
-
+        if (timeToLive < 0) {
+            throw new IllegalArgumentException("Negative values for 'timeToLive' are not allowed: " + timeToLive);
+        }
+        //noinspection ConstantConditions
+        if (timeUnit == null) {
+            throw new IllegalArgumentException("Non-null 'timeUnit' required.");
+        }
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, queryDescriptors, false, SubscriptionAction.create(subscriptionName));
+        long timeToLiveMs = timeUnit.toMillis(timeToLive);
+        SubscriptionAction action = (update) ? SubscriptionAction.update(subscriptionName, timeToLiveMs) : SubscriptionAction.create(subscriptionName, timeToLiveMs);
+        return createRealmResults(query, queryDescriptors, false, action);
     }
+
 
     /**
      * Sorts the query result by the specific field name in ascending order.
@@ -2035,10 +2114,11 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Creates an anonymous subscription from this query or returns the existing Subscription if
-     * one already existed.
+     * Creates a named subscription from this query or returns the existing Subscription if
+     * one already existed. Subscriptions created this way will live forever or until the
+     * subscription is manually deleted.
      *
-     * @return the name of the query.
+     * @return the name of the subscription representing this query.
      * @return the subscription representing this query.
      * @throws IllegalStateException if this method is not called inside a write transaction, if
      * the query is on a {@link DynamicRealm} or a {@link RealmList}.
@@ -2048,6 +2128,93 @@ public class RealmQuery<E> {
     @ObjectServer
     @Beta
     public Subscription subscribe(String name) {
+        return subscribe(name, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
+    }
+
+    /**
+     * Creates a named subscription from this query or returns the existing Subscription if
+     * one already exists.
+     * <p>
+     * {@code timeToLive} indicates for how long Realm must keep the subscription alive after last
+     * being used. After this period expires Realm are allowed to delete the subscription.
+     * This happens automatically. The period is reset, whenever someone resubscribes or updates
+     * the subscription itself.
+     * </p>
+     * When a subscription is deleted, the data covered by the subscription is removed from the
+     * device, but not the server.
+     *
+     * @param name the name subscription representing this query.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
+     *                   period Realm will automatically remove it.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
+     * @throws IllegalArgumentException if a subscription for a different query with the same name
+     * already exists.
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribe(String name, long timeToLive, TimeUnit timeUnit) {
+        return subscribe(name, timeToLive, timeUnit, false);
+    }
+
+    /**
+     * Creates a named subscription from this query or returns the existing Subscription if
+     * one already existed. If an existing subscription already exists and the existing query
+     * is different, it will be replaced by this query.
+     * <p>
+     * It is only allowed to update a subscription that queries for objects of the same type. If
+     * the existing subscription queries for objects of a different type, an {@link IllegalArgumentException}
+     * is thrown.
+     *
+     * @param name the name of the subscription.
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
+     * @throws IllegalArgumentException if this query are for other objects than those already being
+     * returned by an existing subscription.
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribeOrUpdate(String name) {
+        return subscribe(name, Long.MAX_VALUE, TimeUnit.MILLISECONDS, true);
+    }
+
+    /**
+     * Creates a named subscription from this query or returns the existing Subscription if
+     * one already existed. If a subscription already exists and the query
+     * is different, it will be replaced by this query.
+     * <p>
+     * It is only allowed to update a subscription that queries for objects of the same type. If
+     * the existing subscription queries for objects of a different type, an {@link IllegalArgumentException}
+     * is thrown.
+     * <p>
+     * {@code timeToLive} indicates for how long Realm must keep the subscription alive after last
+     * being used. After this period expires Realm are allowed to delete the subscription.
+     * This happens automatically. The period is reset, whenever the subscription is resubscribed or updated
+     * </p>
+     * When a subscription is deleted, the data covered by the subscription is removed from the
+     * device, but not the server.
+     *
+     * @param name the name of the subscription.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
+     * @throws IllegalArgumentException if this query are for other objects than those already being
+     * returned by an existing subscription.
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribeOrUpdate(String name, long timeToLive, TimeUnit timeUnit) {
+        return subscribe(name, timeToLive, timeUnit, true);
+    }
+
+
+    @ObjectServer
+    private Subscription subscribe(String name, long timeToLive, TimeUnit timeUnit, boolean update) {
         realm.checkIfValid();
         if (realm instanceof DynamicRealm) {
             throw new IllegalStateException("'subscribe' is not supported for queries on Dynamic Realms.");
@@ -2058,10 +2225,20 @@ public class RealmQuery<E> {
         if (TextUtils.isEmpty(name)) {
             throw new IllegalArgumentException("Non-empty 'name' required.");
         }
-        long rowIndex = nativeSubscribe(realm.getSharedRealm().getNativePtr(), name, query.getNativePtr(), queryDescriptors.getNativePtr());
+        //noinspection ConstantConditions
+        if (timeUnit == null) {
+            throw new IllegalArgumentException("Non-null 'timeUnit' is required.");
+        }
+
+        // Convert timestamp to milliseconds and clamp at max
+        long timeToLiveMs = TimeUnit.MILLISECONDS.convert(timeToLive, timeUnit);
+
+        long rowIndex = nativeSubscribe(realm.getSharedRealm().getNativePtr(), name, query.getNativePtr(),
+                queryDescriptors.getNativePtr(), timeToLiveMs, update);
         CheckedRow row = ((Realm) realm).getTable(Subscription.class).getCheckedRow(rowIndex);
         return realm.get(Subscription.class, null, row);
     }
+
 
     /**
      * Returns a textual description of this query.
@@ -2070,6 +2247,16 @@ public class RealmQuery<E> {
      */
     public String getDescription() {
         return nativeSerializeQuery(query.getNativePtr(), queryDescriptors.getNativePtr());
+    }
+
+    /**
+     * Returns the internal Realm name of the type being queried.
+     *
+     * @return the internal name of the Realm model class being queried.
+     */
+    public String getTypeQueried() {
+        // TODO Revisit this when primitve list queries are implemented.
+        return table.getClassName();
     }
 
     private boolean isDynamicQuery() {
@@ -2157,7 +2344,7 @@ public class RealmQuery<E> {
         RealmResults<E> results;
         OsResults osResults;
         if (subscriptionAction.shouldCreateSubscriptions()) {
-            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors, subscriptionAction.getName());
+            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors, subscriptionAction);
         } else {
             osResults = OsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors);
         }
@@ -2192,6 +2379,7 @@ public class RealmQuery<E> {
     }
 
     private static native String nativeSerializeQuery(long tableQueryPtr, long descriptorPtr);
-    private static native long nativeSubscribe(long sharedRealmPtr, String name, long tableQueryPtr, long descriptorPtr);
+    private static native long nativeSubscribe(long sharedRealmPtr, String name, long tableQueryPtr,
+                                               long descriptorPtr, long timeToLiveMs, boolean update);
 
 }

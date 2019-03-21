@@ -74,8 +74,9 @@ public class OsSubscription implements NativeObject {
     private final long nativePtr;
     protected final ObserverPairList<SubscriptionObserverPair> observerPairs = new ObserverPairList<>();
 
-    public OsSubscription(OsResults results, String subscriptionName) {
-        this.nativePtr = nativeCreate(results.getNativePtr(), subscriptionName);
+    public OsSubscription(OsResults results, SubscriptionAction subscriptionInfo) {
+        this.nativePtr = nativeCreateOrUpdate(results.getNativePtr(), subscriptionInfo.getName(),
+                subscriptionInfo.getTimeToLiveMs(), subscriptionInfo.isUpdate());
     }
 
     @Override
@@ -117,7 +118,7 @@ public class OsSubscription implements NativeObject {
         observerPairs.foreach(new Callback());
     }
 
-    private static native long nativeCreate(long resultsNativePtr, String subscriptionName);
+    private static native long nativeCreateOrUpdate(long resultsNativePtr, String subscriptionName, long timeToLiveMs, boolean update);
 
     private static native long nativeGetFinalizerPtr();
 

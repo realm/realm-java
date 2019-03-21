@@ -1,16 +1,22 @@
 package io.realm.objectserver;
 
+import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
 import io.realm.DynamicRealm;
 import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import io.realm.StandardIntegrationTest;
@@ -154,7 +160,159 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
                 }
             }
         });
+    }
 
+    @Test
+    @RunTestInLooperThread
+    public void namedSubscription_update() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final Realm realm = getPartialRealm(user);
+        looperThread.closeAfterTest(realm);
+
+        Date now = new Date();
+        SystemClock.sleep(2);
+
+        RealmQuery<PartialSyncObjectA> query1 = realm.where(PartialSyncObjectA.class).greaterThan("number", 5);
+        RealmResults<PartialSyncObjectA> results = query1.findAllAsync("update-test");
+        results.addChangeListener((objects1, changeSet1) -> {
+            if (changeSet1.isCompleteResult()) {
+                results.removeAllChangeListeners();
+                final Subscription sub1 = realm.getSubscription("update-test");
+                final Date firstUpdated = sub1.getUpdatedAt();
+                assertEquals(query1.getDescription(), sub1.getQueryDescription());
+                assertTrue(now.getTime() < sub1.getUpdatedAt().getTime());
+                assertEquals(sub1.getCreatedAt(), sub1.getUpdatedAt());
+                assertEquals(Long.MAX_VALUE, sub1.getExpiresAt().getTime());
+                assertEquals(Long.MAX_VALUE, sub1.getTimeToLive());
+
+                SystemClock.sleep(2);
+                RealmQuery<PartialSyncObjectA> query2 = realm.where(PartialSyncObjectA.class).equalTo("string", "foo");
+                RealmResults<PartialSyncObjectA> results2 = query2.findAllAsync("update-test", true);
+                results2.addChangeListener((objects2, changeSet2) -> {
+                    if (changeSet2.isCompleteResult()) {
+                        assertEquals(query2.getDescription(), sub1.getQueryDescription());
+                        assertTrue(firstUpdated.getTime() < sub1.getUpdatedAt().getTime());
+                        looperThread.testComplete();
+                    }
+                });
+                looperThread.keepStrongReference(results2);
+            }
+        });
+        looperThread.keepStrongReference(results);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void namedSubscription_update_timeToLive() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final Realm realm = getPartialRealm(user);
+        looperThread.closeAfterTest(realm);
+
+        RealmQuery<PartialSyncObjectA> query1 = realm.where(PartialSyncObjectA.class).greaterThan("number", 5);
+        RealmResults<PartialSyncObjectA> results = query1.findAllAsync("update-test-ttl");
+        results.addChangeListener((objects1, changeSet1) -> {
+            if (changeSet1.isCompleteResult()) {
+                results.removeAllChangeListeners();
+                final Subscription sub1 = realm.getSubscription("update-test-ttl");
+                final Date firstUpdatedAt = sub1.getUpdatedAt();
+                final Date firstExpiresAt = sub1.getExpiresAt();
+                assertEquals(Long.MAX_VALUE, sub1.getExpiresAt().getTime());
+                assertEquals(Long.MAX_VALUE, sub1.getTimeToLive());
+
+                SystemClock.sleep(2);
+                RealmQuery<PartialSyncObjectA> query2 = realm.where(PartialSyncObjectA.class).equalTo("string", "foo");
+                RealmResults<PartialSyncObjectA> results2 = query2.findAllAsync("update-test-ttl", 10, TimeUnit.MILLISECONDS, true);
+                results2.addChangeListener((objects2, changeSet2) -> {
+                    if (changeSet2.isCompleteResult()) {
+                        assertEquals(10, sub1.getTimeToLive());
+                        assertTrue(sub1.getExpiresAt().getTime() < firstExpiresAt.getTime());
+                        assertTrue(firstUpdatedAt.getTime() < sub1.getUpdatedAt().getTime());
+                        looperThread.testComplete();
+                    }
+                });
+                looperThread.keepStrongReference(results2);
+            }
+        });
+        looperThread.keepStrongReference(results);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void namedSubscription_withTimeToLive() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final Realm realm = getPartialRealm(user);
+        looperThread.closeAfterTest(realm);
+
+        RealmQuery<PartialSyncObjectA> query = realm.where(PartialSyncObjectA.class);
+        Date now = new Date();
+        Date now_plus_10_sec = new Date(now.getTime() + 10000);
+        RealmResults<PartialSyncObjectA> results = query.findAllAsync("test-ttl", 5, TimeUnit.SECONDS);
+        results.addChangeListener((objects, changeSet) -> {
+            if (changeSet.isCompleteResult()) {
+                results.removeAllChangeListeners();
+                final Subscription sub = realm.getSubscription("test-ttl");
+                // Fuzzy check of expiresAt since we don't control exactly when the Subscription is created.
+                assertTrue(now.getTime() <= sub.getExpiresAt().getTime());
+                assertTrue(sub.getExpiresAt().getTime() < now_plus_10_sec.getTime());
+                assertEquals(5000, sub.getTimeToLive());
+                looperThread.testComplete();
+            }
+        });
+        looperThread.keepStrongReference(results);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void namedSubscription_update_throwsIfDifferentQueryType() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final Realm realm = getPartialRealm(user);
+        looperThread.closeAfterTest(realm);
+
+        RealmResults<PartialSyncObjectA> results = realm.where(PartialSyncObjectA.class).findAllAsync("type-conflict");
+        results.addChangeListener((objects1, changeSet1) -> {
+            if (changeSet1.isCompleteResult()) {
+                results.removeAllChangeListeners();
+                RealmResults<PartialSyncObjectB> results2 = realm.where(PartialSyncObjectB.class).findAllAsync("type-conflict", true);
+                results2.addChangeListener((objects2, changeSet2) -> {
+                    if (changeSet2.getState() == OrderedCollectionChangeSet.State.ERROR) {
+                        assertTrue(changeSet2.getError() instanceof IllegalArgumentException);
+                        assertTrue(changeSet2.getError().getMessage().startsWith("Replacing an existing query with a query on a different type is not allowed"));
+                        looperThread.testComplete();
+                    }
+                });
+                looperThread.keepStrongReference(results2);
+            }
+        });
+        looperThread.keepStrongReference(results);
+    }
+
+    @RunTestInLooperThread
+    public void creatingSubscriptionsAlsoCleanupExpiredSubscriptions() {
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        final Realm realm = getPartialRealm(user);
+        looperThread.closeAfterTest(realm);
+
+        RealmResults<PartialSyncObjectA> results = realm.where(PartialSyncObjectA.class).findAllAsync("sub1", 0, TimeUnit.MILLISECONDS);
+        results.addChangeListener((objects1, changeSet1) -> {
+            if (changeSet1.isCompleteResult()) {
+                results.removeAllChangeListeners();
+                assertEquals(1, realm.getSubscriptions().size());
+                final Subscription firstSub = realm.getSubscription("sub1");
+                SystemClock.sleep(2);
+
+                RealmResults<PartialSyncObjectB> results2 = realm.where(PartialSyncObjectB.class).findAllAsync("sub2");
+                results2.addChangeListener((objects2, changeSet2) -> {
+                    if (changeSet2.isCompleteResult()) {
+                        assertEquals(1, realm.getSubscriptions().size());
+                        assertEquals("sub2", realm.getSubscriptions().first().getName());
+                        assertFalse(firstSub.isValid());
+                        looperThread.testComplete();
+                    }
+                });
+                looperThread.keepStrongReference(results2);
+            }
+        });
+        looperThread.keepStrongReference(results);
     }
 
     @Test
@@ -490,4 +648,5 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
         SyncManager.getSession(syncConfig).uploadAllLocalChanges();
         realm.close();
    }
+
 }
