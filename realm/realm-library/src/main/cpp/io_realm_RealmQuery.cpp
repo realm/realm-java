@@ -41,7 +41,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmQuery_nativeSerializeQuery(JNIEnv* 
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_RealmQuery_nativeSubscribe(JNIEnv* env, jclass, jlong shared_realm_ptr,
-        jstring j_name, jlong table_query_ptr, jlong descriptor_ptr, jlong time_to_live_ms, jboolean update)
+        jstring j_name, jlong table_query_ptr, jlong descriptor_ptr, REALM_UNUSED jlong time_to_live_ms, REALM_UNUSED jboolean update)
 {
     TR_ENTER()
     try {
@@ -53,9 +53,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmQuery_nativeSubscribe(JNIEnv* env, jc
 #if REALM_ENABLE_SYNC
         RowExpr row = partial_sync::subscribe_blocking(r, name, util::Optional<int64_t>(time_to_live_ms), update);
         return to_jlong_or_not_found(row.get_index());
-#else
-        (void) time_to_live_ms;
-        (void) update;
 #endif
     }
     CATCH_STD()

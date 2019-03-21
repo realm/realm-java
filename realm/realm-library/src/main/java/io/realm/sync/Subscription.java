@@ -205,7 +205,7 @@ public class Subscription extends RealmObject {
     }
 
     /**
-     * Returns when this this subscription was last used or updated.
+     * Returns when this subscription was last used or updated.
      * <p>
      * "Used" in this context means that someone resubscribed to the subscription.
      * <p>

@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import java.util.Date;
-
 class TestUtil {
 
     public static native long getMaxExceptionNumber();

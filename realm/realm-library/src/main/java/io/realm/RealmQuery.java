@@ -1911,7 +1911,7 @@ public class RealmQuery<E> {
             throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
         }
         if (timeToLive < 0) {
-            throw new IllegalArgumentException("Negative values for 'timeToLive' is not allowed: " + timeToLive);
+            throw new IllegalArgumentException("Negative values for 'timeToLive' are not allowed: " + timeToLive);
         }
         //noinspection ConstantConditions
         if (timeUnit == null) {
@@ -2114,7 +2114,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Creates an named subscription from this query or returns the existing Subscription if
+     * Creates a named subscription from this query or returns the existing Subscription if
      * one already existed. Subscriptions created this way will live forever or until the
      * subscription is manually deleted.
      *
