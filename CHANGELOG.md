@@ -1,4 +1,4 @@
-## 5.10.0(YYYY-MM-DD)
+## 5.10.0(2019-03-22)
 
 ## Enhancements
 * [ObjectServer] Added 4 new fields to query-based Subscriptions: `createdAt`, `updatedAt`, `expiresAt` and `timeToLive`. These make it possible to better reason about and control current subscriptions. (Issue [#6453](https://github.com/realm/realm-java/issues/6453))
