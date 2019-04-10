@@ -1027,6 +1027,29 @@ public class RealmResultsTests extends CollectionTests {
         }
     }
 
+    // Test for https://github.com/realm/realm-java/issues/6478
+    @Test
+    public void setDate_updateRemovesObjectFromQuery() {
+        realm.beginTransaction();
+        realm.deleteAll();
+        int objects = 10;
+        for (int i = 0; i < objects; ++i) {
+            AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i);
+            obj.setFieldDate(i % 2 == 0 ? null : new Date(1000));
+        }
+        realm.commitTransaction();
+
+        realm.beginTransaction();
+        RealmResults<AllJavaTypes> collection = realm.where(AllJavaTypes.class)
+                .isNull(AllJavaTypes.FIELD_DATE)
+                .findAll();
+
+        collection.setDate(AllJavaTypes.FIELD_DATE, new Date(2000));
+        realm.commitTransaction();
+
+        assertTrue(collection.isEmpty());
+    }
+
     @Test
     public void setValue_specificType() {
         populateAllJavaTypes(5);
