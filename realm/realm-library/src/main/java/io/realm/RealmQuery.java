@@ -33,7 +33,6 @@ import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.RealmObjectProxy;
@@ -2055,6 +2054,31 @@ public class RealmQuery<E> {
     }
 
     /**
+     *
+     * @param firstFieldName
+     * @param remainingFieldNames
+     * @return
+     */
+    public RealmQuery<E> includeLinkingObjects(String firstFieldName, String... remainingFieldNames) {
+        realm.checkIfValid();
+        if (!ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(realm.getConfiguration())) {
+            throw new IllegalStateException("This method is only available for Query-based Realms.");
+        }
+
+        QueryDescriptor includeDescriptor;
+        if (remainingFieldNames.length == 0) {
+            includeDescriptor = QueryDescriptor.getInstanceForInclude(getSchemaConnector(), table, firstFieldName);
+        } else {
+            String[] fieldNames = new String[1 + remainingFieldNames.length];
+            fieldNames[0] = firstFieldName;
+            System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
+            includeDescriptor = QueryDescriptor.getInstanceForInclude(getSchemaConnector(), table, fieldNames);
+        }
+        queryDescriptors.appendIncludes(includeDescriptor);
+        return this;
+    }
+
+    /**
      * This predicate will always match.
      */
     public RealmQuery<E> alwaysTrue() {
@@ -2255,7 +2279,7 @@ public class RealmQuery<E> {
      * @return the internal name of the Realm model class being queried.
      */
     public String getTypeQueried() {
-        // TODO Revisit this when primitve list queries are implemented.
+        // TODO Revisit this when primitive list queries are implemented.
         return table.getClassName();
     }
 

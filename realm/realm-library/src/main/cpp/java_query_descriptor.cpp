@@ -21,6 +21,8 @@
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
 
+#include <realm/views.hpp>
+
 using namespace realm;
 using namespace realm::_impl;
 using namespace realm::jni_util;
@@ -40,6 +42,11 @@ DistinctDescriptor JavaQueryDescriptor::distinct_descriptor() const noexcept
         return DistinctDescriptor();
     }
     return DistinctDescriptor(*get_table_ptr(), get_column_indices());
+}
+
+IncludeDescriptor JavaQueryDescriptor::include_descriptor() const noexcept
+{
+    return IncludeDescriptor(*get_table_ptr(), get_linkpath_indices());
 }
 
 Table* JavaQueryDescriptor::get_table_ptr() const noexcept
@@ -63,6 +70,26 @@ std::vector<std::vector<size_t>> JavaQueryDescriptor::get_column_indices() const
         std::vector<size_t> col_indices;
         for (int j = 0; j < jni_long_array.size(); ++j) {
             col_indices.push_back(static_cast<size_t>(jni_long_array[j]));
+        }
+        indices.push_back(std::move(col_indices));
+    }
+    return indices;
+}
+
+std::vector<std::vector<LinkPathPart>> JavaQueryDescriptor::get_linkpath_indices() const noexcept
+{
+    static JavaMethod get_column_indices_method(m_env, get_sort_desc_class(), "getColumnIndices", "()[[J");
+    jobjectArray column_indices =
+            static_cast<jobjectArray>(m_env->CallObjectMethod(m_sort_desc_obj, get_column_indices_method));
+    JObjectArrayAccessor<JLongArrayAccessor, jlongArray> arrays(m_env, column_indices);
+    jsize arr_len = arrays.size();
+    std::vector<std::vector<LinkPathPart>> indices;
+
+    for (int i = 0; i < arr_len; ++i) {
+        auto jni_long_array = arrays[i];
+        std::vector<LinkPathPart> col_indices;
+        for (int j = 0; j < jni_long_array.size(); ++j) {
+            col_indices.push_back(LinkPathPart{static_cast<size_t>(jni_long_array[j])});
         }
         indices.push_back(std::move(col_indices));
     }

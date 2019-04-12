@@ -17,7 +17,8 @@
 package io.realm.objectserver.model;
 
 import io.realm.annotations.RealmModule;
+import io.realm.entities.AllJavaTypes;
 
-@RealmModule(classes = {PartialSyncObjectA.class, PartialSyncObjectB.class})
+@RealmModule(classes = {PartialSyncObjectA.class, PartialSyncObjectB.class, AllJavaTypes.class})
 public class PartialSyncModule {
 }

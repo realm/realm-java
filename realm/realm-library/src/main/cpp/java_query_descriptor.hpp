@@ -54,6 +54,7 @@ public:
 
     realm::SortDescriptor sort_descriptor() const noexcept;
     realm::DistinctDescriptor distinct_descriptor() const noexcept;
+    realm::IncludeDescriptor include_descriptor() const noexcept;
 
 private:
     JNIEnv* m_env;
@@ -61,6 +62,7 @@ private:
 
     realm::Table* get_table_ptr() const noexcept;
     std::vector<std::vector<size_t>> get_column_indices() const noexcept;
+    std::vector<std::vector<LinkPathPart>> get_linkpath_indices()  const noexcept;
     std::vector<bool> get_ascendings() const noexcept;
 
     jni_util::JavaClass const& get_sort_desc_class() const noexcept;

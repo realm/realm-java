@@ -7,7 +7,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.DynamicRealm;
@@ -15,6 +19,7 @@ import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
+import io.realm.RealmFieldType;
 import io.realm.RealmList;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
@@ -22,8 +27,10 @@ import io.realm.Sort;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
+import io.realm.SyncSession;
 import io.realm.SyncTestUtils;
 import io.realm.SyncUser;
+import io.realm.annotations.LinkingObjects;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
@@ -592,6 +599,73 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
         });
     }
 
+    @Test
+    public void includeLinkingObjects_throwsOnInvalidTypes() {
+        SyncUser user1 = UserFactory.createUniqueUser(Constants.AUTH_URL);
+
+        Realm realm = getPartialRealm(user1);
+        realm.executeTransaction(r -> {
+            RealmQuery<AllJavaTypes> query = r.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_STRING, "child");
+
+            Set<String> invalidFields = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+                    AllJavaTypes.FIELD_IGNORED, AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_SHORT, AllJavaTypes.FIELD_INT,
+                    AllJavaTypes.FIELD_LONG, AllJavaTypes.FIELD_ID, AllJavaTypes.FIELD_BYTE, AllJavaTypes.FIELD_FLOAT, AllJavaTypes.FIELD_DOUBLE,
+                    AllJavaTypes.FIELD_BOOLEAN, AllJavaTypes.FIELD_DATE, AllJavaTypes.FIELD_BINARY, AllJavaTypes.FIELD_OBJECT,
+                    AllJavaTypes.FIELD_LIST, AllJavaTypes.FIELD_STRING_LIST, AllJavaTypes.FIELD_BINARY_LIST, AllJavaTypes.FIELD_BOOLEAN_LIST,
+                    AllJavaTypes.FIELD_LONG_LIST, AllJavaTypes.FIELD_INTEGER_LIST, AllJavaTypes.FIELD_SHORT_LIST, AllJavaTypes.FIELD_BYTE_LIST,
+                    AllJavaTypes.FIELD_DOUBLE_LIST, AllJavaTypes.FIELD_FLOAT_LIST, AllJavaTypes.FIELD_DATE_LIST)));
+
+            for (String field : invalidFields) {
+                try {
+                    query.includeLinkingObjects(field);
+                } catch (IllegalArgumentException ignore) {
+                }
+            }
+        });
+    }
+
+    @Test
+    public void includeLinkingObjects() throws InterruptedException {
+        // Upload data
+        SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
+        Realm realm = getPartialRealm(admin);
+        realm.executeTransaction(r -> {
+            AllJavaTypes obj1 = new AllJavaTypes();
+            obj1.setFieldString("parent");
+            AllJavaTypes obj2 = new AllJavaTypes();
+            obj1.setFieldString("child");
+            obj1.setFieldObject(obj2);
+            r.insert(obj1);
+        });
+        SyncManager.getSession((SyncConfiguration) realm.getConfiguration()).uploadAllLocalChanges();
+        realm.close();
+
+        // Create subscription with includes
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        realm = getPartialRealm(admin);
+        SyncSession session = SyncManager.getSession((SyncConfiguration) realm.getConfiguration());
+        assertEquals(0, realm.where(AllJavaTypes.class).count());
+        realm.executeTransaction(r -> {
+            r.where(AllJavaTypes.class)
+                    .equalTo(AllJavaTypes.FIELD_STRING, "child")
+                    .subscribe("my-sub");
+        });
+        session.uploadAllLocalChanges();
+        session.downloadAllServerChanges();
+        assertEquals(1, realm.where(AllJavaTypes.class).count());
+
+        // Update subscription to include parent objects
+        realm.executeTransaction(r -> {
+            r.where(AllJavaTypes.class)
+                    .equalTo(AllJavaTypes.FIELD_STRING, "child")
+                    .includeLinkingObjects(AllJavaTypes.FIELD_LO_OBJECT)
+                    .subscribeOrUpdate("my-sub");
+        });
+        session.uploadAllLocalChanges();
+        session.downloadAllServerChanges();
+        assertEquals(2, realm.where(AllJavaTypes.class).count());
+        realm.close();
+    }
 
     private Realm getPartialRealm(SyncUser user) {
         final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)

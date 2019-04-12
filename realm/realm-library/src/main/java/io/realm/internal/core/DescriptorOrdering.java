@@ -17,12 +17,14 @@
 package io.realm.internal.core;
 
 import io.realm.internal.NativeObject;
+import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
+import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 
 /**
  * Java class wrapping the native {@code realm::DescriptorOrdering} class. This class
- * is used to track sort/distinct/limit criterias on a query.
+ * is used to track sort/distinct/limit criteria on a query.
  */
 public class DescriptorOrdering implements NativeObject {
 
@@ -97,6 +99,18 @@ public class DescriptorOrdering implements NativeObject {
     }
 
     /**
+     * Add a linkingObject reference that should be fetched from the server.
+     * This only makes sense for Query-based Realms. It is up to callers of this method
+     * to ensure this.
+     */
+    public void appendIncludes(QueryDescriptor descriptor) {
+        nativeAppendInclude(nativePtr, descriptor);
+    }
+
+    public void includeLinkingObjects(String field, OsSharedRealm realm, Table table) {
+    }
+
+    /**
      * Returns true if no descriptors or limits have been added.
      */
     public boolean isEmpty() {
@@ -106,9 +120,10 @@ public class DescriptorOrdering implements NativeObject {
 
     private static native long nativeGetFinalizerMethodPtr();
     private static native long nativeCreate();
-    private static native void nativeAppendSort(long descriptorPtr, QueryDescriptor sortDesc);
-    private static native void nativeAppendDistinct(long descriptorPtr, QueryDescriptor sortDesc);
+    private static native void nativeAppendSort(long descriptorPtr, QueryDescriptor includeDescriptor);
+    private static native void nativeAppendDistinct(long descriptorPtr, QueryDescriptor includeDescriptor);
     private static native void nativeAppendLimit(long descriptorPtr, long limit);
+    private static native void nativeAppendInclude(long descriptorPtr, QueryDescriptor includeDescriptor);
     private static native boolean nativeIsEmpty(long descriptorPtr);
 
 }

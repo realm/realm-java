@@ -31,7 +31,6 @@ import io.realm.internal.Keep;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
-
 /**
  * Java wrapper class around `realm::SortDescriptor` and `realm::DistinctDescriptor` classes in C++.
  * They can be converted between each other using realm::_impl::JavaQueryDescriptor.
@@ -52,6 +51,9 @@ public class QueryDescriptor {
     //@VisibleForTesting
     public final static Set<RealmFieldType> DISTINCT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.STRING, RealmFieldType.DATE)));
+
+    public final static Set<RealmFieldType> INCLUDE_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            RealmFieldType.LINKING_OBJECTS)));
 
     public static QueryDescriptor getInstanceForSort(FieldDescriptor.SchemaProxy proxy, Table table, String fieldDescription, Sort sortOrder) {
         return getInstanceForSort(proxy, table, new String[] {fieldDescription}, new Sort[] {sortOrder});
@@ -74,6 +76,14 @@ public class QueryDescriptor {
 
     public static QueryDescriptor getInstanceForDistinct(FieldDescriptor.SchemaProxy proxy, Table table, String[] fieldDescriptions) {
         return getInstance(proxy, table, fieldDescriptions, null, FieldDescriptor.NO_LINK_FIELD_TYPE, DISTINCT_VALID_FIELD_TYPES, "Distinct is not supported");
+    }
+
+    public static QueryDescriptor getInstanceForInclude(FieldDescriptor.SchemaProxy proxy, Table table, String fieldDescription) {
+        return getInstanceForInclude(proxy, table, new String[] {fieldDescription});
+    }
+
+    public static QueryDescriptor getInstanceForInclude(FieldDescriptor.SchemaProxy proxy, Table table, String[] fieldDescriptions) {
+        return getInstance(proxy, table, fieldDescriptions, null, FieldDescriptor.OBJECT_LINK_FIELD_TYPE, INCLUDE_VALID_FIELD_TYPES, "includeLinkingObjects is not supported");
     }
 
     private static QueryDescriptor getInstance(
@@ -115,7 +125,6 @@ public class QueryDescriptor {
                     "%s on '%s' field '%s' in '%s'.", message, descriptor.getFinalColumnType(), descriptor.getFinalColumnName(), fieldDescriptions));
         }
     }
-
 
     private final Table table;
     private final long[][] columnIndices;
