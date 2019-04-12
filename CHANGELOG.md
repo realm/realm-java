@@ -1,3 +1,20 @@
+## 5.10.1(YYYY-MM-DD)
+
+## Enhancements 
+* None
+
+## Fixed
+*  Native crash happening if bulk updating a field in a `RealmResult` would cause the object to no longer be part of the query result. (Issue [#6478](https://github.com/realm/realm-java/issues/6478), since 5.8.0).
+
+## Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats).
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+## Internal
+* Updated to Object Store commit: cc3db611b1c10d2b890a92fa0f4b8291bc0f3ba2
+
+
 ## 5.10.0(2019-03-22)
 
 ## Enhancements

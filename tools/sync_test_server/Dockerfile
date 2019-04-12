@@ -10,6 +10,13 @@ RUN if [ "x$ROS_VERSION" = "x" ] ; then echo Non-empty ROS_VERSION required ; ex
 RUN if [ "x$REALM_FEATURE_TOKEN" = "x" ] ; then echo Non-empty REALM_FEATURE_TOKEN required ; exit 1; fi
 
 # Install netstat (used for debugging)
+# Fix https://superuser.com/questions/1420231/how-to-solve-404-error-in-aws-apg-get-for-debian-jessie-fetch
+RUN rm etc/apt/sources.list
+RUN echo "deb http://archive.debian.org/debian/ jessie main" >> etc/apt/sources.list
+RUN echo "deb-src http://archive.debian.org/debian/ jessie main" >> etc/apt/sources.list
+RUN echo "deb http://security.debian.org jessie/updates main" >> etc/apt/sources.list
+RUN echo "deb-src http://security.debian.org jessie/updates main" >> etc/apt/sources.list
+
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     net-tools \
