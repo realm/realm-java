@@ -1500,6 +1500,25 @@ public class RealmQuery<E> {
         return this;
     }
 
+    /**
+     * Equal to {@code query.count() > 0}
+     *
+     * @return {@code true} if data found in this query condition.
+     * @see #count()
+     */
+    public boolean exists() {
+        return count() > 0
+    }
+
+    /**
+     * Equal to {@code query.count() == 0}
+     *
+     * @return {@code true} if no data found in this query condition.
+     * @see #count()
+     */
+    public boolean noData() {
+        return count() == 0
+    }
 
     /**
      * Begin grouping of conditions ("left parenthesis"). A group must be closed with a call to {@code endGroup()}.
