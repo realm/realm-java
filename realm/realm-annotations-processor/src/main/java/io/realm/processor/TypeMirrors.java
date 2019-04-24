@@ -30,6 +30,9 @@ import javax.lang.model.util.Types;
 
 /**
  * This class provides {@link TypeMirror} instances used in annotation processor.
+ *
+ * WARNING: Comparing type mirrors using either `==` or `equal()` can break when using incremental
+ * annotation processing. Always use `Types.isSameType()` instead when comparing them.
  */
 class TypeMirrors {
     final TypeMirror STRING_MIRROR;
