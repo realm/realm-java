@@ -46,8 +46,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeGet
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeCreate(JNIEnv* env, jclass)
 {
-   TR_ENTER()
-   try {
+    TR_ENTER()
+    try {
         return reinterpret_cast<jlong>(new DescriptorOrdering());
     }
     CATCH_STD()
@@ -55,67 +55,66 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeCre
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppendSort(JNIEnv* env, jclass,
-                                                                             jlong descriptor_ptr,
-                                                                             jobject j_sort_descriptor)
+jlong descriptor_ptr,
+        jobject j_sort_descriptor)
 {
-    TR_ENTER()
-    try {
-        auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
-        if (j_sort_descriptor) {
-            descriptor->append_sort(JavaQueryDescriptor(env, j_sort_descriptor).sort_descriptor());
-        }
-    }
-    CATCH_STD()
+TR_ENTER()
+try {
+auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
+if (j_sort_descriptor) {
+descriptor->append_sort(JavaQueryDescriptor(env, j_sort_descriptor).sort_descriptor());
+}
+}
+CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppendDistinct(JNIEnv* env, jclass,
-                                                                             jlong descriptor_ptr,
-                                                                             jobject j_distinct_descriptor)
+jlong descriptor_ptr,
+        jobject j_distinct_descriptor)
 {
-    TR_ENTER()
-    try {
-        auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
-        if (j_distinct_descriptor) {
-            descriptor->append_distinct(JavaQueryDescriptor(env, j_distinct_descriptor).distinct_descriptor());
-        }
-    }
-    CATCH_STD()
+TR_ENTER()
+try {
+auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
+if (j_distinct_descriptor) {
+descriptor->append_distinct(JavaQueryDescriptor(env, j_distinct_descriptor).distinct_descriptor());
+}
+}
+CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppendLimit(JNIEnv* env, jclass,
-                                                                             jlong descriptor_ptr,
-                                                                             jlong limit)
+jlong descriptor_ptr,
+        jlong limit)
 {
-    TR_ENTER()
-    try {
-         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
-         descriptor->append_limit(limit);
-    }
-    CATCH_STD()
+TR_ENTER()
+try {
+auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
+descriptor->append_limit(limit);
+}
+CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppendInclude(JNIEnv* env, jclass,
-                                                                            jlong descriptor_ptr,
-                                                                            jobject j_include_descriptor)
+jlong descriptor_ptr,
+        jlong include_descriptor_ptr)
 {
-    TR_ENTER()
-    try {
-        auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
-        if (j_include_descriptor) {
-            descriptor->append_include(JavaQueryDescriptor(env, j_include_descriptor).include_descriptor());
-        }
-    }
-    CATCH_STD()
+TR_ENTER()
+try {
+auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
+auto incl_desc = reinterpret_cast<IncludeDescriptor*>(include_descriptor_ptr);
+descriptor->append_include(*incl_desc);
+}
+CATCH_STD()
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeIsEmpty(JNIEnv* env, jclass,
-                                                                             jlong descriptor_ptr)
+                                                                                        jlong descriptor_ptr)
 {
-    TR_ENTER()
-    try {
-        auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
-        return descriptor->is_empty() ? JNI_TRUE : JNI_FALSE;
-    }
-    CATCH_STD()
-    return JNI_TRUE;
+TR_ENTER()
+try {
+auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
+return descriptor->is_empty() ? JNI_TRUE : JNI_FALSE;
+}
+CATCH_STD()
+return JNI_TRUE;
 }

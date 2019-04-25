@@ -80,7 +80,7 @@ set(classes_LIST
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
     io.realm.internal.OsObjectStore io.realm.internal.sync.OsSubscription
-    io.realm.internal.core.DescriptorOrdering
+    io.realm.internal.core.DescriptorOrdering io.realm.internal.core.IncludeDescriptor
     io.realm.internal.objectstore.OsObjectBuilder
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.

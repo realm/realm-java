@@ -21,6 +21,7 @@ import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
+import io.realm.internal.fields.FieldDescriptor;
 
 /**
  * Java class wrapping the native {@code realm::DescriptorOrdering} class. This class
@@ -103,11 +104,8 @@ public class DescriptorOrdering implements NativeObject {
      * This only makes sense for Query-based Realms. It is up to callers of this method
      * to ensure this.
      */
-    public void appendIncludes(QueryDescriptor descriptor) {
-        nativeAppendInclude(nativePtr, descriptor);
-    }
-
-    public void includeLinkingObjects(String field, OsSharedRealm realm, Table table) {
+    public void appendIncludes(IncludeDescriptor descriptor) {
+        nativeAppendInclude(nativePtr, descriptor.getNativePtr());
     }
 
     /**
@@ -123,7 +121,7 @@ public class DescriptorOrdering implements NativeObject {
     private static native void nativeAppendSort(long descriptorPtr, QueryDescriptor includeDescriptor);
     private static native void nativeAppendDistinct(long descriptorPtr, QueryDescriptor includeDescriptor);
     private static native void nativeAppendLimit(long descriptorPtr, long limit);
-    private static native void nativeAppendInclude(long descriptorPtr, QueryDescriptor includeDescriptor);
+    private static native void nativeAppendInclude(long descriptorPtr, long includeDescriptorPtr);
     private static native boolean nativeIsEmpty(long descriptorPtr);
 
 }

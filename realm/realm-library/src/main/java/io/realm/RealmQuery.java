@@ -34,6 +34,7 @@ import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
 import io.realm.internal.annotations.ObjectServer;
+import io.realm.internal.core.IncludeDescriptor;
 import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -2054,27 +2055,29 @@ public class RealmQuery<E> {
     }
 
     /**
-     *
-     * @param firstFieldName
-     * @param remainingFieldNames
+     * @param firstIncludePath
+     * @param remainingFieldPaths
      * @return
      */
-    public RealmQuery<E> includeLinkingObjects(String firstFieldName, String... remainingFieldNames) {
+    public RealmQuery<E> includeLinkingObjects(String firstIncludePath, String... remainingFieldPaths) {
         realm.checkIfValid();
         if (!ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(realm.getConfiguration())) {
             throw new IllegalStateException("This method is only available for Query-based Realms.");
         }
 
-        QueryDescriptor includeDescriptor;
-        if (remainingFieldNames.length == 0) {
-            includeDescriptor = QueryDescriptor.getInstanceForInclude(getSchemaConnector(), table, firstFieldName);
+        IncludeDescriptor descriptor;
+        if (remainingFieldPaths.length == 0) {
+//            descriptor = QueryDescriptor.getInstanceForInclude(getSchemaConnector(), table, firstFieldName);
+            descriptor = IncludeDescriptor.createInstance(getSchemaConnector(), table, new String[]{firstIncludePath});
         } else {
-            String[] fieldNames = new String[1 + remainingFieldNames.length];
-            fieldNames[0] = firstFieldName;
-            System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
-            includeDescriptor = QueryDescriptor.getInstanceForInclude(getSchemaConnector(), table, fieldNames);
+            String[] fieldNames = new String[1 + remainingFieldPaths.length];
+            fieldNames[0] = firstIncludePath;
+            System.arraycopy(remainingFieldPaths, 0, fieldNames, 1, remainingFieldPaths.length);
+//            descriptor = QueryDescriptor.getInstanceForInclude(getSchemaConnector(), table, fieldNames);
+            descriptor = IncludeDescriptor.createInstance(getSchemaConnector(), table, new String[]{firstIncludePath});
         }
-        queryDescriptors.appendIncludes(includeDescriptor);
+
+        queryDescriptors.appendIncludes(descriptor);
         return this;
     }
 
