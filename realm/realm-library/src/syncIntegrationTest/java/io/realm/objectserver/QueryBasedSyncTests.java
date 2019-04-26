@@ -659,9 +659,10 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
         SyncSession session = SyncManager.getSession((SyncConfiguration) realm2.getConfiguration());
         assertEquals(0, realm2.where(AllJavaTypes.class).count());
         realm2.executeTransaction(realm -> {
-            realm.where(BacklinksTarget.class)
+            Subscription sub = realm.where(BacklinksTarget.class)
                     .equalTo(BacklinksTarget.FIELD_ID, 1)
                     .subscribe("my-sub");
+            assertEquals("id == 1", sub.getQueryDescription());
         });
         session.uploadAllLocalChanges();
         session.downloadAllServerChanges();
@@ -671,10 +672,11 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
 
         // Update subscription to include parent objects
         realm2.executeTransaction(realm -> {
-            realm.where(BacklinksTarget.class)
+            Subscription sub = realm.where(BacklinksTarget.class)
                     .equalTo(BacklinksTarget.FIELD_ID, 1)
                     .includeLinkingObjects(BacklinksTarget.FIELD_PARENTS)
                     .subscribeOrUpdate("my-sub");
+            assertEquals("id == 1 INCLUDE(@links.class_BacklinksSource.child)", sub.getQueryDescription());
         });
         session.uploadAllLocalChanges();
         session.downloadAllServerChanges();

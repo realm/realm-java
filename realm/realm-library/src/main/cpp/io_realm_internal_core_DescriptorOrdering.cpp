@@ -16,13 +16,7 @@
 
 #include "io_realm_internal_core_DescriptorOrdering.h"
 
-#include <realm/parser/parser.hpp>
-#include <realm/parser/query_builder.hpp>
-#include <object_schema.hpp>
-#include <object_store.hpp>
-#include <property.hpp>
-#include <schema.hpp>
-#include <shared_realm.hpp>
+#include <realm/views.hpp>
 
 #include "java_query_descriptor.hpp"
 #include "util.hpp"
@@ -96,14 +90,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
 
 JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppendInclude(JNIEnv* env, jclass,
                                                                             jlong descriptor_ptr,
-                                                                            jobject j_include_descriptor)
+                                                                            jlong include_descriptor_ptr)
 {
     TR_ENTER()
     try {
         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
-        if (j_include_descriptor) {
-            descriptor->append_include(JavaQueryDescriptor(env, j_include_descriptor).include_descriptor());
-        }
+        auto include_descriptor = reinterpret_cast<IncludeDescriptor*>(include_descriptor_ptr);
+        descriptor->append_include(*include_descriptor);
     }
     CATCH_STD()
 }
