@@ -622,26 +622,30 @@ public class RealmProxyClassGenerator {
             @SuppressWarnings("SameParameterValue") String osListVariableName,
             @SuppressWarnings("SameParameterValue") String valueVariableName,
             TypeMirror elementTypeMirror) {
-        if (elementTypeMirror == typeMirrors.STRING_MIRROR) {
+
+        Types typeUtils = processingEnvironment.getTypeUtils();
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.STRING_MIRROR)) {
             return osListVariableName + ".addString(" + valueVariableName + ")";
         }
-        if (elementTypeMirror == typeMirrors.LONG_MIRROR || elementTypeMirror == typeMirrors.INTEGER_MIRROR
-                || elementTypeMirror == typeMirrors.SHORT_MIRROR || elementTypeMirror == typeMirrors.BYTE_MIRROR) {
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.LONG_MIRROR)
+                || typeUtils.isSameType(elementTypeMirror, typeMirrors.INTEGER_MIRROR)
+                || typeUtils.isSameType(elementTypeMirror, typeMirrors.SHORT_MIRROR)
+                || typeUtils.isSameType(elementTypeMirror, typeMirrors.BYTE_MIRROR)) {
             return osListVariableName + ".addLong(" + valueVariableName + ".longValue())";
         }
-        if (elementTypeMirror.equals(typeMirrors.BINARY_MIRROR)) {
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.BINARY_MIRROR)) {
             return osListVariableName + ".addBinary(" + valueVariableName + ")";
         }
-        if (elementTypeMirror == typeMirrors.DATE_MIRROR) {
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.DATE_MIRROR)) {
             return osListVariableName + ".addDate(" + valueVariableName + ")";
         }
-        if (elementTypeMirror == typeMirrors.BOOLEAN_MIRROR) {
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.BOOLEAN_MIRROR)) {
             return osListVariableName + ".addBoolean(" + valueVariableName + ")";
         }
-        if (elementTypeMirror == typeMirrors.DOUBLE_MIRROR) {
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.DOUBLE_MIRROR)) {
             return osListVariableName + ".addDouble(" + valueVariableName + ".doubleValue())";
         }
-        if (elementTypeMirror == typeMirrors.FLOAT_MIRROR) {
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.FLOAT_MIRROR)) {
             return osListVariableName + ".addFloat(" + valueVariableName + ".floatValue())";
         }
         throw new RuntimeException("unexpected element type: " + elementTypeMirror.toString());
