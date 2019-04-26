@@ -25,7 +25,7 @@ import io.realm.internal.fields.FieldDescriptor;
 
 /**
  * Java class wrapping the native {@code realm::DescriptorOrdering} class. This class
- * is used to track sort/distinct/limit criteria on a query.
+ * is used to track sort/distinct/limit criterias on a query.
  */
 public class DescriptorOrdering implements NativeObject {
 

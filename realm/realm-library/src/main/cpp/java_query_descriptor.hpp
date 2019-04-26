@@ -35,9 +35,9 @@ namespace _impl {
 // thus doesn't make much sense and causes problems with memory management.
 class JavaQueryDescriptor {
 public:
-    JavaQueryDescriptor(JNIEnv* env, jobject query_desc_obj)
+    JavaQueryDescriptor(JNIEnv* env, jobject sort_desc_obj)
         : m_env(env)
-        , m_query_desc_obj(query_desc_obj)
+        , m_sort_desc_obj(sort_desc_obj)
     {
     }
 
@@ -54,18 +54,16 @@ public:
 
     realm::SortDescriptor sort_descriptor() const noexcept;
     realm::DistinctDescriptor distinct_descriptor() const noexcept;
-    realm::IncludeDescriptor include_descriptor() const;
 
 private:
     JNIEnv* m_env;
-    jobject m_query_desc_obj;
+    jobject m_sort_desc_obj;
 
     realm::Table* get_table_ptr() const noexcept;
     std::vector<std::vector<size_t>> get_column_indices() const noexcept;
-    std::vector<std::vector<LinkPathPart>> get_linkpath_indices() const;
     std::vector<bool> get_ascendings() const noexcept;
 
-    jni_util::JavaClass const& get_query_desc_class() const noexcept;
+    jni_util::JavaClass const& get_sort_desc_class() const noexcept;
 };
 
 } // namespace _impl

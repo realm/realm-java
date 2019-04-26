@@ -2055,11 +2055,23 @@ public class RealmQuery<E> {
     }
 
     /**
-     * FIXME
-     *
-     * @param firstIncludePath
-     * @param remainingFieldPaths
+     * This predicate is only relevant for Query-based Realms.
+     * <p>
+     * Objects referenced through fields marked with {@link io.realm.annotations.LinkingObjects} are normally not downloaded
+     * as part of the subscription in Query-based Realms, but by using this predicate, it is possible to specify which linking
+     * objects relationships should also be included in the subscription as well.
+     * <p>
+     * Note that all "forward" object references like object references and lists are always included in the subscription
+     * by default.
+     * <p>
+     * This predicate can be called multiple times, in which case all fields will be added to the subscription.
+     * 
+     * @param firstIncludePath the first {@link io.realm.annotations.LinkingObjects} field to add.
+     * @param remainingFieldPaths any remaining {@link io.realm.annotations.LinkingObjects} fields to add.
+     * @throws IllegalStateException if called on a non-query-based Realm.
+     * @throws IllegalArgumentException if the path does not end with a field marked with {@link io.realm.annotations.LinkingObjects}.
      */
+    @ObjectServer
     public RealmQuery<E> includeLinkingObjects(String firstIncludePath, @Nullable String... remainingFieldPaths) {
         realm.checkIfValid();
         if (!ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(realm.getConfiguration())) {

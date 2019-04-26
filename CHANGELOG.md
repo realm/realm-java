@@ -1,7 +1,7 @@
 ## 5.11.0(YYYY-MM-DD)
 
 ### Enhancements
-* Add an optional parameter to the `SubscriptionOptions`: `inclusions` which is an array of linkingObjects properties. This tells subscriptions to include objects linked through these relationships as well (links and lists are already included by default). ([#2296](https://github.com/realm/realm-js/pull/2296)
+* [ObjectServer] Added `RealmQuery.includeLinkingObjects()`. This is only relevant for Query-based Realms and tells subscriptions to include objects linked through `@LinkingObjects` fields as part of the subscription as well. Objects referenced through objects and lists are always included as a default. (Issue [#6426](https://github.com/realm/realm-java/issues/6426))
 * Encryption now uses hardware optimized functions, which significantly improves the performance of encrypted Realms. ([Realm Core PR #3241](https://github.com/realm/realm-core/pull/3241))
 * Improved query performance when using `RealmQuery.in()` queries. ([Realm Core PR #3250](https://github.com/realm/realm-core/pull/3250)).
 * Improved query performance when querying Integer fields with indexes, e.g. primary key fields. ([Realm Core PR #3272](https://github.com/realm/realm-core/pull/3272)).
@@ -21,7 +21,7 @@
 ### Internal
 * Updated to Realm Core 5.19.1.
 * Updated to Relm Sync 4.4.2.
-* Updated to Object Store commit 3ff4170
+* Updated to Object Store commit e4b1314d21b521fd604af7f1aacf3ca94272c19a
 
 
 ## 5.10.1(YYYY-MM-DD)
