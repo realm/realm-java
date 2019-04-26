@@ -23,7 +23,7 @@ import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
 /**
- * Creates the Javawrapper for a `realm::IncludeDescriptor`.
+ * Creates the Java wrapper for a `realm::IncludeDescriptor`.
  */
 public class IncludeDescriptor implements NativeObject {
 
@@ -31,13 +31,19 @@ public class IncludeDescriptor implements NativeObject {
     private final long nativePtr;
 
     public static IncludeDescriptor createInstance(FieldDescriptor.SchemaProxy schemaConnector, Table table, String includePath) {
-            EnumSet<RealmFieldType> supportedNodeTypes = EnumSet.of(RealmFieldType.OBJECT, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
-            FieldDescriptor fieldDescriptor = FieldDescriptor.createFieldDescriptor(schemaConnector, table, includePath, supportedNodeTypes, supportedNodeTypes);
-            return new IncludeDescriptor(fieldDescriptor.getColumnIndices(), fieldDescriptor.getNativeTablePointers());
+            EnumSet<RealmFieldType> supportedIntermediateColumnTypes = EnumSet.of(RealmFieldType.OBJECT, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
+            EnumSet<RealmFieldType> supportedFinalColumnType = EnumSet.of(RealmFieldType.LINKING_OBJECTS);
+            FieldDescriptor fieldDescriptor = FieldDescriptor.createFieldDescriptor(
+                    schemaConnector,
+                    table,
+                    includePath,
+                    supportedIntermediateColumnTypes,
+                    supportedFinalColumnType);
+            return new IncludeDescriptor(table, fieldDescriptor.getColumnIndices(), fieldDescriptor.getNativeTablePointers());
     }
 
-    private IncludeDescriptor(long[] columnIndices, long[] nativeTablePointers) {
-        nativePtr = nativeCreate(columnIndices, nativeTablePointers);
+    private IncludeDescriptor(Table table, long[] columnIndices, long[] nativeTablePointers) {
+        nativePtr = nativeCreate(table.getNativePtr(), columnIndices, nativeTablePointers);
     }
 
     @Override
@@ -51,6 +57,6 @@ public class IncludeDescriptor implements NativeObject {
     }
 
     private static native long nativeGetFinalizerMethodPtr();
-    private static native long nativeCreate(long[] columnIndices, long[] tablePtrIndices);
+    private static native long nativeCreate(long tablePtr, long[] columnIndices, long[] tablePtrIndices);
 }
 

@@ -18,7 +18,9 @@ package io.realm.objectserver.model;
 
 import io.realm.annotations.RealmModule;
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.BacklinksSource;
+import io.realm.entities.BacklinksTarget;
 
-@RealmModule(classes = {PartialSyncObjectA.class, PartialSyncObjectB.class, AllJavaTypes.class})
+@RealmModule(classes = {PartialSyncObjectA.class, PartialSyncObjectB.class, AllJavaTypes.class, BacklinksSource.class, BacklinksTarget.class})
 public class PartialSyncModule {
 }

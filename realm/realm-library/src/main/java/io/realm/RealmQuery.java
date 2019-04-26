@@ -2055,29 +2055,26 @@ public class RealmQuery<E> {
     }
 
     /**
+     * FIXME
+     *
      * @param firstIncludePath
      * @param remainingFieldPaths
-     * @return
      */
-    public RealmQuery<E> includeLinkingObjects(String firstIncludePath, String... remainingFieldPaths) {
+    public RealmQuery<E> includeLinkingObjects(String firstIncludePath, @Nullable String... remainingFieldPaths) {
         realm.checkIfValid();
         if (!ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(realm.getConfiguration())) {
             throw new IllegalStateException("This method is only available for Query-based Realms.");
         }
-
-        IncludeDescriptor descriptor;
-        if (remainingFieldPaths.length == 0) {
-//            descriptor = QueryDescriptor.getInstanceForInclude(getSchemaConnector(), table, firstFieldName);
-            descriptor = IncludeDescriptor.createInstance(getSchemaConnector(), table, new String[]{firstIncludePath});
-        } else {
-            String[] fieldNames = new String[1 + remainingFieldPaths.length];
-            fieldNames[0] = firstIncludePath;
-            System.arraycopy(remainingFieldPaths, 0, fieldNames, 1, remainingFieldPaths.length);
-//            descriptor = QueryDescriptor.getInstanceForInclude(getSchemaConnector(), table, fieldNames);
-            descriptor = IncludeDescriptor.createInstance(getSchemaConnector(), table, new String[]{firstIncludePath});
+        if (Util.isEmptyString(firstIncludePath)) {
+            throw new IllegalArgumentException("Non-empty 'firstIncludePath' required.");
         }
-
-        queryDescriptors.appendIncludes(descriptor);
+        queryDescriptors.appendIncludes(IncludeDescriptor.createInstance(getSchemaConnector(), table, firstIncludePath));
+        if (remainingFieldPaths != null) {
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0; i < remainingFieldPaths.length; i++) {
+                queryDescriptors.appendIncludes(IncludeDescriptor.createInstance(getSchemaConnector(), table, remainingFieldPaths[i]));
+            }
+        }
         return this;
     }
 

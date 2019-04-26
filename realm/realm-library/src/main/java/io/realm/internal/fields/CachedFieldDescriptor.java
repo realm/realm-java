@@ -86,6 +86,7 @@ class CachedFieldDescriptor extends FieldDescriptor {
                 verifyInternalColumnType(currentClassName, currentColumnName, currentColumnType);
                 currentClassName = details.linkedClassName;
             }
+
             columnIndices[i] = details.columnIndex;
             tableNativePointers[i] = (currentColumnType != RealmFieldType.LINKING_OBJECTS)
                     ? NativeObject.NULLPTR

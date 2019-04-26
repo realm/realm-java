@@ -29,7 +29,7 @@ using namespace realm::jni_util;
 
 SortDescriptor JavaQueryDescriptor::sort_descriptor() const noexcept
 {
-    if (m_sort_desc_obj == nullptr) {
+    if (m_query_desc_obj == nullptr) {
         return SortDescriptor();
     }
 
@@ -38,29 +38,35 @@ SortDescriptor JavaQueryDescriptor::sort_descriptor() const noexcept
 
 DistinctDescriptor JavaQueryDescriptor::distinct_descriptor() const noexcept
 {
-    if (m_sort_desc_obj == nullptr) {
+    if (m_query_desc_obj == nullptr) {
         return DistinctDescriptor();
     }
     return DistinctDescriptor(*get_table_ptr(), get_column_indices());
 }
 
-IncludeDescriptor JavaQueryDescriptor::include_descriptor() const noexcept
+IncludeDescriptor JavaQueryDescriptor::include_descriptor() const
 {
-    return IncludeDescriptor(*get_table_ptr(), get_linkpath_indices());
+    if (m_query_desc_obj == nullptr)
+        return IncludeDescriptor();
+
+    auto table = get_table_ptr();
+    auto indices = get_linkpath_indices();
+    return IncludeDescriptor(*table, indices);
 }
 
 Table* JavaQueryDescriptor::get_table_ptr() const noexcept
 {
-    static JavaMethod get_table_ptr_method(m_env, get_sort_desc_class(), "getTablePtr", "()J");
-    jlong table_ptr = m_env->CallLongMethod(m_sort_desc_obj, get_table_ptr_method);
-    return reinterpret_cast<Table*>(table_ptr);
+    static JavaMethod get_table_ptr_method(m_env, get_query_desc_class(), "getTablePtr", "()J");
+    jlong table_ptr = m_env->CallLongMethod(m_query_desc_obj, get_table_ptr_method);
+    auto table = reinterpret_cast<Table*>(table_ptr);
+    return table;
 }
 
 std::vector<std::vector<size_t>> JavaQueryDescriptor::get_column_indices() const noexcept
 {
-    static JavaMethod get_column_indices_method(m_env, get_sort_desc_class(), "getColumnIndices", "()[[J");
+    static JavaMethod get_column_indices_method(m_env, get_query_desc_class(), "getColumnIndices", "()[[J");
     jobjectArray column_indices =
-        static_cast<jobjectArray>(m_env->CallObjectMethod(m_sort_desc_obj, get_column_indices_method));
+        static_cast<jobjectArray>(m_env->CallObjectMethod(m_query_desc_obj, get_column_indices_method));
     JObjectArrayAccessor<JLongArrayAccessor, jlongArray> arrays(m_env, column_indices);
     jsize arr_len = arrays.size();
     std::vector<std::vector<size_t>> indices;
@@ -76,11 +82,10 @@ std::vector<std::vector<size_t>> JavaQueryDescriptor::get_column_indices() const
     return indices;
 }
 
-std::vector<std::vector<LinkPathPart>> JavaQueryDescriptor::get_linkpath_indices() const noexcept
+std::vector<std::vector<LinkPathPart>> JavaQueryDescriptor::get_linkpath_indices() const
 {
-    static JavaMethod get_column_indices_method(m_env, get_sort_desc_class(), "getColumnIndices", "()[[J");
-    jobjectArray column_indices =
-            static_cast<jobjectArray>(m_env->CallObjectMethod(m_sort_desc_obj, get_column_indices_method));
+    static JavaMethod get_column_indices_method(m_env, get_query_desc_class(), "getColumnIndices", "()[[J");
+    jobjectArray column_indices = static_cast<jobjectArray>(m_env->CallObjectMethod(m_query_desc_obj, get_column_indices_method));
     JObjectArrayAccessor<JLongArrayAccessor, jlongArray> arrays(m_env, column_indices);
     jsize arr_len = arrays.size();
     std::vector<std::vector<LinkPathPart>> indices;
@@ -89,7 +94,8 @@ std::vector<std::vector<LinkPathPart>> JavaQueryDescriptor::get_linkpath_indices
         auto jni_long_array = arrays[i];
         std::vector<LinkPathPart> col_indices;
         for (int j = 0; j < jni_long_array.size(); ++j) {
-            col_indices.push_back(LinkPathPart{static_cast<size_t>(jni_long_array[j])});
+            auto part = LinkPathPart(static_cast<size_t>(jni_long_array[j]));
+            col_indices.push_back(part);
         }
         indices.push_back(std::move(col_indices));
     }
@@ -98,10 +104,10 @@ std::vector<std::vector<LinkPathPart>> JavaQueryDescriptor::get_linkpath_indices
 
 std::vector<bool> JavaQueryDescriptor::get_ascendings() const noexcept
 {
-    static JavaMethod get_ascendings_method(m_env, get_sort_desc_class(), "getAscendings", "()[Z");
+    static JavaMethod get_ascendings_method(m_env, get_query_desc_class(), "getAscendings", "()[Z");
 
     jbooleanArray ascendings =
-        static_cast<jbooleanArray>(m_env->CallObjectMethod(m_sort_desc_obj, get_ascendings_method));
+        static_cast<jbooleanArray>(m_env->CallObjectMethod(m_query_desc_obj, get_ascendings_method));
 
     if (!ascendings) {
         return {};
@@ -117,9 +123,9 @@ std::vector<bool> JavaQueryDescriptor::get_ascendings() const noexcept
     return ascending_list;
 }
 
-JavaClass const& JavaQueryDescriptor::get_sort_desc_class() const noexcept
+JavaClass const& JavaQueryDescriptor::get_query_desc_class() const noexcept
 {
-    static JavaClass sort_desc_class(m_env, "io/realm/internal/core/QueryDescriptor");
-    return sort_desc_class;
+    static JavaClass query_desc_class(m_env, "io/realm/internal/core/QueryDescriptor");
+    return query_desc_class;
 }
 

@@ -32,7 +32,7 @@ import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
 /**
- * Java wrapper class around `realm::SortDescriptor` and `realm::DistinctDescriptor` classes in C++.
+ * Java wrapper class around `realm::SortDescriptor`, `realm::DistinctDescriptor` and `realm::IncludeDescriptor` classes in C++.
  * They can be converted between each other using realm::_impl::JavaQueryDescriptor.
  * <p>
  * NOTE: Since the column indices are determined when constructing the object with the given table's status, the indices
