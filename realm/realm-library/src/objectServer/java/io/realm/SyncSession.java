@@ -626,20 +626,11 @@ public class SyncSession {
             WaitForSessionWrapper wrapper = new WaitForSessionWrapper();
             waitingForServerChanges.set(wrapper);
             int callbackId = waitCounter.incrementAndGet();
-            boolean listenerRegistered = (direction == DIRECTION_DOWNLOAD)
-                    ? nativeWaitForDownloadCompletion(callbackId, realmPath)
-                    : nativeWaitForUploadCompletion(callbackId, realmPath);
-            if (!listenerRegistered) {
-                waitingForServerChanges.set(null);
-                String errorMsg;
-                switch (direction) {
-                    case DIRECTION_DOWNLOAD: errorMsg = "It was not possible to download all remote changes."; break;
-                    case DIRECTION_UPLOAD: errorMsg = "It was not possible upload all local changes."; break;
-                    default:
-                        throw new IllegalArgumentException("Unknown direction: " + direction);
-                }
-
-                throw new ObjectServerError(ErrorCode.UNKNOWN, errorMsg + " Has the SyncClient been started?");
+            // FIXME What happens if you call this and the Realm isn't opened
+            if (direction == DIRECTION_DOWNLOAD) {
+                nativeWaitForDownloadCompletion(callbackId, realmPath);
+            } else {
+                nativeWaitForUploadCompletion(callbackId, realmPath);
             }
             try {
                 result = wrapper.waitForServerChanges(timeout, unit);
@@ -965,8 +956,8 @@ public class SyncSession {
     private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
     private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
-    private native boolean nativeWaitForDownloadCompletion(int callbackId, String localRealmPath);
-    private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
+    private native void nativeWaitForDownloadCompletion(int callbackId, String localRealmPath);
+    private native void nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
     private static native byte nativeGetState(String localRealmPath);
     private static native byte nativeGetConnectionState(String localRealmPath);
     private static native void nativeStart(String localRealmPath);

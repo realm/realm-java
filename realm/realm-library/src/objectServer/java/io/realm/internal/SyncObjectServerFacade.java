@@ -195,7 +195,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                         // This means that in the worst case you end up with 2x the timeout for
                         // Query-based Realms. This is probably an acceptable trade-of as trying
                         // to expose this would not only complicate the API surface quite a lot,
-                        // but in most (almost all?) cases the amount of data to upload will be trivial.
+                        // but in most cases the amount of data to upload will be trivial.
                         if (!session.uploadAllLocalChanges(timeoutMillis, TimeUnit.MILLISECONDS)) {
                             throw new DownloadingRealmInterruptedException(syncConfig, "Failed to first upload local changes in " + timeoutMillis + " milliseconds");
                         };
