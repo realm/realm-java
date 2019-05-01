@@ -2065,7 +2065,9 @@ public class RealmQuery<E> {
      * subscription by default.
      * <p>
      * This predicate can be called multiple times, in which case all fields will be added to the subscription.
-     * 
+     * <p>
+     * NOTE: This method version is only available with Realm Object Server 3.20.1 or ßlater.
+     *
      * @param firstIncludePath the first {@link io.realm.annotations.LinkingObjects} field to add.
      * @param remainingFieldPaths any remaining {@link io.realm.annotations.LinkingObjects} fields to add.
      * @throws IllegalStateException if called on a non-query-based Realm.
