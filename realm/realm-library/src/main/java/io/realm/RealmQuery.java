@@ -33,8 +33,8 @@ import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.annotations.ObjectServer;
+import io.realm.internal.core.IncludeDescriptor;
 import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -2055,6 +2055,42 @@ public class RealmQuery<E> {
     }
 
     /**
+     * This predicate is only relevant for Query-based Realms.
+     * <p>
+     * Objects referenced through fields marked with {@link io.realm.annotations.LinkingObjects} are normally not downloaded
+     * as part of the subscription in Query-based Realms, but by using this predicate, it is possible to specify which linking
+     * objects relationships should also be included in the subscription as well.
+     * <p>
+     * Note, that all "forward" object references like object references and lists are always downloaded as part of the
+     * subscription by default.
+     * <p>
+     * This predicate can be called multiple times, in which case all fields will be added to the subscription.
+     * 
+     * @param firstIncludePath the first {@link io.realm.annotations.LinkingObjects} field to add.
+     * @param remainingFieldPaths any remaining {@link io.realm.annotations.LinkingObjects} fields to add.
+     * @throws IllegalStateException if called on a non-query-based Realm.
+     * @throws IllegalArgumentException if the path does not end with a field marked with {@link io.realm.annotations.LinkingObjects}.
+     */
+    @ObjectServer
+    public RealmQuery<E> includeLinkingObjects(String firstIncludePath, @Nullable String... remainingFieldPaths) {
+        realm.checkIfValid();
+        if (!ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(realm.getConfiguration())) {
+            throw new IllegalStateException("This method is only available for Query-based Realms.");
+        }
+        if (Util.isEmptyString(firstIncludePath)) {
+            throw new IllegalArgumentException("Non-empty 'firstIncludePath' required.");
+        }
+        queryDescriptors.appendIncludes(IncludeDescriptor.createInstance(getSchemaConnector(), table, firstIncludePath));
+        if (remainingFieldPaths != null) {
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0; i < remainingFieldPaths.length; i++) {
+                queryDescriptors.appendIncludes(IncludeDescriptor.createInstance(getSchemaConnector(), table, remainingFieldPaths[i]));
+            }
+        }
+        return this;
+    }
+
+    /**
      * This predicate will always match.
      */
     public RealmQuery<E> alwaysTrue() {
@@ -2255,7 +2291,7 @@ public class RealmQuery<E> {
      * @return the internal name of the Realm model class being queried.
      */
     public String getTypeQueried() {
-        // TODO Revisit this when primitve list queries are implemented.
+        // TODO Revisit this when primitive list queries are implemented.
         return table.getClassName();
     }
 
