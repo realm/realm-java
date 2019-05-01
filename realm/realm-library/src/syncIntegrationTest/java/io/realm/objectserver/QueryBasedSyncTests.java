@@ -3,16 +3,18 @@ package io.realm.objectserver;
 import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.DynamicRealm;
 import io.realm.OrderedCollectionChangeSet;
-import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
@@ -22,10 +24,13 @@ import io.realm.Sort;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
+import io.realm.SyncSession;
 import io.realm.SyncTestUtils;
 import io.realm.SyncUser;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
+import io.realm.entities.BacklinksSource;
+import io.realm.entities.BacklinksTarget;
 import io.realm.entities.Dog;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.model.PartialSyncModule;
@@ -592,6 +597,146 @@ public class QueryBasedSyncTests extends StandardIntegrationTest {
         });
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void includeLinkingObjects_throwsOnInvalidTypes() {
+        SyncUser user1 = UserFactory.createUniqueUser(Constants.AUTH_URL);
+
+        Realm realm = getPartialRealm(user1);
+        realm.executeTransaction(r -> {
+            RealmQuery<AllJavaTypes> query = r.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_STRING, "child");
+
+            Set<String> invalidFields = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+                    AllJavaTypes.FIELD_IGNORED, AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_SHORT, AllJavaTypes.FIELD_INT,
+                    AllJavaTypes.FIELD_LONG, AllJavaTypes.FIELD_ID, AllJavaTypes.FIELD_BYTE, AllJavaTypes.FIELD_FLOAT, AllJavaTypes.FIELD_DOUBLE,
+                    AllJavaTypes.FIELD_BOOLEAN, AllJavaTypes.FIELD_DATE, AllJavaTypes.FIELD_BINARY, AllJavaTypes.FIELD_OBJECT,
+                    AllJavaTypes.FIELD_LIST, AllJavaTypes.FIELD_STRING_LIST, AllJavaTypes.FIELD_BINARY_LIST, AllJavaTypes.FIELD_BOOLEAN_LIST,
+                    AllJavaTypes.FIELD_LONG_LIST, AllJavaTypes.FIELD_INTEGER_LIST, AllJavaTypes.FIELD_SHORT_LIST, AllJavaTypes.FIELD_BYTE_LIST,
+                    AllJavaTypes.FIELD_DOUBLE_LIST, AllJavaTypes.FIELD_FLOAT_LIST, AllJavaTypes.FIELD_DATE_LIST)));
+
+            for (String field : invalidFields) {
+                try {
+                    query.includeLinkingObjects(field);
+                    fail(field + " failed.");
+                } catch (IllegalArgumentException ignore) {
+                }
+            }
+        });
+        realm.close();
+        looperThread.postRunnable(() -> {
+            looperThread.testComplete();
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void includeLinkingObjects_differentTable() throws InterruptedException {
+        // Upload data
+        SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
+        Realm realm1 = getPartialRealm(admin);
+        realm1.executeTransaction(realm -> {
+            BacklinksTarget child1 = new BacklinksTarget();
+            child1.setId(1);
+            BacklinksTarget child2 = new BacklinksTarget();
+            child2.setId(2);
+
+            BacklinksSource parent1 = new BacklinksSource();
+            parent1.setName("parent-1");
+            parent1.setChild(child1);
+            BacklinksSource parent2 = new BacklinksSource();
+            parent2.setName("parent-2");
+
+            realm.insert(parent1);
+            realm.insert(parent2);
+            realm.insert(child2);
+        });
+        SyncManager.getSession((SyncConfiguration) realm1.getConfiguration()).uploadAllLocalChanges();
+        realm1.close();
+
+        // Create subscription with includes
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        Realm realm2 = getPartialRealm(admin);
+        SyncSession session = SyncManager.getSession((SyncConfiguration) realm2.getConfiguration());
+        assertEquals(0, realm2.where(AllJavaTypes.class).count());
+        realm2.executeTransaction(realm -> {
+            Subscription sub = realm.where(BacklinksTarget.class)
+                    .equalTo(BacklinksTarget.FIELD_ID, 1)
+                    .subscribe("my-sub");
+            assertEquals("id == 1", sub.getQueryDescription());
+        });
+        session.uploadAllLocalChanges();
+        session.downloadAllServerChanges();
+        realm2.refresh();
+        assertEquals(1, realm2.where(BacklinksTarget.class).count());
+        assertEquals(0, realm2.where(BacklinksSource.class).count());
+
+        // Update subscription to include parent objects
+        realm2.executeTransaction(realm -> {
+            Subscription sub = realm.where(BacklinksTarget.class)
+                    .equalTo(BacklinksTarget.FIELD_ID, 1)
+                    .includeLinkingObjects(BacklinksTarget.FIELD_PARENTS)
+                    .subscribeOrUpdate("my-sub");
+            assertEquals("id == 1 INCLUDE(@links.class_BacklinksSource.child)", sub.getQueryDescription());
+        });
+        session.uploadAllLocalChanges();
+        session.downloadAllServerChanges();
+        realm2.refresh();
+        assertEquals(1, realm2.where(BacklinksTarget.class).count());
+        assertEquals(1, realm2.where(BacklinksSource.class).count());
+        realm2.close();
+        looperThread.postRunnable(() -> {
+            looperThread.testComplete();
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void includeLinkingObjects_sameTable() throws InterruptedException {
+        // Upload data
+        SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
+        Realm realm1 = getPartialRealm(admin);
+        realm1.executeTransaction(realm -> {
+            AllJavaTypes obj1 = new AllJavaTypes(1);
+            obj1.setFieldString("parent");
+            AllJavaTypes obj2 = new AllJavaTypes(2);
+            obj2.setFieldString("child");
+            obj1.setFieldObject(obj2);
+            realm.insert(obj1);
+        });
+        SyncManager.getSession((SyncConfiguration) realm1.getConfiguration()).uploadAllLocalChanges();
+        realm1.close();
+
+        // Create subscription with includes
+        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+        Realm realm2 = getPartialRealm(admin);
+        SyncSession session = SyncManager.getSession((SyncConfiguration) realm2.getConfiguration());
+        assertEquals(0, realm2.where(AllJavaTypes.class).count());
+        realm2.executeTransaction(realm -> {
+            realm.where(AllJavaTypes.class)
+                    .equalTo(AllJavaTypes.FIELD_STRING, "child")
+                    .subscribe("my-sub");
+        });
+        session.uploadAllLocalChanges();
+        session.downloadAllServerChanges();
+        realm2.refresh();
+        assertEquals(1, realm2.where(AllJavaTypes.class).count());
+
+        // Update subscription to include parent objects
+        realm2.executeTransaction(realm -> {
+            realm.where(AllJavaTypes.class)
+                    .equalTo(AllJavaTypes.FIELD_STRING, "child")
+                    .includeLinkingObjects(AllJavaTypes.FIELD_LO_OBJECT)
+                    .subscribeOrUpdate("my-sub");
+        });
+        session.uploadAllLocalChanges();
+        session.downloadAllServerChanges();
+        realm2.refresh();
+        assertEquals(2, realm2.where(AllJavaTypes.class).count());
+        realm2.close();
+        looperThread.postRunnable(() -> {
+            looperThread.testComplete();
+        });
+    }
 
     private Realm getPartialRealm(SyncUser user) {
         final SyncConfiguration partialSyncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)

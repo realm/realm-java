@@ -44,6 +44,8 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.objectserver.utils.Constants;
+import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
@@ -2991,6 +2993,15 @@ public class RealmQueryTests extends QueryTests {
         notEmpty.setFieldList(new RealmList<AllJavaTypes>(notEmpty));
         realm.copyToRealm(notEmpty);
         realm.commitTransaction();
+    }
+
+    @Test
+    public void includeLinkingObjects_throwsForNonQueryBasedRealms() {
+        try {
+            realm.where(AllJavaTypes.class).includeLinkingObjects(AllJavaTypes.FIELD_STRING);
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
     }
 
     @Test

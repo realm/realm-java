@@ -19,7 +19,6 @@ package io.realm.processor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -400,7 +399,7 @@ public class ClassMetaData {
     private boolean checkRealmListType(VariableElement field) {
         // Check for missing generic (default back to Object)
         if (Utils.getGenericTypeQualifiedName(field) == null) {
-            Utils.error("No generic type supplied for field", field);
+            Utils.error(getFieldErrorSuffix(field) + "No generic type supplied for field", field);
             return false;
         }
 
@@ -411,7 +410,7 @@ public class ClassMetaData {
             TypeElement elementTypeElement = (TypeElement) ((DeclaredType) elementTypeMirror).asElement();
             if (elementTypeElement.getSuperclass().getKind() == TypeKind.NONE) {
                 Utils.error(
-                        "Only concrete Realm classes are allowed in RealmLists. "
+                        getFieldErrorSuffix(field) + "Only concrete Realm classes are allowed in RealmLists. "
                                 + "Neither interfaces nor abstract classes are allowed.",
                         field);
                 return false;
@@ -419,9 +418,9 @@ public class ClassMetaData {
         }
 
         // Check if the actual value class is acceptable
-        if (!validListValueTypes.contains(elementTypeMirror) && !Utils.isRealmModel(elementTypeMirror)) {
+        if (!containsType(validListValueTypes, elementTypeMirror) && !Utils.isRealmModel(elementTypeMirror)) {
             final StringBuilder messageBuilder = new StringBuilder(
-                    "Element type of RealmList must be a class implementing 'RealmModel' or one of the ");
+                    getFieldErrorSuffix(field) + "Element type of RealmList must be a class implementing 'RealmModel' or one of ");
             final String separator = ", ";
             for (TypeMirror type : validListValueTypes) {
                 messageBuilder.append('\'').append(type.toString()).append('\'').append(separator);
@@ -440,7 +439,7 @@ public class ClassMetaData {
 
         // Check for missing generic (default back to Object)
         if (Utils.getGenericTypeQualifiedName(field) == null) {
-            Utils.error("No generic type supplied for field", field);
+            Utils.error(getFieldErrorSuffix(field) + "No generic type supplied for field", field);
             return false;
         }
 
@@ -459,11 +458,15 @@ public class ClassMetaData {
 
         // Check if the actual value class is acceptable
         if (!Utils.isRealmModel(elementTypeMirror)) {
-            Utils.error("Element type of RealmResults must be a class implementing 'RealmModel'.", field);
+            Utils.error(getFieldErrorSuffix(field) + "Element type of RealmResults must be a class implementing 'RealmModel'.", field);
             return false;
         }
 
         return true;
+    }
+
+    private String getFieldErrorSuffix(VariableElement field) {
+        return javaClassName + "." + field.getSimpleName() + ": ";
     }
 
     private boolean checkReferenceTypes() {
@@ -770,6 +773,16 @@ public class ClassMetaData {
     private boolean isValidPrimaryKeyType(TypeMirror type) {
         for (TypeMirror validType : validPrimaryKeyTypes) {
             if (typeUtils.isAssignable(type, validType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsType(List<TypeMirror> listOfTypes, TypeMirror type) {
+        for (int i = 0; i < listOfTypes.size(); i++) {
+            // Comparing TypeMirror's using `equals()` breaks when using incremental annotation processing.
+            if (typeUtils.isSameType(listOfTypes.get(i), type)) {
                 return true;
             }
         }

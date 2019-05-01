@@ -21,6 +21,7 @@
 #include "subscription_wrapper.hpp"
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
+#include "object-store/src/sync/partial_sync.hpp"
 
 #include <results.hpp>
 #include <sync/partial_sync.hpp>
@@ -46,7 +47,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_sync_OsSubscription_nativeCreateO
         const auto results = reinterpret_cast<ResultsWrapper*>(results_ptr);
         JStringAccessor subscription_name(env, j_subscription_name);
         auto key = subscription_name.is_null_or_empty() ? util::none : util::Optional<std::string>(subscription_name);
-        auto subscription = partial_sync::subscribe(results->collection(), key, util::Optional<int64_t>(time_to_live), update);
+        partial_sync::SubscriptionOptions options;
+        options.user_provided_name = key;
+        options.time_to_live_ms = util::Optional<int64_t>(time_to_live);
+        options.update = update;
+        auto subscription = partial_sync::subscribe(results->collection(), options);
         auto wrapper = new SubscriptionWrapper(std::move(subscription));
         return reinterpret_cast<jlong>(wrapper);
     }
