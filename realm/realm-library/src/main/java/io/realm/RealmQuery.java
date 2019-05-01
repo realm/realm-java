@@ -2061,8 +2061,8 @@ public class RealmQuery<E> {
      * as part of the subscription in Query-based Realms, but by using this predicate, it is possible to specify which linking
      * objects relationships should also be included in the subscription as well.
      * <p>
-     * Note that all "forward" object references like object references and lists are always included in the subscription
-     * by default.
+     * Note, that all "forward" object references like object references and lists are always downloaded as part of the
+     * subscription by default.
      * <p>
      * This predicate can be called multiple times, in which case all fields will be added to the subscription.
      * 

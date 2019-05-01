@@ -34,7 +34,6 @@ using namespace realm;
 using namespace realm::util;
 using namespace realm::_impl;
 
-static void finalize_descriptor(jlong ptr);
 static void finalize_descriptor(jlong ptr)
 {
     TR_ENTER_PTR(ptr)
@@ -61,7 +60,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_core_IncludeDescriptor_nativeCrea
         std::vector<LinkPathPart> parts;
         parts.reserve(index_arr.size());
         for (int i = 0; i < index_arr.size(); ++i) {
-            auto col_index = size_t(index_arr[i]);
+            auto col_index = static_cast<size_t>(index_arr[i]);
             auto table_ptr = reinterpret_cast<Table *>(table_arr[i]);
             if (table_ptr == nullptr) {
                 parts.emplace_back(LinkPathPart(col_index));
