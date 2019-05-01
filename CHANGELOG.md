@@ -1,6 +1,6 @@
 ## 5.11.0(2019-05-01)
 
-NOTE: This version is only compatible with Realm Object Server 3.21.1 or later.
+NOTE: This version is only compatible with Realm Object Server 3.21.0 or later.
 
 ### Enhancements
 * [ObjectServer] Added `RealmQuery.includeLinkingObjects()`. This is only relevant for Query-based Realms and tells subscriptions to include objects linked through `@LinkingObjects` fields as part of the subscription as well. Objects referenced through objects and lists are always included as a default. (Issue [#6426](https://github.com/realm/realm-java/issues/6426))

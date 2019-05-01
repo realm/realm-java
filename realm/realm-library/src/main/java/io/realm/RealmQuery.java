@@ -2066,7 +2066,7 @@ public class RealmQuery<E> {
      * <p>
      * This predicate can be called multiple times, in which case all fields will be added to the subscription.
      * <p>
-     * NOTE: This method is only supported when connecting to Realm Object Server 3.21.1 or later. If you use it with previous
+     * NOTE: This method is only supported when connecting to Realm Object Server 3.21.0 or later. If you use it with previous
      * versions of Realm Object Server, an {@link IllegalArgumentException} will be sent to {@link OrderedCollectionChangeSet#getError()}.
      *
      * @param firstIncludePath the first {@link io.realm.annotations.LinkingObjects} field to add.
