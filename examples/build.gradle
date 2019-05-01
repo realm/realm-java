@@ -65,10 +65,9 @@ allprojects {
                     process.waitFor()
 
                     if (process.exitValue() != 0
-                            || serr?.toString()?.trim()?.size() > 0
                             || !sout?.toString()?.trim()?.contains("Events injected: ${numberOfEvents}")) {
                         // fail Gradle build
-                        throw new GradleException("monkey failed for AppID: ${appId} \nStd out:  ${sout}\nStd err:  ${serr}")
+                        throw new GradleException("monkey failed for AppID: ${appId} \nExit code: ${process.exitValue()}\nStd out:  ${sout}\nStd err:  ${serr}")
                     }
                 }
             }
