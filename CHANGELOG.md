@@ -1,4 +1,4 @@
-## 5.11.0(YYYY-MM-DD)
+## 5.11.0(2019-05-01)
 
 ### Enhancements
 * [ObjectServer] Added `RealmQuery.includeLinkingObjects()`. This is only relevant for Query-based Realms and tells subscriptions to include objects linked through `@LinkingObjects` fields as part of the subscription as well. Objects referenced through objects and lists are always included as a default. (Issue [#6426](https://github.com/realm/realm-java/issues/6426))
@@ -13,6 +13,7 @@
 * [ObjectServer] HTTP requests made by the Sync client now always include a Host: header, as required by HTTP/1.1, although its value will be empty if no value is specified by the application.
 * [ObjectServer] The server no longer rejects subscriptions based on queries with distinct and/or limit clauses.
 * [ObjectServer] If a user had `canCreate` but not `canUpdate` privileges on a class, the user would be able to create the object, but not actually set any meaningful values on that object, despite the rule that objects created within the same transaction can always be modified.
+*  Native crash happening if bulk updating a field in a `RealmResult` would cause the object to no longer be part of the query result. (Issue [#6478](https://github.com/realm/realm-java/issues/6478), since 5.8.0).
 
 ### Compatibility
 * Realm Object Server: 3.21.0-rc1 or later.
@@ -23,23 +24,6 @@
 * Updated to Realm Core 5.19.1.
 * Updated to Relm Sync 4.4.2.
 * Updated to Object Store commit e4b1314d21b521fd604af7f1aacf3ca94272c19a
-
-
-## 5.10.1(YYYY-MM-DD)
-
-###Enhancements 
-*  None.
-
-### Fixed
-*  Native crash happening if bulk updating a field in a `RealmResult` would cause the object to no longer be part of the query result. (Issue [#6478](https://github.com/realm/realm-java/issues/6478), since 5.8.0).
-
-### Compatibility
-* Realm Object Server: 3.11.0 or later.
-* File format: Generates Realms with format v9 (Reads and upgrades all previous formats).
-* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
-
-### Internal
-* Updated to Object Store commit: cc3db611b1c10d2b890a92fa0f4b8291bc0f3ba2
 
 
 ## 5.10.0(2019-03-22)
