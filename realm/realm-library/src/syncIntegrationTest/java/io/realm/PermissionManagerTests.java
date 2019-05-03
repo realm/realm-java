@@ -506,7 +506,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         // Simulate error in the permission Realm
         Field permissionConfigField = pm.getClass().getDeclaredField("permissionRealmError");
         permissionConfigField.setAccessible(true);
-        final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        final ObjectServerError error = new ObjectServerError(ErrorCode.WRONG_PROTOCOL_VERSION, "Boom");
         permissionConfigField.set(pm, error);
 
         PermissionManager.ApplyPermissionsCallback callback = new PermissionManager.ApplyPermissionsCallback() {
@@ -519,7 +519,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
             public void onError(ObjectServerError error) {
                 assertTrue(error.getErrorMessage().startsWith("Error occurred in Realm"));
                 assertTrue(error.getErrorMessage().contains("Permission Realm"));
-                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
+                assertEquals(ErrorCode.WRONG_PROTOCOL_VERSION, error.getErrorCode());
                 looperThread.testComplete();
             }
         };
@@ -535,7 +535,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         looperThread.closeAfterTest(pm);
 
         // Simulate error in the permission Realm
-        final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        final ObjectServerError error = new ObjectServerError(ErrorCode.WRONG_PROTOCOL_VERSION, "Boom");
         setRealmError(pm, "managementRealmError", error);
 
         PermissionManager.ApplyPermissionsCallback callback = new PermissionManager.ApplyPermissionsCallback() {
@@ -548,7 +548,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
             public void onError(ObjectServerError error) {
                 assertTrue(error.getErrorMessage().startsWith("Error occurred in Realm"));
                 assertTrue(error.getErrorMessage().contains("Management Realm"));
-                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
+                assertEquals(ErrorCode.WRONG_PROTOCOL_VERSION, error.getErrorCode());
                 looperThread.testComplete();
             }
         };
@@ -564,10 +564,10 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         looperThread.closeAfterTest(pm);
 
         // Simulate error in the permission Realm
-        setRealmError(pm, "managementRealmError", new ObjectServerError(ErrorCode.CONNECTION_CLOSED, "Boom1"));
+        setRealmError(pm, "managementRealmError", new ObjectServerError(ErrorCode.WRONG_PROTOCOL_VERSION, "Boom1"));
 
         // Simulate error in the management Realm
-        setRealmError(pm, "permissionRealmError", new ObjectServerError(ErrorCode.CONNECTION_CLOSED, "Boom2"));
+        setRealmError(pm, "permissionRealmError", new ObjectServerError(ErrorCode.WRONG_PROTOCOL_VERSION, "Boom2"));
 
         PermissionManager.ApplyPermissionsCallback callback = new PermissionManager.ApplyPermissionsCallback() {
             @Override
@@ -577,7 +577,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.CONNECTION_CLOSED, error.getErrorCode());
+                assertEquals(ErrorCode.WRONG_PROTOCOL_VERSION, error.getErrorCode());
                 assertTrue(error.toString().contains("Boom1"));
                 assertTrue(error.toString().contains("Boom2"));
                 looperThread.testComplete();
