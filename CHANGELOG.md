@@ -1,7 +1,7 @@
 ## 5.12.0(YYYY-MM-DD)
 
 ### Enhancements
-* [ObjectServer] Added `SyncManager.refreshConnections()` that can be used to manually trigger a reconnect for all sessions. This is useful if the device has been offline for a long time or fail to detect that the device regained connectivity. (Issue [#259](https://github.com/realm/realm-java-private/issues/259))
+* [ObjectServer] Added `SyncManager.refreshConnections()` that can be used to manually trigger a reconnect for all sessions. This is useful if the device has been offline for a long time or fail to detect that it regained connectivity. (Issue [#259](https://github.com/realm/realm-java-private/issues/259))
 
 ### Fixed
 * [ObjectServer] `PermissionManager` stopped working if an intermittent network error was reported. (Issue [#6492](https://github.com/realm/realm-java/issues/6492))
