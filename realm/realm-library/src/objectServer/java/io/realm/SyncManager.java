@@ -594,6 +594,21 @@ public class SyncManager {
         return null;
     }
 
+    /**
+     * Realm will automatically detect when a device gets connectivity after being offline and
+     * resume syncing.
+     * <p>
+     * However, as some of these checks are performed using incremental backoff, this will in some
+     * cases not happen immediately.
+     * <p>
+     * In those cases it can be beneficial to call this method manually, which will force all
+     * sessions to attempt to reconnect immediately and reset any timers they are using for
+     * incremental backoff.
+     */
+    public static void refreshConnections() {
+        notifyNetworkIsBack();
+    }
+
     // Holds the certificate chain (per hostname). We need to keep the order of each certificate
     // according to it's depth in the chain. The depth of the last
     // certificate is 0. The depth of the first certificate is chain

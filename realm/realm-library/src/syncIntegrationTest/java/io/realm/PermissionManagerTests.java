@@ -506,7 +506,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         // Simulate error in the permission Realm
         Field permissionConfigField = pm.getClass().getDeclaredField("permissionRealmError");
         permissionConfigField.setAccessible(true);
-        final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        final ObjectServerError error = new ObjectServerError(ErrorCode.WRONG_PROTOCOL_VERSION, "Boom");
         permissionConfigField.set(pm, error);
 
         PermissionManager.ApplyPermissionsCallback callback = new PermissionManager.ApplyPermissionsCallback() {
@@ -519,7 +519,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
             public void onError(ObjectServerError error) {
                 assertTrue(error.getErrorMessage().startsWith("Error occurred in Realm"));
                 assertTrue(error.getErrorMessage().contains("Permission Realm"));
-                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
+                assertEquals(ErrorCode.WRONG_PROTOCOL_VERSION, error.getErrorCode());
                 looperThread.testComplete();
             }
         };
@@ -535,7 +535,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         looperThread.closeAfterTest(pm);
 
         // Simulate error in the permission Realm
-        final ObjectServerError error = new ObjectServerError(ErrorCode.UNKNOWN, "Boom");
+        final ObjectServerError error = new ObjectServerError(ErrorCode.WRONG_PROTOCOL_VERSION, "Boom");
         setRealmError(pm, "managementRealmError", error);
 
         PermissionManager.ApplyPermissionsCallback callback = new PermissionManager.ApplyPermissionsCallback() {
@@ -548,7 +548,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
             public void onError(ObjectServerError error) {
                 assertTrue(error.getErrorMessage().startsWith("Error occurred in Realm"));
                 assertTrue(error.getErrorMessage().contains("Management Realm"));
-                assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
+                assertEquals(ErrorCode.WRONG_PROTOCOL_VERSION, error.getErrorCode());
                 looperThread.testComplete();
             }
         };
@@ -564,10 +564,10 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         looperThread.closeAfterTest(pm);
 
         // Simulate error in the permission Realm
-        setRealmError(pm, "managementRealmError", new ObjectServerError(ErrorCode.CONNECTION_CLOSED, "Boom1"));
+        setRealmError(pm, "managementRealmError", new ObjectServerError(ErrorCode.WRONG_PROTOCOL_VERSION, "Boom1"));
 
         // Simulate error in the management Realm
-        setRealmError(pm, "permissionRealmError", new ObjectServerError(ErrorCode.CONNECTION_CLOSED, "Boom2"));
+        setRealmError(pm, "permissionRealmError", new ObjectServerError(ErrorCode.WRONG_PROTOCOL_VERSION, "Boom2"));
 
         PermissionManager.ApplyPermissionsCallback callback = new PermissionManager.ApplyPermissionsCallback() {
             @Override
@@ -577,7 +577,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
             @Override
             public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.CONNECTION_CLOSED, error.getErrorCode());
+                assertEquals(ErrorCode.WRONG_PROTOCOL_VERSION, error.getErrorCode());
                 assertTrue(error.toString().contains("Boom1"));
                 assertTrue(error.toString().contains("Boom2"));
                 looperThread.testComplete();
@@ -587,6 +587,66 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         // Create dummy task that can trigger the error reporting
         runTask(pm, callback);
     }
+
+    @Test
+    @RunTestInLooperThread(emulateMainThread = true)
+    public void permissionManagerAsyncTask_doNotReportIntermittentErrors() throws NoSuchFieldException, IllegalAccessException {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        // Simulate intermittent error in the management Realm that is possible to recover from
+        // These kind of errors should never reach the end user as we should recover automatically.
+        setRealmError(pm, "managementRealmError", new ObjectServerError(ErrorCode.UNKNOWN, "Boom1"));
+
+        pm.getPermissions(new PermissionManager.PermissionsCallback() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                assertEquals(3, permissions.size());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread(emulateMainThread = true)
+    public void permissionManagerAsyncTask_keepReportingFatalErrors() throws NoSuchFieldException, IllegalAccessException {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        // Simulate fatal error in the management Realm that is not possible to recover from
+        // This should be reported for all tasks, not just the first one.
+        setRealmError(pm, "managementRealmError", new ObjectServerError(ErrorCode.WRONG_PROTOCOL_VERSION, "Boom1"));
+
+        pm.getPermissions(new PermissionManager.PermissionsCallback() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.WRONG_PROTOCOL_VERSION, error.getErrorCode());
+                pm.getPermissions(new PermissionManager.PermissionsCallback() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        assertEquals(ErrorCode.WRONG_PROTOCOL_VERSION, error.getErrorCode());
+                        looperThread.testComplete();
+                    }
+                });
+            }
+        });
+    }
+
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
