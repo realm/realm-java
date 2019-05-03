@@ -7,7 +7,7 @@
 * [ObjectServer] `PermissionManager` stopped working if an intermittent network error was reported. (Issue [#6492](https://github.com/realm/realm-java/issues/6492))
 
 ### Compatibility
-* Realm Object Server: 3.21.1 or later.
+* Realm Object Server: 3.21.0 or later.
 * File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
