@@ -1,5 +1,7 @@
 ## 5.11.0(2019-05-01)
 
+NOTE: This version is only compatible with Realm Object Server 3.21.0 or later.
+
 ### Enhancements
 * [ObjectServer] Added `RealmQuery.includeLinkingObjects()`. This is only relevant for Query-based Realms and tells subscriptions to include objects linked through `@LinkingObjects` fields as part of the subscription as well. Objects referenced through objects and lists are always included as a default. (Issue [#6426](https://github.com/realm/realm-java/issues/6426))
 * Encryption now uses hardware optimized functions, which significantly improves the performance of encrypted Realms. ([Realm Core PR #3241](https://github.com/realm/realm-core/pull/3241))
@@ -16,7 +18,7 @@
 *  Native crash happening if bulk updating a field in a `RealmResult` would cause the object to no longer be part of the query result. (Issue [#6478](https://github.com/realm/realm-java/issues/6478), since 5.8.0).
 
 ### Compatibility
-* Realm Object Server: 3.21.0-rc1 or later.
+* Realm Object Server: 3.21.0 or later.
 * File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
