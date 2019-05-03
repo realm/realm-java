@@ -590,6 +590,66 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread(emulateMainThread = true)
+    public void permissionManagerAsyncTask_doNotReportIntermittentErrors() throws NoSuchFieldException, IllegalAccessException {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        // Simulate intermittent error in the management Realm that is possible to recover from
+        // These kind of errors should never reach the end user as we should recover automatically.
+        setRealmError(pm, "managementRealmError", new ObjectServerError(ErrorCode.UNKNOWN, "Boom1"));
+
+        pm.getPermissions(new PermissionManager.PermissionsCallback() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                assertEquals(3, permissions.size());
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                fail();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread(emulateMainThread = true)
+    public void permissionManagerAsyncTask_keepReportingFatalErrors() throws NoSuchFieldException, IllegalAccessException {
+        PermissionManager pm = user.getPermissionManager();
+        looperThread.closeAfterTest(pm);
+
+        // Simulate fatal error in the management Realm that is not possible to recover from
+        // This should be reported for all tasks, not just the first one.
+        setRealmError(pm, "managementRealmError", new ObjectServerError(ErrorCode.WRONG_PROTOCOL_VERSION, "Boom1"));
+
+        pm.getPermissions(new PermissionManager.PermissionsCallback() {
+            @Override
+            public void onSuccess(RealmResults<Permission> permissions) {
+                fail();
+            }
+
+            @Override
+            public void onError(ObjectServerError error) {
+                assertEquals(ErrorCode.WRONG_PROTOCOL_VERSION, error.getErrorCode());
+                pm.getPermissions(new PermissionManager.PermissionsCallback() {
+                    @Override
+                    public void onSuccess(RealmResults<Permission> permissions) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onError(ObjectServerError error) {
+                        assertEquals(ErrorCode.WRONG_PROTOCOL_VERSION, error.getErrorCode());
+                        looperThread.testComplete();
+                    }
+                });
+            }
+        });
+    }
+
+
+    @Test
+    @RunTestInLooperThread(emulateMainThread = true)
     public void permissionManagerAsyncTask_handleTwoErrorsDifferentErrorCode() throws NoSuchFieldException, IllegalAccessException {
         PermissionManager pm = user.getPermissionManager();
         looperThread.closeAfterTest(pm);
