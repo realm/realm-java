@@ -2018,7 +2018,7 @@ public class RealmProxyClassGenerator {
             buildExcludeFieldsList(writer, metadata.getFields());
             String primaryKeyFieldType = metadata.getPrimaryKey().asType().toString();
             String primaryKeyFieldName = metadata.getPrimaryKey().getSimpleName().toString();
-            RealmJsonTypeHelper.emitCreateObjectWithPrimaryKeyValue(
+            RealmJsonTypeHelper.INSTANCE.emitCreateObjectWithPrimaryKeyValue(
                     qualifiedJavaClassName, qualifiedGeneratedClassName, primaryKeyFieldType, primaryKeyFieldName, writer);
             writer.endControlFlow();
         }
@@ -2035,7 +2035,7 @@ public class RealmProxyClassGenerator {
                 continue;
             }
             if (Utils.isRealmModel(field)) {
-                RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
+                RealmJsonTypeHelper.INSTANCE.emitFillRealmObjectWithJsonValue(
                         "objProxy",
                         metadata.getInternalSetter(fieldName),
                         fieldName,
@@ -2045,7 +2045,7 @@ public class RealmProxyClassGenerator {
                 );
 
             } else if (Utils.isRealmModelList(field)) {
-                RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
+                RealmJsonTypeHelper.INSTANCE.emitFillRealmListWithJsonValue(
                         "objProxy",
                         metadata.getInternalGetter(fieldName),
                         metadata.getInternalSetter(fieldName),
@@ -2058,7 +2058,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("ProxyUtils.setRealmListWithJsonObject(objProxy.%1$s(), json, \"%2$s\")",
                         metadata.getInternalGetter(fieldName), fieldName);
             } else if (Utils.isMutableRealmInteger(field)) {
-                RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
+                RealmJsonTypeHelper.INSTANCE.emitFillJavaTypeWithJsonValue(
                         "objProxy",
                         metadata.getInternalGetter(fieldName),
                         fieldName,
@@ -2066,7 +2066,7 @@ public class RealmProxyClassGenerator {
                         writer);
 
             } else {
-                RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
+                RealmJsonTypeHelper.INSTANCE.emitFillJavaTypeWithJsonValue(
                         "objProxy",
                         metadata.getInternalSetter(fieldName),
                         fieldName,
@@ -2120,7 +2120,7 @@ public class RealmProxyClassGenerator {
             writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
 
             if (Utils.isRealmModel(field)) {
-                RealmJsonTypeHelper.emitFillRealmObjectFromStream(
+                RealmJsonTypeHelper.INSTANCE.emitFillRealmObjectFromStream(
                         "objProxy",
                         metadata.getInternalSetter(fieldName),
                         fieldName,
@@ -2130,7 +2130,7 @@ public class RealmProxyClassGenerator {
                 );
 
             } else if (Utils.isRealmModelList(field)) {
-                RealmJsonTypeHelper.emitFillRealmListFromStream(
+                RealmJsonTypeHelper.INSTANCE.emitFillRealmListFromStream(
                         "objProxy",
                         metadata.getInternalGetter(fieldName),
                         metadata.getInternalSetter(fieldName),
@@ -2143,7 +2143,7 @@ public class RealmProxyClassGenerator {
                         metadata.getInternalSetter(fieldName),
                         Utils.getRealmListType(field));
             } else if (Utils.isMutableRealmInteger(field)) {
-                RealmJsonTypeHelper.emitFillJavaTypeFromStream(
+                RealmJsonTypeHelper.INSTANCE.emitFillJavaTypeFromStream(
                         "objProxy",
                         metadata,
                         metadata.getInternalGetter(fieldName),
@@ -2152,7 +2152,7 @@ public class RealmProxyClassGenerator {
                         writer
                 );
             } else {
-                RealmJsonTypeHelper.emitFillJavaTypeFromStream(
+                RealmJsonTypeHelper.INSTANCE.emitFillJavaTypeFromStream(
                         "objProxy",
                         metadata,
                         metadata.getInternalSetter(fieldName),
