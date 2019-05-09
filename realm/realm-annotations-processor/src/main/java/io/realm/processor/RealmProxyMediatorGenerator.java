@@ -34,9 +34,6 @@ import javax.tools.JavaFileObject;
 
 import io.realm.annotations.RealmModule;
 
-import static io.realm.processor.Constants.REALM_PACKAGE_NAME;
-
-
 public class RealmProxyMediatorGenerator {
     private final String className;
     private final ProcessingEnvironment processingEnvironment;
@@ -53,7 +50,7 @@ public class RealmProxyMediatorGenerator {
 
         for (ClassMetaData metadata : classesToValidate) {
             qualifiedModelClasses.add(metadata.getFullyQualifiedClassName());
-            String qualifiedProxyClassName = REALM_PACKAGE_NAME + "." + Utils.getProxyClassName(metadata.getFullyQualifiedClassName());
+            String qualifiedProxyClassName = Constants.REALM_PACKAGE_NAME + "." + Utils.getProxyClassName(metadata.getFullyQualifiedClassName());
             qualifiedProxyClasses.add(qualifiedProxyClassName);
             simpleModelClassNames.add(metadata.getSimpleJavaClassName());
             internalClassNames.add(metadata.getInternalClassName());
@@ -61,12 +58,12 @@ public class RealmProxyMediatorGenerator {
     }
 
     public void generate() throws IOException {
-        String qualifiedGeneratedClassName = String.format(Locale.US, "%s.%sMediator", REALM_PACKAGE_NAME, className);
+        String qualifiedGeneratedClassName = String.format(Locale.US, "%s.%sMediator", Constants.INSTANCE.REALM_PACKAGE_NAME, className);
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
         writer.setIndent("    ");
 
-        writer.emitPackage(REALM_PACKAGE_NAME);
+        writer.emitPackage(Constants.INSTANCE.REALM_PACKAGE_NAME);
         writer.emitEmptyLine();
 
         List<String> imports  = new ArrayList<>(Arrays.asList("android.util.JsonReader",

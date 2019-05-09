@@ -671,7 +671,7 @@ public class ClassMetaData {
         if (Utils.isMutableRealmInteger(fieldElement)) {
             indexable = true;
         } else {
-            Constants.RealmFieldType realmType = Constants.JAVA_TO_REALM_TYPES.get(fieldElement.asType().toString());
+            Constants.RealmFieldType realmType = Constants.INSTANCE.getJAVA_TO_REALM_TYPES().get(fieldElement.asType().toString());
             if (realmType != null) {
                 switch (realmType) {
                     case STRING:

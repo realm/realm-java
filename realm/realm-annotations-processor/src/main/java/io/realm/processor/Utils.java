@@ -184,7 +184,7 @@ public class Utils {
      */
     public static Constants.RealmFieldType getValueListFieldType(VariableElement field) {
         final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
-        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES.get(elementTypeMirror.toString());
+        return Constants.INSTANCE.getLIST_ELEMENT_TYPE_TO_REALM_TYPES().get(elementTypeMirror.toString());
     }
 
     /**

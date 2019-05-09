@@ -111,9 +111,9 @@ public class RealmProxyClassGenerator {
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
 
         // Set source code indent
-        writer.setIndent(Constants.INDENT);
+        writer.setIndent(Constants.INSTANCE.INDENT);
 
-        writer.emitPackage(Constants.REALM_PACKAGE_NAME)
+        writer.emitPackage(Constants.INSTANCE.REALM_PACKAGE_NAME)
                 .emitEmptyLine();
 
         List<String> imports = new ArrayList<String>(IMPORTS);
@@ -312,7 +312,7 @@ public class RealmProxyClassGenerator {
             final String fieldName = field.getSimpleName().toString();
             final String fieldTypeCanonicalName = field.asType().toString();
 
-            if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
+            if (Constants.INSTANCE.getJAVA_TO_REALM_TYPES().containsKey(fieldTypeCanonicalName)) {
                 emitPrimitiveType(writer, field, fieldName, fieldTypeCanonicalName);
             } else if (Utils.isMutableRealmInteger(field)) {
                 emitMutableRealmInteger(writer, field, fieldName, fieldTypeCanonicalName);
@@ -388,7 +388,7 @@ public class RealmProxyClassGenerator {
                             .endControlFlow();
                 } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
                     writer.beginControlFlow("if (value == null)")
-                            .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
+                            .emitStatement(Constants.INSTANCE.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
                             .endControlFlow();
                 }
                 //@formatter:on
@@ -404,7 +404,7 @@ public class RealmProxyClassGenerator {
         // Compared with getter, null value won't trigger more native calls in setter which is relatively cheaper.
         if (metadata.isPrimaryKey(field)) {
             // Primary key is not allowed to be changed after object created.
-            writer.emitStatement(Constants.STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED, fieldName);
+            writer.emitStatement(Constants.INSTANCE.STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED, fieldName);
         } else {
             //@formatter:off
             if (metadata.isNullable(field)) {
@@ -416,7 +416,7 @@ public class RealmProxyClassGenerator {
                 // Same reason, throw IAE earlier.
                 writer
                         .beginControlFlow("if (value == null)")
-                        .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
+                        .emitStatement(Constants.INSTANCE.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
                         .endControlFlow();
             }
             //@formatter:on
@@ -2172,7 +2172,7 @@ public class RealmProxyClassGenerator {
 
         if (metadata.hasPrimaryKey()) {
             writer.beginControlFlow("if (!jsonHasPrimaryKey)")
-                    .emitStatement(Constants.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, metadata.getPrimaryKey())
+                    .emitStatement(Constants.INSTANCE.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, metadata.getPrimaryKey())
                     .endControlFlow();
         }
 
@@ -2218,7 +2218,7 @@ public class RealmProxyClassGenerator {
 
     private Constants.RealmFieldType getRealmType(VariableElement field) {
         String fieldTypeCanonicalName = field.asType().toString();
-        Constants.RealmFieldType type = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
+        Constants.RealmFieldType type = Constants.INSTANCE.getJAVA_TO_REALM_TYPES().get(fieldTypeCanonicalName);
         if (type != null) {
             return type;
         }
