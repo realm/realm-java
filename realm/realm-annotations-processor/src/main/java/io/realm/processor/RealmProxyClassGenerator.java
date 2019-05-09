@@ -1608,7 +1608,7 @@ public class RealmProxyClassGenerator {
             String fieldIndex = fieldIndexVariableReference(field);
             String fieldName = field.getSimpleName().toString();
             String getter = metadata.getInternalGetter(fieldName);
-            writer.emitStatement("builder.%s(%s, realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldIndex, getter);
+            writer.emitStatement("builder.%s(%s, realmObjectSource.%s())", OsObjectBuilderTypeHelper.INSTANCE.getOsObjectBuilderName(field), fieldIndex, getter);
         }
 
         // Create the underlying object
@@ -1828,7 +1828,7 @@ public class RealmProxyClassGenerator {
                     .endControlFlow();
             } else {
                 writer
-                    .emitStatement("builder.%s(%s, realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldIndex, getter);
+                    .emitStatement("builder.%s(%s, realmObjectSource.%s())", OsObjectBuilderTypeHelper.INSTANCE.getOsObjectBuilderName(field), fieldIndex, getter);
             }
         }
 
