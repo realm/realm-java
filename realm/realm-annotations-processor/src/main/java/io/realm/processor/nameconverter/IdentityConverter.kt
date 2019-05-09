@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.processor.nameconverter;
+package io.realm.processor.nameconverter
 
 /**
  * Converter that doesn't do any conversion when translating from Java to Realm.
  *
- * @see io.realm.annotations.RealmNamingPolicy#IDENTITY
+ * @see io.realm.annotations.RealmNamingPolicy.IDENTITY
  */
-public class IdentityConverter implements NameConverter {
+class IdentityConverter : NameConverter {
 
-    @Override
-    public String convert(String name) {
-        return name;
+    override fun convert(name: String): String {
+        return name
     }
 
 }
