@@ -14,88 +14,83 @@
  * limitations under the License.
  */
 
-package io.realm.processor;
+package io.realm.processor
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.tools.Diagnostic;
+import javax.annotation.processing.ProcessingEnvironment
+import javax.tools.Diagnostic
 
 
-public class RealmVersionChecker {
-    public static final String REALM_ANDROID_DOWNLOAD_URL = "https://static.realm.io/downloads/java/latest";
+class RealmVersionChecker private constructor(private val processingEnvironment: ProcessingEnvironment) {
 
-    private static final String VERSION_URL = "https://static.realm.io/update/java?";
-    private static final String REALM_VERSION = Version.VERSION;
-    private static final String REALM_VERSION_PATTERN = "\\d+\\.\\d+\\.\\d+";
-    private static final int READ_TIMEOUT = 2000;
-    private static final int CONNECT_TIMEOUT = 4000;
+    fun executeRealmVersionUpdate() {
+        val backgroundThread = Thread(Runnable { launchRealmCheck() })
 
-    private static RealmVersionChecker instance = null;
-
-    private ProcessingEnvironment processingEnvironment;
-
-    public static RealmVersionChecker getInstance(ProcessingEnvironment processingEnvironment) {
-        if (instance == null) {
-            instance = new RealmVersionChecker(processingEnvironment);
-        }
-        return instance;
-    }
-
-    private RealmVersionChecker(ProcessingEnvironment processingEnvironment) {
-        this.processingEnvironment = processingEnvironment;
-    }
-
-    public void executeRealmVersionUpdate() {
-        Thread backgroundThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                launchRealmCheck();
-            }
-        });
-
-        backgroundThread.start();
+        backgroundThread.start()
 
         try {
-            backgroundThread.join(CONNECT_TIMEOUT + READ_TIMEOUT);
-        } catch (InterruptedException ignore) {
+            backgroundThread.join((CONNECT_TIMEOUT + READ_TIMEOUT).toLong())
+        } catch (ignore: InterruptedException) {
             // We ignore this exception on purpose not to break the build system if this class fails
         }
+
     }
 
-    private void launchRealmCheck() {
+    private fun launchRealmCheck() {
         //Check Realm version server
-        String latestVersionStr = checkLatestVersion();
-        if (!latestVersionStr.equals(REALM_VERSION)) {
-            printMessage("Version " + latestVersionStr + " of Realm is now available: " + REALM_ANDROID_DOWNLOAD_URL);
+        val latestVersionStr = checkLatestVersion()
+        if (latestVersionStr != REALM_VERSION) {
+            printMessage("Version $latestVersionStr of Realm is now available: $REALM_ANDROID_DOWNLOAD_URL")
         }
     }
 
-    private String checkLatestVersion() {
-        String result = REALM_VERSION;
+    private fun checkLatestVersion(): String {
+        var result = REALM_VERSION
         try {
-            URL url = new URL(VERSION_URL + REALM_VERSION);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(CONNECT_TIMEOUT);
-            conn.setReadTimeout(READ_TIMEOUT);
-            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String latestVersion = rd.readLine();
+            val url = URL(VERSION_URL + REALM_VERSION)
+            val conn = url.openConnection() as HttpURLConnection
+            conn.connectTimeout = CONNECT_TIMEOUT
+            conn.readTimeout = READ_TIMEOUT
+            val rd = BufferedReader(InputStreamReader(conn.inputStream))
+            val latestVersion = rd.readLine()
             // if the obtained string does not match the pattern, we are in a separate network.
-            if (latestVersion.matches(REALM_VERSION_PATTERN)) {
-                result = latestVersion;
+            if (latestVersion.matches(REALM_VERSION_PATTERN.toRegex())) {
+                result = latestVersion
             }
-            rd.close();
-        } catch (IOException e) {
+            rd.close()
+        } catch (e: IOException) {
             // We ignore this exception on purpose not to break the build system if this class fails
         }
-        return result;
+
+        return result
     }
 
-    private void printMessage(String message) {
-        processingEnvironment.getMessager().printMessage(Diagnostic.Kind.OTHER, message);
+    private fun printMessage(message: String) {
+        processingEnvironment.messager.printMessage(Diagnostic.Kind.OTHER, message)
+    }
+
+    companion object {
+        val REALM_ANDROID_DOWNLOAD_URL = "https://static.realm.io/downloads/java/latest"
+
+        private val VERSION_URL = "https://static.realm.io/update/java?"
+        private val REALM_VERSION = Version.VERSION
+        private val REALM_VERSION_PATTERN = "\\d+\\.\\d+\\.\\d+"
+        private val READ_TIMEOUT = 2000
+        private val CONNECT_TIMEOUT = 4000
+
+        private var instance: RealmVersionChecker? = null
+
+        fun getInstance(processingEnvironment: ProcessingEnvironment): RealmVersionChecker {
+            if (instance == null) {
+                val checker = RealmVersionChecker(processingEnvironment)
+                instance = checker
+            }
+            return instance as RealmVersionChecker
+        }
     }
 }

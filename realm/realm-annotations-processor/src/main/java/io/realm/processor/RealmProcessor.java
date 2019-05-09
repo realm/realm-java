@@ -17,7 +17,6 @@
 package io.realm.processor;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -149,7 +148,7 @@ public class RealmProcessor extends AbstractProcessor {
         round++;
 
         if (round == 0) {
-            RealmVersionChecker.getInstance(processingEnv).executeRealmVersionUpdate();
+            RealmVersionChecker.Companion.getInstance(processingEnv).executeRealmVersionUpdate();
         }
 
         if (roundEnv.errorRaised()) { return ABORT; }
