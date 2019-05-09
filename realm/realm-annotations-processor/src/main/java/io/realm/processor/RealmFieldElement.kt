@@ -13,112 +13,83 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.processor;
+package io.realm.processor
 
-import java.lang.annotation.Annotation;
-import java.util.List;
-import java.util.Set;
-
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ElementVisitor;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.element.AnnotationMirror
+import javax.lang.model.element.Element
+import javax.lang.model.element.ElementKind
+import javax.lang.model.element.ElementVisitor
+import javax.lang.model.element.Modifier
+import javax.lang.model.element.Name
+import javax.lang.model.element.VariableElement
+import javax.lang.model.type.TypeMirror
 
 /**
- * Wrapper for {@link javax.lang.model.element.VariableElement} that makes it possible to add
+ * Wrapper for [javax.lang.model.element.VariableElement] that makes it possible to add
  * additional metadata.
  */
-public class RealmFieldElement implements VariableElement {
+class RealmFieldElement(val fieldReference: VariableElement,
+                        /**
+                         * Returns the name that Realm Core uses internally when saving data to this field.
+                         * [.getSimpleName] returns the name in the Java class.
+                         */
+                        val internalFieldName: String // Name used for this field internally in Realm.
+) : VariableElement {
 
-    private final VariableElement fieldReference;
-    private final String internalFieldName; // Name used for this field internally in Realm.
+    val javaName: String
+        get() = simpleName.toString()
 
-    public RealmFieldElement(VariableElement fieldReference, String internalFieldName) {
-        this.fieldReference = fieldReference;
-        this.internalFieldName = internalFieldName;
+    override fun getModifiers(): Set<Modifier> {
+        return fieldReference.modifiers
     }
 
-    public VariableElement getFieldReference() {
-        return fieldReference;
+    override fun asType(): TypeMirror {
+        return fieldReference.asType()
     }
 
-    /**
-     * Returns the name that Realm Core uses internally when saving data to this field.
-     * {@link #getSimpleName()} returns the name in the Java class.
-     */
-    public String getInternalFieldName() {
-        return internalFieldName;
+    override fun getKind(): ElementKind? {
+        return null
     }
 
-    public Set<Modifier> getModifiers() {
-        return fieldReference.getModifiers();
-    }
-
-    public TypeMirror asType() {
-        return fieldReference.asType();
-    }
-
-    @Override
-    public ElementKind getKind() {
-        return null;
-    }
-
-    @Override
-    public Object getConstantValue() {
-        return fieldReference.getConstantValue();
+    override fun getConstantValue(): Any {
+        return fieldReference.constantValue
     }
 
     /**
      * Returns the name for this field in the Java class.
-     * {@link #getInternalFieldName()} returns the name used by Realm Core for the same field.
+     * [.getInternalFieldName] returns the name used by Realm Core for the same field.
      */
-    @Override
-    public Name getSimpleName() {
-        return fieldReference.getSimpleName();
+    override fun getSimpleName(): Name {
+        return fieldReference.simpleName
     }
 
-    @Override
-    public Element getEnclosingElement() {
-        return fieldReference.getEnclosingElement();
+    override fun getEnclosingElement(): Element {
+        return fieldReference.enclosingElement
     }
 
-    @Override
-    public List<? extends Element> getEnclosedElements() {
-        return fieldReference.getEnclosedElements();
+    override fun getEnclosedElements(): List<Element> {
+        return fieldReference.enclosedElements
     }
 
-    @Override
-    public List<? extends AnnotationMirror> getAnnotationMirrors() {
-        return fieldReference.getAnnotationMirrors();
+    override fun getAnnotationMirrors(): List<AnnotationMirror> {
+        return fieldReference.annotationMirrors
     }
 
-    @Override
-    public <A extends Annotation> A getAnnotation(Class<A> aClass) {
-        return fieldReference.getAnnotation(aClass);
+    override fun <A : Annotation> getAnnotation(aClass: Class<A>): A? {
+        return fieldReference.getAnnotation(aClass)
     }
 
-    @Override
-    public <A extends Annotation> A[] getAnnotationsByType(Class<A> aClass) {
-        return fieldReference.getAnnotationsByType(aClass);
+    override fun <A : Annotation> getAnnotationsByType(aClass: Class<A>): Array<A> {
+        return fieldReference.getAnnotationsByType(aClass)
     }
 
-    @Override
-    public <R, P> R accept(ElementVisitor<R, P> elementVisitor, P p) {
-        return fieldReference.accept(elementVisitor, p);
+    override fun <R, P> accept(elementVisitor: ElementVisitor<R, P>, p: P): R {
+        return fieldReference.accept(elementVisitor, p)
     }
 
-    @Override
-    public String toString() {
+    override fun toString(): String {
         // Mimics the behaviour of the standard implementation of VariableElement `toString()`
         // Some methods in RealmProxyClassGenerator depended on this.
-        return getSimpleName().toString();
-    }
-
-    public String getJavaName() {
-        return getSimpleName().toString();
+        return simpleName.toString()
     }
 }
