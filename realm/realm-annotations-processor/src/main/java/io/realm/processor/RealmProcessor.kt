@@ -14,268 +14,289 @@
  * limitations under the License.
  */
 
-package io.realm.processor;
+package io.realm.processor
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException
+import java.util.HashSet
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedOptions;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.TypeElement;
+import javax.annotation.processing.AbstractProcessor
+import javax.annotation.processing.RoundEnvironment
+import javax.annotation.processing.SupportedAnnotationTypes
+import javax.annotation.processing.SupportedOptions
+import javax.lang.model.SourceVersion
+import javax.lang.model.element.Element
+import javax.lang.model.element.ElementKind
+import javax.lang.model.element.TypeElement
 
-import io.realm.annotations.RealmClass;
-import io.realm.annotations.RealmModule;
+import io.realm.annotations.RealmClass
+import io.realm.annotations.RealmModule
 
 
 /**
  * The RealmProcessor is responsible for creating the plumbing that connects the RealmObjects to a Realm. The process
  * for doing so is summarized below and then described in more detail.
- * <p>
- * <p>
+ *
+ *
+ *
+ *
  * <h1>DESIGN GOALS</h1>
- * <p>
+ *
+ *
  * The processor should support the following design goals:
- * <ul>
- * <li>Minimize reflection.</li>
- * <li>Realm code can be obfuscated as much as possible.</li>
- * <li>Library projects must be able to use Realm without interfering with app code.</li>
- * <li>App code must be able to use RealmObject classes provided by library code.</li>
- * <li>It should work for app developers out of the box (ie. put the burden on the library developer)</li>
- * </ul>
- * <p>
+ *
+ *  * Minimize reflection.
+ *  * Realm code can be obfuscated as much as possible.
+ *  * Library projects must be able to use Realm without interfering with app code.
+ *  * App code must be able to use RealmObject classes provided by library code.
+ *  * It should work for app developers out of the box (ie. put the burden on the library developer)
+ *
+ *
+ *
  * <h1>SUMMARY</h1>
- * <p>
- * <ol>
- * <li>Create proxy classes for all classes marked with @RealmClass. They are named &lt;className&gt;RealmProxy.java</li>
- * <li>Create a DefaultRealmModule containing all RealmObject classes (if needed).</li>
- * <li>Create a RealmProxyMediator class for all classes marked with {@code @RealmModule}. They are named {@code <moduleName>Mediator.java}</li>
- * </ol>
- * <p>
+ *
+ *
+ *
+ *  1. Create proxy classes for all classes marked with @RealmClass. They are named &lt;className&gt;RealmProxy.java
+ *  1. Create a DefaultRealmModule containing all RealmObject classes (if needed).
+ *  1. Create a RealmProxyMediator class for all classes marked with `@RealmModule`. They are named `<moduleName>Mediator.java`
+ *
+ *
+ *
  * <h1>WHY</h1>
- * <p>
- * <ol>
- * <li>A RealmObjectProxy object is created for each class annotated with {@link io.realm.annotations.RealmClass}. This
+ *
+ *
+ *
+ *  1. A RealmObjectProxy object is created for each class annotated with [io.realm.annotations.RealmClass]. This
  * proxy extends the original RealmObject class and rewires all field access to point to the native Realm memory instead of
- * Java memory. It also adds some static helper methods to the class.</li>
- * <li>The annotation processor is either in "library" mode or in "app" mode. This is defined by having a class
+ * Java memory. It also adds some static helper methods to the class.
+ *  1. The annotation processor is either in "library" mode or in "app" mode. This is defined by having a class
  * annotated with @RealmModule(library = true). It is not allowed to have both a class with library = true and
  * library = false in the same IntelliJ module and it will cause the annotation processor to throw an exception. If no
  * library modules are defined, we will create a DefaultRealmModule containing all known RealmObjects and with the
- * {@code @RealmModule} annotation. Realm automatically knows about this module, but it is still possible for users to create
- * their own modules with a subset of model classes.</li>
- * <li>For each class annotated with @RealmModule a matching Mediator class is created (including the default one). This
+ * `@RealmModule` annotation. Realm automatically knows about this module, but it is still possible for users to create
+ * their own modules with a subset of model classes.
+ *  1. For each class annotated with @RealmModule a matching Mediator class is created (including the default one). This
  * class has an interface that matches the static helper methods for the proxy classes. All access to these static
- * helper methods should be done through this Mediator.</li>
- * </ol>
- * <p>
+ * helper methods should be done through this Mediator.
+ *
+ *
+ *
  * This allows ProGuard to obfuscate all RealmObject and proxy classes as all access to the static methods now happens through
  * the Mediator, and the only requirement is now that only RealmModule and Mediator class names cannot be obfuscated.
- * <p>
- * <p>
+ *
+ *
+ *
+ *
  * <h1>CREATING A REALM</h1>
- * <p>
+ *
+ *
  * This means the workflow when instantiating a Realm on runtime is the following:
- * <p>
- * <ol>
- * <li>Open a Realm.</li>
- * <li>Assign one or more modules (that are allowed to overlap). If no module is assigned, the default module is used.</li>
- * <li>The Realm schema is now defined as all RealmObject classes known by these modules.</li>
- * <li>Each time a static helper method is needed, Realm can now delegate these method calls to the appropriate
- * Mediator which in turn will delegate the method call to the appropriate RealmObjectProxy class.</li>
- * </ol>
- * <p>
+ *
+ *
+ *
+ *  1. Open a Realm.
+ *  1. Assign one or more modules (that are allowed to overlap). If no module is assigned, the default module is used.
+ *  1. The Realm schema is now defined as all RealmObject classes known by these modules.
+ *  1. Each time a static helper method is needed, Realm can now delegate these method calls to the appropriate
+ * Mediator which in turn will delegate the method call to the appropriate RealmObjectProxy class.
+ *
+ *
+ *
  * <h1>CREATING A MANAGED RealmObject</h1>
- * <p>
+ *
+ *
  * To allow to specify default values by model's constructor or direct field assignment,
  * the flow of creating the proxy object is a bit complicated. This section illustrates
  * how proxy object should be created.
- * <p>
- * <ol>
- * <li>Get the thread local {@code io.realm.BaseRealm.RealmObjectContext} instance by {@code BaseRealm.objectContext.get()} </li>
- * <li>Set the object context information to the {@code RealmObjectContext} those should be set to the creating proxy object.</li>
- * <li>Create proxy object ({@code new io.realm.FooRealmProxy()}).</li>
- * <li>Set the object context information to the created proxy when the first access of its accessors (or in its constructor if accessors are not used in the model's constructor).</li>
- * <li>Clear the object context information in the thread local {@code io.realm.BaseRealm.RealmObjectContext} instance by calling {@code
- * #clear()} method.</li>
- * </ol>
- * <p>
+ *
+ *
+ *
+ *  1. Get the thread local `io.realm.BaseRealm.RealmObjectContext` instance by `BaseRealm.objectContext.get()`
+ *  1. Set the object context information to the `RealmObjectContext` those should be set to the creating proxy object.
+ *  1. Create proxy object (`new io.realm.FooRealmProxy()`).
+ *  1. Set the object context information to the created proxy when the first access of its accessors (or in its constructor if accessors are not used in the model's constructor).
+ *  1. Clear the object context information in the thread local `io.realm.BaseRealm.RealmObjectContext` instance by calling `#clear()` method.
+ *
+ *
+ *
  * The reason of this complicated step is that we can't pass these context information
  * via the constructor of the proxy. It's because the constructor of the proxy is executed
- * <b>after</b> the constructor of the model class. The access to the fields in the model's
+ * **after** the constructor of the model class. The access to the fields in the model's
  * constructor happens before the assignment of the context information to the 'proxyState'.
- * This will cause the {@link NullPointerException} if getters/setter is accessed in the model's
+ * This will cause the [NullPointerException] if getters/setter is accessed in the model's
  * constructor (see https://github.com/realm/realm-java/issues/2536 ).
  */
-@SupportedAnnotationTypes({
-        "io.realm.annotations.RealmClass",
-        "io.realm.annotations.RealmField",
-        "io.realm.annotations.Ignore",
-        "io.realm.annotations.Index",
-        "io.realm.annotations.PrimaryKey",
-        "io.realm.annotations.RealmModule",
-        "io.realm.annotations.Required"
-})
-@SupportedOptions(value = {"realm.suppressWarnings", "realm.ignoreKotlinNullability"})
-public class RealmProcessor extends AbstractProcessor {
+@SupportedAnnotationTypes("io.realm.annotations.RealmClass", "io.realm.annotations.RealmField", "io.realm.annotations.Ignore", "io.realm.annotations.Index", "io.realm.annotations.PrimaryKey", "io.realm.annotations.RealmModule", "io.realm.annotations.Required")
+@SupportedOptions(value = ["realm.suppressWarnings", "realm.ignoreKotlinNullability"])
+class RealmProcessor : AbstractProcessor() {
 
-    // Don't consume annotations. This allows 3rd party annotation processors to run.
-    private static final boolean CONSUME_ANNOTATIONS = false;
-    private static final boolean ABORT = true; // Abort the annotation processor by consuming all annotations
-
-    private final ClassCollection classCollection = new ClassCollection(); // Metadata for all classes found
-    private ModuleMetaData moduleMetaData; // Metadata for all modules found
+    private val classCollection = ClassCollection() // Metadata for all classes found
+    private var moduleMetaData: ModuleMetaData? = null // Metadata for all modules found
 
     // List of backlinks
-    private final Set<Backlink> backlinksToValidate = new HashSet<Backlink>();
+    private val backlinksToValidate = HashSet<Backlink>()
 
-    private boolean hasProcessedModules = false;
-    private int round = -1;
+    private var hasProcessedModules = false
+    private var round = -1
 
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latestSupported();
+    override fun getSupportedSourceVersion(): SourceVersion {
+        return SourceVersion.latestSupported()
     }
 
-    @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        round++;
+    override fun process(annotations: Set<TypeElement>, roundEnv: RoundEnvironment): Boolean {
+        round++
 
         if (round == 0) {
-            RealmVersionChecker.Companion.getInstance(processingEnv).executeRealmVersionUpdate();
+            RealmVersionChecker.getInstance(processingEnv).executeRealmVersionUpdate()
         }
 
-        if (roundEnv.errorRaised()) { return ABORT; }
+        if (roundEnv.errorRaised()) {
+            return ABORT
+        }
 
         if (!hasProcessedModules) {
-            Utils.initialize(processingEnv);
-            TypeMirrors typeMirrors = new TypeMirrors(processingEnv);
+            Utils.initialize(processingEnv)
+            val typeMirrors = TypeMirrors(processingEnv)
 
             // Build up internal metadata while validating as much as possible
-            if (!preProcessModules(roundEnv)) { return ABORT; }
-            if (!processClassAnnotations(roundEnv, typeMirrors)) { return ABORT; }
-            if (!postProcessModules()) { return ABORT; }
-            if (!validateBacklinks()) { return ABORT; }
-            hasProcessedModules = true;
+            if (!preProcessModules(roundEnv)) {
+                return ABORT
+            }
+            if (!processClassAnnotations(roundEnv, typeMirrors)) {
+                return ABORT
+            }
+            if (!postProcessModules()) {
+                return ABORT
+            }
+            if (!validateBacklinks()) {
+                return ABORT
+            }
+            hasProcessedModules = true
 
             // Create all files
-            if (!createProxyClassFiles(typeMirrors)) { return ABORT; }
-            if (!createModuleFiles(roundEnv)) { return ABORT; }
+            if (!createProxyClassFiles(typeMirrors)) {
+                return ABORT
+            }
+            if (!createModuleFiles(roundEnv)) {
+                return ABORT
+            }
         }
 
-        return CONSUME_ANNOTATIONS;
+        return CONSUME_ANNOTATIONS
     }
 
     // Create all proxy classes
-    private boolean processClassAnnotations(RoundEnvironment roundEnv, TypeMirrors typeMirrors) {
+    private fun processClassAnnotations(roundEnv: RoundEnvironment, typeMirrors: TypeMirrors): Boolean {
 
-        for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
+        for (classElement in roundEnv.getElementsAnnotatedWith(RealmClass::class.java)) {
 
             // The class must either extend RealmObject or implement RealmModel
             if (!Utils.isImplementingMarkerInterface(classElement)) {
-                Utils.error("A RealmClass annotated object must implement RealmModel or derive from RealmObject.", classElement);
-                return false;
+                Utils.error("A RealmClass annotated object must implement RealmModel or derive from RealmObject.", classElement)
+                return false
             }
 
             // Check the annotation was applied to a Class
-            if (!classElement.getKind().equals(ElementKind.CLASS)) {
-                Utils.error("The RealmClass annotation can only be applied to classes.", classElement);
-                return false;
+            if (classElement.kind != ElementKind.CLASS) {
+                Utils.error("The RealmClass annotation can only be applied to classes.", classElement)
+                return false
             }
 
-            ClassMetaData metadata = new ClassMetaData(processingEnv, typeMirrors, (TypeElement) classElement);
-            if (!metadata.isModelClass()) { continue; }
+            val metadata = ClassMetaData(processingEnv, typeMirrors, classElement as TypeElement)
+            if (!metadata.isModelClass) {
+                continue
+            }
 
-            Utils.note("Processing class " + metadata.getSimpleJavaClassName());
-            if (!metadata.generate(moduleMetaData)) { return false; }
+            Utils.note("Processing class " + metadata.simpleJavaClassName)
+            if (!metadata.generate(moduleMetaData)) {
+                return false
+            }
 
-            classCollection.addClass(metadata);
-            backlinksToValidate.addAll(metadata.getBacklinkFields());
+            classCollection.addClass(metadata)
+            backlinksToValidate.addAll(metadata.backlinkFields)
         }
 
-        return true;
+        return true
     }
 
     // Returns true if modules were processed successfully, false otherwise
-    private boolean preProcessModules(RoundEnvironment roundEnv) {
-        moduleMetaData = new ModuleMetaData();
-        return moduleMetaData.preProcess(roundEnv.getElementsAnnotatedWith(RealmModule.class));
+    private fun preProcessModules(roundEnv: RoundEnvironment): Boolean {
+        moduleMetaData = ModuleMetaData()
+        return moduleMetaData!!.preProcess(roundEnv.getElementsAnnotatedWith(RealmModule::class.java))
     }
 
     // Returns true of modules where successfully validated, false otherwise
-    private boolean postProcessModules() {
-        return moduleMetaData.postProcess(classCollection);
+    private fun postProcessModules(): Boolean {
+        return moduleMetaData!!.postProcess(classCollection)
     }
 
-    private boolean createModuleFiles(RoundEnvironment roundEnv) {
+    private fun createModuleFiles(roundEnv: RoundEnvironment): Boolean {
         // Create default module if needed
-        if (moduleMetaData.shouldCreateDefaultModule()) {
+        if (moduleMetaData!!.shouldCreateDefaultModule()) {
             if (!createDefaultModule()) {
-                return false;
+                return false
             }
         }
 
         // Create RealmProxyMediators for all Realm modules
-        for (Map.Entry<String, Set<ClassMetaData>> module : moduleMetaData.getAllModules().entrySet()) {
-            if (!createMediator(Utils.stripPackage(module.getKey()), module.getValue())) {
-                return false;
+        for ((key, value) in moduleMetaData!!.allModules) {
+            if (!createMediator(Utils.stripPackage(key), value)) {
+                return false
             }
         }
 
-        return true;
+        return true
     }
 
-    private boolean createProxyClassFiles(TypeMirrors typeMirrors) {
-        for (ClassMetaData metadata : classCollection.getClasses()) {
-            RealmProxyInterfaceGenerator interfaceGenerator = new RealmProxyInterfaceGenerator(processingEnv, metadata);
+    private fun createProxyClassFiles(typeMirrors: TypeMirrors): Boolean {
+        for (metadata in classCollection.classes) {
+            val interfaceGenerator = RealmProxyInterfaceGenerator(processingEnv, metadata)
             try {
-                interfaceGenerator.generate();
-            } catch (IOException e) {
-                Utils.error(e.getMessage(), metadata.getClassElement());
-                return false;
+                interfaceGenerator.generate()
+            } catch (e: IOException) {
+                Utils.error(e.message, metadata.classElement)
+                return false
             }
 
-            RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, typeMirrors, metadata, classCollection);
+            val sourceCodeGenerator = RealmProxyClassGenerator(processingEnv, typeMirrors, metadata, classCollection)
             try {
-                sourceCodeGenerator.generate();
-            } catch (IOException | UnsupportedOperationException e) {
-                Utils.error(e.getMessage(), metadata.getClassElement());
-                return false;
+                sourceCodeGenerator.generate()
+            } catch (e: IOException) {
+                Utils.error(e.message, metadata.classElement)
+                return false
+            } catch (e: UnsupportedOperationException) {
+                Utils.error(e.message, metadata.classElement)
+                return false
             }
+
         }
-        return true;
+        return true
     }
 
-    private boolean createDefaultModule() {
-        Utils.note("Creating DefaultRealmModule");
-        DefaultModuleGenerator defaultModuleGenerator = new DefaultModuleGenerator(processingEnv);
+    private fun createDefaultModule(): Boolean {
+        Utils.note("Creating DefaultRealmModule")
+        val defaultModuleGenerator = DefaultModuleGenerator(processingEnv)
         try {
-            defaultModuleGenerator.generate();
-        } catch (IOException e) {
-            Utils.error(e.getMessage());
-            return false;
+            defaultModuleGenerator.generate()
+        } catch (e: IOException) {
+            Utils.error(e.message)
+            return false
         }
 
-        return true;
+        return true
     }
 
-    private boolean createMediator(String simpleModuleName, Set<ClassMetaData> moduleClasses) {
-        RealmProxyMediatorGenerator mediatorImplGenerator = new RealmProxyMediatorGenerator(processingEnv,
-                simpleModuleName, moduleClasses);
+    private fun createMediator(simpleModuleName: String, moduleClasses: Set<ClassMetaData>): Boolean {
+        val mediatorImplGenerator = RealmProxyMediatorGenerator(processingEnv,
+                simpleModuleName, moduleClasses)
         try {
-            mediatorImplGenerator.generate();
-        } catch (IOException e) {
-            Utils.error(e.getMessage());
-            return false;
+            mediatorImplGenerator.generate()
+        } catch (e: IOException) {
+            Utils.error(e.message)
+            return false
         }
 
-        return true;
+        return true
     }
 
     // Because library classes are processed separately, there is no guarantee
@@ -285,19 +306,27 @@ public class RealmProcessor extends AbstractProcessor {
     // that it does contain the field, but the field is of the wrong type, it can
     // catch the error at compile time.
     // Give all failure messages before failing
-    private boolean validateBacklinks() {
-        boolean allValid = true;
+    private fun validateBacklinks(): Boolean {
+        var allValid = true
 
-        for (Backlink backlink : backlinksToValidate) {
-            ClassMetaData clazz = classCollection.getClassFromQualifiedName(backlink.getSourceClass());
+        for (backlink in backlinksToValidate) {
+            val clazz = classCollection.getClassFromQualifiedName(backlink.sourceClass) ?: continue
 
             // If the class is not here it might be part of some other compilation unit.
-            if (clazz == null) { continue; }
 
             // If the class is here, we can validate it.
-            if (!backlink.validateTarget(clazz) && allValid) { allValid = false; }
+            if (!backlink.validateTarget(clazz) && allValid) {
+                allValid = false
+            }
         }
 
-        return allValid;
+        return allValid
+    }
+
+    companion object {
+
+        // Don't consume annotations. This allows 3rd party annotation processors to run.
+        private val CONSUME_ANNOTATIONS = false
+        private val ABORT = true // Abort the annotation processor by consuming all annotations
     }
 }
