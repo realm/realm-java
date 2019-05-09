@@ -3025,15 +3025,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void includeLinkingObjects_throwsForNonQueryBasedRealms() {
-        try {
-            realm.where(AllJavaTypes.class).includeLinkingObjects(AllJavaTypes.FIELD_STRING);
-            fail();
-        } catch (IllegalStateException ignore) {
-        }
-    }
-
-    @Test
     public void distinct() {
         final long numberOfBlocks = 3;
         final long numberOfObjects = 3; // Must be greater than 1
