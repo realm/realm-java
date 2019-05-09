@@ -14,58 +14,51 @@
  * limitations under the License.
  */
 
-package io.realm.processor;
+package io.realm.processor
 
-import com.squareup.javawriter.JavaWriter;
+import com.squareup.javawriter.JavaWriter
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.io.BufferedWriter
+import java.io.IOException
+import java.util.Collections
+import java.util.HashMap
+import java.util.LinkedHashMap
+import java.util.Locale
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Modifier;
-import javax.tools.JavaFileObject;
+import javax.annotation.processing.ProcessingEnvironment
+import javax.lang.model.element.Modifier
+import javax.tools.JavaFileObject
 
-import io.realm.annotations.RealmModule;
+import io.realm.annotations.RealmModule
 
 
 /**
  * This class is responsible for creating the DefaultRealmModule that contains all known
- * {@link io.realm.annotations.RealmClass}' known at compile time.
+ * [io.realm.annotations.RealmClass]' known at compile time.
  */
-public class DefaultModuleGenerator {
+class DefaultModuleGenerator(private val env: ProcessingEnvironment) {
 
-    private final ProcessingEnvironment env;
+    @Throws(IOException::class)
+    fun generate() {
+        val qualifiedGeneratedClassName = String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Constants.DEFAULT_MODULE_CLASS_NAME)
+        val sourceFile = env.filer.createSourceFile(qualifiedGeneratedClassName)
+        val writer = JavaWriter(BufferedWriter(sourceFile.openWriter()))
+        writer.indent = "    "
 
-    public DefaultModuleGenerator(ProcessingEnvironment env) {
-        this.env = env;
-    }
+        writer.emitPackage(Constants.REALM_PACKAGE_NAME)
+        writer.emitEmptyLine()
 
-    public void generate() throws IOException {
-        String qualifiedGeneratedClassName = String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Constants.DEFAULT_MODULE_CLASS_NAME);
-        JavaFileObject sourceFile = env.getFiler().createSourceFile(qualifiedGeneratedClassName);
-        JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
-        writer.setIndent("    ");
-
-        writer.emitPackage(Constants.REALM_PACKAGE_NAME);
-        writer.emitEmptyLine();
-
-        Map<String, Boolean> attributes = new LinkedHashMap<>();
-        attributes.put("allClasses", Boolean.TRUE);
-        writer.emitAnnotation(RealmModule.class, attributes);
+        val attributes = LinkedHashMap<String, Boolean>()
+        attributes["allClasses"] = java.lang.Boolean.TRUE
+        writer.emitAnnotation(RealmModule::class.java, attributes)
         writer.beginType(
-                qualifiedGeneratedClassName,        // full qualified name of the item to generate
-                "class",                            // the type of the item
-                Collections.<Modifier>emptySet(),   // modifiers to apply
-                null);                              // class to extend
-        writer.emitEmptyLine();
+                qualifiedGeneratedClassName, // full qualified name of the item to generate
+                "class", // the type of the item
+                emptySet(), // modifiers to apply
+                null)                              // class to extend
+        writer.emitEmptyLine()
 
-        writer.endType();
-        writer.close();
+        writer.endType()
+        writer.close()
     }
 }
-
