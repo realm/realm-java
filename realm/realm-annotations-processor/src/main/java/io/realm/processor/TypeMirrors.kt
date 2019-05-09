@@ -13,73 +13,73 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("TypeMirrors")
+package io.realm.processor
 
-package io.realm.processor;
+import java.util.Date
 
-import java.util.Date;
-import java.util.List;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
-
+import javax.annotation.processing.ProcessingEnvironment
+import javax.lang.model.element.VariableElement
+import javax.lang.model.type.DeclaredType
+import javax.lang.model.type.TypeKind
+import javax.lang.model.type.TypeMirror
 
 /**
- * This class provides {@link TypeMirror} instances used in annotation processor.
+ * This class provides [TypeMirror] instances used in annotation processor.
  *
  * WARNING: Comparing type mirrors using either `==` or `equal()` can break when using incremental
  * annotation processing. Always use `Types.isSameType()` instead when comparing them.
  */
-class TypeMirrors {
-    final TypeMirror STRING_MIRROR;
-    final TypeMirror BINARY_MIRROR;
-    final TypeMirror BOOLEAN_MIRROR;
-    final TypeMirror LONG_MIRROR;
-    final TypeMirror INTEGER_MIRROR;
-    final TypeMirror SHORT_MIRROR;
-    final TypeMirror BYTE_MIRROR;
-    final TypeMirror DOUBLE_MIRROR;
-    final TypeMirror FLOAT_MIRROR;
-    final TypeMirror DATE_MIRROR;
+class TypeMirrors(env: ProcessingEnvironment) {
 
-    final TypeMirror PRIMITIVE_LONG_MIRROR;
-    final TypeMirror PRIMITIVE_INT_MIRROR;
-    final TypeMirror PRIMITIVE_SHORT_MIRROR;
-    final TypeMirror PRIMITIVE_BYTE_MIRROR;
+    @JvmField val STRING_MIRROR: TypeMirror
+    @JvmField val BINARY_MIRROR: TypeMirror
+    @JvmField val BOOLEAN_MIRROR: TypeMirror
+    @JvmField val LONG_MIRROR: TypeMirror
+    @JvmField val INTEGER_MIRROR: TypeMirror
+    @JvmField val SHORT_MIRROR: TypeMirror
+    @JvmField val BYTE_MIRROR: TypeMirror
+    @JvmField val DOUBLE_MIRROR: TypeMirror
+    @JvmField val FLOAT_MIRROR: TypeMirror
+    @JvmField val DATE_MIRROR: TypeMirror
 
-    TypeMirrors(ProcessingEnvironment env) {
-        final Types typeUtils = env.getTypeUtils();
-        final Elements elementUtils = env.getElementUtils();
+    @JvmField val PRIMITIVE_LONG_MIRROR: TypeMirror
+    @JvmField val PRIMITIVE_INT_MIRROR: TypeMirror
+    @JvmField val PRIMITIVE_SHORT_MIRROR: TypeMirror
+    @JvmField val PRIMITIVE_BYTE_MIRROR: TypeMirror
 
-        STRING_MIRROR = elementUtils.getTypeElement("java.lang.String").asType();
-        BINARY_MIRROR = typeUtils.getArrayType(typeUtils.getPrimitiveType(TypeKind.BYTE));
-        BOOLEAN_MIRROR = elementUtils.getTypeElement(Boolean.class.getName()).asType();
-        LONG_MIRROR = elementUtils.getTypeElement(Long.class.getName()).asType();
-        INTEGER_MIRROR = elementUtils.getTypeElement(Integer.class.getName()).asType();
-        SHORT_MIRROR = elementUtils.getTypeElement(Short.class.getName()).asType();
-        BYTE_MIRROR = elementUtils.getTypeElement(Byte.class.getName()).asType();
-        DOUBLE_MIRROR = elementUtils.getTypeElement(Double.class.getName()).asType();
-        FLOAT_MIRROR = elementUtils.getTypeElement(Float.class.getName()).asType();
-        DATE_MIRROR = elementUtils.getTypeElement(Date.class.getName()).asType();
+    init {
+        val typeUtils = env.typeUtils
+        val elementUtils = env.elementUtils
 
-        PRIMITIVE_LONG_MIRROR = typeUtils.getPrimitiveType(TypeKind.LONG);
-        PRIMITIVE_INT_MIRROR = typeUtils.getPrimitiveType(TypeKind.INT);
-        PRIMITIVE_SHORT_MIRROR = typeUtils.getPrimitiveType(TypeKind.SHORT);
-        PRIMITIVE_BYTE_MIRROR = typeUtils.getPrimitiveType(TypeKind.BYTE);
+        STRING_MIRROR = elementUtils.getTypeElement("java.lang.String").asType()
+        BINARY_MIRROR = typeUtils.getArrayType(typeUtils.getPrimitiveType(TypeKind.BYTE))
+        BOOLEAN_MIRROR = elementUtils.getTypeElement(Boolean::class.javaObjectType.name).asType()
+        LONG_MIRROR = elementUtils.getTypeElement(Long::class.javaObjectType.name).asType()
+        INTEGER_MIRROR = elementUtils.getTypeElement(Int::class.javaObjectType.name).asType()
+        SHORT_MIRROR = elementUtils.getTypeElement(Short::class.javaObjectType.name).asType()
+        BYTE_MIRROR = elementUtils.getTypeElement(Byte::class.javaObjectType.name).asType()
+        DOUBLE_MIRROR = elementUtils.getTypeElement(Double::class.javaObjectType.name).asType()
+        FLOAT_MIRROR = elementUtils.getTypeElement(Float::class.javaObjectType.name).asType()
+        DATE_MIRROR = elementUtils.getTypeElement(Date::class.javaObjectType.name).asType()
+
+        PRIMITIVE_LONG_MIRROR = typeUtils.getPrimitiveType(TypeKind.LONG)
+        PRIMITIVE_INT_MIRROR = typeUtils.getPrimitiveType(TypeKind.INT)
+        PRIMITIVE_SHORT_MIRROR = typeUtils.getPrimitiveType(TypeKind.SHORT)
+        PRIMITIVE_BYTE_MIRROR = typeUtils.getPrimitiveType(TypeKind.BYTE)
     }
 
-    /**
-     * @return the {@link TypeMirror} of the elements in {@code RealmList}.
-     */
-    public static TypeMirror getRealmListElementTypeMirror(VariableElement field) {
-        if (!Utils.isRealmList(field)) {
-            return null;
+    companion object {
+        /**
+         * @return the [TypeMirror] of the elements in `RealmList`.
+         */
+        @JvmStatic
+        fun getRealmListElementTypeMirror(field: VariableElement): TypeMirror? {
+            if (!Utils.isRealmList(field)) {
+                return null
+            }
+            val typeArguments = (field.asType() as DeclaredType).typeArguments
+            return if (!typeArguments.isEmpty()) typeArguments[0] else null
         }
-        List<? extends TypeMirror> typeArguments = ((DeclaredType) field.asType()).getTypeArguments();
-        return (!typeArguments.isEmpty()) ? typeArguments.get(0) : null;
     }
 }
