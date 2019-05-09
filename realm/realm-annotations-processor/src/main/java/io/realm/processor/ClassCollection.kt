@@ -13,48 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.processor;
+package io.realm.processor
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.Collections
+import java.util.HashMap
+import java.util.HashSet
+import java.util.LinkedHashMap
+import java.util.LinkedHashSet
 
 /**
  * Wrapper around all Realm model classes metadata found during processing. It also
  * allows easy lookup for specific class data.
  */
-public class ClassCollection {
+class ClassCollection {
 
     // These three collections should always stay in sync
-    private Map<String, ClassMetaData> qualifiedNameClassMap = new LinkedHashMap<>();
-    private Set<ClassMetaData> classSet = new LinkedHashSet<>();
+    private val qualifiedNameClassMap = LinkedHashMap<String, ClassMetaData>()
+    private val classSet = LinkedHashSet<ClassMetaData>()
 
-    public void addClass(ClassMetaData metadata) {
-        classSet.add(metadata);
-        qualifiedNameClassMap.put(metadata.getFullyQualifiedClassName(), metadata);
+    val classes: Set<ClassMetaData>
+        get() = Collections.unmodifiableSet(classSet)
+
+    fun addClass(metadata: ClassMetaData) {
+        classSet.add(metadata)
+        qualifiedNameClassMap[metadata.fullyQualifiedClassName] = metadata
     }
 
-    public Set<ClassMetaData> getClasses() {
-        return Collections.unmodifiableSet(classSet);
+    fun getClassFromQualifiedName(qualifiedJavaClassName: String?): ClassMetaData {
+        return qualifiedNameClassMap[qualifiedJavaClassName]
+                ?: throw IllegalArgumentException("Class $qualifiedJavaClassName was not found")
     }
 
-    public ClassMetaData getClassFromQualifiedName(String qualifiedJavaClassName) {
-        ClassMetaData data = qualifiedNameClassMap.get(qualifiedJavaClassName);
-        if (data == null) {
-            throw new IllegalArgumentException("Class " + qualifiedJavaClassName + " was not found");
-        }
-        return data;
+    fun size(): Int {
+        return classSet.size
     }
 
-    public int size() {
-        return classSet.size();
-    }
-
-    public boolean containsQualifiedClass(String qualifiedClassName) {
-        return qualifiedNameClassMap.containsKey(qualifiedClassName);
+    fun containsQualifiedClass(qualifiedClassName: String): Boolean {
+        return qualifiedNameClassMap.containsKey(qualifiedClassName)
     }
 }
