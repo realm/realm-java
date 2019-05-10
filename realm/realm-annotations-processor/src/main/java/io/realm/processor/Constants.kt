@@ -23,27 +23,24 @@ object Constants {
     const val INTERFACE_SUFFIX = "RealmProxyInterface"
     const val INDENT = "    "
     const val DEFAULT_MODULE_CLASS_NAME = "DefaultRealmModule"
-    const val STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE = "throw new IllegalArgumentException(\"Trying to set non-nullable field '%s' to null.\")"
-    const val STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON = "throw new IllegalArgumentException(\"JSON object doesn't have the primary key field '%s'.\")"
-    const val STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED = "throw new io.realm.exceptions.RealmException(\"Primary key field '%s' cannot be changed after object" + " was created.\")"
-    const val STATEMENT_EXCEPTION_ILLEGAL_JSON_LOAD = "throw new io.realm.exceptions.RealmException(\"\\\"%s\\\" field \\\"%s\\\" cannot be loaded from json\")"
+    const val STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE =
+            "throw new IllegalArgumentException(\"Trying to set non-nullable field '%s' to null.\")"
+    const val STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON =
+            "throw new IllegalArgumentException(\"JSON object doesn't have the primary key field '%s'.\")"
+    const val STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED =
+            "throw new io.realm.exceptions.RealmException(\"Primary key field '%s' cannot be changed after object was created.\")"
+    const val STATEMENT_EXCEPTION_ILLEGAL_JSON_LOAD
+            = "throw new io.realm.exceptions.RealmException(\"\\\"%s\\\" field \\\"%s\\\" cannot be loaded from json\")"
     val JAVA_TO_REALM_TYPES = hashMapOf<String, RealmFieldType>()
     val LIST_ELEMENT_TYPE_TO_REALM_TYPES = hashMapOf<String, RealmFieldType>()
 
     /**
-     * Realm types and their corresponding Java types
-     */
-    enum class RealmFieldType
-    /**
+     * Realm types and their corresponding Java types.
+     *
      * @param realmType The simple name of the Enum type used in the Java bindings, to represent this type.
      * @param javaType The simple name of the Java type needed to store this Realm Type
      */
-    (realmType: String?,
-                        /**
-                         * Get the name of the Java type needed to store this Realm Type
-                         * @return the simple name for the corresponding Java type
-                         */
-                        val javaType: String?) {
+    enum class RealmFieldType(realmType: String?, val javaType: String?) {
         NOTYPE(null, "Void"),
         INTEGER("INTEGER", "Long"),
         FLOAT("FLOAT", "Float"),
@@ -67,14 +64,9 @@ object Constants {
         DOUBLE_LIST("DOUBLE_LIST", "List");
 
         /**
-         * Get the name of the enum, used in the Java bindings, used to represent the corresponding type.
-         * @return the name of the enum used to represent this Realm Type
+         * The name of the enum, used in the Java bindings, used to represent the corresponding type.
          */
-        val realmType: String
-
-        init {
-            this.realmType = "RealmFieldType.$realmType"
-        }
+        val realmType: String = "RealmFieldType.$realmType"
     }
 
     init {
