@@ -169,13 +169,6 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     }
 
     /**
-     * Returns all persistable fields in this model class
-     */
-    fun getFields(): List<RealmFieldElement> {
-        return Collections.unmodifiableList(fields)
-    }
-
-    /**
      * Returns all persistable fields that reference other Realm objects.
      */
     fun getObjectReferenceFields(): List<RealmFieldElement> {
