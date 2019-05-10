@@ -13,62 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.processor;
+package io.realm.processor
 
-import com.squareup.javawriter.JavaWriter;
+import com.squareup.javawriter.JavaWriter
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.EnumSet;
-import java.util.Locale;
+import java.io.BufferedWriter
+import java.io.IOException
+import java.util.EnumSet
+import java.util.Locale
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.VariableElement;
-import javax.tools.JavaFileObject;
+import javax.annotation.processing.ProcessingEnvironment
+import javax.lang.model.element.Modifier
+import javax.lang.model.element.VariableElement
+import javax.tools.JavaFileObject
 
-import io.realm.annotations.Ignore;
+import io.realm.annotations.Ignore
 
 
-public class RealmProxyInterfaceGenerator {
-    private ProcessingEnvironment processingEnvironment;
-    private ClassMetaData metaData;
-    private final String className;
+class RealmProxyInterfaceGenerator(private val processingEnvironment: ProcessingEnvironment, private val metaData: ClassMetaData) {
+    private val className: String
 
-    public RealmProxyInterfaceGenerator(ProcessingEnvironment processingEnvironment, ClassMetaData metaData) {
-        this.processingEnvironment = processingEnvironment;
-        this.metaData = metaData;
-        this.className = metaData.getFullyQualifiedClassName();
+    init {
+        this.className = metaData.fullyQualifiedClassName
     }
 
-    public void generate() throws IOException {
-        String qualifiedGeneratedInterfaceName =
-                String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Utils.getProxyInterfaceName(className));
-        JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedInterfaceName);
-        JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
+    @Throws(IOException::class)
+    fun generate() {
+        val qualifiedGeneratedInterfaceName = String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Utils.getProxyInterfaceName(className))
+        val sourceFile = processingEnvironment.filer.createSourceFile(qualifiedGeneratedInterfaceName)
+        val writer = JavaWriter(BufferedWriter(sourceFile.openWriter()))
 
-        writer.setIndent(Constants.INDENT);
+        writer.indent = Constants.INDENT
 
         writer
                 .emitPackage(Constants.REALM_PACKAGE_NAME)
                 .emitEmptyLine()
-                .beginType(qualifiedGeneratedInterfaceName, "interface", EnumSet.of(Modifier.PUBLIC));
-        for (VariableElement field : metaData.getFields()) {
-            if (field.getModifiers().contains(Modifier.STATIC) || (field.getAnnotation(Ignore.class) != null)) {
-                continue;
+                .beginType(qualifiedGeneratedInterfaceName, "interface", EnumSet.of(Modifier.PUBLIC))
+        for (field in metaData.fields) {
+            if (field.modifiers.contains(Modifier.STATIC) || field.getAnnotation(Ignore::class.java) != null) {
+                continue
             }
             // The field is neither static nor ignored
-            String fieldName = field.getSimpleName().toString();
-            String fieldTypeCanonicalName = field.asType().toString();
+            val fieldName = field.simpleName.toString()
+            val fieldTypeCanonicalName = field.asType().toString()
             writer
                     .beginMethod(
                             fieldTypeCanonicalName,
                             metaData.getInternalGetter(fieldName),
                             EnumSet.of(Modifier.PUBLIC))
-                    .endMethod();
+                    .endMethod()
 
             // MutableRealmIntegers do not have setters.
-            if (Utils.isMutableRealmInteger(field)) { continue; }
+            if (Utils.isMutableRealmInteger(field)) {
+                continue
+            }
             writer
                     .beginMethod(
                             "void",
@@ -76,20 +74,20 @@ public class RealmProxyInterfaceGenerator {
                             EnumSet.of(Modifier.PUBLIC),
                             fieldTypeCanonicalName,
                             "value")
-                    .endMethod();
+                    .endMethod()
         }
 
         // backlinks are final and have only a getter.
-        for (Backlink backlink : metaData.getBacklinkFields()) {
+        for (backlink in metaData.backlinkFields) {
             writer
                     .beginMethod(
-                            backlink.getTargetFieldType(),
-                            metaData.getInternalGetter(backlink.getTargetField()),
+                            backlink.targetFieldType,
+                            metaData.getInternalGetter(backlink.targetField),
                             EnumSet.of(Modifier.PUBLIC))
-                    .endMethod();
+                    .endMethod()
         }
 
-        writer.endType();
-        writer.close();
+        writer.endType()
+        writer.close()
     }
 }
