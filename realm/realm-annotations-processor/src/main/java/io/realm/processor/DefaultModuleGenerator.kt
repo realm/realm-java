@@ -27,7 +27,6 @@ import javax.annotation.processing.ProcessingEnvironment
 
 import io.realm.annotations.RealmModule
 
-
 /**
  * This class is responsible for creating the DefaultRealmModule that contains all known
  * [io.realm.annotations.RealmClass]' known at compile time.
@@ -39,22 +38,29 @@ class DefaultModuleGenerator(private val env: ProcessingEnvironment) {
         val qualifiedGeneratedClassName = String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Constants.DEFAULT_MODULE_CLASS_NAME)
         val sourceFile = env.filer.createSourceFile(qualifiedGeneratedClassName)
         val writer = JavaWriter(BufferedWriter(sourceFile.openWriter()))
-        writer.indent = "    "
 
-        writer.emitPackage(Constants.REALM_PACKAGE_NAME)
-        writer.emitEmptyLine()
-
+        /**
+         * Defines the [io.realm.annotations.RealmModule.allClasses] attribute
+         */
         val attributes = LinkedHashMap<String, Boolean>()
         attributes["allClasses"] = java.lang.Boolean.TRUE
-        writer.emitAnnotation(RealmModule::class.java, attributes)
-        writer.beginType(
-                qualifiedGeneratedClassName, // full qualified name of the item to generate
-                "class", // the type of the item
-                emptySet(), // modifiers to apply
-                null)                              // class to extend
-        writer.emitEmptyLine()
 
-        writer.endType()
-        writer.close()
+        // Build minimal class with the required `@RealmModule` annotation for including all
+        // known Realm model classes in this compilation unit.
+        writer.apply {
+            indent = Constants.INDENT
+            emitPackage(Constants.REALM_PACKAGE_NAME)
+            emitEmptyLine()
+            emitAnnotation(RealmModule::class.java, attributes)
+            beginType(
+                    qualifiedGeneratedClassName, // full qualified name of the item to generate
+                    "class",               // the type of the item
+                    emptySet(),                 // modifiers to apply
+                    null)           // class to extend
+            emitEmptyLine()
+            endType()
+            close()
+        }
+
     }
 }
