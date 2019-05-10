@@ -335,7 +335,8 @@ class ModuleMetaData {
         val classes = HashSet<String>()
         val moduleClasses = annotationValue!!.value as List<*>
         for (classMirror in moduleClasses) {
-            val fullyQualifiedClassName = classMirror.toString()
+            // FIXME: Something is fishy about this. Figure out how to get the proper types in Kotlin here
+            val fullyQualifiedClassName = classMirror.toString().removeSuffix(".class")
             classes.add(fullyQualifiedClassName)
         }
         return classes
