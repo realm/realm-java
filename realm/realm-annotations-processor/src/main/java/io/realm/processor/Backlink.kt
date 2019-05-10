@@ -62,7 +62,7 @@ import io.realm.annotations.Required
  * An unmanaged Model object will have, as the value of its backlink field, the value with which
  * the field is initialized (typically null).
  */
-internal class Backlink(clazz: ClassMetaData?, private val backlinkField: VariableElement) {
+class Backlink(clazz: ClassMetaData?, private val backlinkField: VariableElement) {
 
     /**
      * The fully-qualified name of the class containing the `targetField`,

@@ -158,7 +158,7 @@ object RealmJsonTypeHelper {
     @Throws(IOException::class)
     fun emitFillJavaTypeFromStream(
             varName: String, metaData: ClassMetaData, accessor: String, fieldName: String, fieldType: String, writer: JavaWriter) {
-        val isPrimaryKey = metaData.hasPrimaryKey() && metaData.primaryKey.simpleName.toString() == fieldName
+        val isPrimaryKey = metaData.hasPrimaryKey() && metaData.primaryKey!!.simpleName.toString() == fieldName
         val typeEmitter = JAVA_TO_JSON_TYPES[fieldType]
         typeEmitter?.emitStreamTypeConversion(varName, accessor, fieldName, fieldType, writer, isPrimaryKey)
     }
