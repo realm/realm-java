@@ -31,8 +31,6 @@ import javax.lang.model.element.Modifier
 import javax.lang.model.element.VariableElement
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeMirror
-import javax.lang.model.util.Types
-import javax.tools.JavaFileObject
 
 
 class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvironment, private val typeMirrors: TypeMirrors, private val metadata: ClassMetaData, private val classCollection: ClassCollection) {

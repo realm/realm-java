@@ -20,14 +20,10 @@ import com.squareup.javawriter.JavaWriter
 
 import java.io.BufferedWriter
 import java.io.IOException
-import java.util.Collections
-import java.util.HashMap
 import java.util.LinkedHashMap
 import java.util.Locale
 
 import javax.annotation.processing.ProcessingEnvironment
-import javax.lang.model.element.Modifier
-import javax.tools.JavaFileObject
 
 import io.realm.annotations.RealmModule
 

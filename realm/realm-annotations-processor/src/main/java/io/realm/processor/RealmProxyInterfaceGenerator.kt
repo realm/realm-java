@@ -24,8 +24,6 @@ import java.util.Locale
 
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Modifier
-import javax.lang.model.element.VariableElement
-import javax.tools.JavaFileObject
 
 import io.realm.annotations.Ignore
 
