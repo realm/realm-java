@@ -28,17 +28,21 @@ import javax.tools.Diagnostic
 
 class RealmVersionChecker private constructor(private val processingEnvironment: ProcessingEnvironment) {
 
+    private val REALM_ANDROID_DOWNLOAD_URL = "https://static.realm.io/downloads/java/latest"
+    private val VERSION_URL = "https://static.realm.io/update/java?"
+    private val REALM_VERSION = Version.VERSION
+    private val REALM_VERSION_PATTERN = "\\d+\\.\\d+\\.\\d+"
+    private val READ_TIMEOUT = 2000
+    private val CONNECT_TIMEOUT = 4000
+
     fun executeRealmVersionUpdate() {
         val backgroundThread = Thread(Runnable { launchRealmCheck() })
-
         backgroundThread.start()
-
         try {
             backgroundThread.join((CONNECT_TIMEOUT + READ_TIMEOUT).toLong())
         } catch (ignore: InterruptedException) {
             // We ignore this exception on purpose not to break the build system if this class fails
         }
-
     }
 
     private fun launchRealmCheck() {
@@ -75,22 +79,16 @@ class RealmVersionChecker private constructor(private val processingEnvironment:
     }
 
     companion object {
-        val REALM_ANDROID_DOWNLOAD_URL = "https://static.realm.io/downloads/java/latest"
-
-        private val VERSION_URL = "https://static.realm.io/update/java?"
-        private val REALM_VERSION = Version.VERSION
-        private val REALM_VERSION_PATTERN = "\\d+\\.\\d+\\.\\d+"
-        private val READ_TIMEOUT = 2000
-        private val CONNECT_TIMEOUT = 4000
-
         private var instance: RealmVersionChecker? = null
-
-        fun getInstance(processingEnvironment: ProcessingEnvironment): RealmVersionChecker {
+        fun getInstance(env: ProcessingEnvironment): RealmVersionChecker {
             if (instance == null) {
-                val checker = RealmVersionChecker(processingEnvironment)
-                instance = checker
+                synchronized(RealmVersionChecker::class.java) {
+                    if (instance == null) {
+                        instance = RealmVersionChecker(env)
+                    }
+                }
             }
-            return instance as RealmVersionChecker
+            return instance!!
         }
     }
 }
