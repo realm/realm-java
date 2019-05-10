@@ -24,85 +24,67 @@ import javax.lang.model.element.VariableElement
 import io.realm.annotations.LinkingObjects
 import io.realm.annotations.Required
 
-
 /**
  * A **Backlink** is an implicit backwards reference.  If field `sourceField` in instance `I`
  * of type `SourceClass` holds a reference to instance `J` of type `TargetClass`,
  * then a "backlink" is the automatically created reference from `J` to `I`.
- * Backlinks are automatically created and destroyed when the forward references to which they correspond are
- * created and destroyed.  This can dramatically reduce the complexity of client code.
  *
+ * Backlinks are automatically created and destroyed when the forward references to which they
+ * correspond are created and destroyed.  This can dramatically reduce the complexity of client
+ * code.
  *
  * To expose backlinks for use, create a declaration as follows:
- * `
+ *
+ * ```
  * class TargetClass {
- * // ...
- * @LinkingObjects("sourceField")
- * final RealmResults<SourceClass> targetField = null;
+ *   // ...
+ *   @LinkingObjects("sourceField")
+ *   final RealmResults<SourceClass> targetField = null;
  * }
-` * .
+ *```
  *
+ * The `targetField`, the field annotated with the @LinkingObjects annotation must be final.
+ * Its type must be `RealmResults` whose generic argument is the `SourceClass`, the class with the
+ * `sourceField` that will hold the forward reference to an instance of `TargetClass`
  *
- * The targetField, the field annotated with the @LinkingObjects annotation must be final.
- * Its type must be `RealmResults` whose generic argument is the `SourceClass`,
- * the class with the `sourceField` that will hold the forward reference to an instance of
- * `TargetClass`
+ * The `sourceField` must be either of type `TargetClass`  or `RealmList<TargetClass>`
  *
- *
- * The `sourceField` must be either of type `TargetClass`
- * or `RealmList<TargetClass>`
- *
- *
- * In the code link direction is from the perspective of the link, not the backlink: the source is the
- * instance to which the backlink points, the target is the instance holding the pointer.
+ * In the code link direction is from the perspective of the link, not the backlink: the source is
+ * the instance to which the backlink points, the target is the instance holding the pointer.
  * This is consistent with the use of terms in the Realm Core.
- *
  *
  * As should be obvious, from the declaration, backlinks are useful only on managed objects.
  * An unmanaged Model object will have, as the value of its backlink field, the value with which
  * the field is initialized (typically null).
  */
-class Backlink(clazz: ClassMetaData?, private val backlinkField: VariableElement) {
+class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement) {
 
     /**
-     * The fully-qualified name of the class containing the `targetField`,
-     * which is the field annotated with the @LinkingObjects annotation.
+     * The fully-qualified name of the class containing the `targetField`, which is the field
+     * annotated with the @LinkingObjects annotation.
      */
-    val targetClass: String
+    val targetClass: String = clazz.fullyQualifiedClassName
 
     /**
      * The name of the backlink field, in `targetClass`.
      * A `RealmResults<>` field annotated with a @LinkingObjects annotation.
      */
-    val targetField: String
+    val targetField: String = backlinkField.simpleName.toString()
 
     /**
-     * The fully-qualified name of the class to which the backlinks, from `targetField`,
-     * point.
+     * The fully-qualified name of the class to which the backlinks, from `targetField`, point.
      */
-    val sourceClass: String?
+    val sourceClass: String? = Utils.getRealmResultsType(backlinkField)
 
     /**
      * The name of the field, in `SourceClass` that has a normal link to `targetClass`.
-     * Making this field, in an instance I of `SourceClass`,
-     * a reference to an instance J of `TargetClass`
-     * will cause the `targetField` of J to contain a backlink to I.
+     * Making this field, in an instance I of `SourceClass`, a reference to an instance J of
+     * `TargetClass` will cause the `targetField` of J to contain a backlink to I.
      */
-    val sourceField: String?
+    val sourceField: String = backlinkField.getAnnotation(LinkingObjects::class.java).value
 
     val targetFieldType: String
         get() = backlinkField.asType().toString()
-
-
-    init {
-        if (null == clazz) {
-            throw NullPointerException(String.format(Locale.US, "null parameter: %s, %s", clazz, backlinkField))
-        }
-        this.targetClass = clazz.fullyQualifiedClassName
-        this.targetField = backlinkField.simpleName.toString()
-        this.sourceClass = Utils.getRealmResultsType(backlinkField)
-        this.sourceField = backlinkField.getAnnotation(LinkingObjects::class.java).value
-    }
 
     /**
      * Validate the source side of the backlink.
@@ -205,30 +187,28 @@ class Backlink(clazz: ClassMetaData?, private val backlinkField: VariableElement
         return "Backlink{$sourceClass.$sourceField ==> $targetClass.$targetField}"
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (null == o) {
-            return false
-        }
-        if (this === o) {
-            return true
-        }
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-        if (o !is Backlink) {
-            return false
-        }
-        val backlink = o as Backlink?
+        other as Backlink
 
-        return (targetClass == backlink!!.targetClass
-                && targetField == backlink.targetField
-                && sourceClass == backlink.sourceClass
-                && sourceField == backlink.sourceField)
+        if (backlinkField != other.backlinkField) return false
+        if (targetClass != other.targetClass) return false
+        if (targetField != other.targetField) return false
+        if (sourceClass != other.sourceClass) return false
+        if (sourceField != other.sourceField) return false
+
+        return true
     }
 
     override fun hashCode(): Int {
-        var result = targetClass.hashCode()
+        var result = backlinkField.hashCode()
+        result = 31 * result + targetClass.hashCode()
         result = 31 * result + targetField.hashCode()
-        result = 31 * result + sourceClass!!.hashCode()
-        result = 31 * result + sourceField!!.hashCode()
+        result = 31 * result + (sourceClass?.hashCode() ?: 0)
+        result = 31 * result + sourceField.hashCode()
         return result
     }
+
 }
