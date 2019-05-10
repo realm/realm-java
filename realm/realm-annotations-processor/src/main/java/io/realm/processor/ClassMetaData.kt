@@ -46,12 +46,10 @@ import io.realm.annotations.RealmNamingPolicy
 import io.realm.annotations.Required
 import io.realm.processor.nameconverter.NameConverter
 
-
 /**
  * Utility class for holding metadata for RealmProxy classes.
  */
-class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, private val classType: TypeElement // Reference to model class.
-) {
+class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, private val classType: TypeElement /* Reference to model class. */) {
     val simpleJavaClassName: String // Model class simple name as defined in Java.
     val fields = ArrayList<RealmFieldElement>() // List of all fields in the class except those @Ignored.
     private val indexedFields = ArrayList<RealmFieldElement>() // list of all fields marked @Index.
