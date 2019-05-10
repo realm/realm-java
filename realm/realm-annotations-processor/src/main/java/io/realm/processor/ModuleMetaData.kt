@@ -32,31 +32,23 @@ import io.realm.annotations.RealmModule
 import io.realm.annotations.RealmNamingPolicy
 import io.realm.processor.nameconverter.NameConverter
 
-
 /**
  * Utility class for holding metadata for the Realm modules.
- *
  *
  * Modules are inherently difficult to process because a model class can be part of multiple modules
  * that contain information required by the model class (e.g. class/field naming policies). At the
  * same time, the module will need the data from processed model classes to fully complete its
  * analysis (e.g. to ensure that only valid Realm model classes are added to the module).
  *
- *
  * For this reason, processing modules are separated into 3 steps:
  *
- *  1.
- * Pre-processing. Done by calling [.preProcess], which will do an initial parse
- * of the modules and build up all information it can before processing any model classes.
+ * 1. Pre-processing. Done by calling [ModuleMetaData.preProcess], which will do an initial parse of the modules
+ *    and build up all information it can before processing any model classes.
  *
- *  1.
- * Process model classes. See [ClassMetaData.generate].
+ * 2. Process model classes. See [ClassMetaData.generate].
  *
- *  1.
- * Post-processing. Done by calling [.postProcess]. All modules can now
- * be fully verified, and all metadata required to output module files can be generated.
- *
- *
+ * 3. Post-processing. Done by calling [ModuleMetaData.postProcess]. All modules can now be fully verified, and
+ *    all metadata required to output module files can be generated.
  */
 class ModuleMetaData {
 
@@ -277,7 +269,7 @@ class ModuleMetaData {
     }
 
     private fun defineModule(qualifiedModuleClassName: String, classData: Set<ClassMetaData>) {
-        if (!classData.isEmpty()) {
+        if (classData.isNotEmpty()) {
             if (moduleAnnotations[qualifiedModuleClassName]!!.library) {
                 libraryModules[qualifiedModuleClassName] = classData
             } else {
@@ -338,12 +330,12 @@ class ModuleMetaData {
     // Detour needed to access the class elements in the array
     // See http://blog.retep.org/2009/02/13/getting-class-values-from-annotations-in-an-annotationprocessor/
     private fun getClassListFromModule(classElement: Element): Set<String> {
-        val annotationMirror = getAnnotationMirror(classElement)
-        val annotationValue = getAnnotationValue(annotationMirror)
+        val annotationMirror: AnnotationMirror? = getAnnotationMirror(classElement)
+        val annotationValue: AnnotationValue? = getAnnotationValue(annotationMirror)
         val classes = HashSet<String>()
-        val moduleClasses = annotationValue!!.value as List<AnnotationValue>
+        val moduleClasses = annotationValue!!.value as List<*>
         for (classMirror in moduleClasses) {
-            val fullyQualifiedClassName = classMirror.value.toString()
+            val fullyQualifiedClassName = classMirror.toString()
             classes.add(fullyQualifiedClassName)
         }
         return classes
@@ -352,13 +344,13 @@ class ModuleMetaData {
     // Work-around for asking for a Class primitive array which would otherwise throw a TypeMirrorException
     // https://community.oracle.com/thread/1184190
     private fun hasCustomClassList(classElement: Element): Boolean {
-        val annotationMirror = getAnnotationMirror(classElement)
-        val annotationValue = getAnnotationValue(annotationMirror)
-        if (annotationValue == null) {
-            return false
+        val annotationMirror: AnnotationMirror? = getAnnotationMirror(classElement)
+        val annotationValue: AnnotationValue? = getAnnotationValue(annotationMirror)
+        return if (annotationValue == null) {
+            false
         } else {
-            val moduleClasses = annotationValue.value as List<AnnotationValue>
-            return moduleClasses.size > 0
+            val moduleClasses = annotationValue.value as List<*>
+            moduleClasses.isNotEmpty()
         }
     }
 
@@ -401,7 +393,7 @@ class ModuleMetaData {
     fun getClassNameFormatter(qualifiedClassName: String): NameConverter {
         // We already validated that module definitions all agree on the same name policy
         // so just find first match
-        if (!globalModules.isEmpty()) {
+        if (globalModules.isNotEmpty()) {
             return Utils.getNameFormatter(classNamingPolicy[globalModules.iterator().next()])
         }
 
@@ -428,7 +420,7 @@ class ModuleMetaData {
     fun getFieldNameFormatter(qualifiedClassName: String): NameConverter {
         // We already validated that module definitions all agree on the same name policy
         // so just find first match
-        if (!globalModules.isEmpty()) {
+        if (globalModules.isNotEmpty()) {
             return Utils.getNameFormatter(fieldNamingPolicy[globalModules.iterator().next()])
         }
 
@@ -442,23 +434,7 @@ class ModuleMetaData {
     }
 
     // Tuple helper class
-    private inner class ModulePolicyInfo(val qualifiedModuleClassName: String, val classNamePolicy: RealmNamingPolicy, val fieldNamePolicy: RealmNamingPolicy) {
-
-        override fun equals(o: Any?): Boolean {
-            if (this === o) return true
-            if (o == null || javaClass != o.javaClass) return false
-
-            val that = o as ModulePolicyInfo?
-
-            if (qualifiedModuleClassName != that!!.qualifiedModuleClassName) return false
-            return if (classNamePolicy != that.classNamePolicy) false else fieldNamePolicy == that.fieldNamePolicy
-        }
-
-        override fun hashCode(): Int {
-            var result = qualifiedModuleClassName.hashCode()
-            result = 31 * result + classNamePolicy.hashCode()
-            result = 31 * result + fieldNamePolicy.hashCode()
-            return result
-        }
-    }
+    private data class ModulePolicyInfo(val qualifiedModuleClassName: String,
+                                        val classNamePolicy: RealmNamingPolicy,
+                                        val fieldNamePolicy: RealmNamingPolicy)
 }
