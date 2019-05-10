@@ -15,29 +15,27 @@
  */
 package io.realm.processor
 
-import java.util.Collections
 import java.util.LinkedHashMap
 import java.util.LinkedHashSet
 
 /**
- * Wrapper around all Realm model classes metadata found during processing. It also
- * allows easy lookup for specific class data.
+ * Wrapper around all Realm model classes metadata found during processing. It also allows easy
+ * lookup for specific class data.
  */
 class ClassCollection {
 
     // These three collections should always stay in sync
     private val qualifiedNameClassMap = LinkedHashMap<String, ClassMetaData>()
     private val classSet = LinkedHashSet<ClassMetaData>()
-
     val classes: Set<ClassMetaData>
-        get() = Collections.unmodifiableSet(classSet)
+        get() = classSet.toSet()
 
     fun addClass(metadata: ClassMetaData) {
         classSet.add(metadata)
         qualifiedNameClassMap[metadata.fullyQualifiedClassName] = metadata
     }
 
-    fun getClassFromQualifiedName(qualifiedJavaClassName: String?): ClassMetaData {
+    fun getClassFromQualifiedName(qualifiedJavaClassName: String): ClassMetaData {
         return qualifiedNameClassMap[qualifiedJavaClassName]
                 ?: throw IllegalArgumentException("Class $qualifiedJavaClassName was not found")
     }

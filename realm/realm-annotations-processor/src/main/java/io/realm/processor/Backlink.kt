@@ -81,7 +81,7 @@ class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement)
      * Making this field, in an instance I of `SourceClass`, a reference to an instance J of
      * `TargetClass` will cause the `targetField` of J to contain a backlink to I.
      */
-    val sourceField: String = backlinkField.getAnnotation(LinkingObjects::class.java).value
+    val sourceField: String? = backlinkField.getAnnotation(LinkingObjects::class.java)?.value
 
     val targetFieldType: String
         get() = backlinkField.asType().toString()

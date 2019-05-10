@@ -391,7 +391,7 @@ object Utils {
 
         // Attempt to lookup internal name in current round
         if (classCollection.containsQualifiedClass(qualifiedClassName)) {
-            val metadata = classCollection.getClassFromQualifiedName(qualifiedClassName)
+            val metadata = classCollection.getClassFromQualifiedName(qualifiedClassName!!)
             return "\"" + metadata.internalClassName + "\""
         }
 

@@ -153,7 +153,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             writer.emitStatement(
                     "addBacklinkDetails(schemaInfo, \"%s\", \"%s\", \"%s\")",
                     backlink.targetField,
-                    classCollection.getClassFromQualifiedName(backlink.sourceClass).internalClassName,
+                    classCollection.getClassFromQualifiedName(backlink.sourceClass!!).internalClassName,
                     backlink.sourceField)
         }
         writer
@@ -753,7 +753,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         for (backlink in metadata.backlinkFields) {
             // Backlinks can only be created between classes in the current round of annotation processing
             // as the forward link cannot be created unless you know the type already.
-            val sourceClass = classCollection.getClassFromQualifiedName(backlink.sourceClass)
+            val sourceClass = classCollection.getClassFromQualifiedName(backlink.sourceClass!!)
             val targetField = backlink.targetField // Only in the model, so no internal name exists
             val internalSourceField = sourceClass.getInternalFieldName(backlink.sourceField!!)
             writer.emitStatement("builder.addComputedLinkProperty(\"%s\", \"%s\", \"%s\")",

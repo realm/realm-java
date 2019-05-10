@@ -303,15 +303,16 @@ class RealmProcessor : AbstractProcessor() {
     // all of the backlinks.  If it can find the fully-qualified class, though,
     // and prove that the class either does not contain the necessary field, or
     // that it does contain the field, but the field is of the wrong type, it can
-    // catch the error at compile time.
-    // Give all failure messages before failing
+    // catch the error at compile time. Gives all failure messages before failing.
     private fun validateBacklinks(): Boolean {
         var allValid = true
 
         for (backlink in backlinksToValidate) {
-            val clazz = classCollection.getClassFromQualifiedName(backlink.sourceClass) ?: continue
-
             // If the class is not here it might be part of some other compilation unit.
+            if (!classCollection.containsQualifiedClass(backlink.sourceClass)) {
+                continue
+            }
+            val clazz = classCollection.getClassFromQualifiedName(backlink.sourceClass!!)
 
             // If the class is here, we can validate it.
             if (!backlink.validateTarget(clazz) && allValid) {
