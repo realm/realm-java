@@ -41,7 +41,7 @@ class RealmProxyInterfaceGenerator(private val processingEnvironment: Processing
     fun generate() {
         val qualifiedGeneratedInterfaceName = String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Utils.getProxyInterfaceName(className))
         val sourceFile = processingEnvironment.filer.createSourceFile(qualifiedGeneratedInterfaceName)
-        val writer = JavaWriter(BufferedWriter(sourceFile.openWriter()))
+        val writer = JavaWriter(BufferedWriter(sourceFile.openWriter()!!))
 
         writer.indent = Constants.INDENT
 
