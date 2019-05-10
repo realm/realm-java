@@ -1,383 +1,386 @@
-package io.realm.processor;
+package io.realm.processor
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
+import java.lang.reflect.Field
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
 
-import javax.annotation.processing.Messager;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.ReferenceType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
+import javax.annotation.processing.Messager
+import javax.annotation.processing.ProcessingEnvironment
+import javax.lang.model.element.Element
+import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element.Modifier
+import javax.lang.model.element.TypeElement
+import javax.lang.model.element.VariableElement
+import javax.lang.model.type.DeclaredType
+import javax.lang.model.type.ReferenceType
+import javax.lang.model.type.TypeKind
+import javax.lang.model.type.TypeMirror
+import javax.lang.model.util.Elements
+import javax.lang.model.util.Types
+import javax.tools.Diagnostic
 
-import io.realm.annotations.RealmNamingPolicy;
-import io.realm.processor.nameconverter.CamelCaseConverter;
-import io.realm.processor.nameconverter.IdentityConverter;
-import io.realm.processor.nameconverter.LowerCaseWithSeparatorConverter;
-import io.realm.processor.nameconverter.NameConverter;
-import io.realm.processor.nameconverter.PascalCaseConverter;
+import io.realm.annotations.RealmNamingPolicy
+import io.realm.processor.nameconverter.CamelCaseConverter
+import io.realm.processor.nameconverter.IdentityConverter
+import io.realm.processor.nameconverter.LowerCaseWithSeparatorConverter
+import io.realm.processor.nameconverter.NameConverter
+import io.realm.processor.nameconverter.PascalCaseConverter
 
 /**
  * Utility methods working with the Realm processor.
  */
-public class Utils {
+object Utils {
 
-    private static Types typeUtils;
-    private static Messager messager;
-    private static TypeMirror realmInteger;
-    private static DeclaredType realmList;
-    private static DeclaredType realmResults;
-    private static DeclaredType markerInterface;
-    private static TypeMirror realmModel;
+    private var typeUtils: Types? = null
+    private var messager: Messager? = null
+    private var realmInteger: TypeMirror? = null
+    private var realmList: DeclaredType? = null
+    private var realmResults: DeclaredType? = null
+    private var markerInterface: DeclaredType? = null
+    private var realmModel: TypeMirror? = null
 
-    public static void initialize(ProcessingEnvironment env) {
-        Elements elementUtils = env.getElementUtils();
-        typeUtils = env.getTypeUtils();
-        messager = env.getMessager();
-        realmInteger = elementUtils.getTypeElement("io.realm.MutableRealmInteger").asType();
-        realmList = typeUtils.getDeclaredType(
-                elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
-        realmResults = typeUtils.getDeclaredType(
-                env.getElementUtils().getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null));
-        realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType();
-        markerInterface = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmModel"));
+    fun initialize(env: ProcessingEnvironment) {
+        val elementUtils = env.elementUtils
+        typeUtils = env.typeUtils
+        messager = env.messager
+        realmInteger = elementUtils.getTypeElement("io.realm.MutableRealmInteger").asType()
+        realmList = typeUtils!!.getDeclaredType(
+                elementUtils.getTypeElement("io.realm.RealmList"), typeUtils!!.getWildcardType(null, null))
+        realmResults = typeUtils!!.getDeclaredType(
+                env.elementUtils.getTypeElement("io.realm.RealmResults"), typeUtils!!.getWildcardType(null, null))
+        realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType()
+        markerInterface = typeUtils!!.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmModel"))
     }
 
     /**
      * @return true if the given element is the default public no arg constructor for a class.
      */
-    public static boolean isDefaultConstructor(Element constructor) {
-        if (constructor.getModifiers().contains(Modifier.PUBLIC)) {
-            return ((ExecutableElement) constructor).getParameters().isEmpty();
-        }
-        return false;
+    fun isDefaultConstructor(constructor: Element): Boolean {
+        return if (constructor.modifiers.contains(Modifier.PUBLIC)) {
+            (constructor as ExecutableElement).parameters.isEmpty()
+        } else false
     }
 
-    public static String getProxyClassSimpleName(VariableElement field) {
-        if (typeUtils.isAssignable(field.asType(), realmList)) {
-            return getProxyClassName(getGenericTypeQualifiedName(field));
+    fun getProxyClassSimpleName(field: VariableElement): String {
+        return if (typeUtils!!.isAssignable(field.asType(), realmList)) {
+            getProxyClassName(getGenericTypeQualifiedName(field)!!)
         } else {
-            return getProxyClassName(getFieldTypeQualifiedName(field));
+            getProxyClassName(getFieldTypeQualifiedName(field))
         }
     }
 
-    public static String getModelClassQualifiedName(VariableElement field) {
-        if (typeUtils.isAssignable(field.asType(), realmList)) {
-            return getGenericTypeQualifiedName(field);
+    fun getModelClassQualifiedName(field: VariableElement): String {
+        return if (typeUtils!!.isAssignable(field.asType(), realmList)) {
+            getGenericTypeQualifiedName(field)!!
         } else {
-            return getFieldTypeQualifiedName(field);
+            getFieldTypeQualifiedName(field)
         }
     }
 
     /**
      * @return the proxy class name for a given clazz
      */
-    public static String getProxyClassName(String qualifiedClassName) {
-        return qualifiedClassName.replace(".", "_") + Constants.PROXY_SUFFIX;
+    fun getProxyClassName(qualifiedClassName: String): String {
+        return qualifiedClassName.replace(".", "_") + Constants.PROXY_SUFFIX
     }
 
     /**
-     * @return {@code true} if a field is of type "java.lang.String", {@code false} otherwise.
-     * @throws IllegalArgumentException if the field is {@code null}.
+     * @return `true` if a field is of type "java.lang.String", `false` otherwise.
+     * @throws IllegalArgumentException if the field is `null`.
      */
-    public static boolean isString(VariableElement field) {
+    fun isString(field: VariableElement?): Boolean {
         if (field == null) {
-            throw new IllegalArgumentException("Argument 'field' cannot be null.");
+            throw IllegalArgumentException("Argument 'field' cannot be null.")
         }
-        return getFieldTypeQualifiedName(field).equals("java.lang.String");
+        return getFieldTypeQualifiedName(field) == "java.lang.String"
     }
 
     /**
-     * @return {@code true} if a field is a primitive type, {@code false} otherwise.
-     * @throws IllegalArgumentException if the typeString is {@code null}.
+     * @return `true` if a field is a primitive type, `false` otherwise.
+     * @throws IllegalArgumentException if the typeString is `null`.
      */
-    public static boolean isPrimitiveType(String typeString) {
+    fun isPrimitiveType(typeString: String?): Boolean {
         if (typeString == null) {
-            throw new IllegalArgumentException("Argument 'typeString' cannot be null.");
+            throw IllegalArgumentException("Argument 'typeString' cannot be null.")
         }
-        return typeString.equals("byte") || typeString.equals("short") || typeString.equals("int") ||
-                typeString.equals("long") || typeString.equals("float") || typeString.equals("double") ||
-                typeString.equals("boolean") || typeString.equals("char");
+        return typeString == "byte" || typeString == "short" || typeString == "int" ||
+                typeString == "long" || typeString == "float" || typeString == "double" ||
+                typeString == "boolean" || typeString == "char"
     }
 
     /**
-     * @return {@code true} if a field is a boxed type, {@code false} otherwise.
-     * @throws IllegalArgumentException if the typeString is {@code null}.
+     * @return `true` if a field is a boxed type, `false` otherwise.
+     * @throws IllegalArgumentException if the typeString is `null`.
      */
-    public static boolean isBoxedType(String typeString) {
+    fun isBoxedType(typeString: String?): Boolean {
         if (typeString == null) {
-            throw new IllegalArgumentException("Argument 'typeString' cannot be null.");
+            throw IllegalArgumentException("Argument 'typeString' cannot be null.")
         }
-        return typeString.equals(Byte.class.getName()) || typeString.equals(Short.class.getName()) ||
-                typeString.equals(Integer.class.getName()) || typeString.equals(Long.class.getName()) ||
-                typeString.equals(Float.class.getName()) || typeString.equals(Double.class.getName()) ||
-                typeString.equals(Boolean.class.getName());
+        return typeString == Byte::class.javaObjectType.name || typeString == Short::class.javaObjectType.name ||
+                typeString == Int::class.javaObjectType.name || typeString == Long::class.javaObjectType.name ||
+                typeString == Float::class.javaObjectType.name || typeString == Double::class.javaObjectType.name ||
+                typeString == Boolean::class.javaObjectType.name
     }
 
     /**
-     * @return {@code true} if a field is a type of primitive types, {@code false} otherwise.
-     * @throws IllegalArgumentException if the field is {@code null}.
+     * @return `true` if a field is a type of primitive types, `false` otherwise.
+     * @throws IllegalArgumentException if the field is `null`.
      */
-    public static boolean isPrimitiveType(VariableElement field) {
+    fun isPrimitiveType(field: VariableElement?): Boolean {
         if (field == null) {
-            throw new IllegalArgumentException("Argument 'field' cannot be null.");
+            throw IllegalArgumentException("Argument 'field' cannot be null.")
         }
-        return field.asType().getKind().isPrimitive();
+        return field.asType().kind.isPrimitive
     }
 
     /**
-     * @return {@code true} if a field is of type "byte[]", {@code false} otherwise.
-     * @throws IllegalArgumentException if the field is {@code null}.
+     * @return `true` if a field is of type "byte[]", `false` otherwise.
+     * @throws IllegalArgumentException if the field is `null`.
      */
-    public static boolean isByteArray(VariableElement field) {
+    fun isByteArray(field: VariableElement?): Boolean {
         if (field == null) {
-            throw new IllegalArgumentException("Argument 'field' cannot be null.");
+            throw IllegalArgumentException("Argument 'field' cannot be null.")
         }
-        return getFieldTypeQualifiedName(field).equals("byte[]");
+        return getFieldTypeQualifiedName(field) == "byte[]"
     }
 
     /**
-     * @return {@code true} if a given field type string is "java.lang.String", {@code false} otherwise.
-     * @throws IllegalArgumentException if the fieldType is {@code null}.
+     * @return `true` if a given field type string is "java.lang.String", `false` otherwise.
+     * @throws IllegalArgumentException if the fieldType is `null`.
      */
-    public static boolean isString(String fieldType) {
+    fun isString(fieldType: String?): Boolean {
         if (fieldType == null) {
-            throw new IllegalArgumentException("Argument 'fieldType' cannot be null.");
+            throw IllegalArgumentException("Argument 'fieldType' cannot be null.")
         }
-        return String.class.getName().equals(fieldType);
+        return String::class.java.name == fieldType
     }
 
     /**
-     * @return {@code true} if a given type implement {@code RealmModel}, {@code false} otherwise.
+     * @return `true` if a given type implement `RealmModel`, `false` otherwise.
      */
-    public static boolean isImplementingMarkerInterface(Element classElement) {
-        return typeUtils.isAssignable(classElement.asType(), markerInterface);
+    fun isImplementingMarkerInterface(classElement: Element): Boolean {
+        return typeUtils!!.isAssignable(classElement.asType(), markerInterface)
     }
 
     /**
-     * @return {@code true} if a given field type is {@code MutableRealmInteger}, {@code false} otherwise.
+     * @return `true` if a given field type is `MutableRealmInteger`, `false` otherwise.
      */
-    public static boolean isMutableRealmInteger(VariableElement field) {
-        return typeUtils.isAssignable(field.asType(), realmInteger);
+    fun isMutableRealmInteger(field: VariableElement): Boolean {
+        return typeUtils!!.isAssignable(field.asType(), realmInteger)
     }
 
     /**
-     * @return {@code true} if a given field type is {@code RealmList}, {@code false} otherwise.
+     * @return `true` if a given field type is `RealmList`, `false` otherwise.
      */
-    public static boolean isRealmList(VariableElement field) {
-        return typeUtils.isAssignable(field.asType(), realmList);
+    fun isRealmList(field: VariableElement): Boolean {
+        return typeUtils!!.isAssignable(field.asType(), realmList)
     }
 
     /**
-     * @param field {@link VariableElement} of a value list field.
+     * @param field [VariableElement] of a value list field.
      * @return element type of the list field.
      */
-    public static Constants.RealmFieldType getValueListFieldType(VariableElement field) {
-        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
-        return Constants.INSTANCE.getLIST_ELEMENT_TYPE_TO_REALM_TYPES().get(elementTypeMirror.toString());
+    fun getValueListFieldType(field: VariableElement): Constants.RealmFieldType {
+        val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
+        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]!!
     }
 
     /**
-     * @return {@code true} if a given field type is {@code RealmList} and its element type is {@code RealmObject},
-     * {@code false} otherwise.
+     * @return `true` if a given field type is `RealmList` and its element type is `RealmObject`,
+     * `false` otherwise.
      */
-    public static boolean isRealmModelList(VariableElement field) {
-        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
-        if (elementTypeMirror == null) {
-            return false;
-        }
-        return isRealmModel(elementTypeMirror);
+    fun isRealmModelList(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field) ?: return false
+        return isRealmModel(elementTypeMirror)
     }
 
     /**
-     * @return {@code true} if a given field type is {@code RealmList} and its element type is value type,
-     * {@code false} otherwise.
+     * @return `true` if a given field type is `RealmList` and its element type is value type,
+     * `false` otherwise.
      */
-    public static boolean isRealmValueList(VariableElement field) {
-        final TypeMirror elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field);
-        if (elementTypeMirror == null) {
-            return false;
-        }
-        return !isRealmModel(elementTypeMirror);
+    fun isRealmValueList(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field) ?: return false
+        return !isRealmModel(elementTypeMirror)
     }
 
     /**
-     * @return {@code true} if a given field type is {@code RealmModel}, {@code false} otherwise.
+     * @return `true` if a given field type is `RealmModel`, `false` otherwise.
      */
-    public static boolean isRealmModel(Element field) {
-        return isRealmModel(field.asType());
+    fun isRealmModel(field: Element): Boolean {
+        return isRealmModel(field.asType())
     }
 
     /**
-     * @return {@code true} if a given type is {@code RealmModel}, {@code false} otherwise.
+     * @return `true` if a given type is `RealmModel`, `false` otherwise.
      */
-    public static boolean isRealmModel(TypeMirror type) {
+    fun isRealmModel(type: TypeMirror?): Boolean {
         // This will return the wrong result if a model class doesn't exist at all, but
         // the compiler will catch that eventually.
-        return typeUtils.isAssignable(type, realmModel);
-//        // Not sure what is happening here, but typeUtils.isAssignable("Foo", realmModel)
-//        // returns true even if Foo doesn't exist. No idea why this is happening.
-//        // For now punt on the problem and check the direct supertype which should be either
-//        // RealmObject or RealmModel.
-//        // Original implementation: ``
-//        //
-//        // Theory: It looks like if `type` has the internal TypeTag.ERROR (internal API) it
-//        // automatically translate to being assignable to everything. Possible some Java Specification
-//        // rule taking effect. In our case, however we can do better since all Realm classes
-//        // must be in the same compilation unit, so we should be able to look the type up.
-//        for (TypeMirror typeMirror : typeUtils.directSupertypes(type)) {
-//            String supertype = typeMirror.toString();
-//            if (supertype.equals("io.realm.RealmObject") || supertype.equals("io.realm.RealmModel")) {
-//                return true;
-//            }
-//        }
-//        return false;
+        return typeUtils!!.isAssignable(type, realmModel)
+        //        // Not sure what is happening here, but typeUtils.isAssignable("Foo", realmModel)
+        //        // returns true even if Foo doesn't exist. No idea why this is happening.
+        //        // For now punt on the problem and check the direct supertype which should be either
+        //        // RealmObject or RealmModel.
+        //        // Original implementation: ``
+        //        //
+        //        // Theory: It looks like if `type` has the internal TypeTag.ERROR (internal API) it
+        //        // automatically translate to being assignable to everything. Possible some Java Specification
+        //        // rule taking effect. In our case, however we can do better since all Realm classes
+        //        // must be in the same compilation unit, so we should be able to look the type up.
+        //        for (TypeMirror typeMirror : typeUtils.directSupertypes(type)) {
+        //            String supertype = typeMirror.toString();
+        //            if (supertype.equals("io.realm.RealmObject") || supertype.equals("io.realm.RealmModel")) {
+        //                return true;
+        //            }
+        //        }
+        //        return false;
     }
 
-    public static boolean isRealmResults(VariableElement field) {
-        return typeUtils.isAssignable(field.asType(), realmResults);
+    fun isRealmResults(field: VariableElement): Boolean {
+        return typeUtils!!.isAssignable(field.asType(), realmResults)
     }
 
     // get the fully-qualified type name for the generic type of a RealmResults
-    public static String getRealmResultsType(VariableElement field) {
-        if (!Utils.isRealmResults(field)) { return null; }
-        ReferenceType type = getGenericTypeForContainer(field);
-        if (null == type) { return null; }
-        return type.toString();
+    fun getRealmResultsType(field: VariableElement): String? {
+        if (!Utils.isRealmResults(field)) {
+            return null
+        }
+        val type = getGenericTypeForContainer(field) ?: return null
+        return type.toString()
     }
 
     // get the fully-qualified type name for the generic type of a RealmList
-    public static String getRealmListType(VariableElement field) {
-        if (!Utils.isRealmList(field)) { return null; }
-        ReferenceType type = getGenericTypeForContainer(field);
-        if (null == type) { return null; }
-        return type.toString();
+    fun getRealmListType(field: VariableElement): String? {
+        if (!Utils.isRealmList(field)) {
+            return null
+        }
+        val type = getGenericTypeForContainer(field) ?: return null
+        return type.toString()
     }
 
     // Note that, because subclassing subclasses of RealmObject is forbidden,
     // there is no need to deal with constructs like:  <code>RealmResults&lt;? extends Foos&lt;</code>.
-    public static ReferenceType getGenericTypeForContainer(VariableElement field) {
-        TypeMirror fieldType = field.asType();
-        TypeKind kind = fieldType.getKind();
-        if (kind != TypeKind.DECLARED) { return null; }
+    fun getGenericTypeForContainer(field: VariableElement): ReferenceType? {
+        var fieldType = field.asType()
+        var kind = fieldType.kind
+        if (kind != TypeKind.DECLARED) {
+            return null
+        }
 
-        List<? extends TypeMirror> args = ((DeclaredType) fieldType).getTypeArguments();
-        if (args.size() <= 0) { return null; }
+        val args = (fieldType as DeclaredType).typeArguments
+        if (args.size <= 0) {
+            return null
+        }
 
-        fieldType = args.get(0);
-        kind = fieldType.getKind();
+        fieldType = args[0]
+        kind = fieldType.kind
         // We also support RealmList<byte[]>
-        if (kind != TypeKind.DECLARED && kind != TypeKind.ARRAY) { return null; }
+        return if (kind != TypeKind.DECLARED && kind != TypeKind.ARRAY) {
+            null
+        } else fieldType as ReferenceType
 
-        return (ReferenceType) fieldType;
     }
 
     /**
      * @return the qualified type name for a field.
      */
-    public static String getFieldTypeQualifiedName(VariableElement field) {
-        return field.asType().toString();
+    fun getFieldTypeQualifiedName(field: VariableElement): String {
+        return field.asType().toString()
     }
 
     /**
-     * @return the generic type for Lists of the form {@code List<type>}
+     * @return the generic type for Lists of the form `List<type>`
      */
-    public static String getGenericTypeQualifiedName(VariableElement field) {
-        TypeMirror fieldType = field.asType();
-        List<? extends TypeMirror> typeArguments = ((DeclaredType) fieldType).getTypeArguments();
-        if (typeArguments.size() == 0) {
-            return null;
-        }
-        return typeArguments.get(0).toString();
+    fun getGenericTypeQualifiedName(field: VariableElement): String? {
+        val fieldType = field.asType()
+        val typeArguments = (fieldType as DeclaredType).typeArguments
+        return if (typeArguments.size == 0) {
+            null
+        } else typeArguments[0].toString()
     }
 
     /**
      * Strips the package name from a fully qualified class name.
      */
-    public static String stripPackage(String fullyQualifiedClassName) {
-        String[] parts = fullyQualifiedClassName.split("\\.");
-        if (parts.length > 0) {
-            return parts[parts.length - 1];
+    fun stripPackage(fullyQualifiedClassName: String): String {
+        val parts = fullyQualifiedClassName.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        return if (parts.size > 0) {
+            parts[parts.size - 1]
         } else {
-            return fullyQualifiedClassName;
+            fullyQualifiedClassName
         }
     }
 
-    public static void error(String message, Element element) {
-        if (element instanceof RealmFieldElement) {
+    fun error(message: String?, element: Element) {
+        var element = element
+        if (element is RealmFieldElement) {
             // Element is being cast to Symbol internally which breaks any implementors of the
             // Element interface. This is a hack to work around that. Bad bad Oracle
-            element = ((RealmFieldElement) element).getFieldReference();
+            element = element.fieldReference
         }
-        messager.printMessage(Diagnostic.Kind.ERROR, message, element);
+        messager!!.printMessage(Diagnostic.Kind.ERROR, message, element)
     }
 
-    public static void error(String message) {
-        messager.printMessage(Diagnostic.Kind.ERROR, message);
+    fun error(message: String?) {
+        messager!!.printMessage(Diagnostic.Kind.ERROR, message)
     }
 
-    public static void note(String message, Element element) {
-        if (element instanceof RealmFieldElement) {
+    fun note(message: String?, element: Element) {
+        var element = element
+        if (element is RealmFieldElement) {
             // Element is being cast to Symbol internally which breaks any implementors of the
             // Element interface. This is a hack to work around that. Bad bad Oracle
-            element = ((RealmFieldElement) element).getFieldReference();
+            element = element.fieldReference
         }
-        messager.printMessage(Diagnostic.Kind.NOTE, message, element);
+        messager!!.printMessage(Diagnostic.Kind.NOTE, message, element)
     }
 
-    public static void note(String message) {
-        messager.printMessage(Diagnostic.Kind.NOTE, message);
+    fun note(message: String?) {
+        messager!!.printMessage(Diagnostic.Kind.NOTE, message)
     }
 
-    public static Element getSuperClass(TypeElement classType) {
-        return typeUtils.asElement(classType.getSuperclass());
+    fun getSuperClass(classType: TypeElement): Element {
+        return typeUtils!!.asElement(classType.superclass)
     }
 
     /**
      * Returns the interface name for proxy class interfaces
      */
-    public static String getProxyInterfaceName(String qualifiedClassName) {
-        return qualifiedClassName.replace(".", "_") + Constants.INTERFACE_SUFFIX;
+    fun getProxyInterfaceName(qualifiedClassName: String): String {
+        return qualifiedClassName.replace(".", "_") + Constants.INTERFACE_SUFFIX
     }
 
-    public static NameConverter getNameFormatter(RealmNamingPolicy policy) {
+    fun getNameFormatter(policy: RealmNamingPolicy?): NameConverter {
         if (policy == null) {
-            return new IdentityConverter();
+            return IdentityConverter()
         }
-        switch (policy) {
-            case NO_POLICY: return new IdentityConverter();
-            case IDENTITY: return new IdentityConverter();
-            case LOWER_CASE_WITH_UNDERSCORES: return new LowerCaseWithSeparatorConverter('_');
-            case CAMEL_CASE: return new CamelCaseConverter();
-            case PASCAL_CASE: return new PascalCaseConverter();
-            default:
-                throw new IllegalArgumentException("Unknown policy: " + policy);
+        when (policy) {
+            RealmNamingPolicy.NO_POLICY -> return IdentityConverter()
+            RealmNamingPolicy.IDENTITY -> return IdentityConverter()
+            RealmNamingPolicy.LOWER_CASE_WITH_UNDERSCORES -> return LowerCaseWithSeparatorConverter('_')
+            RealmNamingPolicy.CAMEL_CASE -> return CamelCaseConverter()
+            RealmNamingPolicy.PASCAL_CASE -> return PascalCaseConverter()
+            else -> throw IllegalArgumentException("Unknown policy: $policy")
         }
     }
 
     /**
      * Tries to find the internal class name for a referenced type. In model classes this can
      * happen with either direct object references or using `RealmList` or `RealmResults`.
-     * <p>
+     *
+     *
      * This name is required by schema builders that operate on internal names and not the public ones.
-     * <p>
+     *
+     *
      * Finding the internal name is easy if the referenced type is included in the current round
      * of annotation processing. In that case the internal name was also calculated in the same round
-     * <p>
+     *
+     *
      * If the referenced type was already compiled, e.g being included from library, then we need
      * to get the name from the proxy class. Fortunately ProGuard should not have obfuscated any
      * class files at this point, meaning we can look it up dynamically.
-     * <p>
+     *
+     *
      * If a name is looked up using the class loader, it also means that developers need to
      * combine a library and app module of model classes at runtime in the RealmConfiguration, but
      * this should be a valid use case.
@@ -389,12 +392,12 @@ public class Utils {
      * constant or a reference to a static field in another class. In both cases, the return result
      * should not be put in quotes.
      */
-    public static String getReferencedTypeInternalClassNameStatement(String qualifiedClassName, ClassCollection classCollection) {
+    fun getReferencedTypeInternalClassNameStatement(qualifiedClassName: String?, classCollection: ClassCollection): String {
 
         // Attempt to lookup internal name in current round
         if (classCollection.containsQualifiedClass(qualifiedClassName)) {
-            ClassMetaData metadata = classCollection.getClassFromQualifiedName(qualifiedClassName);
-            return "\"" + metadata.getInternalClassName() + "\"";
+            val metadata = classCollection.getClassFromQualifiedName(qualifiedClassName)
+            return "\"" + metadata.internalClassName + "\""
         }
 
         // If we cannot find the name in the current processor round, we have to defer resolving the
@@ -409,15 +412,15 @@ public class Utils {
         // TODO: We could probably create an internal annotation like `@InternalName("__Permission")`
         // which should make it possible for the annotation processor to read the value from the
         // proxy class, even for files in other jar files.
-        return "io.realm." + Utils.getProxyClassName(qualifiedClassName) + ".ClassNameHelper.INTERNAL_CLASS_NAME";
+        return "io.realm." + Utils.getProxyClassName(qualifiedClassName!!) + ".ClassNameHelper.INTERNAL_CLASS_NAME"
     }
 
     /**
      * Returns a simple reference to the ColumnInfo class inside this model class, i.e. the package
      * name is not prefixed.
      */
-    public static String getSimpleColumnInfoClassName(String qualifiedModelClassName) {
-        String simpleModelClassName = Utils.stripPackage(qualifiedModelClassName);
-        return Utils.getProxyClassName(qualifiedModelClassName) + "." + simpleModelClassName + "ColumnInfo";
+    fun getSimpleColumnInfoClassName(qualifiedModelClassName: String): String {
+        val simpleModelClassName = Utils.stripPackage(qualifiedModelClassName)
+        return Utils.getProxyClassName(qualifiedModelClassName) + "." + simpleModelClassName + "ColumnInfo"
     }
 }

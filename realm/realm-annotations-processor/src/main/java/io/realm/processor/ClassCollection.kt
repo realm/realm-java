@@ -48,7 +48,7 @@ class ClassCollection {
         return classSet.size
     }
 
-    fun containsQualifiedClass(qualifiedClassName: String): Boolean {
+    fun containsQualifiedClass(qualifiedClassName: String?): Boolean {
         return qualifiedNameClassMap.containsKey(qualifiedClassName)
     }
 }
