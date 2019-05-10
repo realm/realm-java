@@ -50,7 +50,8 @@ import io.realm.processor.nameconverter.NameConverter
  * Utility class for holding metadata for RealmProxy classes.
  */
 class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, private val classType: TypeElement /* Reference to model class. */) {
-    val simpleJavaClassName: String // Model class simple name as defined in Java.
+
+    val simpleJavaClassName: String = classType.simpleName.toString() // Model class simple name as defined in Java.
     val fields = ArrayList<RealmFieldElement>() // List of all fields in the class except those @Ignored.
     private val indexedFields = ArrayList<RealmFieldElement>() // list of all fields marked @Index.
     private val objectReferenceFields = ArrayList<RealmFieldElement>() // List of all fields that reference a Realm Object either directly or in a List
@@ -59,25 +60,30 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     private val nullableFields = LinkedHashSet<RealmFieldElement>() // Set of fields which can be nullable
     private val nullableValueListFields = LinkedHashSet<RealmFieldElement>() // Set of fields whose elements can be nullable
 
-    var packageName: String? = null
-        private set // package name for model class.
-    private var hasDefaultConstructor: Boolean = false // True if model has a public no-arg constructor.
+    // package name for model class.
+    lateinit var packageName: String
+        private set
+
+    // True if model has a public no-arg constructor.
+    private var hasDefaultConstructor: Boolean = false
+
+    // Reference to field used as primary key, if any
     var primaryKey: VariableElement? = null
-        private set // Reference to field used as primary key, if any.
+        private set
+
     private var containsToString: Boolean = false
     private var containsEquals: Boolean = false
     private var containsHashCode: Boolean = false
-    /**
-     * Returns the name that Realm Core uses when saving data from this Java class.
-     */
-    var internalClassName: String? = null
+
+    // Returns the name that Realm Core uses when saving data from this Java class.
+    lateinit var internalClassName: String
         private set
 
     private val validPrimaryKeyTypes: List<TypeMirror>
     private val validListValueTypes: List<TypeMirror>
     private val typeUtils: Types
     private val elements: Elements
-    private var defaultFieldNameFormatter: NameConverter? = null
+    lateinit var defaultFieldNameFormatter: NameConverter
 
     private val ignoreKotlinNullability: Boolean
 
@@ -85,13 +91,13 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         get() = "$packageName.$simpleJavaClassName"
 
     val backlinkFields: Set<Backlink>
-        get() = Collections.unmodifiableSet(backlinks)
+        get() = backlinks.toSet()
 
     val primaryKeyGetter: String
         get() = getInternalGetter(primaryKey!!.simpleName.toString())
 
     /**
-     * Returns `true` if the class is considered to be a valid RealmObject class.
+     * Returns `true if the class is considered to be a valid RealmObject class.
      * RealmObject and Proxy classes also have the @RealmClass annotation but are not considered valid
      * RealmObject classes.
      */
@@ -105,7 +111,6 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         get() = classType
 
     init {
-        this.simpleJavaClassName = classType.simpleName.toString()
         typeUtils = env.typeUtils
         elements = env.elementUtils
 
@@ -134,18 +139,16 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         for (element in classType.enclosedElements) {
             if (element is ExecutableElement) {
                 val name = element.getSimpleName()
-                if (name.contentEquals("toString")) {
-                    this.containsToString = true
-                } else if (name.contentEquals("equals")) {
-                    this.containsEquals = true
-                } else if (name.contentEquals("hashCode")) {
-                    this.containsHashCode = true
+                when {
+                    name.contentEquals("toString") -> this.containsToString = true
+                    name.contentEquals("equals") -> this.containsEquals = true
+                    name.contentEquals("hashCode") -> this.containsHashCode = true
                 }
             }
         }
 
         ignoreKotlinNullability = java.lang.Boolean.valueOf(
-                (env.options as java.util.Map<String, String>).getOrDefault(OPTION_IGNORE_KOTLIN_NULLABILITY, "false"))
+                (env.options as MutableMap<String, String>).getOrDefault(OPTION_IGNORE_KOTLIN_NULLABILITY, "false"))
     }
 
     override fun toString(): String {
@@ -184,10 +187,6 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
     fun getInternalSetter(fieldName: String): String {
         return "realmSet$$fieldName"
-    }
-
-    fun getIndexedFields(): List<RealmFieldElement> {
-        return Collections.unmodifiableList(indexedFields)
     }
 
     fun hasPrimaryKey(): Boolean {
@@ -293,20 +292,18 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         // Determine naming rules for this class
         val qualifiedClassName = "$packageName.$simpleJavaClassName"
         val moduleClassNameFormatter = moduleMetaData!!.getClassNameFormatter(qualifiedClassName)
-        defaultFieldNameFormatter = moduleMetaData!!.getFieldNameFormatter(qualifiedClassName)
+        defaultFieldNameFormatter = moduleMetaData.getFieldNameFormatter(qualifiedClassName)
 
         val realmClassAnnotation = classType.getAnnotation(RealmClass::class.java)
         // If name has been specifically set, it should override any module policy.
-        if (!realmClassAnnotation.name.isEmpty()) {
-            internalClassName = realmClassAnnotation.name
-        } else if (!realmClassAnnotation.value.isEmpty()) {
-            internalClassName = realmClassAnnotation.value
-        } else {
-            internalClassName = moduleClassNameFormatter.convert(simpleJavaClassName)
+        internalClassName = when {
+            realmClassAnnotation.name.isNotEmpty() -> realmClassAnnotation.name
+            realmClassAnnotation.value.isNotEmpty() -> realmClassAnnotation.value
+            else -> moduleClassNameFormatter.convert(simpleJavaClassName)
         }
-        if (internalClassName!!.length > MAX_CLASSNAME_LENGTH) {
+        if (internalClassName.length > MAX_CLASSNAME_LENGTH) {
             Utils.error(String.format(Locale.US, "Internal class name is too long. Class '%s' " + "is converted to '%s', which is longer than the maximum allowed of %d characters",
-                    simpleJavaClassName, internalClassName, 57))
+                    simpleJavaClassName, internalClassName, MAX_CLASSNAME_LENGTH))
             return false
         }
 
@@ -331,11 +328,12 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         if (!checkForFinalFields()) {
             return false
         }
-        return if (!checkForVolatileFields()) {
-            false
-        } else true
+        if (!checkForVolatileFields()) {
+            return false
+        }
 
-// Meta data was successfully generated
+        // Meta data was successfully generated
+        return true
     }
 
     // Iterate through all class elements and add them to the appropriate internal data structures.
@@ -351,10 +349,13 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 ElementKind.FIELD -> if (!categorizeField(element)) {
                     return false
                 }
+                else -> {
+                    /* Ignore */
+                }
             }
         }
 
-        if (fields.size == 0) {
+        if (fields.isEmpty()) {
             Utils.error(String.format(Locale.US, "Class \"%s\" must contain at least 1 persistable field.", simpleJavaClassName))
         }
 
@@ -468,13 +469,13 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
     // Report if the default constructor is missing
     private fun checkDefaultConstructor(): Boolean {
-        if (!hasDefaultConstructor) {
+        return if (!hasDefaultConstructor) {
             Utils.error(String.format(Locale.US,
                     "Class \"%s\" must declare a public constructor with no arguments if it contains custom constructors.",
                     simpleJavaClassName))
-            return false
+            false
         } else {
-            return true
+            true
         }
     }
 
@@ -525,7 +526,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         val internalFieldName = getInternalFieldName(fieldRef, defaultFieldNameFormatter)
         val field = RealmFieldElement(fieldRef, internalFieldName)
 
-        if (field.getAnnotation(Index::class.java!!) != null) {
+        if (field.getAnnotation(Index::class.java) != null) {
             if (!categorizeIndexField(element, field)) {
                 return false
             }
@@ -564,14 +565,14 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             }
         }
 
-        if (field.getAnnotation(PrimaryKey::class.java!!) != null) {
+        if (field.getAnnotation(PrimaryKey::class.java) != null) {
             if (!categorizePrimaryKeyField(field)) {
                 return false
             }
         }
 
         // @LinkingObjects cannot be @PrimaryKey or @Index.
-        if (field.getAnnotation(LinkingObjects::class.java!!) != null) {
+        if (field.getAnnotation(LinkingObjects::class.java) != null) {
             // Do not add backlinks to fields list.
             return categorizeBacklinkField(field)
         }
@@ -594,19 +595,19 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         return true
     }
 
-    private fun getInternalFieldName(field: VariableElement, defaultConverter: NameConverter?): String {
-        val nameAnnotation = field.getAnnotation(RealmField::class.java)
+    private fun getInternalFieldName(field: VariableElement, defaultConverter: NameConverter): String {
+        val nameAnnotation: RealmField? = field.getAnnotation(RealmField::class.java)
         if (nameAnnotation != null) {
-            if (!nameAnnotation!!.name.isEmpty()) {
-                return nameAnnotation!!.name
+            if (nameAnnotation.name.isNotEmpty()) {
+                return nameAnnotation.name
             }
-            if (!nameAnnotation!!.value.isEmpty()) {
-                return nameAnnotation!!.value
+            if (nameAnnotation.value.isNotEmpty()) {
+                return nameAnnotation.value
             }
             Utils.note(String.format(("Empty internal name defined on @RealmField. " + "Falling back to named used by Java model class: %s"), field.simpleName), field)
             return field.simpleName.toString()
         } else {
-            return defaultConverter!!.convert(field.simpleName.toString())
+            return defaultConverter.convert(field.simpleName.toString())
         }
     }
 
@@ -657,11 +658,12 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         if (Utils.isMutableRealmInteger(fieldElement)) {
             indexable = true
         } else {
-            val realmType = Constants.JAVA_TO_REALM_TYPES[fieldElement.asType().toString()]
-            if (realmType != null) {
-                when (realmType) {
-                    Constants.RealmFieldType.STRING, Constants.RealmFieldType.DATE, Constants.RealmFieldType.INTEGER, Constants.RealmFieldType.BOOLEAN -> indexable = true
-                }
+            when (Constants.JAVA_TO_REALM_TYPES[fieldElement.asType().toString()]) {
+                Constants.RealmFieldType.STRING,
+                Constants.RealmFieldType.DATE,
+                Constants.RealmFieldType.INTEGER,
+                Constants.RealmFieldType.BOOLEAN -> { indexable = true }
+                else -> { /* Ignore */ }
             }
         }
 
