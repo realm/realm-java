@@ -32,18 +32,18 @@ import io.realm.annotations.RealmModule
 import javax.tools.JavaFileObject
 
 class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingEnvironment,
-                                  private val className: String,
+                                  private val className: SimpleClassName,
                                   classesToValidate: Set<ClassMetaData>) {
 
-    private val qualifiedModelClasses = ArrayList<String>()
-    private val qualifiedProxyClasses = ArrayList<String>()
-    private val simpleModelClassNames = ArrayList<String>()
+    private val qualifiedModelClasses = ArrayList<QualifiedClassName>()
+    private val qualifiedProxyClasses = ArrayList<QualifiedClassName>()
+    private val simpleModelClassNames = ArrayList<SimpleClassName>()
     private val internalClassNames = ArrayList<String>()
 
     init {
         for (metadata in classesToValidate) {
-            qualifiedModelClasses.add(metadata.fullyQualifiedClassName)
-            val qualifiedProxyClassName = Constants.REALM_PACKAGE_NAME + "." + Utils.getProxyClassName(metadata.fullyQualifiedClassName)
+            qualifiedModelClasses.add(metadata.qualifiedClassName)
+            val qualifiedProxyClassName = QualifiedClassName("${Constants.REALM_PACKAGE_NAME}.${Utils.getProxyClassName(metadata.qualifiedClassName)}")
             qualifiedProxyClasses.add(qualifiedProxyClassName)
             simpleModelClassNames.add(metadata.simpleJavaClassName)
             internalClassNames.add(metadata.internalClassName)

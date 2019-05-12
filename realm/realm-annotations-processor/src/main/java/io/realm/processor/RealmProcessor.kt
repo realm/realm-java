@@ -29,6 +29,7 @@ import javax.lang.model.element.TypeElement
 
 import io.realm.annotations.RealmClass
 import io.realm.annotations.RealmModule
+import javax.lang.model.element.Name
 
 
 /**
@@ -111,6 +112,23 @@ import io.realm.annotations.RealmModule
  * This will cause the [NullPointerException] if getters/setter is accessed in the model's
  * constructor (see [Issue #2536](https://github.com/realm/realm-java/issues/2536)).
  */
+
+inline class QualifiedClassName(val name: String) {
+    constructor(name: Name): this(name.toString())
+    fun getSimpleName(): SimpleClassName {
+        return SimpleClassName(Utils.stripPackage(name))
+    }
+    override fun toString(): String {
+        return name
+    }
+}
+inline class SimpleClassName(val name: String) {
+    constructor(name: Name): this(name.toString())
+    override fun toString(): String {
+        return name
+    }
+}
+
 @SupportedAnnotationTypes(
         "io.realm.annotations.RealmClass",
         "io.realm.annotations.RealmField",
@@ -236,7 +254,7 @@ class RealmProcessor : AbstractProcessor() {
 
         // Create RealmProxyMediators for all Realm modules
         for ((key, value) in moduleMetaData.allModules) {
-            if (!createMediator(Utils.stripPackage(key), value)) {
+            if (!createMediator(key.getSimpleName(), value)) {
                 return false
             }
         }
@@ -282,9 +300,8 @@ class RealmProcessor : AbstractProcessor() {
         return true
     }
 
-    private fun createMediator(simpleModuleName: String, moduleClasses: Set<ClassMetaData>): Boolean {
-        val mediatorImplGenerator = RealmProxyMediatorGenerator(processingEnv,
-                simpleModuleName, moduleClasses)
+    private fun createMediator(moduleName: SimpleClassName, moduleClasses: Set<ClassMetaData>): Boolean {
+        val mediatorImplGenerator = RealmProxyMediatorGenerator(processingEnv, moduleName, moduleClasses)
         try {
             mediatorImplGenerator.generate()
         } catch (e: IOException) {

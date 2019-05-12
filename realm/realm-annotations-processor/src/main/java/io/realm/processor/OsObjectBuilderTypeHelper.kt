@@ -25,45 +25,45 @@ import javax.lang.model.element.VariableElement
  */
 object OsObjectBuilderTypeHelper {
 
-    private val QUALIFIED_TYPE_TO_BUILDER: Map<String, String>
-    private val QUALIFIED_LIST_TYPE_TO_BUILDER: Map<String, String>
+    private val QUALIFIED_TYPE_TO_BUILDER: Map<QualifiedClassName, String>
+    private val QUALIFIED_LIST_TYPE_TO_BUILDER: Map<QualifiedClassName, String>
 
     init {
         // Map of qualified types to their OsObjectBuilder Type
-        val fieldTypes = HashMap<String, String>()
-        fieldTypes["byte"] = "Integer"
-        fieldTypes["short"] = "Integer"
-        fieldTypes["int"] = "Integer"
-        fieldTypes["long"] = "Integer"
-        fieldTypes["float"] = "Float"
-        fieldTypes["double"] = "Double"
-        fieldTypes["boolean"] = "Boolean"
-        fieldTypes["byte[]"] = "ByteArray"
-        fieldTypes["java.lang.Byte"] = "Integer"
-        fieldTypes["java.lang.Short"] = "Integer"
-        fieldTypes["java.lang.Integer"] = "Integer"
-        fieldTypes["java.lang.Long"] = "Integer"
-        fieldTypes["java.lang.Float"] = "Float"
-        fieldTypes["java.lang.Double"] = "Double"
-        fieldTypes["java.lang.Boolean"] = "Boolean"
-        fieldTypes["java.lang.String"] = "String"
-        fieldTypes["java.util.Date"] = "Date"
-        fieldTypes["io.realm.MutableRealmInteger"] = "MutableRealmInteger"
+        val fieldTypes = HashMap<QualifiedClassName, String>()
+        fieldTypes[QualifiedClassName("byte")] = "Integer"
+        fieldTypes[QualifiedClassName("short")] = "Integer"
+        fieldTypes[QualifiedClassName("int")] = "Integer"
+        fieldTypes[QualifiedClassName("long")] = "Integer"
+        fieldTypes[QualifiedClassName("float")] = "Float"
+        fieldTypes[QualifiedClassName("double")] = "Double"
+        fieldTypes[QualifiedClassName("boolean")] = "Boolean"
+        fieldTypes[QualifiedClassName("byte[]")] = "ByteArray"
+        fieldTypes[QualifiedClassName("java.lang.Byte")] = "Integer"
+        fieldTypes[QualifiedClassName("java.lang.Short")] = "Integer"
+        fieldTypes[QualifiedClassName("java.lang.Integer")] = "Integer"
+        fieldTypes[QualifiedClassName("java.lang.Long")] = "Integer"
+        fieldTypes[QualifiedClassName("java.lang.Float")] = "Float"
+        fieldTypes[QualifiedClassName("java.lang.Double")] = "Double"
+        fieldTypes[QualifiedClassName("java.lang.Boolean")] = "Boolean"
+        fieldTypes[QualifiedClassName("java.lang.String")] = "String"
+        fieldTypes[QualifiedClassName("java.util.Date")] = "Date"
+        fieldTypes[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmInteger"
         QUALIFIED_TYPE_TO_BUILDER = Collections.unmodifiableMap(fieldTypes)
 
         // Map of qualified types to their OsObjectBuilder Type
-        val listTypes = HashMap<String, String>()
-        listTypes["byte[]"] = "ByteArrayList"
-        listTypes["java.lang.Byte"] = "ByteList"
-        listTypes["java.lang.Short"] = "ShortList"
-        listTypes["java.lang.Integer"] = "IntegerList"
-        listTypes["java.lang.Long"] = "LongList"
-        listTypes["java.lang.Float"] = "FloatList"
-        listTypes["java.lang.Double"] = "DoubleList"
-        listTypes["java.lang.Boolean"] = "BooleanList"
-        listTypes["java.lang.String"] = "StringList"
-        listTypes["java.util.Date"] = "DateList"
-        listTypes["io.realm.MutableRealmInteger"] = "MutableRealmIntegerList"
+        val listTypes = HashMap<QualifiedClassName, String>()
+        listTypes[QualifiedClassName("byte[]")] = "ByteArrayList"
+        listTypes[QualifiedClassName("java.lang.Byte")] = "ByteList"
+        listTypes[QualifiedClassName("java.lang.Short")] = "ShortList"
+        listTypes[QualifiedClassName("java.lang.Integer")] = "IntegerList"
+        listTypes[QualifiedClassName("java.lang.Long")] = "LongList"
+        listTypes[QualifiedClassName("java.lang.Float")] = "FloatList"
+        listTypes[QualifiedClassName("java.lang.Double")] = "DoubleList"
+        listTypes[QualifiedClassName("java.lang.Boolean")] = "BooleanList"
+        listTypes[QualifiedClassName("java.lang.String")] = "StringList"
+        listTypes[QualifiedClassName("java.util.Date")] = "DateList"
+        listTypes[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmIntegerList"
         QUALIFIED_LIST_TYPE_TO_BUILDER = Collections.unmodifiableMap(listTypes)
     }
 
@@ -85,7 +85,7 @@ object OsObjectBuilderTypeHelper {
         }
     }
 
-    private fun getBasicTypeName(qualifiedType: String): String {
+    private fun getBasicTypeName(qualifiedType: QualifiedClassName): String {
         val type = QUALIFIED_TYPE_TO_BUILDER[qualifiedType]
         if (type != null) {
             return type
@@ -93,12 +93,12 @@ object OsObjectBuilderTypeHelper {
         throw IllegalArgumentException("Unsupported type: $qualifiedType")
     }
 
-    private fun getListTypeName(qualifiedType: String?): String {
-        val type = QUALIFIED_LIST_TYPE_TO_BUILDER[qualifiedType]
+    private fun getListTypeName(typeName: QualifiedClassName?): String {
+        val type = QUALIFIED_LIST_TYPE_TO_BUILDER[typeName]
         if (type != null) {
             return type
         }
-        throw IllegalArgumentException("Unsupported list type: " + qualifiedType!!)
+        throw IllegalArgumentException("Unsupported list type: $type")
     }
 
 }

@@ -30,7 +30,7 @@ import io.realm.annotations.Ignore
 
 class RealmProxyInterfaceGenerator(private val processingEnvironment: ProcessingEnvironment, private val metaData: ClassMetaData) {
 
-    private val className: String = metaData.fullyQualifiedClassName
+    private val className: QualifiedClassName = metaData.qualifiedClassName
 
     @Throws(IOException::class)
     fun generate() {

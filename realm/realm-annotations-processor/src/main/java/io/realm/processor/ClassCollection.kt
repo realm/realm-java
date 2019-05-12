@@ -25,26 +25,26 @@ import java.util.LinkedHashSet
 class ClassCollection {
 
     // These three collections should always stay in sync
-    private val qualifiedNameClassMap = LinkedHashMap<String, ClassMetaData>()
+    private val qualifiedNameClassMap = LinkedHashMap<QualifiedClassName, ClassMetaData>()
     private val classSet = LinkedHashSet<ClassMetaData>()
     val classes: Set<ClassMetaData>
         get() = classSet.toSet()
 
     fun addClass(metadata: ClassMetaData) {
         classSet.add(metadata)
-        qualifiedNameClassMap[metadata.fullyQualifiedClassName] = metadata
+        qualifiedNameClassMap[metadata.qualifiedClassName] = metadata
     }
 
-    fun getClassFromQualifiedName(qualifiedJavaClassName: String): ClassMetaData {
-        return qualifiedNameClassMap[qualifiedJavaClassName]
-                ?: throw IllegalArgumentException("Class $qualifiedJavaClassName was not found")
+    fun getClassFromQualifiedName(className: QualifiedClassName): ClassMetaData {
+        return qualifiedNameClassMap[className]
+                ?: throw IllegalArgumentException("Class $className was not found")
     }
 
     fun size(): Int {
         return classSet.size
     }
 
-    fun containsQualifiedClass(qualifiedClassName: String?): Boolean {
+    fun containsQualifiedClass(qualifiedClassName: QualifiedClassName?): Boolean {
         return qualifiedNameClassMap.containsKey(qualifiedClassName)
     }
 }

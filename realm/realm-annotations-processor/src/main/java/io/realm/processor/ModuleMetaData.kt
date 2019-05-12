@@ -53,26 +53,24 @@ import io.realm.processor.nameconverter.NameConverter
 class ModuleMetaData {
 
     // Pre-processing
-    // <FullyQualifiedModuleClassName, X>
-    private val globalModules = LinkedHashSet<String>() // All modules with `allClasses = true` set
-    private val specificClassesModules = LinkedHashMap<String, Set<String>>() // Modules with classes specifically named
-    private val classNamingPolicy = LinkedHashMap<String, RealmNamingPolicy>()
-    private val fieldNamingPolicy = LinkedHashMap<String, RealmNamingPolicy>()
-    private val moduleAnnotations = HashMap<String, RealmModule>()
+    private val globalModules = LinkedHashSet<QualifiedClassName>() // All modules with `allClasses = true` set
+    private val specificClassesModules = LinkedHashMap<QualifiedClassName, Set<QualifiedClassName>>() // Modules with classes specifically named
+    private val classNamingPolicy = LinkedHashMap<QualifiedClassName, RealmNamingPolicy>()
+    private val fieldNamingPolicy = LinkedHashMap<QualifiedClassName, RealmNamingPolicy>()
+    private val moduleAnnotations = HashMap<QualifiedClassName, RealmModule>()
 
     // Post-processing
-    // <FullyQualifiedModuleClassName, X>
-    private val modules = LinkedHashMap<String, Set<ClassMetaData>>()
-    private val libraryModules = LinkedHashMap<String, Set<ClassMetaData>>()
+    private val modules = LinkedHashMap<QualifiedClassName, Set<ClassMetaData>>()
+    private val libraryModules = LinkedHashMap<QualifiedClassName, Set<ClassMetaData>>()
 
     private var shouldCreateDefaultModule: Boolean = false
 
     /**
      * Returns all module classes and the RealmObjects they know of.
      */
-    val allModules: Map<String, Set<ClassMetaData>>
+    val allModules: Map<QualifiedClassName, Set<ClassMetaData>>
         get() {
-            val allModules = LinkedHashMap<String, Set<ClassMetaData>>()
+            val allModules = LinkedHashMap<QualifiedClassName, Set<ClassMetaData>>()
             allModules.putAll(modules)
             allModules.putAll(libraryModules)
             return allModules
@@ -91,7 +89,7 @@ class ModuleMetaData {
 
         // Tracks which modules a class was mentioned in by name using `classes = { ... }`
         // <Qualified
-        val classSpecificModuleInfo = HashMap<String, MutableList<ModulePolicyInfo>>()
+        val classSpecificModuleInfo = HashMap<QualifiedClassName, MutableList<ModulePolicyInfo>>()
 
         // Check that modules are setup correctly
         for (classElement in moduleClasses) {
@@ -116,7 +114,7 @@ class ModuleMetaData {
                 return false
             }
 
-            moduleAnnotations[classElement.qualifiedName.toString()] = moduleAnnotation
+            moduleAnnotations[QualifiedClassName(classElement.qualifiedName)] = moduleAnnotation
         }
 
         return true
@@ -131,11 +129,14 @@ class ModuleMetaData {
      * @param moduleAnnotation annotation on this class.
      * @return `true` if everything checks out, `false` if an error was found and reported.
      */
-    private fun validateNamingPolicies(globalModuleInfo: MutableSet<ModulePolicyInfo>, classSpecificModuleInfo: HashMap<String, MutableList<ModulePolicyInfo>>, classElement: TypeElement, moduleAnnotation: RealmModule): Boolean {
+    private fun validateNamingPolicies(globalModuleInfo: MutableSet<ModulePolicyInfo>,
+                                       classSpecificModuleInfo: HashMap<QualifiedClassName, MutableList<ModulePolicyInfo>>,
+                                       classElement: TypeElement,
+                                       moduleAnnotation: RealmModule): Boolean {
         val classNamePolicy = moduleAnnotation.classNamingPolicy
         val fieldNamePolicy = moduleAnnotation.fieldNamingPolicy
-        val qualifiedModuleClassName = classElement.qualifiedName.toString()
-        val moduleInfo = ModulePolicyInfo(qualifiedModuleClassName, classNamePolicy, fieldNamePolicy)
+        val moduleClassName = QualifiedClassName(classElement.qualifiedName)
+        val moduleInfo = ModulePolicyInfo(moduleClassName, classNamePolicy, fieldNamePolicy)
 
         // The difference between `allClasses` and a list of classes is a bit tricky at this stage
         // as we haven't processed the full list of classes yet. We therefore need to treat
@@ -162,12 +163,12 @@ class ModuleMetaData {
 
             // Everything checks out. Add moduleInfo so we can track it for the next module.
             globalModuleInfo.add(moduleInfo)
-            globalModules.add(qualifiedModuleClassName)
+            globalModules.add(moduleClassName)
 
         } else {
             // We need to verify each class in the modules class list
             val classNames = getClassListFromModule(classElement)
-            for (qualifiedClassName in classNames) {
+            for (className in classNames) {
 
                 // Check that no other module with `allClasses` conflict with this specific
                 // class configuration
@@ -179,10 +180,10 @@ class ModuleMetaData {
 
                 // Check that this specific class isn't conflicting with another module
                 // specifically mentioning it using `classes = { ... }`
-                val otherModules = classSpecificModuleInfo[qualifiedClassName]
+                val otherModules= classSpecificModuleInfo[className]
                 if (otherModules != null) {
                     for (otherModuleInfo in otherModules) {
-                        if (checkAndReportPolicyConflict(qualifiedClassName, moduleInfo, otherModuleInfo)) {
+                        if (checkAndReportPolicyConflict(className, moduleInfo, otherModuleInfo)) {
                             return false
                         }
                     }
@@ -191,16 +192,16 @@ class ModuleMetaData {
                 // Keep track of the specific class for other module checks. We only
                 // need to track the latest module seen as previous errors would have been
                 // caught in a previous iteration of the loop.
-                if (!classSpecificModuleInfo.containsKey(qualifiedClassName)) {
-                    classSpecificModuleInfo[qualifiedClassName] = ArrayList()
+                if (!classSpecificModuleInfo.containsKey(className)) {
+                    classSpecificModuleInfo[className] = ArrayList()
                 }
-                classSpecificModuleInfo[qualifiedClassName]!!.add(moduleInfo)
+                classSpecificModuleInfo[className]!!.add(moduleInfo)
             }
-            specificClassesModules[qualifiedModuleClassName] = classNames
+            specificClassesModules[moduleClassName] = classNames
         }
 
-        classNamingPolicy[qualifiedModuleClassName] = classNamePolicy
-        fieldNamingPolicy[qualifiedModuleClassName] = fieldNamePolicy
+        classNamingPolicy[moduleClassName] = classNamePolicy
+        fieldNamingPolicy[moduleClassName] = fieldNamePolicy
         return true
     }
 
@@ -214,7 +215,7 @@ class ModuleMetaData {
     fun postProcess(modelClasses: ClassCollection): Boolean {
 
         // Process all global modules
-        for (qualifiedModuleClassName in globalModules) {
+        for (qualifiedModuleClassName: QualifiedClassName in globalModules) {
             val classData = LinkedHashSet<ClassMetaData>()
             classData.addAll(modelClasses.classes)
             defineModule(qualifiedModuleClassName, classData)
@@ -223,14 +224,14 @@ class ModuleMetaData {
         // Process all modules with specific classes
         for ((qualifiedModuleClassName, value) in specificClassesModules) {
             val classData = LinkedHashSet<ClassMetaData>()
-            for (qualifiedModelClassName in value) {
-                if (!modelClasses.containsQualifiedClass(qualifiedModelClassName)) {
-                    Utils.error(Utils.stripPackage(qualifiedModelClassName) + " could not be added to the module. " +
+            for (modelClassName: QualifiedClassName in value) {
+                if (!modelClasses.containsQualifiedClass(modelClassName)) {
+                    Utils.error("${modelClassName.getSimpleName()} could not be added to the module. " +
                             "Only classes extending RealmObject or implementing RealmModel, which are part of this project, can be added.")
                     return false
 
                 }
-                classData.add(modelClasses.getClassFromQualifiedName(qualifiedModelClassName))
+                classData.add(modelClasses.getClassFromQualifiedName(modelClassName))
             }
             defineModule(qualifiedModuleClassName, classData)
         }
@@ -261,19 +262,19 @@ class ModuleMetaData {
         // The DefaultRealmModule should not be created in this case either.
         if (libraryModules.size == 0 && modelClasses.size() > 0) {
             shouldCreateDefaultModule = true
-            val defaultModuleName = Constants.REALM_PACKAGE_NAME + "." + Constants.DEFAULT_MODULE_CLASS_NAME
+            val defaultModuleName = QualifiedClassName("${Constants.REALM_PACKAGE_NAME}.${Constants.DEFAULT_MODULE_CLASS_NAME}")
             modules[defaultModuleName] = modelClasses.classes
         }
 
         return true
     }
 
-    private fun defineModule(qualifiedModuleClassName: String, classData: Set<ClassMetaData>) {
+    private fun defineModule(moduleClassName: QualifiedClassName, classData: Set<ClassMetaData>) {
         if (classData.isNotEmpty()) {
-            if (moduleAnnotations[qualifiedModuleClassName]!!.library) {
-                libraryModules[qualifiedModuleClassName] = classData
+            if (moduleAnnotations[moduleClassName]!!.library) {
+                libraryModules[moduleClassName] = classData
             } else {
-                modules[qualifiedModuleClassName] = classData
+                modules[moduleClassName] = classData
             }
         }
     }
@@ -291,7 +292,7 @@ class ModuleMetaData {
      * @param otherModuleInfo already processed module.
      * @return `true` if any errors was reported, `false` otherwise.
      */
-    private fun checkAndReportPolicyConflict(className: String?, moduleInfo: ModulePolicyInfo, otherModuleInfo: ModulePolicyInfo): Boolean {
+    private fun checkAndReportPolicyConflict(className: QualifiedClassName?, moduleInfo: ModulePolicyInfo, otherModuleInfo: ModulePolicyInfo): Boolean {
         var foundErrors = false
 
         // Check class naming policy
@@ -301,8 +302,8 @@ class ModuleMetaData {
                 && otherClassPolicy != RealmNamingPolicy.NO_POLICY
                 && classPolicy != otherClassPolicy) {
             Utils.error(String.format("The modules %s and %s disagree on the class naming policy%s: %s vs. %s. " + "They same policy must be used.",
-                    moduleInfo.qualifiedModuleClassName,
-                    otherModuleInfo.qualifiedModuleClassName,
+                    moduleInfo.moduleClassName,
+                    otherModuleInfo.moduleClassName,
                     if (className != null) " for $className" else "",
                     classPolicy,
                     otherClassPolicy))
@@ -316,8 +317,8 @@ class ModuleMetaData {
                 && otherFieldPolicy != RealmNamingPolicy.NO_POLICY
                 && fieldPolicy != otherFieldPolicy) {
             Utils.error(String.format("The modules %s and %s disagree on the field naming policy%s: %s vs. %s. " + "They same policy should be used.",
-                    moduleInfo.qualifiedModuleClassName,
-                    otherModuleInfo.qualifiedModuleClassName,
+                    moduleInfo.moduleClassName,
+                    otherModuleInfo.moduleClassName,
                     if (className != null) " for $className" else "",
                     fieldPolicy,
                     otherFieldPolicy))
@@ -329,15 +330,15 @@ class ModuleMetaData {
 
     // Detour needed to access the class elements in the array
     // See http://blog.retep.org/2009/02/13/getting-class-values-from-annotations-in-an-annotationprocessor/
-    private fun getClassListFromModule(classElement: Element): Set<String> {
+    private fun getClassListFromModule(classElement: Element): Set<QualifiedClassName> {
         val annotationMirror: AnnotationMirror? = getAnnotationMirror(classElement)
         val annotationValue: AnnotationValue? = getAnnotationValue(annotationMirror)
-        val classes = HashSet<String>()
+        val classes = HashSet<QualifiedClassName>()
         val moduleClasses = annotationValue!!.value as List<*>
         for (classMirror in moduleClasses) {
             // FIXME: Something is fishy about this. Figure out how to get the proper types in Kotlin here
-            val fullyQualifiedClassName = classMirror.toString().removeSuffix(".class")
-            classes.add(fullyQualifiedClassName)
+            val className = QualifiedClassName(classMirror.toString().removeSuffix(".class"))
+            classes.add(className)
         }
         return classes
     }
@@ -391,7 +392,7 @@ class ModuleMetaData {
      * Only available after [.preProcess] has run.
      * Returns the module name policy the given name.
      */
-    fun getClassNameFormatter(qualifiedClassName: String): NameConverter {
+    fun getClassNameFormatter(className: QualifiedClassName): NameConverter {
         // We already validated that module definitions all agree on the same name policy
         // so just find first match
         if (globalModules.isNotEmpty()) {
@@ -401,7 +402,7 @@ class ModuleMetaData {
         // No global modules found, so find match in modules specifically listing the class.
         // We already validated that all modules agree on the converter, so just find first match.
         for ((key, value) in specificClassesModules) {
-            if (value.contains(qualifiedClassName)) {
+            if (value.contains(className)) {
                 return Utils.getNameFormatter(classNamingPolicy[key])
             }
         }
@@ -412,13 +413,11 @@ class ModuleMetaData {
 
 
     /**
-     * Only available after [.preProcess] has run.
+     * Only available after [ModuleMetaData.preProcess] has run.
      *
      * Returns the module name policy the field names.
-     *
-     * @param qualifiedClassName
      */
-    fun getFieldNameFormatter(qualifiedClassName: String): NameConverter {
+    fun getFieldNameFormatter(className: QualifiedClassName): NameConverter {
         // We already validated that module definitions all agree on the same name policy
         // so just find first match
         if (globalModules.isNotEmpty()) {
@@ -426,7 +425,7 @@ class ModuleMetaData {
         }
 
         for ((key, value) in specificClassesModules) {
-            if (value.contains(qualifiedClassName)) {
+            if (value.contains(className)) {
                 return Utils.getNameFormatter(fieldNamingPolicy[key])
             }
         }
@@ -435,7 +434,7 @@ class ModuleMetaData {
     }
 
     // Tuple helper class
-    private data class ModulePolicyInfo(val qualifiedModuleClassName: String,
+    private data class ModulePolicyInfo(val moduleClassName: QualifiedClassName,
                                         val classNamePolicy: RealmNamingPolicy,
                                         val fieldNamePolicy: RealmNamingPolicy)
 }

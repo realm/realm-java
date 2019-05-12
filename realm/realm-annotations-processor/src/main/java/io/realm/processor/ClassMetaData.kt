@@ -51,7 +51,7 @@ import io.realm.processor.nameconverter.NameConverter
  */
 class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, private val classType: TypeElement /* Reference to model class. */) {
 
-    val simpleJavaClassName: String = classType.simpleName.toString() // Model class simple name as defined in Java.
+    val simpleJavaClassName = SimpleClassName(classType.simpleName) // Model class simple name as defined in Java.
     val fields = ArrayList<RealmFieldElement>() // List of all fields in the class except those @Ignored.
     private val indexedFields = ArrayList<RealmFieldElement>() // list of all fields marked @Index.
     private val objectReferenceFields = ArrayList<RealmFieldElement>() // List of all fields that reference a Realm Object either directly or in a List
@@ -87,8 +87,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
     private val ignoreKotlinNullability: Boolean
 
-    val fullyQualifiedClassName: String
-        get() = "$packageName.$simpleJavaClassName"
+    val qualifiedClassName: QualifiedClassName
+        get() = QualifiedClassName("$packageName.$simpleJavaClassName")
 
     val backlinkFields: Set<Backlink>
         get() = backlinks.toSet()
@@ -152,7 +152,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     }
 
     override fun toString(): String {
-        return "class $fullyQualifiedClassName"
+        return "class $qualifiedClassName"
     }
 
     /**
@@ -290,7 +290,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         packageName = packageElement.qualifiedName.toString()
 
         // Determine naming rules for this class
-        val qualifiedClassName = "$packageName.$simpleJavaClassName"
+        val qualifiedClassName = QualifiedClassName("$packageName.$simpleJavaClassName")
         val moduleClassNameFormatter = moduleMetaData!!.getClassNameFormatter(qualifiedClassName)
         defaultFieldNameFormatter = moduleMetaData.getFieldNameFormatter(qualifiedClassName)
 
@@ -299,7 +299,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         internalClassName = when {
             realmClassAnnotation.name.isNotEmpty() -> realmClassAnnotation.name
             realmClassAnnotation.value.isNotEmpty() -> realmClassAnnotation.value
-            else -> moduleClassNameFormatter.convert(simpleJavaClassName)
+            else -> moduleClassNameFormatter.convert(simpleJavaClassName.toString())
         }
         if (internalClassName.length > MAX_CLASSNAME_LENGTH) {
             Utils.error(String.format(Locale.US, "Internal class name is too long. Class '%s' " + "is converted to '%s', which is longer than the maximum allowed of %d characters",
@@ -447,7 +447,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     }
 
     private fun getFieldErrorSuffix(field: VariableElement): String {
-        return simpleJavaClassName + "." + field.simpleName + ": "
+        return "$simpleJavaClassName.${field.simpleName}: "
     }
 
     private fun checkReferenceTypes(): Boolean {

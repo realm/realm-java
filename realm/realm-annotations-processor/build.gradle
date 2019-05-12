@@ -141,8 +141,10 @@ artifactory {
 compileKotlin {
     kotlinOptions {
         jvmTarget = "1.8"
+        freeCompilerArgs += ["-XXLanguage:+InlineClasses"]
     }
 }
+
 compileTestKotlin {
     kotlinOptions {
         jvmTarget = "1.8"

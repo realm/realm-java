@@ -63,7 +63,7 @@ class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement)
      * The fully-qualified name of the class containing the `targetField`, which is the field
      * annotated with the @LinkingObjects annotation.
      */
-    val targetClass: String = clazz.fullyQualifiedClassName
+    val targetClass: QualifiedClassName = clazz.qualifiedClassName
 
     /**
      * The name of the backlink field, in `targetClass`.
@@ -74,7 +74,7 @@ class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement)
     /**
      * The fully-qualified name of the class to which the backlinks, from `targetField`, point.
      */
-    val sourceClass: String? = Utils.getRealmResultsType(backlinkField)
+    val sourceClass: QualifiedClassName? = Utils.getRealmResultsType(backlinkField)
 
     /**
      * The name of the field, in `SourceClass` that has a normal link to `targetClass`.
@@ -143,7 +143,7 @@ class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement)
         }
 
         // A @LinkingObjects field must be final
-        if (!backlinkField.getModifiers().contains(Modifier.FINAL)) {
+        if (!backlinkField.modifiers.contains(Modifier.FINAL)) {
             Utils.error(String.format(
                     Locale.US,
                     "A @LinkingObjects field \"%s.%s\" must be final.",
@@ -168,7 +168,7 @@ class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement)
             return false
         }
 
-        val fieldType = field.asType().toString()
+        val fieldType = QualifiedClassName(field.asType().toString())
         if (!(targetClass == fieldType || targetClass == Utils.getRealmListType(field))) {
             Utils.error(String.format(Locale.US,
                     "Field \"%s.%s\", the target of the @LinkedObjects annotation on field \"%s.%s\", has type \"%s\" instead of \"%3\$s\".",

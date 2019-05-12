@@ -32,6 +32,9 @@ import javax.lang.model.element.VariableElement
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeMirror
 
+import io.realm.processor.ext.beginMethod
+import io.realm.processor.ext.beginType
+
 /**
  * This class is responsible for generating the Realm Proxy classes for each model class defined
  * by the user. This is the main entrypoint for users interacting with Realm, but it is hidden
@@ -52,18 +55,18 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                private val metadata: ClassMetaData,
                                private val classCollection: ClassCollection) {
 
-    private val simpleJavaClassName: String = metadata.simpleJavaClassName
-    private val qualifiedJavaClassName: String = metadata.fullyQualifiedClassName
+    private val simpleJavaClassName: SimpleClassName = metadata.simpleJavaClassName
+    private val qualifiedJavaClassName: QualifiedClassName = metadata.qualifiedClassName
     private val internalClassName: String = metadata.internalClassName
-    private val interfaceName: String = Utils.getProxyInterfaceName(qualifiedJavaClassName)
-    private val qualifiedGeneratedClassName: String = String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Utils.getProxyClassName(qualifiedJavaClassName))
+    private val interfaceName: SimpleClassName = Utils.getProxyInterfaceName(qualifiedJavaClassName)
+    private val generatedClassName: QualifiedClassName = QualifiedClassName(String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Utils.getProxyClassName(qualifiedJavaClassName)))
     // See the configuration for the Android debug build type,
     //  in the realm-library project, for an example of how to set this flag.
     private val suppressWarnings: Boolean = !"false".equals(processingEnvironment.options[OPTION_SUPPRESS_WARNINGS], ignoreCase = true)
 
     @Throws(IOException::class, UnsupportedOperationException::class)
     fun generate() {
-        val sourceFile = processingEnvironment.filer.createSourceFile(qualifiedGeneratedClassName)
+        val sourceFile = processingEnvironment.filer.createSourceFile(generatedClassName.toString())
 
         val imports = ArrayList(IMPORTS)
         if (metadata.backlinkFields.isNotEmpty()) {
@@ -82,7 +85,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             if (suppressWarnings) {
                 emitAnnotation("SuppressWarnings(\"all\")")
             }
-            beginType(qualifiedGeneratedClassName, "class", EnumSet.of(Modifier.PUBLIC), qualifiedJavaClassName, "RealmObjectProxy", interfaceName)
+            beginType(generatedClassName, "class", setOf(Modifier.PUBLIC), qualifiedJavaClassName, arrayOf("RealmObjectProxy", interfaceName.toString()))
             emitEmptyLine()
 
             // Emit class content
@@ -415,7 +418,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             fieldTypeCanonicalName: String,
             elementTypeMirror: TypeMirror?) {
 
-        val genericType: String? = Utils.getGenericTypeQualifiedName(field)
+        val genericType: QualifiedClassName? = Utils.getGenericTypeQualifiedName(field)
         val forRealmModel: Boolean = Utils.isRealmModel(elementTypeMirror)
 
         writer.apply {
@@ -734,11 +737,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitNewProxyInstance(writer: JavaWriter) {
         writer.apply {
-            beginMethod(qualifiedGeneratedClassName, "newProxyInstance", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC), "BaseRealm", "realm", "Row", "row")
+            beginMethod(generatedClassName, "newProxyInstance", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC), "BaseRealm", "realm", "Row", "row")
                 emitSingleLineComment("Ignore default values to avoid creating unexpected objects from RealmModel/RealmList fields")
                 emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
                 emitStatement("objectContext.set(realm, row, realm.getSchema().getColumnInfo(%s.class), false, Collections.<String>emptyList())", qualifiedJavaClassName)
-                emitStatement("%1\$s obj = new %1\$s()", qualifiedGeneratedClassName)
+                emitStatement("%1\$s obj = new %1\$s()", generatedClassName)
                 emitStatement("objectContext.clear()")
                 emitStatement("return obj")
             endMethod()
@@ -752,7 +755,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod(qualifiedJavaClassName,"copyOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC),
                     "Realm", "realm",
                     columnInfoClassName(), "columnInfo",
-                    qualifiedJavaClassName, "object",
+                    qualifiedJavaClassName.toString(), "object",
                     "boolean", "update",
                     "Map<RealmModel,RealmObjectProxy>", "cache",
                     "Set<ImportFlag>", "flags")
@@ -814,7 +817,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         nextControlFlow("else")
                             beginControlFlow("try")
                                 emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), columnInfo, false, Collections.<String> emptyList())")
-                                emitStatement("realmObject = new %s()", qualifiedGeneratedClassName)
+                                emitStatement("realmObject = new %s()", generatedClassName)
                                 emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                             nextControlFlow("finally")
                                 emitStatement("objectContext.clear()")
@@ -831,7 +834,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     }
    
     @Throws(IOException::class)
-    private fun setTableValues(writer: JavaWriter, fieldType: String, fieldName: String, interfaceName: String, getter: String, isUpdate: Boolean) {
+    private fun setTableValues(writer: JavaWriter, fieldType: String, fieldName: String, interfaceName: SimpleClassName, getter: String, isUpdate: Boolean) {
         writer.apply {
             when(fieldType) {
                 "long",
@@ -942,7 +945,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitInsertMethod(writer: JavaWriter) {
         writer.apply {
-            beginMethod("long","insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", qualifiedJavaClassName, "object", "Map<RealmModel,Long>", "cache")
+            beginMethod("long","insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", qualifiedJavaClassName.toString(), "object", "Map<RealmModel,Long>", "cache")
 
             // If object is already in the Realm there is nothing to update
             beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
@@ -1103,7 +1106,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitInsertOrUpdateMethod(writer: JavaWriter) {
         writer.apply {
-            beginMethod("long", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", qualifiedJavaClassName, "object", "Map<RealmModel,Long>", "cache")
+            beginMethod("long", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", qualifiedJavaClassName.toString(), "object", "Map<RealmModel,Long>", "cache")
 
             // If object is already in the Realm there is nothing to update
             beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
@@ -1361,7 +1364,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod(qualifiedJavaClassName, "copy", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC),
                     "Realm", "realm",
                     columnInfoClassName(), "columnInfo",
-                    qualifiedJavaClassName, "newObject",
+                    qualifiedJavaClassName.toString(), "newObject",
                     "boolean", "update",
                     "Map<RealmModel,RealmObjectProxy>", "cache",
                     "Set<ImportFlag>", "flags"
@@ -1391,7 +1394,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 emitSingleLineComment("Create the underlying object and cache it before setting any object/objectlist references")
                 emitSingleLineComment("This will allow us to break any circular dependencies by using the object cache.")
                 emitStatement("Row row = builder.createNewObject()")
-                emitStatement("%s realmObjectCopy = newProxyInstance(realm, row)", qualifiedGeneratedClassName)
+                emitStatement("%s realmObjectCopy = newProxyInstance(realm, row)", generatedClassName)
                 emitStatement("cache.put(newObject, realmObjectCopy)")
 
                 // Copy all object references or lists-of-objects
@@ -1454,7 +1457,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitCreateDetachedCopyMethod(writer: JavaWriter) {
         writer.apply {
-            beginMethod(qualifiedJavaClassName, "createDetachedCopy", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), qualifiedJavaClassName, "realmObject", "int", "currentDepth", "int", "maxDepth", "Map<RealmModel, CacheData<RealmModel>>", "cache")
+            beginMethod(qualifiedJavaClassName, "createDetachedCopy", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), qualifiedJavaClassName.toString(), "realmObject", "int", "currentDepth", "int", "maxDepth", "Map<RealmModel, CacheData<RealmModel>>", "cache")
                 beginControlFlow("if (currentDepth > maxDepth || realmObject == null)")
                     emitStatement("return null")
                 endControlFlow()
@@ -1531,8 +1534,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod(qualifiedJavaClassName, "update", EnumSet.of(Modifier.STATIC),
                     "Realm", "realm", // Argument type & argument name
                     columnInfoClassName(), "columnInfo",
-                    qualifiedJavaClassName, "realmObject",
-                    qualifiedJavaClassName, "newObject",
+                    qualifiedJavaClassName.toString(), "realmObject",
+                    qualifiedJavaClassName.toString(), "newObject",
                     "Map<RealmModel, RealmObjectProxy>", "cache",
                     "Set<ImportFlag>", "flags"
             )
@@ -1616,11 +1619,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("stringBuilder.append(\"{%s:\")", fieldName)
                     when {
                         Utils.isRealmModel(field) -> {
-                            val fieldTypeSimpleName = Utils.stripPackage(Utils.getFieldTypeQualifiedName(field))
+                            val fieldTypeSimpleName = Utils.getFieldTypeQualifiedName(field).getSimpleName()
                             emitStatement("stringBuilder.append(%s() != null ? \"%s\" : \"null\")", metadata.getInternalGetter(fieldName), fieldTypeSimpleName)
                         }
                         Utils.isRealmList(field) -> {
-                            val genericTypeSimpleName = Utils.stripPackage(Utils.getGenericTypeQualifiedName(field)!!)
+                            val genericTypeSimpleName = Utils.getGenericTypeQualifiedName(field)?.getSimpleName()
                             emitStatement("stringBuilder.append(\"RealmList<%s>[\").append(%s().size()).append(\"]\")", genericTypeSimpleName, metadata.getInternalGetter(fieldName))
                         }
                         Utils.isMutableRealmInteger(field) -> {
@@ -1744,7 +1747,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
                         beginControlFlow("try")
                             emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.getSchema().getColumnInfo(%s.class), false, Collections.<String> emptyList())", qualifiedJavaClassName)
-                            emitStatement("obj = new %s()", qualifiedGeneratedClassName)
+                            emitStatement("obj = new %s()", generatedClassName)
                         nextControlFlow("finally")
                             emitStatement("objectContext.clear()")
                         endControlFlow()
@@ -1753,16 +1756,16 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                 beginControlFlow("if (obj == null)")
                     buildExcludeFieldsList(writer, metadata.fields)
-                    val primaryKeyFieldType = metadata.primaryKey!!.asType().toString()
+                    val primaryKeyFieldType = QualifiedClassName(metadata.primaryKey!!.asType().toString())
                     val primaryKeyFieldName = metadata.primaryKey!!.simpleName.toString()
-                    RealmJsonTypeHelper.emitCreateObjectWithPrimaryKeyValue(qualifiedJavaClassName, qualifiedGeneratedClassName, primaryKeyFieldType, primaryKeyFieldName, writer)
+                    RealmJsonTypeHelper.emitCreateObjectWithPrimaryKeyValue(qualifiedJavaClassName, generatedClassName, primaryKeyFieldType, primaryKeyFieldName, writer)
                 endControlFlow()
             }
             emitEmptyLine()
             emitStatement("final %1\$s objProxy = (%1\$s) obj", interfaceName)
             for (field in metadata.fields) {
                 val fieldName = field.simpleName.toString()
-                val qualifiedFieldType = field.asType().toString()
+                val qualifiedFieldType = QualifiedClassName(field.asType().toString())
                 if (metadata.isPrimaryKey(field)) {
                     continue  // Primary key has already been set when adding new row or finding the existing row.
                 }
@@ -1825,7 +1828,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         writer.apply {
             emitAnnotation("SuppressWarnings", "\"cast\"")
             emitAnnotation("TargetApi", "Build.VERSION_CODES.HONEYCOMB")
-            beginMethod(qualifiedJavaClassName,"createUsingJsonStream", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "JsonReader", "reader"), listOf("IOException"))
+            beginMethod(qualifiedJavaClassName,"createUsingJsonStream", setOf(Modifier.PUBLIC, Modifier.STATIC), listOf("Realm", "realm", "JsonReader", "reader"), listOf("IOException"))
             if (metadata.hasPrimaryKey()) {
                 emitStatement("boolean jsonHasPrimaryKey = false")
             }
@@ -1838,7 +1841,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 val fields = metadata.fields
                 for (field in fields) {
                     val fieldName = field.simpleName.toString()
-                    val qualifiedFieldType = field.asType().toString()
+                    val fieldType = QualifiedClassName(field.asType().toString())
                     nextControlFlow("else if (name.equals(\"%s\"))", fieldName)
 
                     when {
@@ -1847,7 +1850,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     "objProxy",
                                     metadata.getInternalSetter(fieldName),
                                     fieldName,
-                                    qualifiedFieldType,
+                                    fieldType,
                                     Utils.getProxyClassSimpleName(field),
                                     writer)
                         }
@@ -1856,7 +1859,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     "objProxy",
                                     metadata.getInternalGetter(fieldName),
                                     metadata.getInternalSetter(fieldName),
-                                    (field.asType() as DeclaredType).typeArguments[0].toString(),
+                                    QualifiedClassName((field.asType() as DeclaredType).typeArguments[0].toString()),
                                     Utils.getProxyClassSimpleName(field),
                                     writer)
                         }
@@ -1869,7 +1872,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     metadata,
                                     metadata.getInternalGetter(fieldName),
                                     fieldName,
-                                    qualifiedFieldType,
+                                    fieldType,
                                     writer)
                         }
                         else -> {
@@ -1878,7 +1881,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     metadata,
                                     metadata.getInternalSetter(fieldName),
                                     fieldName,
-                                    qualifiedFieldType,
+                                    fieldType,
                                     writer)
                         }
                     }
