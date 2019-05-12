@@ -29,63 +29,46 @@ import io.realm.annotations.Ignore
 
 
 class RealmProxyInterfaceGenerator(private val processingEnvironment: ProcessingEnvironment, private val metaData: ClassMetaData) {
-    private val className: String
 
-    init {
-        this.className = metaData.fullyQualifiedClassName
-    }
+    private val className: String = metaData.fullyQualifiedClassName
 
     @Throws(IOException::class)
     fun generate() {
         val qualifiedGeneratedInterfaceName = String.format(Locale.US, "%s.%s", Constants.REALM_PACKAGE_NAME, Utils.getProxyInterfaceName(className))
         val sourceFile = processingEnvironment.filer.createSourceFile(qualifiedGeneratedInterfaceName)
         val writer = JavaWriter(BufferedWriter(sourceFile.openWriter()!!))
+        writer.apply {
+            indent = Constants.INDENT
+            emitPackage(Constants.REALM_PACKAGE_NAME)
+            emitEmptyLine()
+            beginType(qualifiedGeneratedInterfaceName, "interface", EnumSet.of(Modifier.PUBLIC))
 
-        writer.indent = Constants.INDENT
+            for (field in metaData.fields) {
+                if (field.modifiers.contains(Modifier.STATIC) || field.getAnnotation(Ignore::class.java) != null) {
+                    continue
+                }
+                // The field is neither static nor ignored
+                val fieldName = field.simpleName.toString()
+                val fieldTypeCanonicalName = field.asType().toString()
+                beginMethod(fieldTypeCanonicalName, metaData.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
+                endMethod()
 
-        writer
-                .emitPackage(Constants.REALM_PACKAGE_NAME)
-                .emitEmptyLine()
-                .beginType(qualifiedGeneratedInterfaceName, "interface", EnumSet.of(Modifier.PUBLIC))
-        for (field in metaData.fields) {
-            if (field.modifiers.contains(Modifier.STATIC) || field.getAnnotation(Ignore::class.java) != null) {
-                continue
+                // MutableRealmIntegers do not have setters.
+                if (Utils.isMutableRealmInteger(field)) {
+                    continue
+                }
+                beginMethod("void", metaData.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
+                endMethod()
             }
-            // The field is neither static nor ignored
-            val fieldName = field.simpleName.toString()
-            val fieldTypeCanonicalName = field.asType().toString()
-            writer
-                    .beginMethod(
-                            fieldTypeCanonicalName,
-                            metaData.getInternalGetter(fieldName),
-                            EnumSet.of(Modifier.PUBLIC))
-                    .endMethod()
 
-            // MutableRealmIntegers do not have setters.
-            if (Utils.isMutableRealmInteger(field)) {
-                continue
+            // backlinks are final and have only a getter.
+            for (backlink in metaData.backlinkFields) {
+                beginMethod(backlink.targetFieldType, metaData.getInternalGetter(backlink.targetField), EnumSet.of(Modifier.PUBLIC))
+                endMethod()
             }
-            writer
-                    .beginMethod(
-                            "void",
-                            metaData.getInternalSetter(fieldName),
-                            EnumSet.of(Modifier.PUBLIC),
-                            fieldTypeCanonicalName,
-                            "value")
-                    .endMethod()
-        }
 
-        // backlinks are final and have only a getter.
-        for (backlink in metaData.backlinkFields) {
-            writer
-                    .beginMethod(
-                            backlink.targetFieldType,
-                            metaData.getInternalGetter(backlink.targetField),
-                            EnumSet.of(Modifier.PUBLIC))
-                    .endMethod()
+            endType()
+            close()
         }
-
-        writer.endType()
-        writer.close()
     }
 }
