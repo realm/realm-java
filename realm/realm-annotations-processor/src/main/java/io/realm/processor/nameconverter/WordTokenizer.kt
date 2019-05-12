@@ -25,30 +25,23 @@ import java.util.ArrayList
  *
  * In this implementation we treat word separators as any of the following:
  *
- *  1.
- * Anytime a `_` or `$` is encountered.
- * Example is "_FooBar" or "_Foo$Bar" which both becomes "Foo" and "Bar".
+ *  1. Anytime a `_` or `$` is encountered.
+ *     Example is "_FooBar" or "_Foo$Bar" which both becomes "Foo" and "Bar".
  *
- *  1.
- * Anytime you switch from a lower case character to an upper case character as
- * identified by a `Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
- * Example is "FooBar" which becomes "Foo" and "Bar".
+ *  2. Anytime you switch from a lower case character to an upper case character as identified by a
+ *     `Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
+ *     Example is "FooBar" which becomes "Foo" and "Bar".
  *
- *  1.
- * Anytime you switch from more than one uppercase character to a lower case one. As
- * identified by `Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
- * Example is "FOOBar" which becomes "FOO" and "Bar.
+ *  3. Anytime you switch from more than one uppercase character to a lower case one. As identified
+ *     by `Character.isUpperCase(codepoint)` and `Character.isLowerCase(codepoint)`.
+ *     Example is "FOOBar" which becomes "FOO" and "Bar.
  *
- *  1.
- * Some characters like emojiis are neither uppercase or lowercase characters, so they will
- * not trigger any of the above rules.
- * Examples are "my😁" and "MY😁" which are both treated as one word.
+ *  4. Some characters like emojiis are neither uppercase or lowercase characters, so they will
+ *     not trigger any of the above rules.
+ *     Examples are "my😁" and "MY😁" which are both treated as one word.
  *
- *  1.
- * Hungarian notation, i.e. strings starting with lowercase "m" followed by uppercase letter
- * is stripped and not considered part of any word.
- *
- *
+ *  5. Hungarian notation, i.e. strings starting with lowercase "m" followed by uppercase letter
+ *     is stripped and not considered part of any word.
  */
 class WordTokenizer {
 
