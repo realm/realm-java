@@ -67,7 +67,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     // True if model has a public no-arg constructor.
     private var hasDefaultConstructor: Boolean = false
 
-    // Reference to field used as primary key, if any
+    // Reference to field used as primary key
     var primaryKey: VariableElement? = null
         private set
 
