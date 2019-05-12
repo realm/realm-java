@@ -31,7 +31,7 @@ import javax.lang.model.type.TypeMirror
 class RealmFieldElement(val fieldReference: VariableElement,
                         /**
                          * Returns the name that Realm Core uses internally when saving data to this field.
-                         * [.getSimpleName] returns the name in the Java class.
+                         * [RealmFieldElement.getSimpleName] returns the name in the Java class.
                          */
                         val internalFieldName: String // Name used for this field internally in Realm.
 ) : VariableElement {
@@ -57,7 +57,7 @@ class RealmFieldElement(val fieldReference: VariableElement,
 
     /**
      * Returns the name for this field in the Java class.
-     * [.getInternalFieldName] returns the name used by Realm Core for the same field.
+     * [RealmFieldElement.internalFieldName] returns the name used by Realm Core for the same field.
      */
     override fun getSimpleName(): Name {
         return fieldReference.simpleName
