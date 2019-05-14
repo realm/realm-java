@@ -193,8 +193,7 @@ static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_re
     }
     else {
         if (table.find_first_int(pk_column_ndx, pk_value) != npos) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
-                                 format(PK_EXCEPTION_MSG_FORMAT, reinterpret_cast<long long>(pk_value)));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, pk_value));
         }
     }
 
