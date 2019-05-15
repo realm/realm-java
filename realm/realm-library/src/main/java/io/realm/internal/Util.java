@@ -122,6 +122,9 @@ public class Util {
         final String management = ".management";
         File managementFolder = new File(realmFolder, realmFileName + management);
         File realmFile = new File(canonicalPath);
+        // This file is not always stored here, but if it is we want to delete it.
+        // If it isn't found it is placed in a temporary folder, so no reason to delete it.
+        File fifoFile = new File(canonicalPath + ".note");
 
         // Deletes files in management directory and the directory.
         // There is no subfolders in the management directory.
@@ -150,6 +153,12 @@ public class Util {
         } else {
             realmDeleted = true;
         }
+
+        if (fifoFile.exists() && !fifoFile.delete()) {
+            RealmLog.warn(String.format(Locale.ENGLISH,".note file at %s cannot be deleted",
+                        fifoFile.getAbsolutePath()));
+        }
+
         return realmDeleted;
     }
 

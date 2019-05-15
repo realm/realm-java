@@ -70,6 +70,8 @@ std::string num_to_string(T pNumber)
 
 #define MAX_JINT 0x7FFFFFFFL
 #define MAX_JSIZE MAX_JINT
+#define MAX_JLONG 0x7fffffffffffffffLL
+#define MIN_JLONG (-MAX_JLONG-1)
 
 // TODO: Clean up those marcos. Casting with marcos reduces the readability, and it is actually breaking the C++ type
 // conversion. e.g.: You cannot cast a pointer with S64 below.
@@ -496,12 +498,32 @@ private:
 
 inline jlong to_milliseconds(const realm::Timestamp& ts)
 {
-    // From core's reference implementation aka unit test
-    // FIXME: check for overflow/underflow
     const int64_t seconds = ts.get_seconds();
     const int32_t nanoseconds = ts.get_nanoseconds();
-    const int64_t milliseconds = seconds * 1000 + nanoseconds / 1000000; // This may overflow
-    return milliseconds;
+    int64_t result_ms = seconds;
+
+    // Convert seconds to milliseconds.
+    // Clamp to MAX/MIN in case of overflow/underflow.
+    int64_t sec_min_limit = MIN_JLONG/1000LL;
+    int64_t sec_max_limit = MAX_JLONG/1000LL;
+    if (seconds < 0 && sec_min_limit > seconds) {
+        return static_cast<jlong>(MIN_JLONG);
+    } else if (seconds > 0 && sec_max_limit < seconds) {
+        return static_cast<jlong>(MAX_JLONG);
+    } else {
+        result_ms = seconds * 1000; // Here it is safe to convert to milliseconds
+    }
+
+    // Convert nanoseconds to milliseconds and add to final result.
+    // Clamp to MAX/MIN in case of the result overflowing/underflowing.
+    if (realm::util::int_add_with_overflow_detect(result_ms, nanoseconds / 1000000)) {
+        // The nanoseconds part is at max 1 sec. which means that if overflow/underflow
+        // is detected we can infer the direction from `result_ms` since we must be close
+        // to the limit boundary.
+        return static_cast<jlong>((result_ms < 0) ? MIN_JLONG : MAX_JLONG);
+    }
+
+    return static_cast<jlong>(result_ms);
 }
 
 inline realm::Timestamp from_milliseconds(jlong milliseconds)

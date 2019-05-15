@@ -1195,7 +1195,9 @@ public class TestHelper {
             return false;
         }
         try {
-            final Process process = new ProcessBuilder("/system/bin/getenforce").start();
+            final Process process = new ProcessBuilder("/system/bin/getenforce")
+                    .redirectErrorStream(true)
+                    .start();
             try {
                 final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), UTF_8));
                 //noinspection TryFinallyCanBeTryWithResources

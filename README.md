@@ -161,10 +161,10 @@ Generating the Javadoc using the command above may generate warnings. The Javado
 
 ### Upgrading Gradle Wrappers
 
- All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradleVersion` property defined in `/realm.properties` to determine Gradle Version of generating wrappers.
+ All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradleVersion` property defined in `/dependencies.list` to determine Gradle Version of generating wrappers.
 We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. When you update Gradle Wrappers, please obey the following steps.
 
- 1. Edit `gradleVersion` property in defined in `/realm.properties` to new Gradle Wrapper version.
+ 1. Edit `gradleVersion` property in defined in `/dependencies.list` to new Gradle Wrapper version.
  2. Execute `/tools/update_gradle_wrapper.sh`.
 
 ### Gotchas

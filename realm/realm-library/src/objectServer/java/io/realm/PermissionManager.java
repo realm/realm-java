@@ -29,6 +29,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
 import io.realm.internal.permissions.BasePermissionApi;
@@ -454,13 +456,14 @@ public class PermissionManager implements Closeable {
     }
 
     private void checkCallbackNotNull(PermissionManagerBaseCallback callback) {
+        //noinspection ConstantConditions
         if (callback == null) {
             throw new IllegalArgumentException("Non-null 'callback' required.");
         }
     }
 
     private boolean isReady() {
-        return managementRealm != null && permissionRealm != null; // && defaultPermissionRealm != null;
+        return managementRealm != null && permissionRealm != null && defaultPermissionRealm != null;
     }
 
     private void checkIfValid() {
@@ -588,7 +591,6 @@ public class PermissionManager implements Closeable {
                 loadingPermissions.addChangeListener(new RealmChangeListener <RealmResults<Permission>>() {
                     @Override
                     public void onChange(RealmResults <Permission> loadedPermissions) {
-                        RealmLog.error(String.format("1stCallback: Size: %s, Permissions: %s", loadedPermissions.size(), Arrays.toString(loadedPermissions.toArray())));
                         // Don't report ready until both __permission and __management Realm are there
                         if (loadedPermissions.size() > 1) {
                             loadingPermissions.removeChangeListener(this);
@@ -1012,17 +1014,34 @@ public class PermissionManager implements Closeable {
                 return true;
             }
 
-            // We are juggling two different Realms. If only one fail, expose that error directly.
-            // Otherwise try to sensible join the two error messages before returning it to the user.
-            // TODO: Should we expose the underlying Realm errors directly? What else would make sense?
+            // We are juggling three different Realms. If only one fail, expose that error directly.
+            // Otherwise try to sensible join the three error messages before returning it to the user.
             boolean managementErrorHappened;
             boolean permissionErrorHappened;
             boolean defaultPermissionErrorHappened;
             ObjectServerError managementError;
             ObjectServerError permissionError;
             ObjectServerError defaultPermissionError;
+
+            // Only hold lock while making a safe copy of current error state
             synchronized (permissionManager.errorLock) {
-                // Only hold lock while making a safe copy of current error state
+
+                // Check if errors are only intermittent. In that case, just ignore them as
+                // we expect them to resolve eventually. So no reason to cause extra work for
+                // users of the PermissionManager.
+                if (permissionManager.managementRealmError != null && isIntermittentError(permissionManager.managementRealmError)) {
+                    RealmLog.debug("Ignore Management Realm error: " + permissionManager.managementRealmError.toString());
+                    permissionManager.managementRealmError = null;
+                }
+                if (permissionManager.permissionRealmError != null && isIntermittentError(permissionManager.permissionRealmError)) {
+                    RealmLog.debug("Ignore Permission Realm error: " + permissionManager.permissionRealmError.toString());
+                    permissionManager.permissionRealmError = null;
+                }
+                if (permissionManager.defaultPermissionRealmError != null && isIntermittentError(permissionManager.defaultPermissionRealmError)) {
+                    RealmLog.debug("Ignore Default Permission Realm error: " + permissionManager.defaultPermissionRealmError.toString());
+                    permissionManager.defaultPermissionRealmError = null;
+                }
+
                 managementErrorHappened = (permissionManager.managementRealmError != null);
                 permissionErrorHappened = (permissionManager.permissionRealmError != null);
                 defaultPermissionErrorHappened = (permissionManager.defaultPermissionRealmError != null);
@@ -1032,7 +1051,7 @@ public class PermissionManager implements Closeable {
             }
 
             // Everything seems valid
-            if (!permissionErrorHappened && !managementErrorHappened) {// && !defaultPermissionErrorHappened) {
+            if (!permissionErrorHappened && !managementErrorHappened && !defaultPermissionErrorHappened) {
                 return false;
             }
 
@@ -1081,6 +1100,31 @@ public class PermissionManager implements Closeable {
             return true;
         }
 
+        private boolean isIntermittentError(@Nullable ObjectServerError error) {
+            // Unknown errors normally have a undefined category as well. All serious errors
+            // should already be covered by known categories, so expect unknown categories
+            // to be intermittent.
+            if (error == null || error.getErrorCode() == ErrorCode.UNKNOWN) {
+                return true;
+            }
+
+            switch (error.getErrorType()) {
+                case ErrorCode.Type.CONNECTION:
+                case ErrorCode.Type.HTTP:
+                case ErrorCode.Type.MISC:
+                case ErrorCode.Type.UNKNOWN:
+                    return true;
+
+                case ErrorCode.Type.AUTH:
+                case ErrorCode.Type.DEPRECATED:
+                case ErrorCode.Type.JAVA:
+                case ErrorCode.Type.PROTOCOL:
+                case ErrorCode.Type.SESSION:
+                default:
+                    return false;
+            }
+        }
+
         /**
          * Handle the status change from ROS and either call error or success callbacks.
          */
@@ -1118,10 +1162,8 @@ public class PermissionManager implements Closeable {
         // we are forced to report back UNKNOWN as error code. The real error codes
         // will be always part of the exception message.
         private ObjectServerError combineRealmErrors(Map<String, ObjectServerError> errors) {
-
             String errorMsg = combineErrorMessage(errors);
             ErrorCode errorCode = combineErrorCodes(errors);
-
             return new ObjectServerError(errorCode, errorMsg);
         }
 

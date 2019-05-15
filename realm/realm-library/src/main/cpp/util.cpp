@@ -63,6 +63,10 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
     }
+    catch(InvalidPathError& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
     catch (SharedGroup::BadVersion& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, BadVersion, ss.str());
@@ -136,6 +140,9 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ThrowException(env, IllegalState, e.what());
     }
     catch (partial_sync::ExistingSubscriptionException& e) {
+        ThrowException(env, IllegalArgument, e.what());
+    }
+    catch (partial_sync::QueryTypeMismatchException& e) {
         ThrowException(env, IllegalArgument, e.what());
     }
 #endif

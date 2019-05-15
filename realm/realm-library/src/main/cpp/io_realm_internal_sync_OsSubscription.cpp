@@ -21,6 +21,7 @@
 #include "subscription_wrapper.hpp"
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
+#include "object-store/src/sync/partial_sync.hpp"
 
 #include <results.hpp>
 #include <sync/partial_sync.hpp>
@@ -39,14 +40,18 @@ static void finalize_subscription(jlong ptr)
     delete reinterpret_cast<SubscriptionWrapper*>(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_sync_OsSubscription_nativeCreate(JNIEnv* env, jclass, jlong results_ptr, jstring j_subscription_name)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_sync_OsSubscription_nativeCreateOrUpdate(JNIEnv* env, jclass, jlong results_ptr, jstring j_subscription_name, jlong time_to_live, jboolean update)
 {
     TR_ENTER()
     try {
         const auto results = reinterpret_cast<ResultsWrapper*>(results_ptr);
         JStringAccessor subscription_name(env, j_subscription_name);
         auto key = subscription_name.is_null_or_empty() ? util::none : util::Optional<std::string>(subscription_name);
-        auto subscription = partial_sync::subscribe(results->collection(), key);
+        partial_sync::SubscriptionOptions options;
+        options.user_provided_name = key;
+        options.time_to_live_ms = util::Optional<int64_t>(time_to_live);
+        options.update = update;
+        auto subscription = partial_sync::subscribe(results->collection(), options);
         auto wrapper = new SubscriptionWrapper(std::move(subscription));
         return reinterpret_cast<jlong>(wrapper);
     }
