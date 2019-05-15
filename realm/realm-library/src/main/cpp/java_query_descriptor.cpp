@@ -95,4 +95,3 @@ JavaClass const& JavaQueryDescriptor::get_sort_desc_class() const noexcept
     static JavaClass sort_desc_class(m_env, "io/realm/internal/core/QueryDescriptor");
     return sort_desc_class;
 }
-

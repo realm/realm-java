@@ -16,21 +16,31 @@
 
 package io.realm.internal.sync;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Wrapper class describing if and how a subscription should be created when creating a query result.
  */
 public class SubscriptionAction {
-    public static final SubscriptionAction NO_SUBSCRIPTION = new SubscriptionAction(null);
-    public static final SubscriptionAction ANONYMOUS_SUBSCRIPTION = new SubscriptionAction("");
+    public static final SubscriptionAction NO_SUBSCRIPTION = new SubscriptionAction(null, 0, false);
+    public static final SubscriptionAction ANONYMOUS_SUBSCRIPTION = new SubscriptionAction("", Long.MAX_VALUE, false);
 
-    public static SubscriptionAction create(String subscriptionName) {
-        return new SubscriptionAction(subscriptionName);
+    public static SubscriptionAction create(String subscriptionName, long timeToLiveMs) {
+        return new SubscriptionAction(subscriptionName, timeToLiveMs, false);
+    }
+
+    public static SubscriptionAction update(String subscriptionName, long timeToLiveMs) {
+        return new SubscriptionAction(subscriptionName, timeToLiveMs, true);
     }
 
     private final String subscriptionName;
+    private final long timeToLiveMs;
+    private final boolean update;
 
-    private SubscriptionAction(String name) {
-        this.subscriptionName = name;
+    public SubscriptionAction(String subscriptionName, long timeToLiveMs, boolean update) {
+        this.subscriptionName = subscriptionName;
+        this.timeToLiveMs = timeToLiveMs;
+        this.update = update;
     }
 
     public boolean shouldCreateSubscriptions() {
@@ -39,5 +49,13 @@ public class SubscriptionAction {
 
     public String getName() {
         return subscriptionName;
+    }
+
+    public long getTimeToLiveMs() {
+        return timeToLiveMs;
+    }
+
+    public boolean isUpdate() {
+        return update;
     }
 }

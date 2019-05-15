@@ -563,11 +563,10 @@ public class SessionTests {
     }
 
     @Test
-    public void close_doesNotThrowIfCalledWhenRealmIsClosed() {
+    public void stop_doesNotThrowIfCalledWhenRealmIsClosed() {
         Realm realm = Realm.getInstance(configuration);
         SyncSession session = SyncManager.getSession(configuration);
         realm.close();
         session.stop();
-        assertEquals(SyncSession.State.INACTIVE, session.getState());
     }
 }

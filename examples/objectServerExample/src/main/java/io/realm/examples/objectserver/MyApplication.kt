@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2019 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package io.realm.objectserver.model;
+package io.realm.examples.objectserver
 
-import io.realm.annotations.RealmModule;
-import io.realm.entities.AllJavaTypes;
-import io.realm.entities.BacklinksSource;
-import io.realm.entities.BacklinksTarget;
+import android.app.Application
+import android.util.Log
 
-@RealmModule(classes = {PartialSyncObjectA.class, PartialSyncObjectB.class, AllJavaTypes.class, BacklinksSource.class, BacklinksTarget.class})
-public class PartialSyncModule {
+import io.realm.Realm
+import io.realm.log.RealmLog
+
+class MyApplication : Application() {
+
+    override fun onCreate() {
+        super.onCreate()
+        Realm.init(this, "ObjectServerExample/" + BuildConfig.VERSION_NAME)
+
+        // Enable more
+        if (BuildConfig.DEBUG) {
+            RealmLog.setLevel(Log.DEBUG)
+        }
+    }
 }

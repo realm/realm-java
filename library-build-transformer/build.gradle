@@ -17,14 +17,6 @@ buildscript {
     }
 }
 
-allprojects {
-    def props = new Properties()
-    props.load(new FileInputStream("${rootDir}/../realm.properties"))
-    props.each { key, val ->
-        project.ext.set(key, val)
-    }
-}
-
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim()
 
@@ -103,9 +95,4 @@ publishing {
             }
         }
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = project.gradleVersion
-    distributionType = 'all'
 }

@@ -56,7 +56,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
     try {
         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
         if (j_sort_descriptor) {
-                descriptor->append_sort(JavaQueryDescriptor(env, j_sort_descriptor).sort_descriptor());
+            descriptor->append_sort(JavaQueryDescriptor(env, j_sort_descriptor).sort_descriptor());
         }
     }
     CATCH_STD()
@@ -84,6 +84,19 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
     try {
          auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
          descriptor->append_limit(limit);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppendInclude(JNIEnv* env, jclass,
+                                                                            jlong descriptor_ptr,
+                                                                            jlong include_descriptor_ptr)
+{
+    TR_ENTER()
+    try {
+        auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
+        auto include_descriptor = reinterpret_cast<IncludeDescriptor*>(include_descriptor_ptr);
+        descriptor->append_include(*include_descriptor);
     }
     CATCH_STD()
 }

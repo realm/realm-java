@@ -244,7 +244,7 @@ public abstract class FieldDescriptor {
 
     /**
      * Store the results of compiling the field description.
-     * Subclasses call this as the last action in
+     * Subclasses call this as the last action after `compileFieldDescription` is called.
      *
      * @param finalClassName the name of the final table in the field description.
      * @param finalColumnName the name of the final column in the field description.

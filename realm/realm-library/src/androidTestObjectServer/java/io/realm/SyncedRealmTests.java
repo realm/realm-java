@@ -309,4 +309,14 @@ public class SyncedRealmTests {
         assertNotNull(sub);
         assertEquals("sub", sub.getName());
     }
+
+    @Test
+    public void includeLinkingObjects_throwsForNonQueryBasedRealms() {
+        realm = getFullySyncRealm();
+        try {
+            realm.where(AllJavaTypes.class).includeLinkingObjects(AllJavaTypes.FIELD_STRING);
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
 }

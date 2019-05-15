@@ -16,6 +16,7 @@
 
 package io.realm.internal;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -87,6 +88,7 @@ public class OsRealmConfig implements NativeObject {
         private OsSharedRealm.MigrationCallback migrationCallback = null;
         private OsSharedRealm.InitializationCallback initializationCallback = null;
         private boolean autoUpdateNotification = false;
+        private String fifoFallbackDir = "";
 
         /**
          * Initialize a {@link OsRealmConfig.Builder} with a given {@link RealmConfiguration}.
@@ -144,8 +146,13 @@ public class OsRealmConfig implements NativeObject {
         // Package private because of the OsRealmConfig needs to carry the NativeContext. This should only be called
         // by the OsSharedRealm.
         OsRealmConfig build() {
-            return new OsRealmConfig(configuration, autoUpdateNotification, schemaInfo,
+            return new OsRealmConfig(configuration, fifoFallbackDir, autoUpdateNotification, schemaInfo,
                     migrationCallback, initializationCallback);
+        }
+
+        public Builder fifoFallbackDir(File dir) {
+            this.fifoFallbackDir = dir.getAbsolutePath();
+            return this;
         }
     }
 
@@ -181,12 +188,13 @@ public class OsRealmConfig implements NativeObject {
     private final OsSharedRealm.InitializationCallback initializationCallback;
 
     private OsRealmConfig(final RealmConfiguration config,
+                          String fifoFallbackDir,
                           boolean autoUpdateNotification,
                           @Nullable OsSchemaInfo schemaInfo,
                           @Nullable OsSharedRealm.MigrationCallback migrationCallback,
                           @Nullable OsSharedRealm.InitializationCallback initializationCallback) {
         this.realmConfiguration = config;
-        this.nativePtr = nativeCreate(config.getPath(), false, true);
+        this.nativePtr = nativeCreate(config.getPath(), fifoFallbackDir,false, true);
         NativeContext.dummyContext.addReference(this);
 
         // Retrieve Sync settings first. We need syncRealmUrl to identify if this is a SyncConfig
@@ -302,7 +310,7 @@ public class OsRealmConfig implements NativeObject {
         return context;
     }
 
-    private static native long nativeCreate(String path, boolean enableCache, boolean enableFormatUpdate);
+    private static native long nativeCreate(String path, String fifoFallbackDir, boolean enableCache, boolean enableFormatUpdate);
 
     private static native void nativeSetEncryptionKey(long nativePtr, byte[] key);
 

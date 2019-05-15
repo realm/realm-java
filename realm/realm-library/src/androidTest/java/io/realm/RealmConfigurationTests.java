@@ -19,7 +19,6 @@ package io.realm;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.MoreAsserts;
 
 import org.junit.After;
 import org.junit.Before;
@@ -31,6 +30,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Set;
 
 import io.reactivex.Flowable;
@@ -58,6 +58,7 @@ import io.realm.rx.ObjectChange;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -611,12 +612,12 @@ public class RealmConfigurationTests {
 
         // Generates a different key and assigns it to the same variable.
         byte[] newKey = TestHelper.getRandomKey(67890);
-        MoreAsserts.assertNotEqual(key, newKey);
+        assertFalse(Arrays.equals(key, newKey));
         key = newKey;
-        MoreAsserts.assertEquals(key, newKey);
+        assertArrayEquals(key, newKey);
 
         // Ensures that the stored key did not change.
-        MoreAsserts.assertEquals(oldKey, config.getEncryptionKey());
+        assertArrayEquals(oldKey, config.getEncryptionKey());
     }
 
     @Test

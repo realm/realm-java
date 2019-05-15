@@ -9,7 +9,7 @@
         "start": "npm run build && NODE_TLS_REJECT_UNAUTHORIZED=0 node dist/index.js"
     },
     "devDependencies": {
-        "typescript": "2.5.3"
+        "typescript": "3.4.3"
     },
     "dependencies": {
         "realm-object-server": "%ROS_VERSION%"

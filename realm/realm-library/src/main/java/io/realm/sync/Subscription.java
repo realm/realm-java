@@ -15,6 +15,13 @@
  */
 package io.realm.sync;
 
+import java.lang.reflect.Field;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.annotations.Beta;
@@ -22,6 +29,7 @@ import io.realm.annotations.Index;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.RealmField;
 import io.realm.annotations.Required;
+import io.realm.internal.Table;
 import io.realm.internal.annotations.ObjectServer;
 
 /**
@@ -136,6 +144,47 @@ public class Subscription extends RealmObject {
     private int queryParseCounter;
 
     /**
+     * Field indicating when this subscription was created.
+     */
+    @RealmField("created_at")
+    private Date createdAt;
+
+    /**
+     * Field indicating when this subscription was last used or updated.
+     * <p>
+     * "Used" in this context means that someone resubscribed to the subscription.
+     * <p>
+     * "Updated" means that someone updated the {@link #query} or some other field part of this class.
+     * <p>
+     * This field is NOT updated whenever the results of the query changes.
+     * <p>
+     * This field plus {@link #timeToLive} defines {@link #expiresAt}.
+     */
+    @RealmField("updated_at")
+    private Date updatedAt;
+
+    /**
+     * Field indicating when it is safe to delete this subscription.
+     * <p>
+     * If {@code null} is returned, this subscription will live until manually deleted.
+     */
+    @Nullable
+    @RealmField("expires_at")
+    private Date expiresAt;
+
+    /**
+     * Field indicating for how long after last being used Realm must keep this subscription. After
+     * the TTL expires, Realm is allowed to remove the subscription.
+     * <p>
+     * If {@code null} is returned, the subscription should live forever.
+     * <p>
+     * This field plus {@link #updatedAt} defines {@link #expiresAt}.
+     */
+    @Nullable
+    @RealmField("time_to_live")
+    private Long timeToLive;
+
+    /**
      * Returns the name of the subscription.
      *
      * @return the name of the subscription.
@@ -145,12 +194,113 @@ public class Subscription extends RealmObject {
     }
 
     /**
+     * Returns when this subscription was initially created. If {@code new Date(0)} is returned,
+     * it is unknown when the subscription was created.
+     *
+     * @return when this subscription was initially created.
+     */
+    @SuppressFBWarnings({"EI_EXPOSE_REP"})
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    /**
+     * Returns when this subscription was last used or updated.
+     * <p>
+     * "Used" in this context means that someone resubscribed to the subscription.
+     * <p>
+     * "Updated" means that someone updated the {@link #query} or some other field part of this class.
+     * <p>
+     * This field is NOT updated whenever the results of the query changes.
+     * <p>
+     * This field plus {@link #timeToLive} defines {@link #expiresAt}.
+     *
+     * @return the point in time this subscription was last used or updated.
+     */
+    @SuppressFBWarnings({"EI_EXPOSE_REP"})
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    /**
+     * Returns the point in time from which Realm can safely delete this subscription. This will
+     * happen automatically.
+     * <p>
+     * Realm will attempt to cleanup expired subscriptions when the app is started or whenever
+     * any subscription is modified, there is no guarantee it will happen immediately after it
+     * expires.
+     *
+     * @return the point in time after which Realm can safely delete this subscription.
+     */
+    @SuppressFBWarnings({"EI_EXPOSE_REP"})
+    public Date getExpiresAt() {
+        if (expiresAt == null) {
+            return new Date(Long.MAX_VALUE);
+        } else {
+            return expiresAt;
+        }
+    }
+
+    /**
+     * Returns for how long the subscription must be kept alive after last being used. The value
+     * returned are in milliseconds.
+     *
+     * @return in milliseconds, for how long the subscription must be kept alive after last being used.
+     */
+    public long getTimeToLive() {
+        return (timeToLive != null) ? timeToLive : Long.MAX_VALUE;
+    }
+
+    /**
+     * Sets the time-to-live in milliseconds for this subscription. This defines for how long Realm
+     * must keep the subscription alive after last being used.
+     *
+     * @param timeToLive for how long Realm must keep the subscription after last being used.
+     * @param timeUnit time unit for {@code timeToLive}.
+     * @throws IllegalArgumentException if a negative time-to-live or null timeUnit is provided.
+     */
+    public void setTimeToLive(long timeToLive, TimeUnit timeUnit) {
+        if (timeToLive < 0) {
+            throw new IllegalArgumentException("A negative time-to-live is not allowed: " + timeToLive);
+        }
+        if (timeUnit == null) {
+            throw new IllegalArgumentException("Non-null 'timeUnit' required.");
+        }
+        this.updatedAt = new Date(System.currentTimeMillis());
+        this.timeToLive = TimeUnit.MILLISECONDS.convert(timeToLive, timeUnit);
+        long expiryTime = this.updatedAt.getTime();
+        if (expiryTime + this.timeToLive < expiryTime) {
+            expiryTime = Long.MAX_VALUE; // Clamp overflow to max
+        } else {
+            expiryTime = expiryTime + this.timeToLive;
+        }
+        this.expiresAt = new Date(expiryTime);
+    }
+
+    /**
      * Returns a textual description of the query that created this subscription.
      *
      * @return a textual description of the query.
      */
     public String getQueryDescription() {
         return query;
+    }
+
+    /**
+     * Replaces the current query controlled by this subscription with a new query.
+     *
+     * @param query the query which should replace the current one.
+     */
+    public void setQuery(RealmQuery query) {
+        if (query == null) {
+            throw new IllegalArgumentException("Non-null 'query' required");
+        }
+        if (!query.getTypeQueried().equals(getQueryClassName())) {
+            throw new IllegalArgumentException(String.format("It is only allowed to replace a query with another query on the same type." +
+                    "Existing query: '%s'. New query: '%s'", getQueryClassName(), query.getTypeQueried()));
+        }
+        this.query = query.getDescription();
+        this.updatedAt = new Date();
     }
 
     /**
@@ -219,10 +369,13 @@ public class Subscription extends RealmObject {
     public String toString() {
         return "Subscription{" +
                 "name='" + name + '\'' +
-                ", status=" + getState().toString() +
+                ", status=" + status +
                 ", errorMessage='" + errorMessage + '\'' +
-                ", className='" + getQueryClassName() + '\'' +
                 ", query='" + query + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", expiresAt=" + expiresAt +
+                ", timeToLive=" + timeToLive +
                 '}';
     }
 }

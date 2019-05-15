@@ -4,6 +4,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -242,6 +243,7 @@ public class TrustManagerCertificateValidationTests {
         assertFalse(SyncManager.sslVerifyCallback(serverAddress, pem_depth0, 0));
     }
 
+    @Ignore("FIXME: Certificate expired")
     @Test
     public void sslVerifyCallback_shouldVerifyHostname() {
         // simulating the following certificate chain
