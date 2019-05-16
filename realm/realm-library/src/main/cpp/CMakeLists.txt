@@ -104,9 +104,7 @@ include(RealmCore)
 
 use_realm_core(${build_SYNC} "${REALM_CORE_DIST_DIR}" "${CORE_SOURCE_PATH}")
 
-# Download openssl lib
-#string(TOLOWER "${CMAKE_BUILD_TYPE}" openssl_build_TYPE)
-set(openssl_build_TYPE "release")
+# Download OpenSSL lib
 # FIXME Read the openssl version from core when the core/sync release has that information.
 set(openssl_VERSION "1.1.1b")
 set (openssl_FILENAME "openssl.tgz")
@@ -119,6 +117,11 @@ message(STATUS "Uncompressing OpenSSL...")
 execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}" WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 message(STATUS "Unzipped OpenSSL in ${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
 message(STATUS "Importing OpenSSL...")
+if(EXISTS "${PROJECT_BINARY_DIR}/lib/cmake/openSSL/OpenSSLConfig.cmake")
+    message(STATUS "Found OpenSSL Cmake file")
+else()
+    message(STATUS "WTF. We just unzipped it.")
+endif()
 include(${PROJECT_BINARY_DIR}/lib/cmake/openSSL/OpenSSLConfig.cmake)
 get_target_property(openssl_include_DIR OpenSSL::Crypto INTERFACE_INCLUDE_DIRECTORIES)
 get_target_property(crypto_LIB OpenSSL::Crypto IMPORTED_LOCATION)
