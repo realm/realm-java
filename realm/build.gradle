@@ -34,7 +34,6 @@ allprojects {
     projectDependencies.each { key, val ->
         project.ext.set(key, val)
     }
-    // FIXME: Should be 16. Set to 21 currently due to OpenSSL
     project.ext.minSdkVersion = 16
     project.ext.compileSdkVersion = 28
     project.ext.buildToolsVersion = projectDependencies.get("ANDROID_BUILD_TOOLS")
