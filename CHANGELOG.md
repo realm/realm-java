@@ -2,7 +2,7 @@
 
 ### Breaking Changes
 * Removed support for the MIPS CPU architecture.
-* MinSdk has been raised from 9 to 16
+* MinSdk has been raised from 9 to 16.
 
 ### Enhancements
 * The native code is now built with `-fstack-protector-strong`. This has no security impact when using Realm Java, but some security tools only analyzed the C++ code and reported the missing flag as a security hole. [#4553](https://github.com/realm/realm-java/issues/4553)
@@ -11,13 +11,14 @@
 * None
 
 ### Compatibility
-* Realm Object Server: 3.11.0 or later.
+* Realm Object Server: 3.21.0 or later.
 * File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
 * APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
 
 ### Internal
 * The NDK has been upgraded from NDK r10e to r18b.
-* OpenSSL used by Realms encryption layer has been upgraded from 1.0.2k to 1.1.1a
+* The compiler used for C++ code has changed from GCC to Clang.
+* OpenSSL used by Realms encryption layer has been upgraded from 1.0.2k to 1.1.1b.
 
 
 ## 5.12.0(YYYY-MM-DD)
