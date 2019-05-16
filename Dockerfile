@@ -67,13 +67,11 @@ RUN yes | sdkmanager \
 # Install the NDK
 RUN mkdir /opt/android-ndk-tmp && \
     cd /opt/android-ndk-tmp && \
-    wget -q http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin -O android-ndk.bin && \
-    chmod a+x ./android-ndk.bin && \
-    ./android-ndk.bin && \
-    mv android-ndk-r10e /opt/android-ndk && \
+    wget -q https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip -O android-ndk.zip && \
+    unzip android-ndk.zip && \
+    mv android-ndk-r18b /opt/android-ndk && \
     rm -rf /opt/android-ndk-tmp && \
-    chmod -R a+rX /opt/android-ndk && \
-    echo "Pkg.Desc = Android NDK\nPkg.Revision = 10.0.0" > /opt/android-ndk/source.properties
+    chmod -R a+rX /opt/android-ndk
 
 # Make the SDK universally writable
 RUN chmod -R a+rwX ${ANDROID_HOME}
