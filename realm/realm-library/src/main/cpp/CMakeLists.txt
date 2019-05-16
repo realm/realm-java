@@ -114,7 +114,7 @@ message(STATUS "Downloading OpenSSL...")
 file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
 
 message(STATUS "Uncompressing OpenSSL...")
-execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}" WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
+execute_process(COMMAND ${CMAKE_COMMAND} -E tar -xvfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}" WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 message(STATUS "Unzipped OpenSSL in ${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
 message(STATUS "Importing OpenSSL...")
 if(EXISTS "${PROJECT_BINARY_DIR}/lib/cmake/openSSL/OpenSSLConfig.cmake")
