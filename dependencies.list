@@ -1,11 +1,11 @@
 # Realm Sync release used by Realm Java (This includes Realm Core)
 # https://github.com/realm/realm-sync/releases
 REALM_SYNC_VERSION=4.4.2-ndk18.1
-REALM_SYNC_SHA256=
+REALM_SYNC_SHA256=34e3e06ca4bedfdfa7a6ce8027882cf098c659e8eef54901fc33a73bcc12f3c7
 
 # Object Server Release used by Integration tests. Installed using NPM.
 # Use `npm view realm-object-server versions` to get a list of available versions.
-REALM_OBJECT_SERVER_VERSION=3.21.0-rc1
+REALM_OBJECT_SERVER_VERSION=3.21.1
 
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=3.3.2

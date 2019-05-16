@@ -161,19 +161,20 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
                                                         "(ILjava/lang/Long;Ljava/lang/String;)V");
             JavaGlobalRef java_session_object_ref(env, session_object);
 
-            // FIXME
-            std::function<void(std::error_code)> callback = [&java_session_object_ref, callback_id](std::error_code error) {
-                JNIEnv* env = JniUtils::get_env(true);
-                JavaLocalRef<jobject> java_error_code;
-                JavaLocalRef<jstring> java_error_message;
-                if (error != std::error_code{}) {
-                    java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
-                    java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
-                }
-                env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method,
-                                    callback_id, java_error_code.get(), java_error_message.get());
-            };
-            bool listener_registered = session->wait_for_download_completion(callback);
+            bool listener_registered =
+                    session->wait_for_download_completion([session_ref = &java_session_object_ref, callback_id](std::error_code error) {
+                        JNIEnv* env = JniUtils::get_env(true);
+                        JavaLocalRef<jobject> java_error_code;
+                        JavaLocalRef<jstring> java_error_message;
+                        if (error != std::error_code{}) {
+                            java_error_code =
+                                    JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
+                            java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
+                        }
+                        env->CallVoidMethod(session_ref->get(), java_notify_result_method,
+                                            callback_id, java_error_code.get(), java_error_message.get());
+                    });
+
             return to_jbool(listener_registered);
         }
     }
@@ -197,19 +198,18 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForUploadCompleti
                                                         "(ILjava/lang/Long;Ljava/lang/String;)V");
             JavaGlobalRef java_session_object_ref(env, session_object);
 
-            // FIXME
             bool listener_registered =
-                session->wait_for_upload_completion([&java_session_object_ref, callback_id](std::error_code error) {
-                    JNIEnv* env = JniUtils::get_env(true);
-                    JavaLocalRef<jobject> java_error_code;
-                    JavaLocalRef<jstring> java_error_message;
-                    if (error != std::error_code{}) {
-                        java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
-                        java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
-                    }
-                    env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method,
-                                        callback_id, java_error_code.get(), java_error_message.get());
-                });
+                    session->wait_for_upload_completion([session_ref = &java_session_object_ref, callback_id](std::error_code error) {
+                        JNIEnv* env = JniUtils::get_env(true);
+                        JavaLocalRef<jobject> java_error_code;
+                        JavaLocalRef<jstring> java_error_message;
+                        if (error != std::error_code{}) {
+                            java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
+                            java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
+                        }
+                        env->CallVoidMethod(session_ref->get(), java_notify_result_method,
+                                            callback_id, java_error_code.get(), java_error_message.get());
+                    });
 
             return to_jbool(listener_registered);
         }
