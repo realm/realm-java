@@ -117,7 +117,7 @@ file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
 
 message(STATUS "Uncompressing OpenSSL...")
 execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}" WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
-
+message(STATUS "Unzipped OpenSSL in ${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
 message(STATUS "Importing OpenSSL...")
 include(${PROJECT_BINARY_DIR}/lib/cmake/openSSL/OpenSSLConfig.cmake)
 get_target_property(openssl_include_DIR OpenSSL::Crypto INTERFACE_INCLUDE_DIRECTORIES)
