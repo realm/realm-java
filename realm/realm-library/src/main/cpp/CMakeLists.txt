@@ -152,19 +152,20 @@ endif()
 #     -Wno-missing-field-initializers disable in object store as well.
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
-    -Wno-missing-field-initializers -Wno-uninitialized")
+    -Wno-missing-field-initializers")
 set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fPIC -frtti -fvisibility=hidden -std=c++14 -fsigned-char")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
-# There might be an issue with -Os of ndk gcc 4.9. It will hang the encryption related tests.
-# And this issue doesn't seem to impact the core compiling.
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
-#-ggdb doesn't play well with -flto
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -ffunction-sections -fdata-sections -DNDEBUG")
+# -ggdb doesn't play well with -flto
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -Og")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
-# Set link flags
+# Set Linker flags flags
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -dead_strip -flto") # LLD doesn't work yet
+endif()
 if (build_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")
 endif()
