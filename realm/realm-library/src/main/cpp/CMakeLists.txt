@@ -114,7 +114,7 @@ message(STATUS "Downloading OpenSSL...")
 file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
 
 message(STATUS "Uncompressing OpenSSL...")
-execute_process(COMMAND ${CMAKE_COMMAND} -E tar -xvfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}" WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
+execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}" WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 message(STATUS "Importing OpenSSL...")
 include(${PROJECT_BINARY_DIR}/lib/cmake/OpenSSL/OpenSSLConfig.cmake)
 get_target_property(openssl_include_DIR OpenSSL::Crypto INTERFACE_INCLUDE_DIRECTORIES)
@@ -126,16 +126,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}
     ${jni_headers_PATH}
     ${CMAKE_SOURCE_DIR}/object-store/src)
-
-set(ANDROID_STL "c++_static")
-set(ANDROID_NO_UNDEFINED OFF)
-set(ANDROID_SO_UNDEFINED ON)
-
-if (ARMEABI)
-    set(ABI_CXX_FLAGS "-mthumb")
-elseif (ARMEABI_V7A)
-    set(ABI_CXX_FLAGS "-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16")
-endif()
 
 # Hack the memmove bug on Samsung device.
 if (ARMEABI OR ARMEABI_V7A)
@@ -153,18 +143,18 @@ endif()
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
     -Wno-missing-field-initializers")
-set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fPIC -frtti -fvisibility=hidden -std=c++14 -fsigned-char")
+set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fpic -frtti -fvisibility=hidden -fvisibility-inlines-hidden -fsigned-char -std=c++14")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -ffunction-sections -fdata-sections -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-Os -ffunction-sections -fdata-sections -fomit-frame-pointer -g0")
 # -ggdb doesn't play well with -flto
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -Og")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set Linker flags flags
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -dead_strip -flto") # LLD doesn't work yet
+    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,--gc-sections -Wl,--icf=safe")
 endif()
 if (build_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")

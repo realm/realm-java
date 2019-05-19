@@ -59,7 +59,7 @@ android {
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
-                    // armeabi and MIPS are no longer supported by the NDK
+                    // "armeabi" and "mips" are no longer supported by the NDK
                     abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
                 }
             }
