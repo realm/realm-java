@@ -147,14 +147,14 @@ set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HA
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -ffunction-sections -fdata-sections -fomit-frame-pointer -g0")
+set(CMAKE_CXX_FLAGS_RELEASE "-Oz -ffunction-sections -fdata-sections -fomit-frame-pointer -g0")
 # -ggdb doesn't play well with -flto
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -Og")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set Linker flags flags
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,--gc-sections -Wl,--icf=safe")
+    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,--gc-sections")
 endif()
 if (build_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")
