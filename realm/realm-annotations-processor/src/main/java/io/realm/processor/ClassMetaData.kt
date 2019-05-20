@@ -54,15 +54,14 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     val simpleJavaClassName = SimpleClassName(classType.simpleName) // Model class simple name as defined in Java.
     val fields = ArrayList<RealmFieldElement>() // List of all fields in the class except those @Ignored.
     private val indexedFields = ArrayList<RealmFieldElement>() // list of all fields marked @Index.
-    private val objectReferenceFields = ArrayList<RealmFieldElement>() // List of all fields that reference a Realm Object either directly or in a List
+    private val _objectReferenceFields = ArrayList<RealmFieldElement>() // List of all fields that reference a Realm Object either directly or in a List
     private val basicTypeFields = ArrayList<RealmFieldElement>() // List of all fields that reference basic types, i.e. no references to other Realm Objects
     private val backlinks = LinkedHashSet<Backlink>()
     private val nullableFields = LinkedHashSet<RealmFieldElement>() // Set of fields which can be nullable
     private val nullableValueListFields = LinkedHashSet<RealmFieldElement>() // Set of fields whose elements can be nullable
 
     // package name for model class.
-    lateinit var packageName: String
-        private set
+    private lateinit var packageName: String
 
     // True if model has a public no-arg constructor.
     private var hasDefaultConstructor: Boolean = false
@@ -79,11 +78,28 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     lateinit var internalClassName: String
         private set
 
-    private val validPrimaryKeyTypes: List<TypeMirror>
-    private val validListValueTypes: List<TypeMirror>
-    private val typeUtils: Types
-    private val elements: Elements
-    lateinit var defaultFieldNameFormatter: NameConverter
+    private val validPrimaryKeyTypes: List<TypeMirror> = Arrays.asList(
+            typeMirrors.STRING_MIRROR,
+            typeMirrors.PRIMITIVE_LONG_MIRROR,
+            typeMirrors.PRIMITIVE_INT_MIRROR,
+            typeMirrors.PRIMITIVE_SHORT_MIRROR,
+            typeMirrors.PRIMITIVE_BYTE_MIRROR
+    )
+    private val validListValueTypes: List<TypeMirror> = Arrays.asList(
+            typeMirrors.STRING_MIRROR,
+            typeMirrors.BINARY_MIRROR,
+            typeMirrors.BOOLEAN_MIRROR,
+            typeMirrors.LONG_MIRROR,
+            typeMirrors.INTEGER_MIRROR,
+            typeMirrors.SHORT_MIRROR,
+            typeMirrors.BYTE_MIRROR,
+            typeMirrors.DOUBLE_MIRROR,
+            typeMirrors.FLOAT_MIRROR,
+            typeMirrors.DATE_MIRROR
+    )
+    private val typeUtils: Types = env.typeUtils
+    private val elements: Elements = env.elementUtils
+    private lateinit var defaultFieldNameFormatter: NameConverter
 
     private val ignoreKotlinNullability: Boolean
 
@@ -111,30 +127,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         get() = classType
 
     init {
-        typeUtils = env.typeUtils
-        elements = env.elementUtils
 
-
-        validPrimaryKeyTypes = Arrays.asList(
-                typeMirrors.STRING_MIRROR,
-                typeMirrors.PRIMITIVE_LONG_MIRROR,
-                typeMirrors.PRIMITIVE_INT_MIRROR,
-                typeMirrors.PRIMITIVE_SHORT_MIRROR,
-                typeMirrors.PRIMITIVE_BYTE_MIRROR
-        )
-
-        validListValueTypes = Arrays.asList(
-                typeMirrors.STRING_MIRROR,
-                typeMirrors.BINARY_MIRROR,
-                typeMirrors.BOOLEAN_MIRROR,
-                typeMirrors.LONG_MIRROR,
-                typeMirrors.INTEGER_MIRROR,
-                typeMirrors.SHORT_MIRROR,
-                typeMirrors.BYTE_MIRROR,
-                typeMirrors.DOUBLE_MIRROR,
-                typeMirrors.FLOAT_MIRROR,
-                typeMirrors.DATE_MIRROR
-        )
 
         for (element in classType.enclosedElements) {
             if (element is ExecutableElement) {
@@ -170,9 +163,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     /**
      * Returns all persistable fields that reference other Realm objects.
      */
-    fun getObjectReferenceFields(): List<RealmFieldElement> {
-        return Collections.unmodifiableList(objectReferenceFields)
-    }
+    val objectReferenceFields: List<RealmFieldElement>
+        get() = _objectReferenceFields.toList()
 
     /**
      * Returns all persistable fields that contain a basic type, this include lists of primitives.
@@ -271,7 +263,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
      * @param moduleMetaData pre-processed module meta data.
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
-    fun generate(moduleMetaData: ModuleMetaData?): Boolean {
+    fun generate(moduleMetaData: ModuleMetaData): Boolean {
         // Get the package of the class
         val enclosingElement = classType.enclosingElement
         if (enclosingElement.kind != ElementKind.PACKAGE) {
@@ -291,7 +283,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
         // Determine naming rules for this class
         val qualifiedClassName = QualifiedClassName("$packageName.$simpleJavaClassName")
-        val moduleClassNameFormatter = moduleMetaData!!.getClassNameFormatter(qualifiedClassName)
+        val moduleClassNameFormatter = moduleMetaData.getClassNameFormatter(qualifiedClassName)
         defaultFieldNameFormatter = moduleMetaData.getFieldNameFormatter(qualifiedClassName)
 
         val realmClassAnnotation = classType.getAnnotation(RealmClass::class.java)
@@ -340,8 +332,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     // Returns true if all elements could be categorized and false otherwise.
     private fun categorizeClassElements(): Boolean {
         for (element in classType.enclosedElements) {
-            val elementKind = element.kind
-            when (elementKind) {
+            when (element.kind) {
                 ElementKind.CONSTRUCTOR -> if (Utils.isDefaultConstructor(element)) {
                     hasDefaultConstructor = true
                 }
@@ -536,7 +527,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         if (Utils.isRealmList(field)) {
             val hasRequiredAnnotation = hasRequiredAnnotation(field)
             val listGenericType = (field.asType() as DeclaredType).typeArguments
-            val containsRealmModelClasses = (!listGenericType.isEmpty() && Utils.isRealmModel(listGenericType[0]))
+            val containsRealmModelClasses = (listGenericType.isNotEmpty() && Utils.isRealmModel(listGenericType[0]))
 
             // @Required not allowed if the list contains Realm model classes
             if (hasRequiredAnnotation && containsRealmModelClasses) {
@@ -587,7 +578,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         // Standard field that appears to be valid (more fine grained checks might fail later).
         fields.add(field)
         if (Utils.isRealmModel(field) || Utils.isRealmModelList(field)) {
-            objectReferenceFields.add(field)
+            _objectReferenceFields.add(field)
         } else {
             basicTypeFields.add(field)
         }

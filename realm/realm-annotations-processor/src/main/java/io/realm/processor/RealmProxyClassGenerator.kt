@@ -1399,10 +1399,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                 // Copy all object references or lists-of-objects
                 emitEmptyLine()
-                if (metadata.getObjectReferenceFields().isNotEmpty()) {
+                if (metadata.objectReferenceFields.isNotEmpty()) {
                     emitSingleLineComment("Finally add all fields that reference other Realm Objects, either directly or through a list")
                 }
-                for (field in metadata.getObjectReferenceFields()) {
+                for (field in metadata.objectReferenceFields) {
                     val fieldType = field.asType().toString()
                     val fieldName = field.simpleName.toString()
                     val getter = metadata.getInternalGetter(fieldName)
