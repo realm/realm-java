@@ -101,7 +101,6 @@ create_javah(TARGET jni_headers
 )
 
 include(RealmCore)
-
 use_realm_core(${build_SYNC} "${REALM_CORE_DIST_DIR}" "${CORE_SOURCE_PATH}")
 
 # Download OpenSSL lib
@@ -143,18 +142,18 @@ endif()
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
     -Wno-missing-field-initializers")
-set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fpic -frtti -fvisibility=hidden -fvisibility-inlines-hidden -fsigned-char -std=c++14")
+set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DNDEBUG -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections  -pthread -frtti -fvisibility=hidden -fvisibility-inlines-hidden -fsigned-char -std=c++14")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
-set(CMAKE_CXX_FLAGS_RELEASE "-Oz -ffunction-sections -fdata-sections -fomit-frame-pointer -g0")
+set(CMAKE_CXX_FLAGS_RELEASE "-Oz")
 # -ggdb doesn't play well with -flto
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -Og")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set Linker flags flags
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,--gc-sections")
+    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,-gc-sections")
 endif()
 if (build_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")
