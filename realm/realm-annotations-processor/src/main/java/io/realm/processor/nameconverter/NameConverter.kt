@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.processor.nameconverter;
+package io.realm.processor.nameconverter
 
 /**
  * Interface for converters that can implement a given naming policy.
  *
  * @see io.realm.annotations.RealmNamingPolicy
  */
-public interface NameConverter {
+interface NameConverter {
     /**
-     * Converts the {@code name} so it matches the {@link io.realm.annotations.RealmNamingPolicy}.
+     * Converts the `name` so it matches the [io.realm.annotations.RealmNamingPolicy].
      *
      * @param name string to convert.
      * @return the converted string.
      */
-    String convert(String name);
+    fun convert(name: String): String
 }

@@ -19,6 +19,7 @@ package io.realm;
 import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
@@ -50,6 +51,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
+    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
     public void trustedRootCA() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
@@ -234,6 +236,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
+    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
     public void combiningTrustedRootCA_and_disableSSLVerification() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";
@@ -286,6 +289,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
     //            then import the certificate from the device (Settings/Security/Install from storage)
     @Test
     @RunTestInLooperThread
+    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
     public void sslVerifyCallback_isUsed() throws InterruptedException {
         String username = UUID.randomUUID().toString();
         String password = "password";

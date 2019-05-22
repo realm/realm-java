@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.processor.nameconverter;
+package io.realm.processor.nameconverter
 
 /**
  * Converter that converts input to "PascalCase".
  */
-public class PascalCaseConverter implements NameConverter {
+class PascalCaseConverter : NameConverter {
 
-    private final WordTokenizer tokenizer = new WordTokenizer();
+    private val tokenizer = WordTokenizer()
 
-    @Override
-    public String convert(String name) {
-        String[] words = tokenizer.split(name);
-        StringBuilder output = new StringBuilder();
-        for (int i = 0; i < words.length; i++) {
-            String word = words[i].toLowerCase();
-            int codepoint = word.codePointAt(0);
-            output.appendCodePoint(Character.toUpperCase(codepoint));
-            output.append(word.substring(Character.charCount(codepoint)));
+    override fun convert(name: String): String {
+        val words = tokenizer.split(name)
+        val output = StringBuilder()
+        for (i in words.indices) {
+            val word = words[i].toLowerCase()
+            val codepoint = word.codePointAt(0)
+            output.appendCodePoint(Character.toUpperCase(codepoint))
+            output.append(word.substring(Character.charCount(codepoint)))
         }
 
-        return output.toString();
+        return output.toString()
     }
 }
