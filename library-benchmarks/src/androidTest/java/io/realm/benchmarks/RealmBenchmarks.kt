@@ -16,14 +16,10 @@
 
 package io.realm.benchmarks
 
-import android.os.SystemClock
 import androidx.benchmark.BenchmarkRule
 import androidx.benchmark.measureRepeated
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
-
-import org.junit.runner.RunWith
-
+import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
 import io.realm.RealmConfiguration
 import io.realm.benchmarks.entities.AllTypes
@@ -31,6 +27,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class RealmBenchmarks {
