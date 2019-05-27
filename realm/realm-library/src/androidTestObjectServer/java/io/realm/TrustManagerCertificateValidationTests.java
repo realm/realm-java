@@ -27,6 +27,7 @@ public class TrustManagerCertificateValidationTests {
     //            adb push <realm-java>/tools/sync_test_server/keys/android_test_certificate.crt /sdcard/
     //            then import the certificate from the device (Settings/Security/Install from storage)
     @Test
+    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
     public void sslVerifyCallback_certificateChainWithRootCAInstalledShouldValidate() {
         // simulating the following certificate chain
         // ---
