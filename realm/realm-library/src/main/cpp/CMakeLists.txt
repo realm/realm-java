@@ -107,7 +107,7 @@ use_realm_core(${build_SYNC} "${REALM_CORE_DIST_DIR}" "${CORE_SOURCE_PATH}")
 # FIXME Read the openssl version from core when the core/sync release has that information.
 set(openssl_VERSION "1.1.1b")
 set(openssl_FILENAME "openssl.tgz")
-set(openssl_URL "http://static.realm.io/downloads/openssl/${openssl_VERSION}/Android/${ANDROID_ABI}/${openssl_FILENAME}")
+set(openssl_URL "https://static.realm.io/downloads/openssl/${openssl_VERSION}/Android/${ANDROID_ABI}/${openssl_FILENAME}")
 
 message(STATUS "Downloading OpenSSL...")
 file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
@@ -142,11 +142,11 @@ endif()
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
     -Wno-missing-field-initializers")
-set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DNDEBUG -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections  -pthread -frtti -fvisibility=hidden -fvisibility-inlines-hidden -fsigned-char -std=c++14")
+set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections  -pthread -frtti -fvisibility=hidden -fvisibility-inlines-hidden -fsigned-char -std=c++14")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
-set(CMAKE_CXX_FLAGS_RELEASE "-Oz")
+set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -Oz")
 # -ggdb doesn't play well with -flto
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -Og")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
