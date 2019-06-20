@@ -20,16 +20,14 @@ import android.annotation.SuppressLint;
 import android.os.Looper;
 
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Locale;
 
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.realm.annotations.Beta;
 import io.realm.internal.CheckedRow;
-import io.realm.internal.ColumnInfo;
-import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -39,8 +37,6 @@ import io.realm.internal.Util;
 import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
 import io.realm.rx.CollectionChange;
-
-import static io.realm.RealmFieldType.LIST;
 
 /**
  * This class holds all the matches of a {@link RealmQuery} for a given Realm. The objects are not copied from
@@ -747,6 +743,22 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         } else {
             throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
         }
+    }
+
+    /**
+     * Returns a JSON representation of the matches of a {@link RealmQuery}. Cycles will be returned as row indices.
+     *
+     * This is a helper method used to inspect data, or for debugging purpose, this method could pull a large string which
+     * could cause an OutOfMemory error.
+     *
+     * @return string representation of a JSON array containing entries of the resulting {@link RealmQuery}.
+     */
+    @Beta // until https://github.com/realm/realm-core/issues/3305 is fixed
+    public String asJSON() {
+        // maxDepth = -1:
+        // Follow links to infinite depth, but only follow each link exactly once.
+        // Cycle links are printed as a simple sequence of integers of row indexes in the link column.
+        return osResults.toJSON(-1);
     }
 
     private void checkNonEmptyFieldName(String fieldName) {

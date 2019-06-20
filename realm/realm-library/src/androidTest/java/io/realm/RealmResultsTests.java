@@ -19,6 +19,7 @@ package io.realm;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,16 +27,21 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.skyscreamer.jsonassert.JSONAssert;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
+import io.realm.entities.CyclicType;
 import io.realm.entities.DefaultValueOfField;
 import io.realm.entities.Dog;
 import io.realm.entities.MappedAllJavaTypes;
@@ -1685,4 +1691,240 @@ public class RealmResultsTests extends CollectionTests {
             dynamicRealm.close();
         }
     }
+
+    @Test
+    public void asJSON() throws JSONException {
+        Date date = Calendar.getInstance().getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT")); // Core return dates in UTC time
+        String now = sdf.format(date);
+
+        realm.beginTransaction();
+
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        Dog dog1 = realm.createObject(Dog.class);
+        Dog dog2 = realm.createObject(Dog.class);
+        Dog dog3 = realm.createObject(Dog.class);
+
+        dog1.setName("dog1");
+        dog1.setAge(1);
+        dog1.setBirthday(date);
+        dog1.setHasTail(true);
+        dog1.setHeight(1.1f);
+        dog1.setWeight(10.1f);
+
+        dog2.setName("dog2");
+        dog2.setAge(2);
+        dog2.setBirthday(date);
+        dog2.setHasTail(false);
+        dog2.setHeight(2.1f);
+        dog2.setWeight(20.1f);
+
+        dog3.setName("dog3");
+        dog3.setAge(3);
+        dog3.setBirthday(date);
+        dog3.setHasTail(true);
+        dog3.setHeight(3.1f);
+        dog3.setWeight(30.1f);
+
+        Owner owner = realm.createObject(Owner.class);
+        owner.setName("Dog owner 1");
+        dog3.setOwner(owner);
+
+        allTypes.setColumnString("alltypes1");
+        allTypes.setColumnLong(1337L);
+        allTypes.setColumnFloat(3.14f);
+        allTypes.setColumnDouble(0.89123);
+        allTypes.setColumnBoolean(false);
+        allTypes.setColumnDate(date);
+        allTypes.setColumnBinary(new byte[]{1, 2, 3});
+        allTypes.setColumnRealmObject(dog1);
+        allTypes.getColumnRealmList().add(dog2);
+        allTypes.getColumnRealmList().add(dog3);
+        allTypes.getColumnStringList().add("Foo");
+        allTypes.getColumnStringList().add("Bar");
+        allTypes.getColumnBooleanList().add(false);
+        allTypes.getColumnBooleanList().add(true);
+        allTypes.getColumnLongList().add(1000L);
+        allTypes.getColumnLongList().add(2000L);
+        allTypes.getColumnDoubleList().add(1.123);
+        allTypes.getColumnDoubleList().add(5.321);
+        allTypes.getColumnFloatList().add(0.12f);
+        allTypes.getColumnFloatList().add(0.13f);
+        allTypes.getColumnDateList().add(date);
+        allTypes.getColumnDateList().add(date);
+
+        AllTypes allTypes2 = realm.createObject(AllTypes.class);
+        allTypes2.setColumnString("alltypes2");
+        realm.commitTransaction();
+
+        RealmResults<AllTypes> all = realm.where(AllTypes.class)
+                .equalTo("columnString", "alltypes1").findAll();
+        assertEquals(1, all.size());
+        String json = all.asJSON();
+        final String expectedJSON = "[\n" +
+                "    {\n" +
+                "        \"columnString\": \"alltypes1\",\n" +
+                "        \"columnLong\": 1337,\n" +
+                "        \"columnFloat\": 3.1400001,\n" +
+                "        \"columnDouble\": 0.89122999999999997,\n" +
+                "        \"columnBoolean\": false,\n" +
+                "        \"columnDate\": \"" + now + "\",\n" +
+                "        \"columnBinary\": \"010203\",\n" +
+                "        \"columnMutableRealmInteger\": 0,\n" +
+                "        \"columnRealmObject\": [\n" +
+                "            {\n" +
+                "                \"name\": \"dog1\",\n" +
+                "                \"age\": 1,\n" +
+                "                \"height\": 1.1,\n" +
+                "                \"weight\": 10.100000381469727,\n" +
+                "                \"hasTail\": true,\n" +
+                "                \"birthday\": \"" + now + "\",\n" +
+                "                \"owner\": []\n" +
+                "            }\n" +
+                "        ],\n" +
+                "        \"columnRealmList\": [\n" +
+                "            {\n" +
+                "                \"name\": \"dog2\",\n" +
+                "                \"age\": 2,\n" +
+                "                \"height\": 2.0999999,\n" +
+                "                \"weight\": 20.100000381469727,\n" +
+                "                \"hasTail\": false,\n" +
+                "                \"birthday\": \"" + now + "\",\n" +
+                "                \"owner\": []\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"name\": \"dog3\",\n" +
+                "                \"age\": 3,\n" +
+                "                \"height\": 3.0999999,\n" +
+                "                \"weight\": 30.100000381469727,\n" +
+                "                \"hasTail\": true,\n" +
+                "                \"birthday\": \"" + now + "\",\n" +
+                "                \"owner\": [\n" +
+                "                    {\n" +
+                "                        \"name\": \"Dog owner 1\",\n" +
+                "                        \"dogs\": [],\n" +
+                "                        \"cat\": []\n" +
+                "                    }\n" +
+                "                ]\n" +
+                "            }\n" +
+                "        ],\n" +
+                "        \"columnStringList\": [\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": \"Foo\"\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": \"Bar\"\n" +
+                "            }\n" +
+                "        ],\n" +
+                "        \"columnBinaryList\": [],\n" +
+                "        \"columnBooleanList\": [\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": false\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": true\n" +
+                "            }\n" +
+                "        ],\n" +
+                "        \"columnLongList\": [\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": 1000\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": 2000\n" +
+                "            }\n" +
+                "        ],\n" +
+                "        \"columnDoubleList\": [\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": 1.123\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": 5.3209999999999997\n" +
+                "            }\n" +
+                "        ],\n" +
+                "        \"columnFloatList\": [\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": 0.12\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": 0.13\n" +
+                "            }\n" +
+                "        ],\n" +
+                "        \"columnDateList\": [\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": \"" + now + "\"\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"!ARRAY_VALUE\": \"" + now + "\"\n" +
+                "            }\n" +
+                "        ]\n" +
+                "    }\n" +
+                "]";
+        JSONAssert.assertEquals(expectedJSON, json, false);
+    }
+
+    @Test
+    public void asJSON_cycles() throws JSONException {
+        Date date = Calendar.getInstance().getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT")); // Core return dates in UTC time
+        String now = sdf.format(date);
+
+        CyclicType oneCyclicType = new CyclicType();
+        oneCyclicType.setName("One");
+        oneCyclicType.setDate(date);
+
+        CyclicType anotherCyclicType = new CyclicType();
+        anotherCyclicType.setName("Two");
+        anotherCyclicType.setDate(date);
+
+        oneCyclicType.setObject(anotherCyclicType);
+        anotherCyclicType.setObject(oneCyclicType);
+
+        realm.beginTransaction();
+        realm.insert(Arrays.asList(oneCyclicType, anotherCyclicType));
+        realm.commitTransaction();
+
+        RealmResults<CyclicType> realmObjects = realm.where(CyclicType.class).sort(CyclicType.FIELD_NAME).findAll();
+        assertEquals(2, realmObjects.size());
+        String json = realmObjects.asJSON();
+        String expectedJSON = "[\n" +
+                "    {\n" +
+                "        \"id\": 0,\n" +
+                "        \"name\": \"One\",\n" +
+                "        \"date\": \"" + now + "\",\n" +
+                "        \"object\": [\n" +
+                "            {\n" +
+                "                \"id\": 0,\n" +
+                "                \"name\": \"Two\",\n" +
+                "                \"date\": \"" + now + "\",\n" +
+                "                \"object\": \"0\",\n" +
+                "                \"otherObject\": [],\n" +
+                "                \"objects\": []\n" +
+                "            }\n" +
+                "        ],\n" +
+                "        \"otherObject\": [],\n" +
+                "        \"objects\": []\n" +
+                "    },\n" +
+                "    {\n" +
+                "        \"id\": 0,\n" +
+                "        \"name\": \"Two\",\n" +
+                "        \"date\": \"" + now + "\",\n" +
+                "        \"object\": [\n" +
+                "            {\n" +
+                "                \"id\": 0,\n" +
+                "                \"name\": \"One\",\n" +
+                "                \"date\": \"" + now + "\",\n" +
+                "                \"object\": \"1\",\n" +
+                "                \"otherObject\": [],\n" +
+                "                \"objects\": []\n" +
+                "            }\n" +
+                "        ],\n" +
+                "        \"otherObject\": [],\n" +
+                "        \"objects\": []\n" +
+                "    }\n" +
+                "]";
+        JSONAssert.assertEquals(expectedJSON, json, false);
+    }
+
 }
