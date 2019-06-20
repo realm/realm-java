@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.realm.annotations.Beta;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
@@ -752,6 +753,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      *
      * @return string representation of a JSON array containing entries of the resulting {@link RealmQuery}.
      */
+    @Beta // until https://github.com/realm/realm-core/issues/3305 is fixed
     public String asJSON() {
         // maxDepth = -1:
         // Follow links to infinite depth, but only follow each link exactly once.
