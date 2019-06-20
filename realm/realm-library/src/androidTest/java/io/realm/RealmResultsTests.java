@@ -29,11 +29,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -1692,16 +1694,12 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     public void asJSON() throws JSONException {
+        Date date = Calendar.getInstance().getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT")); // Core return dates in UTC time
+        String now = sdf.format(date);
+
         realm.beginTransaction();
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, 2019);
-        cal.set(Calendar.MONTH, 5);
-        cal.set(Calendar.DAY_OF_MONTH, 17);
-        cal.set(Calendar.HOUR_OF_DAY, 9);
-        cal.set(Calendar.MINUTE, 30);
-        cal.set(Calendar.SECOND, 1);
-        cal.set(Calendar.MILLISECOND, 17);
-        Date date = cal.getTime();
 
         AllTypes allTypes = realm.createObject(AllTypes.class);
         Dog dog1 = realm.createObject(Dog.class);
@@ -1771,7 +1769,7 @@ public class RealmResultsTests extends CollectionTests {
                 "        \"columnFloat\": 3.1400001,\n" +
                 "        \"columnDouble\": 0.89122999999999997,\n" +
                 "        \"columnBoolean\": false,\n" +
-                "        \"columnDate\": \"2019-06-17 09:30:01\",\n" +
+                "        \"columnDate\": \"" + now + "\",\n" +
                 "        \"columnBinary\": \"010203\",\n" +
                 "        \"columnMutableRealmInteger\": 0,\n" +
                 "        \"columnRealmObject\": [\n" +
@@ -1781,7 +1779,7 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"height\": 1.1,\n" +
                 "                \"weight\": 10.100000381469727,\n" +
                 "                \"hasTail\": true,\n" +
-                "                \"birthday\": \"2019-06-17 09:30:01\",\n" +
+                "                \"birthday\": \"" + now + "\",\n" +
                 "                \"owner\": []\n" +
                 "            }\n" +
                 "        ],\n" +
@@ -1792,7 +1790,7 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"height\": 2.0999999,\n" +
                 "                \"weight\": 20.100000381469727,\n" +
                 "                \"hasTail\": false,\n" +
-                "                \"birthday\": \"2019-06-17 09:30:01\",\n" +
+                "                \"birthday\": \"" + now + "\",\n" +
                 "                \"owner\": []\n" +
                 "            },\n" +
                 "            {\n" +
@@ -1801,7 +1799,7 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"height\": 3.0999999,\n" +
                 "                \"weight\": 30.100000381469727,\n" +
                 "                \"hasTail\": true,\n" +
-                "                \"birthday\": \"2019-06-17 09:30:01\",\n" +
+                "                \"birthday\": \"" + now + "\",\n" +
                 "                \"owner\": [\n" +
                 "                    {\n" +
                 "                        \"name\": \"Dog owner 1\",\n" +
@@ -1854,10 +1852,10 @@ public class RealmResultsTests extends CollectionTests {
                 "        ],\n" +
                 "        \"columnDateList\": [\n" +
                 "            {\n" +
-                "                \"!ARRAY_VALUE\": \"2019-06-17 09:30:01\"\n" +
+                "                \"!ARRAY_VALUE\": \"" + now + "\"\n" +
                 "            },\n" +
                 "            {\n" +
-                "                \"!ARRAY_VALUE\": \"2019-06-17 09:30:01\"\n" +
+                "                \"!ARRAY_VALUE\": \"" + now + "\"\n" +
                 "            }\n" +
                 "        ]\n" +
                 "    }\n" +
@@ -1867,15 +1865,10 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     public void asJSON_cycles() throws JSONException {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, 2019);
-        cal.set(Calendar.MONTH, 5);
-        cal.set(Calendar.DAY_OF_MONTH, 17);
-        cal.set(Calendar.HOUR_OF_DAY, 9);
-        cal.set(Calendar.MINUTE, 30);
-        cal.set(Calendar.SECOND, 1);
-        cal.set(Calendar.MILLISECOND, 17);
-        Date date = cal.getTime();
+        Date date = Calendar.getInstance().getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT")); // Core return dates in UTC time
+        String now = sdf.format(date);
 
         CyclicType oneCyclicType = new CyclicType();
         oneCyclicType.setName("One");
@@ -1899,12 +1892,12 @@ public class RealmResultsTests extends CollectionTests {
                 "    {\n" +
                 "        \"id\": 0,\n" +
                 "        \"name\": \"One\",\n" +
-                "        \"date\": \"2019-06-17 09:30:01\",\n" +
+                "        \"date\": \"" + now + "\",\n" +
                 "        \"object\": [\n" +
                 "            {\n" +
                 "                \"id\": 0,\n" +
                 "                \"name\": \"Two\",\n" +
-                "                \"date\": \"2019-06-17 09:30:01\",\n" +
+                "                \"date\": \"" + now + "\",\n" +
                 "                \"object\": \"0\",\n" +
                 "                \"otherObject\": [],\n" +
                 "                \"objects\": []\n" +
@@ -1916,12 +1909,12 @@ public class RealmResultsTests extends CollectionTests {
                 "    {\n" +
                 "        \"id\": 0,\n" +
                 "        \"name\": \"Two\",\n" +
-                "        \"date\": \"2019-06-17 09:30:01\",\n" +
+                "        \"date\": \"" + now + "\",\n" +
                 "        \"object\": [\n" +
                 "            {\n" +
                 "                \"id\": 0,\n" +
                 "                \"name\": \"One\",\n" +
-                "                \"date\": \"2019-06-17 09:30:01\",\n" +
+                "                \"date\": \"" + now + "\",\n" +
                 "                \"object\": \"1\",\n" +
                 "                \"otherObject\": [],\n" +
                 "                \"objects\": []\n" +
