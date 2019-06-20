@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.annotations.RealmClass;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
@@ -44,8 +45,6 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
-import io.realm.objectserver.utils.Constants;
-import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
@@ -1875,6 +1874,36 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(2, realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL).count());
     }
 
+    @Test
+    public void isNull_differentThanEmpty() {
+        // Make sure that isNull doesn't match empty string ""
+        realm.executeTransaction(r -> {
+            r.delete(NullTypes.class);
+            NullTypes obj = new NullTypes();
+            obj.setId(1);
+            obj.setFieldStringNull(null);
+            r.insert(obj);
+            obj = new NullTypes();
+            obj.setId(2);
+            obj.setFieldStringNull("");
+            r.insert(obj);
+            obj = new NullTypes();
+            obj.setId(3);
+            obj.setFieldStringNull("foo");
+            r.insert(obj);
+        });
+
+        assertEquals(3, realm.where(NullTypes.class).findAll().size());
+
+        RealmResults<NullTypes> results = realm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NULL).findAll();
+        assertEquals(1, results.size());
+        assertNull(results.first().getFieldStringNull());
+
+        results = realm.where(NullTypes.class).isEmpty(NullTypes.FIELD_STRING_NULL).findAll();
+        assertEquals(1, results.size());
+        assertEquals("", results.first().getFieldStringNull());
+    }
+
     // Queries nullable field with beginsWith - all strings begin with null.
     @Test
     public void beginWith_nullForNullableStrings() {
@@ -2993,15 +3022,6 @@ public class RealmQueryTests extends QueryTests {
         notEmpty.setFieldList(new RealmList<AllJavaTypes>(notEmpty));
         realm.copyToRealm(notEmpty);
         realm.commitTransaction();
-    }
-
-    @Test
-    public void includeLinkingObjects_throwsForNonQueryBasedRealms() {
-        try {
-            realm.where(AllJavaTypes.class).includeLinkingObjects(AllJavaTypes.FIELD_STRING);
-            fail();
-        } catch (IllegalStateException ignore) {
-        }
     }
 
     @Test
