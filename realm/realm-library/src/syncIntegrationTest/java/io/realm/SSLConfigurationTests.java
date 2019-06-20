@@ -216,6 +216,7 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
+    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
     public void trustedRootCA_notExisting_certificate_willThrow() {
         String username = UUID.randomUUID().toString();
         String password = "password";

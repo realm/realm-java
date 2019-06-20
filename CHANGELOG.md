@@ -1,12 +1,12 @@
-## 5.12.0(YYYY-MM-DD)
+## 5.12.0(2019-06-20)
 
 ### Enhancements
 * [ObjectServer] Added `SyncManager.refreshConnections()` that can be used to manually trigger a reconnect for all sessions. This is useful if the device has been offline for a long time or fail to detect that it regained connectivity. (Issue [#259](https://github.com/realm/realm-java-private/issues/259))
 * Added `RealmResults.asJson()` in `@Beta` that returns the result of the query as a JSON payload (#6540).
 
-
 ### Fixed
 * [ObjectServer] `PermissionManager` stopped working if an intermittent network error was reported. (Issue [#6492](https://github.com/realm/realm-java/issues/6492), since 3.7.0)
+* The Kotlin extensions library no longer defines a `app_name`, which in some cases conflicted with the `app_name` defined by applications. (Issue [#6536](https://github.com/realm/realm-java/issues/6536), since 4.3.0) 
 
 ### Compatibility
 * Realm Object Server: 3.21.0 or later.
@@ -17,8 +17,6 @@
 * Updated to Realm Core 5.22.0.
 * Updated to Relm Sync 4.6.1.
 * Updated to Object Store commit 7c3ff8235579550a3e3c6060c47140b2005174f5
-
-
 
 ## 5.11.0(2019-05-01)
 
