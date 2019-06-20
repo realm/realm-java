@@ -1,3 +1,19 @@
+## 5.11.1(YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixed
+* The Kotlin extensions library no longer defines a `app_name`, which in some cases conflicted with the `app_name` defined by applications. (Issue [#6536](https://github.com/realm/realm-java/issues/6536), since 4.3.0) 
+
+### Compatibility
+* Realm Object Server: 3.21.0-rc1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None.
+
 ## 5.11.0(2019-05-01)
 
 ### Enhancements
