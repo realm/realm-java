@@ -116,7 +116,7 @@ public class Store {
                 | KeyStoreException | BadPaddingException | IllegalBlockSizeException e) {
             throw new RuntimeException("key for encryption is invalid", e);
         }
-        final byte[] ivAndEncryptedKey = new byte[Integer.SIZE + iv.length + encryptedKeyForRealm.length];
+        final byte[] ivAndEncryptedKey = new byte[Integer.BYTES + iv.length + encryptedKeyForRealm.length];
 
         final ByteBuffer buffer = ByteBuffer.wrap(ivAndEncryptedKey);
         buffer.order(ORDER_FOR_ENCRYPTED_DATA);
