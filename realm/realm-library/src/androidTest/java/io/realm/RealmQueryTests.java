@@ -22,7 +22,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,20 +34,20 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
+import io.realm.entities.Child6522;
 import io.realm.entities.Dog;
 import io.realm.entities.IndexedFields;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
+import io.realm.entities.Parent6522;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
-import io.realm.objectserver.utils.Constants;
-import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
@@ -1015,6 +1017,50 @@ public class RealmQueryTests extends QueryTests {
         doTestForInLong(NoPrimaryKeyNullTypes.FIELD_LONG_NULL);
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_LONG_NULL, new Long[]{13l, null, 16l, 98l}).findAll();
         assertEquals(130, resultList.size());
+    }
+
+    @Test
+    public void in_primaryKey() {
+        long REPORTS_NUM = 100;
+        realm.executeTransaction(r -> {
+            final List<Parent6522> reportList = new ArrayList<>();
+            // Create objects with lists of data
+            for (int i = 0; i <= REPORTS_NUM; i++) {
+                Parent6522 report = new Parent6522();
+                report.setReportValues(new RealmList<>());
+                report.setGuid(i);
+                for (int j = 0; j <= 10; j++) {
+                    Child6522 reportValue = new Child6522();
+                    reportValue.setCategory(j < 5 ? 2 : 1);
+                    reportValue.setId(j+i);
+                    report.getReportValues().add(reportValue);
+                }
+                reportList.add(report);
+            }
+            // Inserting them individually does not trigger the bug
+            r.insert(reportList);
+        });
+
+        // Delete some of those top-level objects alongside their lists
+        realm.executeTransaction(r -> {
+            for (int i = 1; i <= REPORTS_NUM/2; i++) {
+                Parent6522 report = r.where(Parent6522.class).equalTo("guid", i).findFirst();
+                if (report != null) {
+                    report.getReportValues().deleteAllFromRealm();
+                    report.deleteFromRealm();
+                }
+            }
+        });
+
+        // Check that queries on the rest still work
+        for (int i = 1; i <= REPORTS_NUM; i++) {
+            Parent6522 report = realm.where(Parent6522.class).equalTo("guid", i).findFirst();
+            if (report != null) {
+                long rvSize = report.getReportValues().stream().filter(r -> r.getCategory() == 2).count();
+                long rvQuerySize = report.getReportValues().where().equalTo("category", 2).findAll().size();
+                assertEquals("Failed size check at: " + report.getGuid(), rvSize, rvQuerySize);
+            }
+        }
     }
 
     @Test
