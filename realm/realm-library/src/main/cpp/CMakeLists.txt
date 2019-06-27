@@ -90,11 +90,11 @@ if (build_SYNC)
     list(APPEND classes_LIST
         io.realm.ClientResetRequiredError io.realm.RealmFileUserStore
         io.realm.SyncManager io.realm.SyncSession io.realm.SyncUser
+        io.realm.internal.objectstore.OsAsyncOpenTask
     )
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
-
     CLASSPATH ${classes_PATH}
     OUTPUT_DIR ${jni_headers_PATH}
     DEPENDS ${classes_PATH}
@@ -188,6 +188,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_sync_OsSubscription.cpp
     )
 endif()

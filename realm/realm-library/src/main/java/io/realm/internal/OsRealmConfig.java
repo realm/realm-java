@@ -145,7 +145,7 @@ public class OsRealmConfig implements NativeObject {
 
         // Package private because of the OsRealmConfig needs to carry the NativeContext. This should only be called
         // by the OsSharedRealm.
-        OsRealmConfig build() {
+        public OsRealmConfig build() {
             return new OsRealmConfig(configuration, fifoFallbackDir, autoUpdateNotification, schemaInfo,
                     migrationCallback, initializationCallback);
         }

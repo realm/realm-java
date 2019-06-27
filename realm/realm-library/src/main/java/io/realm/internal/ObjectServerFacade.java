@@ -102,6 +102,7 @@ public class ObjectServerFacade {
      *
      * @throws {@code DownloadingRealmInterruptedException} if the thread was interrupted while blocked waiting for
      * this to complete.
+     * @throws {@code ObjectServerException } In any other kind of error is reported.
      */
     @SuppressWarnings("JavaDoc")
     public void downloadInitialRemoteChanges(RealmConfiguration config) {

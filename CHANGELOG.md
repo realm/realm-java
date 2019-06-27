@@ -1,3 +1,22 @@
+## 5.13.0(YYYY-MM-DD)
+
+### Enhancements
+* [ObjectServer] Added support for faster initial synchronization for fully synchronized Realms. (Issue [#6469](https://github.com/realm/realm-java/issues/6469)) 
+
+### Fixed
+* None.
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Realm Core 5.22.0.
+* Updated to Relm Sync 4.6.1.
+* Updated to Object Store commit 7c3ff8235579550a3e3c6060c47140b2005174f5
+
+
 ## 5.12.0(2019-06-20)
 
 ### Enhancements
