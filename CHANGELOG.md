@@ -1,7 +1,7 @@
 ## 5.13.0(YYYY-MM-DD)
 
 ### Enhancements
-* [ObjectServer] Improved session lifecycle debug output. (Issue [#XXXX](XXXX)).
+* [ObjectServer] Improved session lifecycle debug output. (Issue [#6552](https://github.com/realm/realm-java/pull/6552)).
 
 ### Fixed
 * None.
