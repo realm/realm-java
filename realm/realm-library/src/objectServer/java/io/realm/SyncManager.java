@@ -434,11 +434,11 @@ public class SyncManager {
      */
     @SuppressWarnings("unused")
     private static synchronized void removeSession(SyncConfiguration syncConfiguration) {
-        RealmLog.debug("Removing session for: %s", syncConfiguration.getPath());
         //noinspection ConstantConditions
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
+        RealmLog.debug("Removing session for: %s", syncConfiguration.getPath());
         SyncSession syncSession = sessions.remove(syncConfiguration.getPath());
         if (syncSession != null) {
             syncSession.close();
