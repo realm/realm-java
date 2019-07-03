@@ -334,7 +334,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // the session which should be bound.
         auto bind_handler = [](const std::string& path, const SyncConfig& syncConfig,
                                std::shared_ptr<SyncSession> session) {
-            realm::jni_util::Log::d("Callback to Java requesting token for path");
+            realm::jni_util::Log::d("Callback to Java requesting token for path: %1", path.c_str());
 
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
 

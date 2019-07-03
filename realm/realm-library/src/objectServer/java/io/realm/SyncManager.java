@@ -266,6 +266,7 @@ public class SyncManager {
 
         SyncSession session = sessions.get(syncConfiguration.getPath());
         if (session == null) {
+            RealmLog.debug("Creating session for: %s", syncConfiguration.getPath());
             session = new SyncSession(syncConfiguration);
             sessions.put(syncConfiguration.getPath(), session);
             if (sessions.size() == 1) {
@@ -437,12 +438,13 @@ public class SyncManager {
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
+        RealmLog.debug("Removing session for: %s", syncConfiguration.getPath());
         SyncSession syncSession = sessions.remove(syncConfiguration.getPath());
         if (syncSession != null) {
             syncSession.close();
         }
         if (sessions.isEmpty()) {
-            RealmLog.debug("last session dropped, remove network listener");
+            RealmLog.debug("Last session dropped. Remove network listener.");
             NetworkStateReceiver.removeListener(networkListener);
         }
     }

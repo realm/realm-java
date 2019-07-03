@@ -106,7 +106,6 @@ public class AuthenticateResponse extends AuthServerResponse {
      * @param error the network or I/O error.
      */
     private AuthenticateResponse(ObjectServerError error) {
-        RealmLog.debug("AuthenticateResponse - Error: " + error);
         setError(error);
         this.accessToken = null;
         this.refreshToken = null;
