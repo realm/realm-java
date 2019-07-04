@@ -36,6 +36,7 @@ import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectstore.OsAsyncOpenTask;
 import io.realm.internal.sync.permissions.ObjectPermissionsModule;
@@ -182,10 +183,15 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public void downloadInitialRemoteChanges(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
-            if (syncConfig.isFullySynchronizedRealm()) {
-                downloadInitialFullRealm(syncConfig);
-            } else {
-                downloadInitialQueryBasedRealm(syncConfig);
+            if (syncConfig.shouldWaitForInitialRemoteData()) {
+                if (new AndroidCapabilities().isMainThread()) {
+                    throw new IllegalStateException("waitForInitialRemoteData() cannot be used synchronously on the main thread. Use Realm.getInstanceAsync() instead.");
+                }
+                if (syncConfig.isFullySynchronizedRealm()) {
+                    downloadInitialFullRealm(syncConfig);
+                } else {
+                    downloadInitialQueryBasedRealm(syncConfig);
+                }
             }
         }
     }

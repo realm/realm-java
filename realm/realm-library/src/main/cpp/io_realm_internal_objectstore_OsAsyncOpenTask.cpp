@@ -44,7 +44,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAsyncOpenTask_start
         auto& config = *reinterpret_cast<Realm::Config*>(config_ptr);
 
         std::shared_ptr<realm::AsyncOpenTask> task = Realm::get_synchronized_realm(config);
-        task->start([task_obj=global_obj](realm::ThreadSafeReference<realm::Realm>, std::exception_ptr error) {
+        task->start([task_obj=global_obj](realm::ThreadSafeReference<realm::Realm> realm_ref, std::exception_ptr error) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
             if (error) {
                 try {
@@ -56,6 +56,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAsyncOpenTask_start
                 }
             }
             else {
+                auto realm = Realm::get_shared_realm(std::move(realm_ref));
+                realm->close();
                 local_env->CallVoidMethod(task_obj, java_notify_realm_ready);
             }
             local_env->DeleteGlobalRef(task_obj);

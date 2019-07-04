@@ -296,7 +296,6 @@ final class RealmCache {
             copyAssetFileIfNeeded(configuration);
             OsSharedRealm sharedRealm = null;
             try {
-                // FIXME: Only use AsyncOpen for fully synchronized Realms
                 if (configuration.isSyncConfiguration()) {
                     // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
                     // before proceeding. We need to open the Realm instance first to start any potential underlying
