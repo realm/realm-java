@@ -303,7 +303,8 @@ final class RealmCache {
                     // SyncSession so this will work.
                     if (realmFileIsBeingCreated) {
 
-                        // Manually create the session as it might otherwise not be created
+                        // Manually create the Java session wrapper session as this might otherwise
+                        // not be created
                         OsRealmConfig osConfig = new OsRealmConfig.Builder(configuration).build();
                         ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osConfig);
 
