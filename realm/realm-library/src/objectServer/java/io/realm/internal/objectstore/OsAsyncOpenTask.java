@@ -7,6 +7,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.internal.Keep;
+import io.realm.internal.KeepMember;
 import io.realm.internal.OsRealmConfig;
 
 /**
@@ -15,6 +17,7 @@ import io.realm.internal.OsRealmConfig;
  * This ObjectStore class controls its own lifecycle, i.e. discards itself once complete, so the
  * Java object does not need to implement {@link io.realm.internal.NativeObject}.
  */
+@KeepMember
 public class OsAsyncOpenTask {
 
     private final OsRealmConfig config;
@@ -45,6 +48,7 @@ public class OsAsyncOpenTask {
     /**
      * Called from JNI when the underlying async task has successfully downloaded the Realm.
      */
+    @KeepMember
     @SuppressWarnings("unused")
     private void notifyRealmReady() {
         error.set(null);
@@ -54,6 +58,7 @@ public class OsAsyncOpenTask {
     /**
      * Called from JNI when the underlying async task encounters an error.
      */
+    @KeepMember
     @SuppressWarnings("unused")
     private void notifyError(String errorMessage) {
         error.set(errorMessage);

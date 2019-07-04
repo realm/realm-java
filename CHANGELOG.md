@@ -14,7 +14,7 @@
 ### Internal
 * Updated to Realm Core 5.22.0.
 * Updated to Relm Sync 4.6.1.
-* Updated to Object Store commit 7c3ff8235579550a3e3c6060c47140b2005174f5
+* Updated to Object Store commit f0d75261fc8d332c20dc82f643dd795c0f4c7aec
 
 
 ## 5.12.0(2019-06-20)

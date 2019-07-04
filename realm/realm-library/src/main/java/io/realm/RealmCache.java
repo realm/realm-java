@@ -38,6 +38,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Capabilities;
 import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.Table;
@@ -301,6 +302,11 @@ final class RealmCache {
                     // before proceeding. We need to open the Realm instance first to start any potential underlying
                     // SyncSession so this will work.
                     if (realmFileIsBeingCreated) {
+
+                        // Manually create the session as it might otherwise not be created
+                        OsRealmConfig osConfig = new OsRealmConfig.Builder(configuration).build();
+                        ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osConfig);
+
                         if (ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration)) {
                             // Partial Realms are not supported by async open yet, so continue to
                             // use the old way of opening those Realms.
