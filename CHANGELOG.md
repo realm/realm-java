@@ -2,6 +2,7 @@
 
 ### Enhancements
 * [ObjectServer] Added support for faster initial synchronization for fully synchronized Realms. (Issue [#6469](https://github.com/realm/realm-java/issues/6469)) 
+* [ObjectServer] Improved session lifecycle debug output. (Issue [#6552](https://github.com/realm/realm-java/pull/6552)).
 
 ### Fixed
 * None.
