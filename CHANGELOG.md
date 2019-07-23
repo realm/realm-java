@@ -1,6 +1,7 @@
 ## 5.13.0(YYYY-MM-DD)
 
 ### Enhancements
+* [ObjectServer] Added support for faster initial synchronization for fully synchronized Realms. (Issue [#6469](https://github.com/realm/realm-java/issues/6469)) 
 * [ObjectServer] Improved session lifecycle debug output. (Issue [#6552](https://github.com/realm/realm-java/pull/6552)).
 
 ### Fixed
@@ -12,7 +13,9 @@
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
-* None.
+* Updated to Realm Core 5.22.0.
+* Updated to Realm Sync 4.6.1.
+* Updated to Object Store commit f0d75261fc8d332c20dc82f643dd795c0f4c7aec
 
 
 ## 5.12.0(2019-06-20)

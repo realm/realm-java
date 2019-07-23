@@ -38,6 +38,7 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Capabilities;
 import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.Table;
@@ -300,16 +301,29 @@ final class RealmCache {
                     // before proceeding. We need to open the Realm instance first to start any potential underlying
                     // SyncSession so this will work.
                     if (realmFileIsBeingCreated) {
-                        sharedRealm = OsSharedRealm.getInstance(configuration);
-                        try {
+
+                        // Manually create the Java session wrapper session as this might otherwise
+                        // not be created
+                        OsRealmConfig osConfig = new OsRealmConfig.Builder(configuration).build();
+                        ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osConfig);
+
+                        if (ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration)) {
+                            // Partial Realms are not supported by async open yet, so continue to
+                            // use the old way of opening those Realms.
+                            sharedRealm = OsSharedRealm.getInstance(configuration);
+                            try {
+                                ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
+                            } catch (Throwable t) {
+                                // If an error happened while downloading initial data, we need to reset the file so we can
+                                // download it again on the next attempt.
+                                sharedRealm.close();
+                                sharedRealm = null;
+                                deleteRealmFileOnDisk(configuration);
+                                throw t;
+                            }
+                        } else {
+                            // Fully synchronized Realms are supported by AsyncOpen
                             ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
-                        } catch (Throwable t) {
-                            // If an error happened while downloading initial data, we need to reset the file so we can
-                            // download it again on the next attempt.
-                            sharedRealm.close();
-                            sharedRealm = null;
-                            deleteRealmFileOnDisk(configuration);
-                            throw t;
                         }
                     }
                 } else {

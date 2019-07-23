@@ -115,9 +115,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         try {
             realm = Realm.getInstance(config);
             fail();
-        } catch (IllegalStateException expected) {
-            assertThat(expected.getMessage(), CoreMatchers.containsString(
-                    "downloadAllServerChanges() cannot be called from the main thread."));
+        } catch (IllegalStateException ignore) {
         } finally {
             if (realm != null) {
                 realm.close();
@@ -306,7 +304,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
             // schema.
             realm = Realm.getInstance(configNew);
             fail();
-        } catch (RealmMigrationNeededException ignored) {
+        } catch (IllegalStateException ignored) {
         } finally {
             if (realm != null) {
                 realm.close();
