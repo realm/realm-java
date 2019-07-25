@@ -1,4 +1,4 @@
-## 5.13.0(YYYY-MM-DD)
+## 5.13.0(2019-07-23)
 
 ### Enhancements
 * [ObjectServer] Added support for faster initial synchronization for fully synchronized Realms. (Issue [#6469](https://github.com/realm/realm-java/issues/6469)) 
