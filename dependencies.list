@@ -5,7 +5,7 @@ REALM_SYNC_SHA256=2db3c92b96302b24c2e5f35e3f4b34aab558f00f8bd3d4b5cbe7f153459ad5
 
 # Object Server Release used by Integration tests. Installed using NPM.
 # Use `npm view realm-object-server versions` to get a list of available versions.
-REALM_OBJECT_SERVER_VERSION=3.23.5
+REALM_OBJECT_SERVER_VERSION=3.23.4
 
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=3.3.2
