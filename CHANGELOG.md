@@ -1,3 +1,20 @@
+## 5.13.1(2019-07-23)
+
+### Enhancements
+
+### Fixed
+* Queries on RealmLists with objects containing indexed integers could return the wrong result. (Issue [#6522](https://github.com/realm/realm-java/issues/6522), since 5.11.0)
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Realm Core 5.23.1
+* Updated to Realm Sync 4.6.4
+
+
 ## 5.13.0(2019-07-23)
 
 ### Enhancements
