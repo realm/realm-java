@@ -21,11 +21,10 @@
 #include <sync/sync_config.hpp>
 #include <sync/sync_manager.hpp>
 #include <sync/sync_session.hpp>
-
+#include <realm/util/misc_ext_errors.hpp>
 #endif
 
 #include <linux/errno.h>
-#include <realm/util/misc_ext_errors.hpp>
 
 #include "java_accessor.hpp"
 #include "util.hpp"
