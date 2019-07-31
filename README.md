@@ -157,7 +157,7 @@ E.g in the case where where the `realm-java` and `realm-core` repos are checked 
 git clone https://github.com/realm/realm-java.git
 git clone https://github.com/realm/realm-core.git
 cd realm-java/realm
-./gradlew assembleBase -PcoreSourcePath=../realm-core
+./gradlew assembleBase -PcoreSourcePath=../../realm-core
 ```
 
 Note: If the `realm-core` project has already been compiled for non-Android builds and CMake files been generated, this might conflict with `realm-java` trying to build it. Cleanup the `realm-core` project by calling `git clean -xfd` inside it (beware that all unsaved changes will be lost).
