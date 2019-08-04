@@ -17,9 +17,11 @@
 package io.realm.internal;
 
 import java.io.File;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -165,6 +167,7 @@ public class OsRealmConfig implements NativeObject {
     private static final byte SYNCSESSION_STOP_POLICY_VALUE_IMMEDIATELY = 0;
     private static final byte SYNCSESSION_STOP_POLICY_VALUE_LIVE_INDEFINETELY = 1;
     private static final byte SYNCSESSION_STOP_POLICY_VALUE_AFTER_CHANGES_UPLOADED = 2;
+    private static final byte PROXYCONFIG_TYPE_VALUE_HTTP = 0;
 
     private final static long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
@@ -284,6 +287,49 @@ public class OsRealmConfig implements NativeObject {
                 RealmLog.error(e, "Cannot create a URI from the Realm URL address");
             }
             nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
+
+            // TODO: maybe expose the option for a custom Proxy or ProxySelector in the config?
+            ProxySelector proxySelector = ProxySelector.getDefault();
+            if (resolvedRealmURI != null && proxySelector != null) {
+                URI websocketUrl = null;
+                try {
+                    // replace scheme in URI so that a proxy selector won't be confused by 'realm://'
+                    websocketUrl = new URI(resolvedSyncRealmUrl.replaceFirst("realm", "http"));
+                } catch (URISyntaxException e) {
+                    // we shouldn't ever get here if parsing the resolved url above worked
+                    RealmLog.error(e, "Cannot create a URI from the Realm URL address");
+                }
+                List<java.net.Proxy> proxies = proxySelector.select(websocketUrl);
+                if (proxies != null && !proxies.isEmpty()) {
+                    java.net.Proxy proxy = proxies.get(0);
+                    if (proxy.type() != java.net.Proxy.Type.DIRECT) {
+                        byte proxyType = -1;
+                        switch (proxy.type()) {
+                            case HTTP:
+                                proxyType = PROXYCONFIG_TYPE_VALUE_HTTP;
+                                break;
+                            default:
+                                // this should never happen
+                        }
+
+                        if (proxy.type() == java.net.Proxy.Type.HTTP) {
+                            java.net.SocketAddress address = proxy.address();
+                            if (address instanceof java.net.InetSocketAddress) {
+                                java.net.InetSocketAddress inetAddress = (java.net.InetSocketAddress) address;
+                                nativeSetSyncConfigProxySettings(nativePtr, proxyType,
+                                        inetAddress.getHostString(), inetAddress.getPort());
+                            } else {
+                                RealmLog.error("Unsupported proxy socket address type: " + address.getClass().getName());
+                            }
+                        } else {
+                            // FIXME: enable once realm-sync adds support for SOCKS proxies
+                            RealmLog.error("SOCKS proxies are not supported.");
+                        }
+                    }
+                }
+
+            }
+
         }
         this.resolvedRealmURI = resolvedRealmURI;
     }
@@ -334,6 +380,8 @@ public class OsRealmConfig implements NativeObject {
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);
+
+    private static native void nativeSetSyncConfigProxySettings(long nativePtr, byte type, String address, int port);
 
     private static native long nativeGetFinalizerPtr();
 }
