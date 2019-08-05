@@ -147,6 +147,25 @@ That command will generate:
 
 The full build may take an hour or more, to complete.
 
+### Building from source
+
+It is possible to build Realm Java against a local checked out version of Realm Core. This is done by providing the following parameter when building: `-PcoreSourcePath=<path>`.
+
+E.g in the case where the `realm-java` and `realm-core` repos are checked out next to each other you can build from source using:
+
+```
+git clone https://github.com/realm/realm-java.git
+git clone https://github.com/realm/realm-core.git
+cd realm-java/realm
+./gradlew assembleBase -PcoreSourcePath=../../realm-core
+```
+
+Note: If the `realm-core` project has already been compiled for non-Android builds and CMake files have been generated, this might conflict with `realm-java` trying to build it. Cleanup the `realm-core` project by calling `git clean -xfd` inside it (beware that all unsaved changes will be lost).
+
+Note: Building from source with Realm Sync is not enabled yet. Only building the `Base` variant is supported.
+
+Note: If you want to build from source inside Android Studio, you need to update the Gradle parameters by going into the Realm projects settings `Settings > Build, Execution, Deployment > Compiler > Command-line options` and add `-PcoreSourcePath=<path>` to it.
+
 ### Other Commands
 
  * `./gradlew tasks` will show all the available tasks
