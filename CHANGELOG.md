@@ -6,6 +6,7 @@
 ### Fixed
 * [ObjectServer] The C++ networking layer now correctly uses any system defined proxy the same way the Java networking layer does. (Issue [#6574](https://github.com/realm/realm-java/pull/6574)). 
 * The Realm bytecode transformer now works correctly with Android Gradle Plugin 3.6.0-alpha01 and beyond. (Issue [#6531](https://github.com/realm/realm-java/issues/6531)).
+* Queries on RealmLists with objects containing indexed integers could return the wrong result. (Issue [#6522](https://github.com/realm/realm-java/issues/6522), since 5.11.0)
 
 ### Compatibility
 * Realm Object Server: 3.21.0 or later.
