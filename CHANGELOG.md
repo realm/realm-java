@@ -1,4 +1,4 @@
-## 5.13.1(YYYY-MM-DD)
+## 5.13.1(2019-08-05)
 
 ### Enhancements
 * None.
