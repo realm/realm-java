@@ -1,3 +1,16 @@
+## 5.13.1(YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixed
+* [ObjectServer] The C++ networking layer now correctly uses any system defined proxy the same way the Java networking layer does. (Issue [#6574](https://github.com/realm/realm-java/pull/6574)). 
+
+### Internal
+* Updated to Realm Core 5.23.1.
+* Updated to Realm Sync 4.7.1.
+* Updated to Object Store commit: bcc6a7524e52071bfcd35cf740f506e0cc6a595e
+
 ## 5.13.0(2019-07-23)
 
 ### Enhancements

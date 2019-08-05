@@ -451,4 +451,29 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigS
     CATCH_STD()
 }
 
+static_assert(SyncConfig::ProxyConfig::Type::HTTP == static_cast<SyncConfig::ProxyConfig::Type>(io_realm_internal_OsRealmConfig_PROXYCONFIG_TYPE_VALUE_HTTP),
+              "");
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigProxySettings(
+    JNIEnv* env, jclass, jlong native_ptr, jbyte proxy_type,
+    jstring j_proxy_address, jint proxy_port)
+{
+    TR_ENTER_PTR(native_ptr);
+
+    auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
+    // To ensure the sync_config has been created and this function won't be called multiple time on the same config.
+    REALM_ASSERT(config.sync_config);
+    REALM_ASSERT(!config.sync_config->proxy_config);
+
+    try {
+        SyncConfig::ProxyConfig proxy_config;
+        proxy_config.type = static_cast<SyncConfig::ProxyConfig::Type>(proxy_type);
+        proxy_config.address = JStringAccessor(env, j_proxy_address);
+        proxy_config.port = proxy_port;
+
+        config.sync_config->proxy_config.emplace(std::move(proxy_config));
+    }
+    CATCH_STD()
+}
+
 #endif
