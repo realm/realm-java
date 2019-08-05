@@ -1,3 +1,20 @@
+## 5.13.1(YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixed
+* The Realm bytecode transformer now works correctly with Android Gradle Plugin 3.6.0-alpha01 and beyond. (Issue [#6531](https://github.com/realm/realm-java/issues/6531)).
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated JavaAssist in the Realm Transformer to 3.25.0-GA.
+
+
 ## 5.13.0(2019-07-23)
 
 ### Enhancements
