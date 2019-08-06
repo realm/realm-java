@@ -136,7 +136,9 @@ public class SyncCredentials {
      * @return a set of credentials that can be used to log into the Object Server using
      * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}.
      * @throws IllegalArgumentException if the nickname is either {@code null} or empty.
+     * @deprecated Use {@link SyncCredentials#usernamePassword(String, String)} instead.
      */
+    @Deprecated
     public static SyncCredentials nickname(String nickname, boolean isAdmin) {
         assertStringNotEmpty(nickname, "nickname");
         Map<String, Object> userInfo = new HashMap<String, Object>();
