@@ -325,7 +325,9 @@ public class SyncCredentials {
 
         /**
          * Credentials will be verified with a nickname.
+         * @deprecated Use {@link IdentityProvider#USERNAME_PASSWORD} instead.
          */
+        @Deprecated
         public static final String NICKNAME = "nickname";
 
         /**

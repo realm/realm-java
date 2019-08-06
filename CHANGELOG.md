@@ -1,5 +1,9 @@
 ## 5.12.0(YYYY-MM-DD)
 
+### Deprecated
+* `SyncCredentials.nickname()` has been deprecated in favour of `SyncCredentials.usernamePassword()`.
+* `SyncCredentials.IdentityProvider.NICKNAME` has been deprecated in favour of `SyncCredentials.IdentityProvider.USERNAME_PASSWORD`.
+
 ### Enhancements
 * [ObjectServer] Added `SyncManager.refreshConnections()` that can be used to manually trigger a reconnect for all sessions. This is useful if the device has been offline for a long time or fail to detect that it regained connectivity. (Issue [#259](https://github.com/realm/realm-java-private/issues/259))
 
