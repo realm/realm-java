@@ -1,5 +1,9 @@
 ## 5.13.1(2019-08-05)
 
+### Deprecated
+* `SyncCredentials.nickname()` has been deprecated in favour of `SyncCredentials.usernamePassword()`.
+* `SyncCredentials.IdentityProvider.NICKNAME` has been deprecated in favour of `SyncCredentials.IdentityProvider.USERNAME_PASSWORD`.
+
 ### Enhancements
 * None.
 
