@@ -36,7 +36,9 @@ import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.network.NetworkStateReceiver;
+import io.realm.internal.objectstore.OsAsyncOpenTask;
 import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.sync.Subscription;
 
@@ -182,30 +184,52 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             if (syncConfig.shouldWaitForInitialRemoteData()) {
-                SyncSession session = SyncManager.getSession(syncConfig);
-                try {
-                    long timeoutMillis = syncConfig.getInitialRemoteDataTimeout(TimeUnit.MILLISECONDS);
-                    if (!syncConfig.isFullySynchronizedRealm()) {
-                        // For Query-based Realms we want to upload all our local changes
-                        // first since those might include subscriptions the server needs to process.
-                        // This means that once `downloadAllServerChanges` completes, all initial
-                        // subscriptions will also have been downloaded.
-                        //
-                        // Note that we are reusing the same timeout for uploading and downloading.
-                        // This means that in the worst case you end up with 2x the timeout for
-                        // Query-based Realms. This is probably an acceptable trade-of as trying
-                        // to expose this would not only complicate the API surface quite a lot,
-                        // but in most (almost all?) cases the amount of data to upload will be trivial.
-                        if (!session.uploadAllLocalChanges(timeoutMillis, TimeUnit.MILLISECONDS)) {
-                            throw new DownloadingRealmInterruptedException(syncConfig, "Failed to first upload local changes in " + timeoutMillis + " milliseconds");
-                        };
-                    }
-                    if (!session.downloadAllServerChanges(timeoutMillis, TimeUnit.MILLISECONDS)) {
-                        throw new DownloadingRealmInterruptedException(syncConfig, "Failed to download remote changes in " + timeoutMillis + " milliseconds");
-                    }
-                } catch (InterruptedException e) {
-                    throw new DownloadingRealmInterruptedException(syncConfig, e);
+                if (new AndroidCapabilities().isMainThread()) {
+                    throw new IllegalStateException("waitForInitialRemoteData() cannot be used synchronously on the main thread. Use Realm.getInstanceAsync() instead.");
                 }
+                if (syncConfig.isFullySynchronizedRealm()) {
+                    downloadInitialFullRealm(syncConfig);
+                } else {
+                    downloadInitialQueryBasedRealm(syncConfig);
+                }
+            }
+        }
+    }
+
+    private void downloadInitialFullRealm(SyncConfiguration syncConfig) {
+        OsAsyncOpenTask task = new OsAsyncOpenTask(new OsRealmConfig.Builder(syncConfig).build());
+        try {
+            task.start(syncConfig.getInitialRemoteDataTimeout(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw new DownloadingRealmInterruptedException(syncConfig, e);
+        }
+    }
+
+    private void downloadInitialQueryBasedRealm(SyncConfiguration syncConfig) {
+        if (syncConfig.shouldWaitForInitialRemoteData()) {
+            SyncSession session = SyncManager.getSession(syncConfig);
+            try {
+                long timeoutMillis = syncConfig.getInitialRemoteDataTimeout(TimeUnit.MILLISECONDS);
+                if (!syncConfig.isFullySynchronizedRealm()) {
+                    // For Query-based Realms we want to upload all our local changes
+                    // first since those might include subscriptions the server needs to process.
+                    // This means that once `downloadAllServerChanges` completes, all initial
+                    // subscriptions will also have been downloaded.
+                    //
+                    // Note that we are reusing the same timeout for uploading and downloading.
+                    // This means that in the worst case you end up with 2x the timeout for
+                    // Query-based Realms. This is probably an acceptable trade-of as trying
+                    // to expose this would not only complicate the API surface quite a lot,
+                    // but in most (almost all?) cases the amount of data to upload will be trivial.
+                    if (!session.uploadAllLocalChanges(timeoutMillis, TimeUnit.MILLISECONDS)) {
+                        throw new DownloadingRealmInterruptedException(syncConfig, "Failed to first upload local changes in " + timeoutMillis + " milliseconds");
+                    };
+                }
+                if (!session.downloadAllServerChanges(timeoutMillis, TimeUnit.MILLISECONDS)) {
+                    throw new DownloadingRealmInterruptedException(syncConfig, "Failed to download remote changes in " + timeoutMillis + " milliseconds");
+                }
+            } catch (InterruptedException e) {
+                throw new DownloadingRealmInterruptedException(syncConfig, e);
             }
         }
     }

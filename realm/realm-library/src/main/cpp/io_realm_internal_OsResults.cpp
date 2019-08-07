@@ -279,6 +279,21 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeWhere(JNIEnv* env
     return 0;
 }
 
+JNIEXPORT jstring JNICALL Java_io_realm_internal_OsResults_toJSON(JNIEnv* env, jclass, jlong native_ptr, jint maxDepth)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+
+        auto table_view = wrapper->collection().get_tableview();
+        std::stringstream ss;
+        table_view.to_json(ss, maxDepth);
+        return to_jstring(env, ss.str().c_str());
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeIndexOf(JNIEnv* env, jclass, jlong native_ptr,
                                                                         jlong row_native_ptr)
 {

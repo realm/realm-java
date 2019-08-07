@@ -355,6 +355,10 @@ public class OsResults implements NativeObject, ObservableCollection {
         return new TableQuery(this.context, this.table, nativeQueryPtr);
     }
 
+    public String toJSON(int maxDepth) {
+        return toJSON(nativePtr, maxDepth);
+    }
+
     public Number aggregateNumber(Aggregate aggregateMethod, long columnIndex) {
         return (Number) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
     }
@@ -705,6 +709,8 @@ public class OsResults implements NativeObject, ObservableCollection {
     private native void nativeStopListening(long nativePtr);
 
     private static native long nativeWhere(long nativePtr);
+
+    private static native String toJSON(long nativePtr, int maxDepth);
 
     private static native long nativeIndexOf(long nativePtr, long rowNativePtr);
 

@@ -1,14 +1,16 @@
-## 5.12.0(YYYY-MM-DD)
+## 5.13.1(2019-08-05)
 
 ### Deprecated
 * `SyncCredentials.nickname()` has been deprecated in favour of `SyncCredentials.usernamePassword()`.
 * `SyncCredentials.IdentityProvider.NICKNAME` has been deprecated in favour of `SyncCredentials.IdentityProvider.USERNAME_PASSWORD`.
 
 ### Enhancements
-* [ObjectServer] Added `SyncManager.refreshConnections()` that can be used to manually trigger a reconnect for all sessions. This is useful if the device has been offline for a long time or fail to detect that it regained connectivity. (Issue [#259](https://github.com/realm/realm-java-private/issues/259))
+* None.
 
 ### Fixed
-* [ObjectServer] `PermissionManager` stopped working if an intermittent network error was reported. (Issue [#6492](https://github.com/realm/realm-java/issues/6492), since 3.7.0)
+* [ObjectServer] The C++ networking layer now correctly uses any system defined proxy the same way the Java networking layer does. (Issue [#6574](https://github.com/realm/realm-java/pull/6574)). 
+* The Realm bytecode transformer now works correctly with Android Gradle Plugin 3.6.0-alpha01 and beyond. (Issue [#6531](https://github.com/realm/realm-java/issues/6531)).
+* Queries on RealmLists with objects containing indexed integers could return the wrong result. (Issue [#6522](https://github.com/realm/realm-java/issues/6522), since 5.11.0)
 
 ### Compatibility
 * Realm Object Server: 3.21.0 or later.
@@ -16,8 +18,51 @@
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
+* Updated JavaAssist in the Realm Transformer to 3.25.0-GA.
+* Updated to Realm Core 5.23.1.
+* Updated to Realm Sync 4.7.1.
+* Updated to Object Store commit: bcc6a7524e52071bfcd35cf740f506e0cc6a595e
+
+
+## 5.13.0(2019-07-23)
+
+### Enhancements
+* [ObjectServer] Added support for faster initial synchronization for fully synchronized Realms. (Issue [#6469](https://github.com/realm/realm-java/issues/6469)) 
+* [ObjectServer] Improved session lifecycle debug output. (Issue [#6552](https://github.com/realm/realm-java/pull/6552)).
+
+### Fixed
 * None.
 
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Realm Core 5.22.0.
+* Updated to Realm Sync 4.6.1.
+* Updated to Object Store commit f0d75261fc8d332c20dc82f643dd795c0f4c7aec
+
+
+## 5.12.0(2019-06-20)
+
+### Enhancements
+* [ObjectServer] Added `SyncManager.refreshConnections()` that can be used to manually trigger a reconnect for all sessions. This is useful if the device has been offline for a long time or fail to detect that it regained connectivity. (Issue [#259](https://github.com/realm/realm-java-private/issues/259))
+* Added `RealmResults.asJson()` in `@Beta` that returns the result of the query as a JSON payload (#6540).
+
+### Fixed
+* [ObjectServer] `PermissionManager` stopped working if an intermittent network error was reported. (Issue [#6492](https://github.com/realm/realm-java/issues/6492), since 3.7.0)
+* The Kotlin extensions library no longer defines a `app_name`, which in some cases conflicted with the `app_name` defined by applications. (Issue [#6536](https://github.com/realm/realm-java/issues/6536), since 4.3.0) 
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Realm Core 5.22.0.
+* Updated to Realm Sync 4.6.1.
+* Updated to Object Store commit 7c3ff8235579550a3e3c6060c47140b2005174f5
 
 ## 5.11.0(2019-05-01)
 

@@ -17,6 +17,7 @@
 package io.realm.transformer.build
 
 import com.android.SdkConstants
+import com.android.build.api.transform.Format
 import com.android.build.api.transform.Status
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
@@ -51,11 +52,9 @@ class IncrementalBuild(project: Project, outputProvider: TransformOutputProvider
             logger.debug("Modify accessors in class: $it")
             val ctClass: CtClass = classPool.getCtClass(it)
             BytecodeModifier.useRealmAccessors(classPool, ctClass, null)
-            ctClass.writeFile(getOutputFile(outputProvider).canonicalPath)
+            ctClass.writeFile(getOutputFile(outputProvider, Format.DIRECTORY).canonicalPath)
         }
-
     }
-
 
     /**
      * Categorize the transform input into its two main categorizes: `directoryFiles` which are
