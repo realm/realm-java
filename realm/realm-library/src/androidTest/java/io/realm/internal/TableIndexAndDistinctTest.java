@@ -31,7 +31,6 @@ import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 import io.realm.rule.TestRealmConfigurationFactory;
 
-
 import static org.junit.Assert.assertEquals;
 
 
@@ -100,16 +99,17 @@ public class TableIndexAndDistinctTest {
         Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
-                long colKey1 = t.addColumn(RealmFieldType.STRING, "col1");
-                long colKey2 = t.addColumn(RealmFieldType.STRING, "col2");
-                long colKey3 = t.addColumn(RealmFieldType.STRING, "col3");
-                long colKey4 = t.addColumn(RealmFieldType.STRING, "col4");
-                long colKey5 = t.addColumn(RealmFieldType.STRING, "col5");
-                TestHelper.addRowWithValues(t, new long[]{colKey1, colKey2, colKey3, colKey4, colKey5}, new Object[]{"row1", "row2", "row3", "row4", "row5"});
-                TestHelper.addRowWithValues(t, new long[]{colKey1, colKey2, colKey3, colKey4, colKey5}, new Object[]{"row1", "row2", "row3", "row4", "row5"});
-                TestHelper.addRowWithValues(t, new long[]{colKey1, colKey2, colKey3, colKey4, colKey5}, new Object[]{"row1", "row2", "row3", "row4", "row5"});
-                TestHelper.addRowWithValues(t, new long[]{colKey1, colKey2, colKey3, colKey4, colKey5}, new Object[]{"row1", "row2", "row3", "row4", "row5"});
-                TestHelper.addRowWithValues(t, new long[]{colKey1, colKey2, colKey3, colKey4, colKey5}, new Object[]{"row1", "row2", "row3", "row4", "row5"});
+                columnsKey[0] = t.addColumn(RealmFieldType.STRING, "col1");
+                columnsKey[1] = t.addColumn(RealmFieldType.STRING, "col2");
+                columnsKey[2] = t.addColumn(RealmFieldType.STRING, "col3");
+                columnsKey[3] = t.addColumn(RealmFieldType.STRING, "col4");
+                columnsKey[4] = t.addColumn(RealmFieldType.STRING, "col5");
+
+                TestHelper.addRowWithValues(t, columnsKey, new Object[]{"row1", "row2", "row3", "row4", "row5"});
+                TestHelper.addRowWithValues(t, columnsKey, new Object[]{"row1", "row2", "row3", "row4", "row5"});
+                TestHelper.addRowWithValues(t, columnsKey, new Object[]{"row1", "row2", "row3", "row4", "row5"});
+                TestHelper.addRowWithValues(t, columnsKey, new Object[]{"row1", "row2", "row3", "row4", "row5"});
+                TestHelper.addRowWithValues(t, columnsKey, new Object[]{"row1", "row2", "row3", "row4", "row5"});
             }
         });
 

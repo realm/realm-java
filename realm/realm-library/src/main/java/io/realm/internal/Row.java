@@ -36,20 +36,19 @@ public interface Row {
     long getColumnCount();
 
     /**
-     * Returns the name of a column identified by columnIndex. Notice that the index is zero based.
+     * Returns all the column names of the tables.
      *
-     * @param columnIndex the column index.
-     * @return the name of the column.
+     * @return array of column names.
      */
-    String getColumnName(long columnIndex);
+    String[] getColumnNames();
 
     /**
-     * Returns the 0-based index of a column based on the name.
+     * Returns the column key from a column name.
      *
      * @param columnName column name
      * @return the index, {@code -1} if not found
      */
-    long getColumnIndex(String columnName);
+    long getColumnKey(String columnName);
 
     /**
      * Gets the type of a column identified by the columnIndex.

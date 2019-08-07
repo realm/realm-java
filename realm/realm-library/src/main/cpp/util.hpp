@@ -173,6 +173,12 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnKey)
         return false;
     }
 
+    // checking for primitive list
+    if (pTable->is_list(col)) {
+        ThrowException(env, IllegalArgument, "RealmList(" + std::string(pTable->get_column_name(col)) + ") is not nullable.");
+        return false;
+    }
+
     if (pTable->is_nullable(col)) {
         return true;
     }

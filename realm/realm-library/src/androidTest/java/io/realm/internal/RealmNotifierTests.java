@@ -20,7 +20,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -93,7 +92,6 @@ public class RealmNotifierTests {
     // Callback is immediately called when commitTransaction for local changes.
     @Test
     @RunTestInLooperThread
-    @Ignore("__CORE6__: https://github.com/realm/realm-object-store/issues/685")
     public void addChangeListener_byLocalChanges() {
         final AtomicBoolean commitReturns = new AtomicBoolean(false);
         OsSharedRealm sharedRealm = getSharedRealm(looperThread.getConfiguration());

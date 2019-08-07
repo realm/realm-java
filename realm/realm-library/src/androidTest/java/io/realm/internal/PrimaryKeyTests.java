@@ -26,10 +26,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
 import io.realm.FieldAttribute;
@@ -39,9 +35,7 @@ import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
 import io.realm.rule.TestRealmConfigurationFactory;
 
-import static junit.framework.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -155,6 +149,7 @@ public class PrimaryKeyTests {
     }
 
     @Test
+    @Ignore("__CORE6__: using index should be deprecated, use ColKey, ObjKey")
     public void addEmptyRowWithPrimaryKeyString() {
         Table t = getTableWithStringPrimaryKey();
         UncheckedRow row = OsObject.createWithPrimaryKey(t, "Foo");
@@ -164,102 +159,12 @@ public class PrimaryKeyTests {
     }
 
     @Test
+    @Ignore("__CORE6__: using index should be deprecated, use ColKey, ObjKey")
     public void addEmptyRowWithPrimaryKeyLong() {
         Table t = getTableWithIntegerPrimaryKey();
         UncheckedRow row = OsObject.createWithPrimaryKey(t, 42);
         assertEquals(1, t.size());
         assertEquals(42L, row.getLong(0));
         sharedRealm.cancelTransaction();
-    }
-
-    @Ignore("__CORE6__: No support for fileformat 6 and below: https://github.com/realm/realm-java/issues/6123")
-    @Test
-    public void migratePrimaryKeyTableIfNeeded_first() throws IOException {
-        configFactory.copyRealmFromAssets(context, "080_annotationtypes.realm", "default.realm");
-        sharedRealm = OsSharedRealm.getInstance(config);
-        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
-        Table t = sharedRealm.getTable("class_AnnotationTypes");
-        assertEquals("id", OsObjectStore.getPrimaryKeyForObject(sharedRealm, "AnnotationTypes"));
-        assertEquals(RealmFieldType.STRING, sharedRealm.getTable("pk").getColumnType(0));
-    }
-
-    @Ignore("__CORE6__: No support for fileformat 6 and below: https://github.com/realm/realm-java/issues/6123")
-    @Test
-    public void migratePrimaryKeyTableIfNeeded_second() throws IOException {
-        configFactory.copyRealmFromAssets(context, "0841_annotationtypes.realm", "default.realm");
-        sharedRealm = OsSharedRealm.getInstance(config);
-        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
-        Table t = sharedRealm.getTable("class_AnnotationTypes");
-        assertEquals("id", OsObjectStore.getPrimaryKeyForObject(sharedRealm, "AnnotationTypes"));
-        assertEquals("AnnotationTypes", sharedRealm.getTable("pk").getString(0, 0));
-    }
-
-    // See https://github.com/realm/realm-java/issues/1775
-    // Before 0.84.2, pk table added prefix "class_" to every class's name.
-    // After 0.84.2, the pk table should be migrated automatically to remove the "class_".
-    // In 0.84.2, the class names in pk table has been renamed to some incorrect names like "Thclass", "Mclass",
-    // "NClass", "Meclass" and etc..
-    // The 0841_pk_migration.realm is made to produce the issue.
-    @Ignore("__CORE6__: No support for fileformat 6 and below: https://github.com/realm/realm-java/issues/6123")
-    @Test
-    public void migratePrimaryKeyTableIfNeeded_primaryKeyTableMigratedWithRightName() throws IOException {
-        List<String> tableNames = Arrays.asList(
-                "ChatList", "Drafts", "Member", "Message", "Notifs", "NotifyLink", "PopularPost",
-                "Post", "Tags", "Threads", "User");
-
-        configFactory.copyRealmFromAssets(context, "0841_pk_migration.realm", "default.realm");
-        sharedRealm = OsSharedRealm.getInstance(config);
-        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
-
-        Table table = sharedRealm.getTable("pk");
-        for (int i = 0; i < table.size(); i++) {
-            UncheckedRow row = table.getUncheckedRow(i);
-            // io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX 0LL
-            assertTrue(tableNames.contains(row.getString(0)));
-        }
-    }
-
-    // PK table's column 'pk_table' needs search index in order to use set_string_unique.
-    // See https://github.com/realm/realm-java/pull/3488
-    @Test
-    public void migratePrimaryKeyTableIfNeeded_primaryKeyTableNeedSearchIndex() {
-        sharedRealm = OsSharedRealm.getInstance(config);
-        sharedRealm.beginTransaction();
-        OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
-        Table table = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
-        long column = table.addColumn(RealmFieldType.INTEGER, "PKColumn");
-        table.addSearchIndex(column);
-        OsObjectStore.setPrimaryKeyForObject(sharedRealm, "TestTable", "PKColumn");
-        sharedRealm.commitTransaction();
-
-        assertEquals("PKColumn", OsObjectStore.getPrimaryKeyForObject(sharedRealm, "TestTable"));
-        // Now we have a pk table with search index.
-
-        sharedRealm.beginTransaction();
-        Table pkTable = sharedRealm.getTable("pk");
-        long classColumn = pkTable.getColumnKey("pk_table");
-        pkTable.removeSearchIndex(classColumn);
-
-        // Tries to add a pk for another table.
-        Table table2 = sharedRealm.createTable(Table.getTableNameForClass("TestTable2"));
-        long column2 = table2.addColumn(RealmFieldType.INTEGER, "PKColumn");
-        table2.addSearchIndex(column2);
-        try {
-            OsObjectStore.setPrimaryKeyForObject(sharedRealm, "TestTable2", "PKColumn");
-        } catch (IllegalStateException ignored) {
-            // Column has no search index.
-        }
-        sharedRealm.commitTransaction();
-
-        assertFalse(pkTable.hasSearchIndex(classColumn));
-
-        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
-        assertTrue(pkTable.hasSearchIndex(classColumn));
-
-        sharedRealm.beginTransaction();
-        // Now it works.
-        table2.addSearchIndex(column2);
-        OsObjectStore.setPrimaryKeyForObject(sharedRealm, "TestTable2", "PKColumn");
-        sharedRealm.commitTransaction();
     }
 }

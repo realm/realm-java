@@ -196,6 +196,9 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetVersi
     TR_ENTER_PTR(shared_realm_ptr)
 
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    if (!shared_realm->is_in_read_transaction() && !shared_realm->is_in_transaction()) {
+        return NULL;
+    }
     try {
         DB::VersionID version_id = shared_realm->current_transaction_version().value();
 
@@ -317,8 +320,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
         table = group.add_table(table_name);
         ColKey column_key = table->add_column(pkType, field_name, is_nullable);
         table->add_search_index(column_key);
+        table->set_primary_key_column(column_key);
 #endif
-        ObjectStore::set_primary_key_for_object(group, class_name_str, field_name);
         return reinterpret_cast<jlong>(new TableRef(table));
     }
     catch (TableNameInUse& e) {

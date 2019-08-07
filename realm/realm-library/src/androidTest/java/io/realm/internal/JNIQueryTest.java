@@ -41,6 +41,7 @@ import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
+@Ignore("__CORE6__: using index should be deprecated, use ColKey, ObjKey")
 public class JNIQueryTest {
 
     @Rule

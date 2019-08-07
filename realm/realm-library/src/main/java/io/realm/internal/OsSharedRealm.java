@@ -352,6 +352,9 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     public OsSharedRealm.VersionID getVersionID() {
         long[] versionId = nativeGetVersionID(nativePtr);
+        if (versionId == null) {
+            throw new IllegalStateException("Cannot get versionId, this could be related to a non existing read/write transaction");
+        }
         return new OsSharedRealm.VersionID(versionId[0], versionId[1]);
     }
 

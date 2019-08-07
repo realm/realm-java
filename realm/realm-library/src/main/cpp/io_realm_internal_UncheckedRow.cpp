@@ -37,14 +37,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnCount
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnName(JNIEnv* env, jobject,
                                                                                   jlong nativeRowPtr,
-                                                                                  jlong columnIndex)
+                                                                                  jlong columnKey)
 {
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW_VALID(env, ROW(nativeRowPtr))) {
         return 0;
     }
     try {
-        return to_jstring(env, ROW(nativeRowPtr)->get_table()->get_column_name(ROW(nativeRowPtr)->get_table()->ndx2colkey(columnIndex)));//TODO validate access via ndx2colkey?
+        ColKey col_key(columnKey);
+        return to_jstring(env, ROW(nativeRowPtr)->get_table()->get_column_name(col_key));//TODO validate access via Table::valid_column?
     }
     CATCH_STD();
     return NULL;
@@ -69,6 +70,35 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnKey(J
     CATCH_STD()
     return -1;
 }
+
+JNIEXPORT jobjectArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnNames(JNIEnv* env, jobject,
+                                                                               jlong nativeRowPtr)
+{
+    TR_ENTER_PTR(nativeRowPtr)
+    if (!ROW(nativeRowPtr)->is_valid()) {
+        ThrowException(env, IllegalArgument, "Object passed is not valid");
+    }
+
+    try {
+        ColKeys col_keys = ROW(nativeRowPtr)->get_table()->get_column_keys();
+
+        size_t size = col_keys.size();
+        jobjectArray col_keys_array = env->NewObjectArray(size, JavaClassGlobalDef::java_lang_string(), 0);
+        if (col_keys_array == NULL) {
+            ThrowException(env, OutOfMemory, "Could not allocate memory to return column keys.");
+            return NULL;
+        }
+        for (size_t i = 0; i < size; ++i) {
+            env->SetObjectArrayElement(col_keys_array, i, to_jstring(env,  ROW(nativeRowPtr)->get_table()->get_column_name(col_keys[i])));
+        }
+
+        return col_keys_array;
+
+    }
+    CATCH_STD()
+    return NULL;
+}
+
 
 JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(JNIEnv*, jobject, jlong nativeRowPtr,
                                                                                jlong columnKey)

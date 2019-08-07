@@ -64,12 +64,12 @@ public class PendingRow implements Row {
     }
 
     @Override
-    public String getColumnName(long columnIndex) {
-        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    public String[] getColumnNames() {
+        throw new  IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public long getColumnIndex(String columnName) {
+    public long getColumnKey(String columnName) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

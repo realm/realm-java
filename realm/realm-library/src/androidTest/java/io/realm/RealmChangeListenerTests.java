@@ -86,8 +86,6 @@ public class RealmChangeListenerTests {
 
     @Test
     @RunTestInLooperThread
-    @Ignore("__CORE6__: OS can not handle closing Realm inside a callback, " +
-            "after a commit because cache_new_schema check verify_open https://realmio.slack.com/archives/CA41SMVPV/p1534170527000428")
     public void returnedDynamicRealmIsNotNull() {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
         dynamicRealm.addChangeListener(new RealmChangeListener<DynamicRealm>() {

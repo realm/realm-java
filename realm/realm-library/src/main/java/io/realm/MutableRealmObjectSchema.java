@@ -109,12 +109,12 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             nullable = false;
         }
 
-        long columnIndex = table.addColumn(metadata.fieldType, fieldName, nullable);
+        long columnKey = table.addColumn(metadata.fieldType, fieldName, nullable);
         try {
             addModifiers(fieldName, attributes);
         } catch (Exception e) {
             // Modifiers have been removed by the addModifiers method()
-            table.removeColumn(columnIndex);
+            table.removeColumn(columnKey);
             throw e;
         }
         return this;
@@ -178,8 +178,8 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         checkFieldExists(currentFieldName);
         checkLegalName(newFieldName);
         checkFieldNameIsAvailable(newFieldName);
-        long columnIndex = getColumnKey(currentFieldName);
-        table.renameColumn(columnIndex, newFieldName);
+        long columnKey = getColumnKey(currentFieldName);
+        table.renameColumn(columnKey, newFieldName);
 
         // ATTENTION: We don't need to re-set the PK table here since the column index won't be changed when renaming.
 

@@ -40,7 +40,7 @@ ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE
 ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false //FIXME Use 'false' as default until https://github.com/realm/realm-java/issues/5354 is fixed
 
 
-ext.coreSourcePath = "/Users/cm/Realm/realm-core-private"
+ext.coreSourcePath = "/Users/Nabil/Dev/realm/master3/realm-core"
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -223,8 +223,8 @@ dependencies {
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
     androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test:rules:1.0.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'

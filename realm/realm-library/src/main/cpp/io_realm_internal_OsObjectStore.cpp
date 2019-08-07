@@ -48,12 +48,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetPrimaryKeyF
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  format("Class '%1' doesn't exist.", StringData(class_name_accessor)));
         }
+        shared_realm->verify_in_write();
 
         if (j_pk_field_name) {
             // Not removal, check the column.
-//            auto pk_column_ndx = table->get_column_index(pk_field_name_accessor);
-            auto pk_column_col = table->get_column_key(pk_field_name_accessor);
-            if (pk_column_col == realm::ColKey()) {
+            ColKey pk_column_col = table->get_column_key(pk_field_name_accessor);
+            if (!table->valid_column(pk_column_col)) {
+
                 THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                      format("Field '%1' doesn't exist in Class '%2'.",
                                             StringData(pk_field_name_accessor), StringData(class_name_accessor)));

@@ -284,8 +284,6 @@ public class RealmResultsTests extends CollectionTests {
     // 4. The results change listener called, the results becomes empty.
     @Test
     @RunTestInLooperThread
-    @Ignore("__CORE6__: https://github.com/realm/realm-object-store/issues/688" +
-            "similar to accessors_resultsBuiltOnDeletedLinkView_deletionAsARemoteCommit crash")
     public void accessors_resultsBuiltOnDeletedLinkView_deletionAsALocalCommit() {
         Realm realm = looperThread.getRealm();
         // Step 1

@@ -21,6 +21,7 @@
 #include "io_realm_internal_Table.h"
 
 #include "java_accessor.hpp"
+#include "object_store.hpp"
 #include "java_exception_def.hpp"
 #include "shared_realm.hpp"
 #include "jni_util/java_exception_thrower.hpp"
@@ -122,19 +123,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn(JNIEnv* e
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertColumn(JNIEnv* env, jclass, jlong native_table_ptr,
-                                                                       jlong columnIndex, jint type, jstring j_name)
-{
-    auto table_ptr = reinterpret_cast<realm::Table*>(native_table_ptr);
-    try {
-        JStringAccessor name(env, j_name); // throws
-
-        DataType data_type = DataType(type);
-        table_ptr->insert_column(table_ptr->ndx2colkey(columnIndex), data_type, name);
-    }
-    CATCH_STD()
-}
-
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                        jlong columnKey, jstring name)
 {
@@ -157,14 +145,18 @@ TableRef table = TBL_REF(nativeTablePtr);
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable(JNIEnv* env, jobject obj,
                                                                                   jlong native_table_ptr,
                                                                                   jlong j_column_key,
-                                                                                  jboolean)
+                                                                                  jboolean is_primary_key)
 {
     try {
         TableRef table = TBL_REF(native_table_ptr);
         ColKey col_key(j_column_key);
         bool nullable = true;
         bool throw_on_value_conversion = false;
-        table->set_nullability(col_key, nullable, throw_on_value_conversion);
+        ColKey newCol = table->set_nullability(col_key, nullable, throw_on_value_conversion);
+        if (to_bool(is_primary_key)) {
+            table->set_primary_key_column(newCol);
+        }
+
     }
     CATCH_STD()
 }
@@ -179,7 +171,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         ColKey col_key(j_column_key);
         bool nullable = false;
         bool throw_on_value_conversion = is_primary_key;
-        table->set_nullability(col_key, nullable, throw_on_value_conversion);
+        ColKey newCol = table->set_nullability(col_key, nullable, throw_on_value_conversion);
+        if (to_bool(is_primary_key)) {
+            table->set_primary_key_column(newCol);
+        }
     }
     CATCH_STD()
 }
@@ -225,16 +220,25 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetColumnName(JNIEn
     CATCH_STD();
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetColumnNameByIndex(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                           jlong columnIndex)
+JNIEXPORT jobjectArray JNICALL Java_io_realm_internal_Table_nativeGetColumnNames(JNIEnv* env, jobject, jlong nativeTablePtr)
 {
     try {
         TableRef table = TBL_REF(nativeTablePtr);
-        auto column_key = table->ndx2colkey(columnIndex);
-        StringData stringData = table->get_column_name(column_key);
-        return to_jstring(env, stringData);
+        ColKeys col_keys = table->get_column_keys();
+        size_t size = col_keys.size();
+        jobjectArray col_keys_array = env->NewObjectArray(size, JavaClassGlobalDef::java_lang_string(), 0);
+        if (col_keys_array == NULL) {
+            ThrowException(env, OutOfMemory, "Could not allocate memory to return column keys.");
+            return NULL;
+        }
+        for (size_t i = 0; i < size; ++i) {
+            env->SetObjectArrayElement(col_keys_array, i, to_jstring(env,  table->get_column_name(col_keys[i])));
+        }
+
+        return col_keys_array;
     }
     CATCH_STD();
+    return NULL;
 }
 
 //TODO rename index to objkey
@@ -246,7 +250,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnIndex(JNIEnv
         JStringAccessor columnName2(env, columnName);                                     // throws
         ColKey col_key = table->get_column_key(columnName2);
         if (bool(col_key)) {//TODO generalize this test & return for similar lookups
-            return to_jlong_or_not_found(table->colkey2ndx(col_key)); // noexcept //TODO does colkey2ndx return realm::not_found?
+            return to_jlong_or_not_found(table->colkey2spec_ndx(col_key)); // noexcept //TODO does colkey2ndx return realm::not_found?
         }
         return -1;
     }
@@ -597,13 +601,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex(JNIEnv*
                                                                          jlong columnKey)
 {
     TableRef table = TBL_REF(nativeTablePtr);
-    DataType column_type = table->get_column_type(ColKey(columnKey));
+    ColKey colKey(columnKey);
+    DataType column_type = table->get_column_type(colKey);
     if (!is_allowed_to_index(env, column_type)) {
         return;
     }
 
     try {
-        table->add_search_index(ColKey(columnKey));
+        table->add_search_index(colKey);
     }
     CATCH_STD()
 }
@@ -860,122 +865,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(JNIEnv*, j
         return JNI_FALSE;
     }
 }
-//TODO optimise calls to ndx
-static bool pk_table_needs_migration(ConstTableRef pk_table)
-{
-    // Fix wrong types (string, int) -> (string, string)
-    //TODO check ndx2colkey is the correct way to access the column type
-    if (pk_table->get_column_type(pk_table->ndx2colkey(FIELD_COLUMN_INDEX)) == type_Int) {
-        return true;
-    }
-
-    // If needed remove "class_" prefix from class names
-    size_t number_of_rows = pk_table->size();
-    for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
-        StringData table_name = pk_table->get_object(row_ndx).get<StringData>(pk_table->ndx2colkey(CLASS_COLUMN_INDEX));
-        if (table_name.begins_with(TABLE_PREFIX)) {
-            return true;
-        }
-    }
-    // From realm-java 2.0.0, pk table's class column requires a search index.
-    if (!pk_table->has_search_index(pk_table->ndx2colkey(CLASS_COLUMN_INDEX))) {
-        return true;
-    }
-    return false;
-}
-
-// 1) Fixes interop issue with Cocoa Realm where the Primary Key table had different types.
-// This affects:
-// - All Realms created by Cocoa and used by Realm-android up to 0.80.1
-// - All Realms created by Realm-Android 0.80.1 and below
-// See https://github.com/realm/realm-java/issues/1059
-//
-// 2) Fix interop issue with Cocoa Realm where primary key tables on Cocoa doesn't have the "class_" prefix.
-// This affects:
-// - All Realms created by Cocoa and used by Realm-android up to 0.84.1
-// - All Realms created by Realm-Android 0.84.1 and below
-// See https://github.com/realm/realm-java/issues/1703
-//
-// 3> PK table's column 'pk_table' needs search index in order to use set_string_unique.
-// This affects:
-// - All Realms created by Cocoa and used by Realm-java before 2.0.0
-// See https://github.com/realm/realm-java/pull/3488
-
-// This methods converts the old (wrong) table format (string, integer) to the right (string,string) format and strips
-// any class names in the col[0] of their "class_" prefix
-//TODO optimise calls to ndx
-static bool migrate_pk_table(const Group& group, TableRef pk_table)
-{
-    bool changed = false;
-
-    // Fix wrong types (string, int) -> (string, string)
-    if (pk_table->get_column_type(pk_table->ndx2colkey(FIELD_COLUMN_INDEX)) == type_Int) {
-        StringData tmp_col_name = StringData("tmp_field_name");
-        ColKey tmp_col_ndx = pk_table->add_column(DataType(type_String), tmp_col_name);
-
-        // Create tmp string column with field name instead of column index
-        size_t number_of_rows = pk_table->size();
-        for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
-            StringData table_name = pk_table->get_object(row_ndx).get<StringData>(pk_table->ndx2colkey(CLASS_COLUMN_INDEX));
-            size_t col_ndx = static_cast<size_t>(pk_table->get_object(row_ndx).get<int64_t>(pk_table->ndx2colkey(CLASS_COLUMN_INDEX)));
-            StringData col_name = group.get_table(table_name)->get_column_name(pk_table->ndx2colkey(col_ndx));
-            // Make a copy of the string
-            pk_table->get_object(row_ndx).set(tmp_col_ndx, col_name);
-        }
-
-        // Delete old int column, and rename tmp column to same name
-        // The column index for the renamed column will then be the same as the deleted old column
-        pk_table->remove_column(pk_table->ndx2colkey(FIELD_COLUMN_INDEX));
-        pk_table->rename_column(pk_table->get_column_key(tmp_col_name), StringData("pk_property"));
-        changed = true;
-    }
-
-    // If needed remove "class_" prefix from class names
-    size_t number_of_rows = pk_table->size();
-    for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
-        StringData table_name = pk_table->get_object(row_ndx).get<StringData>(pk_table->ndx2colkey(CLASS_COLUMN_INDEX));
-        if (table_name.begins_with(TABLE_PREFIX)) {
-            // New string copy is needed, since the original memory will be changed.
-            std::string str(table_name.substr(TABLE_PREFIX.length()));
-            StringData sd(str);
-            pk_table->get_object(row_ndx).set(pk_table->ndx2colkey(CLASS_COLUMN_INDEX), sd);
-            changed = true;
-        }
-    }
-
-    // From realm-java 2.0.0, pk table's class column requires a search index.
-    if (!pk_table->has_search_index(pk_table->ndx2colkey(CLASS_COLUMN_INDEX))) {
-        pk_table->add_search_index(pk_table->ndx2colkey(CLASS_COLUMN_INDEX));
-        changed = true;
-    }
-    return changed;
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded(JNIEnv* env, jclass,
-                                                                                         jlong shared_realm_ptr)
-{
-    TR_ENTER_PTR(shared_realm_ptr)
-    auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
-    try {
-        if (!shared_realm->read_group().has_table(PK_TABLE_NAME)) {
-            return;
-        }
-
-        auto pk_table = shared_realm->read_group().get_table(PK_TABLE_NAME);
-        if (!pk_table_needs_migration(pk_table)) {
-            return;
-        }
-
-        shared_realm->begin_transaction();
-        if (migrate_pk_table(shared_realm->read_group(), pk_table)) {
-            shared_realm->commit_transaction();
-        }
-        else {
-            shared_realm->cancel_transaction();
-        }
-    }
-    CATCH_STD()
-}
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema(JNIEnv*, jobject, jlong thisTablePtr,
                                                                             jlong otherTablePtr)
@@ -984,7 +873,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema(JNIE
     using tf = _impl::TableFriend;
     TableRef this_table = TBL_REF(thisTablePtr);
     TableRef other_table = TBL_REF(otherTablePtr);
-    return to_jbool(tf::get_spec(*this_table) == tf::get_spec(*other_table));
+    return to_jbool(this_table->get_key() == other_table->get_key());
 }
 
 static void finalize_table(jlong ptr)

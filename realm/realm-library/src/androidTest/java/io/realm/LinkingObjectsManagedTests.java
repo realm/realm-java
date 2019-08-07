@@ -23,7 +23,6 @@ import android.support.test.runner.AndroidJUnit4;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -532,7 +531,6 @@ public class LinkingObjectsManagedTests {
      * is a child.
      */
     @Test
-    @Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201")
     public void migration_backlinkedFieldInUse() {
         final String realmName = "backlinks-fieldInUse.realm";
 

@@ -31,7 +31,6 @@ import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
-import io.realm.internal.Util;
 import io.realm.internal.fields.FieldDescriptor;
 
 
@@ -389,10 +388,9 @@ public abstract class RealmObjectSchema {
     public Set<String> getFieldNames() {
         int columnCount = (int) table.getColumnCount();
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
-        for (int i = 0; i < columnCount; i++) {
-            String name = table.getColumnNameByIndex(i);
-            if (!OsObject.isObjectIdColumn(name)) {
-                columnNames.add(name);
+        for (String column : table.getColumnNames()) {
+            if (!OsObject.isObjectIdColumn(column)) {
+                columnNames.add(column);
             }
         }
         return columnNames;

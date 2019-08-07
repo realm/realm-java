@@ -202,15 +202,6 @@ public class Table implements NativeObject {
     }
 
     /**
-     * Inserts a column at the given {@code columnIndex}.
-     * WARNING: This is only for internal testing purpose. Don't expose this to public API.
-     */
-    public void insertColumn(long columnIndex, RealmFieldType type, String name) {
-        verifyColumnName(name);
-        nativeInsertColumn(nativeTableRefPtr, columnIndex, type.getNativeValue(), name);
-    }
-
-    /**
      * Checks whether the specific column is nullable?
      *
      * @param columnKey the column to check.
@@ -296,10 +287,9 @@ public class Table implements NativeObject {
         return nativeGetColumnName(nativeTableRefPtr, columnKey);
     }
 
-    public String getColumnNameByIndex(long columnIndex) {
-        return nativeGetColumnNameByIndex(nativeTableRefPtr, columnIndex);
+    public String[] getColumnNames() {
+        return nativeGetColumnNames(nativeTableRefPtr);
     }
-
     /**
      * Returns the 0-based index of a column based on the name.
      *
@@ -528,22 +518,6 @@ public class Table implements NativeObject {
         nativeRemoveSearchIndex(nativeTableRefPtr, columnKey);
     }
 
-    /*
-     * 1) Migration required to fix https://github.com/realm/realm-java/issues/1059
-     * This will convert INTEGER column to the corresponding STRING column if needed.
-     * Any database created on Realm-Java 0.80.1 and below will have this error.
-     *
-     * 2) Migration required to fix: https://github.com/realm/realm-java/issues/1703
-     * This will remove the prefix "class_" from all table names in the pk_column
-     * Any database created on Realm-Java 0.84.1 and below will have this error.
-     *
-     * The native method will begin a transaction and make the migration if needed.
-     * This function should not be called in a transaction.
-     */
-    public static void migratePrimaryKeyTableIfNeeded(OsSharedRealm sharedRealm) {
-        nativeMigratePrimaryKeyTableIfNeeded(sharedRealm.getNativePtr());
-    }
-
     public boolean hasSearchIndex(long columnKey) {
         return nativeHasSearchIndex(nativeTableRefPtr, columnKey);
     }
@@ -676,11 +650,13 @@ public class Table implements NativeObject {
         stringBuilder.append(columnCount);
         stringBuilder.append(" columns: ");
 
-        for (int i = 0; i < columnCount; i++) {
-            if (i != 0) {
+        boolean isFirst = true;
+        for (String column: getColumnNames()) {
+            if(!isFirst) {
                 stringBuilder.append(", ");
             }
-            stringBuilder.append(getColumnNameByIndex(i));
+            isFirst = false;
+            stringBuilder.append(column);
         }
         stringBuilder.append(".");
 
@@ -735,8 +711,6 @@ public class Table implements NativeObject {
 
     private native void nativeRemoveColumn(long nativeTableRefPtr, long columnKey);
 
-    private static native void nativeInsertColumn(long nativeTableRefPtr, long columnIndex, int type, String name);//TODO check if this is still needed
-
     private native boolean nativeIsColumnNullable(long nativePtr, long columnKey);
 
     private native void nativeConvertColumnToNullable(long nativeTableRefPtr, long columnKey, boolean isPrimaryKey);
@@ -751,7 +725,7 @@ public class Table implements NativeObject {
 
     private native String nativeGetColumnName(long nativeTableRefPtr, long columnKey);
 
-    private native String nativeGetColumnNameByIndex(long nativeTableRefPtr, long columnIndex);
+    private native String[] nativeGetColumnNames(long nativeTableRefPtr);
 
     private native long nativeGetColumnIndex(long nativeTableRefPtr, String columnName);
 
@@ -803,8 +777,6 @@ public class Table implements NativeObject {
 
     public static native void nativeSetLink(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
 
-    private static native void nativeMigratePrimaryKeyTableIfNeeded(long sharedRealmPtr);
-
     private native void nativeAddSearchIndex(long nativePtr, long columnKey);
 
     private native void nativeRemoveSearchIndex(long nativePtr, long columnKey);
@@ -826,6 +798,8 @@ public class Table implements NativeObject {
     private native long nativeWhere(long nativeTableRefPtr);
 
     public static native long nativeFindFirstInt(long nativeTableRefPtr, long columnKey, long value);
+
+    public static native long nativeRunTest();
 
     private native long nativeFindFirstBool(long nativePtr, long columnKey, boolean value);
 

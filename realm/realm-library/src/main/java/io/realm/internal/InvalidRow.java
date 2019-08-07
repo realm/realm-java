@@ -33,14 +33,14 @@ public enum InvalidRow implements Row {
     public long getColumnCount() {
         throw getStubException();
     }
-
+    
     @Override
-    public String getColumnName(long columnIndex) {
+    public String[] getColumnNames() {
         throw getStubException();
     }
 
     @Override
-    public long getColumnIndex(String columnName) {
+    public long getColumnKey(String columnName) {
         throw getStubException();
     }
 

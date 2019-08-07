@@ -20,6 +20,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +42,7 @@ import static junit.framework.Assert.fail;
 
 
 @RunWith(AndroidJUnit4.class)
+@Ignore("__CORE6__: using index should be deprecated, use ColKey, ObjKey")
 public class JNITableTest {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();

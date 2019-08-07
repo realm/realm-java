@@ -164,20 +164,6 @@ static void finalize_object(jlong ptr)
     delete reinterpret_cast<ObjectWrapper*>(ptr);
 }
 
-//TODO use Obj with key instead of Row in the heap
-//static inline size_t do_create_row(jlong shared_realm_ptr, jlong table_ref_ptr)
-//{
-//    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-//    auto& table = *(reinterpret_cast<realm::Table*>(table_ref_ptr));
-//    shared_realm->verify_in_write();
-//#if REALM_ENABLE_SYNC
-//    return sync::create_object(shared_realm->read_group(), table);
-//#else
-//    return table.add_empty_row();
-//#endif
-//}
-
-//TODO use ColumnKey instead of index
 static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ref_ptr,
                                                     jlong pk_column_key, jlong pk_value, jboolean is_pk_null)
 {
@@ -186,7 +172,6 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
     if (is_pk_null && !COL_NULLABLE(env, table, pk_column_key)) {
-//        return realm::npos;
         return Obj();
     }
 
@@ -204,25 +189,23 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     }
 
 //    size_t row_ndx;
+    Obj obj;
 #if REALM_ENABLE_SYNC
     if (is_pk_null) {
-        row_ndx = sync::create_object_with_primary_key(shared_realm->read_group(), table, util::none);
+        obj = sync::create_object_with_primary_key(shared_realm->read_group(), table, util::none);
     }
     else {
-        row_ndx = sync::create_object_with_primary_key(shared_realm->read_group(), table,
+        obj = sync::create_object_with_primary_key(shared_realm->read_group(), table,
                                                        util::Optional<int64_t>(pk_value));
     }
 #else
-//    row_ndx = table.add_empty_row();
-    Obj obj = table->create_object();
+    obj = table->create_object();
 
     if (is_pk_null) {
         obj.set_null(col_key);
-//        table.set_null_unique(pk_column_ndx, row_ndx);
     }
     else {
         obj.set(col_key, pk_value);
-//        table.set_int_unique(pk_column_ndx, row_ndx, pk_value);
     }
 #endif
 //    return row_ndx;

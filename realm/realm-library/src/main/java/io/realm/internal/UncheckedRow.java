@@ -96,13 +96,12 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public String getColumnName(long columnKey) {
-        return nativeGetColumnName(nativePtr, columnKey);
+    public String[] getColumnNames() {
+        return nativeGetColumnNames(nativePtr);
     }
 
-
     @Override
-    public long getColumnIndex(String columnName) {
+    public long getColumnKey(String columnName) {
         //noinspection ConstantConditions
         if (columnName == null) {
             throw new IllegalArgumentException("Column name can not be null.");
@@ -300,6 +299,8 @@ public class UncheckedRow implements NativeObject, Row {
     protected native String nativeGetColumnName(long nativeTablePtr, long columnKey);
 
     protected native long nativeGetColumnKey(long nativeTablePtr, String columnName);
+
+    protected native String[] nativeGetColumnNames(long nativeTablePtr);
 
     protected native int nativeGetColumnType(long nativeTablePtr, long columnKey);
 

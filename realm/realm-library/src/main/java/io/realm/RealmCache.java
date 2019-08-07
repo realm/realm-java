@@ -313,12 +313,6 @@ final class RealmCache {
                             throw t;
                         }
                     }
-                } else {
-                    if (fileExists) {
-                        // Primary key problem only exists before we release sync.
-                        sharedRealm = OsSharedRealm.getInstance(configuration);
-                        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
-                    }
                 }
             } finally {
                 if (sharedRealm != null) {
