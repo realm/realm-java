@@ -82,8 +82,8 @@ public class SortDescriptorTests {
 
         for (int i = 0; i < columnsKey.length; i++) {
             SortDescriptor sortDescriptor = SortDescriptor.getInstanceForDistinct(null, table, types[i].name());
-            assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
-            assertEquals(columnsKey[i], sortDescriptor.getColumnIndices()[0][0]);
+            assertEquals(1, sortDescriptor.getColumnKeys()[0].length);
+            assertEquals(columnsKey[i], sortDescriptor.getColumnKeys()[0][0]);
             assertNull(sortDescriptor.getAscendings());
         }
     }
@@ -121,12 +121,12 @@ public class SortDescriptorTests {
 
         SortDescriptor sortDescriptor = SortDescriptor.getInstanceForDistinct(null, table, new String[]{
                 stringType.name(), intType.name()});
-        assertEquals(2, sortDescriptor.getColumnIndices().length);
+        assertEquals(2, sortDescriptor.getColumnKeys().length);
         assertNull(sortDescriptor.getAscendings());
-        assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
-        assertEquals(stringColumn, sortDescriptor.getColumnIndices()[0][0]);
-        assertEquals(1, sortDescriptor.getColumnIndices()[1].length);
-        assertEquals(intColumn, sortDescriptor.getColumnIndices()[1][0]);
+        assertEquals(1, sortDescriptor.getColumnKeys()[0].length);
+        assertEquals(stringColumn, sortDescriptor.getColumnKeys()[0][0]);
+        assertEquals(1, sortDescriptor.getColumnKeys()[1].length);
+        assertEquals(intColumn, sortDescriptor.getColumnKeys()[1][0]);
     }
 
     @Test
@@ -158,8 +158,8 @@ public class SortDescriptorTests {
 
         for (int i = 0; i < columnsKey.length; i++) {
             SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(null, table, types[i].name(), Sort.DESCENDING);
-            assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
-            assertEquals(columnsKey[i], sortDescriptor.getColumnIndices()[0][0]);
+            assertEquals(1, sortDescriptor.getColumnKeys()[0].length);
+            assertEquals(columnsKey[i], sortDescriptor.getColumnKeys()[0][0]);
             assertFalse(sortDescriptor.getAscendings()[0]);
         }
     }
@@ -183,9 +183,9 @@ public class SortDescriptorTests {
         for (int j = 0; j < columnsKey.length; j++) {
             SortDescriptor sortDescriptor = SortDescriptor.getInstanceForSort(null, table,
                     String.format("%s.%s", objectType.name(), types[j].name()), Sort.ASCENDING);
-            assertEquals(2, sortDescriptor.getColumnIndices()[0].length);
-            assertEquals(columnLink, sortDescriptor.getColumnIndices()[0][0]);
-            assertEquals(columnsKey[j], sortDescriptor.getColumnIndices()[0][1]);
+            assertEquals(2, sortDescriptor.getColumnKeys()[0].length);
+            assertEquals(columnLink, sortDescriptor.getColumnKeys()[0][0]);
+            assertEquals(columnsKey[j], sortDescriptor.getColumnKeys()[0][1]);
             assertTrue(sortDescriptor.getAscendings()[0]);
         }
     }
@@ -201,14 +201,14 @@ public class SortDescriptorTests {
                 stringType.name(), intType.name()}, new Sort[]{Sort.ASCENDING, Sort.DESCENDING});
 
         assertEquals(2, sortDescriptor.getAscendings().length);
-        assertEquals(2, sortDescriptor.getColumnIndices().length);
+        assertEquals(2, sortDescriptor.getColumnKeys().length);
 
-        assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
-        assertEquals(stringColumn, sortDescriptor.getColumnIndices()[0][0]);
+        assertEquals(1, sortDescriptor.getColumnKeys()[0].length);
+        assertEquals(stringColumn, sortDescriptor.getColumnKeys()[0][0]);
         assertTrue(sortDescriptor.getAscendings()[0]);
 
-        assertEquals(1, sortDescriptor.getColumnIndices()[1].length);
-        assertEquals(intColumn, sortDescriptor.getColumnIndices()[1][0]);
+        assertEquals(1, sortDescriptor.getColumnKeys()[1].length);
+        assertEquals(intColumn, sortDescriptor.getColumnKeys()[1][0]);
         assertFalse(sortDescriptor.getAscendings()[1]);
 
     }

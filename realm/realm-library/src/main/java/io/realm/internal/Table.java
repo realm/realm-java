@@ -290,18 +290,6 @@ public class Table implements NativeObject {
     public String[] getColumnNames() {
         return nativeGetColumnNames(nativeTableRefPtr);
     }
-    /**
-     * Returns the 0-based index of a column based on the name.
-     *
-     * @param columnName column name.
-     * @return the index, {@link #NO_MATCH} if not found.
-     */
-    public long getColumnIndex(String columnName) {
-        if (columnName == null) {
-            throw new IllegalArgumentException("Column name can not be null.");
-        }
-        return nativeGetColumnIndex(nativeTableRefPtr, columnName);
-    }
 
     public long getColumnKey(String columnName) {
         if (columnName == null) {
@@ -726,8 +714,6 @@ public class Table implements NativeObject {
     private native String nativeGetColumnName(long nativeTableRefPtr, long columnKey);
 
     private native String[] nativeGetColumnNames(long nativeTableRefPtr);
-
-    private native long nativeGetColumnIndex(long nativeTableRefPtr, String columnName);
 
     private native long nativeGetColumnKey(long nativeTableRefPtr, String columnName);
 

@@ -192,9 +192,9 @@ public class JNITableTest {
             }
         });
 
-        assertEquals(-1, t.getColumnIndex("non-existing column"));
+        assertEquals(-1, t.getColumnKey("non-existing column"));
         try {
-            t.getColumnIndex(null);
+            t.getColumnKey(null);
             fail("column name null");
         } catch (IllegalArgumentException ignored) { }
     }

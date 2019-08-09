@@ -49,7 +49,7 @@ class DynamicFieldDescriptor extends FieldDescriptor {
     @Override
     protected void compileFieldDescription(List<String> fields) {
         final int nFields = fields.size();
-        long[] columnIndices = new long[nFields];
+        long[] columnKeys = new long[nFields];
 
         Table currentTable = table;
         String currentClassName = null;
@@ -76,9 +76,9 @@ class DynamicFieldDescriptor extends FieldDescriptor {
                 currentTable = currentTable.getLinkTarget(columnKey);
             }
 
-            columnIndices[i] = columnKey;
+            columnKeys[i] = columnKey;
         }
 
-        setCompilationResults(currentClassName, currentColumnName, currentColumnType, columnIndices, new long[nFields]);
+        setCompilationResults(currentClassName, currentColumnName, currentColumnType, columnKeys, new long[nFields]);
     }
 }

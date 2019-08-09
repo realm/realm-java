@@ -1360,16 +1360,15 @@ public class RealmObjectTests {
                     @Override
                     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                         final Table table = realm.getSchema().getTable(StringAndInt.class);
-                        final long strIndex = table.getColumnIndex("str");
-                        final long numberIndex = table.getColumnIndex("number");
+                        final long strColKey = table.getColumnKey("str");
+                        final long numberColKey = table.getColumnKey("number");
 
-                        while (0 < table.getColumnCount()) {
-                            table.removeColumn(0);
+                        for (String columnName :table.getColumnNames()) {
+                            table.removeColumn(table.getColumnKey(columnName));
                         }
-
                         final long newStrIndex;
                         // Swaps column indices.
-                        if (strIndex < numberIndex) {
+                        if (strColKey < numberColKey) {
                             table.addColumn(RealmFieldType.INTEGER, "number");
                             newStrIndex = table.addColumn(RealmFieldType.STRING, "str");
                         } else {

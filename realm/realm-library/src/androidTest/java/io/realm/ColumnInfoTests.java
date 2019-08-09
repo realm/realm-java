@@ -66,7 +66,7 @@ public class ColumnInfoTests {
 
         // Checks precondition.
         assertNotSame(sourceColumnInfo, targetColumnInfo);
-        assertNotSame(sourceColumnInfo.getIndicesMap(), targetColumnInfo.getIndicesMap());
+        assertNotSame(sourceColumnInfo.getColumnKeysMap(), targetColumnInfo.getColumnKeysMap());
 
         sourceColumnInfo.nameIndex = 1;
         sourceColumnInfo.ageIndex = 2;
@@ -116,7 +116,7 @@ public class ColumnInfoTests {
 
         // verify that the copy is identical
         assertNotSame(columnInfo, copy);
-        assertEquals(columnInfo.getIndicesMap(), copy.getIndicesMap());
+        assertEquals(columnInfo.getColumnKeysMap(), copy.getColumnKeysMap());
         assertEquals(columnInfo.nameIndex, copy.nameIndex);
         assertEquals(columnInfo.ageIndex, copy.ageIndex);
         assertEquals(columnInfo.heightIndex, copy.heightIndex);

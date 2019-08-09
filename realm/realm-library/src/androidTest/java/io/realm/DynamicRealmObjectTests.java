@@ -696,10 +696,6 @@ public class DynamicRealmObjectTests {
         }
     }
 
-    @Ignore("__CORE6__: This test has two issues:" +
-            "1- It should be possible to set null on a nullable column like FIELD_STRING_LIST_NULL, the current " +
-            "implementation suggest that it's not possible" +
-            "2- Even when we're allowed to nullify the column we crash with https://github.com/realm/realm-core-private/issues/235")
     @Test
     public void setter_nullOnRequiredFieldsThrows() {
         realm.beginTransaction();

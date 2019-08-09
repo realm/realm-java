@@ -276,7 +276,6 @@ public class RealmChangeListenerTests {
     // 1. adding a listener if on the parent
     // 2. modify child
     // 3. listener is triggered (forward link)
-    @Ignore("__CORE6__: https://github.com/realm/realm-object-store/issues/678")
     @Test
     @RunTestInLooperThread
     public void listenerOnParentChangeChild() {

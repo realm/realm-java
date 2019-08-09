@@ -90,8 +90,8 @@ public abstract class ColumnInfo {
     }
 
 
-    private final Map<String, ColumnDetails> indicesFromJavaFieldNames;
-    private final Map<String, ColumnDetails> indicesFromColumnNames;
+    private final Map<String, ColumnDetails> columnkeysFromJavaFieldNames;
+    private final Map<String, ColumnDetails> columnKeysFromColumnNames;
     private final boolean mutable;
 
     /**
@@ -110,16 +110,16 @@ public abstract class ColumnInfo {
      * @param mutable false to make this instance effectively final
      */
     protected ColumnInfo(@Nullable ColumnInfo src, boolean mutable) {
-        this((src == null) ? 0 : src.indicesFromJavaFieldNames.size(), mutable);
+        this((src == null) ? 0 : src.columnkeysFromJavaFieldNames.size(), mutable);
         // ColumnDetails are immutable and may be re-used.
         if (src != null) {
-            indicesFromJavaFieldNames.putAll(src.indicesFromJavaFieldNames);
+            columnkeysFromJavaFieldNames.putAll(src.columnkeysFromJavaFieldNames);
         }
     }
 
     private ColumnInfo(int mapSize, boolean mutable) {
-        this.indicesFromJavaFieldNames = new HashMap<>(mapSize);
-        this.indicesFromColumnNames = new HashMap<>(mapSize);
+        this.columnkeysFromJavaFieldNames = new HashMap<>(mapSize);
+        this.columnKeysFromColumnNames = new HashMap<>(mapSize);
         this.mutable = mutable;
     }
 
@@ -138,7 +138,7 @@ public abstract class ColumnInfo {
      * @return column key.
      */
     public long getColumnKey(String javaFieldName) {
-        ColumnDetails details = indicesFromJavaFieldNames.get(javaFieldName);
+        ColumnDetails details = columnkeysFromJavaFieldNames.get(javaFieldName);
         return (details == null) ? -1 : details.columnKey;
     }
 
@@ -149,7 +149,7 @@ public abstract class ColumnInfo {
      */
     @Nullable
     public ColumnDetails getColumnDetails(String javaFieldName) {
-        return indicesFromJavaFieldNames.get(javaFieldName);
+        return columnkeysFromJavaFieldNames.get(javaFieldName);
     }
 
     /**
@@ -167,10 +167,10 @@ public abstract class ColumnInfo {
             throw new NullPointerException("Attempt to copy null ColumnInfo");
         }
 
-        indicesFromJavaFieldNames.clear();
-        indicesFromJavaFieldNames.putAll(src.indicesFromJavaFieldNames);
-        indicesFromColumnNames.clear();
-        indicesFromColumnNames.putAll(src.indicesFromColumnNames);
+        columnkeysFromJavaFieldNames.clear();
+        columnkeysFromJavaFieldNames.putAll(src.columnkeysFromJavaFieldNames);
+        columnKeysFromColumnNames.clear();
+        columnKeysFromColumnNames.putAll(src.columnKeysFromColumnNames);
         copy(src, this);
     }
 
@@ -178,20 +178,20 @@ public abstract class ColumnInfo {
     public String toString() {
         StringBuilder buf = new StringBuilder("ColumnInfo[");
         buf.append("mutable="+mutable).append(",");
-        if (indicesFromJavaFieldNames != null) {
+        if (columnkeysFromJavaFieldNames != null) {
             buf.append("JavaFieldNames=[");
             boolean commaNeeded = false;
-            for (Map.Entry<String, ColumnDetails> entry : indicesFromJavaFieldNames.entrySet()) {
+            for (Map.Entry<String, ColumnDetails> entry : columnkeysFromJavaFieldNames.entrySet()) {
                 if (commaNeeded) { buf.append(","); }
                 buf.append(entry.getKey()).append("->").append(entry.getValue());
                 commaNeeded = true;
             }
             buf.append("]");
         }
-        if (indicesFromColumnNames != null) {
+        if (columnKeysFromColumnNames != null) {
             buf.append(", InternalFieldNames=[");
             boolean commaNeeded = false;
-            for (Map.Entry<String, ColumnDetails> entry : indicesFromColumnNames.entrySet()) {
+            for (Map.Entry<String, ColumnDetails> entry : columnKeysFromColumnNames.entrySet()) {
                 if (commaNeeded) { buf.append(","); }
                 buf.append(entry.getKey()).append("->").append(entry.getValue());
                 commaNeeded = true;
@@ -236,8 +236,8 @@ public abstract class ColumnInfo {
     protected final long addColumnDetails(String javaFieldName, String internalColumnName, OsObjectSchemaInfo objectSchemaInfo) {
         Property property = objectSchemaInfo.getProperty(internalColumnName);
         ColumnDetails cd = new ColumnDetails(property);
-        indicesFromJavaFieldNames.put(javaFieldName, cd);
-        indicesFromColumnNames.put(internalColumnName, cd);
+        columnkeysFromJavaFieldNames.put(javaFieldName, cd);
+        columnKeysFromColumnNames.put(internalColumnName, cd);
         return property.getColumnKey();
     }
 
@@ -253,7 +253,7 @@ public abstract class ColumnInfo {
      */
     protected final void addBacklinkDetails(OsSchemaInfo schemaInfo, String javaFieldName, String sourceTableName, String sourceJavaFieldName) {
         long columnKey = schemaInfo.getObjectSchemaInfo(sourceTableName).getProperty(sourceJavaFieldName).getColumnKey();
-        indicesFromJavaFieldNames.put(javaFieldName, new ColumnDetails(columnKey, RealmFieldType.LINKING_OBJECTS, sourceTableName));
+        columnkeysFromJavaFieldNames.put(javaFieldName, new ColumnDetails(columnKey, RealmFieldType.LINKING_OBJECTS, sourceTableName));
     }
 
     /**
@@ -263,7 +263,7 @@ public abstract class ColumnInfo {
      * @return the column details map.
      */
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
-    public Map<String, ColumnDetails> getIndicesMap() {
-        return indicesFromJavaFieldNames;
+    public Map<String, ColumnDetails> getColumnKeysMap() {
+        return columnkeysFromJavaFieldNames;
     }
 }

@@ -99,16 +99,13 @@ public class RealmMigrationTests {
         }
     }
 
-    private void assertPKField(Realm realm, String className, String expectedName, long expectedIndex) {
+    private void assertPKField(Realm realm, String className, String expectedName) {
         String pkField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, className);
         assertNotNull(pkField);
         RealmObjectSchema objectSchema = realm.getSchema().get(className);
         assertNotNull(objectSchema);
         assertTrue(objectSchema.hasField(expectedName));
         assertEquals(expectedName, pkField);
-        //noinspection ConstantConditions
-        assertEquals(expectedIndex,
-                realm.sharedRealm.getTable(Table.getTableNameForClass(className)).getColumnIndex(pkField));
     }
 
     @Test
@@ -385,8 +382,7 @@ public class RealmMigrationTests {
 
         Table table = realm.getSchema().getTable(MigrationClassRenamed.class);
         assertEquals(MigrationClassRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
-        assertPKField(realm, MigrationClassRenamed.CLASS_NAME, MigrationClassRenamed.FIELD_PRIMARY,
-                MigrationClassRenamed.DEFAULT_PRIMARY_INDEX);
+        assertPKField(realm, MigrationClassRenamed.CLASS_NAME, MigrationClassRenamed.FIELD_PRIMARY);
         // Old schema does not exist.
         assertNull(realm.getSchema().get(MigrationPrimaryKey.CLASS_NAME));
     }
@@ -453,8 +449,7 @@ public class RealmMigrationTests {
 
         Table table = realm.getSchema().getTable(MigrationClassRenamed.class);
         assertEquals(MigrationClassRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
-        assertPKField(realm, MigrationClassRenamed.CLASS_NAME, MigrationClassRenamed.FIELD_PRIMARY,
-                MigrationClassRenamed.DEFAULT_PRIMARY_INDEX);
+        assertPKField(realm, MigrationClassRenamed.CLASS_NAME, MigrationClassRenamed.FIELD_PRIMARY);
         // Old schema does not exist.
         assertNull(realm.getSchema().get(MigrationPrimaryKey.CLASS_NAME));
     }
@@ -565,8 +560,7 @@ public class RealmMigrationTests {
         Table table = realm.getSchema().getTable(MigrationPosteriorIndexOnly.class);
 
         assertEquals(MigrationPosteriorIndexOnly.DEFAULT_FIELDS_COUNT, table.getColumnCount());
-        assertPKField(realm, MigrationPosteriorIndexOnly.CLASS_NAME, MigrationPosteriorIndexOnly.FIELD_PRIMARY
-                , MigrationPosteriorIndexOnly.DEFAULT_PRIMARY_INDEX);
+        assertPKField(realm, MigrationPosteriorIndexOnly.CLASS_NAME, MigrationPosteriorIndexOnly.FIELD_PRIMARY);
     }
 
     // Removing fields after a pk field does not affect the pk.
@@ -592,7 +586,7 @@ public class RealmMigrationTests {
 
         assertEquals(MigrationPriorIndexOnly.DEFAULT_FIELDS_COUNT, table.getColumnCount());
         assertPKField(realm, MigrationPriorIndexOnly.CLASS_NAME, MigrationPriorIndexOnly.FIELD_PRIMARY
-                , MigrationPriorIndexOnly.DEFAULT_PRIMARY_INDEX);
+                /*, MigrationPriorIndexOnly.DEFAULT_PRIMARY_INDEX*/);
     }
 
     // Renaming the class should also rename the the class entry in the pk metadata table that tracks primary keys.
@@ -616,8 +610,8 @@ public class RealmMigrationTests {
 
         Table table = realm.getSchema().getTable(MigrationFieldRenamed.class);
         assertEquals(MigrationFieldRenamed.DEFAULT_FIELDS_COUNT, table.getColumnCount());
-        assertPKField(realm, MigrationFieldRenamed.CLASS_NAME, MigrationFieldRenamed.FIELD_PRIMARY,
-                MigrationFieldRenamed.DEFAULT_PRIMARY_INDEX);
+        assertPKField(realm, MigrationFieldRenamed.CLASS_NAME, MigrationFieldRenamed.FIELD_PRIMARY/*,
+                MigrationFieldRenamed.DEFAULT_PRIMARY_INDEX*/);
     }
 
     private void createObjectsWithOldPrimaryKey(final String className, final boolean insertNullValue) {
@@ -678,8 +672,8 @@ public class RealmMigrationTests {
 
         Table table = realm.getSchema().getTable(MigrationFieldTypeToInt.class);
         assertEquals(MigrationFieldTypeToInt.DEFAULT_FIELDS_COUNT, table.getColumnCount());
-        assertPKField(realm, MigrationFieldTypeToInt.CLASS_NAME, MigrationFieldTypeToInt.FIELD_PRIMARY,
-                MigrationFieldTypeToInt.DEFAULT_PRIMARY_INDEX);
+        assertPKField(realm, MigrationFieldTypeToInt.CLASS_NAME, MigrationFieldTypeToInt.FIELD_PRIMARY/*,
+                MigrationFieldTypeToInt.DEFAULT_PRIMARY_INDEX*/);
 
         assertEquals(1, realm.where(MigrationFieldTypeToInt.class).count());
         assertEquals(12, realm.where(MigrationFieldTypeToInt.class).findFirst().fieldIntPrimary);
@@ -723,8 +717,7 @@ public class RealmMigrationTests {
 
         Table table = realm.getSchema().getTable(MigrationFieldTypeToInteger.class);
         assertEquals(MigrationFieldTypeToInteger.DEFAULT_FIELDS_COUNT, table.getColumnCount());
-        assertPKField(realm, MigrationFieldTypeToInteger.CLASS_NAME, MigrationFieldTypeToInteger.FIELD_PRIMARY,
-                MigrationFieldTypeToInteger.DEFAULT_PRIMARY_INDEX);
+        assertPKField(realm, MigrationFieldTypeToInteger.CLASS_NAME, MigrationFieldTypeToInteger.FIELD_PRIMARY);
 
         assertEquals(2, realm.where(MigrationFieldTypeToInteger.class).count());
 

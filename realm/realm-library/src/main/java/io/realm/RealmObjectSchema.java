@@ -222,7 +222,7 @@ public abstract class RealmObjectSchema {
      * @return {@code true} if the field exists, {@code false} otherwise.
      */
     public boolean hasField(String fieldName) {
-        return table.getColumnIndex(fieldName) != Table.NO_MATCH;
+        return table.getColumnKey(fieldName) != Table.NO_MATCH;
     }
 
     /**
@@ -424,7 +424,7 @@ public abstract class RealmObjectSchema {
      * @param validColumnTypes valid field type for the last field in a linked field
      * @return a FieldDescriptor
      */
-    abstract FieldDescriptor getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes);
+    abstract FieldDescriptor getFieldDescriptors(String fieldDescription, RealmFieldType... validColumnTypes);
 
     RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         long columnIndex = table.addColumn(type, name, (required) ? Table.NOT_NULLABLE : Table.NULLABLE);
@@ -501,7 +501,7 @@ public abstract class RealmObjectSchema {
     }
 
     void checkFieldExists(String fieldName) {
-        if (table.getColumnIndex(fieldName) == Table.NO_MATCH) {
+        if (table.getColumnKey(fieldName) == Table.NO_MATCH) {
             throw new IllegalArgumentException("Field name doesn't exist on object '" + getClassName() + "': " + fieldName);
         }
     }

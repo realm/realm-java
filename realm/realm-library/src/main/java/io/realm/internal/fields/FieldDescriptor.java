@@ -15,7 +15,6 @@
  */
 package io.realm.internal.fields;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -145,7 +144,7 @@ public abstract class FieldDescriptor {
 
     private String finalColumnName;
     private RealmFieldType finalColumnType;
-    private long[] columnIndices;
+    private long[] columnKeys;
     private long[] nativeTablePointers;
 
     /**
@@ -169,7 +168,7 @@ public abstract class FieldDescriptor {
     /**
      * The number of columnNames in the field description.
      * The returned number is the size of the array returned by
-     * {@code getColumnIndices} and {@code getNativeTablePointers}
+     * {@code getColumnKeys} and {@code getNativeTablePointers}
      *
      * @return the number of fields.
      */
@@ -186,9 +185,9 @@ public abstract class FieldDescriptor {
      *
      * @return an array of column indices.
      */
-    public final long[] getColumnIndices() {
+    public final long[] getColumnKeys() {
         compileIfNecessary();
-        return Arrays.copyOf(columnIndices, columnIndices.length);
+        return Arrays.copyOf(columnKeys, columnKeys.length);
     }
 
     /**
@@ -249,21 +248,21 @@ public abstract class FieldDescriptor {
      * @param finalClassName the name of the final table in the field description.
      * @param finalColumnName the name of the final column in the field description.
      * @param finalColumnType the type of the final column in the field description: MAY NOT BE {@code null}!
-     * @param columnIndices the array of columnIndices.
+     * @param columnKeys the array of column keys.
      * @param nativeTablePointers the array of table pointers
      */
     protected final void setCompilationResults(
             String finalClassName,
             String finalColumnName,
             RealmFieldType finalColumnType,
-            long[] columnIndices,
+            long[] columnKeys,
             long[] nativeTablePointers) {
         if ((validFinalColumnTypes != null) && (validFinalColumnTypes.size() > 0)) {
             verifyColumnType(finalClassName, finalColumnName, finalColumnType, validFinalColumnTypes);
         }
         this.finalColumnName = finalColumnName;
         this.finalColumnType = finalColumnType;
-        this.columnIndices = columnIndices;
+        this.columnKeys = columnKeys;
         this.nativeTablePointers = nativeTablePointers;
     }
 

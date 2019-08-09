@@ -87,16 +87,16 @@ public class SortDescriptor {
             throw new IllegalArgumentException("You must provide at least one field name.");
         }
 
-        long[][] columnIndices = new long[fieldDescriptions.length][];
+        long[][] columnKeys = new long[fieldDescriptions.length][];
 
         // Force aggressive parsing of the FieldDescriptors, so that only valid SortDescriptor objects are created.
         for (int i = 0; i < fieldDescriptions.length; i++) {
             FieldDescriptor descriptor = FieldDescriptor.createFieldDescriptor(proxy, table, fieldDescriptions[i], legalInternalTypes, null);
             checkFieldType(descriptor, legalTerminalTypes, message, fieldDescriptions[i]);
-            columnIndices[i] = descriptor.getColumnIndices();
+            columnKeys[i] = descriptor.getColumnKeys();
         }
 
-        return new SortDescriptor(table, columnIndices, sortOrders);
+        return new SortDescriptor(table, columnKeys, sortOrders);
     }
 
     // Internal use only. For JNI testing.
@@ -115,12 +115,12 @@ public class SortDescriptor {
 
 
     private final Table table;
-    private final long[][] columnIndices;
+    private final long[][] columnKeys;
     private final boolean[] ascendings;
 
-    private SortDescriptor(Table table, long[][] columnIndices, @Nullable Sort[] sortOrders) {
+    private SortDescriptor(Table table, long[][] columnKeys, @Nullable Sort[] sortOrders) {
         this.table = table;
-        this.columnIndices = columnIndices;
+        this.columnKeys = columnKeys;
         if (sortOrders != null) {
             ascendings = new boolean[sortOrders.length];
             for (int i = 0; i < sortOrders.length; i++) {
@@ -133,8 +133,8 @@ public class SortDescriptor {
 
     // Called by JNI.
     @SuppressWarnings("unused")
-    long[][] getColumnIndices() {
-        return columnIndices;
+    long[][] getColumnKeys() {
+        return columnKeys;
     }
 
     // Called by JNI.

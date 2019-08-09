@@ -44,7 +44,7 @@ DistinctDescriptor JavaSortDescriptor::distinct_descriptor() const noexcept
 
 std::vector<std::vector<ColKey>> JavaSortDescriptor::get_column_keys() const noexcept
 {
-    static JavaMethod get_column_keys_method(m_env, get_sort_desc_class(), "getColumnIndices", "()[[J");
+    static JavaMethod get_column_keys_method(m_env, get_sort_desc_class(), "getColumnKeys", "()[[J");
     jobjectArray column_indices =
             static_cast<jobjectArray>(m_env->CallObjectMethod(m_sort_desc_obj, get_column_keys_method));
     JObjectArrayAccessor<JLongArrayAccessor, jlongArray> arrays(m_env, column_indices);

@@ -310,7 +310,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
      * @throws IllegalArgumentException if a proper FieldDescriptor could not be created.
      */
     @Override
-    FieldDescriptor getColumnIndices(String internalColumnNameDescription, RealmFieldType... validColumnTypes) {
+    FieldDescriptor getFieldDescriptors(String internalColumnNameDescription, RealmFieldType... validColumnTypes) {
         return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), internalColumnNameDescription, validColumnTypes);
     }
 
@@ -362,7 +362,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     private void checkFieldNameIsAvailable(String fieldName) {
-        if (table.getColumnIndex(fieldName) != Table.NO_MATCH) {
+        if (table.getColumnKey(fieldName) != Table.NO_MATCH) {
             throw new IllegalArgumentException("Field already exists in '" + getClassName() + "': " + fieldName);
         }
     }

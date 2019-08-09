@@ -241,23 +241,6 @@ JNIEXPORT jobjectArray JNICALL Java_io_realm_internal_Table_nativeGetColumnNames
     return NULL;
 }
 
-//TODO rename index to objkey
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnIndex(JNIEnv* env, jobject, jlong nativeTablePtr,
-                                                                          jstring columnName)
-{
-    try {
-        TableRef table = TBL_REF(nativeTablePtr);
-        JStringAccessor columnName2(env, columnName);                                     // throws
-        ColKey col_key = table->get_column_key(columnName2);
-        if (bool(col_key)) {//TODO generalize this test & return for similar lookups
-            return to_jlong_or_not_found(table->colkey2spec_ndx(col_key)); // noexcept //TODO does colkey2ndx return realm::not_found?
-        }
-        return -1;
-    }
-    CATCH_STD()
-    return -1;
-}
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnKey(JNIEnv* env, jobject, jlong nativeTablePtr,
                                                                           jstring columnName)
 {
@@ -265,7 +248,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnKey(JNIEnv* 
         JStringAccessor columnName2(env, columnName);                                     // throws
         TableRef table = TBL_REF(nativeTablePtr);
         ColKey col_key = table->get_column_key(columnName2);
-        if (bool(col_key)) {//TODO generalize this test & return for similar lookups
+        if (table->valid_column(col_key)) {//TODO generalize this test & return for similar lookups
             return reinterpret_cast<jlong>(col_key.value); // noexcept
         }
         return -1;

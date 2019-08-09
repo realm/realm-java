@@ -301,7 +301,7 @@ public class SyncedRealmMigrationTests {
         // Add one extra field which doesn't exist in the typed Realm.
         objectSchema.addField("oneMoreField", int.class);
         dynamicRealm.commitTransaction();
-        // Clear column indices cache.
+        // Clear column keys cache.
         dynamicRealm.close();
 
         // Verify schema again.

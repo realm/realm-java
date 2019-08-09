@@ -1761,7 +1761,7 @@ public class Realm extends BaseRealm {
                 // TODO Add support for DynamicRealm.executeTransactionAsync()
                 Table table = realm.sharedRealm.getTable("class___ResultSets");
                 TableQuery query = table.where()
-                        .equalTo(new long[]{table.getColumnIndex("name")}, new long[]{NativeObject.NULLPTR}, subscriptionName);
+                        .equalTo(new long[]{table.getColumnKey("name")}, new long[]{NativeObject.NULLPTR}, subscriptionName);
 
                 OsResults result = OsResults.createFromQuery(realm.sharedRealm, query);
                 long count = result.size();

@@ -70,8 +70,8 @@ public class RealmAnnotationTests {
     @Test
     public void ignore() {
         Table table = realm.getTable(AnnotationTypes.class);
-        assertEquals(-1, table.getColumnIndex(AnnotationTypes.FIELD_IGNORE_STRING));
-        assertEquals(-1, table.getColumnIndex(AnnotationTypes.FIELD_TRANSIENT_STRING));
+        assertEquals(-1, table.getColumnKey(AnnotationTypes.FIELD_IGNORE_STRING));
+        assertEquals(-1, table.getColumnKey(AnnotationTypes.FIELD_TRANSIENT_STRING));
     }
 
     // Tests if "index" annotation works with supported types.
