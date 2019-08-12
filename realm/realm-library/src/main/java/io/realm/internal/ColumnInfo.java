@@ -92,6 +92,7 @@ public abstract class ColumnInfo {
 
     private final Map<String, ColumnDetails> columnkeysFromJavaFieldNames;
     private final Map<String, ColumnDetails> columnKeysFromColumnNames;
+    private final Map<String, String> javaFieldNameToInternalNames;
     private final boolean mutable;
 
     /**
@@ -120,6 +121,7 @@ public abstract class ColumnInfo {
     private ColumnInfo(int mapSize, boolean mutable) {
         this.columnkeysFromJavaFieldNames = new HashMap<>(mapSize);
         this.columnKeysFromColumnNames = new HashMap<>(mapSize);
+        this.javaFieldNameToInternalNames = new HashMap<>(mapSize);
         this.mutable = mutable;
     }
 
@@ -153,6 +155,16 @@ public abstract class ColumnInfo {
     }
 
     /**
+     * Returns the internal field name that corresponds to the name found in the Java model class.
+     * @param javaFieldName the field name in the Java model class.
+     * @return the internal field name or {@code null} if the java name doesn't exists.
+     */
+    @Nullable
+    public String getInternalFieldName(String javaFieldName) {
+        return javaFieldNameToInternalNames.get(javaFieldName);
+    }
+
+    /**
      * Makes this ColumnInfo an exact copy of {@code src}.
      *
      * @param src The source for the copy.  This instance will be an exact copy of {@code src} after return.
@@ -171,6 +183,8 @@ public abstract class ColumnInfo {
         columnkeysFromJavaFieldNames.putAll(src.columnkeysFromJavaFieldNames);
         columnKeysFromColumnNames.clear();
         columnKeysFromColumnNames.putAll(src.columnKeysFromColumnNames);
+        javaFieldNameToInternalNames.clear();
+        javaFieldNameToInternalNames.putAll(src.javaFieldNameToInternalNames);
         copy(src, this);
     }
 
@@ -238,6 +252,7 @@ public abstract class ColumnInfo {
         ColumnDetails cd = new ColumnDetails(property);
         columnkeysFromJavaFieldNames.put(javaFieldName, cd);
         columnKeysFromColumnNames.put(internalColumnName, cd);
+        javaFieldNameToInternalNames.put(javaFieldName, internalColumnName);
         return property.getColumnKey();
     }
 

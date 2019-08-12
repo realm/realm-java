@@ -18,11 +18,9 @@ package io.realm.internal;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.MoreAsserts;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +37,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(AndroidJUnit4.class)
@@ -106,7 +105,7 @@ public class JNIRowTest {
         assertEquals(1.3, row.getDouble(colKey4.get()), Double.MIN_NORMAL);
         assertEquals(true, row.getBoolean(colKey5.get()));
         assertEquals(new Date(0), row.getDate(colKey6.get()));
-        MoreAsserts.assertEquals(data, row.getBinaryByteArray(colKey7.get()));
+        assertArrayEquals(data, row.getBinaryByteArray(colKey7.get()));
 
         row.setString(colKey1.get(), "a");
         row.setLong(colKey2.get(), 1);
@@ -124,7 +123,7 @@ public class JNIRowTest {
         assertEquals(9.9, row.getDouble(colKey4.get()), Double.MIN_NORMAL);
         assertEquals(false, row.getBoolean(colKey5.get()));
         assertEquals(new Date(10000), row.getDate(colKey6.get()));
-        MoreAsserts.assertEquals(newData, row.getBinaryByteArray(colKey7.get()));
+        assertArrayEquals(newData, row.getBinaryByteArray(colKey7.get()));
     }
 
     @Test

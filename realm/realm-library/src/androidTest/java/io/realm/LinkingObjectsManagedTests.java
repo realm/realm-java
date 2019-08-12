@@ -434,10 +434,13 @@ public class LinkingObjectsManagedTests {
         // precondition
         assertFalse(targetAsync.isLoaded());
 
-        thrown.expect(IllegalStateException.class);
-        //noinspection ResultOfMethodCallIgnored
-        targetAsync.getParents();
-        fail();
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            targetAsync.getParents();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+        looperThread.testComplete();
     }
 
     @Test
@@ -471,10 +474,13 @@ public class LinkingObjectsManagedTests {
         // precondition
         assertFalse(target.isValid());
 
-        thrown.expect(IllegalStateException.class);
-        //noinspection ResultOfMethodCallIgnored
-        target.getParents();
-        fail();
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            target.getParents();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+        looperThread.testComplete();
     }
 
     @Test
@@ -509,10 +515,13 @@ public class LinkingObjectsManagedTests {
         // precondition
         assertFalse(target.isValid());
 
-        thrown.expect(IllegalStateException.class);
-        //noinspection ResultOfMethodCallIgnored
-        target.getParents();
-        fail();
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            target.getParents();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+        looperThread.testComplete();
     }
 
     /**

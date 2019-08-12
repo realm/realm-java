@@ -17,6 +17,13 @@
 ###########################################################################
 cmake_minimum_required(VERSION 3.6.0)
 
+FUNCTION(capitalizeFirstLetter var value)
+    string(SUBSTRING ${value} 0 1 firstLetter)
+    string(TOUPPER ${firstLetter} firstLetter)
+    string(REGEX REPLACE "^.(.*)" "${firstLetter}\\1" value "${value}")
+    set(${var} "${value}" PARENT_SCOPE)
+ENDFUNCTION(capitalizeFirstLetter)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 # find javah
@@ -52,10 +59,19 @@ else()
     set(build_SYNC ON)
 endif()
 
-# Generate JNI header files. Each build has its own JNI header in its build_dir/jni_include.
+# Format strings used to represent build parameters: Variant and Type
 string(TOLOWER ${CMAKE_BUILD_TYPE} build_type_FOLDER)
-set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/classes/${REALM_FLAVOR}/${build_type_FOLDER}/)
+set(realmFlavorCap "")
+set(buildTypeCap "")
+capitalizeFirstLetter(realmFlavorCap "${REALM_FLAVOR}")
+capitalizeFirstLetter(buildTypeCap "${CMAKE_BUILD_TYPE}")
+
+# Generate JNI header files. Each build has its own JNI header in its build_dir/jni_include.
+# WARNING: The classes_PATH is not part the public API offered by the Android Gradle Plugin
+# so it might change without warning when upgrading the plugin.
+set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/javac/${REALM_FLAVOR}${buildTypeCap}/compile${realmFlavorCap}${buildTypeCap}JavaWithJavac/classes/)
 set(classes_LIST
+    io.realm.RealmQuery
     io.realm.internal.Table io.realm.internal.CheckedRow
     io.realm.internal.Util io.realm.internal.UncheckedRow
     io.realm.internal.TableQuery io.realm.internal.OsSharedRealm io.realm.internal.TestUtil
@@ -64,6 +80,8 @@ set(classes_LIST
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
     io.realm.internal.OsObjectStore io.realm.internal.sync.OsSubscription
+    io.realm.internal.core.DescriptorOrdering io.realm.internal.core.IncludeDescriptor
+    io.realm.internal.objectstore.OsObjectBuilder
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319
@@ -72,11 +90,11 @@ if (build_SYNC)
     list(APPEND classes_LIST
         io.realm.ClientResetRequiredError io.realm.RealmFileUserStore
         io.realm.SyncManager io.realm.SyncSession io.realm.SyncUser
+        io.realm.internal.objectstore.OsAsyncOpenTask
     )
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
-
     CLASSPATH ${classes_PATH}
     OUTPUT_DIR ${jni_headers_PATH}
     DEPENDS ${classes_PATH}
@@ -170,6 +188,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_sync_OsSubscription.cpp
     )
 endif()

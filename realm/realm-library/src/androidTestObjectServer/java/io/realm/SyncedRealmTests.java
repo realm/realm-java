@@ -28,14 +28,15 @@ import java.io.IOException;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
-import io.realm.internal.util.Pair;
 import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.util.SyncTestUtils;
+import io.realm.sync.Subscription;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -255,4 +256,67 @@ public class SyncedRealmTests {
         assertTrue(originalSize > compactedSize);
     }
 
+    @Test
+    public void getSubscriptions() {
+        realm = getPartialRealm();
+        RealmResults<Subscription> subscriptions = realm.getSubscriptions();
+        assertEquals(0, subscriptions.size());
+
+        realm.executeTransaction(r -> {
+            r.where(AllTypes.class).subscribe("sub1");
+        });
+
+        assertEquals(1, subscriptions.size());
+        assertEquals("sub1", subscriptions.first().getName());
+    }
+
+    @Test
+    public void getSubscriptions_withPattern() {
+        realm = getPartialRealm();
+        assertEquals(0, realm.getSubscriptions("sub?").size());
+
+        realm.executeTransaction(r -> {
+            r.where(AllTypes.class).subscribe("sub1");
+            r.where(AllTypes.class).subscribe("sub2");
+        });
+
+        assertEquals(0, realm.getSubscriptions("sub").size());
+        assertEquals(2, realm.getSubscriptions("sub?").size());
+        assertEquals(2, realm.getSubscriptions("s*").size());
+    }
+
+    @Test
+    public void getSubscriptions_withPattern_throwsIfNullPattern() {
+        realm = getPartialRealm();
+        try {
+            //noinspection ConstantConditions
+            realm.getSubscriptions(null);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
+    }
+
+    @Test
+    public void getSubscription() {
+        realm = getPartialRealm();
+        assertNull(realm.getSubscription("sub"));
+
+        realm.executeTransaction(r -> {
+            r.where(AllTypes.class).subscribe("sub");
+        });
+
+        Subscription sub = realm.getSubscription("sub");
+        assertNotNull(sub);
+        assertEquals("sub", sub.getName());
+    }
+
+    @Test
+    public void includeLinkingObjects_throwsForNonQueryBasedRealms() {
+        realm = getFullySyncRealm();
+        try {
+            realm.where(AllJavaTypes.class).includeLinkingObjects(AllJavaTypes.FIELD_STRING);
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
 }

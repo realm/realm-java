@@ -1,5 +1,10 @@
+#define __STDC_LIMIT_MACROS // See https://stackoverflow.com/a/3233069/1389357
+#include <cstdint>
+
 #include "io_realm_internal_TestUtil.h"
 #include "util.hpp"
+
+#include <realm/timestamp.hpp>
 
 static jstring throwOrGetExpectedMessage(JNIEnv* env, jlong testcase, bool should_throw);
 
@@ -17,6 +22,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TestUtil_getExpectedMessage(JNI
 JNIEXPORT void JNICALL Java_io_realm_internal_TestUtil_testThrowExceptions(JNIEnv* env, jclass, jlong exception_kind)
 {
     throwOrGetExpectedMessage(env, exception_kind, true);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TestUtil_getDateFromTimestamp(JNIEnv*, jclass, jlong seconds, jint nanoseconds)
+{
+    return to_milliseconds(realm::Timestamp(static_cast<int64_t>(seconds), static_cast<int32_t>(nanoseconds)));
 }
 
 static jstring throwOrGetExpectedMessage(JNIEnv* env, jlong testcase, bool should_throw)

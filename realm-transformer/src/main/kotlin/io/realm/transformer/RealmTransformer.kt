@@ -150,10 +150,7 @@ class RealmTransformer(val project: Project) : Transform() {
                 }
             }
 
-            val packages: Set<String> = outputModelClasses.map {
-                it.packageName
-            }.toSet()
-
+            val packages: Set<String> = outputModelClasses.map { it.packageName }.toSet()
             val targetSdk: String? = project.getTargetSdk()
             val minSdk: String?  = project.getMinSdk()
 

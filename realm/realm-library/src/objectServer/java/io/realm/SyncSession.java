@@ -227,11 +227,11 @@ public class SyncSession {
     }
 
     // This callback will happen on the thread running the Sync Client.
-    void notifySessionError(int errorCode, String errorMessage) {
+    void notifySessionError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
         if (errorHandler == null) {
             return;
         }
-        ErrorCode errCode = ErrorCode.fromInt(errorCode);
+        ErrorCode errCode = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
             RealmConfiguration backupRealmConfiguration = SyncConfiguration.forRecovery(errorMessage, configuration.getEncryptionKey(), configuration.getSchemaMediator());
@@ -239,7 +239,13 @@ public class SyncSession {
                     "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
                     configuration, backupRealmConfiguration));
         } else {
-            errorHandler.onError(this, new ObjectServerError(errCode, errorMessage));
+            ObjectServerError wrappedError;
+            if (errCode == ErrorCode.UNKNOWN) {
+                wrappedError = new ObjectServerError(nativeErrorCategory, nativeErrorCode, errorMessage);
+            } else {
+                wrappedError = new ObjectServerError(errCode, errorMessage);
+            }
+            errorHandler.onError(this, wrappedError);
         }
     }
 
@@ -481,7 +487,35 @@ public class SyncSession {
         // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
-            waitForChanges(DIRECTION_DOWNLOAD);
+            waitForChanges(DIRECTION_DOWNLOAD, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    /**
+     * Calling this method will block until all known remote changes have been downloaded and applied to the Realm
+     * or the specified timeout is hit. This will involve network access, so calling this method should only be done
+     * from a non-UI thread.
+     * <p>
+     * This method cannot be called before the Realm has been opened.
+     *
+     * @throws IllegalStateException if called on the Android main thread.
+     * @throws InterruptedException if the download took longer than the specified timeout or the thread was interrupted while downloading was in progress.
+     * The download will continue in the background even after this exception is thrown.
+     * @throws IllegalArgumentException if {@code timeout} is less than or equal to {@code 0} or {@code unit} is {@code null}.
+     * @return {@code true} if the data was downloaded before the timeout. {@code false} if the operation timed out or otherwise failed.
+     */
+    public boolean downloadAllServerChanges(long timeout, TimeUnit unit) throws InterruptedException {
+        checkIfNotOnMainThread("downloadAllServerChanges() cannot be called from the main thread.");
+        checkTimeout(timeout, unit);
+
+        // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
+        // an async listener there and let it callback to the Java Session when done. This feels icky at best, but
+        // since all operations on the SyncSession operate under a shared mutex, we would prevent all other actions on the
+        // session, including trying to stop it.
+        // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
+        // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
+        synchronized (waitForChangesMutex) {
+            return waitForChanges(DIRECTION_DOWNLOAD, timeout, unit);
         }
     }
 
@@ -491,7 +525,7 @@ public class SyncSession {
      * <p>
      * If the device is offline, this method might never return.
      * <p>
-     * This method cannot be called before the session has been started.
+     * This method cannot be called before the Realm has been opened.
      *
      * @throws IllegalStateException if called on the Android main thread.
      * @throws InterruptedException if the thread was interrupted while downloading was in progress.
@@ -506,8 +540,67 @@ public class SyncSession {
         // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
         // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
         synchronized (waitForChangesMutex) {
-            waitForChanges(DIRECTION_UPLOAD);
+            waitForChanges(DIRECTION_UPLOAD, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
         }
+    }
+
+    /**
+     * Calling this method will block until all known local changes have been uploaded to the server or the specified
+     * timeout is hit. This will involve network access, so calling this method should only be done from a non-UI
+     * thread.
+     * <p>
+     * This method cannot be called before the Realm has been opened.
+     *
+     * @throws IllegalStateException if called on the Android main thread.
+     * @throws InterruptedException if the upload took longer than the specified timeout or the thread was interrupted while uploading was in progress.
+     * The upload will continue in the background even after this exception is thrown.
+     * @throws IllegalArgumentException if {@code timeout} is less than or equal to {@code 0} or {@code unit} is {@code null}.
+     * @return {@code true} if the data was uploaded before the timeout. {@code false} if the operation timed out or otherwise failed.
+     */
+    public boolean uploadAllLocalChanges(long timeout, TimeUnit unit) throws InterruptedException {
+        checkIfNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
+        checkTimeout(timeout, unit);
+
+        // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
+        // an async listener there and let it callback to the Java Session when done. This feels icky at best, but
+        // since all operations on the SyncSession operate under a shared mutex, we would prevent all other actions on the
+        // session, including trying to stop it.
+        // In Java we cannot lock on the Session object either since it will prevent any attempt at modifying the
+        // lifecycle while it is in a waiting state. Thus we use a specialised mutex.
+        synchronized (waitForChangesMutex) {
+            return waitForChanges(DIRECTION_UPLOAD, timeout, unit);
+        }
+    }
+
+    /**
+     * Attempts to start the session and enable synchronization with the Realm Object Server.
+     * <p>
+     * This happens automatically when opening the Realm instance, so doing it manually should only
+     * be needed if the session was stopped using {@link #stop()}.
+     * <p>
+     * If the session was already started, calling this method will do nothing.
+     * <p>
+     * A session is considered started if {@link #getState()} returns either {@link State#ACTIVE} or
+     * {@link State#WAITING_FOR_ACCESS_TOKEN}. If the session is {@link State#DYING}, the session
+     * will be moved back to {@link State#ACTIVE}.
+     *
+     * @see #getState()
+     * @see #stop()
+     */
+    public synchronized void start() {
+        nativeStart(configuration.getPath());
+    }
+
+    /**
+     * Stops any synchronization with the Realm Object Server until the Realm is re-opened again
+     * after fully closing it.
+     * <p>
+     * Synchronization can be re-enabled by calling {@link #start()} again.
+     * <p>
+     * If the session is already stopped, calling this method will do nothing.
+     */
+    public synchronized void stop() {
+        nativeStop(configuration.getPath());
     }
 
     void setResolvedRealmURI(URI resolvedRealmURI) {
@@ -518,12 +611,16 @@ public class SyncSession {
      * This method should only be called when guarded by the {@link #waitForChangesMutex}.
      * It will block into all changes have been either uploaded or downloaded depending on the chosen direction.
      *
-     * @param direction either {@link #DIRECTION_DOWNLOAD} or {@link #DIRECTION_UPLOAD}
+     * @param direction either {@link #DIRECTION_DOWNLOAD} or {@link #DIRECTION_UPLOAD}.
+     * @param timeout timeout parameter.
+     * @param unit timeout unit.
+     * @return {@code true} if the job completed before the timeout was hit, {@code false}
      */
-    private void waitForChanges(int direction) throws InterruptedException {
+    private boolean waitForChanges(int direction, long timeout, TimeUnit unit) throws InterruptedException {
         if (direction != DIRECTION_DOWNLOAD && direction != DIRECTION_UPLOAD) {
             throw new IllegalArgumentException("Unknown direction: " + direction);
         }
+        boolean result = false;
         if (!isClosed) {
             String realmPath = configuration.getPath();
             WaitForSessionWrapper wrapper = new WaitForSessionWrapper();
@@ -534,7 +631,7 @@ public class SyncSession {
                     : nativeWaitForUploadCompletion(callbackId, realmPath);
             if (!listenerRegistered) {
                 waitingForServerChanges.set(null);
-                String errorMsg = "";
+                String errorMsg;
                 switch (direction) {
                     case DIRECTION_DOWNLOAD: errorMsg = "It was not possible to download all remote changes."; break;
                     case DIRECTION_UPLOAD: errorMsg = "It was not possible upload all local changes."; break;
@@ -545,7 +642,7 @@ public class SyncSession {
                 throw new ObjectServerError(ErrorCode.UNKNOWN, errorMsg + " Has the SyncClient been started?");
             }
             try {
-                wrapper.waitForServerChanges();
+                result = wrapper.waitForServerChanges(timeout, unit);
             } catch(InterruptedException e) {
                 waitingForServerChanges.set(null); // Ignore any results being sent if the wait was interrupted.
                 throw e;
@@ -562,11 +659,22 @@ public class SyncSession {
                 waitingForServerChanges.set(null);
             }
         }
+        return result;
     }
 
     private void checkIfNotOnMainThread(String errorMessage) {
         if (new AndroidCapabilities().isMainThread()) {
             throw new IllegalStateException(errorMessage);
+        }
+    }
+
+    private void checkTimeout(long timeout, TimeUnit unit) {
+        if (timeout <= 0) {
+            throw new IllegalArgumentException("'timeout' must be > 0. It was: " + timeout);
+        }
+        //noinspection ConstantConditions
+        if (unit == null) {
+            throw new IllegalArgumentException("Non-null 'unit' required");
         }
     }
 
@@ -813,12 +921,14 @@ public class SyncSession {
         private String errorMessage;
 
         /**
-         * Block until the wait either completes or is terminated for other reasons.
+         * Block until the wait either completes, timeouts or is terminated for other reasons.
+         * Timeouts are only applied if `timeout` >= 0.
          */
-        public void waitForServerChanges() throws InterruptedException {
+        public boolean waitForServerChanges(long timeout, TimeUnit unit) throws InterruptedException {
             if (!resultReceived) {
-                waiter.await();
+                return waiter.await(timeout, unit);
             }
+            return isSuccess();
         }
 
         /**
@@ -859,4 +969,6 @@ public class SyncSession {
     private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
     private static native byte nativeGetState(String localRealmPath);
     private static native byte nativeGetConnectionState(String localRealmPath);
+    private static native void nativeStart(String localRealmPath);
+    private static native void nativeStop(String localRealmPath);
 }

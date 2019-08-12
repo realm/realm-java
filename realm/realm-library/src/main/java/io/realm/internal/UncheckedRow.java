@@ -39,7 +39,7 @@ public class UncheckedRow implements NativeObject, Row {
     private final Table parent;
     private final long nativePtr;
 
-    UncheckedRow(NativeContext context, Table parent, long nativePtr) {
+    public UncheckedRow(NativeContext context, Table parent, long nativePtr) {
         this.context = context;
         this.parent = parent;
         this.nativePtr = nativePtr;

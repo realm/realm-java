@@ -1,18 +1,13 @@
 buildscript {
+    def properties = new Properties()
+    properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
+
     repositories {
         jcenter()
     }
     dependencies {
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.2'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
-    }
-}
-
-allprojects {
-    def props = new Properties()
-    props.load(new FileInputStream("${rootDir}/../realm.properties"))
-    props.each { key, val ->
-        project.ext.set(key, val)
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${properties.get('GRADLE_BINTRAY_PLUGIN')}"
     }
 }
 
@@ -110,9 +105,4 @@ artifactory {
             publications ('realmPublication')
         }
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = project.gradleVersion
-    distributionType = 'all'
 }

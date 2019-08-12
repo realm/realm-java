@@ -16,17 +16,21 @@
 
 package io.realm.internal;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
+import io.realm.MutableRealmInteger;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
-import io.realm.internal.sync.OsSubscription;
+import io.realm.RealmList;
+import io.realm.RealmModel;
+import io.realm.internal.core.DescriptorOrdering;
+import io.realm.internal.core.QueryDescriptor;
+import io.realm.internal.objectstore.OsObjectBuilder;
 
 
 /**
@@ -284,18 +288,14 @@ public class OsResults implements NativeObject, ObservableCollection {
         return new OsResults(realm, srcTable, backlinksPtr);
     }
 
-    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query,
-                                            @Nullable SortDescriptor sortDescriptor,
-                                            @Nullable SortDescriptor distinctDescriptor) {
+    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query, DescriptorOrdering queryDescriptors) {
         query.validateQuery();
-        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(),
-                sortDescriptor,
-                distinctDescriptor);
+        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), queryDescriptors.getNativePtr());
         return new OsResults(sharedRealm, query.getTable(), ptr);
     }
 
     public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query) {
-        return createFromQuery(sharedRealm, query, null, null);
+        return createFromQuery(sharedRealm, query, new DescriptorOrdering());
     }
 
     OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
@@ -355,6 +355,10 @@ public class OsResults implements NativeObject, ObservableCollection {
         return new TableQuery(this.context, this.table, nativeQueryPtr);
     }
 
+    public String toJSON(int maxDepth) {
+        return toJSON(nativePtr, maxDepth);
+    }
+
     public Number aggregateNumber(Aggregate aggregateMethod, long columnKey) {
         return (Number) nativeAggregate(nativePtr, columnKey, aggregateMethod.getValue());
     }
@@ -371,11 +375,11 @@ public class OsResults implements NativeObject, ObservableCollection {
         nativeClear(nativePtr);
     }
 
-    public OsResults sort(SortDescriptor sortDescriptor) {
+    public OsResults sort(QueryDescriptor sortDescriptor) {
         return new OsResults(sharedRealm, table, nativeSort(nativePtr, sortDescriptor));
     }
 
-    public OsResults distinct(SortDescriptor distinctDescriptor) {
+    public OsResults distinct(QueryDescriptor distinctDescriptor) {
         return new OsResults(sharedRealm, table, nativeDistinct(nativePtr, distinctDescriptor));
     }
 
@@ -398,6 +402,177 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     public boolean deleteLast() {
         return nativeDeleteLast(nativePtr);
+    }
+
+    public void setNull(String fieldName) {
+        nativeSetNull(nativePtr, fieldName);
+    }
+
+    public void setBoolean(String fieldName, boolean value) {
+        nativeSetBoolean(nativePtr, fieldName, value);
+    }
+
+    public void setInt(String fieldName, long value) {
+        nativeSetInt(nativePtr, fieldName, value);
+    }
+
+    public void setFloat(String fieldName, float value) {
+        nativeSetFloat(nativePtr, fieldName, value);
+    }
+
+    public void setDouble(String fieldName, double value) {
+        nativeSetDouble(nativePtr, fieldName, value);
+    }
+
+    public void setString(String fieldName, @Nullable String value) {
+        nativeSetString(nativePtr, fieldName, value);
+    }
+
+    public void setBlob(String fieldName, @Nullable byte[] value) {
+        nativeSetBinary(nativePtr, fieldName, value);
+    }
+
+    public void setDate(String fieldName, @Nullable Date timestamp) {
+        if (timestamp == null) {
+            nativeSetNull(nativePtr, fieldName);
+        } else {
+            nativeSetTimestamp(nativePtr, fieldName, timestamp.getTime());
+        }
+    }
+
+    public void setObject(String fieldName, @Nullable Row row) {
+        if (row == null) {
+            setNull(fieldName);
+        } else {
+            long rowPtr;
+            if (row instanceof UncheckedRow) {
+                // Normal Realms
+                rowPtr = ((UncheckedRow) row).getNativePtr();
+            } else if (row instanceof CheckedRow) {
+                // Dynamic Realms
+                rowPtr = ((CheckedRow) row).getNativePtr();
+            } else {
+                // Should never happen, but just in case.
+                throw new UnsupportedOperationException("Unsupported Row type: " + row.getClass().getCanonicalName());
+            }
+            nativeSetObject(nativePtr, fieldName, rowPtr);
+        }
+    }
+
+    // Interface wrapping adding the specific list type
+    private interface AddListTypeDelegate<T> {
+        void addList(OsObjectBuilder builder, RealmList<T> list);
+    }
+
+    // Helper method for adding specific types of lists.
+    private <T> void addTypeSpecificList(String fieldName, RealmList<T> list, AddListTypeDelegate<T> delegate) {
+        //noinspection unchecked
+        OsObjectBuilder builder = new OsObjectBuilder(getTable(), 0, Collections.EMPTY_SET);
+        delegate.addList(builder, list);
+        try {
+            nativeSetList(nativePtr, fieldName, builder.getNativePtr());
+        } finally {
+            builder.close();
+        }
+    }
+
+    public void setStringList(String fieldName, RealmList<String> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<String>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<String> list) {
+                builder.addStringList(0, list);
+            }
+        });
+    }
+
+    public void setByteList(String fieldName, RealmList<Byte> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Byte>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Byte> list) {
+                builder.addByteList(0, list);
+            }
+        });
+    }
+
+    public void setShortList(String fieldName, RealmList<Short> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Short>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Short> list) {
+                builder.addShortList(0, list);
+            }
+        });
+    }
+
+    public void setIntegerList(String fieldName, RealmList<Integer> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Integer>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Integer> list) {
+                builder.addIntegerList(0, list);
+            }
+        });
+    }
+
+    public void setLongList(String fieldName, RealmList<Long> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Long>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Long> list) {
+                builder.addLongList(0, list);
+            }
+        });
+    }
+
+    public void setBooleanList(String fieldName, RealmList<Boolean> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Boolean>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Boolean> list) {
+                builder.addBooleanList(0, list);
+            }
+        });
+    }
+
+    public void setByteArrayList(String fieldName, RealmList<byte[]> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<byte[]>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<byte[]> list) {
+                builder.addByteArrayList(0, list);
+            }
+        });
+    }
+
+    public void setDateList(String fieldName, RealmList<Date> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Date>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Date> list) {
+                builder.addDateList(0, list);
+            }
+        });
+    }
+
+    public void setFloatList(String fieldName, RealmList<Float> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Float>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Float> list) {
+                builder.addFloatList(0, list);
+            }
+        });
+    }
+
+    public void setDoubleList(String fieldName, RealmList<Double> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Double>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Double> list) {
+                builder.addDoubleList(0, list);
+            }
+        });
+    }
+
+    public void setModelList(String fieldName, RealmList<RealmModel> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<RealmModel>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<RealmModel> list) {
+                builder.addObjectList(0, list);
+            }
+        });
     }
 
     public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
@@ -480,8 +655,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native long nativeGetFinalizerPtr();
 
-    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr,
-                                                     @Nullable SortDescriptor sortDesc, @Nullable SortDescriptor distinctDesc);
+    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long descriptorOrderingPtr);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 
@@ -499,9 +673,9 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
 
-    private static native long nativeSort(long nativePtr, SortDescriptor sortDesc);
+    private static native long nativeSort(long nativePtr, QueryDescriptor sortDesc);
 
-    private static native long nativeDistinct(long nativePtr, SortDescriptor distinctDesc);
+    private static native long nativeDistinct(long nativePtr, QueryDescriptor distinctDesc);
 
     private static native boolean nativeDeleteFirst(long nativePtr);
 
@@ -509,12 +683,34 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native void nativeDelete(long nativePtr, long index);
 
+    private static native void nativeSetNull(long nativePtr, String fieldName);
+
+    private static native void nativeSetBoolean(long nativePtr, String fieldName, boolean value);
+
+    private static native void nativeSetInt(long nativePtr, String fieldName, long value);
+
+    private static native void nativeSetFloat(long nativePtr, String fieldName, float value);
+
+    private static native void nativeSetDouble(long nativePtr, String fieldName, double value);
+
+    private static native void nativeSetString(long nativePtr, String fieldName, @Nullable String value);
+
+    private static native void nativeSetBinary(long nativePtr, String fieldName, @Nullable byte[] value);
+
+    private static native void nativeSetTimestamp(long nativePtr, String fieldName, long value);
+
+    private static native void nativeSetObject(long nativePtr, String fieldName, long rowNativePtr);
+
+    private static native void nativeSetList(long nativePtr, String fieldName, long builderNativePtr);
+
     // Non-static, we need this OsResults object in JNI.
     private native void nativeStartListening(long nativePtr);
 
     private native void nativeStopListening(long nativePtr);
 
     private static native long nativeWhere(long nativePtr);
+
+    private static native String toJSON(long nativePtr, int maxDepth);
 
     private static native long nativeIndexOf(long nativePtr, long rowNativePtr);
 

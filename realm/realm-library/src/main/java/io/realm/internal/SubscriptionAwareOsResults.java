@@ -16,10 +16,10 @@
 
 package io.realm.internal;
 
-import javax.annotation.Nullable;
-
 import io.realm.RealmChangeListener;
+import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.sync.OsSubscription;
+import io.realm.internal.sync.SubscriptionAction;
 
 /**
  * Wrapper around Object Stores Results class that is capable of combining partial sync Subscription
@@ -38,19 +38,18 @@ public class SubscriptionAwareOsResults extends OsResults {
     private boolean firstCallback;
 
     public static SubscriptionAwareOsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query,
-                                                             @Nullable SortDescriptor sortDescriptor,
-                                                             @Nullable SortDescriptor distinctDescriptor,
-                                                             String subscriptionName) {
+                                                             DescriptorOrdering queryDescriptors,
+                                                             SubscriptionAction subscriptionInfo) {
         query.validateQuery();
-        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), sortDescriptor, distinctDescriptor);
-        return new SubscriptionAwareOsResults(sharedRealm, query.getTable(), ptr, subscriptionName);
+        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), queryDescriptors.getNativePtr());
+        return new SubscriptionAwareOsResults(sharedRealm, query.getTable(), ptr, subscriptionInfo);
     }
 
-    SubscriptionAwareOsResults(OsSharedRealm sharedRealm, Table table, long nativePtr, String subscriptionName) {
+    SubscriptionAwareOsResults(OsSharedRealm sharedRealm, Table table, long nativePtr, SubscriptionAction subscriptionInfo) {
         super(sharedRealm, table, nativePtr);
 
         this.firstCallback = true;
-        this.subscription = new OsSubscription(this, subscriptionName);
+        this.subscription = new OsSubscription(this, subscriptionInfo);
         this.subscription.addChangeListener(new RealmChangeListener<OsSubscription>() {
             @Override
             public void onChange(OsSubscription o) {
@@ -85,6 +84,7 @@ public class SubscriptionAwareOsResults extends OsResults {
         // errors and a completed subscription
         if (delayedNotificationPtr == 0
                 && subscription != null
+                && !firstCallback
                 && subscription.getState() != OsSubscription.SubscriptionState.ERROR
                 && subscription.getState() != OsSubscription.SubscriptionState.COMPLETE) {
             return;

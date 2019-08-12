@@ -2,24 +2,18 @@ group 'io.realm'
 version '1.0.0'
 
 buildscript {
-    ext.kotlin_version = '1.2.51'
+    def properties = new Properties()
+    properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
+    ext.kotlin_version = '1.2.61'
 
     repositories {
         mavenCentral()
         jcenter()
     }
     dependencies {
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.2'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${properties.get('GRADLE_BINTRAY_PLUGIN')}"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-
-allprojects {
-    def props = new Properties()
-    props.load(new FileInputStream("${rootDir}/../realm.properties"))
-    props.each { key, val ->
-        project.ext.set(key, val)
     }
 }
 
@@ -45,10 +39,8 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
 
     testCompile group:'junit', name:'junit', version:'4.12'
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
-
 }
+
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }

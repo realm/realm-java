@@ -16,17 +16,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -36,8 +37,50 @@ import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class SyncSessionTests extends StandardIntegrationTest {
+
     @Rule
     public TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
+
+    private interface SessionCallback {
+        void onReady(SyncSession session);
+    }
+
+    private void getSession(SessionCallback callback) {
+        // Work-around for a race conditions happening when shutting down a Looper test and
+        // Resetting the SyncManager
+        // The problem is the `@After` block which runs as soon as the test method has completed.
+        // For integration tests this will attempt to reset the SyncManager which will fail
+        // if Realms are still open as they hold a reference to a session object.
+        // By moving this into a Looper callback we ensure that a looper test can shutdown as
+        // intended.
+        // Generally it seems that using calling `RunInLooperThread.testComplete()` in a synchronous
+        looperThread.postRunnable((Runnable) () -> {
+            SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
+            SyncConfiguration syncConfiguration = configFactory
+                    .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                    .build();
+            looperThread.closeAfterTest(Realm.getInstance(syncConfiguration));
+            callback.onReady(SyncManager.getSession(syncConfiguration));
+        });
+    }
+
+    private void getActiveSession(SessionCallback callback) {
+        getSession(session -> {
+            if (session.isConnected()) {
+                callback.onReady(session);
+            } else {
+                session.addConnectionChangeListener(new ConnectionListener() {
+                    @Override
+                    public void onChange(ConnectionState oldState, ConnectionState newState) {
+                        if (newState == ConnectionState.CONNECTED) {
+                            session.removeConnectionChangeListener(this);
+                            callback.onReady(session);
+                        }
+                    }
+                });
+            }
+        });
+    }
 
     @Test(timeout=3000)
     public void getState_active() {
@@ -293,9 +336,13 @@ public class SyncSessionTests extends StandardIntegrationTest {
                         if (stringOnlies.size() == 2) {
                             Assert.assertEquals("1", stringOnlies.get(0).getChars());
                             Assert.assertEquals("2", stringOnlies.get(1).getChars());
-                            adminRealm.close();
-                            testCompleted.countDown();
-                            handlerThread.quit();
+                            handler.post(() -> {
+                                // Closing a Realm from inside a listener doesn't seem to remove the
+                                // active session reference in Object Store
+                                adminRealm.close();
+                                testCompleted.countDown();
+                                handlerThread.quit();
+                            });
                         }
                     }
                 };
@@ -310,7 +357,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
             }
         });
 
-        TestHelper.awaitOrFail(testCompleted, 60);
+        TestHelper.awaitOrFail(testCompleted);
         realm.close();
     }
 
@@ -361,19 +408,22 @@ public class SyncSessionTests extends StandardIntegrationTest {
                         .build();
                 final Realm adminRealm = Realm.getInstance(adminConfig);
                 RealmResults<StringOnly> all = adminRealm.where(StringOnly.class).findAll();
-                strongRefs.add(all);
-                OrderedRealmCollectionChangeListener<RealmResults<StringOnly>> realmChangeListener = (results, changeSet) -> {
-                    RealmLog.info("Size: " + results.size() + ", state: " + changeSet.getState().toString());
-                    if (results.size() == 5) {
-                        for (int i = 0; i < 5; i++) {
-                            assertEquals(1_000_000, results.get(i).getChars().length());
+
+                if (all.size() == 5) {
+                    adminRealm.close();
+                    testCompleted.countDown();
+                    handlerThread.quit();
+                } else {
+                    strongRefs.add(all);
+                    OrderedRealmCollectionChangeListener<RealmResults<StringOnly>> realmChangeListener = (results, changeSet) -> {
+                        if (results.size() == 5) {
+                            adminRealm.close();
+                            testCompleted.countDown();
+                            handlerThread.quit();
                         }
-                        adminRealm.close();
-                        testCompleted.countDown();
-                        handlerThread.quit();
-                    }
-                };
-                all.addChangeListener(realmChangeListener);
+                    };
+                    all.addChangeListener(realmChangeListener);
+                }
             }
         });
 
@@ -513,18 +563,15 @@ public class SyncSessionTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void registerConnectionListener() {
-        SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
-        SyncConfiguration syncConfiguration = configFactory
-                .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .build();
-        Realm realm = Realm.getInstance(syncConfiguration);
-        SyncSession session = SyncManager.getSession(syncConfiguration);
-        session.addConnectionChangeListener((oldState, newState) -> {
-            if (newState == ConnectionState.DISCONNECTED) {
-                looperThread.testComplete();
-            }
+        getSession(session -> {
+            session.addConnectionChangeListener((oldState, newState) -> {
+                if (newState == ConnectionState.DISCONNECTED) {
+                    // Closing a Realm inside a connection listener doesn't work: https://github.com/realm/realm-java/issues/6249
+                    looperThread.postRunnable(() -> looperThread.testComplete());
+                }
+            });
+            session.stop();
         });
-        realm.close();
     }
 
     @Test
@@ -556,22 +603,70 @@ public class SyncSessionTests extends StandardIntegrationTest {
     @Test
     @RunTestInLooperThread
     public void isConnected() {
+        getActiveSession(session -> {
+            assertEquals(session.getConnectionState(), ConnectionState.CONNECTED);
+            assertTrue(session.isConnected());
+            looperThread.testComplete();
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void stopStartSession() {
+        getActiveSession(session -> {
+            assertEquals(SyncSession.State.ACTIVE, session.getState());
+            session.stop();
+            assertEquals(SyncSession.State.INACTIVE, session.getState());
+            session.start();
+            assertNotEquals(SyncSession.State.INACTIVE, session.getState());
+            looperThread.testComplete();
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void start_multipleTimes() {
+        getActiveSession(session -> {
+            session.start();
+            assertEquals(SyncSession.State.ACTIVE, session.getState());
+            session.start();
+            assertEquals(SyncSession.State.ACTIVE, session.getState());
+            looperThread.testComplete();
+        });
+    }
+
+
+    @Test
+    @RunTestInLooperThread
+    public void stop_multipleTimes() {
+        getSession(session -> {
+            session.stop();
+            assertEquals(SyncSession.State.INACTIVE, session.getState());
+            session.stop();
+            assertEquals(SyncSession.State.INACTIVE, session.getState());
+            looperThread.testComplete();
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void waitForInitialRemoteData_throwsOnTimeout() {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
+                .initialData(bgRealm -> {
+                    for (int i = 0; i < 100; i++) {
+                        bgRealm.createObject(AllTypes.class);
+                    }
+                })
+                .waitForInitialRemoteData(1, TimeUnit.MILLISECONDS)
                 .build();
-        looperThread.closeAfterTest(Realm.getInstance(syncConfiguration));
-        SyncSession session = SyncManager.getSession(syncConfiguration);
-        if (session.isConnected()) {
-            looperThread.testComplete();
-        } else {
-            session.addConnectionChangeListener(((oldState, newState) -> {
-                if (newState == ConnectionState.CONNECTED) {
-                    assertEquals(session.getConnectionState(), ConnectionState.CONNECTED);
-                    assertTrue(session.isConnected());
-                    looperThread.testComplete();
-                }
-            }));
+
+        try {
+            Realm.getInstance(syncConfiguration);
+            fail("This should have timed out");
+        } catch (DownloadingRealmInterruptedException ignore) {
         }
+        looperThread.testComplete();
     }
 }

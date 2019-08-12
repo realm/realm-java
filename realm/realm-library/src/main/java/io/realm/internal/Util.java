@@ -22,12 +22,17 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
+import io.realm.ImportFlag;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
@@ -117,6 +122,9 @@ public class Util {
         final String management = ".management";
         File managementFolder = new File(realmFolder, realmFileName + management);
         File realmFile = new File(canonicalPath);
+        // This file is not always stored here, but if it is we want to delete it.
+        // If it isn't found it is placed in a temporary folder, so no reason to delete it.
+        File fifoFile = new File(canonicalPath + ".note");
 
         // Deletes files in management directory and the directory.
         // There is no subfolders in the management directory.
@@ -145,6 +153,31 @@ public class Util {
         } else {
             realmDeleted = true;
         }
+
+        if (fifoFile.exists() && !fifoFile.delete()) {
+            RealmLog.warn(String.format(Locale.ENGLISH,".note file at %s cannot be deleted",
+                        fifoFile.getAbsolutePath()));
+        }
+
         return realmDeleted;
+    }
+
+    /**
+     * Converts a var arg argument list to a set ignoring any duplicates and null values.
+     */
+    public static <T> Set<T> toSet(T... items) {
+        //noinspection ConstantConditions
+        if (items == null) {
+            return Collections.emptySet();
+        } else {
+            Set<T> set = new LinkedHashSet<>();
+            for (int i = 0; i < items.length; i++) {
+                T item = items[i];
+                if (item != null) {
+                    set.add(item);
+                }
+            }
+            return set;
+        }
     }
 }

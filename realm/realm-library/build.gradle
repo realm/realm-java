@@ -4,8 +4,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
@@ -19,28 +19,23 @@ properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
 ext.coreVersion = properties.getProperty('REALM_SYNC_VERSION')
 // empty or comment out this to disable hash checking
 ext.coreSha256Hash = properties.getProperty('REALM_SYNC_SHA256')
-ext.forceDownloadCore =
-        project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
+ext.forceDownloadCore = project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
+
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
 // core source code.
-ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
-// The location of core archive.
+ext.coreSourcePath = project.hasProperty('coreSourcePath') ? file(project.getProperty('coreSourcePath')) : null
+// The location of pre-compiled Realm Core/Sync archive.
 ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 if (!ext.coreArchiveDir) {
     ext.coreArchiveDir = ".."
 }
 ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/realm-sync-android-${project.coreVersion}.tar.gz")
 ext.coreDistributionDir = file("${projectDir}/distribution/realm-core/")
-ext.coreDir = file(project.coreSourcePath ?
-        "${project.coreSourcePath}/android-lib" :
-        "${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
+ext.coreDir = file("${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
 ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
 // Set to true to enable linking with debug core.
 ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false //FIXME Use 'false' as default until https://github.com/realm/realm-java/issues/5354 is fixed
-
-
-ext.coreSourcePath = "/Users/Nabil/Dev/realm/master3/realm-core"
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -61,10 +56,10 @@ android {
                         // JNI build currently (lack of lto linking support).
                         // This file should be removed and use the one from Android SDK cmake package when it supports lto.
                         "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}",
-                        "-DENABLE_DEBUG_CORE=${project.enableDebugCore}"
-                if (project.ccachePath) arguments "-DNDK_CCACHE=${project.ccachePath}"
-                if (project.lcachePath) arguments "-DNDK_LCACHE=${project.lcachePath}"
-                if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=${project.coreSourcePath}"
+                        "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
+                if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
+                if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
+                if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=${project.coreSourcePath.getAbsolutePath()}"
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
@@ -106,10 +101,10 @@ android {
 
     sourceSets {
         androidTest {
-            java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java']
+            java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java', 'src/testUtils/kotlin']
         }
 //        androidTestObjectServer {
-//            java.srcDirs += 'src/syncIntegrationTest/java'
+//            java.srcDirs += ['src/syncIntegrationTest/java', 'src/syncTestUtils/java']
 //            assets.srcDirs += ['src/syncIntegrationTest/assets/']
 //        }
     }
@@ -215,7 +210,7 @@ dependencies {
 
     api "io.realm:realm-annotations:${version}"
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
-    implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
+    implementation 'com.getkeepsafe.relinker:relinker:1.3.0'
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
 //    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
@@ -230,6 +225,7 @@ dependencies {
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    androidTestImplementation "org.skyscreamer:jsonassert:1.5.0"
 
     // specify error prone version to prevent sudden failure
     errorprone 'com.google.errorprone:error_prone_core:2.1.2'
@@ -290,7 +286,7 @@ task findbugs(type: FindBugs) {
     effort = "default"
     reportLevel = "medium"
     excludeFilter = file("${projectDir}/../config/findbugs/findbugs-filter.xml")
-    classes = files("${projectDir}/build/intermediates/classes")
+    classes = files("${projectDir}/build/intermediates/javac")
     source = fileTree('src/main/java/')
     classpath = files()
     reports {
@@ -471,12 +467,6 @@ def coreDownloaded = false
 task downloadCore() {
     group = 'build setup'
     description = 'Download the latest version of Realm Core'
-
-    // We are building from source, no need to download anything
-    onlyIf {
-        return !coreSourcePath
-    }
-
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
@@ -767,11 +757,17 @@ android.productFlavors.all { flavor ->
     }
 }
 
-task bintrayUpload() {
-    android.productFlavors.all { flavor ->
-        dependsOn "bintray${flavor.name.capitalize()}"
-    }
+// Cannot override bintrayUpload in Gradle 4.9. Most likely due to a bug in
+// the gradle-bintray-plugin. So we use `bintrayUploadAll` instead that can
+// then depend on the original bintrayUpload task.
+task bintrayUploadAll() {
     group = 'Publishing'
+}
+
+project.afterEvaluate {
+    android.productFlavors.all { flavor ->
+        bintrayUploadAll.dependsOn "bintray${flavor.name.capitalize()}"
+    }
 }
 
 task ojoUpload() {

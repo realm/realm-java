@@ -141,7 +141,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final long nativePtr;
     private final OsRealmConfig osRealmConfig;
-    final NativeContext context;
+    public final NativeContext context;
     private final OsSchemaInfo schemaInfo;
     private static volatile File temporaryDirectory;
     // JNI will only hold a weak global ref to this.

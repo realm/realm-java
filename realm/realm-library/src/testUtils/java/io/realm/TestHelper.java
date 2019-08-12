@@ -944,7 +944,6 @@ public class TestHelper {
     }
 
     public interface LooperTest {
-        CountDownLatch getRealmClosedSignal();
         Looper getLooper();
         Throwable getAssertionError();
     }
@@ -967,8 +966,6 @@ public class TestHelper {
                 looper.quit();
             }
 
-            // Waits for the finally block to execute and closes the Realm.
-            TestHelper.awaitOrFail(test.getRealmClosedSignal());
             // Closes the executor.
             // This needs to be called after waiting since it might interrupt waitRealmThreadExecutorFinish().
             executorService.shutdownNow();
@@ -1198,7 +1195,9 @@ public class TestHelper {
             return false;
         }
         try {
-            final Process process = new ProcessBuilder("/system/bin/getenforce").start();
+            final Process process = new ProcessBuilder("/system/bin/getenforce")
+                    .redirectErrorStream(true)
+                    .start();
             try {
                 final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), UTF_8));
                 //noinspection TryFinallyCanBeTryWithResources

@@ -121,12 +121,14 @@ abstract class BaseRealm implements Closeable {
             initializationCallback = new OsSharedRealm.InitializationCallback() {
                 @Override
                 public void onInit(OsSharedRealm sharedRealm) {
-                    initialDataTransaction.execute(Realm.createInstance(sharedRealm));
+                    Realm instance = Realm.createInstance(sharedRealm);
+                    initialDataTransaction.execute(instance);
                 }
             };
         }
 
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(configuration)
+                .fifoFallbackDir(new File(BaseRealm.applicationContext.getFilesDir(), ".realm.temp"))
                 .autoUpdateNotification(true)
                 .migrationCallback(migrationCallback)
                 .schemaInfo(schemaInfo)
@@ -528,6 +530,8 @@ abstract class BaseRealm implements Closeable {
      * @return the privileges granted the current user for the object.
      * @throws IllegalArgumentException if the object is either null, unmanaged or not part of this Realm.
      */
+    @Beta
+    @ObjectServer
     public ObjectPrivileges getPrivileges(RealmModel object) {
         checkIfValid();
         //noinspection ConstantConditions
@@ -847,7 +851,12 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    // FIXME: This stuff doesn't appear to be used.  It should either be explained or deleted.
+    /**
+     * CM: This is used when creating new proxy classes directly from the generated proxy code.
+     * It is a bit unclear exactly how it works, but it seems to be some work-around for some
+     * constructor shenanigans, i.e. values are set in this object just before the Proxy object
+     * is created (see `RealmDefaultModuleMediator.newInstance)`).
+     */
     static final class ThreadLocalRealmObjectContext extends ThreadLocal<RealmObjectContext> {
         @Override
         protected RealmObjectContext initialValue() {

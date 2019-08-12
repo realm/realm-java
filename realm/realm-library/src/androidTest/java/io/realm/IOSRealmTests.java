@@ -167,7 +167,7 @@ public class IOSRealmTests {
             assertEquals(-Double.MAX_VALUE, obj.getDoubleCol(), 0D);
             assertArrayEquals(new byte[0], obj.getByteCol());
             assertEquals("", obj.getStringCol());
-            assertEquals(0x8000000000000000L * 1000L, obj.getDateCol().getTime());
+            assertEquals(Long.MIN_VALUE, obj.getDateCol().getTime());
         }
     }
 
@@ -188,7 +188,7 @@ public class IOSRealmTests {
             assertEquals(Double.MAX_VALUE, obj.getDoubleCol(), 0D);
             assertArrayEquals(new byte[0], obj.getByteCol());
             assertEquals("", obj.getStringCol());
-            assertEquals(0x8000000000000000L * 1000L, obj.getDateCol().getTime());
+            assertEquals(Long.MIN_VALUE, obj.getDateCol().getTime());
         }
     }
 

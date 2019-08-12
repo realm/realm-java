@@ -24,9 +24,9 @@ The API reference is located at [realm.io/docs/java/api](https://realm.io/docs/j
 
 ## Getting Help
 
-- **Need help with your code?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](http://stackoverflow.com/questions/ask?tags=realm). We actively monitor & answer questions on StackOverflow!
-- **Have a bug to report?** [Open an issue](https://github.com/realm/realm-java/issues/new). If possible, include the version of Realm, a full log, the Realm file, and a project that shows the issue.
-- **Have a feature request?** [Open an issue](https://github.com/realm/realm-java/issues/new). Tell us what the feature should do, and why you want the feature.
+- **Got a question?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](http://stackoverflow.com/questions/ask?tags=realm). We actively monitor & answer questions on StackOverflow!
+- **Think you found a bug?** [Open an issue](https://github.com/realm/realm-java/issues/new?template=bug_report.md). If possible, include the version of Realm, a full log, the Realm file, and a project that shows the issue.
+- **Have a feature request?** [Open an issue](https://github.com/realm/realm-java/issues/new?template=feature_request.md). Tell us what the feature should do, and why you want the feature.
 - Sign up for our [**Community Newsletter**](https://go.pardot.com/l/210132/2017-04-26/3j74l) to get regular tips, learn about other use-cases and get alerted of blogposts and tutorials about Realm.
 
 ## Using Snapshots
@@ -67,9 +67,9 @@ In case you don't want to use the precompiled version, you can build Realm yours
 ### Prerequisites
 
  * Download the [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
+ * The latest stable version of Android Studio. Currently [3.1.4](https://developer.android.com/studio/).
  * Download & install the Android SDK **Build-Tools 27.0.2**, **Android Oreo (API 27)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
- * If you use Android Studio, Android Studio 3.0 or higher is required.
 
  * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
 You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
@@ -147,6 +147,25 @@ That command will generate:
 
 The full build may take an hour or more, to complete.
 
+### Building from source
+
+It is possible to build Realm Java against a local checked out version of Realm Core. This is done by providing the following parameter when building: `-PcoreSourcePath=<path>`.
+
+E.g in the case where the `realm-java` and `realm-core` repos are checked out next to each other you can build from source using:
+
+```
+git clone https://github.com/realm/realm-java.git
+git clone https://github.com/realm/realm-core.git
+cd realm-java/realm
+./gradlew assembleBase -PcoreSourcePath=../../realm-core
+```
+
+Note: If the `realm-core` project has already been compiled for non-Android builds and CMake files have been generated, this might conflict with `realm-java` trying to build it. Cleanup the `realm-core` project by calling `git clean -xfd` inside it (beware that all unsaved changes will be lost).
+
+Note: Building from source with Realm Sync is not enabled yet. Only building the `Base` variant is supported.
+
+Note: If you want to build from source inside Android Studio, you need to update the Gradle parameters by going into the Realm projects settings `Settings > Build, Execution, Deployment > Compiler > Command-line options` and add `-PcoreSourcePath=<path>` to it.
+
 ### Other Commands
 
  * `./gradlew tasks` will show all the available tasks
@@ -161,10 +180,10 @@ Generating the Javadoc using the command above may generate warnings. The Javado
 
 ### Upgrading Gradle Wrappers
 
- All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradleVersion` property defined in `/realm.properties` to determine Gradle Version of generating wrappers.
+ All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradleVersion` property defined in `/dependencies.list` to determine Gradle Version of generating wrappers.
 We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. When you update Gradle Wrappers, please obey the following steps.
 
- 1. Edit `gradleVersion` property in defined in `/realm.properties` to new Gradle Wrapper version.
+ 1. Edit `gradleVersion` property in defined in `/dependencies.list` to new Gradle Wrapper version.
  2. Execute `/tools/update_gradle_wrapper.sh`.
 
 ### Gotchas

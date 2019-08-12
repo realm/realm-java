@@ -51,7 +51,7 @@ import io.realm.rx.CollectionChange;
  * <p>
  * Unmanaged RealmLists can be created by the user and can contain both managed and unmanaged RealmObjects. This is
  * useful when dealing with JSON deserializers like GSON or other frameworks that inject values into a class.
- * Unmanaged elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable)} method.
+ * Unmanaged elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable, ImportFlag...)} method.
  * <p>
  * {@link RealmList} can contain more elements than {@code Integer.MAX_VALUE}.
  * In that case, you can access only first {@code Integer.MAX_VALUE} elements in it.
@@ -80,7 +80,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * This effectively makes the RealmList function as a {@link java.util.ArrayList} and it is not possible to query
      * the objects in this state.
      * <p>
-     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist its elements in Realm.
+     * Use {@link io.realm.Realm#copyToRealm(Iterable, ImportFlag...)} to properly persist its elements in Realm.
      */
     public RealmList() {
         realm = null;
@@ -93,7 +93,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * A RealmList in unmanaged mode function as a {@link java.util.ArrayList} and it is not possible to query the
      * objects in this state.
      * <p>
-     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist all unmanaged elements in Realm.
+     * Use {@link io.realm.Realm#copyToRealm(Iterable, ImportFlag...)} to properly persist all unmanaged elements in Realm.
      *
      * @param objects initial objects in the list.
      */
@@ -165,10 +165,10 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * <ol>
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel, ImportFlag...)} afterwards.</li>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel, ImportFlag...)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmModel, ImportFlag...)} if it has a primary key.</li>
      * </ol>
      *
      * @param location the index at which to insert.
@@ -193,10 +193,10 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * <ol>
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel, ImportFlag...)} afterwards.</li>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel, ImportFlag...)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmModel, ImportFlag...)} if it has a primary key.</li>
      * </ol>
      *
      * @param object the object to add.
@@ -220,10 +220,10 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * <ol>
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel, ImportFlag...)} afterwards.</li>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed.
-     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)} or
-     * {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
+     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel, ImportFlag...)} or
+     * {@link Realm#copyToRealmOrUpdate(RealmModel, ImportFlag...)} if it has a primary key.</li>
      * </ol>
      *
      * @param location the index at which to put the specified object.
@@ -1220,7 +1220,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
         /**
          * Adding a new object to the RealmList. If the object is not already manage by Realm it will be transparently
-         * copied using {@link Realm#copyToRealmOrUpdate(RealmModel)}
+         * copied using {@link Realm#copyToRealmOrUpdate(RealmModel, ImportFlag...)}
          *
          * @see #add(Object)
          */

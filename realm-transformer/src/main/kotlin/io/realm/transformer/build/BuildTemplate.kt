@@ -125,21 +125,34 @@ abstract class BuildTemplate(val project: Project, val outputProvider: Transform
                 it.file.walkTopDown().forEach {
                     if (it.isFile) {
                         if (!it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
-                            logger.debug("  Copying resource $it")
-                            val dest = File(getOutputFile(outputProvider), it.absolutePath.substring(dirPath.length))
+                            logger.debug("  Copying resource file: $it")
+                            val dest = File(getOutputFile(outputProvider, Format.DIRECTORY), it.absolutePath.substring(dirPath.length))
                             dest.parentFile.mkdirs()
                             Files.copy(it, dest)
                         }
                     }
                 }
             }
-            // no need to implement the code for `it.jarInputs.each` since PROJECT SCOPE does not use jar input.
+
+            it.jarInputs.forEach {
+                logger.debug("Found JAR file: ${it.file.absolutePath}")
+                val dirPath: String = it.file.absolutePath
+                it.file.walkTopDown().forEach {
+                    if (it.isFile) {
+                        if (it.absolutePath.endsWith(SdkConstants.DOT_JAR)) {
+                            logger.debug("  Copying jar file: $it")
+                            val dest = File(getOutputFile(outputProvider, Format.JAR), it.absolutePath.substring(dirPath.length))
+                            dest.parentFile.mkdirs()
+                            Files.copy(it, dest)
+                        }
+                    }
+                }
+            }
         }
     }
 
-    protected fun getOutputFile(outputProvider: TransformOutputProvider): File {
-        return outputProvider.getContentLocation(
-                "realm", transform.inputTypes, transform.scopes, Format.DIRECTORY)
+    protected fun getOutputFile(outputProvider: TransformOutputProvider, format: Format): File {
+        return outputProvider.getContentLocation("realm", transform.inputTypes, transform.scopes, format)
     }
 
     /**

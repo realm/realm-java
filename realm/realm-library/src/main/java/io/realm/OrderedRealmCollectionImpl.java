@@ -13,7 +13,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.OsResults;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.SortDescriptor;
+import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 
@@ -289,8 +289,8 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public RealmResults<E> sort(String fieldName) {
-        SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, Sort.ASCENDING);
+        QueryDescriptor sortDescriptor =
+                QueryDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, Sort.ASCENDING);
 
         OsResults sortedOsResults = osResults.sort(sortDescriptor);
         return createLoadedResults(sortedOsResults);
@@ -301,8 +301,8 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
-        SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, sortOrder);
+        QueryDescriptor sortDescriptor =
+                QueryDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, sortOrder);
 
         OsResults sortedOsResults = osResults.sort(sortDescriptor);
         return createLoadedResults(sortedOsResults);
@@ -313,8 +313,8 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
-        SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldNames, sortOrders);
+        QueryDescriptor sortDescriptor =
+                QueryDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldNames, sortOrders);
 
         OsResults sortedOsResults = osResults.sort(sortDescriptor);
         return createLoadedResults(sortedOsResults);

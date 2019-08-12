@@ -17,26 +17,35 @@
 package io.realm;
 
 
+import android.text.TextUtils;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
 import io.realm.annotations.Required;
+import io.realm.internal.CheckedRow;
+import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
+import io.realm.internal.annotations.ObjectServer;
+import io.realm.internal.core.IncludeDescriptor;
+import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SortDescriptor;
 import io.realm.internal.SubscriptionAwareOsResults;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
+import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.fields.FieldDescriptor;
 import io.realm.internal.sync.SubscriptionAction;
+import io.realm.sync.Subscription;
 
 
 /**
@@ -67,8 +76,7 @@ public class RealmQuery<E> {
     private String className;
     private final boolean forValues;
     private final OsList osList;
-    private SortDescriptor sortDescriptor;
-    private SortDescriptor distinctDescriptor;
+    private DescriptorOrdering queryDescriptors = new DescriptorOrdering();
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
@@ -137,7 +145,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO implement this
+            // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
             this.osList = null;
@@ -156,7 +164,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO implement this
+            // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
             this.osList = null;
@@ -175,7 +183,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO implement this
+            // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
             this.osList = null;
@@ -1767,7 +1775,7 @@ public class RealmQuery<E> {
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         realm.checkIfValid();
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, true, SubscriptionAction.NO_SUBSCRIPTION);
+        return createRealmResults(query, queryDescriptors, true, SubscriptionAction.NO_SUBSCRIPTION);
     }
 
     /**
@@ -1782,8 +1790,7 @@ public class RealmQuery<E> {
         realm.checkIfValid();
         return createRealmResults(
                 query,
-                sortDescriptor,
-                distinctDescriptor,
+                queryDescriptors,
                 false,
                 SubscriptionAction.NO_SUBSCRIPTION).osResults;
     }
@@ -1810,7 +1817,7 @@ public class RealmQuery<E> {
         }  else {
             subscriptionAction = SubscriptionAction.NO_SUBSCRIPTION;
         }
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, subscriptionAction);
+        return createRealmResults(query, queryDescriptors, false, subscriptionAction);
     }
 
     /**
@@ -1820,12 +1827,81 @@ public class RealmQuery<E> {
      * that will synchronize all server data matching the query. Named subscriptions can be removed again by
      * calling {@code Realm.unsubscribe(subscriptionName}.
      *
+     * @param subscriptionName name of the underlying subscription being created.
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @see io.realm.RealmResults
-     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm.
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
      */
+    @ObjectServer
     public RealmResults<E> findAllAsync(String subscriptionName) {
+        return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
+    }
+
+    /**
+     * Finds all objects that fulfil the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
+     *
+     * @param subscriptionName name of the underlying subscription being created.
+     * @param update if an existing subscription exists with a different query. It will be replaced with this
+     *               one instead of an error being reported through {@link OrderedRealmCollectionChangeListener}.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
+     */
+    @ObjectServer
+    @Beta
+    public RealmResults<E> findAllAsync(String subscriptionName, boolean update) {
+        return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, update);
+    }
+
+    /**
+     * Finds all objects that fulfil the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
+     *
+     * @param subscriptionName name of the underlying subscription being created.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
+     *                   period Realm will automatically remove it.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
+     */
+    @ObjectServer
+    @Beta
+    public RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit) {
+        return findAllAsync(subscriptionName, timeToLive, timeUnit, false);
+    }
+
+    /**
+     * Finds all objects that fulfil the query condition(s). This method is only available from a Looper thread.
+     * <p>
+     * This method is only available on query-based synchronized Realms and will also create a named subscription
+     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
+     * calling {@code Realm.unsubscribe(subscriptionName}.
+     *
+     * @param subscriptionName name of the underlying subscription being created.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
+     *                   period Realm will automatically remove it.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @param update if an existing subscription exists with a different query. It will be replaced with this
+     *               one instead of an error being reported through {@link OrderedRealmCollectionChangeListener}.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
+     * @see io.realm.RealmResults
+     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
+     */
+    @ObjectServer
+    @Beta
+    public RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit, boolean update) {
         realm.checkIfValid();
         realm.checkIfPartialRealm();
         if (osList != null) {
@@ -1834,10 +1910,19 @@ public class RealmQuery<E> {
         if (Util.isEmptyString(subscriptionName)) {
             throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
         }
-
+        if (timeToLive < 0) {
+            throw new IllegalArgumentException("Negative values for 'timeToLive' are not allowed: " + timeToLive);
+        }
+        //noinspection ConstantConditions
+        if (timeUnit == null) {
+            throw new IllegalArgumentException("Non-null 'timeUnit' required.");
+        }
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, sortDescriptor, distinctDescriptor, false, SubscriptionAction.create(subscriptionName));
+        long timeToLiveMs = timeUnit.toMillis(timeToLive);
+        SubscriptionAction action = (update) ? SubscriptionAction.update(subscriptionName, timeToLiveMs) : SubscriptionAction.create(subscriptionName, timeToLiveMs);
+        return createRealmResults(query, queryDescriptors, false, action);
     }
+
 
     /**
      * Sorts the query result by the specific field name in ascending order.
@@ -1903,10 +1988,8 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> sort(String[] fieldNames, Sort[] sortOrders) {
         realm.checkIfValid();
-        if (sortDescriptor != null) {
-            throw new IllegalStateException("A sorting order was already defined.");
-        }
-        sortDescriptor = SortDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
+        QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
+        queryDescriptors.appendSort(sortDescriptor);
         return this;
     }
 
@@ -1921,7 +2004,6 @@ public class RealmQuery<E> {
      * to linked fields.
      * @throws IllegalStateException if distinct field names were already defined.
      */
-    @Beta
     public RealmQuery<E> distinct(String fieldName) {
         return distinct(fieldName, new String[]{});
     }
@@ -1938,19 +2020,75 @@ public class RealmQuery<E> {
      * is an unsupported type, or points to a linked field.
      * @throws IllegalStateException if distinct field names were already defined.
      */
-    @Beta
     public RealmQuery<E> distinct(String firstFieldName, String... remainingFieldNames) {
         realm.checkIfValid();
-        if (distinctDescriptor != null) {
-            throw new IllegalStateException("Distinct fields have already been defined.");
-        }
+        QueryDescriptor distinctDescriptor;
         if (remainingFieldNames.length == 0) {
-            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, firstFieldName);
+            distinctDescriptor = QueryDescriptor.getInstanceForDistinct(getSchemaConnector(), table, firstFieldName);
         } else {
             String[] fieldNames = new String[1 + remainingFieldNames.length];
             fieldNames[0] = firstFieldName;
             System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
-            distinctDescriptor = SortDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
+            distinctDescriptor = QueryDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
+        }
+        queryDescriptors.appendDistinct(distinctDescriptor);
+        return this;
+    }
+
+    /**
+     * Limits the number of objects returned in case the query matched more objects.
+     * <p>
+     * Note that when using this method in combination with {@link #sort(String)} and
+     * {@link #distinct(String)} they will be executed in the order they where added which can
+     * affect the end result.
+     *
+     * @param limit a limit that is {@code &ge; 1}.
+     * @throws IllegalArgumentException if the provided {@code limit} is less than 1.
+     */
+    public RealmQuery<E> limit(long limit) {
+        realm.checkIfValid();
+        if (limit < 1) {
+            throw new IllegalArgumentException("Only positive numbers above 0 is allowed. Yours was: " + limit);
+        }
+        queryDescriptors.setLimit(limit);
+        return this;
+    }
+
+    /**
+     * This predicate is only relevant for Query-based Realms.
+     * <p>
+     * Objects referenced through fields marked with {@link io.realm.annotations.LinkingObjects} are normally not downloaded
+     * as part of the subscription in Query-based Realms, but by using this predicate, it is possible to specify which linking
+     * objects relationships should also be included in the subscription as well.
+     * <p>
+     * Note, that all "forward" object references like object references and lists are always downloaded as part of the
+     * subscription by default.
+     * <p>
+     * This predicate can be called multiple times, in which case all fields will be added to the subscription.
+     * <p>
+     * NOTE: This method is only supported when connecting to Realm Object Server 3.21.0 or later. If you use it with previous
+     * versions of Realm Object Server, an {@link IllegalArgumentException} will be sent to {@link OrderedCollectionChangeSet#getError()}.
+     *
+     * @param firstIncludePath the first {@link io.realm.annotations.LinkingObjects} field to add.
+     * @param remainingFieldPaths any remaining {@link io.realm.annotations.LinkingObjects} fields to add.
+     * @throws IllegalStateException if called on a non-query-based Realm.
+     * @throws IllegalArgumentException if the path does not end with a field marked with {@link io.realm.annotations.LinkingObjects}.
+     */
+    @ObjectServer
+    public RealmQuery<E> includeLinkingObjects(String firstIncludePath, @Nullable String... remainingFieldPaths) {
+        realm.checkIfValid();
+        if (!ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(realm.getConfiguration())) {
+            throw new IllegalStateException("This method is only available for Query-based Realms.");
+        }
+        if (Util.isEmptyString(firstIncludePath)) {
+            throw new IllegalArgumentException("Non-empty 'firstIncludePath' required.");
+        }
+        queryDescriptors.appendIncludes(IncludeDescriptor.createInstance(getSchemaConnector(), table, firstIncludePath));
+        if (remainingFieldPaths != null) {
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0; i < remainingFieldPaths.length; i++) {
+                queryDescriptors.appendIncludes(IncludeDescriptor.createInstance(getSchemaConnector(), table, remainingFieldPaths[i]));
+            }
         }
         return this;
     }
@@ -1993,6 +2131,171 @@ public class RealmQuery<E> {
             throw new IllegalStateException("This method is only available for typed Realms");
         }
         return (Realm) realm;
+    }
+
+    /**
+     * Creates an anonymous subscription from this query or returns the existing Subscription if
+     * one already existed.
+     *
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction or if
+     * the query is on a {@link DynamicRealm}
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribe() {
+        StringBuilder sb = new StringBuilder("[");
+        sb.append((table != null) ? table.getClassName() : "");
+        sb.append("] ");
+        sb.append(nativeSerializeQuery(query.getNativePtr(), queryDescriptors.getNativePtr()));
+        String name = sb.toString();
+        return subscribe(name);
+    }
+
+    /**
+     * Creates a named subscription from this query or returns the existing Subscription if
+     * one already existed. Subscriptions created this way will live forever or until the
+     * subscription is manually deleted.
+     *
+     * @return the name of the subscription representing this query.
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
+     * @throws IllegalArgumentException if a subscription for a different query with the same name
+     * already exists.
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribe(String name) {
+        return subscribe(name, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
+    }
+
+    /**
+     * Creates a named subscription from this query or returns the existing Subscription if
+     * one already exists.
+     * <p>
+     * {@code timeToLive} indicates for how long Realm must keep the subscription alive after last
+     * being used. After this period expires Realm are allowed to delete the subscription.
+     * This happens automatically. The period is reset, whenever someone resubscribes or updates
+     * the subscription itself.
+     * </p>
+     * When a subscription is deleted, the data covered by the subscription is removed from the
+     * device, but not the server.
+     *
+     * @param name the name subscription representing this query.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
+     *                   period Realm will automatically remove it.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
+     * @throws IllegalArgumentException if a subscription for a different query with the same name
+     * already exists.
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribe(String name, long timeToLive, TimeUnit timeUnit) {
+        return subscribe(name, timeToLive, timeUnit, false);
+    }
+
+    /**
+     * Creates a named subscription from this query or returns the existing Subscription if
+     * one already existed. If an existing subscription already exists and the existing query
+     * is different, it will be replaced by this query.
+     * <p>
+     * It is only allowed to update a subscription that queries for objects of the same type. If
+     * the existing subscription queries for objects of a different type, an {@link IllegalArgumentException}
+     * is thrown.
+     *
+     * @param name the name of the subscription.
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
+     * @throws IllegalArgumentException if this query are for other objects than those already being
+     * returned by an existing subscription.
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribeOrUpdate(String name) {
+        return subscribe(name, Long.MAX_VALUE, TimeUnit.MILLISECONDS, true);
+    }
+
+    /**
+     * Creates a named subscription from this query or returns the existing Subscription if
+     * one already existed. If a subscription already exists and the query
+     * is different, it will be replaced by this query.
+     * <p>
+     * It is only allowed to update a subscription that queries for objects of the same type. If
+     * the existing subscription queries for objects of a different type, an {@link IllegalArgumentException}
+     * is thrown.
+     * <p>
+     * {@code timeToLive} indicates for how long Realm must keep the subscription alive after last
+     * being used. After this period expires Realm are allowed to delete the subscription.
+     * This happens automatically. The period is reset, whenever the subscription is resubscribed or updated
+     * </p>
+     * When a subscription is deleted, the data covered by the subscription is removed from the
+     * device, but not the server.
+     *
+     * @param name the name of the subscription.
+     * @param timeToLive the amount of time the Subscription must be kept alive after last being used.
+     * @param timeUnit the unit for {@code timeToLive}.
+     * @return the subscription representing this query.
+     * @throws IllegalStateException if this method is not called inside a write transaction, if
+     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
+     * @throws IllegalArgumentException if this query are for other objects than those already being
+     * returned by an existing subscription.
+     */
+    @ObjectServer
+    @Beta
+    public Subscription subscribeOrUpdate(String name, long timeToLive, TimeUnit timeUnit) {
+        return subscribe(name, timeToLive, timeUnit, true);
+    }
+
+
+    @ObjectServer
+    private Subscription subscribe(String name, long timeToLive, TimeUnit timeUnit, boolean update) {
+        realm.checkIfValid();
+        if (realm instanceof DynamicRealm) {
+            throw new IllegalStateException("'subscribe' is not supported for queries on Dynamic Realms.");
+        }
+        if (osList != null) {
+            throw new IllegalStateException("Cannot create subscriptions for queries based on a 'RealmList. Subscribe to the object holding the list instead.'");
+        }
+        if (TextUtils.isEmpty(name)) {
+            throw new IllegalArgumentException("Non-empty 'name' required.");
+        }
+        //noinspection ConstantConditions
+        if (timeUnit == null) {
+            throw new IllegalArgumentException("Non-null 'timeUnit' is required.");
+        }
+
+        // Convert timestamp to milliseconds and clamp at max
+        long timeToLiveMs = TimeUnit.MILLISECONDS.convert(timeToLive, timeUnit);
+
+        long rowIndex = nativeSubscribe(realm.getSharedRealm().getNativePtr(), name, query.getNativePtr(),
+                queryDescriptors.getNativePtr(), timeToLiveMs, update);
+        CheckedRow row = ((Realm) realm).getTable(Subscription.class).getCheckedRow(rowIndex);
+        return realm.get(Subscription.class, null, row);
+    }
+
+
+    /**
+     * Returns a textual description of this query.
+     *
+     * @return the textual description of the query.
+     */
+    public String getDescription() {
+        return nativeSerializeQuery(query.getNativePtr(), queryDescriptors.getNativePtr());
+    }
+
+    /**
+     * Returns the internal Realm name of the type being queried.
+     *
+     * @return the internal name of the Realm model class being queried.
+     */
+    public String getTypeQueried() {
+        // TODO Revisit this when primitive list queries are implemented.
+        return table.getClassName();
     }
 
     private boolean isDynamicQuery() {
@@ -2049,7 +2352,7 @@ public class RealmQuery<E> {
             // TODO: The performance by the pending query will be a little bit worse than directly calling core's
             // Query.find(). The overhead comes with core needs to add all the row indices to the vector. However this
             // can be optimized by adding support of limit in OS's Results which is supported by core already.
-            row = new PendingRow(realm.sharedRealm, query, sortDescriptor, isDynamicQuery());
+            row = new PendingRow(realm.sharedRealm, query, queryDescriptors, isDynamicQuery());
         }
         final E result;
         if (isDynamicQuery()) {
@@ -2074,16 +2377,15 @@ public class RealmQuery<E> {
 
 
     private RealmResults<E> createRealmResults(TableQuery query,
-                                               @Nullable SortDescriptor sortDescriptor,
-                                               @Nullable SortDescriptor distinctDescriptor,
+                                               DescriptorOrdering queryDescriptors,
                                                boolean loadResults,
                                                SubscriptionAction subscriptionAction) {
         RealmResults<E> results;
         OsResults osResults;
         if (subscriptionAction.shouldCreateSubscriptions()) {
-            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor, subscriptionAction.getName());
+            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors, subscriptionAction);
         } else {
-            osResults = OsResults.createFromQuery(realm.sharedRealm, query, sortDescriptor, distinctDescriptor);
+            osResults = OsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors);
         }
 
         if (isDynamicQuery()) {
@@ -2099,7 +2401,7 @@ public class RealmQuery<E> {
     }
 
     private long getSourceRowIndexForFirstObject() {
-        if (sortDescriptor != null || distinctDescriptor != null) {
+        if (!queryDescriptors.isEmpty()) {
             RealmObjectProxy obj = (RealmObjectProxy) findAll().first(null);
             if (obj != null) {
                 return obj.realmGet$proxyState().getRow$realm().getIndex();
@@ -2114,4 +2416,9 @@ public class RealmQuery<E> {
     private SchemaConnector getSchemaConnector() {
         return new SchemaConnector(realm.getSchema());
     }
+
+    private static native String nativeSerializeQuery(long tableQueryPtr, long descriptorPtr);
+    private static native long nativeSubscribe(long sharedRealmPtr, String name, long tableQueryPtr,
+                                               long descriptorPtr, long timeToLiveMs, boolean update);
+
 }

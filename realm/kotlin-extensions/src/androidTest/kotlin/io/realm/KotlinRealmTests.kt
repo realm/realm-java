@@ -18,15 +18,13 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class KotlinRealmTests {
 
-    @Rule
-    @JvmField
-    val configFactory = TestRealmConfigurationFactory()
+    @Suppress("MemberVisibilityCanPrivate")
+    @Rule @JvmField val configFactory = TestRealmConfigurationFactory()
 
     private lateinit var realm: Realm
 
     @Before
     fun setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext())
         realm = Realm.getInstance(configFactory.createConfiguration())
     }
 

@@ -59,52 +59,56 @@ try {
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
                   "--network container:${rosContainer.id}") {
-                stage('JVM tests') {
-                  try {
-                    withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-                      sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} ${abiFilter}"
+
+                // Lock required around all usages of Gradle as it isn't
+                // able to share its cache between builds.
+                lock("${env.NODE_NAME}-android") {
+
+                  stage('JVM tests') {
+                    try {
+                      withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
+                        sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} ${abiFilter} --stacktrace"
+                      }
+                    } finally {
+                      storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
+                      storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+                      step([$class: 'LintPublisher'])
                     }
-                  } finally {
-                    storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-                    storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-                    step([$class: 'LintPublisher'])
                   }
-                }
 
-                stage('Gradle plugin tests') {
-                  try {
-                    gradle('gradle-plugin', 'check')
-                  } finally {
-                    storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
+                  stage('Gradle plugin tests') {
+                    try {
+                      gradle('gradle-plugin', 'check')
+                    } finally {
+                      storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
+                    }
                   }
-                }
 
-                stage('Realm Transformer tests') {
-                  try {
-                    gradle('realm-transformer', 'check')
-                  } finally {
-                    storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
+                  stage('Realm Transformer tests') {
+                    try {
+                      gradle('realm-transformer', 'check')
+                    } finally {
+                      storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
+                    }
                   }
-                }
 
-                stage('Static code analysis') {
-                  try {
-                    gradle('realm', "findbugs pmd checkstyle ${abiFilter}")
-                  } finally {
-                    publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-                    publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-                    step([$class: 'CheckStylePublisher',
-                  canComputeNew: false,
-                  defaultEncoding: '',
-                  healthy: '',
-                  pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-                  unHealthy: ''
-                 ])
+                  stage('Static code analysis') {
+                    try {
+                      gradle('realm', "findbugs pmd checkstyle ${abiFilter}")
+                    } finally {
+                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
+                      step([$class: 'CheckStylePublisher',
+                    canComputeNew: false,
+                    defaultEncoding: '',
+                    healthy: '',
+                    pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
+                    unHealthy: ''
+                   ])
+                    }
                   }
-                }
 
-                stage('Run instrumented tests') {
-                  lock("${env.NODE_NAME}-android") {
+                  stage('Run instrumented tests') {
                     String backgroundPid
                     try {
                       backgroundPid = startLogCatCollector()
@@ -116,20 +120,20 @@ try {
                       storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
                     }
                   }
-                }
 
-                // TODO: add support for running monkey on the example apps
+                  // TODO: add support for running monkey on the example apps
 
-                if (['master'].contains(env.BRANCH_NAME)) {
-                  stage('Collect metrics') {
-                    collectAarMetrics()
+                  if (['master'].contains(env.BRANCH_NAME)) {
+                    stage('Collect metrics') {
+                      collectAarMetrics()
+                    }
                   }
-                }
 
-                if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
-                  stage('Publish to OJO') {
-                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-                      sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+                  if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
+                    stage('Publish to OJO') {
+                      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
+                        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+                      }
                     }
                   }
                 }
@@ -228,9 +232,9 @@ def collectAarMetrics() {
     sh """set -xe
       cd realm/realm-library/build/outputs/aar
       unzip realm-android-library-${flavor}-release.aar -d unzipped${flavor}
-      find \$ANDROID_HOME -name dx | sort -r | head -n 1 > dx
-      \$(cat dx) --dex --output=temp${flavor}.dex unzipped${flavor}/classes.jar
-      cat temp${flavor}.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 \"%d\"' > methods${flavor}
+      find \$ANDROID_HOME -name d8 | sort -r | head -n 1 > d8
+      \$(cat d8) --release --output ./unzipped${flavor} unzipped${flavor}/classes.jar
+      cat ./unzipped${flavor}/temp${flavor}.dex | head -c 92 | tail -c 4 | hexdump -e '1/4 \"%d\"' > methods${flavor}
     """
 
     def methods = readFile("realm/realm-library/build/outputs/aar/methods${flavor}")
