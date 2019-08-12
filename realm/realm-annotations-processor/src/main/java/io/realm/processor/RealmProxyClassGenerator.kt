@@ -142,7 +142,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("this.%1\$sIndex = addColumnDetails(\"%1\$s\", \"%2\$s\", objectSchemaInfo)", field.javaName, field.internalFieldName)
                 }
                 for (backlink in metadata.backlinkFields) {
-                    emitStatement("addBacklinkDetails(schemaInfo, \"%s\", \"%s\", \"%s\")", backlink.targetField, classCollection.getClassFromQualifiedName(backlink.sourceClass!!).internalClassName, backlink.sourceField)
+                    val sourceClass = classCollection.getClassFromQualifiedName(backlink.sourceClass!!)
+                    val internalSourceClassName = sourceClass.internalClassName
+                    val internalSourceFieldName = sourceClass.getInternalFieldName(backlink.sourceField!!)
+                    emitStatement("addBacklinkDetails(schemaInfo, \"%s\", \"%s\", \"%s\")", backlink.targetField, internalSourceClassName, internalSourceFieldName)
                 }
                 emitStatement("this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex()")
             endConstructor()
