@@ -6,6 +6,15 @@
 ### Fixed
 * `Realm.copyToRealm()` and `Realm.insertOrUpdate()` crashed on model classes if `@LinkingObjects` was used to target a field with a re-defined internal name in the parent class (e.g. by using `@RealmField`). (Issue [#6581](https://github.com/realm/realm-java/issues/6581))  
 
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None.
+
+
 ## 5.13.1(2019-08-05)
 
 ### Enhancements
