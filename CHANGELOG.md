@@ -21,7 +21,6 @@
 * [ObjectServer] `SyncCredentials.nickname()` has been deprecated in favour of `SyncCredentials.usernamePassword()`.
 * [ObjectServer] `SyncCredentials.IdentityProvider.NICKNAME` has been deprecated in favour of `SyncCredentials.IdentityProvider.USERNAME_PASSWORD`.
 
-
 ### Enhancements
 * None.
 
