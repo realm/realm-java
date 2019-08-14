@@ -1,10 +1,32 @@
-## 5.13.2(YYYY-MM-DD)
+## 5.14.1(YYYY-MM-DD)
 
 ### Enhancements
 * None.
 
 ### Fixed
 * `Realm.copyToRealm()` and `Realm.insertOrUpdate()` crashed on model classes if `@LinkingObjects` was used to target a field with a re-defined internal name in the parent class (e.g. by using `@RealmField`). (Issue [#6581](https://github.com/realm/realm-java/issues/6581))  
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None.
+
+
+## 5.14.0(2019-08-12)
+
+### Deprecated
+* [ObjectServer] `SyncCredentials.nickname()` has been deprecated in favour of `SyncCredentials.usernamePassword()`.
+* [ObjectServer] `SyncCredentials.IdentityProvider.NICKNAME` has been deprecated in favour of `SyncCredentials.IdentityProvider.USERNAME_PASSWORD`.
+
+
+### Enhancements
+* None.
+
+### Fixed
+* None.
 
 ### Compatibility
 * Realm Object Server: 3.21.0 or later.
