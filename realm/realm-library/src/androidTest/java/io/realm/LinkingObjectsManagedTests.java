@@ -31,9 +31,11 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.BacklinkWithOverridenNames;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
 import io.realm.exceptions.RealmException;
@@ -691,6 +693,32 @@ public class LinkingObjectsManagedTests {
         assertEquals(1, distinctParents.size());
         assertTrue(child.getListParents().contains(parent));
     }
+
+
+    @Test
+    public void copyToRealm_modelWithRenamedTargetFields() {
+        realm.beginTransaction();
+        BacklinkWithOverridenNames obj = new BacklinkWithOverridenNames(UUID.randomUUID().toString());
+        realm.copyToRealmOrUpdate(obj);
+        realm.commitTransaction();
+        assertEquals(1, realm.where(BacklinkWithOverridenNames.class).count());
+    }
+
+    @Test
+    public void insert_modelWithRenamedTargetFields() {
+        realm.beginTransaction();
+        BacklinkWithOverridenNames obj = new BacklinkWithOverridenNames(UUID.randomUUID().toString());
+        realm.insertOrUpdate(obj);
+        realm.commitTransaction();
+        assertEquals(1, realm.where(BacklinkWithOverridenNames.class).count());
+    }
+
+    @Test
+    public void query_modelWithRenamedFields() {
+        assertEquals(0, realm.where(BacklinkWithOverridenNames.class).equalTo("child.id", "foo").count());
+        assertEquals(0, realm.where(BacklinkWithOverridenNames.class).equalTo("parents.id", "foo").count());
+    }
+
 
     // Based on a quick conversation with Christian Melchior and Mark Rowe,
     // it appears that notifications are enqueued, briefly, on a non-Java
