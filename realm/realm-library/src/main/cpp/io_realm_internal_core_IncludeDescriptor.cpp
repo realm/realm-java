@@ -18,7 +18,6 @@
 
 #include <realm/parser/parser.hpp>
 #include <realm/parser/query_builder.hpp>
-#include <realm/views.hpp>
 #include <object_schema.hpp>
 #include <object_store.hpp>
 #include <property.hpp>
@@ -50,24 +49,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_core_IncludeDescriptor_nativeGetF
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_core_IncludeDescriptor_nativeCreate(JNIEnv* env, jclass, jlong starting_table_ptr, jlongArray column_indexes, jlongArray table_pointers)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_core_IncludeDescriptor_nativeCreate(JNIEnv* env, jclass, jlong starting_table_ptr, jlongArray column_keys, jlongArray table_pointers)
 {
     TR_ENTER()
     try {
         JLongArrayAccessor table_arr(env, table_pointers);
-        JLongArrayAccessor index_arr(env, column_indexes);
+        JLongArrayAccessor colkeys_arr(env, column_keys);
         auto starting_table = reinterpret_cast<Table*>(starting_table_ptr);
         std::vector<LinkPathPart> parts;
-        parts.reserve(index_arr.size());
-        for (int i = 0; i < index_arr.size(); ++i) {
-            auto col_index = static_cast<size_t>(index_arr[i]);
+        parts.reserve(colkeys_arr.size());
+        for (int i = 0; i < colkeys_arr.size(); ++i) {
+            auto col_key = static_cast<size_t>(colkeys_arr[i]);
             auto table_ptr = reinterpret_cast<Table *>(table_arr[i]);
             if (table_ptr == nullptr) {
-                parts.emplace_back(LinkPathPart(col_index));
+                parts.emplace_back(LinkPathPart(ColKey(col_key)));
             }
             else {
                 const ConstTableRef ref = table_ptr->get_table_ref();
-                parts.emplace_back(LinkPathPart(col_index, ref));
+                parts.emplace_back(LinkPathPart(ColKey(col_key), ref));
             }
         }
 

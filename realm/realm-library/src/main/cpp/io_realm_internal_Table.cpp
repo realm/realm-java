@@ -73,7 +73,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn(JNIEnv* env
         }
         TableRef table = TBL_REF(nativeTablePtr);
         ColKey col_key = table->add_column(dataType, name2, is_column_nullable);
-        return reinterpret_cast<jlong>(col_key.value);
+        return (jlong)(col_key.value);
     }
     CATCH_STD()
     return 0;
@@ -88,7 +88,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveListColum
         bool is_column_nullable = to_bool(j_is_nullable);
         DataType data_type = DataType(j_col_type);
         TableRef table = TBL_REF(native_table_ptr);
-        return reinterpret_cast<jlong>(table->add_column_list(data_type, name, is_column_nullable).value);
+        return (jlong)(table->add_column_list(data_type, name, is_column_nullable).value);
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
@@ -214,7 +214,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetColumnName(JNIEn
     try {
         TableRef table = TBL_REF(nativeTablePtr);
         ColKey col_key(columnKey);
-        StringData stringData = table->get_column_name(col_key);//<----- this is crashing
+        StringData stringData = table->get_column_name(col_key);
         return to_jstring(env, stringData);
     }
     CATCH_STD();
@@ -224,6 +224,7 @@ JNIEXPORT jobjectArray JNICALL Java_io_realm_internal_Table_nativeGetColumnNames
 {
     try {
         TableRef table = TBL_REF(nativeTablePtr);
+        table->get_name();
         ColKeys col_keys = table->get_column_keys();
         size_t size = col_keys.size();
         jobjectArray col_keys_array = env->NewObjectArray(size, JavaClassGlobalDef::java_lang_string(), 0);
@@ -249,7 +250,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnKey(JNIEnv* 
         TableRef table = TBL_REF(nativeTablePtr);
         ColKey col_key = table->get_column_key(columnName2);
         if (table->valid_column(col_key)) {//TODO generalize this test & return for similar lookups
-            return reinterpret_cast<jlong>(col_key.value); // noexcept
+            return (jlong)(col_key.value); // noexcept
         }
         return -1;
     }
@@ -430,7 +431,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLong(JNIEnv* env, j
         return;
     }
     try {
-        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), value, B(isDefault));
+        table->get_object(ObjKey(rowKey)).set<int64_t>(ColKey(columnKey), value, B(isDefault));
     }
     CATCH_STD()
 }

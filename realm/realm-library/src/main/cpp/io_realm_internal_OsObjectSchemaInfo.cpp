@@ -148,13 +148,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetMaxCo
         if (object_schema.persisted_properties.empty()) {
             return static_cast<jlong>(-1);
         } else {
-            size_t maxIndex = 0;
-            for (Property p : object_schema.persisted_properties) {
-                if (p.table_column > maxIndex) {
-                    maxIndex = p.table_column;
-                }
-            }
-            return static_cast<jlong>(maxIndex);
+            return static_cast<jlong>(object_schema.persisted_properties.size());
         }
     }
     CATCH_STD()

@@ -429,7 +429,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
 
             // Check that type matches the expected one
             Table currentTable = osResults.getTable();
-            long columnIndex = currentTable.getColumnIndex(fieldName);
+            long columnIndex = currentTable.getColumnKey(fieldName);
             Table expectedTable = currentTable.getLinkTarget(columnIndex);
             Table inputTable = proxyState.getRow$realm().getTable();
             if (!expectedTable.hasSameSchema(inputTable)) {

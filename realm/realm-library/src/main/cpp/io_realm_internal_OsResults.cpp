@@ -415,7 +415,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetTimestamp(JNIEn
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObject(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong row_ptr)
 {
     TR_ENTER_PTR(native_ptr)
-    JavaValue value(reinterpret_cast<RowExpr*>(row_ptr));
+    JavaValue value(reinterpret_cast<Obj*>(row_ptr));
     update_objects(env, native_ptr, j_field_name, value);
 }
 
@@ -424,9 +424,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetList(JNIEnv* en
     // OsObjectBuilder has been used to build up the list we want to insert. This means the
     // fake object described by the OsObjectBuilder only contains one property, namely the list we
     // want to insert and this list is assumed to be at index = 0.
-    std::vector<JavaValue> builder = *reinterpret_cast<std::vector<JavaValue>*>(builder_ptr);
+    std::map<ColKey, JavaValue> builder = *reinterpret_cast<std::map<ColKey, JavaValue>*>(builder_ptr);
     REALM_ASSERT_DEBUG(builder.size() == 1);
-    update_objects(env, native_ptr, j_field_name, builder[0]);
+    update_objects(env, native_ptr, j_field_name, builder.begin()->second);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeDelete(JNIEnv* env, jclass, jlong native_ptr,

@@ -1774,7 +1774,6 @@ public class RealmResultsTests extends CollectionTests {
                 "        \"columnBoolean\": false,\n" +
                 "        \"columnDate\": \"" + now + "\",\n" +
                 "        \"columnBinary\": \"010203\",\n" +
-                "        \"columnMutableRealmInteger\": 0,\n" +
                 "        \"columnRealmObject\": [\n" +
                 "            {\n" +
                 "                \"name\": \"dog1\",\n" +
@@ -1782,8 +1781,7 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"height\": 1.1,\n" +
                 "                \"weight\": 10.100000381469727,\n" +
                 "                \"hasTail\": true,\n" +
-                "                \"birthday\": \"" + now + "\",\n" +
-                "                \"owner\": []\n" +
+                "                \"birthday\": \"" + now + "\"\n" +
                 "            }\n" +
                 "        ],\n" +
                 "        \"columnRealmList\": [\n" +
@@ -1793,8 +1791,7 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"height\": 2.0999999,\n" +
                 "                \"weight\": 20.100000381469727,\n" +
                 "                \"hasTail\": false,\n" +
-                "                \"birthday\": \"" + now + "\",\n" +
-                "                \"owner\": []\n" +
+                "                \"birthday\": \"" + now + "\"\n" +
                 "            },\n" +
                 "            {\n" +
                 "                \"name\": \"dog3\",\n" +
@@ -1806,60 +1803,35 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"owner\": [\n" +
                 "                    {\n" +
                 "                        \"name\": \"Dog owner 1\",\n" +
-                "                        \"dogs\": [],\n" +
-                "                        \"cat\": []\n" +
+                "                        \"dogs\": []\n" +
                 "                    }\n" +
                 "                ]\n" +
                 "            }\n" +
                 "        ],\n" +
                 "        \"columnStringList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": \"Foo\"\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": \"Bar\"\n" +
-                "            }\n" +
+                "            \"Foo\",\n" +
+                "            \"Bar\"\n" +
                 "        ],\n" +
                 "        \"columnBinaryList\": [],\n" +
                 "        \"columnBooleanList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": false\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": true\n" +
-                "            }\n" +
+                "            false,\n" +
+                "            true\n" +
                 "        ],\n" +
                 "        \"columnLongList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 1000\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 2000\n" +
-                "            }\n" +
+                "            1000,\n" +
+                "            2000\n" +
                 "        ],\n" +
                 "        \"columnDoubleList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 1.123\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 5.3209999999999997\n" +
-                "            }\n" +
+                "            1.123,\n" +
+                "            5.3209999999999997\n" +
                 "        ],\n" +
                 "        \"columnFloatList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 0.12\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 0.13\n" +
-                "            }\n" +
+                "            0.12,\n" +
+                "            0.13\n" +
                 "        ],\n" +
                 "        \"columnDateList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": \"" + now + "\"\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": \"" + now + "\"\n" +
-                "            }\n" +
+                "            \"" + now + "\",\n" +
+                "            \"" + now + "\"\n" +
                 "        ]\n" +
                 "    }\n" +
                 "]";
@@ -1901,12 +1873,9 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"id\": 0,\n" +
                 "                \"name\": \"Two\",\n" +
                 "                \"date\": \"" + now + "\",\n" +
-                "                \"object\": \"0\",\n" +
-                "                \"otherObject\": [],\n" +
-                "                \"objects\": []\n" +
+                "                \"object\": \"0\"\n" +
                 "            }\n" +
                 "        ],\n" +
-                "        \"otherObject\": [],\n" +
                 "        \"objects\": []\n" +
                 "    },\n" +
                 "    {\n" +
@@ -1918,12 +1887,9 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"id\": 0,\n" +
                 "                \"name\": \"One\",\n" +
                 "                \"date\": \"" + now + "\",\n" +
-                "                \"object\": \"1\",\n" +
-                "                \"otherObject\": [],\n" +
-                "                \"objects\": []\n" +
+                "                \"object\": \"1\"\n" +
                 "            }\n" +
                 "        ],\n" +
-                "        \"otherObject\": [],\n" +
                 "        \"objects\": []\n" +
                 "    }\n" +
                 "]";

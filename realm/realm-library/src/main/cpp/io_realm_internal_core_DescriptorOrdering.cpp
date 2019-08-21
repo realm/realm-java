@@ -16,8 +16,6 @@
 
 #include "io_realm_internal_core_DescriptorOrdering.h"
 
-#include <realm/views.hpp>
-
 #include "java_query_descriptor.hpp"
 #include "util.hpp"
 

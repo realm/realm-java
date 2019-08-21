@@ -39,11 +39,11 @@ public class IncludeDescriptor implements NativeObject {
                     includePath,
                     supportedIntermediateColumnTypes,
                     supportedFinalColumnType);
-            return new IncludeDescriptor(table, fieldDescriptor.getColumnIndices(), fieldDescriptor.getNativeTablePointers());
+            return new IncludeDescriptor(table, fieldDescriptor.getColumnKeys(), fieldDescriptor.getNativeTablePointers());
     }
 
-    private IncludeDescriptor(Table table, long[] columnIndices, long[] nativeTablePointers) {
-        nativePtr = nativeCreate(table.getNativePtr(), columnIndices, nativeTablePointers);
+    private IncludeDescriptor(Table table, long[] columnKeys, long[] nativeTablePointers) {
+        nativePtr = nativeCreate(table.getNativePtr(), columnKeys, nativeTablePointers);
     }
 
     @Override

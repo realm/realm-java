@@ -137,7 +137,7 @@ public class QueryDescriptor {
     // Called by JNI.
     @SuppressWarnings("unused")
     @SuppressFBWarnings("EI_EXPOSE_REP")
-    public long[][] getColumnIndices() {
+    public long[][] getColumnKeys() {
         return columnKeys;
     }
 

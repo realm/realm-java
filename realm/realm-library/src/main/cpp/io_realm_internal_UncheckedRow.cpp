@@ -258,7 +258,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetLong(JNIEnv*
     }
 
     try {
-        ROW(nativeRowPtr)->set(ColKey(columnKey), value);
+        ROW(nativeRowPtr)->set<int64_t>(ColKey(columnKey), value);
     }
     CATCH_STD()
 }

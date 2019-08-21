@@ -556,8 +556,8 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetObjectPrivi
     TR_ENTER_PTR(shared_realm_ptr)
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        auto r = reinterpret_cast<Row*>(row_ptr);
-        RowExpr row = r->get_table()->get(r->get_index());
+        auto r = reinterpret_cast<Obj*>(row_ptr);
+        Obj row = r->get_table()->get(r->get_key());
 
         return static_cast<jint>(shared_realm->get_privileges(row));
     }

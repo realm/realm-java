@@ -19,6 +19,8 @@
 
 #include <jni.h>
 
+#include "java_accessor.hpp"
+
 namespace realm {
 
 namespace jni_util {

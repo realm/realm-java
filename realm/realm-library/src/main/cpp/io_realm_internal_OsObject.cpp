@@ -205,7 +205,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
         obj.set_null(col_key);
     }
     else {
-        obj.set(col_key, pk_value);
+        obj.set<int64_t>(col_key, pk_value);
     }
 #endif
 //    return row_ndx;
@@ -315,7 +315,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRow(JNIEnv* 
     try {
         TableRef table = TBL_REF(table_ref_ptr);
         Obj obj = table->create_object();
-        return reinterpret_cast<jlong>(obj.get_key().value);
+        return (jlong)(obj.get_key().value);//FIXME reinterpret_cast<jlong>(obj.get_key().value); does not work when compiling for 64bit ABI
     }
     CATCH_STD()
     //TODO use Obj with key instead of Row in the heap
@@ -367,7 +367,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithLongP
 {
     try {
         Obj obj = do_create_row_with_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value, is_pk_null);
-        return reinterpret_cast<jlong>(obj.get_key().value);
+        return (jlong)(obj.get_key().value);
     }
     CATCH_STD()
     return realm::npos;
@@ -393,7 +393,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithStrin
 {
     try {
         Obj obj = do_create_row_with_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value);
-        return reinterpret_cast<jlong>(obj.get_key().value);
+        return (jlong)(obj.get_key().value);
     }
     CATCH_STD()
     return realm::npos;
