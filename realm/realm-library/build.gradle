@@ -23,8 +23,7 @@ ext.forceDownloadCore = project.hasProperty('forceDownloadCore') ? project.getPr
 
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
 // core source code.
-//ext.coreSourcePath = project.hasProperty('coreSourcePath') ? file(project.getProperty('coreSourcePath')) : null
-ext.coreSourcePath = file('/Users/Nabil/Dev/realm/master3/realm-core/')// this is needed to make ./graldew installRealmJava from the root
+ext.coreSourcePath = project.hasProperty('coreSourcePath') ? file(project.getProperty('coreSourcePath')) : null
 // The location of pre-compiled Realm Core/Sync archive.
 ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 if (!ext.coreArchiveDir) {
