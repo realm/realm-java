@@ -36,4 +36,11 @@ public interface ManagableObject {
      * @return {@code true} if this object is unmanaged or is still valid for use, {@code false} otherwise.
      */
     boolean isValid();
+
+
+    /**
+     * FIXME
+     * @return
+     */
+    boolean isFrozen();
 }

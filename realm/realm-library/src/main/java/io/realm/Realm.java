@@ -1982,6 +1982,25 @@ public class Realm extends BaseRealm {
         return where(Subscription.class).equalTo("name", name).findFirst();
     }
 
+    /**
+     * FIXME
+     * @return
+     */
+    @Override
+    public Realm freeze() {
+        if (isInTransaction()) {
+            // FIXME: Is this true?
+            throw new IllegalStateException("Cannot freeze objects inside a write transaction");
+        }
+
+//        return RealmCache.createRealmOrGetFromCache(this)
+//
+//        Realm.getInstance(configuration, true);
+//
+        // Returns a frozen copy of this Realm
+        return null;
+    }
+
     Table getTable(Class<? extends RealmModel> clazz) {
         return schema.getTable(clazz);
     }

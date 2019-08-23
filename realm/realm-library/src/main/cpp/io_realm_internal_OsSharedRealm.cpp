@@ -573,3 +573,11 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsPartial(
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     return to_jbool(shared_realm->is_partial());
 }
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsFrozen(JNIEnv*, jclass, jlong shared_realm_ptr)
+{
+    TR_ENTER_PTR(shared_realm_ptr)
+    // No throws
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    return to_jbool(false); // shared_realm->is_frozen()
+}

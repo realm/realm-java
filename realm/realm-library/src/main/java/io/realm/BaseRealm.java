@@ -81,6 +81,7 @@ abstract class BaseRealm implements Closeable {
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
+    final boolean frozen; // Cache the value in Java, since it is accessed frequently and doesn't change.
     final long threadId;
     protected final RealmConfiguration configuration;
     // Which RealmCache is this Realm associated to. It is null if the Realm instance is opened without being put into a
@@ -134,8 +135,8 @@ abstract class BaseRealm implements Closeable {
                 .schemaInfo(schemaInfo)
                 .initializationCallback(initializationCallback);
         this.sharedRealm = OsSharedRealm.getInstance(configBuilder);
+        this.frozen = sharedRealm.isFrozen();
         this.shouldCloseSharedRealm = true;
-
         sharedRealm.registerSchemaChangedCallback(schemaChangedCallback);
     }
 
@@ -147,6 +148,7 @@ abstract class BaseRealm implements Closeable {
         this.realmCache = null;
 
         this.sharedRealm = sharedRealm;
+        this.frozen = sharedRealm.isFrozen();
         this.shouldCloseSharedRealm = false;
     }
 
@@ -433,6 +435,59 @@ abstract class BaseRealm implements Closeable {
         sharedRealm.cancelTransaction();
     }
 
+    public abstract BaseRealm freeze();
+
+    /**
+     * FIXME
+     * @return
+     */
+    public boolean isFrozen() {
+        checkIfValid();
+        return sharedRealm.isFrozen();
+    }
+
+    /**
+     * FIXME
+     *
+     * It is up to callers of this method ensure that all invariants are upheld, i.e. only import
+     * live data that belong to the same Realm. Behavior is undefined if not.
+     *
+     * @param results
+     * @param <E>
+     * @return
+     */
+    <E> RealmResults<E> importFromReadTransaction(RealmResults<E> results) {
+        return null;
+    }
+
+    /**
+     * FIXME
+     *
+     * It is up to callers of this method ensure that all invariants are upheld, i.e. only import
+     * live data that belong to the same Realm. Behavior is undefined if not.
+     *
+     * @param list
+     * @param <E>
+     * @return
+     */
+    <E> RealmList<E> importFromReadTransaction(RealmList<E> list) {
+        return null;
+    }
+
+    /**
+     * FIXME
+     *
+     * It is up to callers of this method ensure that all invariants are upheld, i.e. only import
+     * live data that belong to the same Realm. Behavior is undefined if not.
+     *
+     * @param object
+     * @param <E>
+     * @return
+     */
+    <E extends RealmModel> RealmResults<E> importFromReadTransaction(E object) {
+        return null;
+    }
+
     /**
      * Checks if a Realm's underlying resources are still available or not getting accessed from the wrong thread.
      */
@@ -442,7 +497,7 @@ abstract class BaseRealm implements Closeable {
         }
 
         // Checks if we are in the right thread.
-        if (threadId != Thread.currentThread().getId()) {
+        if (!frozen && threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(BaseRealm.INCORRECT_THREAD_MESSAGE);
         }
     }

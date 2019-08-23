@@ -84,6 +84,11 @@ public class DynamicRealm extends BaseRealm {
     private DynamicRealm(OsSharedRealm sharedRealm) {
         super(sharedRealm);
         this.schema = new MutableRealmSchema(this);
+
+    }
+
+    private DynamicRealm(OsS¨haredRealm realm) {
+        super(realm.freeze());
     }
 
     /**
@@ -287,6 +292,11 @@ public class DynamicRealm extends BaseRealm {
         return new DynamicRealm(sharedRealm);
     }
 
+    static DynamicRealm createFrozenInstance(OsSharedRealm realm) {
+        return new DynamicRealm(realm, true);
+    }
+
+
     /**
      * {@inheritDoc}
      */
@@ -392,6 +402,20 @@ public class DynamicRealm extends BaseRealm {
     @Override
     public RealmSchema getSchema() {
         return schema;
+    }
+
+    /**
+     * FIXME
+     * @return
+     */
+    @Override
+    public DynamicRealm freeze() {
+        if (isInTransaction()) {
+            // FIXME: Is this true?
+            throw new IllegalStateException("Cannot freeze objects inside a write transaction");
+        }
+        // Returns a frozen copy of this Realm
+        return DynamicRealm.createInstance(sharedRealm);
     }
 
     /**

@@ -158,6 +158,56 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
     }
 
     /**
+     *
+     * @return
+     */
+    public final boolean isFrozen() {
+        return RealmObject.isFrozen(this);
+    }
+
+    /**
+     * FIXME
+     * @param <E>
+     * @return
+     */
+    public final <E extends RealmModel> E freeze() {
+        //noinspection unchecked
+        return (E) RealmObject.freeze(this);
+    }
+
+    /**
+     * FIXME
+     * @param object
+     * @param <E>
+     */
+    public static <E extends RealmModel> boolean isFrozen(E object) {
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            return proxy.realmGet$proxyState().getRealm$realm().isFrozen();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * FIXME
+     * @param object
+     * @param <E>
+     * @return
+     */
+    public static <E extends RealmModel> E freeze(E object) {
+        if (object instanceof RealmObjectProxy && RealmObject.isValid(object)) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
+            BaseRealm frozenRealm = realm.freeze();
+            //noinspection unchecked
+            return (E) frozenRealm.importFromReadTransaction(object);
+        } else {
+            throw new IllegalArgumentException("It is only possible to freeze valid managed Realm objects.");
+        }
+    }
+
+    /**
      * Checks if the query used to find this RealmObject has completed.
      * <p>
      * Async methods like {@link RealmQuery#findFirstAsync()} return an {@link RealmObject} that represents the future

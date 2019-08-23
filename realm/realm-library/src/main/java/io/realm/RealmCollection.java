@@ -184,4 +184,10 @@ public interface RealmCollection<E> extends Collection<E>, ManagableObject {
      */
     @Override
     boolean contains(@Nullable Object object);
+
+    /**
+     * FIXME
+     * @return
+     */
+    RealmCollection<E> freeze();
 }

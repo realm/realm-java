@@ -147,6 +147,28 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     }
 
     /**
+     * FIXME
+     * @return
+     */
+    @Override
+    public RealmList<E> freeze() {
+        if (!isValid()) {
+            throw new IllegalStateException("Only valid, managed RealmLists can be frozen.");
+        }
+
+        BaseRealm frozenRealm = realm.freeze();
+        return frozenRealm.importFromReadTransaction(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isFrozen() {
+        return realm.isFrozen();
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

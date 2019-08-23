@@ -20,6 +20,7 @@ import android.annotation.SuppressLint;
 import android.os.Looper;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import javax.annotation.Nullable;
@@ -518,6 +519,21 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             default:
                 throw new IllegalArgumentException(String.format("Field '%s' is not a list but a %s", fieldName, columnType));
         }
+    }
+
+    @Override
+    public boolean isFrozen() {
+        return realm != null && realm.isFrozen();
+    }
+
+    @Override
+    public RealmResults<E> freeze() {
+        if (!isValid()) {
+            throw new IllegalStateException("Only valid, managed RealmLists can be frozen.");
+        }
+
+        BaseRealm frozenRealm = realm.freeze();
+        return frozenRealm.importFromReadTransaction(this);
     }
 
     private Class<?> getListType(RealmList list) {
