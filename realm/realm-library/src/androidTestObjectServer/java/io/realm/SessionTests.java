@@ -125,6 +125,7 @@ public class SessionTests {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler((session, error) -> {
                     if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
                         fail("Wrong error " + error.toString());
@@ -156,6 +157,7 @@ public class SessionTests {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler((session, error) -> {
                     if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
                         fail("Wrong error " + error.toString());
@@ -194,6 +196,7 @@ public class SessionTests {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .clientResyncMode(ClientResyncMode.MANUAL)
                 .schema(StringOnly.class)
                 .errorHandler((session, error) -> {
                     if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
@@ -253,6 +256,7 @@ public class SessionTests {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler((session, error) -> {
                     if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
                         fail("Wrong error " + error.toString());
@@ -335,6 +339,7 @@ public class SessionTests {
         String url = "realm://objectserver.realm.io/default";
         final byte[] randomKey = TestHelper.getRandomKey();
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+                .clientResyncMode(ClientResyncMode.MANUAL)
                 .encryptionKey(randomKey)
                 .modules(new StringOnlyModule())
                 .errorHandler((session, error) -> {

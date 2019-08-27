@@ -519,4 +519,27 @@ public class SyncConfigurationTests {
             user.logOut();
         }
     }
+
+    @Test
+    public void clientResyncMode() {
+        SyncUser user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        SyncConfiguration config = user.createConfiguration(url)
+                .clientResyncMode(ClientResyncMode.MANUAL)
+                .build();
+        assertEquals(ClientResyncMode.MANUAL, config.getClientResyncMode());
+    }
+
+    @Test
+    public void clientResyncMode_throwsOnNull() {
+        SyncUser user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        SyncConfiguration.Builder config = user.createConfiguration(url);
+        try {
+            //noinspection ConstantConditions
+            config.clientResyncMode(null);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
+    }
 }
