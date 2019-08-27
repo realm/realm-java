@@ -520,6 +520,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
         final AtomicReference<SyncConfiguration> configRef = new AtomicReference<>(null);
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .clientResyncMode(ClientResyncMode.MANUAL)
                 .directory(looperThread.getRoot())
                 .fullSynchronization()
                 .errorHandler(new SyncSession.ErrorHandler() {
