@@ -370,7 +370,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         config.sync_config->bind_session_handler = std::move(bind_handler);
         config.sync_config->error_handler = std::move(error_handler);
         config.sync_config->is_partial = (j_is_partial == JNI_TRUE);
-        switch(j_client_reset_mode) {
+        switch (j_client_reset_mode) {
             case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_RECOVER: config.sync_config->client_resync_mode = realm::ClientResyncMode::Recover; break;
             case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_DISCARD: config.sync_config->client_resync_mode = realm::ClientResyncMode::DiscardLocal; break;
             case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_MANUAL: config.sync_config->client_resync_mode = realm::ClientResyncMode::Manual; break;
