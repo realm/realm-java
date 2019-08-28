@@ -546,7 +546,8 @@ public class SyncConfiguration extends RealmConfiguration {
         private boolean isPartial = true; // Partial Synchronization is enabled by default
         private CompactOnLaunchCallback compactOnLaunch;
         private String syncUrlPrefix = null;
-        private ClientResyncMode clientResyncMode = ClientResyncMode.RECOVER_LOCAL_REALM;
+        @Nullable // null means the user hasn't explicetely set one. An appropriate default is chosen when calling build()
+        private ClientResyncMode clientResyncMode = null;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration. This SyncConfiguration
@@ -1186,6 +1187,15 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalStateException("The serverUrl contains a /~/, but the user does not have an identity." +
                         " Most likely it hasn't been authenticated yet or has been created directly from an" +
                         " access token. Use a path without /~/.");
+            }
+
+            // Set the default Client Resync Mode based on the current type of Realm.
+            // Eventually RECOVER_LOCAL_REALM should be the default for all types.
+            if (clientResyncMode == null) {
+                clientResyncMode = (isPartial) ? ClientResyncMode.MANUAL : ClientResyncMode.RECOVER_LOCAL_REALM;
+            }
+            if (isPartial && clientResyncMode != ClientResyncMode.MANUAL) {
+                throw new IllegalStateException("Query-based sync only supports manual Client Resync. It was: " + clientResyncMode);
             }
 
             if (rxFactory == null && isRxJavaAvailable()) {

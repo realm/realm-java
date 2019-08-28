@@ -524,7 +524,19 @@ public class SyncConfigurationTests {
     public void clientResyncMode() {
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
+
+        // Default mode for full Realms
         SyncConfiguration config = user.createConfiguration(url)
+                .fullSynchronization()
+                .build();
+        assertEquals(ClientResyncMode.RECOVER_LOCAL_REALM, config.getClientResyncMode());
+        
+        // Default mode for query-based Realms
+        config = user.createConfiguration(url).fullSynchronization().build();
+        assertEquals(ClientResyncMode.MANUAL, config.getClientResyncMode());
+
+        // Manually set the mode
+        config = user.createConfiguration(url)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .build();
         assertEquals(ClientResyncMode.MANUAL, config.getClientResyncMode());
@@ -540,6 +552,20 @@ public class SyncConfigurationTests {
             config.clientResyncMode(null);
             fail();
         } catch (IllegalArgumentException ignore) {
+        }
+    }
+
+    @Test
+    public void clientResyncMode_throwsIfNotManualForQueryBasedRealms() {
+        SyncUser user = createTestUser();
+        String url = "realm://objectserver.realm.io/default";
+        SyncConfiguration.Builder config = user.createConfiguration(url)
+                .clientResyncMode(ClientResyncMode.RECOVER_LOCAL_REALM);
+        try {
+            //noinspection ConstantConditions
+            config.build();
+            fail();
+        } catch (IllegalStateException ignore) {
         }
     }
 }
