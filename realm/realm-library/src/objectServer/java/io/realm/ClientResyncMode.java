@@ -33,15 +33,16 @@ public enum ClientResyncMode {
      * Realm will compare the local Realm with the Realm on the server and automatically transfer
      * any changes from the local Realm that makes sense to the Realm provided the server.
      * <p>
-     * TODO: Explain better
-     * <p>
-     * This is the default mode.
+     * This is the default mode for fully synchronized Realms. It is not yet supported by
+     * Query-based Realms.
      */
     RECOVER_LOCAL_REALM(OsRealmConfig.CLIENT_RESYNC_MODE_RECOVER),
 
     /**
      * The local Realm will be discarded and replaced with the server side Realm.
      * All local changes will be lost.
+     * <p>
+     * This mode is not yet supported by Query-based Realms.
      */
     DISCARD_LOCAL_REALM(OsRealmConfig.CLIENT_RESYNC_MODE_DISCARD),
 
@@ -50,6 +51,8 @@ public enum ClientResyncMode {
      * {@link io.realm.SyncSession.ErrorHandler#onError(SyncSession, ObjectServerError)}, triggering
      * a Client Reset. Doing this provides a handle to both the old and new Realm file, enabling
      * full control of which changes to move, if any.
+     * <p>
+     * This is the only supported mode for Query-based Realms.
      *
      * @see io.realm.SyncSession.ErrorHandler#onError(SyncSession, ObjectServerError) for more
      * information about when and why Client Reset occurs and how to deal with it.
