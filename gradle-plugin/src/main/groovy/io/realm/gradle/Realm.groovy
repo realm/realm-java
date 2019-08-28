@@ -72,7 +72,11 @@ class Realm implements Plugin<Project> {
 
         project.android.registerTransform(new RealmTransformer(project))
 
-        project.repositories.add(project.getRepositories().jcenter())
+        if (project.repositories.isEmpty()) {
+            // If no repository was defined, we add jCenter
+            project.repositories.add(project.getRepositories().jcenter())
+        }
+
         project.dependencies.add(dependencyConfigurationName, "io.realm:realm-annotations:${Version.VERSION}")
         if (usesAptPlugin) {
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
