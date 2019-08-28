@@ -532,7 +532,7 @@ public class SyncConfigurationTests {
         assertEquals(ClientResyncMode.RECOVER_LOCAL_REALM, config.getClientResyncMode());
         
         // Default mode for query-based Realms
-        config = user.createConfiguration(url).fullSynchronization().build();
+        config = user.createConfiguration(url).build();
         assertEquals(ClientResyncMode.MANUAL, config.getClientResyncMode());
 
         // Manually set the mode
