@@ -546,7 +546,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private boolean isPartial = true; // Partial Synchronization is enabled by default
         private CompactOnLaunchCallback compactOnLaunch;
         private String syncUrlPrefix = null;
-        @Nullable // null means the user hasn't explicetely set one. An appropriate default is chosen when calling build()
+        @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
         private ClientResyncMode clientResyncMode = null;
 
         /**
