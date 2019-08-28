@@ -108,6 +108,71 @@ class PluginTest {
         }
     }
 
+    @Test
+    void pluginAddsRightRepositories_noRepositorySet() {
+        project.buildscript {
+            dependencies {
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
+                classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
+            }
+        }
+
+        def manifest = project.file("src/main/AndroidManifest.xml")
+        manifest.parentFile.mkdirs()
+        manifest.text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.realm.test"></manifest>'
+
+        project.apply plugin: 'com.android.application'
+        project.apply plugin: 'realm-android'
+
+        project.android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                minSdkVersion 16
+                targetSdkVersion 27
+            }
+        }
+
+        project.evaluate()
+
+        assertTrue(project.repositories.size() == 1)
+        assertTrue(project.repositories.contains(project.getRepositories().jcenter()))
+    }
+
+    @Test
+    void pluginAddsRightRepositories_withRepositoriesSet() {
+        project.buildscript {
+            repositories {
+                google()
+            }
+            dependencies {
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
+                classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
+            }
+        }
+
+        def manifest = project.file("src/main/AndroidManifest.xml")
+        manifest.parentFile.mkdirs()
+        manifest.text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.realm.test"></manifest>'
+
+        project.apply plugin: 'com.android.application'
+        project.apply plugin: 'realm-android'
+
+        project.android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                minSdkVersion 16
+                targetSdkVersion 27
+            }
+        }
+
+        project.evaluate()
+
+        assertTrue(project.getRepositories().size() == 1)
+        assertTrue(project.repositories.contains(project.getRepositories().google()))
+    }
+
     private static boolean containsUrl(RepositoryHandler repositories, String url) {
         for (repo in repositories) {
             if (repo.properties.get('url').toString() == url) {
