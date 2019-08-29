@@ -13,6 +13,7 @@
 
 ### Internal
 * Updated to Object Store commit: 2786752758a63c8d9c77b8caee0a97d9eddb11ca.
+* Implemented direct access to sync workers on Cloud, bypassing the Sync Proxy: the binding will override the sync session's url prefix if the token refresh response for a realm contains a sync worker path field.
 
 
 ## 5.14.1(YYYY-MM-DD)
