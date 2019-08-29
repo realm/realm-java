@@ -1,3 +1,20 @@
+## 5.15.0(YYYY-MM-DD)
+
+### Enhancements
+* [ObjectServer] Added support for Client Resync which automatically will recover the local Realm in case the server is rolled back. This largely replaces the Client Reset mechanism. Can be configured using `SyncConfiguration.Builder.clientResyncMode()`. (Issue [#6487](https://github.com/realm/realm-java/issues/6487))
+
+### Fixed
+* None.
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: 2786752758a63c8d9c77b8caee0a97d9eddb11ca.
+
+
 ## 5.14.1(YYYY-MM-DD)
 
 ### Enhancements

@@ -114,6 +114,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
     private final boolean isPartial;
     @Nullable private final String syncUrlPrefix;
+    private final ClientResyncMode clientResyncMode;
 
     private SyncConfiguration(File directory,
                               String filename,
@@ -140,7 +141,8 @@ public class SyncConfiguration extends RealmConfiguration {
                               OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
                               boolean isPartial,
                               CompactOnLaunchCallback compactOnLaunch,
-                              @Nullable String syncUrlPrefix) {
+                              @Nullable String syncUrlPrefix,
+                              ClientResyncMode clientResyncMode) {
         super(directory,
                 filename,
                 canonicalPath,
@@ -170,6 +172,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.sessionStopPolicy = sessionStopPolicy;
         this.isPartial = isPartial;
         this.syncUrlPrefix = syncUrlPrefix;
+        this.clientResyncMode = clientResyncMode;
     }
 
     /**
@@ -293,13 +296,20 @@ public class SyncConfiguration extends RealmConfiguration {
 
         if (deleteRealmOnLogout != that.deleteRealmOnLogout) return false;
         if (syncClientValidateSsl != that.syncClientValidateSsl) return false;
+        if (waitForInitialData != that.waitForInitialData) return false;
+        if (initialDataTimeoutMillis != that.initialDataTimeoutMillis) return false;
+        if (isPartial != that.isPartial) return false;
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
-        if (serverCertificateAssetName != null ? !serverCertificateAssetName.equals(that.serverCertificateAssetName) : that.serverCertificateAssetName != null) return false;
-        if (serverCertificateFilePath != null ? !serverCertificateFilePath.equals(that.serverCertificateFilePath) : that.serverCertificateFilePath != null) return false;
-        if (waitForInitialData != that.waitForInitialData) return false;
-        return true;
+        if (serverCertificateAssetName != null ? !serverCertificateAssetName.equals(that.serverCertificateAssetName) : that.serverCertificateAssetName != null)
+            return false;
+        if (serverCertificateFilePath != null ? !serverCertificateFilePath.equals(that.serverCertificateFilePath) : that.serverCertificateFilePath != null)
+            return false;
+        if (sessionStopPolicy != that.sessionStopPolicy) return false;
+        if (syncUrlPrefix != null ? !syncUrlPrefix.equals(that.syncUrlPrefix) : that.syncUrlPrefix != null)
+            return false;
+        return clientResyncMode == that.clientResyncMode;
     }
 
     @Override
@@ -313,23 +323,44 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + (serverCertificateAssetName != null ? serverCertificateAssetName.hashCode() : 0);
         result = 31 * result + (serverCertificateFilePath != null ? serverCertificateFilePath.hashCode() : 0);
         result = 31 * result + (waitForInitialData ? 1 : 0);
+        result = 31 * result + (int) (initialDataTimeoutMillis ^ (initialDataTimeoutMillis >>> 32));
+        result = 31 * result + sessionStopPolicy.hashCode();
+        result = 31 * result + (isPartial ? 1 : 0);
+        result = 31 * result + (syncUrlPrefix != null ? syncUrlPrefix.hashCode() : 0);
+        result = 31 * result + clientResyncMode.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder(super.toString());
-        stringBuilder.append("\n");
-        stringBuilder.append("serverUrl: " + serverUrl);
-        stringBuilder.append("\n");
-        stringBuilder.append("user: " + user);
-        stringBuilder.append("\n");
-        stringBuilder.append("errorHandler: " + errorHandler);
-        stringBuilder.append("\n");
-        stringBuilder.append("deleteRealmOnLogout: " + deleteRealmOnLogout);
-        stringBuilder.append("\n");
-        stringBuilder.append("waitForInitialRemoteData: " + waitForInitialData);
-        return stringBuilder.toString();
+        StringBuilder sb = new StringBuilder(super.toString());
+        sb.append("\n");
+        sb.append("serverUrl: ").append(serverUrl);
+        sb.append("\n");
+        sb.append("user: ").append(user);
+        sb.append("\n");
+        sb.append("errorHandler: ").append(errorHandler);
+        sb.append("\n");
+        sb.append("deleteRealmOnLogout: ").append(deleteRealmOnLogout);
+        sb.append("\n");
+        sb.append("syncClientValidateSsl: ").append(syncClientValidateSsl);
+        sb.append("\n");
+        sb.append("serverCertificateAssetName: ").append(serverCertificateAssetName);
+        sb.append("\n");
+        sb.append("serverCertificateFilePath: ").append(serverCertificateFilePath);
+        sb.append("\n");
+        sb.append("waitForInitialData: ").append(waitForInitialData);
+        sb.append("\n");
+        sb.append("initialDataTimeoutMillis: ").append(initialDataTimeoutMillis);
+        sb.append("\n");
+        sb.append("sessionStopPolicy: ").append(sessionStopPolicy);
+        sb.append("\n");
+        sb.append("isPartial: ").append(isPartial);
+        sb.append("\n");
+        sb.append("syncUrlPrefix: ").append(syncUrlPrefix);
+        sb.append("\n");
+        sb.append("clientResyncMode: ").append(clientResyncMode);
+        return sb.toString();
     }
 
     /**
@@ -470,6 +501,13 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
+     * Returns what happens in case of a Client Resync.
+     */
+    public ClientResyncMode getClientResyncMode() {
+        return clientResyncMode;
+    }
+
+    /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */
     public static final class Builder  {
@@ -508,6 +546,8 @@ public class SyncConfiguration extends RealmConfiguration {
         private boolean isPartial = true; // Partial Synchronization is enabled by default
         private CompactOnLaunchCallback compactOnLaunch;
         private String syncUrlPrefix = null;
+        @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
+        private ClientResyncMode clientResyncMode = null;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration. This SyncConfiguration
@@ -1102,6 +1142,23 @@ public class SyncConfiguration extends RealmConfiguration {
         */
 
         /**
+         * Configure the behavior in case of a Client Resync.
+         * <p>
+         * The default mode is {@link ClientResyncMode#RECOVER_LOCAL_REALM}.
+         *
+         * @param mode what should happen when a Client Resync happens
+         * @see ClientResyncMode for more information about what a Client Resync is.
+         */
+        public Builder clientResyncMode(ClientResyncMode mode) {
+            //noinspection ConstantConditions
+            if (mode == null) {
+                throw new IllegalArgumentException("Non-null 'mode' required.");
+            }
+            clientResyncMode = mode;
+            return this;
+        }
+
+        /**
          * Creates the RealmConfiguration based on the builder parameters.
          *
          * @return the created {@link SyncConfiguration}.
@@ -1130,6 +1187,15 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalStateException("The serverUrl contains a /~/, but the user does not have an identity." +
                         " Most likely it hasn't been authenticated yet or has been created directly from an" +
                         " access token. Use a path without /~/.");
+            }
+
+            // Set the default Client Resync Mode based on the current type of Realm.
+            // Eventually RECOVER_LOCAL_REALM should be the default for all types.
+            if (clientResyncMode == null) {
+                clientResyncMode = (isPartial) ? ClientResyncMode.MANUAL : ClientResyncMode.RECOVER_LOCAL_REALM;
+            }
+            if (isPartial && clientResyncMode != ClientResyncMode.MANUAL) {
+                throw new IllegalStateException("Query-based sync only supports manual Client Resync. It was: " + clientResyncMode);
             }
 
             if (rxFactory == null && isRxJavaAvailable()) {
@@ -1225,7 +1291,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     sessionStopPolicy,
                     isPartial,
                     compactOnLaunch,
-                    syncUrlPrefix
+                    syncUrlPrefix,
+                    clientResyncMode
             );
         }
 
