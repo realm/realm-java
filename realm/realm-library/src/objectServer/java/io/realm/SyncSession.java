@@ -49,6 +49,7 @@ import io.realm.internal.network.AuthenticationServer;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectserver.Token;
+import io.realm.internal.objectserver.SyncWorker;
 import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 
@@ -879,6 +880,12 @@ public class SyncSession {
                 synchronized (SyncSession.this) {
                     if (!isClosed && !Thread.currentThread().isInterrupted() && !refreshTokenNetworkRequest.isCancelled()) {
                         RealmLog.debug("Access Token refreshed successfully, Sync URL: " + configuration.getServerUrl());
+
+                        SyncWorker syncWorker = response.getSyncWorker();
+                        if (syncWorker != null) {
+                            nativeSetUrlPrefix(configuration.getPath(), syncWorker.path());
+                        }
+
                         URI realmUrl = configuration.getServerUrl();
                         if (nativeRefreshAccessToken(configuration.getPath(), response.getAccessToken().value(), realmUrl.toString())) {
                             // replace the user old access_token
@@ -971,4 +978,5 @@ public class SyncSession {
     private static native byte nativeGetConnectionState(String localRealmPath);
     private static native void nativeStart(String localRealmPath);
     private static native void nativeStop(String localRealmPath);
+    private static native void nativeSetUrlPrefix(String localRealmPath, String urlPrefix);
 }

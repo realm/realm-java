@@ -356,3 +356,17 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStop(JNIEnv* env, jclass,
     }
     CATCH_STD()
 }
+
+JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeSetUrlPrefix(JNIEnv* env, jclass, jstring j_local_realm_path, jstring j_url_prefix)
+{
+    TR_ENTER()
+    try {
+        JStringAccessor local_realm_path(env, j_local_realm_path);
+        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+        if (session) {
+            JStringAccessor url_prefix(env, j_url_prefix);
+            session->set_url_prefix(url_prefix);
+        }
+    }
+    CATCH_STD()
+}
