@@ -72,9 +72,12 @@ class Realm implements Plugin<Project> {
 
         project.android.registerTransform(new RealmTransformer(project))
 
-        if (project.repositories.isEmpty()) {
-            // If no repository was defined, we add jCenter
-            project.repositories.add(project.getRepositories().jcenter())
+        project.afterEvaluate {
+            if (project.repositories.isEmpty()) {
+                // If no repository was defined, we add jCenter
+                // Calling this automatically adds jCenter to the list of repositories
+                project.getRepositories().jcenter()
+            }
         }
 
         project.dependencies.add(dependencyConfigurationName, "io.realm:realm-annotations:${Version.VERSION}")
