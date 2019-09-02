@@ -135,20 +135,28 @@ class PluginTest {
 
         project.evaluate()
 
+        assertTrue(project.buildscript.repositories.isEmpty())
+
         assertTrue(project.repositories.size() == 1)
-        assertTrue(project.repositories.contains(project.getRepositories().jcenter()))
+        assertTrue(project.repositories.first().url.host == 'jcenter.bintray.com')
     }
 
     @Test
     void pluginAddsRightRepositories_withRepositoriesSet() {
         project.buildscript {
             repositories {
-                google()
+                maven {
+                    url 'https://maven.google.com/'
+                }
             }
             dependencies {
                 classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             }
+        }
+
+        repositories {
+            google()
         }
 
         def manifest = project.file("src/main/AndroidManifest.xml")
@@ -169,8 +177,54 @@ class PluginTest {
 
         project.evaluate()
 
-        assertTrue(project.getRepositories().size() == 1)
-        assertTrue(project.repositories.contains(project.getRepositories().google()))
+        assertTrue(project.buildscript.repositories.size() == 1)
+        assertTrue(project.buildscript.repositories.first().url.host == 'maven.google.com')
+
+        assertTrue(project.repositories.size() == 1)
+        assertTrue(project.repositories.first().url.host == 'dl.google.com')
+    }
+
+    @Test
+    void pluginAddsRightRepositories_withRepositoriesSetAfterPluginIsApplied() {
+        project.buildscript {
+            repositories {
+                maven {
+                    url 'https://maven.google.com/'
+                }
+            }
+            dependencies {
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
+                classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
+            }
+        }
+
+        def manifest = project.file("src/main/AndroidManifest.xml")
+        manifest.parentFile.mkdirs()
+        manifest.text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.realm.test"></manifest>'
+
+        project.apply plugin: 'com.android.application'
+        project.apply plugin: 'realm-android'
+
+        repositories {
+            google()
+        }
+
+        project.android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                minSdkVersion 16
+                targetSdkVersion 27
+            }
+        }
+
+        project.evaluate()
+
+        assertTrue(project.buildscript.repositories.size() == 1)
+        assertTrue(project.buildscript.repositories.first().url.host == 'maven.google.com')
+
+        assertTrue(project.repositories.size() == 1)
+        assertTrue(project.repositories.first().url.host == 'dl.google.com')
     }
 
     private static boolean containsUrl(RepositoryHandler repositories, String url) {
