@@ -59,7 +59,6 @@ class PluginTest {
             }
             dependencies {
                 classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
-                classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             }
         }
 
@@ -111,9 +110,14 @@ class PluginTest {
     @Test
     void pluginAddsRightRepositories_noRepositorySet() {
         project.buildscript {
+            repositories {
+                maven {
+                    url 'https://maven.google.com/'
+                }
+                jcenter()
+            }
             dependencies {
                 classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
-                classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             }
         }
 
@@ -135,27 +139,26 @@ class PluginTest {
 
         project.evaluate()
 
-        assertTrue(project.buildscript.repositories.isEmpty())
-
-        assertTrue(project.repositories.size() == 1)
-        assertTrue(project.repositories.first().url.host == 'jcenter.bintray.com')
+        assertEquals(2, project.buildscript.repositories.size())
+        assertEquals(4, project.repositories.size()) // The Android plugin adds 3 different local repos
+        assertEquals('jcenter.bintray.com', project.repositories.last().url.host)
     }
 
     @Test
     void pluginAddsRightRepositories_withRepositoriesSet() {
         project.buildscript {
             repositories {
+                jcenter()
                 maven {
                     url 'https://maven.google.com/'
                 }
             }
             dependencies {
                 classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
-                classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             }
         }
 
-        repositories {
+        project.repositories {
             google()
         }
 
@@ -177,11 +180,11 @@ class PluginTest {
 
         project.evaluate()
 
-        assertTrue(project.buildscript.repositories.size() == 1)
-        assertTrue(project.buildscript.repositories.first().url.host == 'maven.google.com')
+        assertEquals(2, project.buildscript.repositories.size())
+        assertEquals('maven.google.com', project.buildscript.repositories.last().url.host)
 
-        assertTrue(project.repositories.size() == 1)
-        assertTrue(project.repositories.first().url.host == 'dl.google.com')
+        assertEquals(4, project.repositories.size())
+        assertEquals('dl.google.com', project.repositories.last().url.host)
     }
 
     @Test
@@ -191,10 +194,10 @@ class PluginTest {
                 maven {
                     url 'https://maven.google.com/'
                 }
+                jcenter()
             }
             dependencies {
                 classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
-                classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             }
         }
 
@@ -205,7 +208,7 @@ class PluginTest {
         project.apply plugin: 'com.android.application'
         project.apply plugin: 'realm-android'
 
-        repositories {
+        project.repositories {
             google()
         }
 
@@ -220,11 +223,11 @@ class PluginTest {
 
         project.evaluate()
 
-        assertTrue(project.buildscript.repositories.size() == 1)
-        assertTrue(project.buildscript.repositories.first().url.host == 'maven.google.com')
+        assertEquals(2, project.buildscript.repositories.size())
+        assertEquals('maven.google.com', project.buildscript.repositories.first().url.host)
 
-        assertTrue(project.repositories.size() == 1)
-        assertTrue(project.repositories.first().url.host == 'dl.google.com')
+        assertEquals(4, project.repositories.size())
+        assertEquals('dl.google.com', project.repositories.last().url.host)
     }
 
     private static boolean containsUrl(RepositoryHandler repositories, String url) {
