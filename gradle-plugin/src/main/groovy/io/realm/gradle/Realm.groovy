@@ -76,7 +76,8 @@ class Realm implements Plugin<Project> {
             // The Android Gradle Plugin automatically adds the local maven repository
             // found in the Android SDK, so we need to filter that out.
             if (project.repositories.findAll {
-                return (!it.url.toString().endsWith("extras/m2repository")
+                return (it != null
+                        && !it.url.toString().endsWith("extras/m2repository")
                         && !it.url.toString().endsWith("extras/android/m2repository")
                         && !it.url.toString().endsWith("extras/google/m2repository"))
             }.isEmpty()) {
