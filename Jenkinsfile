@@ -117,7 +117,7 @@ try {
                   // step needs to be after the instrumentation tests
                   stage('Gradle plugin tests') {
                     try {
-                      gradle('gradle-plugin', 'check')
+                      gradle('gradle-plugin', 'check --debug')
                     } finally {
                       storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
                     }
