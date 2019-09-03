@@ -31,6 +31,9 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Before
 import org.junit.Test
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
 import static org.junit.Assert.fail
@@ -41,12 +44,15 @@ class PluginTest {
     private String currentVersion
     private Properties projectDependencies
 
+    private Logger slf4jLogger
+
     @Before
     void setUp() {
         project = ProjectBuilder.builder().build()
         currentVersion = new File("../version.txt").text.trim()
         projectDependencies = new Properties()
         projectDependencies.load(new FileInputStream("../dependencies.list"))
+        slf4jLogger = LoggerFactory.getLogger('realm-logger')
     }
 
     @Test
@@ -140,11 +146,10 @@ class PluginTest {
         project.evaluate()
 
         assertEquals(2, project.buildscript.repositories.size())
-        try {
-            assertEquals(4, project.repositories.size()) // The Android plugin adds 3 different local repos
-        } catch (Error e) {
-            assertEquals('jcenter.bintray.com', project.repositories.get(1).url.toString()) // The Android plugin adds 3 different local repos
-        }
+        slf4jLogger.info(project.repositories.get(0).url.toString())
+        slf4jLogger.info(project.repositories.get(1).url.toString())
+        slf4jLogger.info(project.repositories.get(2).url.toString())
+        assertEquals(4, project.repositories.size()) // The Android plugin adds 3 different local repos
         assertEquals('jcenter.bintray.com', project.repositories.last().url.host)
     }
 
