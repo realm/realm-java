@@ -4,7 +4,7 @@
 * [ObjectServer] Added support for Client Resync which automatically will recover the local Realm in case the server is rolled back. This largely replaces the Client Reset mechanism. Can be configured using `SyncConfiguration.Builder.clientResyncMode()`. (Issue [#6487](https://github.com/realm/realm-java/issues/6487))
 
 ### Fixed
-* Huawei devices reporting `Permission denied` when opening a Realm file after an app upgrade or factory reset. This does not automatically fix already existing Realm files. See [this FAQ entry](XXX) for more details. (Issue [#5715](https://github.com/realm/realm-java/issues/5715))
+* Huawei devices reporting `Permission denied` when opening a Realm file after an app upgrade or factory reset. This does not automatically fix already existing Realm files. See [this FAQ entry](https://realm.io/docs/java/latest/#huawei-permission-denied) for more details. (Issue [#5715](https://github.com/realm/realm-java/issues/5715))
 
 ### Compatibility
 * Realm Object Server: 3.21.0 or later.
