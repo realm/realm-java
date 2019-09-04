@@ -140,9 +140,6 @@ class PluginTest {
         project.evaluate()
 
         assertEquals(2, project.buildscript.repositories.size())
-        System.out.println(project.repositories.get(0).url.toString())
-        System.out.println(project.repositories.get(1).url.toString())
-        System.out.println(project.repositories.get(2).url.toString())
         assertEquals(4, project.repositories.size()) // The Android plugin adds 3 different local repos
         assertEquals('jcenter.bintray.com', project.repositories.last().url.host)
     }
