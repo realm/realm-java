@@ -81,7 +81,7 @@ You may unzip the file wherever you choose.  For macOS, a suggested location is 
 
     ```
 
-* You also need a file called `source.propertie` to the `android-ndk-r10e` folder with the following content:
+* You also need a file called `source.properties` to the `android-ndk-r10e` folder with the following content:
 
     ```
     Pkg.Desc = Android NDK
