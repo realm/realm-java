@@ -40,6 +40,10 @@ configurations {
     compile.extendsFrom provided
 }
 
+test {
+    testLogging.showStandardStreams = true
+}
+
 sourceSets {
     main {
         compileClasspath += configurations.provided

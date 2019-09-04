@@ -77,8 +77,15 @@ You may unzip the file wherever you choose.  For macOS, a suggested location is 
  * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
     ```
-    ndk.dir=/Users/brian/Library/Android/android-ndk-r10e/r10e
+    ndk.dir=/Users/brian/Library/Android/android-ndk-r10e
 
+    ```
+
+* You also need a file called `source.properties` to the `android-ndk-r10e` folder with the following content:
+
+    ```
+    Pkg.Desc = Android NDK
+    Pkg.Revision = 10.0.0
     ```
 
  * Add two environment variables to your profile (presuming you installed the NDK in `~/Library/android-ndk-r10e`):

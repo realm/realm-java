@@ -73,7 +73,17 @@ class Realm implements Plugin<Project> {
         project.android.registerTransform(new RealmTransformer(project))
 
         project.afterEvaluate {
-            if (project.repositories.isEmpty()) {
+            // The Android Gradle Plugin automatically adds the local maven repository
+            // found in the Android SDK, so we need to filter that out.
+            if (project.repositories.findAll {
+                def url = it.url.toString()
+                if (url.endsWith('/')) {
+                    url = url.substring(0, url.length() - 1)
+                }
+                return (!url.endsWith("extras/m2repository")
+                        && !url.endsWith("extras/android/m2repository")
+                        && !url.endsWith("extras/google/m2repository"))
+            }.isEmpty()) {
                 // If no repository was defined, we add jCenter
                 // Calling this automatically adds jCenter to the list of repositories
                 project.getRepositories().jcenter()
