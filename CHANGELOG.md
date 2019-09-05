@@ -1,10 +1,11 @@
-## 5.15.0(YYYY-MM-DD)
+## 5.15.0(2019-09-05)
 
 ### Enhancements
-* [ObjectServer] Added support for Client Resync which automatically will recover the local Realm in case the server is rolled back. This largely replaces the Client Reset mechanism. Can be configured using `SyncConfiguration.Builder.clientResyncMode()`. (Issue [#6487](https://github.com/realm/realm-java/issues/6487))
+* [ObjectServer] Added support for Client Resync for fully synchronized Realms which automatically will recover the local Realm in case the server is rolled back. This largely replaces the Client Reset mechanism. Can be configured using `SyncConfiguration.Builder.clientResyncMode()`. (Issue [#6487](https://github.com/realm/realm-java/issues/6487))
 
 ### Fixed
 * Huawei devices reporting `Permission denied` when opening a Realm file after an app upgrade or factory reset. This does not automatically fix already existing Realm files. See [this FAQ entry](https://realm.io/docs/java/latest/#huawei-permission-denied) for more details. (Issue [#5715](https://github.com/realm/realm-java/issues/5715))
+* `Realm.copyToRealm()` and `Realm.insertOrUpdate()` crashed on model classes if `@LinkingObjects` was used to target a field with a re-defined internal name in the parent class (e.g. by using `@RealmField`). (Issue [#6581](https://github.com/realm/realm-java/issues/6581))
 
 ### Compatibility
 * Realm Object Server: 3.21.0 or later.
@@ -16,23 +17,6 @@
 * Updated to Object Store commit: 9f19d79fde248ba37cef0bd52fe64984f9d71be0.
 * Updated to Realm Sync 4.7.4.
 * Updated to Realm Core 5.23.2.
-
-
-## 5.14.1(YYYY-MM-DD)
-
-### Enhancements
-* None.
-
-### Fixed
-* `Realm.copyToRealm()` and `Realm.insertOrUpdate()` crashed on model classes if `@LinkingObjects` was used to target a field with a re-defined internal name in the parent class (e.g. by using `@RealmField`). (Issue [#6581](https://github.com/realm/realm-java/issues/6581))  
-
-### Compatibility
-* Realm Object Server: 3.21.0 or later.
-* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
-* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
-
-### Internal
-* None.
 
 
 ## 5.14.0(2019-08-12)
