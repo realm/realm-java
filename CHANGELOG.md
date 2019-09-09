@@ -1,3 +1,20 @@
+## 5.15.1(2019-09-09)
+
+### Enhancements
+* None.
+
+### Fixed
+* Projects with `flatDirs` repositories defined crashed the build with `MissingPropertyException`. (Issue [#6610](https://github.com/realm/realm-java/issues/6610), since 5.15.0).
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None.
+
+
 ## 5.15.0(2019-09-05)
 
 ### Enhancements
