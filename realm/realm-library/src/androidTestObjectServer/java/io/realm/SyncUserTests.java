@@ -413,50 +413,50 @@ public class SyncUserTests {
         user.changePassword("user-id", "new-password");
     }
 
-    @Test
-    @RunTestInLooperThread(emulateMainThread = true)
-    public void getPermissionManager_isReferenceCounted() {
-        SyncUser user = createTestUser();
-        PermissionManager pm1 = user.getPermissionManager();
-        PermissionManager pm2 = user.getPermissionManager();
-        assertTrue(pm1 == pm2);
-        assertFalse(pm1.isClosed());
-        pm1.close();
-        assertFalse(pm1.isClosed());
-        pm1.close();
-        assertTrue(pm1.isClosed());
-        looperThread.testComplete();
-    }
+//    @Test
+//    @RunTestInLooperThread(emulateMainThread = true)
+//    public void getPermissionManager_isReferenceCounted() {
+//        SyncUser user = createTestUser();
+//        PermissionManager pm1 = user.getPermissionManager();
+//        PermissionManager pm2 = user.getPermissionManager();
+//        assertTrue(pm1 == pm2);
+//        assertFalse(pm1.isClosed());
+//        pm1.close();
+//        assertFalse(pm1.isClosed());
+//        pm1.close();
+//        assertTrue(pm1.isClosed());
+//        looperThread.testComplete();
+//    }
 
-    @Test
-    @RunTestInLooperThread(emulateMainThread = true)
-    public void getPermissionManger_instanceUniqueToUser() {
-        SyncUser user1 = createNamedTestUser("user1");
-        SyncUser user2 = createNamedTestUser("user2");
-        PermissionManager pm1 = user1.getPermissionManager();
-        PermissionManager pm2 = user2.getPermissionManager();
-
-        try {
-            assertFalse(pm1 == pm2);
-            assertFalse(pm1.equals(pm2));
-            looperThread.testComplete();
-        } finally {
-            pm1.close();
-            pm2.close();
-            user1.logOut();
-            user2.logOut();
-        }
-    }
-
-    @Test
-    public void getPermissionManager_throwOnNonLooperThread() {
-        SyncUser user = createTestUser();
-        try {
-            user.getPermissionManager();
-            fail();
-        } catch (IllegalStateException e) {
-        }
-    }
+//    @Test
+//    @RunTestInLooperThread(emulateMainThread = true)
+//    public void getPermissionManger_instanceUniqueToUser() {
+//        SyncUser user1 = createNamedTestUser("user1");
+//        SyncUser user2 = createNamedTestUser("user2");
+//        PermissionManager pm1 = user1.getPermissionManager();
+//        PermissionManager pm2 = user2.getPermissionManager();
+//
+//        try {
+//            assertFalse(pm1 == pm2);
+//            assertFalse(pm1.equals(pm2));
+//            looperThread.testComplete();
+//        } finally {
+//            pm1.close();
+//            pm2.close();
+//            user1.logOut();
+//            user2.logOut();
+//        }
+//    }
+//
+//    @Test
+//    public void getPermissionManager_throwOnNonLooperThread() {
+//        SyncUser user = createTestUser();
+//        try {
+//            user.getPermissionManager();
+//            fail();
+//        } catch (IllegalStateException e) {
+//        }
+//    }
 
     @Test
     public void allSessions() {

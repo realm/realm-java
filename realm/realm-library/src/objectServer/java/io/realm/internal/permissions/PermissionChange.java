@@ -35,7 +35,6 @@ import io.realm.permissions.PermissionRequest;
  *
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Controlling Permissions</a>
  */
-@RealmClass
 public class PermissionChange implements BasePermissionApi {
 
     // Base fields

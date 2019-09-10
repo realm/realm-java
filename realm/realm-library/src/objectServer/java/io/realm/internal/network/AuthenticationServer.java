@@ -18,12 +18,16 @@ package io.realm.internal.network;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
 import io.realm.SyncCredentials;
 import io.realm.SyncUser;
 import io.realm.internal.objectserver.Token;
+import io.realm.permissions.Permission;
+import io.realm.permissions.PermissionOffer;
+import io.realm.permissions.PermissionRequest;
 
 /**
  * Interface for handling communication with Realm Object Servers.
@@ -114,4 +118,48 @@ public interface AuthenticationServer {
      */
     UpdateAccountResponse confirmEmail(String confirmationToken, URL authenticationUrl);
 
+    /**
+     * FIXME
+     */
+    LookupPermissionsResponse getPermissions(Token userToken, URL baseUrl);
+
+    /**
+     * FIXME
+     */
+    ApplyPermissionsResponse applyPermissions(PermissionRequest request, Token refreshToken, URL baseUrl);
+
+    /**
+     * FIXME
+     * @param offer
+     * @param refreshToken
+     * @param baseUrl
+     * @return
+     */
+    MakePermissionsOfferResponse makeOffer(PermissionOffer offer, Token refreshToken, URL baseUrl);
+
+    /**
+     * FIXME
+     * @param offerToken
+     * @param refreshToken
+     * @param baseUrl
+     * @return
+     */
+    AcceptPermissionsOfferResponse acceptOffer(String offerToken, Token refreshToken, URL baseUrl);
+
+    /**
+     * FIXME
+     * @param id
+     * @param refreshToken
+     * @param baseUrl
+     * @return
+     */
+    InvalidatePermissionsOfferResponse invalidateOffer(String id, Token refreshToken, URL baseUrl);
+
+    /**
+     * FIXME
+     * @param refreshToken
+     * @param baseUrl
+     * @return
+     */
+    GetPermissionsOffersResponse getPermissionOffers(Token refreshToken, URL baseUrl);
 }

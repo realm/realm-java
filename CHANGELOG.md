@@ -1,3 +1,23 @@
+## 6.0.0(YYYY-MM-DD)
+
+### Breaking Changes
+* [ObjectServer] The `PermissionManager` is no longer backed by Realms but instead a REST API. This means that return values for methods have changed from `RealmResults<Permission>` to `List<Permission>`. This should only have an impact if change listeners was used to listen for changes. In these cases, you must now manually retry the request.
+
+### Enhancements
+None.
+
+### Fixed
+None.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None.
+
+
 ## 5.15.0(YYYY-MM-DD)
 
 ### Enhancements

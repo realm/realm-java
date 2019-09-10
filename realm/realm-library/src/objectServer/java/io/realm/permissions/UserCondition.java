@@ -16,18 +16,17 @@
 
 package io.realm.permissions;
 
-import io.realm.PermissionManager;
 import io.realm.SyncUser;
 import io.realm.internal.Util;
 
 
-/**
- * This class represents a condition for matching users on the Realm Object Server.
- * It is used when a request for changing existing permissions is made.
- *
- * @see PermissionRequest
- * @see io.realm.PermissionManager#applyPermissions(PermissionRequest, PermissionManager.ApplyPermissionsCallback)
- */
+///**
+// * This class represents a condition for matching users on the Realm Object Server.
+// * It is used when a request for changing existing permissions is made.
+// *
+// * @see PermissionRequest
+// * @see io.realm.PermissionManager#applyPermissions(PermissionRequest, PermissionManager.ApplyPermissionsCallback)
+// */
 public final class UserCondition {
 
     private final String key;

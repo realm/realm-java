@@ -18,64 +18,41 @@ package io.realm.permissions;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
-import java.util.UUID;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.PermissionManager;
-import io.realm.annotations.Index;
-import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.RealmClass;
-import io.realm.annotations.Required;
 import io.realm.internal.Util;
-import io.realm.internal.permissions.BasePermissionApi;
 
 
-/**
- * This class represents a permission offer for a Realm that can be given to other users.
- * When an offer is successfully created, it will be represented by an {@code offerToken} that can be sent
- * to other users. Once they accept this token, the permissions covered by this offer will take effect for that
- * user.
- * <p>
- * Permission offers can only be created by users that can manage the Realm, the offer is about.
- *
- * @see PermissionManager#makeOffer(PermissionOffer, PermissionManager.MakeOfferCallback)
- * @see PermissionManager#acceptOffer(String, PermissionManager.AcceptOfferCallback)
- * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
- * documentation.
- */
+///**
+// * This class represents a permission offer for a Realm that can be given to other users.
+// * When an offer is successfully created, it will be represented by an {@code offerToken} that can be sent
+// * to other users. Once they accept this token, the permissions covered by this offer will take effect for that
+// * user.
+// * <p>
+// * Permission offers can only be created by users that can manage the Realm, the offer is about.
+// *
+// * @see PermissionManager#makePermissionsOffer(PermissionOffer, PermissionManager.MakeOfferCallback)
+// * @see PermissionManager#acceptOffer(String, PermissionManager.AcceptOfferCallback)
+// * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
+// * documentation.
+// */
 
-@RealmClass
-public class PermissionOffer implements BasePermissionApi {
+public class PermissionOffer {
 
-    // Base fields
-    @PrimaryKey
-    @Required
-    private String id = UUID.randomUUID().toString();
-    @Required
+    @Nonnull
     private Date createdAt = new Date();
-    @Required
-    private Date updatedAt = new Date();
-    private Integer statusCode; // nil=not processed, 0=success, >0=error
-    private String statusMessage;
 
     // Offer fields
-    @Index
+    private String userId;
     private String token;
-    @Required
+    @Nonnull
     private String realmUrl;
-    private boolean mayRead;
-    private boolean mayWrite;
-    private boolean mayManage;
+    @Nonnull
+    private AccessLevel accessLevel;
     private Date expiresAt;
-
-    /**
-     * Constructor required by Realm. Should not be used.
-     */
-    public PermissionOffer() {
-        // No args constructor required by Realm
-    }
 
     /**
      * Creates a request for an permission offer that last until it is manually revoked.
@@ -83,7 +60,7 @@ public class PermissionOffer implements BasePermissionApi {
      * @param url specific url to Realm effected this offer encompasses all Realms manged by the user making the offer.
      * @param accessLevel the {@link AccessLevel} granted to the user accepting the offer.
      *
-     * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
+     * @see Sync#revokeOffer(String, PermissionManager.RevokeOfferCallback)
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public PermissionOffer(String url, AccessLevel accessLevel) {
@@ -105,12 +82,15 @@ public class PermissionOffer implements BasePermissionApi {
     public PermissionOffer(String url, AccessLevel accessLevel, @Nullable Date expiresAt) {
         validateUrl(url);
         validateAccessLevel(accessLevel);
-        this.mayRead = accessLevel.mayRead();
-        this.mayWrite = accessLevel.mayWrite();
-        this.mayManage = accessLevel.mayManage();
+        this.accessLevel = accessLevel;
         this.realmUrl = url;
         //noinspection ConstantConditions
         this.expiresAt = (expiresAt != null) ? (Date) expiresAt.clone() : null;
+    }
+
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    public PermissionOffer(String path, AccessLevel accessLevel, Date expiresAt, Date createdAt, String userId, String token) {
+
     }
 
     private void validateUrl(String url) {
@@ -133,59 +113,13 @@ public class PermissionOffer implements BasePermissionApi {
     }
 
     /**
-     * Returns the id uniquely identifying this offer.
-     *
-     * @return the id uniquely identifying this offer.
-     */
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    /**
      * Returns the timestamp when this offer was created.
      *
      * @return the timstamp when this offer was created.
      */
-    @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getCreatedAt() {
         return createdAt;
-    }
-
-    /**
-     * Returns the timestamp this offer was last updated.
-     *
-     * @return the timestamp when this offer was last updated.
-     */
-    @Override
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-
-    /**
-     * Returns the server status code for this change.
-     *
-     * @return {@code null} if not yet processed. {@code 0} if successful, {@code >0} if an error happened.
-     * See {@link #getStatusMessage()}.
-     */
-    @Override
-    @Nullable
-    public Integer getStatusCode() {
-        return statusCode;
-    }
-
-    /**
-     * Returns the servers status message, if an error occurred. Otherwise it will return {@code null}.
-     *
-     * @return The servers status message in case of an error, {@code null} otherwise.
-     */
-    @Override
-    @Nullable
-    public String getStatusMessage() {
-        return statusMessage;
     }
 
     /**
@@ -223,7 +157,7 @@ public class PermissionOffer implements BasePermissionApi {
      * @return {@code true} if the user accepting this offer is granted read permission, {@code false} if not.
      */
     public boolean mayRead() {
-        return mayRead;
+        return accessLevel.mayRead();
     }
 
     /**
@@ -232,7 +166,7 @@ public class PermissionOffer implements BasePermissionApi {
      * @return {@code true} if the user accepting this offer is granted write permission, {@code false} if not.
      */
     public boolean mayWrite() {
-        return mayWrite;
+        return accessLevel.mayWrite();
     }
 
     /**
@@ -242,7 +176,15 @@ public class PermissionOffer implements BasePermissionApi {
      * @return {@code true} if the user accepting this offer is granted mange permission, {@code false} if not.
      */
     public boolean mayManage() {
-        return mayManage;
+        return accessLevel.mayManage();
+    }
+
+    /**
+     * FIXME
+     * @return
+     */
+    public AccessLevel getAccessLevel() {
+        return accessLevel;
     }
 
     /**
@@ -259,16 +201,13 @@ public class PermissionOffer implements BasePermissionApi {
     @Override
     public String toString() {
         return "PermissionOffer{" +
-                "id='" + id + '\'' +
+                "userId='" + userId + '\'' +
                 ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", statusCode=" + statusCode +
-                ", statusMessage='" + statusMessage + '\'' +
                 ", token='" + token + '\'' +
                 ", realmUrl='" + realmUrl + '\'' +
-                ", mayRead=" + mayRead +
-                ", mayWrite=" + mayWrite +
-                ", mayManage=" + mayManage +
+                ", mayRead=" + accessLevel.mayRead() +
+                ", mayWrite=" + accessLevel.mayWrite() +
+                ", mayManage=" + accessLevel.mayManage() +
                 ", expiresAt=" + expiresAt +
                 '}';
     }

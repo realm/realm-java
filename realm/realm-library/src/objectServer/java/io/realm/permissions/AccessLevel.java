@@ -16,28 +16,27 @@
 
 package io.realm.permissions;
 
-import io.realm.PermissionManager;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
 
-/**
- * Access levels which can be granted to Realm Mobile Platform users for specific synchronized Realms, using a
- * {@link PermissionRequest}.
- * <p>
- * Note that each access level guarantees all allowed actions provided by less permissive access levels.
- * Specifically, users with write access to a Realm can always read from that Realm, and users with administrative
- * access can always read or write from the Realm. This means that {@code NONE < READ < WRITE < ADMIN}.
- *
- * @see PermissionRequest
- * @see io.realm.PermissionManager#applyPermissions(PermissionRequest, PermissionManager.ApplyPermissionsCallback)
- */
+///**
+// * Access levels which can be granted to Realm Mobile Platform users for specific synchronized Realms, using a
+// * {@link PermissionRequest}.
+// * <p>
+// * Note that each access level guarantees all allowed actions provided by less permissive access levels.
+// * Specifically, users with write access to a Realm can always read from that Realm, and users with administrative
+// * access can always read or write from the Realm. This means that {@code NONE < READ < WRITE < ADMIN}.
+// *
+// * @see PermissionRequest
+// * @see io.realm.PermissionManager#applyPermissions(PermissionRequest, PermissionManager.ApplyPermissionsCallback)
+// */
 public enum AccessLevel {
 
     /**
      * The user does not have access to this Realm.
      */
-    NONE(false, false, false),
+    NONE("none", false, false, false),
 
     /**
      * User can only read the contents of the Realm.
@@ -56,27 +55,38 @@ public enum AccessLevel {
      * }
      * </pre>
      */
-    READ(true, false, false),
+    READ("read", true, false, false),
 
     /**
      * User can read and write the contents of the Realm.
      */
-    WRITE(true, true, false),
+    WRITE("write", true, true, false),
 
     /**
      * User can read, write, and administer the Realm. This includes both granting permissions as well as removing them
      * again.
      */
-    ADMIN(true, true, true);
+    ADMIN( "admin", true, true, true);
 
+    private final String key;
     private final boolean mayRead;
     private final boolean mayWrite;
     private final boolean mayManage;
 
-    AccessLevel(boolean mayRead, boolean mayWrite, boolean mayManage) {
+    AccessLevel(String serverKey, boolean mayRead, boolean mayWrite, boolean mayManage) {
+        this.key = serverKey;
         this.mayRead = mayRead;
         this.mayWrite = mayWrite;
         this.mayManage = mayManage;
+    }
+
+    public static AccessLevel fromKey(String accessLevel) {
+        for (AccessLevel level : values()) {
+            if (level.getKey().equals(accessLevel)) {
+                return level;
+            }
+        }
+        throw new IllegalArgumentException("Unknown access level: " + accessLevel);
     }
 
     /**
@@ -101,5 +111,9 @@ public enum AccessLevel {
      */
     public boolean mayManage() {
         return mayManage;
+    }
+
+    public String getKey() {
+        return key;
     }
 }

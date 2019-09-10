@@ -25,7 +25,7 @@ import io.realm.RealmModel;
 /**
  * Common methods shared between most Realm model classes used in the Permission Realm API.
  */
-public interface BasePermissionApi extends RealmModel {
+public interface BasePermissionApi {
 
     /**
      * Returns the unique id for this object.

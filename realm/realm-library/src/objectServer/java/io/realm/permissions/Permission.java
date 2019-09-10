@@ -16,39 +16,83 @@
 
 package io.realm.permissions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Date;
 
+import javax.annotation.Nonnull;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.PermissionManager;
-import io.realm.RealmObject;
 import io.realm.SyncUser;
-import io.realm.annotations.Required;
+import io.realm.internal.android.JsonUtils;
 
 
-/**
- * This class represents a given set of permissions for one user on one Realm.
- * <p>
- * Permissions can be changed by users with administrative rights using the {@link PermissionManager}.
- *
- * @see SyncUser#getPermissionManager()
- */
-public class Permission extends RealmObject {
+///**
+// * This class represents a given set of permissions for one user on one Realm.
+// * <p>
+// * Permissions can be changed by users with administrative rights using the {@link PermissionManager}.
+// *
+// * @see SyncUser#getPermissionManager()
+// */
+public class Permission {
 
-    @Required
     private String userId;
-    @Required
+    @Nonnull
     private String path;
+    private AccessLevel accessLevel;
     private boolean mayRead;
     private boolean mayWrite;
     private boolean mayManage;
-    @Required
+    @Nonnull
     private Date updatedAt;
 
+    public Permission(String userId, String path, AccessLevel accessLevel, boolean mayRead, boolean mayWrite, boolean mayManage, Date updatedAt) {
+        this.userId = userId;
+        this.path = path;
+        this.accessLevel = accessLevel;
+        this.mayRead = mayRead;
+        this.mayWrite = mayWrite;
+        this.mayManage = mayManage;
+        this.updatedAt = updatedAt;
+    }
+
     /**
-     * Required by Realm. Do not use.
+     * Converts a Json object from the Realm Object Server to a Java Permission object.
+     * @throws JSONException if the JSON was malformed.
      */
-    public Permission() {
-        // Required by Realm
+    public static Permission fromJson(JSONObject permission) throws JSONException {
+        /* Example:
+         * {"permissions":[
+         *  { "path":"/__wildcardpermissions",
+         *    "accessLevel": "read",
+         *    "realmOwnerId": null,
+         *    "updatedAt": "2019-09-06T06:51:02.532Z",
+         *    "updatedById":null,
+         *    "userId":null}
+         *    ]}
+         */
+        String userId = (permission.isNull("userId")) ? null : permission.getString("userId");
+        String path = permission.getString("path");
+        AccessLevel accessLevel;
+        switch(permission.getString("accessLevel")) {
+            case "read":
+                accessLevel = AccessLevel.READ;
+                break;
+            case "write":
+                accessLevel = AccessLevel.WRITE;
+                break;
+            case "admin":
+                accessLevel = AccessLevel.ADMIN;
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported access level: " + permission.getString("accessLevel"));
+        }
+        boolean mayRead = accessLevel.mayRead();
+        boolean mayWrite = accessLevel.mayWrite();
+        boolean mayManage = accessLevel.mayManage();
+        Date updatedAt = JsonUtils.stringToDate(permission.getString("updatedAt"));
+        return new Permission(userId, path, accessLevel, mayRead, mayWrite, mayManage, updatedAt);
     }
 
     /**
