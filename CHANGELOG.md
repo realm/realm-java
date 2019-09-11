@@ -1,7 +1,7 @@
 ## 6.0.0(YYYY-MM-DD)
 
 ### Breaking Changes
-* [ObjectServer] The `PermissionManager` is no longer backed by Realms but instead a REST API. This means that return values for methods have changed from `RealmResults<Permission>` to `List<Permission>`. This should only have an impact if change listeners was used to listen for changes. In these cases, you must now manually retry the request.
+* [ObjectServer] The `PermissionManager` is no longer backed by Realms but instead a REST API. This means that the `PermissionManager` class has been removed and all methods have been moved to `SyncUser`. Some method names have been renamed slightly and return values for methods have changed from `RealmResults<Permission>` to `List<Permission>`. This should only have an impact if change listeners was used to listen for changes. In these cases, you must now manually retry the request.
 
 ### Enhancements
 None.

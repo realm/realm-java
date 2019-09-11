@@ -236,7 +236,7 @@
 //     * live query result, that will be auto-updated like any other {@link RealmResults}.
 //     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
 //     */
-//    public RealmAsyncTask getPermissions(PermissionsCallback callback) {
+//    public RealmAsyncTask retrieveGrantedPermissions(PermissionsCallback callback) {
 //        checkIfValid();
 //        checkCallbackNotNull(callback);
 //        return addTask(new GetPermissionsAsyncTask(this, callback));
@@ -265,7 +265,7 @@
 //     * {@link io.realm.permissions.AccessLevel}s for which Realm(s).
 //     * <p>
 //     * Once the request is successfully handled, a {@link Permission} entry is created in each user's
-//     * {@link PermissionManager} and can be found using {@link PermissionManager#getPermissions(PermissionsCallback)}.
+//     * {@link PermissionManager} and can be found using {@link PermissionManager#retrieveGrantedPermissions(PermissionsCallback)}.
 //     *
 //     * @param request request object describing which permissions to grant and to what Realm(s).
 //     * @param callback callback when the request either succeeded or failed.

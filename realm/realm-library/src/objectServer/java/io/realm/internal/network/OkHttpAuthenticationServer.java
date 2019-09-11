@@ -254,7 +254,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     public LookupPermissionsResponse getPermissions(Token userToken, URL baseUrl) {
         try {
             URL url = buildActionUrl(baseUrl, ACTION_GET_PERMISSIONS);
-            RealmLog.debug("Network request (getPermissions): " + url);
+            RealmLog.debug("Network request (retrieveGrantedPermissions): " + url);
             Request request = newAuthRequest(url, userToken.value())
                     .get()
                     .build();

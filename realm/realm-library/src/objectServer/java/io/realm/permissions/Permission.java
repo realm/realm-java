@@ -21,31 +21,29 @@ import org.json.JSONObject;
 
 import java.util.Date;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.SyncUser;
 import io.realm.internal.android.JsonUtils;
 
 
-///**
-// * This class represents a given set of permissions for one user on one Realm.
-// * <p>
-// * Permissions can be changed by users with administrative rights using the {@link PermissionManager}.
-// *
-// * @see SyncUser#getPermissionManager()
-// */
-public class Permission {
+/**
+ * This class represents the given set of permissions provided to a user for the Realm identified by
+ * {@link #path}.
+ * <p>
+ * Permissions can be changed by users with administrative rights using {@link SyncUser#applyPermissions(PermissionRequest)}.
+ */
+public final class Permission {
 
-    private String userId;
-    @Nonnull
-    private String path;
-    private AccessLevel accessLevel;
-    private boolean mayRead;
-    private boolean mayWrite;
-    private boolean mayManage;
-    @Nonnull
-    private Date updatedAt;
+    @Nullable
+    private final String userId;
+    private final String path;
+    private final AccessLevel accessLevel;
+    private final boolean mayRead;
+    private final boolean mayWrite;
+    private final boolean mayManage;
+    private final Date updatedAt;
 
     public Permission(String userId, String path, AccessLevel accessLevel, boolean mayRead, boolean mayWrite, boolean mayManage, Date updatedAt) {
         this.userId = userId;
@@ -59,6 +57,7 @@ public class Permission {
 
     /**
      * Converts a Json object from the Realm Object Server to a Java Permission object.
+     *
      * @throws JSONException if the JSON was malformed.
      */
     public static Permission fromJson(JSONObject permission) throws JSONException {
@@ -74,20 +73,7 @@ public class Permission {
          */
         String userId = (permission.isNull("userId")) ? null : permission.getString("userId");
         String path = permission.getString("path");
-        AccessLevel accessLevel;
-        switch(permission.getString("accessLevel")) {
-            case "read":
-                accessLevel = AccessLevel.READ;
-                break;
-            case "write":
-                accessLevel = AccessLevel.WRITE;
-                break;
-            case "admin":
-                accessLevel = AccessLevel.ADMIN;
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported access level: " + permission.getString("accessLevel"));
-        }
+        AccessLevel accessLevel = AccessLevel.fromKey(permission.getString("accessLevel"));
         boolean mayRead = accessLevel.mayRead();
         boolean mayWrite = accessLevel.mayWrite();
         boolean mayManage = accessLevel.mayManage();
@@ -96,10 +82,10 @@ public class Permission {
     }
 
     /**
-     * Returns the {@link SyncUser#getIdentity()} of the user effected by this permission.˚
-     * <p>
+     * Returns the {@link SyncUser#getIdentity()} of the user effected by this permission or
+     * {@code null} if this permissions applies to all users.
      *
-     * @return the user effected by this permission.
+     * @return the user(s) effected by this permission.
      */
     public String getUserId() {
         return userId;
@@ -112,6 +98,15 @@ public class Permission {
      */
     public String getPath() {
         return path;
+    }
+
+    /**
+     * Returns the access level granted by this permission.
+     *
+     * @return access level granted by this permission.
+     */
+    public AccessLevel getAccessLevel() {
+        return accessLevel;
     }
 
     /**
@@ -160,10 +155,39 @@ public class Permission {
         return "Permission{" +
                 "userId='" + userId + '\'' +
                 ", path='" + path + '\'' +
+                ", accessLevel=" + accessLevel +
                 ", mayRead=" + mayRead +
                 ", mayWrite=" + mayWrite +
                 ", mayManage=" + mayManage +
                 ", updatedAt=" + updatedAt +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Permission that = (Permission) o;
+
+        if (mayRead != that.mayRead) return false;
+        if (mayWrite != that.mayWrite) return false;
+        if (mayManage != that.mayManage) return false;
+        if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
+        if (!path.equals(that.path)) return false;
+        if (accessLevel != that.accessLevel) return false;
+        return updatedAt.equals(that.updatedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = userId != null ? userId.hashCode() : 0;
+        result = 31 * result + path.hashCode();
+        result = 31 * result + accessLevel.hashCode();
+        result = 31 * result + (mayRead ? 1 : 0);
+        result = 31 * result + (mayWrite ? 1 : 0);
+        result = 31 * result + (mayManage ? 1 : 0);
+        result = 31 * result + updatedAt.hashCode();
+        return result;
     }
 }

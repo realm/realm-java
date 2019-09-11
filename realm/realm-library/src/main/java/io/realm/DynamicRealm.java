@@ -311,7 +311,7 @@ public class DynamicRealm extends BaseRealm {
 //    @Beta
 //    @ObjectServer
 //    @Override
-//    public RealmPermissions getPermissions() {
+//    public RealmPermissions retrieveGrantedPermissions() {
 //        checkIfValid();
 //        Table table = sharedRealm.getTable("class___Realm");
 //        TableQuery query = table.where();
@@ -332,7 +332,7 @@ public class DynamicRealm extends BaseRealm {
 //     */
 //    @Beta
 //    @ObjectServer
-//    public ClassPermissions getPermissions(String className) {
+//    public ClassPermissions retrieveGrantedPermissions(String className) {
 //        checkIfValid();
 //        //noinspection ConstantConditions
 //        if (Util.isEmptyString(className)) {

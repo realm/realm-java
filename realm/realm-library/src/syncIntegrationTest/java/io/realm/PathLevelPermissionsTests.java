@@ -50,7 +50,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class PermissionManagerTests extends StandardIntegrationTest {
+public class PathLevelPermissionsTests extends StandardIntegrationTest {
 
     private SyncUser user;
 
@@ -61,8 +61,8 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread()
-    public void getPermissions_returnLoadedResults() {
-        user.getPermissionsAsync(new SyncUser.Callback<List<Permission>>() {
+    public void retrieveGrantedPermissions_returnLoadedResults() {
+        user.retrieveGrantedPermissionsAsync(new SyncUser.Callback<List<Permission>>() {
             @Override
             public void onSuccess(List<Permission> permissions) {
                 assertInitialPermissions(permissions);
@@ -79,8 +79,8 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    public void getPermissions_updatedWithNewRealms() {
-        user.getPermissionsAsync(new SyncUser.Callback<List<Permission>>() {
+    public void retrieveGrantedPermissions_updatedWithNewRealms() {
+        user.retrieveGrantedPermissionsAsync(new SyncUser.Callback<List<Permission>>() {
             @Override
             public void onSuccess(List<Permission> permissions) {
                 assertInitialPermissions(permissions);
@@ -100,7 +100,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
                 }
 
                 // Wait for the permission Result to report the new Realms
-                List<Permission> permissions2 = user.getPermissions();
+                List<Permission> permissions2 = user.retrieveGrantedPermissions();
                 assertEquals(1, permissions.size());
                 assertEquals(2, permissions2.size());
                 Permission permission = permissions2.get(1);
@@ -122,7 +122,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     @RunTestInLooperThread()
     public void getPermissions_updatedWithNewRealms_stressTest() {
         final int TEST_SIZE = 10;
-        List<Permission> permissions = user.getPermissions();
+        List<Permission> permissions = user.retrieveGrantedPermissions();
         assertInitialPermissions(permissions);
 
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -136,7 +136,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
         List<Permission> perms = permissions;
         while(perms.size() < TEST_SIZE + 1) { // +1 is __wildcardpermissions
-            perms = user.getPermissions();
+            perms = user.retrieveGrantedPermissions();
         }
 
         Permission p = perms.get(TEST_SIZE);
@@ -211,7 +211,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         user2.applyPermissionsAsync(request, new SyncUser.Callback<Void>() {
             @Override
             public void onSuccess(Void ignore) {
-                List<Permission> permissions = user.getPermissions();
+                List<Permission> permissions = user.retrieveGrantedPermissions();
                 assertPermissionPresent(permissions, user, "/test", AccessLevel.WRITE);
             }
 
@@ -237,7 +237,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         PermissionRequest request = new PermissionRequest(condition, url, accessLevel);
 
         user1.applyPermissions(request);
-        List<Permission> user2Permissions = user2.getPermissions();
+        List<Permission> user2Permissions = user2.retrieveGrantedPermissions();
         assertPermissionPresent(user2Permissions, user2, user1.getIdentity() + "/test", AccessLevel.WRITE);
         looperThread.testComplete();
     }
@@ -255,7 +255,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         PermissionRequest request = new PermissionRequest(condition, url, accessLevel);
 
         user1.applyPermissions(request);
-        List<Permission> user2Permissions = user2.getPermissions();
+        List<Permission> user2Permissions = user2.retrieveGrantedPermissions();
         assertPermissionPresent(user2Permissions, null, "/" + user1.getIdentity() + "/test", AccessLevel.WRITE);
     }
 
@@ -396,7 +396,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
     public void getCreatedOffers() {
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
 
-        user.getCreatedPermissionsOffersAsync(new SyncUser.Callback<List<PermissionOffer>>() {
+        user.retrieveCreatedPermissionsOffersAsync(new SyncUser.Callback<List<PermissionOffer>>() {
             @Override
             public void onSuccess(List<PermissionOffer> permissionOffers) {
                 assertEquals(1, permissionOffers.size());
@@ -417,10 +417,10 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         // createOffer validates that the offer is actually in the __management Realm.
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
 
-        user.revokePermissionsOfferAsync(offerToken, new SyncUser.Callback<Void>() {
+        user.invalidatePermissionsOfferAsync(offerToken, new SyncUser.Callback<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                List<PermissionOffer> offers = user.getCreatedPermissionsOffers();
+                List<PermissionOffer> offers = user.retrieveCreatedPermissionsOffers();
                 assertEquals(0, offers.size());
                 looperThread.testComplete();
             }
@@ -441,7 +441,7 @@ public class PermissionManagerTests extends StandardIntegrationTest {
 
         String path = user2.acceptPermissionsOffer(offerToken);
         assertTrue(path.endsWith("test"));
-        user.revokePermissionsOffer(offerToken);
+        user.invalidatePermissionsOffer(offerToken);
         try {
             user3.acceptPermissionsOffer(offerToken);
             fail();
