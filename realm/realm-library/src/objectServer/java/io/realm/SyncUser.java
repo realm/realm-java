@@ -1358,7 +1358,7 @@ public class SyncUser {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onSuccess(result)
+                        callback.onSuccess(result);
                     }
                 });
             }
