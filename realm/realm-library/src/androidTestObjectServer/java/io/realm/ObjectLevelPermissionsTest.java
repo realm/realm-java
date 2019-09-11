@@ -330,8 +330,8 @@ public class ObjectLevelPermissionsTest {
         assertFullAccess(list.first());
 
 //        // FIXME: Dynamic RealmPermissions - Until support is enabled
-//        realmPermissions = dynamicRealm.retrieveGrantedPermissions();
-//        list = realmPermissions.retrieveGrantedPermissions();
+//        realmPermissions = dynamicRealm.getPermissions();
+//        list = realmPermissions.getPermissions();
 //        assertEquals(1, list.size());
 //        assertEquals("everyone", list.first().getRole().getName());
 //        assertFullAccess(list.first());
@@ -348,7 +348,7 @@ public class ObjectLevelPermissionsTest {
 
 // FIXME: Disabled until support is enabled
 //            try {
-//                dynamicRealm.retrieveGrantedPermissions();
+//                dynamicRealm.getPermissions();
 //                fail();
 //            } catch (IllegalStateException ignore) {
 //            }
@@ -369,7 +369,7 @@ public class ObjectLevelPermissionsTest {
 // FIXME Disabled until support is enabled
 //        dynamicRealm.close();
 //        try {
-//            dynamicRealm.retrieveGrantedPermissions();
+//            dynamicRealm.getPermissions();
 //            fail();
 //        } catch (IllegalStateException ignore) {
 //        }
@@ -386,9 +386,9 @@ public class ObjectLevelPermissionsTest {
         assertFullAccess(list.first());
 
         // FIXME: Dynamic RealmPermissions - Disabled until support is enabled
-//        classPermissions = dynamicRealm.retrieveGrantedPermissions(AllJavaTypes.CLASS_NAME);
+//        classPermissions = dynamicRealm.getPermissions(AllJavaTypes.CLASS_NAME);
 //        assertEquals("AllJavaTypes", classPermissions.getName());
-//        list = classPermissions.retrieveGrantedPermissions();
+//        list = classPermissions.getPermissions();
 //        assertEquals(1, list.size());
 //        assertEquals("everyone", list.first().getRole().getName());
 //        assertDefaultAccess(list.first());
@@ -405,7 +405,7 @@ public class ObjectLevelPermissionsTest {
 
 // FIXME: Disabled until support is enabled
 //            try {
-//                dynamicRealm.retrieveGrantedPermissions(AllJavaTypes.CLASS_NAME);
+//                dynamicRealm.getPermissions(AllJavaTypes.CLASS_NAME);
 //                fail();
 //            } catch (IllegalStateException ignore) {
 //            }
@@ -426,7 +426,7 @@ public class ObjectLevelPermissionsTest {
 // FIXME: Disabled until support is enabled
 //        dynamicRealm.close();
 //        try {
-//            dynamicRealm.retrieveGrantedPermissions(AllJavaTypes.CLASS_NAME);
+//            dynamicRealm.getPermissions(AllJavaTypes.CLASS_NAME);
 //            fail();
 //        } catch (IllegalStateException ignore) {
 //        }
