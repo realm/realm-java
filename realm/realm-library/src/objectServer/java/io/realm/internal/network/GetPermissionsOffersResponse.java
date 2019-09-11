@@ -85,14 +85,18 @@ public class GetPermissionsOffersResponse extends AuthServerResponse {
     private GetPermissionsOffersResponse(String serverResponse) {
         RealmLog.debug("GetPermissionOffers - Success: %s", serverResponse);
         try {
-            JSONObject obj = new JSONObject(serverResponse);
-            String path = obj.getString("realmPath");
-            Date expiresAt = obj.isNull("expiresAt") ? null : JsonUtils.stringToDate(obj.getString("expiresAt"));
-            AccessLevel accessLevel = AccessLevel.fromKey(obj.getString("accessLevel"));
-            Date createdAt = JsonUtils.stringToDate(obj.getString("createdAt"));
-            String userId = obj.getString("userId");
-            String token = obj.getString("token");
-            offers.add(new PermissionOffer(path, accessLevel, expiresAt, createdAt, userId, token));
+            JSONObject responseObject = new JSONObject(serverResponse);
+            JSONArray responseOffersList = responseObject.getJSONArray("offers");
+            for (int i = 0; i < responseOffersList.length(); i++) {
+                JSONObject obj = responseOffersList.getJSONObject(i);
+                String path = obj.getString("realmPath");
+                Date expiresAt = obj.isNull("expiresAt") ? null : JsonUtils.stringToDate(obj.getString("expiresAt"));
+                AccessLevel accessLevel = AccessLevel.fromKey(obj.getString("accessLevel"));
+                Date createdAt = JsonUtils.stringToDate(obj.getString("createdAt"));
+                String userId = obj.getString("userId");
+                String token = obj.getString("token");
+                offers.add(new PermissionOffer(path, accessLevel, expiresAt, createdAt, userId, token));
+            }
         } catch (JSONException e) {
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, e);
         }

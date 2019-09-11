@@ -334,7 +334,18 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
 
     @Override
     public GetPermissionsOffersResponse getPermissionOffers(Token refreshToken, URL baseUrl) {
-        throw new UnsupportedOperationException();
+        try {
+            URL url = buildActionUrl(baseUrl, ACTION_GET_PERMISSION_OFFERS);
+            RealmLog.debug("Network request (GetPermissionsOffers): " + url);
+            Request request = newAuthRequest(url, refreshToken.value())
+                    .get()
+                    .build();
+            Call call = client.newCall(request);
+            Response response = call.execute();
+            return GetPermissionsOffersResponse.from(response);
+        } catch (Exception e) {
+            return GetPermissionsOffersResponse.from(e);
+        }
     }
 
     // Builds the URL for a specific auth endpoint

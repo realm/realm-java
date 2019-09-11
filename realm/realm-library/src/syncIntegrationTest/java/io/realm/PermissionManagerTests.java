@@ -24,7 +24,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -45,7 +44,6 @@ import io.realm.permissions.UserCondition;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -403,12 +401,12 @@ public class PermissionManagerTests extends StandardIntegrationTest {
             public void onSuccess(List<PermissionOffer> permissionOffers) {
                 assertEquals(1, permissionOffers.size());
                 assertEquals(offerToken, permissionOffers.get(0).getToken());
+                looperThread.testComplete();
             }
 
             @Override
             public void onError(ObjectServerError error) {
                 fail(error.toString());
-
             }
         });
     }
@@ -433,63 +431,26 @@ public class PermissionManagerTests extends StandardIntegrationTest {
             }
         });
     }
-//
-//    @Test
-//    @RunTestInLooperThread(emulateMainThread = true)
-//    public void revokeOffer_afterOneAcceptEdit() {
-//        // createOffer validates that the offer is actually in the __management Realm.
-//        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
-//
-//        SyncUser user2 = UserFactory.createUniqueUser();
-//        SyncUser user3 = UserFactory.createUniqueUser();
-//        final PermissionManager pm1 = user.getPermissionManager();
-//        PermissionManager pm2 = user2.getPermissionManager();
-//        final PermissionManager pm3 = user3.getPermissionManager();
-//        looperThread.closeAfterTest(pm1);
-//        looperThread.closeAfterTest(pm2);
-//        looperThread.closeAfterTest(pm3);
-//
-//        pm2.acceptOffer(offerToken, new PermissionManager.AcceptOfferCallback() {
-//            @Override
-//            public void onSuccess(String realmUrl, Permission permission) {
-//                pm1.revokeOffer(offerToken, new PermissionManager.RevokeOfferCallback() {
-//                    @Override
-//                    public void onSuccess() {
-//                        pm3.acceptOffer(offerToken, new PermissionManager.AcceptOfferCallback() {
-//                            @Override
-//                            public void onSuccess(String realmUrl, Permission permission) {
-//                                fail("Offer should have been revoked");
-//                            }
-//
-//                            @Override
-//                            public void onError(ObjectServerError error) {
-//                                assertEquals(ErrorCode.INVALID_PARAMETERS, error.getErrorCode());
-//                                looperThread.testComplete();
-//                            }
-//                        });
-//                    }
-//
-//                    @Override
-//                    public void onError(ObjectServerError error) {
-//                        fail(error.toString());
-//                    }
-//                });
-//            }
-//
-//            @Override
-//            public void onError(ObjectServerError error) {
-//                fail(error.toString());
-//            }
-//        });
-//    }
-//
-//    @Test
-//    @RunTestInLooperThread(emulateMainThread = true)
-//    @Ignore("Figure out why clocks on server/emulator on CI seem to differ")
-//    public void revokeOffer_alreadyExpired() {
-//        fail("Implement this");
-//    }
-//
+
+    @Test
+    @RunTestInLooperThread
+    public void revokeOffer_afterOneAcceptEdit() {
+        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
+        SyncUser user2 = UserFactory.createUniqueUser();
+        SyncUser user3 = UserFactory.createUniqueUser();
+
+        String path = user2.acceptPermissionsOffer(offerToken);
+        assertTrue(path.endsWith("test"));
+        user.revokePermissionsOffer(offerToken);
+        try {
+            user3.acceptPermissionsOffer(offerToken);
+            fail();
+        } catch (ObjectServerError error) {
+            assertEquals(ErrorCode.EXPIRED_PERMISSION_OFFER, error.getErrorCode());
+            looperThread.testComplete();
+        }
+    }
+
     /**
      * Creates a offer for a newly created Realm.
      *
@@ -565,15 +526,4 @@ public class PermissionManagerTests extends StandardIntegrationTest {
         assertEquals(1, permissions.size());
         assertEquals("/__wildcardpermissions", permissions.get(0).getPath());
     }
-
-    private void assertInitialDefaultPermissions(RealmResults<Permission> permissions) {
-         assertEquals("Unexpected count() for __wildcardpermissions Realm: " + Arrays.toString(permissions.toArray()), 1, permissions.where().endsWith("path", "__wildcardpermissions").count());
-    }
-
-    private void assertGreaterThan(String error, int base, long count) {
-        if (count <= base) {
-            throw new AssertionError(error);
-        }
-    }
-
 }

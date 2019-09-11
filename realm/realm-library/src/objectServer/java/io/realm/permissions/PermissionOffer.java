@@ -90,7 +90,12 @@ public class PermissionOffer {
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public PermissionOffer(String path, AccessLevel accessLevel, Date expiresAt, Date createdAt, String userId, String token) {
-
+        this.realmUrl = path;
+        this.accessLevel = accessLevel;
+        this.expiresAt = expiresAt;
+        this.createdAt = createdAt;
+        this.userId = userId;
+        this.token = token;
     }
 
     private void validateUrl(String url) {
