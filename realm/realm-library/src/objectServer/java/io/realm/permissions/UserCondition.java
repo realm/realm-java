@@ -20,13 +20,13 @@ import io.realm.SyncUser;
 import io.realm.internal.Util;
 
 
-///**
-// * This class represents a condition for matching users on the Realm Object Server.
-// * It is used when a request for changing existing permissions is made.
-// *
-// * @see PermissionRequest
-// * @see io.realm.PermissionManager#applyPermissions(PermissionRequest, PermissionManager.ApplyPermissionsCallback)
-// */
+/**
+ * This class represents a condition for matching users on the Realm Object Server.
+ * It is used when a request for changing existing permissions is made.
+ *
+ * @see PermissionRequest
+ * @see SyncUser#applyPermissionsAsync(PermissionRequest, SyncUser.Callback)
+ */
 public final class UserCondition {
 
     private final String key;
@@ -65,7 +65,7 @@ public final class UserCondition {
      * The {@link AccessLevel} defined alongside this condition, will also be used as the default access level
      * for future new users that might be given access to the Realm.
      *
-     * @see PermissionManager#makeOffer(PermissionOffer, PermissionManager.MakeOfferCallback)
+     * @see SyncUser#makePermissionsOfferAsync(PermissionOffer, SyncUser.Callback)
      */
     public static UserCondition noExistingPermissions() {
         return userId("*");

@@ -23,23 +23,23 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.SyncUser;
 import io.realm.internal.Util;
 
 
-///**
-// * This class represents a permission offer for a Realm that can be given to other users.
-// * When an offer is successfully created, it will be represented by an {@code offerToken} that can be sent
-// * to other users. Once they accept this token, the permissions covered by this offer will take effect for that
-// * user.
-// * <p>
-// * Permission offers can only be created by users that can manage the Realm, the offer is about.
-// *
-// * @see PermissionManager#makePermissionsOffer(PermissionOffer, PermissionManager.MakeOfferCallback)
-// * @see PermissionManager#acceptOffer(String, PermissionManager.AcceptOfferCallback)
-// * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
-// * documentation.
-// */
-
+/**
+ * This class represents a permission offer for a Realm that can be given to other users.
+ * When an offer is successfully created, it will be represented by an {@code offerToken} that can be sent
+ * to other users. Once they accept this token, the permissions covered by this offer will take effect for that
+ * user.
+ * <p>
+ * Permission offers can only be created by users that can manage the Realm, the offer is about.
+ *
+ * @see SyncUser#makePermissionsOfferAsync(PermissionOffer, SyncUser.Callback)
+ * @see SyncUser#acceptPermissionsOfferAsync(String, SyncUser.Callback)
+ * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
+ * documentation.
+ */
 public class PermissionOffer {
 
     @Nonnull
@@ -60,7 +60,7 @@ public class PermissionOffer {
      * @param url specific url to Realm effected this offer encompasses all Realms manged by the user making the offer.
      * @param accessLevel the {@link AccessLevel} granted to the user accepting the offer.
      *
-     * @see Sync#revokeOffer(String, PermissionManager.RevokeOfferCallback)
+     * @see SyncUser#invalidatePermissionsOfferAsync(String, SyncUser.Callback)
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public PermissionOffer(String url, AccessLevel accessLevel) {
@@ -76,24 +76,21 @@ public class PermissionOffer {
      * @param expiresAt the date and time when this offer expires. If {@code null} is provided the offer never expires.
      *
      *
-     * @see PermissionManager#revokeOffer(String, PermissionManager.RevokeOfferCallback)
+     * @see SyncUser#invalidatePermissionsOfferAsync(String, SyncUser.Callback)
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public PermissionOffer(String url, AccessLevel accessLevel, @Nullable Date expiresAt) {
-        validateUrl(url);
-        validateAccessLevel(accessLevel);
-        this.accessLevel = accessLevel;
-        this.realmUrl = url;
-        //noinspection ConstantConditions
-        this.expiresAt = (expiresAt != null) ? (Date) expiresAt.clone() : null;
+        this(url, accessLevel, expiresAt, new Date(), null, null);
     }
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public PermissionOffer(String path, AccessLevel accessLevel, Date expiresAt, Date createdAt, String userId, String token) {
+    public PermissionOffer(String path, AccessLevel accessLevel, @Nullable Date expiresAt, Date createdAt, @Nullable String userId, @Nullable String token) {
+        validateUrl(path);
+        validateAccessLevel(accessLevel);
         this.realmUrl = path;
         this.accessLevel = accessLevel;
-        this.expiresAt = expiresAt;
-        this.createdAt = createdAt;
+        this.expiresAt = (expiresAt != null) ? (Date) expiresAt.clone() : null;
+        this.createdAt = (Date) createdAt.clone();
         this.userId = userId;
         this.token = token;
     }
@@ -125,16 +122,6 @@ public class PermissionOffer {
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getCreatedAt() {
         return createdAt;
-    }
-
-    /**
-     * Checks if the request was successfully handled by the Realm Object Server.
-     *
-     * @return {@code true} if the request was handled successfully. {@code false} if not. See {@link #getStatusMessage()}
-     *         for the full error message.
-     */
-    public boolean isOfferCreated() {
-        return !Util.isEmptyString(token);
     }
 
     /**
@@ -185,11 +172,21 @@ public class PermissionOffer {
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the access level granted by this offer.
+     *
+     * @return access level granted by this offer.
      */
     public AccessLevel getAccessLevel() {
         return accessLevel;
+    }
+
+    /**
+     * Checks if the offer was successfully handled by the Realm Object Server.
+     *
+     * @return {@code true} if the request has been created, {@code false} if not.
+     */
+    public boolean isOfferCreated() {
+        return !Util.isEmptyString(token);
     }
 
     /**

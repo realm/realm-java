@@ -21,6 +21,8 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Date;
 
+import javax.annotation.Nonnull;
+
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.internal.android.JsonUtils;
@@ -83,7 +85,7 @@ public class MakePermissionsOfferResponse extends AuthServerResponse {
         try {
 
             JSONObject obj = new JSONObject(serverResponse);
-            String path = obj.getString("realmPath");
+            @Nonnull String path = obj.getString("realmPath");
             Date expiresAt = obj.isNull("expiresAt") ? null : JsonUtils.stringToDate(obj.getString("expiresAt"));
             AccessLevel accessLevel = AccessLevel.fromKey(obj.getString("accessLevel"));
             Date createdAt = JsonUtils.stringToDate(obj.getString("createdAt"));

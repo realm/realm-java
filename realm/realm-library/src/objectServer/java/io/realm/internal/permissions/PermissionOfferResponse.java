@@ -54,9 +54,9 @@ public final class PermissionOfferResponse {
 
     public PermissionOfferResponse(String path, Date expiresAt, AccessLevel accessLevel, Date createdAt, String userId, String token) {
         this.realmUrl = path;
-        this.expiresAt = expiresAt;
+        this.expiresAt = (expiresAt != null) ? (Date) expiresAt.clone() : null;
         this.accessLevel = accessLevel;
-        this.createdAt = createdAt;
+        this.createdAt = (Date) createdAt.clone();
         this.userId = userId;
         this.token = token;
     }

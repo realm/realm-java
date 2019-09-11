@@ -45,14 +45,14 @@ public final class Permission {
     private final boolean mayManage;
     private final Date updatedAt;
 
-    public Permission(String userId, String path, AccessLevel accessLevel, boolean mayRead, boolean mayWrite, boolean mayManage, Date updatedAt) {
+    public Permission(@Nullable String userId, String path, AccessLevel accessLevel, boolean mayRead, boolean mayWrite, boolean mayManage, Date updatedAt) {
         this.userId = userId;
         this.path = path;
         this.accessLevel = accessLevel;
         this.mayRead = mayRead;
         this.mayWrite = mayWrite;
         this.mayManage = mayManage;
-        this.updatedAt = updatedAt;
+        this.updatedAt = (Date) updatedAt.clone();
     }
 
     /**

@@ -948,7 +948,7 @@ public class SyncUser {
      * the Realm Object Server and requires a network connection.
      *
      * @return the list of permissions granted this user.
-     *
+     * @throws ObjectServerError if an error happened while trying to retrieve the list of permissions on the Realm Object Server.
      * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
      */
     public List<Permission> retrieveGrantedPermissions() {
@@ -999,6 +999,7 @@ public class SyncUser {
      * affected user and can be found by them using {@link #retrieveGrantedPermissions()}.
      *
      * @param request request object describing which permissions to grant and to what Realm(s).
+     * @throws ObjectServerError if an error happened while trying to apply the permission changes on the Realm Object Server.
      * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
      */
     public void applyPermissions(PermissionRequest request) {
@@ -1058,6 +1059,7 @@ public class SyncUser {
      *
      * @param offer the object description the kind of permissions that should be offered to other users.
      * @return the offer token representing the offer.
+     * @throws ObjectServerError if an error happened while trying to create the permissions offer.
      * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
      * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
      * documentation.
@@ -1124,6 +1126,7 @@ public class SyncUser {
      *
      * @param offerToken token representing the permission offer.
      * @return the path to the Realm affected by the offer.
+     * @throws ObjectServerError if an error happened while trying to accept the offer.
      * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
      */
     public String acceptPermissionsOffer(String offerToken) {
@@ -1170,7 +1173,7 @@ public class SyncUser {
      * will not be affected.
      *
      * @param offerToken token that should be invalidated.
-     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
+     * @throws ObjectServerError if an error happened while trying to invalidate the offer on the Realm Object Server.
      * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
      */
     public void invalidatePermissionsOffer(String offerToken) {
@@ -1218,6 +1221,7 @@ public class SyncUser {
      * {@link PermissionOffer#getToken()}.
      *
      * @return the list of available offers.
+     * @throws ObjectServerError if an error happened while trying retrieve the list of offers from the Realm Object Server.
      * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
      */
     public List<PermissionOffer> retrieveCreatedPermissionsOffers() {
@@ -1354,7 +1358,18 @@ public class SyncUser {
      * @param <T> Type returned if the request was a success.
      */
     public interface Callback<T> {
+        /**
+         * The request was a success.
+         * @param t The object representing the successful request. See each method for details.
+         */
         void onSuccess(T t);
+
+        /**
+         * The request failed for some reason, either because there was a network error or the Realm
+         * Object Server returned an error.
+         *
+         * @param error the error that was detected.
+         */
         void onError(ObjectServerError error);
     }
 }

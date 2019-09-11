@@ -19,20 +19,18 @@ package io.realm.permissions;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-//import io.realm.PermissionManager;
+import io.realm.SyncUser;
 import io.realm.internal.Util;
 
-
-///**
-// * This class represents the intent of giving a set of permissions to some users for some Realm(s).
-// * <p>
-// * If the request is successful, a {@link io.realm.permissions.Permission} entry will be added to each affected users
-// * {@link PermissionManager}, where it can be fetched using
-// * {@link PermissionManager#retrieveGrantedPermissions(PermissionManager.PermissionsCallback)}
-// *
-// * @see PermissionManager#applyPermissions(PermissionRequest, PermissionManager.ApplyPermissionsCallback)
-// * @see PermissionManager#retrieveGrantedPermissions(PermissionManager.PermissionsCallback)
-// */
+/**
+ * This class represents the intent of giving a set of permissions to some users for some Realm(s).
+ * <p>
+ * If the request is successful, a {@link io.realm.permissions.Permission} entry will be added to each affected users,
+ * where it can be fetched using {@link SyncUser#retrieveGrantedPermissionsAsync(SyncUser.Callback)}
+ *
+ * @see SyncUser#applyPermissionsAsync(PermissionRequest, SyncUser.Callback)
+ * @see SyncUser#retrieveGrantedPermissionsAsync(SyncUser.Callback)
+ */
 public final class PermissionRequest {
 
     private final AccessLevel accessLevel;
