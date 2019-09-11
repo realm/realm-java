@@ -187,6 +187,54 @@ class PluginTest {
         assertEquals('dl.google.com', project.repositories.last().url.host)
     }
 
+    // Test for https://github.com/realm/realm-java/issues/6610
+    @Test
+    void pluginAddsRightRepositories_withFlatDirs() {
+        project.buildscript {
+            repositories {
+                jcenter()
+                maven {
+                    url 'https://maven.google.com/'
+                }
+            }
+            dependencies {
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
+            }
+        }
+
+        project.repositories {
+            flatDir {
+                dirs 'libs'
+            }
+            google()
+        }
+
+        def manifest = project.file("src/main/AndroidManifest.xml")
+        manifest.parentFile.mkdirs()
+        manifest.text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.realm.test"></manifest>'
+
+        project.apply plugin: 'com.android.application'
+        project.apply plugin: 'realm-android'
+
+        project.android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                minSdkVersion 16
+                targetSdkVersion 27
+            }
+        }
+
+        project.evaluate()
+
+        assertEquals(2, project.buildscript.repositories.size())
+        assertEquals('maven.google.com', project.buildscript.repositories.last().url.host)
+
+        assertEquals(5, project.repositories.size())
+        assertEquals('dl.google.com', project.repositories.last().url.host)
+    }
+
+
     @Test
     void pluginAddsRightRepositories_withRepositoriesSetAfterPluginIsApplied() {
         project.buildscript {
