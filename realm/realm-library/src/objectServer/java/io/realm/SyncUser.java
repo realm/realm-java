@@ -1321,13 +1321,16 @@ public class SyncUser {
 
         // Start the request
         public RealmAsyncTask start() {
-            Future<?> authenticateRequest = networkPoolExecutor.submit(() -> {
-                try {
-                    postSuccess(Request.this.run());
-                } catch (ObjectServerError e) {
-                    postError(e);
-                } catch (Throwable e) {
-                    postError(new ObjectServerError(ErrorCode.UNKNOWN, "Unexpected error", e));
+            Future<?> authenticateRequest = networkPoolExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        postSuccess(Request.this.run());
+                    } catch (ObjectServerError e) {
+                        postError(e);
+                    } catch (Throwable e) {
+                        postError(new ObjectServerError(ErrorCode.UNKNOWN, "Unexpected error", e));
+                    }
                 }
             });
             return new RealmAsyncTaskImpl(authenticateRequest, networkPoolExecutor);
@@ -1336,7 +1339,12 @@ public class SyncUser {
         private void postError(final ObjectServerError error) {
             boolean errorHandled = false;
             if (callback != null) {
-                Runnable action = () -> callback.onError(error);
+                Runnable action = new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onError(error);
+                    }
+                };
                 errorHandled = handler.post(action);
             }
 
@@ -1347,7 +1355,12 @@ public class SyncUser {
 
         private void postSuccess(final T result) {
             if (callback != null) {
-                handler.post(() -> callback.onSuccess(result));
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onSuccess(result)
+                    }
+                });
             }
         }
     }
