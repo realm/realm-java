@@ -257,6 +257,10 @@ public class PathLevelPermissionsTests extends StandardIntegrationTest {
         user1.applyPermissions(request);
         List<Permission> user2Permissions = user2.retrieveGrantedPermissions();
         assertPermissionPresent(user2Permissions, null, "/" + user1.getIdentity() + "/test", AccessLevel.WRITE);
+
+        // Remove wildcard permission to prevent them from interfering with other tests
+        user1.applyPermissions(new PermissionRequest(UserCondition.noExistingPermissions(), url, AccessLevel.NONE));
+
     }
 
     @Test
@@ -333,32 +337,6 @@ public class PathLevelPermissionsTests extends StandardIntegrationTest {
             @Override
             public void onError(ObjectServerError error) {
                 assertEquals(ErrorCode.INVALID_PARAMETERS, error.getErrorCode());
-                looperThread.testComplete();
-            }
-        });
-    }
-
-    @Test
-    @RunTestInLooperThread(emulateMainThread = true)
-    @Ignore("The offer is randomly accepted mostly on docker-02 SHIELD K1")
-    public void acceptOffer_expiredThrows() {
-        // Trying to guess how long CI is to process this. The offer cannot be created if it
-        // already expired.
-        long delayMillis = TimeUnit.SECONDS.toMillis(10);
-        Date expiresAt = new Date(new Date().getTime() + delayMillis);
-        final String offerToken = createOffer(user, "test", AccessLevel.WRITE, expiresAt);
-        SystemClock.sleep(delayMillis); // Make sure that the offer expires.
-        final SyncUser user2 = UserFactory.createUniqueUser();
-
-        user2.acceptPermissionsOfferAsync(offerToken, new SyncUser.Callback<String>() {
-            @Override
-            public void onSuccess(String realmPath) {
-                fail();
-            }
-
-            @Override
-            public void onError(ObjectServerError error) {
-                assertEquals(ErrorCode.EXPIRED_PERMISSION_OFFER, error.getErrorCode());
                 looperThread.testComplete();
             }
         });

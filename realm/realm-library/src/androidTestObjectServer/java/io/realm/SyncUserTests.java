@@ -22,7 +22,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,7 +53,6 @@ import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
-import static io.realm.SyncTestUtils.createNamedTestUser;
 import static io.realm.SyncTestUtils.createTestAdminUser;
 import static io.realm.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
@@ -412,51 +410,6 @@ public class SyncUserTests {
         thrown.expect(IllegalStateException.class);
         user.changePassword("user-id", "new-password");
     }
-
-//    @Test
-//    @RunTestInLooperThread(emulateMainThread = true)
-//    public void getPermissionManager_isReferenceCounted() {
-//        SyncUser user = createTestUser();
-//        PermissionManager pm1 = user.getPermissionManager();
-//        PermissionManager pm2 = user.getPermissionManager();
-//        assertTrue(pm1 == pm2);
-//        assertFalse(pm1.isClosed());
-//        pm1.close();
-//        assertFalse(pm1.isClosed());
-//        pm1.close();
-//        assertTrue(pm1.isClosed());
-//        looperThread.testComplete();
-//    }
-
-//    @Test
-//    @RunTestInLooperThread(emulateMainThread = true)
-//    public void getPermissionManger_instanceUniqueToUser() {
-//        SyncUser user1 = createNamedTestUser("user1");
-//        SyncUser user2 = createNamedTestUser("user2");
-//        PermissionManager pm1 = user1.getPermissionManager();
-//        PermissionManager pm2 = user2.getPermissionManager();
-//
-//        try {
-//            assertFalse(pm1 == pm2);
-//            assertFalse(pm1.equals(pm2));
-//            looperThread.testComplete();
-//        } finally {
-//            pm1.close();
-//            pm2.close();
-//            user1.logOut();
-//            user2.logOut();
-//        }
-//    }
-//
-//    @Test
-//    public void getPermissionManager_throwOnNonLooperThread() {
-//        SyncUser user = createTestUser();
-//        try {
-//            user.getPermissionManager();
-//            fail();
-//        } catch (IllegalStateException e) {
-//        }
-//    }
 
     @Test
     public void allSessions() {
