@@ -1047,7 +1047,7 @@ public class SyncUser {
     }
 
     /**
-     * Makes a permission offer to users. The offer is represented by an offer token and the permission changes
+     * Makes a permissions offer to users. The offer is represented by an offer token and the permission changes
      * described in the {@link PermissionOffer} do not take effect until the offer has been accepted by a user
      * calling {@link #acceptPermissionsOfferAsync(String, Callback)}.
      * <p>
