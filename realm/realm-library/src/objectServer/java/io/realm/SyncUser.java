@@ -1221,7 +1221,7 @@ public class SyncUser {
      * {@link PermissionOffer#getToken()}.
      *
      * @return the list of available offers.
-     * @throws ObjectServerError if an error happened while trying retrieve the list of offers from the Realm Object Server.
+     * @throws ObjectServerError if an error occured while trying retrieve the list of offers from the Realm Object Server.
      * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
      */
     public List<PermissionOffer> retrieveCreatedPermissionsOffers() {

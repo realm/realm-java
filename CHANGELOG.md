@@ -1,7 +1,7 @@
 ## 6.0.0(YYYY-MM-DD)
 
 ### Breaking Changes
-* [ObjectServer] The `PermissionManager` is no longer backed by Realms but instead a REST API. This means that the `PermissionManager` class has been removed and all methods have been moved to `SyncUser`. Some method names have been renamed slightly and return values for methods have changed from `RealmResults<Permission>` to `List<Permission>`. This should only have an impact if change listeners was used to listen for changes. In these cases, you must now manually retry the request.
+* [ObjectServer] The `PermissionManager` is no longer backed by Realms but instead a REST API. This means that the `PermissionManager` class has been removed and all methods have been moved to `SyncUser`. Some method names have been renamed slightly and return values for methods have changed from `RealmResults<Permission>` to `List<Permission>`. This should only have an impact if change listeners were used to listen for changes. In these cases, you must now manually retry the request.
 
 ### Enhancements
 None.
@@ -12,7 +12,7 @@ None.
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
 * File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
-* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
 
 ### Internal
 * [ObjectServer] The OKHttp client will now follow redirects from the Realm Object Server.
