@@ -40,19 +40,14 @@ import io.realm.internal.Util;
  * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
  * documentation.
  */
-public class PermissionOffer {
+public final class PermissionOffer {
 
-    @Nonnull
-    private Date createdAt = new Date();
-
-    // Offer fields
-    private String userId;
-    private String token;
-    @Nonnull
-    private String realmUrl;
-    @Nonnull
-    private AccessLevel accessLevel;
-    private Date expiresAt;
+    @Nonnull private final Date createdAt;
+    private final String userId;
+    private final String token;
+    @Nonnull private final String realmUrl;
+    @Nonnull private final AccessLevel accessLevel;
+    private final Date expiresAt;
 
     /**
      * Creates a request for an permission offer that last until it is manually revoked.

@@ -69,7 +69,7 @@ public enum AccessLevel {
      */
     ADMIN( "admin", true, true, true);
 
-    private final String key;
+    private final String key; // JSON description used by the Realm Object Server
     private final boolean mayRead;
     private final boolean mayWrite;
     private final boolean mayManage;

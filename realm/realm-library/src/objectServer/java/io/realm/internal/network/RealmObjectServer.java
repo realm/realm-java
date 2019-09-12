@@ -35,7 +35,7 @@ import io.realm.permissions.PermissionRequest;
  * Note, no implementation of this class is responsible for handling retries or error handling. It is
  * only responsible for executing a given network request.
  */
-public interface AuthenticationServer {
+public interface RealmObjectServer {
 
     /**
      * Overrides the default header name used to send Realm Object Server credentials.
@@ -119,47 +119,32 @@ public interface AuthenticationServer {
     UpdateAccountResponse confirmEmail(String confirmationToken, URL authenticationUrl);
 
     /**
-     * FIXME
+     * Retrieves a list of all permissions for the given user.
      */
     LookupPermissionsResponse getPermissions(Token userToken, URL baseUrl);
 
     /**
-     * FIXME
+     * Updates a given set of permissions for a single Realm
      */
     ApplyPermissionsResponse applyPermissions(PermissionRequest request, Token refreshToken, URL baseUrl);
 
     /**
-     * FIXME
-     * @param offer
-     * @param refreshToken
-     * @param baseUrl
-     * @return
+     * Creates an permissions offer for a Realm.
      */
     MakePermissionsOfferResponse makeOffer(PermissionOffer offer, Token refreshToken, URL baseUrl);
 
     /**
-     * FIXME
-     * @param offerToken
-     * @param refreshToken
-     * @param baseUrl
-     * @return
+     * Accept a given permissions offer.
      */
     AcceptPermissionsOfferResponse acceptOffer(String offerToken, Token refreshToken, URL baseUrl);
 
     /**
-     * FIXME
-     * @param id
-     * @param refreshToken
-     * @param baseUrl
-     * @return
+     * Invalidates an already created permissions offer.
      */
     InvalidatePermissionsOfferResponse invalidateOffer(String id, Token refreshToken, URL baseUrl);
 
     /**
-     * FIXME
-     * @param refreshToken
-     * @param baseUrl
-     * @return
+     * Retrieves a list of all permissions offers that has been created.
      */
     GetPermissionsOffersResponse getPermissionOffers(Token refreshToken, URL baseUrl);
 }

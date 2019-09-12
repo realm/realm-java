@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2019 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,15 @@
  */
 package io.realm.internal.network;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.log.RealmLog;
-import io.realm.permissions.Permission;
 import okhttp3.Response;
 
 /**
- * Class wrapping the response from `POST /auth/permissions/apply`
+ * Class wrapping the response from `POST permissions/apply`
  */
 public class ApplyPermissionsResponse extends AuthServerResponse {
 

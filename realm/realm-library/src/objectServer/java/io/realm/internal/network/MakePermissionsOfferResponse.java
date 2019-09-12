@@ -32,7 +32,7 @@ import io.realm.permissions.AccessLevel;
 import okhttp3.Response;
 
 /**
- * Class wrapping the response from `GET /auth/permissions`
+ * Class wrapping the response from `POST permissions/offers`
  */
 public class MakePermissionsOfferResponse extends AuthServerResponse {
 
@@ -75,15 +75,14 @@ public class MakePermissionsOfferResponse extends AuthServerResponse {
     }
 
     private MakePermissionsOfferResponse(ObjectServerError error) {
-        RealmLog.debug("MakeOffer - Error: %s", error);
+        RealmLog.debug("MakePermissionsOffer - Error: %s", error);
         setError(error);
         this.error = error;
     }
 
     private MakePermissionsOfferResponse(String serverResponse) {
-        RealmLog.debug("MakeOffer - Success: %s", serverResponse);
+        RealmLog.debug("MakePermissionsOffer - Success: %s", serverResponse);
         try {
-
             JSONObject obj = new JSONObject(serverResponse);
             @Nonnull String path = obj.getString("realmPath");
             Date expiresAt = obj.isNull("expiresAt") ? null : JsonUtils.stringToDate(obj.getString("expiresAt"));

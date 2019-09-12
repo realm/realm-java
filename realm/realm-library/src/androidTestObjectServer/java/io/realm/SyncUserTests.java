@@ -45,7 +45,7 @@ import java.util.UUID;
 import io.realm.entities.AllTypesModelModule;
 import io.realm.entities.StringOnly;
 import io.realm.internal.network.AuthenticateResponse;
-import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.StringOnlyModule;
@@ -174,8 +174,8 @@ public class SyncUserTests {
 
     @Test
     public void currentUser_throwsIfMultipleUsersLoggedIn() {
-        AuthenticationServer originalAuthServer = SyncManager.getAuthServer();
-        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        RealmObjectServer originalAuthServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = Mockito.mock(RealmObjectServer.class);
         SyncManager.setAuthServerImpl(authServer);
 
         try {
@@ -267,7 +267,7 @@ public class SyncUserTests {
     @Ignore("This test fails because of wrong JSON string.")
     @Test
     public void currentUser_returnsUserAfterLogin() {
-        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        RealmObjectServer authServer = Mockito.mock(RealmObjectServer.class);
         when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenReturn(SyncTestUtils.createLoginResponse(Long.MAX_VALUE));
 
         SyncUser user = SyncUser.logIn(SyncCredentials.facebook("foo"), "http://bar.com/auth");
@@ -284,9 +284,9 @@ public class SyncUserTests {
     // Test that a login with an access token logs the user in directly without touching the network
     @Test
     public void login_withAccessToken() {
-        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        RealmObjectServer authServer = Mockito.mock(RealmObjectServer.class);
         when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenThrow(new AssertionError("Server contacted."));
-        AuthenticationServer originalServer = SyncManager.getAuthServer();
+        RealmObjectServer originalServer = SyncManager.getAuthServer();
         SyncManager.setAuthServerImpl(authServer);
         try {
             SyncCredentials credentials = SyncCredentials.accessToken("foo", "bar");
@@ -300,8 +300,8 @@ public class SyncUserTests {
     // Checks that `/auth` is correctly added to any URL without a path
     @Test
     public void login_appendAuthSegment() {
-        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
-        AuthenticationServer originalServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = Mockito.mock(RealmObjectServer.class);
+        RealmObjectServer originalServer = SyncManager.getAuthServer();
         SyncManager.setAuthServerImpl(authServer);
         String[][] urls = {
                 {"http://ros.realm.io", "http://ros.realm.io/auth"},

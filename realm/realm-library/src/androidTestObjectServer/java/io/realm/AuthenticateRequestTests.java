@@ -16,7 +16,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import io.realm.internal.network.AuthenticateRequest;
-import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.objectserver.Token;
 
 import static org.junit.Assert.assertEquals;
@@ -71,8 +71,8 @@ public class AuthenticateRequestTests {
 
     @Test
     public void errorsNotWrapped() {
-        AuthenticationServer originalAuthServer = SyncManager.getAuthServer();
-        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        RealmObjectServer originalAuthServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = Mockito.mock(RealmObjectServer.class);
         when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenReturn(SyncTestUtils.createErrorResponse(ErrorCode.ACCESS_DENIED));
         SyncManager.setAuthServerImpl(authServer);
 

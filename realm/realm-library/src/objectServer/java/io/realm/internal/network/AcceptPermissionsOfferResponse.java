@@ -26,8 +26,7 @@ import io.realm.log.RealmLog;
 import okhttp3.Response;
 
 /**
- * FIXME
- * Class wrapping the response from `GET /auth/permissions`
+ * Class wrapping the response from `POST  permissions/offers/:token:/accept`
  */
 public class AcceptPermissionsOfferResponse extends AuthServerResponse {
 

@@ -34,7 +34,7 @@ import io.realm.permissions.PermissionOffer;
 import okhttp3.Response;
 
 /**
- * Class wrapping the response from `GET /auth/permissions`
+ * Class wrapping the response from `GET permissions/offers`
  */
 public class GetPermissionsOffersResponse extends AuthServerResponse {
 

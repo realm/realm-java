@@ -343,7 +343,7 @@ public class PathLevelPermissionsTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread(emulateMainThread = true)
+    @RunTestInLooperThread
     public void acceptOffer_multipleUsers() {
         final String offerToken = createOffer(user, "test", AccessLevel.WRITE, null);
         final SyncUser user2 = UserFactory.createUniqueUser();

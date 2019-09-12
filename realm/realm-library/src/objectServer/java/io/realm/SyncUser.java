@@ -42,7 +42,7 @@ import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AcceptPermissionsOfferResponse;
 import io.realm.internal.network.ApplyPermissionsResponse;
 import io.realm.internal.network.AuthenticateResponse;
-import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.network.ChangePasswordResponse;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.GetPermissionsOffersResponse;
@@ -168,7 +168,7 @@ public class SyncUser {
                 boolean isAdmin = (Boolean) credentials.getUserInfo().get("_isAdmin");
                 result = AuthenticateResponse.createValidResponseWithUser(userIdentifier, token, isAdmin);
             } else {
-                final AuthenticationServer server = SyncManager.getAuthServer();
+                final RealmObjectServer server = SyncManager.getAuthServer();
                 result = server.loginUser(credentials, authUrl);
             }
             if (result.isValid()) {
@@ -351,7 +351,7 @@ public class SyncUser {
             realms.clear();
 
             // Finally revoke server token. The local user is logged out in any case.
-            final AuthenticationServer server = SyncManager.getAuthServer();
+            final RealmObjectServer server = SyncManager.getAuthServer();
             // don't reference directly the refreshToken inside the revoke request
             // as it may revoke the newly acquired refresh_token
             final Token refreshTokenToBeRevoked = refreshToken;
@@ -392,7 +392,7 @@ public class SyncUser {
         if (newPassword == null) {
             throw new IllegalArgumentException("Not-null 'newPassword' required.");
         }
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         ChangePasswordResponse response = authServer.changePassword(refreshToken, newPassword, getAuthenticationUrl());
         if (!response.isValid()) {
             throw response.getError();
@@ -430,7 +430,7 @@ public class SyncUser {
                 throw new IllegalStateException("User need to be admin in order to change another user's password.");
             }
 
-            AuthenticationServer authServer = SyncManager.getAuthServer();
+            RealmObjectServer authServer = SyncManager.getAuthServer();
             ChangePasswordResponse response = authServer.changePassword(refreshToken, userId, newPassword, getAuthenticationUrl());
             if (!response.isValid()) {
                 throw response.getError();
@@ -515,7 +515,7 @@ public class SyncUser {
             throw new IllegalArgumentException("Not-null 'email' required.");
         }
         URL authUrl = getUrl(authenticationUrl);
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         UpdateAccountResponse response = authServer.requestPasswordReset(email, authUrl);
         if (!response.isValid()) {
             throw response.getError();
@@ -580,7 +580,7 @@ public class SyncUser {
             throw new IllegalArgumentException("Not-null 'newPassword' required.");
         }
         URL authUrl = getUrl(authenticationUrl);
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         UpdateAccountResponse response = authServer.completePasswordReset(resetToken, newPassword, authUrl);
         if (!response.isValid()) {
             throw response.getError();
@@ -645,7 +645,7 @@ public class SyncUser {
             throw new IllegalArgumentException("Not-null 'email' required.");
         }
         URL authUrl = getUrl(authenticationUrl);
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         UpdateAccountResponse response = authServer.requestEmailConfirmation(email, authUrl);
         if (!response.isValid()) {
             throw response.getError();
@@ -706,7 +706,7 @@ public class SyncUser {
             throw new IllegalArgumentException("Not-null 'confirmationToken' required.");
         }
         URL authUrl = getUrl(authenticationUrl);
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         UpdateAccountResponse response = authServer.confirmEmail(confirmationToken, authUrl);
         if (!response.isValid()) {
             throw response.getError();
@@ -777,7 +777,7 @@ public class SyncUser {
             throw new IllegalArgumentException("SyncUser needs to be admin in order to lookup other users ID.");
         }
 
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         LookupUserIdResponse response = authServer.retrieveUser(refreshToken, provider, providerUserIdentity, getAuthenticationUrl());
         if (!response.isValid()) {
             if (response.getError().getErrorCode() == ErrorCode.UNKNOWN_ACCOUNT) {
@@ -954,7 +954,7 @@ public class SyncUser {
     public List<Permission> retrieveGrantedPermissions() {
         ObjectServerError error;
         try {
-            final AuthenticationServer server = SyncManager.getAuthServer();
+            final RealmObjectServer server = SyncManager.getAuthServer();
             LookupPermissionsResponse result = server.getPermissions(refreshToken, baseUrl);
             if (result.isValid()) {
                 return result.getPermissions();
@@ -1005,7 +1005,7 @@ public class SyncUser {
     public void applyPermissions(PermissionRequest request) {
         ObjectServerError error;
         try {
-            final AuthenticationServer server = SyncManager.getAuthServer();
+            final RealmObjectServer server = SyncManager.getAuthServer();
             ApplyPermissionsResponse result = server.applyPermissions(request, refreshToken, baseUrl);
             if (!result.isValid()) {
                 error = result.getError();
@@ -1069,7 +1069,7 @@ public class SyncUser {
     public String makePermissionsOffer(PermissionOffer offer) {
         ObjectServerError error;
         try {
-            final AuthenticationServer server = SyncManager.getAuthServer();
+            final RealmObjectServer server = SyncManager.getAuthServer();
             MakePermissionsOfferResponse result = server.makeOffer(offer, refreshToken, baseUrl);
             if (!result.isValid()) {
                 error = result.getError();
@@ -1135,7 +1135,7 @@ public class SyncUser {
         }
         ObjectServerError error;
         try {
-            final AuthenticationServer server = SyncManager.getAuthServer();
+            final RealmObjectServer server = SyncManager.getAuthServer();
             AcceptPermissionsOfferResponse result = server.acceptOffer(offerToken, refreshToken, baseUrl);
             if (!result.isValid()) {
                 error = result.getError();
@@ -1182,7 +1182,7 @@ public class SyncUser {
         }
         ObjectServerError error;
         try {
-            final AuthenticationServer server = SyncManager.getAuthServer();
+            final RealmObjectServer server = SyncManager.getAuthServer();
             InvalidatePermissionsOfferResponse result = server.invalidateOffer(offerToken, refreshToken, baseUrl);
             if (!result.isValid()) {
                 error = result.getError();
@@ -1227,7 +1227,7 @@ public class SyncUser {
     public List<PermissionOffer> retrieveCreatedPermissionsOffers() {
         ObjectServerError error;
         try {
-            final AuthenticationServer server = SyncManager.getAuthServer();
+            final RealmObjectServer server = SyncManager.getAuthServer();
             GetPermissionsOffersResponse result = server.getPermissionOffers(refreshToken, baseUrl);
             if (!result.isValid()) {
                 error = result.getError();

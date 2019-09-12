@@ -36,8 +36,7 @@ import io.realm.internal.android.JsonUtils;
  */
 public final class Permission {
 
-    @Nullable
-    private final String userId;
+    @Nullable private final String userId;
     private final String path;
     private final AccessLevel accessLevel;
     private final boolean mayRead;

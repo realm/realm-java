@@ -15,7 +15,7 @@ None.
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
-* None.
+* [ObjectServer] The OKHttp client will now follow redirects from the Realm Object Server.
 
 
 ## 5.15.1(2019-09-09)
@@ -33,7 +33,6 @@ None.
 
 ### Internal
 * None.
-
 
 ## 5.15.0(2019-09-05)
 

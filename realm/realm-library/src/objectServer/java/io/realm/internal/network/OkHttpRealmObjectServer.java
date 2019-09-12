@@ -45,19 +45,19 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okio.Buffer;
 
-public class OkHttpAuthenticationServer implements AuthenticationServer {
+public class OkHttpRealmObjectServer implements RealmObjectServer {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
     private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
     private static final String ACTION_LOOKUP_USER_ID = "users/:provider:/:providerId:"; // Auth end point for looking up user id
     private static final String ACTION_UPDATE_ACCOUNT = "password/updateAccount"; // Password reset and email confirmation
-    private static final String ACTION_GET_PERMISSIONS = "permissions"; // TODO
-    private static final String ACTION_UPDATE_PERMISSIONS = "permissions/apply"; // TODO
-    private static final String ACTION_OFFER_PERMISSIONS = "permissions/offers"; // TODO
-    private static final String ACTION_ACCEPT_PERMISSIONS_OFFER = "permissions/offers/:token:/accept"; // TODO
-    private static final String ACTION_DELETE_PERMISSIONS_OFFER = "permissions/offers/:token:"; // TODO
-    private static final String ACTION_GET_PERMISSION_OFFERS = "permissions/offers"; // TODO
+    private static final String ACTION_GET_PERMISSIONS = "permissions";
+    private static final String ACTION_UPDATE_PERMISSIONS = "permissions/apply";
+    private static final String ACTION_OFFER_PERMISSIONS = "permissions/offers";
+    private static final String ACTION_ACCEPT_PERMISSIONS_OFFER = "permissions/offers/:token:/accept";
+    private static final String ACTION_DELETE_PERMISSIONS_OFFER = "permissions/offers/:token:";
+    private static final String ACTION_GET_PERMISSION_OFFERS = "permissions/offers";
 
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
@@ -65,6 +65,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             .connectTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
+            .followRedirects(true)
             .addInterceptor(new Interceptor() {
                 @Override
                 public Response intercept(Chain chain) throws IOException {
@@ -96,7 +97,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     private Map<String, Map<String, String>> customHeaders = new LinkedHashMap<>();
     private Map<String, String> customAuthorizationHeaders = new HashMap<>();
 
-    public OkHttpAuthenticationServer() {
+    public OkHttpRealmObjectServer() {
         initHeaders();
     }
 

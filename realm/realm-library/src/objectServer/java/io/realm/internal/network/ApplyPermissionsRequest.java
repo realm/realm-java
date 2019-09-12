@@ -23,7 +23,7 @@ import io.realm.permissions.PermissionRequest;
 import io.realm.permissions.UserCondition;
 
 /**
- * FIXME
+ * Class wrapping a request for updating/setting permissions `POST permissions/apply`
  */
 public class ApplyPermissionsRequest {
 
@@ -34,7 +34,6 @@ public class ApplyPermissionsRequest {
     private final String metadataValue;
 
     public ApplyPermissionsRequest(PermissionRequest request) {
-        // PRE-CONDITION: All input are verified to be valid from the perspective of the Client.
         UserCondition condition = request.getCondition();
         level = request.getAccessLevel();
         realmUrl = request.getUrl();
