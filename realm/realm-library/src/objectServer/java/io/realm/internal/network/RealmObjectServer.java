@@ -18,14 +18,12 @@ package io.realm.internal.network;
 
 import java.net.URI;
 import java.net.URL;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
 import io.realm.SyncCredentials;
 import io.realm.SyncUser;
 import io.realm.internal.objectserver.Token;
-import io.realm.permissions.Permission;
 import io.realm.permissions.PermissionOffer;
 import io.realm.permissions.PermissionRequest;
 
@@ -121,7 +119,7 @@ public interface RealmObjectServer {
     /**
      * Retrieves a list of all permissions for the given user.
      */
-    LookupPermissionsResponse getPermissions(Token userToken, URL baseUrl);
+    RetrievePermissionsResponse getPermissions(Token userToken, URL baseUrl);
 
     /**
      * Updates a given set of permissions for a single Realm

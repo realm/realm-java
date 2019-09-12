@@ -48,7 +48,7 @@ import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.GetPermissionsOffersResponse;
 import io.realm.internal.network.InvalidatePermissionsOfferResponse;
 import io.realm.internal.network.LogoutResponse;
-import io.realm.internal.network.LookupPermissionsResponse;
+import io.realm.internal.network.RetrievePermissionsResponse;
 import io.realm.internal.network.LookupUserIdResponse;
 import io.realm.internal.network.MakePermissionsOfferResponse;
 import io.realm.internal.network.UpdateAccountResponse;
@@ -955,7 +955,7 @@ public class SyncUser {
         ObjectServerError error;
         try {
             final RealmObjectServer server = SyncManager.getAuthServer();
-            LookupPermissionsResponse result = server.getPermissions(refreshToken, baseUrl);
+            RetrievePermissionsResponse result = server.getPermissions(refreshToken, baseUrl);
             if (result.isValid()) {
                 return result.getPermissions();
             } else {

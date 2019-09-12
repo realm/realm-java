@@ -26,15 +26,12 @@ import io.realm.permissions.Permission;
 import okhttp3.Response;
 
 /**
- * FIXME
- * Class wrapping the response from `GET /auth/permissions`
+ * Class wrapping the response from `DELETE /permissions/offers/:token:`
  */
 public class InvalidatePermissionsOfferResponse extends AuthServerResponse {
 
-    private final List<Permission> permissions = new ArrayList<>();
-
     /**
-     * Helper method for creating the proper lookup user response. This method will set the appropriate error
+     * Helper method for creating the proper response. This method will set the appropriate error
      * depending on any HTTP response codes or I/O errors.
      *
      * @param response the server response.
@@ -77,5 +74,6 @@ public class InvalidatePermissionsOfferResponse extends AuthServerResponse {
 
     private InvalidatePermissionsOfferResponse(String serverResponse) {
         RealmLog.debug("InvalidatePermissionOffer - Success: %s", serverResponse);
+        // No data to store
     }
 }

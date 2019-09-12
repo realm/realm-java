@@ -252,7 +252,7 @@ public class OkHttpRealmObjectServer implements RealmObjectServer {
     }
 
     @Override
-    public LookupPermissionsResponse getPermissions(Token userToken, URL baseUrl) {
+    public RetrievePermissionsResponse getPermissions(Token userToken, URL baseUrl) {
         try {
             URL url = buildActionUrl(baseUrl, ACTION_GET_PERMISSIONS);
             RealmLog.debug("Network request (retrieveGrantedPermissions): " + url);
@@ -261,9 +261,9 @@ public class OkHttpRealmObjectServer implements RealmObjectServer {
                     .build();
             Call call = client.newCall(request);
             Response response = call.execute();
-            return LookupPermissionsResponse.from(response);
+            return RetrievePermissionsResponse.from(response);
         } catch (Exception e) {
-            return LookupPermissionsResponse.from(e);
+            return RetrievePermissionsResponse.from(e);
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2019 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,71 +21,81 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
+import io.realm.internal.android.JsonUtils;
 import io.realm.log.RealmLog;
+import io.realm.permissions.AccessLevel;
 import io.realm.permissions.Permission;
 import okhttp3.Response;
 
 /**
- * Class wrapping the response from `GET /auth/permissions`
+ * Class wrapping the response from `GET /permissions`
  */
-public class LookupPermissionsResponse extends AuthServerResponse {
+public class RetrievePermissionsResponse extends AuthServerResponse {
 
     private final List<Permission> permissions = new ArrayList<>();
 
     /**
-     * Helper method for creating the proper lookup user response. This method will set the appropriate error
+     * Helper method for creating the proper response. This method will set the appropriate error
      * depending on any HTTP response codes or I/O errors.
      *
      * @param response the server response.
      * @return the user lookup response.
      */
-    static LookupPermissionsResponse from(Response response) {
+    static RetrievePermissionsResponse from(Response response) {
         String serverResponse;
         try {
             serverResponse = response.body().string();
         } catch (IOException e) {
             ObjectServerError error = new ObjectServerError(ErrorCode.IO_EXCEPTION, e);
-            return new LookupPermissionsResponse(error);
+            return new RetrievePermissionsResponse(error);
         }
         if (!response.isSuccessful()) {
-            return new LookupPermissionsResponse(AuthServerResponse.createError(serverResponse, response.code()));
+            return new RetrievePermissionsResponse(AuthServerResponse.createError(serverResponse, response.code()));
         } else {
-            return new LookupPermissionsResponse(serverResponse);
+            return new RetrievePermissionsResponse(serverResponse);
         }
     }
 
     /**
      * Helper method for creating a failed response.
      */
-    public static LookupPermissionsResponse from(ObjectServerError objectServerError) {
-        return new LookupPermissionsResponse(objectServerError);
+    public static RetrievePermissionsResponse from(ObjectServerError objectServerError) {
+        return new RetrievePermissionsResponse(objectServerError);
     }
 
     /**
      * Helper method for creating a failed response from an {@link Exception}.
      */
-    public static LookupPermissionsResponse from(Exception exception) {
-        return LookupPermissionsResponse.from(new ObjectServerError(ErrorCode.fromException(exception), exception));
+    public static RetrievePermissionsResponse from(Exception exception) {
+        return RetrievePermissionsResponse.from(new ObjectServerError(ErrorCode.fromException(exception), exception));
     }
 
-    private LookupPermissionsResponse(ObjectServerError error) {
+    private RetrievePermissionsResponse(ObjectServerError error) {
         RealmLog.debug("LookupUserIdResponse - Error: %s", error);
         setError(error);
         this.error = error;
     }
 
-    private LookupPermissionsResponse(String serverResponse) {
-        RealmLog.debug("LookupPermissionsResponse - Success: %s", serverResponse);
+    private RetrievePermissionsResponse(String serverResponse) {
+        RealmLog.debug("RetrievePermissionsResponse - Success: %s", serverResponse);
         try {
             JSONObject obj = new JSONObject(serverResponse);
             JSONArray array = obj.getJSONArray("permissions");
             for (int i = 0; i < array.length(); i++) {
                 JSONObject permission = array.getJSONObject(i);
-                permissions.add(Permission.fromJson(permission));
+                String userId = (permission.isNull("userId")) ? null : permission.getString("userId");
+                String path = permission.getString("path");
+                AccessLevel accessLevel = AccessLevel.fromKey(permission.getString("accessLevel"));
+                boolean mayRead = accessLevel.mayRead();
+                boolean mayWrite = accessLevel.mayWrite();
+                boolean mayManage = accessLevel.mayManage();
+                Date updatedAt = JsonUtils.stringToDate(permission.getString("updatedAt"));
+                permissions.add(new Permission(userId, path, accessLevel, mayRead, mayWrite, mayManage, updatedAt));
             }
         } catch (JSONException e) {
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, e);

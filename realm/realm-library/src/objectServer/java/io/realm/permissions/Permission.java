@@ -16,16 +16,12 @@
 
 package io.realm.permissions;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.Date;
 
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.SyncUser;
-import io.realm.internal.android.JsonUtils;
 
 
 /**
@@ -52,32 +48,6 @@ public final class Permission {
         this.mayWrite = mayWrite;
         this.mayManage = mayManage;
         this.updatedAt = (Date) updatedAt.clone();
-    }
-
-    /**
-     * Converts a Json object from the Realm Object Server to a Java Permission object.
-     *
-     * @throws JSONException if the JSON was malformed.
-     */
-    public static Permission fromJson(JSONObject permission) throws JSONException {
-        /* Example:
-         * {"permissions":[
-         *  { "path":"/__wildcardpermissions",
-         *    "accessLevel": "read",
-         *    "realmOwnerId": null,
-         *    "updatedAt": "2019-09-06T06:51:02.532Z",
-         *    "updatedById":null,
-         *    "userId":null}
-         *    ]}
-         */
-        String userId = (permission.isNull("userId")) ? null : permission.getString("userId");
-        String path = permission.getString("path");
-        AccessLevel accessLevel = AccessLevel.fromKey(permission.getString("accessLevel"));
-        boolean mayRead = accessLevel.mayRead();
-        boolean mayWrite = accessLevel.mayWrite();
-        boolean mayManage = accessLevel.mayManage();
-        Date updatedAt = JsonUtils.stringToDate(permission.getString("updatedAt"));
-        return new Permission(userId, path, accessLevel, mayRead, mayWrite, mayManage, updatedAt);
     }
 
     /**

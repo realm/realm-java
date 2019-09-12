@@ -39,18 +39,12 @@ import io.realm.permissions.PermissionOffer;
  */
 public final class PermissionOfferResponse {
 
-    @Nonnull
-    private final String userId;
-    @Nonnull
-    private final Date createdAt;
+    @Nonnull private final String userId;
+    @Nonnull private final Date createdAt;
     private final Date expiresAt;
-
-    @Nonnull
-    private final String token;
-    @Nonnull
-    private final String realmUrl;
-    @Nonnull
-    private final AccessLevel accessLevel;
+    @Nonnull private final String token;
+    @Nonnull private final String realmUrl;
+    @Nonnull private final AccessLevel accessLevel;
 
     public PermissionOfferResponse(String path, Date expiresAt, AccessLevel accessLevel, Date createdAt, String userId, String token) {
         this.realmUrl = path;
