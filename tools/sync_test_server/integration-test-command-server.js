@@ -157,15 +157,12 @@ function stopRealmObjectServer(onSuccess, onError) {
                         return;
                     }
                     winston.info(`command-server: Stopping process: '${stdout}'`)
-                    // FIXME: Why can this be called multiple times?
-                    if (syncServerChildProcess != null) {
-                        syncServerChildProcess.removeAllListeners('exit');
-                        syncServerChildProcess = null;
-                    }
+                    syncServerChildProcess.removeAllListeners('exit');
+                    syncServerChildProcess = null;
                     onSuccess();
                 });
             });
-            syncServerChildProcess.kill('SIGINT');
+            syncServerChildProcess.kill('SIGTERM');
         });
 
     }
