@@ -755,6 +755,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
     /**
      * Sets the reference to a {@link RealmList} on the given field.
+     * <p>
+     * This will copy all the elements in the list into Realm, but any further changes to the list
+     * will not be reflected in the Realm. Use {@link #getList(String)} in order to get a reference to
+     * the managed list.
      *
      * @param fieldName field name.
      * @param list list of objects. Must either be primitive types or {@link DynamicRealmObject}s.
