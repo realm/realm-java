@@ -1,3 +1,20 @@
+## 5.15.2(YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixed
+* [ObjectServer] Fixed crash with `java.lang.IllegalStateException: The following changes cannot be made in additive-only schema mode` when opening an old Realm. (Issue [#6619](https://github.com/realm/realm-java/issues/6619), since 5.13.0).
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None.
+
+
 ## 5.15.1(2019-09-09)
 
 ### Enhancements

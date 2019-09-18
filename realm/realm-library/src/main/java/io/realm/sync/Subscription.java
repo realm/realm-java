@@ -146,7 +146,6 @@ public class Subscription extends RealmObject {
     /**
      * Field indicating when this subscription was created.
      */
-    @Required
     @RealmField("created_at")
     private Date createdAt;
 
@@ -161,7 +160,6 @@ public class Subscription extends RealmObject {
      * <p>
      * This field plus {@link #timeToLive} defines {@link #expiresAt}.
      */
-    @Required
     @RealmField("updated_at")
     private Date updatedAt;
 
