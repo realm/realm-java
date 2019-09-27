@@ -12,7 +12,8 @@
 * APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
 
 ### Internal
-* None.
+* Updated to Object Store commit: 8416010e4be5e32ba552ff3fb29e500f3102d3db.
+* Updated Docker image used on CI to Node 10.
 
 
 ## 5.15.1(2019-09-09)
