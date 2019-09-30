@@ -4,6 +4,8 @@
 * None.
 
 ### Fixed
+* `null` values were not printed correctly when using `RealmResults.asJSON()` (Realm Core Issue [#3399](https://github.com/realm/realm-core/pull/3399))
+* [ObjectServer] Queries with nullable `Date`'s did not serialize correctly. Only relevant if using Query-based Synchronization. (Realm Core issue [#3388](https://github.com/realm/realm-core/pull/3388))
 * [ObjectServer] Fixed crash with `java.lang.IllegalStateException: The following changes cannot be made in additive-only schema mode` when opening an old Realm created between Realm Java 5.10.0 and Realm Java 5.13.0. (Issue [#6619](https://github.com/realm/realm-java/issues/6619), since 5.13.0).
 
 ### Compatibility
@@ -13,6 +15,8 @@
 
 ### Internal
 * Updated to Object Store commit: 8416010e4be5e32ba552ff3fb29e500f3102d3db.
+* Updated to Realm Sync 4.7.8.
+* Updated to Realm Core 5.23.5.
 * Updated Docker image used on CI to Node 10.
 
 
