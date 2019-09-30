@@ -430,7 +430,7 @@ public class PathLevelPermissionsTests extends StandardIntegrationTest {
     }
 
     /**
-     * Creates a offer for a newly created Realm.
+     * Creates an offer for a newly created Realm.
      *
      * @param user User that should create the offer
      * @param realmName Realm to create
