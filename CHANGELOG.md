@@ -1,8 +1,104 @@
-## 5.13.1(2019-08-05)
+## 6.0.0(YYYY-MM-DD)
+
+### Breaking Changes
+* [ObjectServer] The `PermissionManager` is no longer backed by Realms but instead a REST API. This means that the `PermissionManager` class has been removed and all methods have been moved to `SyncUser`. Some method names have been renamed slightly and return values for methods have changed from `RealmResults<Permission>` to `List<Permission>`. This should only have an impact if change listeners were used to listen for changes. In these cases, you must now manually retry the request.
+
+### Enhancements
+None.
+
+### Fixed
+None.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* [ObjectServer] The OKHttp client will now follow redirects from the Realm Object Server.
+
+
+## 5.15.2(2019-09-30)
+
+### Enhancements
+* None.
+
+### Fixed
+* `null` values were not printed correctly when using `RealmResults.asJSON()` (Realm Core Issue [#3399](https://github.com/realm/realm-core/pull/3399))
+* [ObjectServer] Queries with nullable `Date`'s did not serialize correctly. Only relevant if using Query-based Synchronization. (Realm Core issue [#3388](https://github.com/realm/realm-core/pull/3388))
+* [ObjectServer] Fixed crash with `java.lang.IllegalStateException: The following changes cannot be made in additive-only schema mode` when opening an old Realm created between Realm Java 5.10.0 and Realm Java 5.13.0. (Issue [#6619](https://github.com/realm/realm-java/issues/6619), since 5.13.0).
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: 8416010e4be5e32ba552ff3fb29e500f3102d3db.
+* Updated to Realm Sync 4.7.8.
+* Updated to Realm Core 5.23.5.
+* Updated Docker image used on CI to Node 10.
+
+
+## 5.15.1(2019-09-09)
+
+### Enhancements
+* None.
+
+### Fixed
+* Projects with `flatDirs` repositories defined crashed the build with `MissingPropertyException`. (Issue [#6610](https://github.com/realm/realm-java/issues/6610), since 5.15.0).
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None.
+
+## 5.15.0(2019-09-05)
+
+### Enhancements
+* [ObjectServer] Added support for Client Resync for fully synchronized Realms which automatically will recover the local Realm in case the server is rolled back. This largely replaces the Client Reset mechanism. Can be configured using `SyncConfiguration.Builder.clientResyncMode()`. (Issue [#6487](https://github.com/realm/realm-java/issues/6487))
+
+### Fixed
+* Huawei devices reporting `Permission denied` when opening a Realm file after an app upgrade or factory reset. This does not automatically fix already existing Realm files. See [this FAQ entry](https://realm.io/docs/java/latest/#huawei-permission-denied) for more details. (Issue [#5715](https://github.com/realm/realm-java/issues/5715))
+* `Realm.copyToRealm()` and `Realm.insertOrUpdate()` crashed on model classes if `@LinkingObjects` was used to target a field with a re-defined internal name in the parent class (e.g. by using `@RealmField`). (Issue [#6581](https://github.com/realm/realm-java/issues/6581))
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Implemented direct access to sync workers on Cloud, bypassing the Sync Proxy: the binding will override the sync session's url prefix if the token refresh response for a realm contains a sync worker path field.
+* Updated to Object Store commit: 9f19d79fde248ba37cef0bd52fe64984f9d71be0.
+* Updated to Realm Sync 4.7.4.
+* Updated to Realm Core 5.23.2.
+
+
+## 5.14.0(2019-08-12)
 
 ### Deprecated
-* `SyncCredentials.nickname()` has been deprecated in favour of `SyncCredentials.usernamePassword()`.
-* `SyncCredentials.IdentityProvider.NICKNAME` has been deprecated in favour of `SyncCredentials.IdentityProvider.USERNAME_PASSWORD`.
+* [ObjectServer] `SyncCredentials.nickname()` has been deprecated in favour of `SyncCredentials.usernamePassword()`.
+* [ObjectServer] `SyncCredentials.IdentityProvider.NICKNAME` has been deprecated in favour of `SyncCredentials.IdentityProvider.USERNAME_PASSWORD`.
+
+### Enhancements
+* None.
+
+### Fixed
+* None.
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None.
+
+
+## 5.13.1(2019-08-05)
 
 ### Enhancements
 * None.

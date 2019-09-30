@@ -39,15 +39,24 @@ import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmAsyncTaskImpl;
+import io.realm.internal.network.AcceptPermissionsOfferResponse;
+import io.realm.internal.network.ApplyPermissionsResponse;
 import io.realm.internal.network.AuthenticateResponse;
-import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.network.ChangePasswordResponse;
 import io.realm.internal.network.ExponentialBackoffTask;
+import io.realm.internal.network.GetPermissionsOffersResponse;
+import io.realm.internal.network.InvalidatePermissionsOfferResponse;
 import io.realm.internal.network.LogoutResponse;
+import io.realm.internal.network.RetrievePermissionsResponse;
 import io.realm.internal.network.LookupUserIdResponse;
+import io.realm.internal.network.MakePermissionsOfferResponse;
 import io.realm.internal.network.UpdateAccountResponse;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
+import io.realm.permissions.Permission;
+import io.realm.permissions.PermissionOffer;
+import io.realm.permissions.PermissionRequest;
 
 /**
  * This class represents a user on the Realm Object Server. The credentials are provided by various 3rd party
@@ -63,6 +72,7 @@ import io.realm.log.RealmLog;
 public class SyncUser {
     private final String identity;
     private Token refreshToken;
+    private final URL baseUrl;
     private final URL authenticationUrl;
     // maps all RealmConfiguration and accessToken, using this SyncUser.
     private final Map<SyncConfiguration, Token> realms = new HashMap<SyncConfiguration, Token>();
@@ -71,6 +81,12 @@ public class SyncUser {
     SyncUser(Token refreshToken, URL authenticationUrl) {
         this.identity = refreshToken.identity();
         this.authenticationUrl = authenticationUrl;
+        try {
+            this.baseUrl = new URL(authenticationUrl.getProtocol(), authenticationUrl.getHost(), authenticationUrl.getPort(), "");
+        } catch (MalformedURLException e) {
+            // Should never happen
+            throw new RuntimeException(e);
+        }
         this.refreshToken = refreshToken;
     }
 
@@ -152,7 +168,7 @@ public class SyncUser {
                 boolean isAdmin = (Boolean) credentials.getUserInfo().get("_isAdmin");
                 result = AuthenticateResponse.createValidResponseWithUser(userIdentifier, token, isAdmin);
             } else {
-                final AuthenticationServer server = SyncManager.getAuthServer();
+                final RealmObjectServer server = SyncManager.getAuthServer();
                 result = server.loginUser(credentials, authUrl);
             }
             if (result.isValid()) {
@@ -335,7 +351,7 @@ public class SyncUser {
             realms.clear();
 
             // Finally revoke server token. The local user is logged out in any case.
-            final AuthenticationServer server = SyncManager.getAuthServer();
+            final RealmObjectServer server = SyncManager.getAuthServer();
             // don't reference directly the refreshToken inside the revoke request
             // as it may revoke the newly acquired refresh_token
             final Token refreshTokenToBeRevoked = refreshToken;
@@ -376,7 +392,7 @@ public class SyncUser {
         if (newPassword == null) {
             throw new IllegalArgumentException("Not-null 'newPassword' required.");
         }
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         ChangePasswordResponse response = authServer.changePassword(refreshToken, newPassword, getAuthenticationUrl());
         if (!response.isValid()) {
             throw response.getError();
@@ -414,7 +430,7 @@ public class SyncUser {
                 throw new IllegalStateException("User need to be admin in order to change another user's password.");
             }
 
-            AuthenticationServer authServer = SyncManager.getAuthServer();
+            RealmObjectServer authServer = SyncManager.getAuthServer();
             ChangePasswordResponse response = authServer.changePassword(refreshToken, userId, newPassword, getAuthenticationUrl());
             if (!response.isValid()) {
                 throw response.getError();
@@ -499,7 +515,7 @@ public class SyncUser {
             throw new IllegalArgumentException("Not-null 'email' required.");
         }
         URL authUrl = getUrl(authenticationUrl);
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         UpdateAccountResponse response = authServer.requestPasswordReset(email, authUrl);
         if (!response.isValid()) {
             throw response.getError();
@@ -564,7 +580,7 @@ public class SyncUser {
             throw new IllegalArgumentException("Not-null 'newPassword' required.");
         }
         URL authUrl = getUrl(authenticationUrl);
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         UpdateAccountResponse response = authServer.completePasswordReset(resetToken, newPassword, authUrl);
         if (!response.isValid()) {
             throw response.getError();
@@ -629,7 +645,7 @@ public class SyncUser {
             throw new IllegalArgumentException("Not-null 'email' required.");
         }
         URL authUrl = getUrl(authenticationUrl);
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         UpdateAccountResponse response = authServer.requestEmailConfirmation(email, authUrl);
         if (!response.isValid()) {
             throw response.getError();
@@ -690,7 +706,7 @@ public class SyncUser {
             throw new IllegalArgumentException("Not-null 'confirmationToken' required.");
         }
         URL authUrl = getUrl(authenticationUrl);
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         UpdateAccountResponse response = authServer.confirmEmail(confirmationToken, authUrl);
         if (!response.isValid()) {
             throw response.getError();
@@ -761,7 +777,7 @@ public class SyncUser {
             throw new IllegalArgumentException("SyncUser needs to be admin in order to lookup other users ID.");
         }
 
-        AuthenticationServer authServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = SyncManager.getAuthServer();
         LookupUserIdResponse response = authServer.retrieveUser(refreshToken, provider, providerUserIdentity, getAuthenticationUrl());
         if (!response.isValid()) {
             if (response.getError().getErrorCode() == ErrorCode.UNKNOWN_ACCOUNT) {
@@ -928,24 +944,324 @@ public class SyncUser {
     }
 
     /**
-     * Returns an instance of the {@link PermissionManager} for this user that makes it possible to see, modify and create
-     * permissions related to this users Realms.
-     * <p>
-     * Every instance returned by this method must be closed by calling {@link PermissionManager#close()} when it
-     * no longer is needed.
-     * <p>
-     * The {@link PermissionManager} can only be opened from the main tread, calling this method from any other thread
-     * will throw an {@link IllegalStateException}.
+     * Retrieves the list of permissions granted to this user. The data is fetched directly from
+     * the Realm Object Server and requires a network connection.
      *
-     * @throws IllegalStateException if this method is not called from the UI thread.
-     * @return an instance of the PermissionManager.
+     * @return the list of permissions granted to this user.
+     * @throws ObjectServerError if an error happened while trying to retrieve the list of permissions on the Realm Object Server.
+     * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
      */
-    public PermissionManager getPermissionManager() {
-        if (!new AndroidCapabilities().isMainThread()) {
-            throw new IllegalStateException("The PermissionManager can only be opened from the main thread.");
+    public List<Permission> retrieveGrantedPermissions() {
+        ObjectServerError error;
+        try {
+            final RealmObjectServer server = SyncManager.getAuthServer();
+            RetrievePermissionsResponse result = server.getPermissions(refreshToken, baseUrl);
+            if (result.isValid()) {
+                return result.getPermissions();
+            } else {
+                error = result.getError();
+            }
+        } catch (Throwable e) {
+            throw new ObjectServerError(ErrorCode.UNKNOWN, e);
         }
-        return PermissionManager.getInstance(this);
+        throw error;
     }
+
+    /**
+     * Retrieves the list of permissions granted to this user. The data is fetched directly from
+     * the Realm Object Server and requires a network connection.
+     *
+     * @param callback callback notified when list the permissions are ready.
+     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
+     *
+     * @throws IllegalStateException if this method is called from a thread without a looper.
+     */
+    public RealmAsyncTask retrieveGrantedPermissionsAsync(Callback<List<Permission>> callback) {
+        checkLooperThread("Asynchronously retrieving permissions is only possible from looper threads.");
+        checkCallbackNotNull(callback);
+        return new Request<List<Permission>>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public List<Permission> run() throws ObjectServerError {
+                return retrieveGrantedPermissions();
+            }
+        }.start();
+    }
+
+
+    /**
+     * Applies a given set of permissions to a Realm. Only a user with {@link io.realm.permissions.AccessLevel#ADMIN}
+     * privileges to the Realm can use this method.
+     * <p>
+     * A {@link PermissionRequest} object encapsulates a description of which users are granted what
+     * {@link io.realm.permissions.AccessLevel}s for which Realm(s).
+     * <p>
+     * Once the request is successfully handled, a {@link Permission} entry is created for each
+     * affected user and can be found by them using {@link #retrieveGrantedPermissions()}.
+     *
+     * @param request request object describing which permissions to grant and to what Realm(s).
+     * @throws ObjectServerError if an error happened while trying to apply the permission changes on the Realm Object Server.
+     * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
+     */
+    public void applyPermissions(PermissionRequest request) {
+        ObjectServerError error;
+        try {
+            final RealmObjectServer server = SyncManager.getAuthServer();
+            ApplyPermissionsResponse result = server.applyPermissions(request, refreshToken, baseUrl);
+            if (!result.isValid()) {
+                error = result.getError();
+            } else {
+                return;
+            }
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+        }
+        throw error;
+    }
+
+    /**
+     * Applies a given set of permissions to a Realm. Only a user with {@link io.realm.permissions.AccessLevel#ADMIN}
+     * privileges to the Realm can use this method.
+     * <p>
+     * A {@link PermissionRequest} object encapsulates a description of which users are granted what
+     * {@link io.realm.permissions.AccessLevel}s for which Realm(s).
+     * <p>
+     * Once the request is successfully handled, a {@link Permission} entry is created for each
+     * affected user and can be found by them using {@link #retrieveGrantedPermissionsAsync(Callback)}.
+     *
+     * @param request request object describing which permissions to grant and to what Realm(s).
+     * @param callback callback when the request either succeeded or failed.
+     * @return async task representing the request. This can be used to cancel it if needed.
+     *
+     * @throws IllegalStateException if this method is called from a thread without a looper.
+     */
+    public RealmAsyncTask applyPermissionsAsync(PermissionRequest request, Callback<Void> callback) {
+        checkLooperThread("Asynchronously updating  permissions is only possible from looper threads.");
+        checkCallbackNotNull(callback);
+        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Void run() throws ObjectServerError {
+                applyPermissions(request);
+                return null;
+            }
+        }.start();
+    }
+
+    /**
+     * Makes a permissions offer to users. The offer is represented by an offer token and the permission changes
+     * described in the {@link PermissionOffer} do not take effect until the offer has been accepted by a user
+     * calling {@link #acceptPermissionsOfferAsync(String, Callback)}.
+     * <p>
+     * A permission offer can be used as a flexible way of sharing Realms with other users that might not be known at the time
+     * of making the offer as well as enabling sharing across other channels like e-mail. If a specific user should be
+     * granted access, using {@link #applyPermissionsAsync(PermissionRequest, Callback)} will be faster and quicker.
+     * <p>
+     * An offer can be accepted by multiple users.
+     *
+     * @param offer the object description the kind of permissions that should be offered to other users.
+     * @return the offer token representing the offer.
+     * @throws ObjectServerError if an error happened while trying to create the permissions offer.
+     * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
+     * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
+     * documentation.
+     * @see <a href="https://realm.io/docs/java/latest/#modifying-permissions">Modifying permissions</a> for a more
+     * high level description.
+     */
+    public String makePermissionsOffer(PermissionOffer offer) {
+        ObjectServerError error;
+        try {
+            final RealmObjectServer server = SyncManager.getAuthServer();
+            MakePermissionsOfferResponse result = server.makeOffer(offer, refreshToken, baseUrl);
+            if (!result.isValid()) {
+                error = result.getError();
+            } else {
+                return result.getToken();
+            }
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+        }
+        throw error;
+    }
+
+    /**
+     * Makes a permission offer to users. The offer is represented by an offer token and the permission changes
+     * described in the {@link PermissionOffer} do not take effect until the offer has been accepted by a user
+     * calling {@link #acceptPermissionsOfferAsync(String, Callback)}.
+     * <p>
+     * A permission offer can be used as a flexible way of sharing Realms with other users that might not be known at the time
+     * of making the offer as well as enabling sharing across other channels like e-mail. If a specific user should be
+     * granted access, using {@link #applyPermissionsAsync(PermissionRequest, Callback)} will be faster and quicker.
+     * <p>
+     * An offer can be accepted by multiple users.
+     *
+     * @return the path to the Realm affected by this permission.
+     * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
+     * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
+     * documentation.
+     * @see <a href="https://realm.io/docs/java/latest/#modifying-permissions">Modifying permissions</a> for a more
+     * high level description.
+     *
+     * @param offer the object description the kind of permissions that should be offered to other users.
+     * @param callback callback to be notified with the offer token once it is ready.
+     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
+     * @throws IllegalStateException if this method is called from a Thread without a looper.
+     * @see <a href="https://realm.io/docs/realm-object-server/#permissions">Permissions description</a> for general
+     * documentation.
+     * @see <a href="https://realm.io/docs/java/latest/#modifying-permissions">Modifying permissions</a> for a more
+     * high level description.
+     */
+    public RealmAsyncTask makePermissionsOfferAsync(PermissionOffer offer, Callback<String> callback) {
+        checkLooperThread("Asynchronously making an offer is only possible from looper threads.");
+        checkCallbackNotNull(callback);
+        return new Request<String>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public String run() throws ObjectServerError {
+                return makePermissionsOffer(offer);
+            }
+        }.start();
+    }
+
+    /**
+     * Accepts a permission offer sent by another user. Once this offer is accepted successfully, the permissions
+     * described by the token will be granted.
+     *
+     * @param offerToken token representing the permission offer.
+     * @return the path to the Realm affected by the offer.
+     * @throws ObjectServerError if an error happened while trying to accept the offer.
+     * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
+     */
+    public String acceptPermissionsOffer(String offerToken) {
+        if (Util.isEmptyString(offerToken)) {
+            throw new IllegalArgumentException("Non-empty 'offerToken' required.");
+        }
+        ObjectServerError error;
+        try {
+            final RealmObjectServer server = SyncManager.getAuthServer();
+            AcceptPermissionsOfferResponse result = server.acceptOffer(offerToken, refreshToken, baseUrl);
+            if (!result.isValid()) {
+                error = result.getError();
+            } else {
+                return result.getPath();
+            }
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+        }
+        throw error;
+    }
+
+    /**
+     * Accepts a permission offer sent by another user. Once this offer is accepted successfully, the permissions
+     * described by the token will be granted.
+     *
+     * @param offerToken token representing the permission offer.
+     * @param callback with the permission details that were accepted.
+     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
+     * @throws IllegalStateException if this method is called from a thread without a looper.
+     */
+    public RealmAsyncTask acceptPermissionsOfferAsync(String offerToken, Callback<String> callback) {
+        checkLooperThread("Asynchronously accepting an permissions offer is only possible from looper threads.");
+        checkCallbackNotNull(callback);
+        return new Request<String>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public String run() throws ObjectServerError {
+                return acceptPermissionsOffer(offerToken);
+            }
+        }.start();
+    }
+
+    /**
+     * Invalidates an existing offer. This will prevent any other users from accepting it. Users that already accepted it,
+     * will not be affected.
+     *
+     * @param offerToken token that should be invalidated.
+     * @throws ObjectServerError if an error happened while trying to invalidate the offer on the Realm Object Server.
+     * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
+     */
+    public void invalidatePermissionsOffer(String offerToken) {
+        if (Util.isEmptyString(offerToken)) {
+            throw new IllegalArgumentException("Non-empty 'offerToken' required.");
+        }
+        ObjectServerError error;
+        try {
+            final RealmObjectServer server = SyncManager.getAuthServer();
+            InvalidatePermissionsOfferResponse result = server.invalidateOffer(offerToken, refreshToken, baseUrl);
+            if (!result.isValid()) {
+                error = result.getError();
+            } else {
+                return;
+            }
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+        }
+        throw error;
+    }
+
+    /**
+     * Invalidates an existing offer. This will prevent any other users from accepting it. Users that already accepted it,
+     * will not be affected.
+     *
+     * @param offerToken token that should be invalidated.
+     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
+     * @throws IllegalStateException if this method is called from a thread without a looper.
+     */
+    public RealmAsyncTask invalidatePermissionsOfferAsync(String offerToken, SyncUser.Callback<Void> callback) {
+        checkLooperThread("Asynchronously accepting an permissions offer is only possible from looper threads.");
+        checkCallbackNotNull(callback);
+        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Void run() throws ObjectServerError {
+                invalidatePermissionsOffer(offerToken);
+                return null;
+            }
+        }.start();
+    }
+
+    /**
+     * Returns the list of offers created by this user. These offers can be revoked again by calling
+     * {@link #invalidatePermissionsOfferAsync(String, Callback)} or sent to other users by sending the
+     * {@link PermissionOffer#getToken()}.
+     *
+     * @return the list of available offers.
+     * @throws ObjectServerError if an error occured while trying retrieve the list of offers from the Realm Object Server.
+     * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
+     */
+    public List<PermissionOffer> retrieveCreatedPermissionsOffers() {
+        ObjectServerError error;
+        try {
+            final RealmObjectServer server = SyncManager.getAuthServer();
+            GetPermissionsOffersResponse result = server.getPermissionOffers(refreshToken, baseUrl);
+            if (!result.isValid()) {
+                error = result.getError();
+            } else {
+                return result.getOffers();
+            }
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+        }
+        throw error;
+    }
+
+
+    /**
+     * Returns the list of offers created by this user. These offers can be revoked again by calling
+     * {@link #invalidatePermissionsOfferAsync(String, Callback)} or sent to other users by sending the
+     * {@link PermissionOffer#getToken()}.
+     *
+     * @param callback that will receive the list of available offers.
+     * @return {@link RealmAsyncTask} that can be used to cancel the task if needed.
+     * @throws IllegalStateException if this method is called from a thread without a looper.
+     */
+    public RealmAsyncTask retrieveCreatedPermissionsOffersAsync(Callback<List<PermissionOffer>> callback) {
+        checkLooperThread("Asynchronously getting all permission offers is only possible from looper threads.");
+        checkCallbackNotNull(callback);
+        return new Request<List<PermissionOffer>>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public List<PermissionOffer> run() throws ObjectServerError {
+                return retrieveCreatedPermissionsOffers();
+            }
+        }.start();
+    }
+
+
 
     // what defines a user is it's identity(Token) and authURL (as required by the constructor)
     //
@@ -977,6 +1293,13 @@ public class SyncUser {
         sb.append(", AuthUrl: ").append(getAuthenticationUrl());
         sb.append("}");
         return sb.toString();
+    }
+
+    private void checkCallbackNotNull(Callback callback) {
+        //noinspection ConstantConditions
+        if (callback == null) {
+            throw new IllegalArgumentException("Non-null 'callback' required.");
+        }
     }
 
     // Class wrapping requests made against the auth server. Is also responsible for calling with success/error on the
@@ -1042,9 +1365,24 @@ public class SyncUser {
         }
     }
 
+    /**
+     * Callback for async methods available to the {@link SyncUser}.
+     *
+     * @param <T> Type returned if the request was a success.
+     */
     public interface Callback<T> {
-        void onSuccess(T result);
+        /**
+         * The request was a success.
+         * @param t The object representing the successful request. See each method for details.
+         */
+        void onSuccess(T t);
 
+        /**
+         * The request failed for some reason, either because there was a network error or the Realm
+         * Object Server returned an error.
+         *
+         * @param error the error that was detected.
+         */
         void onError(ObjectServerError error);
     }
 }

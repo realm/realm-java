@@ -1,4 +1,4 @@
-FROM node:6.11.4
+FROM node:10
 
 # set timezone to Copenhagen (by default it's using UTC) to match Android's device time.
 RUN cp /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime

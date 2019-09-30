@@ -16,8 +16,6 @@
 
 package io.realm.internal.network;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -35,6 +33,8 @@ import io.realm.internal.Util;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
+import io.realm.permissions.PermissionOffer;
+import io.realm.permissions.PermissionRequest;
 import okhttp3.Call;
 import okhttp3.ConnectionPool;
 import okhttp3.Interceptor;
@@ -45,19 +45,27 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okio.Buffer;
 
-public class OkHttpAuthenticationServer implements AuthenticationServer {
+public class OkHttpRealmObjectServer implements RealmObjectServer {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String ACTION_LOGOUT = "revoke"; // Auth end point for logging out users
     private static final String ACTION_CHANGE_PASSWORD = "password"; // Auth end point for changing passwords
     private static final String ACTION_LOOKUP_USER_ID = "users/:provider:/:providerId:"; // Auth end point for looking up user id
     private static final String ACTION_UPDATE_ACCOUNT = "password/updateAccount"; // Password reset and email confirmation
+    private static final String ACTION_GET_PERMISSIONS = "permissions";
+    private static final String ACTION_UPDATE_PERMISSIONS = "permissions/apply";
+    private static final String ACTION_OFFER_PERMISSIONS = "permissions/offers";
+    private static final String ACTION_ACCEPT_PERMISSIONS_OFFER = "permissions/offers/:token:/accept";
+    private static final String ACTION_DELETE_PERMISSIONS_OFFER = "permissions/offers/:token:";
+    private static final String ACTION_GET_PERMISSION_OFFERS = "permissions/offers";
+
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
+            .followRedirects(true)
             .addInterceptor(new Interceptor() {
                 @Override
                 public Response intercept(Chain chain) throws IOException {
@@ -89,7 +97,7 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
     private Map<String, Map<String, String>> customHeaders = new LinkedHashMap<>();
     private Map<String, String> customAuthorizationHeaders = new HashMap<>();
 
-    public OkHttpAuthenticationServer() {
+    public OkHttpRealmObjectServer() {
         initHeaders();
     }
 
@@ -240,6 +248,104 @@ public class OkHttpAuthenticationServer implements AuthenticationServer {
             return updateAccount(buildActionUrl(authenticationUrl, ACTION_UPDATE_ACCOUNT), requestBody);
         } catch (Exception e) {
             return UpdateAccountResponse.from(e);
+        }
+    }
+
+    @Override
+    public RetrievePermissionsResponse getPermissions(Token userToken, URL baseUrl) {
+        try {
+            URL url = buildActionUrl(baseUrl, ACTION_GET_PERMISSIONS);
+            RealmLog.debug("Network request (retrieveGrantedPermissions): " + url);
+            Request request = newAuthRequest(url, userToken.value())
+                    .get()
+                    .build();
+            Call call = client.newCall(request);
+            Response response = call.execute();
+            return RetrievePermissionsResponse.from(response);
+        } catch (Exception e) {
+            return RetrievePermissionsResponse.from(e);
+        }
+    }
+
+    @Override
+    public ApplyPermissionsResponse applyPermissions(PermissionRequest permissionRequest, Token refreshToken, URL baseUrl) {
+        try {
+            URL url = buildActionUrl(baseUrl, ACTION_UPDATE_PERMISSIONS);
+            RealmLog.debug("Network request (applyPermissions): " + url);
+            Request request = newAuthRequest(url, refreshToken.value())
+                    .post(RequestBody.create(JSON, new ApplyPermissionsRequest(permissionRequest).toJson()))
+                    .build();
+            Call call = client.newCall(request);
+            Response response = call.execute();
+            return ApplyPermissionsResponse.from(response);
+        } catch (Exception e) {
+            return ApplyPermissionsResponse.from(e);
+        }
+    }
+
+    @Override
+    public MakePermissionsOfferResponse makeOffer(PermissionOffer offer, Token refreshToken, URL baseUrl) {
+        try {
+            URL url = buildActionUrl(baseUrl, ACTION_OFFER_PERMISSIONS);
+            RealmLog.debug("Network request (offerPermissions): " + url);
+            Request request = newAuthRequest(url, refreshToken.value())
+                    .post(RequestBody.create(JSON, new MakePermissionsOfferRequest(offer).toJson()))
+                    .build();
+            Call call = client.newCall(request);
+            Response response = call.execute();
+            return MakePermissionsOfferResponse.from(response);
+        } catch (Exception e) {
+            return MakePermissionsOfferResponse.from(e);
+        }
+    }
+
+    @Override
+    public AcceptPermissionsOfferResponse acceptOffer(String offerToken, Token refreshToken, URL baseUrl) {
+        try {
+            String action = ACTION_ACCEPT_PERMISSIONS_OFFER.replace(":token:", offerToken);
+            URL url = buildActionUrl(baseUrl, action);
+            RealmLog.debug("Network request (acceptPermissionOffer): " + url);
+            Request request = newAuthRequest(url, refreshToken.value())
+                    .post(RequestBody.create(JSON, ""))
+                    .build();
+            Call call = client.newCall(request);
+            Response response = call.execute();
+            return AcceptPermissionsOfferResponse.from(response);
+        } catch (Exception e) {
+            return AcceptPermissionsOfferResponse.from(e);
+        }
+    }
+
+    @Override
+    public InvalidatePermissionsOfferResponse invalidateOffer(String offerToken, Token refreshToken, URL baseUrl) {
+        try {
+            String action = ACTION_DELETE_PERMISSIONS_OFFER.replace(":token:", offerToken);
+            URL url = buildActionUrl(baseUrl, action);
+            RealmLog.debug("Network request (invalidatePermissionOffer): " + url);
+            Request request = newAuthRequest(url, refreshToken.value())
+                    .delete()
+                    .build();
+            Call call = client.newCall(request);
+            Response response = call.execute();
+            return InvalidatePermissionsOfferResponse.from(response);
+        } catch (Exception e) {
+            return InvalidatePermissionsOfferResponse.from(e);
+        }
+    }
+
+    @Override
+    public GetPermissionsOffersResponse getPermissionOffers(Token refreshToken, URL baseUrl) {
+        try {
+            URL url = buildActionUrl(baseUrl, ACTION_GET_PERMISSION_OFFERS);
+            RealmLog.debug("Network request (GetPermissionsOffers): " + url);
+            Request request = newAuthRequest(url, refreshToken.value())
+                    .get()
+                    .build();
+            Call call = client.newCall(request);
+            Response response = call.execute();
+            return GetPermissionsOffersResponse.from(response);
+        } catch (Exception e) {
+            return GetPermissionsOffersResponse.from(e);
         }
     }
 

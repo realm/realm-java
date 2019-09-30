@@ -46,9 +46,9 @@ import javax.net.ssl.X509TrustManager;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
-import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.network.NetworkStateReceiver;
-import io.realm.internal.network.OkHttpAuthenticationServer;
+import io.realm.internal.network.OkHttpRealmObjectServer;
 import io.realm.log.RealmLog;
 import okhttp3.internal.tls.OkHostnameVerifier;
 
@@ -128,7 +128,7 @@ public class SyncManager {
 
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
-    private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
+    private static volatile RealmObjectServer authServer = new OkHttpRealmObjectServer();
     private static volatile UserStore userStore;
 
     // Header configuration
@@ -466,14 +466,14 @@ public class SyncManager {
         return allSessions;
     }
 
-    static AuthenticationServer getAuthServer() {
+    static RealmObjectServer getAuthServer() {
         return authServer;
     }
 
     /**
      * Sets the auth server implementation used when validating credentials.
      */
-    static void setAuthServerImpl(AuthenticationServer authServerImpl) {
+    static void setAuthServerImpl(RealmObjectServer authServerImpl) {
         authServer = authServerImpl;
     }
 

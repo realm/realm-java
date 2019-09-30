@@ -76,14 +76,6 @@ try {
                     }
                   }
 
-                  stage('Gradle plugin tests') {
-                    try {
-                      gradle('gradle-plugin', 'check')
-                    } finally {
-                      storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
-                    }
-                  }
-
                   stage('Realm Transformer tests') {
                     try {
                       gradle('realm-transformer', 'check')
@@ -118,6 +110,16 @@ try {
                       stopLogCatCollector(backgroundPid)
                       storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
                       storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+                    }
+                  }
+
+                  // Gradle plugin tests require that artifacts are available, so this
+                  // step needs to be after the instrumentation tests
+                  stage('Gradle plugin tests') {
+                    try {
+                      gradle('gradle-plugin', 'check --debug')
+                    } finally {
+                      storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
                     }
                   }
 

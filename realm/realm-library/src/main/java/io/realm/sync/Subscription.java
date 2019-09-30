@@ -15,7 +15,6 @@
  */
 package io.realm.sync;
 
-import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +28,6 @@ import io.realm.annotations.Index;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.RealmField;
 import io.realm.annotations.Required;
-import io.realm.internal.Table;
 import io.realm.internal.annotations.ObjectServer;
 
 /**

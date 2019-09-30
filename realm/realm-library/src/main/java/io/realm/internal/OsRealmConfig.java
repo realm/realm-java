@@ -169,6 +169,11 @@ public class OsRealmConfig implements NativeObject {
     private static final byte SYNCSESSION_STOP_POLICY_VALUE_AFTER_CHANGES_UPLOADED = 2;
     private static final byte PROXYCONFIG_TYPE_VALUE_HTTP = 0;
 
+    // Public to be usable from the io.realm package
+    public static final byte CLIENT_RESYNC_MODE_RECOVER = 0;
+    public static final byte CLIENT_RESYNC_MODE_DISCARD = 1;
+    public static final byte CLIENT_RESYNC_MODE_MANUAL = 2;
+
     private final static long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     private final RealmConfiguration realmConfiguration;
@@ -212,6 +217,7 @@ public class OsRealmConfig implements NativeObject {
         boolean isPartial = (Boolean.TRUE.equals(syncConfigurationOptions[7]));
         String urlPrefix = (String)(syncConfigurationOptions[8]);
         String customAuthorizationHeaderName = (String)(syncConfigurationOptions[9]);
+        Byte clientResyncMode = (Byte) syncConfigurationOptions[11];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]
@@ -280,7 +286,8 @@ public class OsRealmConfig implements NativeObject {
                     sessionStopPolicy,
                     urlPrefix,
                     customAuthorizationHeaderName,
-                    customHeaders);
+                    customHeaders,
+                    clientResyncMode);
             try {
                 resolvedRealmURI = new URI(resolvedSyncRealmUrl);
             } catch (URISyntaxException e) {
@@ -376,7 +383,7 @@ public class OsRealmConfig implements NativeObject {
                                                               String userId, String refreshToken, boolean isPartial,
                                                               byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
-                                                              String[] customHeaders);
+                                                              String[] customHeaders, byte clientResetMode);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);
