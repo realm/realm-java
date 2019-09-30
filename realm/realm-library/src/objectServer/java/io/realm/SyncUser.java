@@ -947,7 +947,7 @@ public class SyncUser {
      * Retrieves the list of permissions granted to this user. The data is fetched directly from
      * the Realm Object Server and requires a network connection.
      *
-     * @return the list of permissions granted this user.
+     * @return the list of permissions granted to this user.
      * @throws ObjectServerError if an error happened while trying to retrieve the list of permissions on the Realm Object Server.
      * @throws android.os.NetworkOnMainThreadException if called from the UI thread.
      */
