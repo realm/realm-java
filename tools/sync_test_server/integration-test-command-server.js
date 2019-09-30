@@ -161,7 +161,7 @@ function stopRealmObjectServer(onSuccess, onError) {
                     onSuccess();
                 });
             });
-            syncServerChildProcess.kill('SIGINT');
+            syncServerChildProcess.kill('SIGTERM');
         });
 
     }
