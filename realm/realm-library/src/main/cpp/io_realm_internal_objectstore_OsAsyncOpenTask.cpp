@@ -50,7 +50,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAsyncOpenTask_start
             jni_util::JniUtils::get_env(true)->DeleteGlobalRef(obj);
         };
         std::shared_ptr<_jobject> task_obj(env->NewGlobalRef(global_obj), deleter);
-        task->start([task=std::move(task_obj)](realm::ThreadSafeReference<realm::Realm> realm_ref, std::exception_ptr error) {
+        task->start([task=std::move(task_obj)](realm::ThreadSafeReference realm_ref, std::exception_ptr error) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
             if (error) {
                 try {

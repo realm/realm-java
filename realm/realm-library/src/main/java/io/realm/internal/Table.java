@@ -402,7 +402,7 @@ public class Table implements NativeObject {
      * @return the unsafe row wrapper object.
      */
     public UncheckedRow getUncheckedRow(long rowKey) {
-        return UncheckedRow.getByRowIndex(context, this, rowKey);
+        return UncheckedRow.getByRowKey(context, this, rowKey);
     }
 
     /**
@@ -422,11 +422,11 @@ public class Table implements NativeObject {
      * <p>
      * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
      *
-     * @param index the index of row to fetch.
+     * @param objKey the Object Key.
      * @return the safe row wrapper object.
      */
-    public CheckedRow getCheckedRow(long index) {
-        return CheckedRow.get(context, this, index);
+    public CheckedRow getCheckedRow(long objKey) {
+        return CheckedRow.get(context, this, objKey);
     }
 
     //
@@ -741,7 +741,7 @@ public class Table implements NativeObject {
 
     private native boolean nativeIsNull(long nativePtr, long columnKey, long rowKey);
 
-    native long nativeGetRowPtr(long nativePtr, long index);//FIXME not used?
+    native long nativeGetRowPtr(long nativePtr, long objKey);
 
     public static native void nativeSetLong(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
 

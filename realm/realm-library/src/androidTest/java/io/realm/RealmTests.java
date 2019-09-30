@@ -2311,7 +2311,6 @@ public class RealmTests {
         realm.commitTransaction();
     }
 
-    @Ignore("__CORE6__: until we merge the upstream implementation of Util#deleteRealm that removes the pipe file (default.realm.note)")
     @Test
     public void deleteRealm() throws InterruptedException {
         File tempDir = new File(configFactory.getRoot(), "delete_test_dir");

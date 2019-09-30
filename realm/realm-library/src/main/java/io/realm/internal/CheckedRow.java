@@ -49,11 +49,11 @@ public class CheckedRow extends UncheckedRow {
      *
      * @param context the Realm context.
      * @param table the {@link Table} that holds the row.
-     * @param index the index of the row.
+     * @param objKey the object key.
      * @return an instance of Row for the table and index specified.
      */
-    public static CheckedRow get(NativeContext context, Table table, long index) {
-        long nativeRowPointer = table.nativeGetRowPtr(table.getNativePtr(), index);
+    public static CheckedRow get(NativeContext context, Table table, long objKey) {
+        long nativeRowPointer = table.nativeGetRowPtr(table.getNativePtr(), objKey);
         return new CheckedRow(context, table, nativeRowPointer);
     }
 

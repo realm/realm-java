@@ -1844,7 +1844,6 @@ public class RealmJsonTests {
     }
 
     @Test
-    @Ignore("__CORE6__: https://github.com/realm/realm-object-store/issues/822")
     public void createObjectFromJson_primitiveList_nullValueForRequiredField() throws IOException, JSONException {
         testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_STRING_LIST);
         testRequiredPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REQUIRED_BOOLEAN_LIST);
@@ -1859,17 +1858,16 @@ public class RealmJsonTests {
     }
 
     @Test
-    @Ignore("__CORE6__: https://github.com/realm/realm-object-store/issues/822")
     public void createObjectFromJson_primitiveList_nullValueForOptionalField() throws IOException, JSONException {
-//        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_STRING_LIST);
+        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_STRING_LIST);
         testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_BOOLEAN_LIST);
-//        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_DOUBLE_LIST);
-//        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_FLOAT_LIST);
-//        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_BYTE_LIST);
-//        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_SHORT_LIST);
-//        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_INT_LIST);
-//        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_LONG_LIST);
-//        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_DATE_LIST);
-//        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_BYTE_LIST);
+        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_DOUBLE_LIST);
+        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_FLOAT_LIST);
+        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_BYTE_LIST);
+        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_SHORT_LIST);
+        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_INT_LIST);
+        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_LONG_LIST);
+        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_DATE_LIST);
+        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_BYTE_LIST);
     }
 }

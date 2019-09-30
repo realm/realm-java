@@ -28,7 +28,6 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.Required;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
@@ -389,9 +388,7 @@ public abstract class RealmObjectSchema {
         int columnCount = (int) table.getColumnCount();
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
         for (String column : table.getColumnNames()) {
-            if (!OsObject.isObjectIdColumn(column)) {
                 columnNames.add(column);
-            }
         }
         return columnNames;
     }

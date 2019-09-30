@@ -43,8 +43,6 @@ import io.realm.rule.RunInLooperThread;
  */
 public abstract class BaseIntegrationTest {
 
-    private static int originalLogLevel;
-
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();
 

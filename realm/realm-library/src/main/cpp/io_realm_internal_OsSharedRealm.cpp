@@ -274,8 +274,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTable(J
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  format(c_table_name_exists_exception_msg, table_name.substr(TABLE_PREFIX.length())));
         }
-        auto table_ref = sync::create_table(group, table_name); // throws
-        table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
+        table = sync::create_table(static_cast<Transaction&>(group), table_name); // throws
 #else
         table = group.add_table(table_name); // throws
 #endif
@@ -313,9 +312,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  format(c_table_name_exists_exception_msg, class_name_str));
         }
-        auto table_ref =
-            sync::create_table_with_primary_key(group, table_name, pkType, field_name, is_nullable);
-        table = LangBindHelper::get_table(group, table_ref->get_index_in_group());
+        table =
+            sync::create_table_with_primary_key(static_cast<Transaction&>(group), table_name, pkType, field_name, is_nullable);
 #else
         table = group.add_table(table_name);
         ColKey column_key = table->add_column(pkType, field_name, is_nullable);
@@ -557,9 +555,8 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetObjectPrivi
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         auto r = reinterpret_cast<Obj*>(row_ptr);
-        Obj row = r->get_table()->get(r->get_key());
-
-        return static_cast<jint>(shared_realm->get_privileges(row));
+        auto obj = r->get_table()->get_object(r->get_key());
+        return static_cast<jint>(shared_realm->get_privileges(obj));
     }
     CATCH_STD()
     return 0;
