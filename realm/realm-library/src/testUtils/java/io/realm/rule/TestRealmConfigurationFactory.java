@@ -199,13 +199,15 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
         if (new File(config.getPath()).exists()) {
             throw new IllegalStateException(String.format(Locale.ENGLISH, "%s exists!", config.getPath()));
         }
-
         File outFile = new File(config.getRealmDirectory(), config.getRealmFileName());
+        copyFileFromAssets(context, realmPath, outFile);
+    }
 
+    public void copyFileFromAssets(Context context, String assetPath, File outFile) throws IOException {
         InputStream is = null;
         FileOutputStream os = null;
         try {
-            is = context.getAssets().open(realmPath);
+            is = context.getAssets().open(assetPath);
             os = new FileOutputStream(outFile);
 
             byte[] buf = new byte[1024];

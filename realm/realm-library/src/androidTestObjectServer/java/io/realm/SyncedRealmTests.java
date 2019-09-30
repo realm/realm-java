@@ -15,6 +15,7 @@
  */
 package io.realm;
 
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -35,6 +36,7 @@ import io.realm.rule.RunTestInLooperThread;
 import io.realm.sync.Subscription;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -86,6 +88,36 @@ public class SyncedRealmTests {
                 .build();
         realm = Realm.getInstance(config);
         return realm;
+    }
+
+    // Test for https://github.com/realm/realm-java/issues/6619
+    @Test
+    public void testUpgragendingOptionalSubscriptionFields() throws IOException {
+        SyncUser user = SyncTestUtils.createTestUser();
+
+        // Put an older Realm at the location where Realm would otherwise create a new empty one.
+        // This way, Realm will upgrade this file instead.
+        // We don't need to synchronize data with the server, so any errors due to missing
+        // server side files are ignored.
+        // The file was created using Realm Java 5.10.0
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, "realm://127.0.0.1:9080/optionalsubscriptionfields").build();
+        File realmDir = config.getRealmDirectory();
+        File oldRealmFile = new File(realmDir, "optionalsubscriptionfields");
+        assertFalse(oldRealmFile.exists());
+        configFactory.copyFileFromAssets(InstrumentationRegistry.getTargetContext().getApplicationContext(), "optionalsubscriptionfields.realm", oldRealmFile);
+        assertTrue(oldRealmFile.exists());
+
+        try {
+            // Opening the Realm should not throw a schema mismatch
+            realm = Realm.getInstance(config);
+
+            // Verify that createdAt/updatedAt are still optional even though the Java model class
+            // says they should be required.
+            assertTrue(realm.getSchema().get("__ResultSets").isNullable("created_at"));
+            assertTrue(realm.getSchema().get("__ResultSets").isNullable("updated_at"));
+        } catch (Exception e) {
+            fail(e.toString());
+        }
     }
 
     @Test
