@@ -232,5 +232,6 @@ public interface OrderedRealmCollection<E> extends List<E>, RealmCollection<E> {
      * FIXME
      * @return
      */
+    @Override
     OrderedRealmCollection<E> freeze();
 }

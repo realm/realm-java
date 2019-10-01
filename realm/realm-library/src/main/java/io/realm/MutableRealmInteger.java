@@ -115,6 +115,12 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         }
 
         @Override
+        public boolean isFrozen() {
+            //FIXME
+            return false;
+        }
+
+        @Override
         public void set(@Nullable Long newValue) {
             value = newValue;
         }

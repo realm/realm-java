@@ -278,7 +278,7 @@ final class RealmCache {
      * @param realmClass class of {@link Realm} or {@link DynamicRealm} to be created in or gotten from the cache.
      * @return the {@link Realm} or {@link DynamicRealm} instance.
      */
-    static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, frozen) {
+    static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass) {
         RealmCache cache = getCache(configuration.getPath(), true);
         return cache.doCreateRealmOrGetFromCache(configuration, realmClass);
     }

@@ -87,10 +87,10 @@ public class DynamicRealm extends BaseRealm {
 
     }
 
-    private DynamicRealm(OsS¨haredRealm realm) {
-        super(realm.freeze());
-    }
-
+//    private DynamicRealm(OsSharedRealm realm) {
+//        super(realm.freeze());
+//    }
+//
     /**
      * Realm static constructor that returns a dynamic variant of the Realm instance defined by provided
      * {@link io.realm.RealmConfiguration}. Dynamic Realms do not care about schemaVersion and schemas, so opening a
@@ -292,9 +292,9 @@ public class DynamicRealm extends BaseRealm {
         return new DynamicRealm(sharedRealm);
     }
 
-    static DynamicRealm createFrozenInstance(OsSharedRealm realm) {
-        return new DynamicRealm(realm, true);
-    }
+//    static DynamicRealm createFrozenInstance(OsSharedRealm realm) {
+//        return new DynamicRealm(realm, true);
+//    }
 
 
     /**

@@ -160,6 +160,12 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
         return this;
     }
 
+    @Override
+    public OrderedRealmCollection<E> freeze() {
+        //FIXME
+        return null;
+    }
+
     /**
      * Deletes the object at the given index from the Realm. The object at the given index will become invalid. Just
      * returns if the object is invalid already.
@@ -214,5 +220,11 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
     @Override
     public boolean deleteAllFromRealm() {
         return super.deleteAllFromRealm();
+    }
+
+    @Override
+    public boolean isFrozen() {
+        // FIXME
+        return false;
     }
 }
