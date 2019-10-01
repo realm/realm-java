@@ -116,10 +116,11 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     !syncConfig.isFullySynchronizedRealm(),
                     urlPrefix,
                     customAuthorizationHeaderName,
-                    customHeaders
+                    customHeaders,
+                    syncConfig.getClientResyncMode().getNativeValue()
             };
         } else {
-            return new Object[11];
+            return new Object[12];
         }
     }
 

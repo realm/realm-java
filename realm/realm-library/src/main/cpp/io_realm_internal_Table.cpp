@@ -229,7 +229,7 @@ JNIEXPORT jobjectArray JNICALL Java_io_realm_internal_Table_nativeGetColumnNames
         size_t size = col_keys.size();
         jobjectArray col_keys_array = env->NewObjectArray(size, JavaClassGlobalDef::java_lang_string(), 0);
         if (col_keys_array == NULL) {
-            ThrowException(env, OutOfMemory, "Could not allocate memory to return column keys.");
+            ThrowException(env, OutOfMemory, "Could not allocate memory to return column names.");
             return NULL;
         }
         for (size_t i = 0; i < size; ++i) {

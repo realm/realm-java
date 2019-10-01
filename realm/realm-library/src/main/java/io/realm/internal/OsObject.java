@@ -31,8 +31,6 @@ import io.realm.exceptions.RealmException;
 @Keep
 public class OsObject implements NativeObject {
 
-    private static final String OBJECT_ID_COLUMN_NAME = nativeGetObjectIdColumName();
-
     private static class OsObjectChangeSet implements ObjectChangeSet {
         final String[] changedFields;
         final boolean deleted;
@@ -243,10 +241,6 @@ public class OsObject implements NativeObject {
         }
     }
 
-    public static boolean isObjectIdColumn(String columnName) {
-        return OBJECT_ID_COLUMN_NAME.equals(columnName);
-    }
-
     // Called by JNI
     @SuppressWarnings("unused")
     private void notifyChangeListeners(String[] changedFields) {
@@ -286,6 +280,4 @@ public class OsObject implements NativeObject {
                                                                    long tableRefPtr, long pk_column_index,
                                                                    String primaryKeyValue);
 
-    // Return sync::object_id_column_name
-    private static native String nativeGetObjectIdColumName();
 }

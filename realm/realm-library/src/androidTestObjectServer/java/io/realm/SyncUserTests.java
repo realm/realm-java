@@ -22,7 +22,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,7 +45,7 @@ import java.util.UUID;
 import io.realm.entities.AllTypesModelModule;
 import io.realm.entities.StringOnly;
 import io.realm.internal.network.AuthenticateResponse;
-import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.StringOnlyModule;
@@ -54,7 +53,6 @@ import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
-import static io.realm.SyncTestUtils.createNamedTestUser;
 import static io.realm.SyncTestUtils.createTestAdminUser;
 import static io.realm.SyncTestUtils.createTestUser;
 import static junit.framework.Assert.assertEquals;
@@ -176,8 +174,8 @@ public class SyncUserTests {
 
     @Test
     public void currentUser_throwsIfMultipleUsersLoggedIn() {
-        AuthenticationServer originalAuthServer = SyncManager.getAuthServer();
-        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        RealmObjectServer originalAuthServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = Mockito.mock(RealmObjectServer.class);
         SyncManager.setAuthServerImpl(authServer);
 
         try {
@@ -269,7 +267,7 @@ public class SyncUserTests {
     @Ignore("This test fails because of wrong JSON string.")
     @Test
     public void currentUser_returnsUserAfterLogin() {
-        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        RealmObjectServer authServer = Mockito.mock(RealmObjectServer.class);
         when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenReturn(SyncTestUtils.createLoginResponse(Long.MAX_VALUE));
 
         SyncUser user = SyncUser.logIn(SyncCredentials.facebook("foo"), "http://bar.com/auth");
@@ -286,9 +284,9 @@ public class SyncUserTests {
     // Test that a login with an access token logs the user in directly without touching the network
     @Test
     public void login_withAccessToken() {
-        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
+        RealmObjectServer authServer = Mockito.mock(RealmObjectServer.class);
         when(authServer.loginUser(any(SyncCredentials.class), any(URL.class))).thenThrow(new AssertionError("Server contacted."));
-        AuthenticationServer originalServer = SyncManager.getAuthServer();
+        RealmObjectServer originalServer = SyncManager.getAuthServer();
         SyncManager.setAuthServerImpl(authServer);
         try {
             SyncCredentials credentials = SyncCredentials.accessToken("foo", "bar");
@@ -302,8 +300,8 @@ public class SyncUserTests {
     // Checks that `/auth` is correctly added to any URL without a path
     @Test
     public void login_appendAuthSegment() {
-        AuthenticationServer authServer = Mockito.mock(AuthenticationServer.class);
-        AuthenticationServer originalServer = SyncManager.getAuthServer();
+        RealmObjectServer authServer = Mockito.mock(RealmObjectServer.class);
+        RealmObjectServer originalServer = SyncManager.getAuthServer();
         SyncManager.setAuthServerImpl(authServer);
         String[][] urls = {
                 {"http://ros.realm.io", "http://ros.realm.io/auth"},
@@ -411,51 +409,6 @@ public class SyncUserTests {
 
         thrown.expect(IllegalStateException.class);
         user.changePassword("user-id", "new-password");
-    }
-
-    @Test
-    @RunTestInLooperThread(emulateMainThread = true)
-    public void getPermissionManager_isReferenceCounted() {
-        SyncUser user = createTestUser();
-        PermissionManager pm1 = user.getPermissionManager();
-        PermissionManager pm2 = user.getPermissionManager();
-        assertTrue(pm1 == pm2);
-        assertFalse(pm1.isClosed());
-        pm1.close();
-        assertFalse(pm1.isClosed());
-        pm1.close();
-        assertTrue(pm1.isClosed());
-        looperThread.testComplete();
-    }
-
-    @Test
-    @RunTestInLooperThread(emulateMainThread = true)
-    public void getPermissionManger_instanceUniqueToUser() {
-        SyncUser user1 = createNamedTestUser("user1");
-        SyncUser user2 = createNamedTestUser("user2");
-        PermissionManager pm1 = user1.getPermissionManager();
-        PermissionManager pm2 = user2.getPermissionManager();
-
-        try {
-            assertFalse(pm1 == pm2);
-            assertFalse(pm1.equals(pm2));
-            looperThread.testComplete();
-        } finally {
-            pm1.close();
-            pm2.close();
-            user1.logOut();
-            user2.logOut();
-        }
-    }
-
-    @Test
-    public void getPermissionManager_throwOnNonLooperThread() {
-        SyncUser user = createTestUser();
-        try {
-            user.getPermissionManager();
-            fail();
-        } catch (IllegalStateException e) {
-        }
     }
 
     @Test

@@ -16,11 +16,9 @@
 
 #include "io_realm_internal_OsObject.h"
 
-//#include <realm/row.hpp>
 #if REALM_ENABLE_SYNC
 #include <realm/sync/object.hpp>
 #endif
-//#include <realm/util/to_string.hpp>
 
 #include <object_schema.hpp>
 #include <object.hpp>
@@ -192,11 +190,11 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     Obj obj;
 #if REALM_ENABLE_SYNC
     if (is_pk_null) {
-        obj = sync::create_object_with_primary_key(shared_realm->read_group(), table, util::none);
+        obj = sync::create_object_with_primary_key(static_cast<Transaction&>(shared_realm->read_group()), *table, util::none);
     }
     else {
-        obj = sync::create_object_with_primary_key(shared_realm->read_group(), table,
-                                                       util::Optional<int64_t>(pk_value));
+        obj = sync::create_object_with_primary_key(static_cast<Transaction&>(shared_realm->read_group()), *table,
+                                                   util::Optional<int64_t>(pk_value));
     }
 #else
     obj = table->create_object();
@@ -208,7 +206,6 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
         obj.set<int64_t>(col_key, pk_value);
     }
 #endif
-//    return row_ndx;
     return obj;
 }
 //TODO use ColumnKey instead of index
@@ -236,18 +233,15 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
         }
     }
 
-//    size_t row_ndx;
+    Obj obj;
 #if REALM_ENABLE_SYNC
-    row_ndx = sync::create_object_with_primary_key(shared_realm->read_group(), table, str_accessor);
+    obj = sync::create_object_with_primary_key(static_cast<Transaction&>(shared_realm->read_group()), *table, StringData(str_accessor));
 #else
-//    row_ndx = table.add_empty_row();
-    Obj obj = table->create_object();
+    obj = table->create_object();
     if (pk_value) {
-//        table.set_string_unique(pk_column_ndx, row_ndx, str_accessor);
         obj.set(col_key, StringData(str_accessor));
     }
     else {
-//        table.set_string_unique(pk_column_ndx, row_ndx, null{});
         obj.set(col_key, null{});
     }
 #endif
@@ -318,11 +312,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRow(JNIEnv* 
         return (jlong)(obj.get_key().value);//FIXME reinterpret_cast<jlong>(obj.get_key().value); does not work when compiling for 64bit ABI
     }
     CATCH_STD()
-    //TODO use Obj with key instead of Row in the heap
-//    try {
-//        return do_create_row(shared_realm_ptr, table_ref_ptr);
-//    }
-//    CATCH_STD()
     return -1;
 }
 
@@ -336,12 +325,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObject(JN
         return reinterpret_cast<jlong>(obj);
     }
     CATCH_STD()
-//    try {
-//        size_t row_ndx = do_create_row(shared_realm_ptr, table_ref_ptr);
-//        auto& table = *(reinterpret_cast<realm::Table*>(table_ref_ptr));
-//        return reinterpret_cast<jlong>(new Row(table[row_ndx]));
-//    }
-//    CATCH_STD()
     return 0;
 }
 
@@ -353,7 +336,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
         Obj obj =
             do_create_row_with_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value, is_pk_null);
         if (bool(obj)) {
-//            return reinterpret_cast<jlong>(new Row(table[row_ndx]));
             return reinterpret_cast<jlong>(new Obj(obj));
         }
     }
@@ -397,15 +379,4 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithStrin
     }
     CATCH_STD()
     return realm::npos;
-}
-
-JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObject_nativeGetObjectIdColumName(JNIEnv* env, jclass)
-{
-// TODO: Remove the macro and get the name from core when core has stable ID support.
-#if REALM_ENABLE_SYNC
-    const char* object_id_column_name = sync::object_id_column_name;
-#else
-    const char* object_id_column_name = "!OID";
-#endif
-    return to_jstring(env, object_id_column_name);
 }

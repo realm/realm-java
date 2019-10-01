@@ -45,7 +45,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Initialize common compile & link flags.
 set(REALM_LINKER_FLAGS "")
-set(REALM_COMMON_CXX_FLAGS "")
+set(REALM_COMMON_CXX_FLAGS "-DREALM_PLATFORM_JAVA=1")
 
 # Setup lcache
 if(NDK_LCACHE)

@@ -16,8 +16,6 @@
 
 #include "io_realm_SyncManager.h"
 
-#include <realm/group_shared.hpp>
-
 #include <sync/sync_manager.hpp>
 #include <sync/sync_session.hpp>
 #include <binding_callback_thread_observer.hpp>

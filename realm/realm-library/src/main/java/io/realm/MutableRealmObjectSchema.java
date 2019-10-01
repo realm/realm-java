@@ -21,7 +21,10 @@ import java.util.Locale;
 import javax.annotation.Nonnull;
 
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
 import io.realm.internal.Table;
+import io.realm.internal.UncheckedRow;
+import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.fields.FieldDescriptor;
 
 /**
@@ -292,10 +295,18 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     public RealmObjectSchema transform(Function function) {
         //noinspection ConstantConditions
         if (function != null) {
-            long size = table.size();
-            for (long i = 0; i < size; i++) {
-                function.apply(new DynamicRealmObject(realm, table.getCheckedRow(i)));
-            }
+
+            OsResults result = OsResults.createFromQuery(realm.sharedRealm, table.where(), new DescriptorOrdering());
+            OsResults snapshot = result.createSnapshot();
+            OsResults.ListIterator listIterator = new OsResults.ListIterator(snapshot, 0) {
+
+                @Override
+                protected Object convertRowToObject(UncheckedRow row) {
+                    function.apply(new DynamicRealmObject(realm, row));
+                    return null;
+                }
+            };
+            while (listIterator.hasNext()) listIterator.next();
         }
 
         return this;

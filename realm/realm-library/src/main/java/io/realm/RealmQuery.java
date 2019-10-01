@@ -2272,9 +2272,9 @@ public class RealmQuery<E> {
         // Convert timestamp to milliseconds and clamp at max
         long timeToLiveMs = TimeUnit.MILLISECONDS.convert(timeToLive, timeUnit);
 
-        long rowIndex = nativeSubscribe(realm.getSharedRealm().getNativePtr(), name, query.getNativePtr(),
+        long objKey = nativeSubscribe(realm.getSharedRealm().getNativePtr(), name, query.getNativePtr(),
                 queryDescriptors.getNativePtr(), timeToLiveMs, update);
-        CheckedRow row = ((Realm) realm).getTable(Subscription.class).getCheckedRow(rowIndex);
+        CheckedRow row = ((Realm) realm).getTable(Subscription.class).getCheckedRow(objKey);
         return realm.get(Subscription.class, null, row);
     }
 

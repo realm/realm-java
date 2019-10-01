@@ -64,7 +64,8 @@ android {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
                     // armeabi is not supported anymore.
-                    abiFilters 'x86'
+//                    abiFilters  'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+                    abiFilters  'x86', 'arm64-v8a'
                 }
             }
         }
@@ -103,10 +104,10 @@ android {
         androidTest {
             java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java', 'src/testUtils/kotlin']
         }
-//        androidTestObjectServer {
-//            java.srcDirs += ['src/syncIntegrationTest/java', 'src/syncTestUtils/java']
-//            assets.srcDirs += ['src/syncIntegrationTest/assets/']
-//        }
+        androidTestObjectServer {
+            java.srcDirs += ['src/syncIntegrationTest/java', 'src/syncTestUtils/java']
+            assets.srcDirs += ['src/syncIntegrationTest/assets/']
+        }
     }
 
     compileOptions {
@@ -139,33 +140,32 @@ android {
             consumerProguardFiles 'proguard-rules-consumer-common.pro', 'proguard-rules-consumer-base.pro'
             proguardFiles 'proguard-rules-build-common.pro'
         }
-//        objectServer {
-//            dimension 'api'
-//            externalNativeBuild {
-//                cmake {
-//                    arguments "-DREALM_FLAVOR=objectServer"
-//                }
-//            }
-//            consumerProguardFiles 'proguard-rules-consumer-common.pro', 'proguard-rules-consumer-objectServer.pro'
-//            proguardFiles 'proguard-rules-build-common.pro', 'proguard-rules-build-objectServer.pro'
-//        }
+        objectServer {
+            dimension 'api'
+            externalNativeBuild {
+                cmake {
+                    arguments "-DREALM_FLAVOR=objectServer"
+                }
+            }
+            consumerProguardFiles 'proguard-rules-consumer-common.pro', 'proguard-rules-consumer-objectServer.pro'
+            proguardFiles 'proguard-rules-build-common.pro', 'proguard-rules-build-objectServer.pro'
+        }
     }
 
-//    variantFilter { variant ->
-//        def names = variant.flavors*.name
-//
-//        // Ignore the objectServer flavour when building from core source.
-//        if (names.contains("objectServer")) {
-////        if (coreSourcePath && names.contains("objectServer")) {
-//            variant.ignore = true
-//        }
-//    }
+    variantFilter { variant ->
+        def names = variant.flavors*.name
+
+        // Ignore the objectServer flavour when building from core source.
+        if (coreSourcePath && names.contains("objectServer")) {
+            variant.ignore = true
+        }
+    }
 }
 
 project.afterEvaluate {
-//    tasks.withType(JavaCompile) {
-//        options.compilerArgs << '-Werror'
-//    }
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << '-Werror'
+    }
 
     tasks.all { task ->
         android.productFlavors.all { flavor ->
@@ -186,17 +186,17 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
 android.registerTransform(new io.realm.transformer.RealmTransformer(project))
-//android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
-//        "base",
-//        "io.realm.internal.annotations.ObjectServer",
-//        [
-//            "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
-//            "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
-//            "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
-//            "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
-//            "io_realm_sync_permissions_RoleRealmProxyInterface.class"
-//        ].toSet()
-//))
+android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
+        "base",
+        "io.realm.internal.annotations.ObjectServer",
+        [
+            "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
+            "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
+            "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
+            "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
+            "io_realm_sync_permissions_RoleRealmProxyInterface.class"
+        ].toSet()
+))
 
 repositories {
     maven { url "https://jitpack.io" }
@@ -213,7 +213,7 @@ dependencies {
     implementation 'com.getkeepsafe.relinker:relinker:1.3.0'
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
-//    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
+    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
 
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
@@ -232,7 +232,7 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
-//    from android.sourceSets.objectServer.java.srcDirs
+    from android.sourceSets.objectServer.java.srcDirs
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
@@ -243,39 +243,39 @@ def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This soft
         'considered at production quality, and should be used with care.</div>'
 
 task javadoc(type: Javadoc) {
-//    source android.sourceSets.objectServer.java.srcDirs
-//    source android.sourceSets.main.java.srcDirs
-//    source "../../realm-annotations/src/main/java"
-//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-//    options {
-//        title = "Realm ${project.version}"
-//        memberLevel = JavadocMemberLevel.PUBLIC
-//        docEncoding = 'UTF-8'
-//        encoding = 'UTF-8'
-//        charSet = 'UTF-8'
-//        locale = 'en_US'
-//        overview = 'src/overview.html'
-//
-//        links "https://docs.oracle.com/javase/7/docs/api/"
-//        links "http://reactivex.io/RxJava/javadoc/"
-//        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
-//
-//        tags = [betaTag]
-//    }
-//    exclude '**/internal/**'
-//    exclude '**/BuildConfig.java'
-//    exclude '**/R.java'
-//    doLast {
-//        copy {
-//            from "src/realm-java-overview.png"
-//            into "$buildDir/docs/javadoc"
-//        }
-//    }
+    source android.sourceSets.objectServer.java.srcDirs
+    source android.sourceSets.main.java.srcDirs
+    source "../../realm-annotations/src/main/java"
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    options {
+        title = "Realm ${project.version}"
+        memberLevel = JavadocMemberLevel.PUBLIC
+        docEncoding = 'UTF-8'
+        encoding = 'UTF-8'
+        charSet = 'UTF-8'
+        locale = 'en_US'
+        overview = 'src/overview.html'
+
+        links "https://docs.oracle.com/javase/7/docs/api/"
+        links "http://reactivex.io/RxJava/javadoc/"
+        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
+
+        tags = [betaTag]
+    }
+    exclude '**/internal/**'
+    exclude '**/BuildConfig.java'
+    exclude '**/R.java'
+    doLast {
+        copy {
+            from "src/realm-java-overview.png"
+            into "$buildDir/docs/javadoc"
+        }
+    }
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-//    classifier = 'javadoc'
-//    from javadoc.destinationDir
+    classifier = 'javadoc'
+    from javadoc.destinationDir
 }
 
 task findbugs(type: FindBugs) {
@@ -413,16 +413,16 @@ publishing {
             pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
 
-//        objectServerPublication(MavenPublication) {
-//            groupId 'io.realm'
-//            artifactId 'realm-android-library-object-server'
-//            version project.version
-//            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
-//            artifact sourcesJar
-//            artifact javadocJar
-//
-//            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
-//        }
+        objectServerPublication(MavenPublication) {
+            groupId 'io.realm'
+            artifactId 'realm-android-library-object-server'
+            version project.version
+            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
+        }
     }
     repositories {
         maven {
@@ -448,8 +448,7 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-//            publications('basePublication', 'objectServerPublication')
-            publications('basePublication')
+            publications('basePublication', 'objectServerPublication')
             publishPom = true
             publishIvy = false
         }

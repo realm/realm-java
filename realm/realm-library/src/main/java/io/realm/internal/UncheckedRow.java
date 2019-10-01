@@ -70,11 +70,11 @@ public class UncheckedRow implements NativeObject, Row {
      *
      * @param context the Realm context.
      * @param table the Table that holds the row.
-     * @param index the index of the row.
+     * @param rowKey Row key.
      * @return an instance of Row for the table and index specified.
      */
-    static UncheckedRow getByRowIndex(NativeContext context, Table table, long index) {
-        long nativeRowPointer = table.nativeGetRowPtr(table.getNativePtr(), index);
+    static UncheckedRow getByRowKey(NativeContext context, Table table, long rowKey) {
+        long nativeRowPointer = table.nativeGetRowPtr(table.getNativePtr(), rowKey);
         return new UncheckedRow(context, table, nativeRowPointer);
     }
 

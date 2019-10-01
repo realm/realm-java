@@ -128,7 +128,7 @@ inline jlong to_jlong_or_not_found(realm::ObjKey key)
     return bool(key) ? jlong(key.value) : jlong(-1);
 }
 
-inline bool TableIsValid(JNIEnv* env, const realm::TableRef& table)
+inline bool TableIsValid(JNIEnv* env, const realm::ConstTableRef table)
 {
     if (!table) {
         realm::jni_util::Log::e("Table is no longer attached!");
@@ -156,6 +156,17 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColTy
     if (colType != expectColType) {
         realm::jni_util::Log::e("Expected columnType %1, but got %2.", expectColType, colType);
         ThrowException(env, IllegalArgument, "ColumnType of '" + std::string(pTable->get_column_name(col_key)) + "' is invalid.");
+        return false;
+    }
+    return true;
+}
+inline bool TypeValid(JNIEnv* env, realm::ConstTableRef table, jlong columnIndex, int expectColType)
+{
+    realm::ColKey col_key(columnIndex);
+    int colType = table->get_column_type(col_key);
+    if (colType != expectColType) {
+        realm::jni_util::Log::e("Expected columnType %1, but got %2.", expectColType, colType);
+        ThrowException(env, IllegalArgument, "ColumnType of '" + std::string(table->get_column_name(col_key)) + "' is invalid.");
         return false;
     }
     return true;

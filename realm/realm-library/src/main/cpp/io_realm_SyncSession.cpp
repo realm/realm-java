@@ -160,22 +160,19 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
             static JavaMethod java_notify_result_method(env, java_sync_session_class, "notifyAllChangesSent",
                                                         "(ILjava/lang/Long;Ljava/lang/String;)V");
             JavaGlobalRef java_session_object_ref(env, session_object);
-
-            bool listener_registered =
-                session->wait_for_download_completion([java_session_object_ref, callback_id](std::error_code error) {
-                    JNIEnv* env = JniUtils::get_env(true);
-                    JavaLocalRef<jobject> java_error_code;
-                    JavaLocalRef<jstring> java_error_message;
-                    if (error != std::error_code{}) {
-                        java_error_code =
-                            JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
-                        java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
-                    }
-                    env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method,
-                                        callback_id, java_error_code.get(), java_error_message.get());
-                });
-
-            return to_jbool(listener_registered);
+            session->wait_for_download_completion([java_session_object_ref, callback_id](std::error_code error) {
+                JNIEnv* env = JniUtils::get_env(true);
+                JavaLocalRef<jobject> java_error_code;
+                JavaLocalRef<jstring> java_error_message;
+                if (error != std::error_code{}) {
+                    java_error_code =
+                        JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
+                    java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
+                }
+                env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method,
+                                    callback_id, java_error_code.get(), java_error_message.get());
+            });
+            return to_jbool(JNI_TRUE);
         }
     }
     CATCH_STD()
@@ -198,20 +195,18 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForUploadCompleti
                                                         "(ILjava/lang/Long;Ljava/lang/String;)V");
             JavaGlobalRef java_session_object_ref(env, session_object);
 
-            bool listener_registered =
-                session->wait_for_upload_completion([java_session_object_ref, callback_id](std::error_code error) {
-                    JNIEnv* env = JniUtils::get_env(true);
-                    JavaLocalRef<jobject> java_error_code;
-                    JavaLocalRef<jstring> java_error_message;
-                    if (error != std::error_code{}) {
-                        java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
-                        java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
-                    }
-                    env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method,
-                                        callback_id, java_error_code.get(), java_error_message.get());
-                });
-
-            return to_jbool(listener_registered);
+            session->wait_for_upload_completion([java_session_object_ref, callback_id](std::error_code error) {
+                JNIEnv* env = JniUtils::get_env(true);
+                JavaLocalRef<jobject> java_error_code;
+                JavaLocalRef<jstring> java_error_message;
+                if (error != std::error_code{}) {
+                    java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
+                    java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
+                }
+                env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method,
+                                    callback_id, java_error_code.get(), java_error_message.get());
+            });
+            return JNI_TRUE;
         }
     }
     CATCH_STD()
@@ -357,6 +352,20 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStop(JNIEnv* env, jclass,
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
         if (session) {
             session->log_out();
+        }
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeSetUrlPrefix(JNIEnv* env, jclass, jstring j_local_realm_path, jstring j_url_prefix)
+{
+    TR_ENTER()
+    try {
+        JStringAccessor local_realm_path(env, j_local_realm_path);
+        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+        if (session) {
+            JStringAccessor url_prefix(env, j_url_prefix);
+            session->set_url_prefix(url_prefix);
         }
     }
     CATCH_STD()

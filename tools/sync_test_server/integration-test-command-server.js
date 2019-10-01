@@ -136,6 +136,7 @@ function startRealmObjectServer(onSuccess, onError) {
     }, onError)
 }
 
+// FIXME: This method seems broken in Node 10 and/or latest version of ROS
 function stopRealmObjectServer(onSuccess, onError) {
     if(syncServerChildProcess == null || syncServerChildProcess.killed) {
         onSuccess("No ROS process found or the process has been killed before");
@@ -161,7 +162,7 @@ function stopRealmObjectServer(onSuccess, onError) {
                     onSuccess();
                 });
             });
-            syncServerChildProcess.kill('SIGINT');
+            syncServerChildProcess.kill('SIGTERM');
         });
 
     }
