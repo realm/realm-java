@@ -21,7 +21,6 @@
 #include "io_realm_internal_Table.h"
 
 #include "java_accessor.hpp"
-#include "object_store.hpp"
 #include "java_exception_def.hpp"
 #include "shared_realm.hpp"
 #include "jni_util/java_exception_thrower.hpp"
@@ -36,13 +35,6 @@ using namespace realm::util;
 
 static_assert(io_realm_internal_Table_MAX_STRING_SIZE == Table::max_string_size, "");
 static_assert(io_realm_internal_Table_MAX_BINARY_SIZE == Table::max_binary_size, "");
-
-static const char* c_null_values_cannot_set_required_msg = "The primary key field '%1' has 'null' values stored.  It "
-                                                           "cannot be converted to a '@Required' primary key field.";
-static const char* const PK_TABLE_NAME = "pk"; // ObjectStore::c_primaryKeyTableName
-static const size_t CLASS_COLUMN_INDEX = 0; // ObjectStore::c_primaryKeyObjectClassColumnIndex
-static const size_t FIELD_COLUMN_INDEX = 1; // ObjectStore::c_primaryKeyPropertyNameColumnIndex
-
 
 static void finalize_table(jlong ptr);
 
@@ -134,7 +126,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn(JNIEnv* e
     CATCH_STD()
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(JNIEnv* env, jobject,
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable(JNIEnv*, jobject,
                                                                                jlong nativeTablePtr,
                                                                                jlong columnKey)
 {
@@ -142,7 +134,7 @@ TableRef table = TBL_REF(nativeTablePtr);
     return to_jbool(table->is_nullable(ColKey(columnKey))); // noexcept
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable(JNIEnv* env, jobject obj,
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable(JNIEnv* env, jobject,
                                                                                   jlong native_table_ptr,
                                                                                   jlong j_column_key,
                                                                                   jboolean is_primary_key)
@@ -161,7 +153,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNullable(JNIEnv* env, jobject obj,
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNullable(JNIEnv* env, jobject,
                                                                                      jlong native_table_ptr,
                                                                                      jlong j_column_key,
                                                                                      jboolean is_primary_key)
@@ -179,7 +171,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
     CATCH_STD()
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSize(JNIEnv* env, jobject, jlong nativeTablePtr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSize(JNIEnv*, jobject, jlong nativeTablePtr)
 {
     TableRef table = TBL_REF(nativeTablePtr);
     return static_cast<jlong>(table->size()); // noexcept
@@ -202,7 +194,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClear(JNIEnv* env, job
 // -------------- Column information
 
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnCount(JNIEnv* env, jobject, jlong nativeTablePtr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnCount(JNIEnv*, jobject, jlong nativeTablePtr)
 {
     TableRef table = TBL_REF(nativeTablePtr);
     return static_cast<jlong>(table->get_column_count()); // noexcept
@@ -218,6 +210,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetColumnName(JNIEn
         return to_jstring(env, stringData);
     }
     CATCH_STD();
+    return nullptr;
 }
 
 JNIEXPORT jobjectArray JNICALL Java_io_realm_internal_Table_nativeGetColumnNames(JNIEnv* env, jobject, jlong nativeTablePtr)
@@ -258,7 +251,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnKey(JNIEnv* 
     return -1;
 }
 
-JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv* env, jobject, jlong nativeTablePtr,
+JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv*, jobject, jlong nativeTablePtr,
                                                                         jlong columnKey)
 {
     ColKey column_key (columnKey);
@@ -853,8 +846,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(JNIEnv*, j
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema(JNIEnv*, jobject, jlong thisTablePtr,
                                                                             jlong otherTablePtr)
 {
-    //TODO check is the correct replacement
-    using tf = _impl::TableFriend;
     TableRef this_table = TBL_REF(thisTablePtr);
     TableRef other_table = TBL_REF(otherTablePtr);
     return to_jbool(this_table->get_key() == other_table->get_key());

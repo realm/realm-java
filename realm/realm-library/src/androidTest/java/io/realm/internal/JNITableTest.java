@@ -407,8 +407,6 @@ public class JNITableTest {
             long colKey7 = table.addColumn(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE.name().toLowerCase(Locale.ENGLISH) + "Col");
             long colKey8 = table.addColumnLink(RealmFieldType.OBJECT, RealmFieldType.OBJECT.name().toLowerCase(Locale.ENGLISH) + "Col", table);
 
-//            sharedRealm.commitTransaction();
-
             long[] columnKeys = new long[]{colKey1, colKey2, colKey3, colKey4, colKey5, colKey6, colKey7, colKey8};
             Object[] datas = new Object[]{"string value",
                     100L,

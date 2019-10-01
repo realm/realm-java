@@ -363,16 +363,16 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_STRING_NULL, original, copy);
 
         // 3 Boolean
-        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_BOOLEAN_NULL, original, copy);//<--------- fails
+        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_BOOLEAN_NULL, original, copy);
 
         // 6 Integer
         doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_INTEGER_NULL, original, copy);
 
         // 7 Float
-        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_FLOAT_NULL, original, copy);// <------- fails
+        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_FLOAT_NULL, original, copy);
 
         // 8 Double
-        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_DOUBLE_NULL, original, copy);//<------ fails
+        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_DOUBLE_NULL, original, copy);
 
         // 10 Date
         doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_DATE_NULL, original, copy);

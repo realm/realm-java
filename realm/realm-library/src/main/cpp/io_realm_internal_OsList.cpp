@@ -91,18 +91,14 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
         auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
         jlong ret[2];
 
-//        List list(shared_realm, *obj.get_table(), column_key, obj.get_index());
         List list(shared_realm, obj, ColKey(column_key));
         ListWrapper* wrapper_ptr = new ListWrapper(list);
         ret[0] = reinterpret_cast<jlong>(wrapper_ptr);
 
         if (wrapper_ptr->collection().get_type() == PropertyType::Object) {
-//            LinkViewRef link_view_ref(obj.get_linklist(ColKey(column_key)));
             auto link_view_ref = obj.get_linklist(ColKey(column_key));
 
-//            Table* target_table_ptr = &(link_view_ref)->get_target_table();
             TableRef* target_table_ptr = new TableRef(link_view_ref.get_target_table().get_table_ref());
-//            LangBindHelper::bind_table_ptr(target_table_ptr);
             ret[1] = reinterpret_cast<jlong>(target_table_ptr);
         }
         else {

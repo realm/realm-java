@@ -116,7 +116,6 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
     return column_type;
 }
 
-//TODO renmae index to ObjKey
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetIndex(JNIEnv* env, jobject, jlong nativeRowPtr)
 {
     TR_ENTER_PTR(nativeRowPtr)
@@ -132,10 +131,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLong(JNIEnv
 {
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW_VALID(env, ROW(nativeRowPtr))) {
-        return 0;// SIMILAR use cases should throw instead of returning a default value
+        return 0;
     }
-    //TODO hack why this is needed for nullable column & only for Integer works perfectly with boxed type of float/double
-    //     maybe refactor once https://github.com/realm/realm-core-private/issues/211 is implemented
     ColKey col_key(columnKey);
     if (ROW(nativeRowPtr)->get_table()->is_nullable(col_key)) {
         auto val = ROW(nativeRowPtr)->get<util::Optional<int64_t>>(col_key);

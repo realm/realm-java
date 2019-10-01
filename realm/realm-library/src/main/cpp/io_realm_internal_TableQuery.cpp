@@ -82,7 +82,6 @@ static ConstTableRef getTableByArray(jlong nativeQueryPtr, const JLongArrayAcces
 {
     ConstTableRef table_ref = reinterpret_cast<Query *>(nativeQueryPtr)->get_table();
     jsize link_element_count = colKeysArray.size() - 1;
-    // TODO check this logic, this loop has no break, when finding the tableref
     for (int i = 0; i < link_element_count; ++i) {
         TableRef* table_ptr = reinterpret_cast<TableRef*>(tablesArray[i]);
         if (table_ptr == nullptr) {
@@ -628,7 +627,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqual__J_3J_3
     CATCH_STD()
 }
 
-//TODO check why only the first index is used only
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JDD(JNIEnv* env, jobject,
                                                                                jlong nativeQueryPtr,
                                                                                jlongArray columnKeys,
@@ -1309,7 +1307,6 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
     return nullptr;
 }
 
-//TODO remove start/end/limit
 JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(JNIEnv* env, jobject,
                                                                                 jlong nativeQueryPtr,
                                                                                 jlong columnKey)
@@ -1445,7 +1442,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
                     ThrowException(env, FatalError, "This is not reachable.");
                     break;
                 case type_String:
-                    pQuery->and_query(linkChain.column<String>(ColKey(column_idx)) == realm::null());//TODO realm::null() is correct comparison
+                    pQuery->and_query(linkChain.column<String>(ColKey(column_idx)) == realm::null());
                     break;
                 case type_Binary:
                     pQuery->and_query(linkChain.column<Binary>(ColKey(column_idx)) == BinaryData());

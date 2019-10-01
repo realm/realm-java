@@ -156,7 +156,7 @@ public class OsObject implements NativeObject {
     public static UncheckedRow create(Table table) {
         final OsSharedRealm sharedRealm = table.getSharedRealm();
         return new UncheckedRow(sharedRealm.context, table,
-                nativeCreateNewObject(sharedRealm.getNativePtr(), table.getNativePtr()));
+                nativeCreateNewObject(table.getNativePtr()));
     }
 
     /**
@@ -167,8 +167,7 @@ public class OsObject implements NativeObject {
      * @return a newly created row's index.
      */
     public static long createRow(Table table) {
-        final OsSharedRealm sharedRealm = table.getSharedRealm();
-        return nativeCreateRow(sharedRealm.getNativePtr(), table.getNativePtr());
+        return nativeCreateRow(table.getNativePtr());
     }
 
     private static long getAndVerifyPrimaryKeyColumnIndex(Table table) {
@@ -255,9 +254,9 @@ public class OsObject implements NativeObject {
 
     private native void nativeStopListening(long nativePtr);
 
-    private static native long nativeCreateNewObject(long sharedRealmPtr, long tableRefPtr);
+    private static native long nativeCreateNewObject(long tableRefPtr);
 
-    private static native long nativeCreateRow(long sharedRealmPtr, long tableRefPtr);
+    private static native long nativeCreateRow(long tableRefPtr);
 
 
     // Return a pointer to newly created Row. We may need to return a OsObject pointer in the future.

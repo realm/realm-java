@@ -186,7 +186,6 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
         }
     }
 
-//    size_t row_ndx;
     Obj obj;
 #if REALM_ENABLE_SYNC
     if (is_pk_null) {
@@ -208,7 +207,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
 #endif
     return obj;
 }
-//TODO use ColumnKey instead of index
+
 static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ref_ptr,
                                                     jlong pk_column_key, jstring pk_value)
 {
@@ -303,22 +302,19 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStopListening(JNIEn
     CATCH_STD()
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRow(JNIEnv* env, jclass, jlong shared_realm_ptr,
-                                                                        jlong table_ref_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRow(JNIEnv* env, jclass, jlong table_ref_ptr)
 {
     try {
         TableRef table = TBL_REF(table_ref_ptr);
         Obj obj = table->create_object();
-        return (jlong)(obj.get_key().value);//FIXME reinterpret_cast<jlong>(obj.get_key().value); does not work when compiling for 64bit ABI
+        return (jlong)(obj.get_key().value);
     }
     CATCH_STD()
     return -1;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObject(JNIEnv* env, jclass,
-                                                                              jlong shared_realm_ptr, jlong table_ref_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObject(JNIEnv* env, jclass, jlong table_ref_ptr)
 {
-//TODO use Obj with key instead of Row in the heap
     try {
         TableRef table = TBL_REF(table_ref_ptr);
         Obj* obj =  new Obj(table->create_object());
@@ -369,7 +365,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
     return 0;
 }
 
-//TODO check it's a valid Obj (also unify usage of 0 & realm::npos)
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithStringPrimaryKey(
     JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jstring pk_value)
 {

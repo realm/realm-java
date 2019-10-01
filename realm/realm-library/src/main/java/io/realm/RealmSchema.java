@@ -260,7 +260,7 @@ public abstract class RealmSchema {
      */
     void refresh() {
         if (columnIndices != null) {
-            columnIndices.refresh();//TODO this shouldn't be necessary anymore, since column uses ColKey which is stable
+            columnIndices.refresh();//TODO __CORE6__ this shouldn't be necessary anymore, since column uses ColKey which is stable
         }
         dynamicClassToTable.clear();
         classToTable.clear();

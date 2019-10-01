@@ -33,7 +33,7 @@ public enum InvalidRow implements Row {
     public long getColumnCount() {
         throw getStubException();
     }
-    
+
     @Override
     public String[] getColumnNames() {
         throw getStubException();

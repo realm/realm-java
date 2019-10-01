@@ -84,13 +84,13 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeContains(JNIEn
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         const Obj* obj = reinterpret_cast<Obj*>(native_obj_ptr);
-        size_t index = wrapper->collection().index_of(*obj);//TODO confirm change & call to non implemented method in index_of
+        size_t index = wrapper->collection().index_of(*obj);
         return to_jbool(index != not_found);
     }
     CATCH_STD();
     return JNI_FALSE;
 }
-//TODO rename row to obj
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetRow(JNIEnv* env, jclass, jlong native_ptr,
                                                                        jint index)
 {
@@ -103,7 +103,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetRow(JNIEnv* en
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
-//TODO rename row to obj
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeFirstRow(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
@@ -118,7 +118,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeFirstRow(JNIEnv* 
     return reinterpret_cast<jlong>(nullptr);
 }
 
-//TODO rename row -> obj
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeLastRow(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
@@ -161,7 +161,6 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEn
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
 
-//        size_t index = S(column_index);
         ColKey col_key(column_key);
         Optional<Mixed> value;
         switch (agg_func) {
@@ -304,7 +303,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeIndexOf(JNIEnv* e
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         Obj* obj = reinterpret_cast<Obj*>(obj_native_ptr);
 
-//        return static_cast<jlong>(wrapper->collection().index_of(RowExpr(*row)));
         return static_cast<jlong>(wrapper->collection().index_of(*obj));//TODO confirm change
     }
     CATCH_STD()
@@ -318,8 +316,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeDeleteLast(JNI
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto obj = wrapper->collection().last();
         if (obj && obj->is_valid()) {
-//            row->move_last_over();
-            obj->remove();//TODO confirm it's the correct change
+            obj->remove();
             return JNI_TRUE;
         }
     }
@@ -468,9 +465,11 @@ JNIEXPORT jbyte JNICALL Java_io_realm_internal_OsResults_nativeGetMode(JNIEnv* e
             case Results::Mode::Query:
                 return io_realm_internal_OsResults_MODE_QUERY;
             case Results::Mode::LinkList:
-                return io_realm_internal_OsResults_MODE_LINKVIEW;//TODO rename linkview?
+                return io_realm_internal_OsResults_MODE_LINKVIEW;
             case Results::Mode::TableView:
                 return io_realm_internal_OsResults_MODE_TABLEVIEW;
+            default:
+                throw std::logic_error(util::format("Unexpected state: %1", static_cast<uint8_t>(wrapper->collection().get_mode())));
         }
     }
     CATCH_STD()
@@ -490,7 +489,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFrom
     }
     try {
         TableRef src_table = TBL_REF(src_table_ptr);
-//        TableView backlink_view = obj->get_table()->get_backlink_view(row->get_index(), src_table, src_col_index);
         TableView backlink_view = obj->get_backlink_view(src_table, ColKey(src_col_key));
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         Results results(shared_realm, std::move(backlink_view));
