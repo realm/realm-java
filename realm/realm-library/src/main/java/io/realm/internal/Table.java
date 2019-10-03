@@ -785,8 +785,6 @@ public class Table implements NativeObject {
 
     public static native long nativeFindFirstInt(long nativeTableRefPtr, long columnKey, long value);
 
-    public static native long nativeRunTest();
-
     private native long nativeFindFirstBool(long nativePtr, long columnKey, boolean value);
 
     private native long nativeFindFirstFloat(long nativePtr, long columnKey, float value);
