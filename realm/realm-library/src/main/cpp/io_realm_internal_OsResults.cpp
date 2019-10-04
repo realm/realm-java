@@ -126,7 +126,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeLastRow(JNIEnv* e
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto optional_obj = wrapper->collection().last();
         if (optional_obj) {
-            return reinterpret_cast<jlong>(new Obj(std::move(optional_obj.value())));
+            return reinterpret_cast<jlong>(new Obj(optional_obj.value()));
         }
     }
     CATCH_STD()
@@ -483,7 +483,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFrom
                                                                                            jlong src_col_key)
 {
     TR_ENTER_PTR(obj_ptr)
-    Obj* obj = ROW(obj_ptr);
+    Obj* obj = OBJ(obj_ptr);
     if (!ROW_VALID(env, obj)) {
         return reinterpret_cast<jlong>(nullptr);
     }
