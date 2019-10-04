@@ -286,7 +286,7 @@ final class RealmCache {
     }
 
     private synchronized <E extends BaseRealm> E doCreateRealmOrGetFromCache(RealmConfiguration configuration,
-            Class<E> realmClass) {
+                                                                             Class<E> realmClass) {
 
         RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.valueOf(realmClass));
         boolean firstRealmInstanceInProcess = (getTotalGlobalRefCount() == 0);
@@ -296,35 +296,32 @@ final class RealmCache {
             copyAssetFileIfNeeded(configuration);
             OsSharedRealm sharedRealm = null;
             try {
-                if (configuration.isSyncConfiguration()) {
+                if (configuration.isSyncConfiguration() && realmFileIsBeingCreated) {
                     // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
                     // before proceeding. We need to open the Realm instance first to start any potential underlying
                     // SyncSession so this will work.
-                    if (realmFileIsBeingCreated) {
+                    // Manually create the Java session wrapper session as this might otherwise
+                    // not be created
+                    OsRealmConfig osConfig = new OsRealmConfig.Builder(configuration).build();
+                    ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osConfig);
 
-                        // Manually create the Java session wrapper session as this might otherwise
-                        // not be created
-                        OsRealmConfig osConfig = new OsRealmConfig.Builder(configuration).build();
-                        ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osConfig);
-
-                        if (ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration)) {
-                            // Partial Realms are not supported by async open yet, so continue to
-                            // use the old way of opening those Realms.
-                            sharedRealm = OsSharedRealm.getInstance(configuration);
-                            try {
-                                ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
-                            } catch (Throwable t) {
-                                // If an error happened while downloading initial data, we need to reset the file so we can
-                                // download it again on the next attempt.
-                                sharedRealm.close();
-                                sharedRealm = null;
-                                deleteRealmFileOnDisk(configuration);
-                                throw t;
-                            }
-                        } else {
-                            // Fully synchronized Realms are supported by AsyncOpen
+                    if (ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration)) {
+                        // Partial Realms are not supported by async open yet, so continue to
+                        // use the old way of opening those Realms.
+                        sharedRealm = OsSharedRealm.getInstance(configuration);
+                        try {
                             ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
+                        } catch (Throwable t) {
+                            // If an error happened while downloading initial data, we need to reset the file so we can
+                            // download it again on the next attempt.
+                            sharedRealm.close();
+                            sharedRealm = null;
+                            deleteRealmFileOnDisk(configuration);
+                            throw t;
                         }
+                    } else {
+                        // Fully synchronized Realms are supported by AsyncOpen
+                        ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
                     }
                 }
             } finally {
