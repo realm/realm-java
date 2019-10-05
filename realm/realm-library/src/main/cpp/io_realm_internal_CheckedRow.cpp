@@ -45,7 +45,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnKey(JNI
     }
 
     jlong col_key = Java_io_realm_internal_UncheckedRow_nativeGetColumnKey(env, obj, nativeRowPtr, columnName);
-    if (!bool(ColKey(col_key))) {
+    if (col_key == -1) {
         JStringAccessor column_name(env, columnName);
         ThrowException(env, IllegalArgument, concat_stringdata("Field not found: ", column_name));
     }
