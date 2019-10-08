@@ -44,12 +44,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnKey(JNI
         ThrowException(env, IllegalArgument, "Object passed is not valid");
     }
 
-    jlong col_key = Java_io_realm_internal_UncheckedRow_nativeGetColumnKey(env, obj, nativeRowPtr, columnName);
-    if (col_key == -1) {
+    ColKey col_key (Java_io_realm_internal_UncheckedRow_nativeGetColumnKey(env, obj, nativeRowPtr, columnName));
+    if (!bool(col_key)) {
         JStringAccessor column_name(env, columnName);
         ThrowException(env, IllegalArgument, concat_stringdata("Field not found: ", column_name));
     }
-    return col_key;
+    return col_key.value;
 }
 
 JNIEXPORT jint JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnType(JNIEnv* env, jobject obj,

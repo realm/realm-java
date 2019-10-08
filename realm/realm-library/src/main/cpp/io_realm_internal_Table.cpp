@@ -242,8 +242,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnKey(JNIEnv* 
         JStringAccessor columnName2(env, columnName);                                     // throws
         TableRef table = TBL_REF(nativeTablePtr);
         ColKey col_key = table->get_column_key(columnName2);
-        if (table->valid_column(col_key)) {//TODO generalize this test & return for similar lookups
-            return (jlong)(col_key.value); // noexcept
+        if (table->valid_column(col_key)) {
+            return col_key.value;
         }
         return -1;
     }
@@ -718,13 +718,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstInt(JNIEnv* 
 {
     Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
     if (!TYPE_VALID(env, table, columnKey, type_Int)) {
-        return 0;
+        return -1;
     }
     try {
         return to_jlong_or_not_found(table->find_first_int(ColKey(columnKey), value));
     }
     CATCH_STD()
-    return 0;
+    return -1;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstBool(JNIEnv* env, jobject, jlong nativeTablePtr,
@@ -732,13 +732,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstBool(JNIEnv*
 {
     Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
     if (!TYPE_VALID(env, table, columnKey, type_Bool)) {
-        return 0;
+        return -1;
     }
     try {
         return to_jlong_or_not_found(table->find_first_bool(ColKey(columnKey), to_bool(value)));
     }
     CATCH_STD()
-    return 0;
+    return -1;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstFloat(JNIEnv* env, jobject, jlong nativeTablePtr,
@@ -746,13 +746,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstFloat(JNIEnv
 {
     Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
     if (!TYPE_VALID(env, table, columnKey, type_Float)) {
-        return 0;
+        return -1;
     }
     try {
         return to_jlong_or_not_found(table->find_first_float(ColKey(columnKey), value));
     }
     CATCH_STD()
-    return 0;
+    return -1;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDouble(JNIEnv* env, jobject, jlong nativeTablePtr,
@@ -760,13 +760,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDouble(JNIEn
 {
     Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
     if (!TYPE_VALID(env, table, columnKey, type_Double)) {
-        return 0;
+        return -1;
     }
     try {
         return to_jlong_or_not_found(table->find_first_double(ColKey(columnKey), value));
     }
     CATCH_STD()
-    return 0;
+    return -1;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstTimestamp(JNIEnv* env, jobject,
@@ -775,13 +775,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstTimestamp(JN
 {
     Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
     if (!TYPE_VALID(env, table, columnKey, type_Timestamp)) {
-        return 0;
+        return -1;
     }
     try {
         return to_jlong_or_not_found(table->find_first_timestamp(ColKey(columnKey), from_milliseconds(dateTimeValue)));
     }
     CATCH_STD()
-    return 0;
+    return -1;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(JNIEnv* env, jclass, jlong nativeTablePtr,
@@ -789,7 +789,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(JNIEn
 {
     Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(nativeTablePtr));
     if (!TYPE_VALID(env, table, columnKey, type_String)) {
-        return 0;
+        return -1;
     }
 
     try {
@@ -797,7 +797,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(JNIEn
         return to_jlong_or_not_found(table->find_first_string(ColKey(columnKey), value2));
     }
     CATCH_STD()
-    return 0;
+    return -1;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(JNIEnv* env, jclass, jlong nativeTablePtr,
