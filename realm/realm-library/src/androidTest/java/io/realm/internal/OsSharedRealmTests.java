@@ -46,7 +46,7 @@ public class OsSharedRealmTests {
     @Before
     public void setUp() {
         config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
     }
 
     @After
@@ -135,7 +135,7 @@ public class OsSharedRealmTests {
 
 
     private void changeSchemaByAnotherRealm() {
-        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(config);
+        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         sharedRealm.createTable("NewTable");
         sharedRealm.commitTransaction();

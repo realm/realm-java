@@ -54,7 +54,7 @@ public class JNITableTest {
     @Before
     public void setUp() {
         config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
     }
 
     @After
@@ -393,7 +393,7 @@ public class JNITableTest {
 
     @Test
     public void defaultValue_setAndGet() {
-        final OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration());
+        final OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration(), OsSharedRealm.VersionID.LIVE);
         //noinspection TryFinallyCanBeTryWithResources
         try {
             sharedRealm.beginTransaction();
@@ -515,7 +515,7 @@ public class JNITableTest {
 
     @Test
     public void defaultValue_setMultipleTimes() {
-        final OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration());
+        final OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration(), OsSharedRealm.VersionID.LIVE);
         //noinspection TryFinallyCanBeTryWithResources
         try {
             sharedRealm.beginTransaction();
@@ -646,7 +646,7 @@ public class JNITableTest {
 
     @Test
     public void defaultValue_overwrittenByNonDefault() {
-        final OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration());
+        final OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configFactory.createConfiguration(), OsSharedRealm.VersionID.LIVE);
         //noinspection TryFinallyCanBeTryWithResources
         try {
             sharedRealm.beginTransaction();

@@ -4209,26 +4209,46 @@ public class RealmTests {
         Realm realm = Realm.getInstance(config);
         assertEquals(1, Realm.getGlobalInstanceCount(config));
 
+        Realm realm1 = Realm.getInstance(config);
+        assertEquals(1, Realm.getGlobalInstanceCount(config));
+
+        // Even though each Realm type points to the same Realm on disk, we report them as
+        // multiple global instances
+
         // Opens thread local DynamicRealm.
         DynamicRealm dynRealm = DynamicRealm.getInstance(config);
         assertEquals(2, Realm.getGlobalInstanceCount(config));
+
+        // Create frozen Realms.
+        Realm frozenRealm = realm.freeze();
+        assertTrue(frozenRealm.isFrozen());
+        assertEquals(3, Realm.getGlobalInstanceCount(config));
+
+        DynamicRealm frozenDynamicRealm = dynRealm.freeze();
+        assertTrue(frozenDynamicRealm.isFrozen());
+        assertEquals(4, Realm.getGlobalInstanceCount(config));
 
         // Opens Realm in another thread.
         new Thread(new Runnable() {
             @Override
             public void run() {
                 Realm realm = Realm.getInstance(config);
-                assertEquals(3, Realm.getGlobalInstanceCount(config));
+                assertEquals(5, Realm.getGlobalInstanceCount(config));
                 realm.close();
-                assertEquals(2, Realm.getGlobalInstanceCount(config));
+                assertEquals(4, Realm.getGlobalInstanceCount(config));
                 bgDone.countDown();
             }
         }).start();
 
         TestHelper.awaitOrFail(bgDone);
         dynRealm.close();
-        assertEquals(1, Realm.getGlobalInstanceCount(config));
+        assertEquals(3, Realm.getGlobalInstanceCount(config));
         realm.close();
+        realm1.close();
+        assertEquals(2, Realm.getGlobalInstanceCount(config));
+        frozenRealm.close();
+        assertEquals(1, Realm.getGlobalInstanceCount(config));
+        frozenDynamicRealm.close();
         assertEquals(0, Realm.getGlobalInstanceCount(config));
     }
 

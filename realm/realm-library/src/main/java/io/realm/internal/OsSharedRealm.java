@@ -37,6 +37,11 @@ import io.realm.sync.permissions.RealmPrivileges;
 public final class OsSharedRealm implements Closeable, NativeObject {
 
     public static class VersionID implements Comparable<VersionID> {
+        // Realm Core uses unsigned integers to represent versions. This means
+        // they could theoretically hit this value (maximum value of unsigned + overflow)
+        // but very unlikely
+        public static final VersionID LIVE = new VersionID(-1, -1);
+
         public final long version;
         public final long index;
 
@@ -83,8 +88,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
         @Override
         public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + (int) (version ^ (version >>> 32));
+            int result = (int) (version ^ (version >>> 32));
             result = 31 * result + (int) (index ^ (index >>> 32));
             return result;
         }
@@ -160,7 +164,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     // Package protected for testing
     final List<WeakReference<OsResults.Iterator>> iterators = new ArrayList<>();
 
-    private OsSharedRealm(OsRealmConfig osRealmConfig) {
+    private OsSharedRealm(OsRealmConfig osRealmConfig, VersionID version) {
         Capabilities capabilities = new AndroidCapabilities();
         RealmNotifier realmNotifier = new AndroidRealmNotifier(this, capabilities);
 
@@ -168,7 +172,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         this.context = osRealmConfig.getContext();
         sharedRealmsUnderConstruction.add(this);
         try {
-            this.nativePtr = nativeGetSharedRealm(osRealmConfig.getNativePtr(), realmNotifier);
+            this.nativePtr = nativeGetSharedRealm(osRealmConfig.getNativePtr(), version.version, version.index, realmNotifier);
         } catch (Throwable t) {
             // The SharedRealm instances have to be closed before throw.
             for (OsSharedRealm sharedRealm: tempSharedRealmsForCallback) {
@@ -226,19 +230,18 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     /**
      * Creates a {@code OsSharedRealm} instance in dynamic schema mode.
      */
-    public static OsSharedRealm getInstance(RealmConfiguration config) {
+    public static OsSharedRealm getInstance(RealmConfiguration config, VersionID version) {
         OsRealmConfig.Builder builder = new OsRealmConfig.Builder(config);
-        return getInstance(builder);
+        return getInstance(builder, version);
     }
 
     /**
      * Creates a {@code ShareRealm} instance from the given {@link OsRealmConfig.Builder}.
      */
-    public static OsSharedRealm getInstance(OsRealmConfig.Builder configBuilder) {
+    public static OsSharedRealm getInstance(OsRealmConfig.Builder configBuilder, VersionID version) {
         OsRealmConfig osRealmConfig = configBuilder.build();
         ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osRealmConfig);
-
-        return new OsSharedRealm(osRealmConfig);
+        return new OsSharedRealm(osRealmConfig, version);
     }
 
     public static void initialize(File tempDirectory) {
@@ -347,6 +350,10 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     public void refresh() {
+        // FIXME: Ideally this check should be in ObjectStore.
+        if (isFrozen()) {
+            throw new IllegalStateException("It is not possible to refresh frozen Realms.");
+        }
         nativeRefresh(nativePtr);
     }
 
@@ -558,7 +565,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     private static native void nativeInit(String temporaryDirectoryPath);
 
-    private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
+    private static native long nativeGetSharedRealm(long nativeConfigPtr, long versionNo, long versionIndex, RealmNotifier notifier);
 
     private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);
 

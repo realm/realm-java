@@ -56,8 +56,8 @@ public class DynamicRealm extends BaseRealm {
 
     private final RealmSchema schema;
 
-    private DynamicRealm(final RealmCache cache) {
-        super(cache, null);
+    private DynamicRealm(final RealmCache cache, OsSharedRealm.VersionID version) {
+        super(cache, null, version);
         RealmCache.invokeWithGlobalRefCount(cache.getConfiguration(), new RealmCache.Callback() {
             @Override
             public void onResult(int count) {
@@ -84,7 +84,6 @@ public class DynamicRealm extends BaseRealm {
     private DynamicRealm(OsSharedRealm sharedRealm) {
         super(sharedRealm);
         this.schema = new MutableRealmSchema(this);
-
     }
 
 //    private DynamicRealm(OsSharedRealm realm) {
@@ -277,8 +276,8 @@ public class DynamicRealm extends BaseRealm {
      *
      * @return a {@link DynamicRealm} instance.
      */
-    static DynamicRealm createInstance(RealmCache cache) {
-        return new DynamicRealm(cache);
+    static DynamicRealm createInstance(RealmCache cache, OsSharedRealm.VersionID version) {
+        return new DynamicRealm(cache, version);
     }
 
     /**
@@ -414,8 +413,18 @@ public class DynamicRealm extends BaseRealm {
             // FIXME: Is this true?
             throw new IllegalStateException("Cannot freeze objects inside a write transaction");
         }
-        // Returns a frozen copy of this Realm
-        return DynamicRealm.createInstance(sharedRealm);
+
+        // In some cases a Read transaction has not been begun for the the Realm, which means
+        // we cannot read the current version. In that case, do some work that will create the
+        // read transaction.
+        OsSharedRealm.VersionID version;
+        try {
+            version = sharedRealm.getVersionID();
+        } catch (IllegalStateException e) {
+            getVersion();
+            version = sharedRealm.getVersionID();
+        }
+        return RealmCache.createRealmOrGetFromCache(configuration, DynamicRealm.class, version);
     }
 
     /**

@@ -204,6 +204,11 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
             increment(-dec);
         }
 
+        @Override
+        public boolean isFrozen() {
+            return getRealm().isFrozen();
+        }
+
         private BaseRealm getRealm() {
             return getProxyState().getRealm$realm();
        }

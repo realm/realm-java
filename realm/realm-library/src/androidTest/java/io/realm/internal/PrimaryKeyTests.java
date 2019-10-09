@@ -62,7 +62,7 @@ public class PrimaryKeyTests {
     }
 
     private Table getTableWithStringPrimaryKey() {
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
         Table t = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
@@ -73,7 +73,7 @@ public class PrimaryKeyTests {
     }
 
     private Table getTableWithIntegerPrimaryKey() {
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
         Table t = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));

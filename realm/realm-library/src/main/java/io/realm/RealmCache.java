@@ -25,9 +25,10 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -41,11 +42,11 @@ import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmNotifier;
-import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmAsyncTaskImpl;
+import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 
 
@@ -66,13 +67,21 @@ final class RealmCache {
         void onCall();
     }
 
-    private static class RefAndCount {
+    // Internal class keeping track of how instances have been handed out.
+    private static class ReferenceCounter {
         // The Realm instance in this thread.
         private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<>();
         // How many references to this Realm instance in this thread.
         private final ThreadLocal<Integer> localCount = new ThreadLocal<>();
         // How many threads have instances refer to this configuration.
         private int globalCount = 0;
+        // What version of Realm is held by this cache. (-1,-1) indicates a live Realm where the
+        // version will change. Any other version number indicates the Realm is frozen.
+        private final OsSharedRealm.VersionID version;
+
+        private ReferenceCounter(OsSharedRealm.VersionID version) {
+            this.version = version;
+        }
     }
 
     private enum RealmCacheType {
@@ -188,7 +197,7 @@ final class RealmCache {
             "The callback cannot be null.";
 
     // Separated references and counters for typed Realm and dynamic Realm.
-    private final EnumMap<RealmCacheType, RefAndCount> refAndCountMap;
+    private final Map<Pair<RealmCacheType, OsSharedRealm.VersionID>, ReferenceCounter> refAndCountMap = new HashMap<>();
 
     // Path to the Realm file to identify this cache.
     private final String realmPath;
@@ -217,10 +226,6 @@ final class RealmCache {
 
     private RealmCache(String path) {
         realmPath = path;
-        refAndCountMap = new EnumMap<>(RealmCacheType.class);
-        for (RealmCacheType type : RealmCacheType.values()) {
-            refAndCountMap.put(type, new RefAndCount());
-        }
     }
 
     private static RealmCache getCache(String realmPath, boolean createIfNotExist) {
@@ -280,20 +285,18 @@ final class RealmCache {
      */
     static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass) {
         RealmCache cache = getCache(configuration.getPath(), true);
-        return cache.doCreateRealmOrGetFromCache(configuration, realmClass);
+        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, OsSharedRealm.VersionID.LIVE);
     }
 
     static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, OsSharedRealm.VersionID version) {
         RealmCache cache = getCache(configuration.getPath(), true);
-        return cache.doCreateRealmOrGetFromCache(configuration, realmClass);
+        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, version);
     }
 
 
 
-    private synchronized <E extends BaseRealm> E doCreateRealmOrGetFromCache(RealmConfiguration configuration,
-            Class<E> realmClass) {
-
-        RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.valueOf(realmClass));
+    private synchronized <E extends BaseRealm> E doCreateRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, OsSharedRealm.VersionID version) {
+        ReferenceCounter referenceCounter = getRefCounter(realmClass, version);
         boolean firstRealmInstanceInProcess = (getTotalGlobalRefCount() == 0);
         boolean realmFileIsBeingCreated = !configuration.realmExists();
 
@@ -315,7 +318,7 @@ final class RealmCache {
                         if (ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration)) {
                             // Partial Realms are not supported by async open yet, so continue to
                             // use the old way of opening those Realms.
-                            sharedRealm = OsSharedRealm.getInstance(configuration);
+                            sharedRealm = OsSharedRealm.getInstance(configuration, OsSharedRealm.VersionID.LIVE);
                             try {
                                 ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
                             } catch (Throwable t) {
@@ -345,39 +348,57 @@ final class RealmCache {
             validateConfiguration(configuration);
         }
 
-        if (refAndCount.localRealm.get() == null) {
-            // Creates a new local Realm instance
-            BaseRealm realm;
-
-            if (realmClass == Realm.class) {
-                // RealmMigrationNeededException might be thrown here.
-                realm = Realm.createInstance(this);
-
-                // If `waitForInitialRemoteData` data is set, we also want to ensure that all subscriptions
-                // are fully ACTIVE before proceeding. Most of the Realm is initialized during a write
-                // transaction. So we cannot download subscription data until all other initializers have run.
-                // At this point we also have access to all normal APIs as the schema is fully initialized.
-                synchronizeInitialSubscriptionsIfNeeded((Realm) realm, realmFileIsBeingCreated);
-
-            } else if (realmClass == DynamicRealm.class) {
-                realm = DynamicRealm.createInstance(this);
-            } else {
-                throw new IllegalArgumentException(WRONG_REALM_CLASS_MESSAGE);
-            }
-
-            // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
-            refAndCount.localRealm.set(realm);
-            refAndCount.localCount.set(0);
-
-            // This is the first instance in current thread, increase the global count.
-            refAndCount.globalCount++;
+        if (referenceCounter.localRealm.get() == null) {
+            createInstance(realmClass, referenceCounter, realmFileIsBeingCreated, version);
         }
 
-        Integer refCount = refAndCount.localCount.get();
-        refAndCount.localCount.set(refCount + 1);
+        Integer refCount = referenceCounter.localCount.get();
+        referenceCounter.localCount.set(refCount + 1);
 
         //noinspection unchecked
-        return (E) refAndCount.localRealm.get();
+        return (E) referenceCounter.localRealm.get();
+    }
+
+    private <E extends BaseRealm> ReferenceCounter getRefCounter(Class<E> realmClass, OsSharedRealm.VersionID version) {
+        RealmCacheType cacheType = RealmCacheType.valueOf(realmClass);
+        Pair<RealmCacheType, OsSharedRealm.VersionID> key = new Pair<>(cacheType, version);
+        ReferenceCounter refCounter = refAndCountMap.get(key);
+        if (refCounter == null) {
+            refCounter = new ReferenceCounter(version);
+            refAndCountMap.put(key, refCounter);
+        }
+        return refCounter;
+    }
+
+    private <E extends BaseRealm> void createInstance(Class<E> realmClass,
+                                                      ReferenceCounter referenceCounter,
+                                                      boolean realmFileIsBeingCreated,
+                                                      OsSharedRealm.VersionID version) {
+        // Creates a new local Realm instance
+        BaseRealm realm;
+
+        if (realmClass == Realm.class) {
+            // RealmMigrationNeededException might be thrown here.
+            realm = Realm.createInstance(this, version);
+
+            // If `waitForInitialRemoteData` data is set, we also want to ensure that all subscriptions
+            // are fully ACTIVE before proceeding. Most of the Realm is initialized during a write
+            // transaction. So we cannot download subscription data until all other initializers have run.
+            // At this point we also have access to all normal APIs as the schema is fully initialized.
+            synchronizeInitialSubscriptionsIfNeeded((Realm) realm, realmFileIsBeingCreated);
+
+        } else if (realmClass == DynamicRealm.class) {
+            realm = DynamicRealm.createInstance(this, version);
+        } else {
+            throw new IllegalArgumentException(WRONG_REALM_CLASS_MESSAGE);
+        }
+
+        // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
+        referenceCounter.localRealm.set(realm);
+        referenceCounter.localCount.set(0);
+
+        // This is the first instance in current thread, increase the global count.
+        referenceCounter.globalCount++;
     }
 
     /**
@@ -439,8 +460,8 @@ final class RealmCache {
      */
     synchronized void release(BaseRealm realm) {
         String canonicalPath = realm.getPath();
-        RefAndCount refAndCount = refAndCountMap.get(RealmCacheType.valueOf(realm.getClass()));
-        Integer refCount = refAndCount.localCount.get();
+        ReferenceCounter referenceCounter = getRefCounter(realm.getClass(), (realm.isFrozen()) ? realm.sharedRealm.getVersionID() : OsSharedRealm.VersionID.LIVE);
+        Integer refCount = referenceCounter.localCount.get();
         if (refCount == null) {
             refCount = 0;
         }
@@ -456,12 +477,12 @@ final class RealmCache {
         if (refCount == 0) {
             // The last instance in this thread.
             // Clears local ref & counter.
-            refAndCount.localCount.set(null);
-            refAndCount.localRealm.set(null);
+            referenceCounter.localCount.set(null);
+            referenceCounter.localRealm.set(null);
 
             // Clears global counter.
-            refAndCount.globalCount--;
-            if (refAndCount.globalCount < 0) {
+            referenceCounter.globalCount--;
+            if (referenceCounter.globalCount < 0) {
                 // Should never happen.
                 throw new IllegalStateException("Global reference counter of Realm" + canonicalPath +
                         " got corrupted.");
@@ -481,7 +502,7 @@ final class RealmCache {
             }
 
         } else {
-            refAndCount.localCount.set(refCount);
+            referenceCounter.localCount.set(refCount);
         }
     }
 
@@ -651,8 +672,8 @@ final class RealmCache {
 
         // Access local ref count only, no need to by synchronized.
         int totalRefCount = 0;
-        for (RefAndCount refAndCount : cache.refAndCountMap.values()) {
-            Integer localCount = refAndCount.localCount.get();
+        for (ReferenceCounter referenceCounter : cache.refAndCountMap.values()) {
+            Integer localCount = referenceCounter.localCount.get();
             totalRefCount += (localCount != null) ? localCount : 0;
         }
         return totalRefCount;
@@ -667,8 +688,8 @@ final class RealmCache {
      */
     private int getTotalGlobalRefCount() {
         int totalRefCount = 0;
-        for (RefAndCount refAndCount : refAndCountMap.values()) {
-            totalRefCount += refAndCount.globalCount;
+        for (ReferenceCounter referenceCounter : refAndCountMap.values()) {
+            totalRefCount += referenceCounter.globalCount;
         }
 
         return totalRefCount;

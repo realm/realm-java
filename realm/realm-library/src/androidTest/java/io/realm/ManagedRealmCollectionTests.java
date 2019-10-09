@@ -823,6 +823,12 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         case DELETE_ALL_FROM_REALM: collection.deleteAllFromRealm(); break;
                         case IS_VALID: collection.isValid(); break;
                         case IS_MANAGED: collection.isManaged(); return true;
+
+                        // FIXME
+                        case IS_FROZEN:
+                            break;
+                        case FREEZE:
+                            break;
                     }
                     return false;
                 } catch (IllegalStateException ignored) {

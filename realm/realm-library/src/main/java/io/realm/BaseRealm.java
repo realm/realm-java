@@ -100,13 +100,13 @@ abstract class BaseRealm implements Closeable {
     };
 
     // Create a realm instance and associate it to a RealmCache.
-    BaseRealm(RealmCache cache, @Nullable OsSchemaInfo schemaInfo) {
-        this(cache.getConfiguration(), schemaInfo);
+    BaseRealm(RealmCache cache, @Nullable OsSchemaInfo schemaInfo, OsSharedRealm.VersionID version) {
+        this(cache.getConfiguration(), schemaInfo, version);
         this.realmCache = cache;
     }
 
     // Create a realm instance without associating it to any RealmCache.
-    BaseRealm(final RealmConfiguration configuration, @Nullable OsSchemaInfo schemaInfo) {
+    BaseRealm(final RealmConfiguration configuration, @Nullable OsSchemaInfo schemaInfo, OsSharedRealm.VersionID version) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.realmCache = null;
@@ -134,7 +134,7 @@ abstract class BaseRealm implements Closeable {
                 .migrationCallback(migrationCallback)
                 .schemaInfo(schemaInfo)
                 .initializationCallback(initializationCallback);
-        this.sharedRealm = OsSharedRealm.getInstance(configBuilder);
+        this.sharedRealm = OsSharedRealm.getInstance(configBuilder, version);
         this.frozen = sharedRealm.isFrozen();
         this.shouldCloseSharedRealm = true;
         sharedRealm.registerSchemaChangedCallback(schemaChangedCallback);
@@ -212,6 +212,9 @@ abstract class BaseRealm implements Closeable {
         }
         checkIfValid();
         sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+        if (frozen) {
+            throw new IllegalStateException("It is not possible to add a change listener to frozen Realm since it never changes.");
+        }
         //noinspection unchecked
         sharedRealm.realmNotifier.addChangeListener((T) this, listener);
     }
@@ -760,7 +763,7 @@ abstract class BaseRealm implements Closeable {
      * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
-        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configuration);
+        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configuration, OsSharedRealm.VersionID.LIVE);
         Boolean result = sharedRealm.compact();
         sharedRealm.close();
         return result;
@@ -819,7 +822,7 @@ abstract class BaseRealm implements Closeable {
                 OsSharedRealm sharedRealm = null;
                 try {
                     sharedRealm =
-                            OsSharedRealm.getInstance(configBuilder);
+                            OsSharedRealm.getInstance(configBuilder, OsSharedRealm.VersionID.LIVE);
                 } finally {
                     if (sharedRealm != null) {
                         sharedRealm.close();

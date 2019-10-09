@@ -161,18 +161,18 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      *
      * @return
      */
+    @Override
     public final boolean isFrozen() {
         return RealmObject.isFrozen(this);
     }
 
     /**
      * FIXME
-     * @param <E>
      * @return
      */
-    public final <E extends RealmModel> E freeze() {
+    public final RealmObject freeze() {
         //noinspection unchecked
-        return (E) RealmObject.freeze(this);
+        return RealmObject.freeze(this);
     }
 
     /**

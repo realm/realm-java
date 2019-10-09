@@ -45,21 +45,21 @@ android {
         base {
             dimension 'api'
         }
-        objectServer {
-            dimension 'api'
-        }
+//        objectServer {
+//            dimension 'api'
+//        }
     }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         androidTest.java.srcDirs += ['src/androidTest/kotlin', '../realm-library/src/testUtils/java']
-        objectServer.java.srcDirs += 'src/objectServer/kotlin'
-        androidTestObjectServer.java.srcDirs += [
-                'src/androidTestObjectServer/kotlin',
-                '../realm-library/src/testUtils/java',
-                '../realm-library/src/testUtils/kotlin',
-                '../realm-library/src/syncTestUtils/java',
-        ]
+//        objectServer.java.srcDirs += 'src/objectServer/kotlin'
+//        androidTestObjectServer.java.srcDirs += [
+//                'src/androidTestObjectServer/kotlin',
+//                '../realm-library/src/testUtils/java',
+//                '../realm-library/src/testUtils/kotlin',
+//                '../realm-library/src/syncTestUtils/java',
+//        ]
     }
 
     // Required from Kotlin 1.1.2
@@ -77,9 +77,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test:rules:1.0.2'
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    androidTestObjectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
-    androidTestObjectServerImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
-    androidTestObjectServerImplementation 'com.google.code.findbugs:jsr305:3.0.2'
+//    androidTestObjectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
+//    androidTestObjectServerImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
+//    androidTestObjectServerImplementation 'com.google.code.findbugs:jsr305:3.0.2'
 
 
 }
@@ -97,7 +97,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 
 
 task sourcesJar(type: Jar) {
-    from android.sourceSets.objectServer.java.srcDirs
+//    from android.sourceSets.objectServer.java.srcDirs
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
@@ -190,16 +190,16 @@ publishing {
             pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
 
-        objectServerPublication(MavenPublication) {
-            groupId 'io.realm'
-            artifactId 'realm-android-kotlin-extensions-object-server'
-            version project.version
-            artifact file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-objectServer-release.aar")
-            artifact sourcesJar
-            artifact javadocJar
-
-            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
-        }
+//        objectServerPublication(MavenPublication) {
+//            groupId 'io.realm'
+//            artifactId 'realm-android-kotlin-extensions-object-server'
+//            version project.version
+//            artifact file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-objectServer-release.aar")
+//            artifact sourcesJar
+//            artifact javadocJar
+//
+//            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
+//        }
     }
     repositories {
         maven {

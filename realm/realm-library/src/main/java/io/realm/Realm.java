@@ -159,8 +159,8 @@ public class Realm extends BaseRealm {
      * @param cache the {@link RealmCache} associated to this Realm instance.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
      */
-    private Realm(RealmCache cache) {
-        super(cache, createExpectedSchemaInfo(cache.getConfiguration().getSchemaMediator()));
+    private Realm(RealmCache cache, OsSharedRealm.VersionID version) {
+        super(cache, createExpectedSchemaInfo(cache.getConfiguration().getSchemaMediator()), version);
         schema = new ImmutableRealmSchema(this,
                 new ColumnIndices(configuration.getSchemaMediator(), sharedRealm.getSchemaInfo()));
         // FIXME: This is to work around the different behaviour between the read only Realms in the Object Store and
@@ -383,6 +383,8 @@ public class Realm extends BaseRealm {
         }
     }
 
+//     * @throws io.realm.exceptions.DownloadingRealmInterruptedException if {@link SyncConfiguration.Builder#waitForInitialRemoteData()}
+//     * was set and the thread opening the Realm was interrupted while the download was in progress.
     /**
      * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
      * by {@link #setDefaultConfiguration(RealmConfiguration)}
@@ -392,8 +394,6 @@ public class Realm extends BaseRealm {
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
      * RealmObject classes or version has has changed so a migration is required.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file.
-     * @throws io.realm.exceptions.DownloadingRealmInterruptedException if {@link SyncConfiguration.Builder#waitForInitialRemoteData()}
-     * was set and the thread opening the Realm was interrupted while the download was in progress.
      */
     public static Realm getDefaultInstance() {
         RealmConfiguration configuration = getDefaultConfiguration();
@@ -407,6 +407,8 @@ public class Realm extends BaseRealm {
         return RealmCache.createRealmOrGetFromCache(configuration, Realm.class);
     }
 
+//     * @throws io.realm.exceptions.DownloadingRealmInterruptedException if {@link SyncConfiguration.Builder#waitForInitialRemoteData()}
+//     * was set and the thread opening the Realm was interrupted while the download was in progress.
     /**
      * Realm static constructor that returns the Realm instance defined by provided {@link io.realm.RealmConfiguration}
      *
@@ -416,8 +418,6 @@ public class Realm extends BaseRealm {
      * classes or version has has changed so a migration is required.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
-     * @throws io.realm.exceptions.DownloadingRealmInterruptedException if {@link SyncConfiguration.Builder#waitForInitialRemoteData()}
-     * was set and the thread opening the Realm was interrupted while the download was in progress.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
@@ -495,8 +495,8 @@ public class Realm extends BaseRealm {
      * @param cache the {@link RealmCache} where to create the realm in.
      * @return a {@link Realm} instance.
      */
-    static Realm createInstance(RealmCache cache) {
-        return new Realm(cache);
+    static Realm createInstance(RealmCache cache, OsSharedRealm.VersionID version) {
+        return new Realm(cache, version);
     }
 
     /**
@@ -1992,13 +1992,7 @@ public class Realm extends BaseRealm {
             // FIXME: Is this true?
             throw new IllegalStateException("Cannot freeze objects inside a write transaction");
         }
-
-//        return RealmCache.createRealmOrGetFromCache(this)
-//
-//        Realm.getInstance(configuration, true);
-//
-        // Returns a frozen copy of this Realm
-        return null;
+        return RealmCache.createRealmOrGetFromCache(configuration, Realm.class, sharedRealm.getVersionID());
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {

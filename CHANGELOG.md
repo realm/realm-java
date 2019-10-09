@@ -1,3 +1,20 @@
+## 7.0.0(YYYY-MM-DD)
+
+### Breaking Changes
+* None (Yeah right).
+
+### Enhancements
+* None.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* [ObjectServer] The OKHttp client will now follow redirects from the Realm Object Server.
+* `OsSharedRealm.VersionID.hashCode()` was not implemented correctly and included the memory location in the hashcode.
+
 ## 6.0.0(YYYY-MM-DD)
 
 ### Breaking Changes

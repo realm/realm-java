@@ -101,6 +101,14 @@ public class UnManagedRealmCollectionTests extends CollectionTests {
                     // Supported methods.
                     case IS_VALID: assertTrue(collection.isValid()); continue;
                     case IS_MANAGED: assertFalse(collection.isManaged()); continue;
+
+                    // FIXME
+                    case IS_FROZEN:
+                        // FIXME
+                        break;
+                    case FREEZE:
+                        // FIXME
+                        break;
                 }
                 fail(method + " should have thrown an exception.");
             } catch (UnsupportedOperationException ignored) {
