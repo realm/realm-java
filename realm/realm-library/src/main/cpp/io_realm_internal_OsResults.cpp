@@ -479,7 +479,7 @@ JNIEXPORT jbyte JNICALL Java_io_realm_internal_OsResults_nativeGetMode(JNIEnv* e
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFromBacklinks(JNIEnv *env, jclass,
                                                                                            jlong shared_realm_ptr,
                                                                                            jlong obj_ptr,
-                                                                                           jlong src_table_ptr,
+                                                                                           jlong src_table_ref_ptr,
                                                                                            jlong src_col_key)
 {
     TR_ENTER_PTR(obj_ptr)
@@ -488,7 +488,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFrom
         return reinterpret_cast<jlong>(nullptr);
     }
     try {
-        TableRef src_table = TBL_REF(src_table_ptr);
+        TableRef src_table = TBL_REF(src_table_ref_ptr);
         TableView backlink_view = obj->get_backlink_view(src_table, ColKey(src_col_key));
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         Results results(shared_realm, std::move(backlink_view));

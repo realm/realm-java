@@ -317,7 +317,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObject(JN
 {
     try {
         TableRef table = TBL_REF(table_ref_ptr);
-        Obj* obj =  new Obj(table->create_object());
+        Obj* obj = new Obj(table->create_object());
         return reinterpret_cast<jlong>(obj);
     }
     CATCH_STD()

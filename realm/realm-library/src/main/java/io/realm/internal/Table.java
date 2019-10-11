@@ -49,10 +49,6 @@ public class Table implements NativeObject {
 
     private final OsSharedRealm sharedRealm;
 
-    Table(Table parent, long nativeTableRefPointer) {
-        this(parent.sharedRealm, nativeTableRefPointer);
-    }
-
     Table(OsSharedRealm sharedRealm, long nativeTableRefPointer) {
         this.context = sharedRealm.context;
         this.sharedRealm = sharedRealm;
