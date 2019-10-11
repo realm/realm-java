@@ -328,7 +328,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetString(JNIEn
     try {
         ColKey col_key(columnKey);
         if ((value == nullptr) && !(OBJ(nativeRowPtr)->get_table()->is_nullable(col_key))) {
-            ThrowNullValueException(env, const_cast<Table*>(OBJ(nativeRowPtr)->get_table()), ColKey(columnKey));
+            ThrowNullValueException(env, OBJ(nativeRowPtr)->get_table(), ColKey(columnKey));
             return;
         }
         JStringAccessor value2(env, value); // throws
@@ -351,7 +351,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetByteArray(JN
         auto& obj = *reinterpret_cast<realm::Obj*>(nativeRowPtr);
         ColKey col_key(columnKey);
         if (value == nullptr && !(obj.get_table()->is_nullable(col_key))) {
-            ThrowNullValueException(env, const_cast<Table*>(OBJ(nativeRowPtr)->get_table()), ColKey(columnKey));
+            ThrowNullValueException(env, OBJ(nativeRowPtr)->get_table(), ColKey(columnKey));
             return;
         }
 

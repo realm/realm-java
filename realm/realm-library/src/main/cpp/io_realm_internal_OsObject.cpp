@@ -166,7 +166,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
                                                     jlong pk_column_key, jlong pk_value, jboolean is_pk_null)
 {
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(table_ref_ptr));
+    TableRef table = TBL_REF(table_ref_ptr);
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
     if (is_pk_null && !COL_NULLABLE(env, table, pk_column_key)) {
@@ -212,7 +212,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
                                                     jlong pk_column_key, jstring pk_value)
 {
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    Table* table = ((Table*)*reinterpret_cast<realm::TableRef*>(table_ref_ptr));
+    TableRef table = TBL_REF(table_ref_ptr);
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
     JStringAccessor str_accessor(env, pk_value); // throws

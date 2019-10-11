@@ -144,7 +144,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     CATCH_STD()
 }
 
-static inline const ObjectSchema& get_schema(const Schema& schema, Table* table)
+static inline const ObjectSchema& get_schema(const Schema& schema, TableRef table)
 {
     std::string table_name(table->get_name());
     std::string class_name = std::string(table_name.substr(TABLE_PREFIX.length()));
