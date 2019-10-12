@@ -125,7 +125,6 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             this.fieldFloatListNullIndex = addColumnDetails("fieldFloatListNull", "fieldFloatListNull", objectSchemaInfo);
             this.fieldDateListNotNullIndex = addColumnDetails("fieldDateListNotNull", "fieldDateListNotNull", objectSchemaInfo);
             this.fieldDateListNullIndex = addColumnDetails("fieldDateListNull", "fieldDateListNull", objectSchemaInfo);
-            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         NullTypesColumnInfo(ColumnInfo src, boolean mutable) {
@@ -2221,7 +2220,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         some_test_NullTypesRealmProxyInterface realmObjectSource = (some_test_NullTypesRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.NullTypes.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
+        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
         builder.addString(columnInfo.fieldStringNotNullIndex, realmObjectSource.realmGet$fieldStringNotNull());

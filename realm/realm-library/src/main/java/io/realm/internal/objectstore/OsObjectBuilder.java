@@ -160,7 +160,7 @@ public class OsObjectBuilder implements Closeable {
     // If true, fields will not be updated if the same value would be written to it.
     private final boolean ignoreFieldsWithSameValue;
 
-    public OsObjectBuilder(Table table, long maxColumnIndex, Set<ImportFlag> flags) {//TODO __CORE6__ maxColumnIndex is no more needed, remove it & update the proxy gen code (also remove objectSchemaInfo.getMaxColumnIndex())
+    public OsObjectBuilder(Table table, Set<ImportFlag> flags) {
         OsSharedRealm sharedRealm = table.getSharedRealm();
         this.sharedRealmPtr = sharedRealm.getNativePtr();
         this.table = table;

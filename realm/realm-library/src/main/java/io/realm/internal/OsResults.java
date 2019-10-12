@@ -467,7 +467,7 @@ public class OsResults implements NativeObject, ObservableCollection {
     // Helper method for adding specific types of lists.
     private <T> void addTypeSpecificList(String fieldName, RealmList<T> list, AddListTypeDelegate<T> delegate) {
         //noinspection unchecked
-        OsObjectBuilder builder = new OsObjectBuilder(getTable(), 0, Collections.EMPTY_SET);
+        OsObjectBuilder builder = new OsObjectBuilder(getTable(), Collections.EMPTY_SET);
         delegate.addList(builder, list);
         try {
             nativeSetList(nativePtr, fieldName, builder.getNativePtr());

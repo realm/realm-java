@@ -85,7 +85,6 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             this.columnFloatListIndex = addColumnDetails("columnFloatList", "columnFloatList", objectSchemaInfo);
             this.columnDateListIndex = addColumnDetails("columnDateList", "columnDateList", objectSchemaInfo);
             addBacklinkDetails(schemaInfo, "parentObjects", "AllTypes", "columnObject");
-            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         AllTypesColumnInfo(ColumnInfo src, boolean mutable) {
@@ -1223,7 +1222,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         some_test_AllTypesRealmProxyInterface realmObjectSource = (some_test_AllTypesRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.AllTypes.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
+        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
         builder.addString(columnInfo.columnStringIndex, realmObjectSource.realmGet$columnString());
@@ -2185,7 +2184,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         some_test_AllTypesRealmProxyInterface realmObjectTarget = (some_test_AllTypesRealmProxyInterface) realmObject;
         some_test_AllTypesRealmProxyInterface realmObjectSource = (some_test_AllTypesRealmProxyInterface) newObject;
         Table table = realm.getTable(some.test.AllTypes.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
+        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
         builder.addString(columnInfo.columnStringIndex, realmObjectSource.realmGet$columnString());
         builder.addInteger(columnInfo.columnLongIndex, realmObjectSource.realmGet$columnLong());
         builder.addFloat(columnInfo.columnFloatIndex, realmObjectSource.realmGet$columnFloat());

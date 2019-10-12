@@ -47,7 +47,6 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("NamePolicyModuleDefaults");
             this.firstNameIndex = addColumnDetails("firstName", "FirstName", objectSchemaInfo);
             this.lastNameIndex = addColumnDetails("lastName", "LastName", objectSchemaInfo);
-            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         NamePolicyModuleDefaultsColumnInfo(ColumnInfo src, boolean mutable) {
@@ -269,7 +268,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         some_test_NamePolicyModuleDefaultsRealmProxyInterface realmObjectSource = (some_test_NamePolicyModuleDefaultsRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.NamePolicyModuleDefaults.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
+        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
         builder.addString(columnInfo.firstNameIndex, realmObjectSource.realmGet$firstName());

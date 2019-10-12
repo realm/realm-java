@@ -47,7 +47,6 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("customName");
             this.firstNameIndex = addColumnDetails("firstName", "first_name", objectSchemaInfo);
             this.lastNameIndex = addColumnDetails("lastName", "LastName", objectSchemaInfo);
-            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         NamePolicyMixedClassSettingsColumnInfo(ColumnInfo src, boolean mutable) {
@@ -269,7 +268,7 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         some_test_NamePolicyMixedClassSettingsRealmProxyInterface realmObjectSource = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.NamePolicyMixedClassSettings.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
+        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
         builder.addString(columnInfo.firstNameIndex, realmObjectSource.realmGet$firstName());

@@ -137,20 +137,3 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrima
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetMaxColumnIndex(JNIEnv* env, jclass,
-                                                                                         jlong native_ptr)
-{
-    TR_ENTER_PTR(native_ptr)
-
-    try {
-        auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
-        if (object_schema.persisted_properties.empty()) {
-            return static_cast<jlong>(-1);
-        } else {
-            return static_cast<jlong>(object_schema.persisted_properties.size());
-        }
-    }
-    CATCH_STD()
-    return static_cast<jlong>(-1);
-}

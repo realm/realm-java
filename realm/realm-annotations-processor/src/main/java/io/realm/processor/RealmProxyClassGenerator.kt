@@ -147,7 +147,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     val internalSourceFieldName = sourceClass.getInternalFieldName(backlink.sourceField!!)
                     emitStatement("addBacklinkDetails(schemaInfo, \"%s\", \"%s\", \"%s\")", backlink.targetField, internalSourceClassName, internalSourceFieldName)
                 }
-                emitStatement("this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex()")
             endConstructor()
             emitEmptyLine()
 
@@ -1380,7 +1379,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 emitStatement("%1\$s realmObjectSource = (%1\$s) newObject", interfaceName)
                 emitEmptyLine()
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
-                emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags)")
+                emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table, flags)")
 
                 // Copy basic types
                 emitEmptyLine()
@@ -1545,7 +1544,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 emitStatement("%1\$s realmObjectTarget = (%1\$s) realmObject", interfaceName)
                 emitStatement("%1\$s realmObjectSource = (%1\$s) newObject", interfaceName)
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
-                emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags)")
+                emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table, flags)")
                 for (field in metadata.fields) {
                     val fieldType = field.asType().toString()
                     val fieldName = field.simpleName.toString()

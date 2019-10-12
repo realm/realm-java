@@ -51,7 +51,6 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
             this.isReadyIndex = addColumnDetails("isReady", "isReady", objectSchemaInfo);
             this.mCompletedIndex = addColumnDetails("mCompleted", "mCompleted", objectSchemaInfo);
             this.anotherBooleanIndex = addColumnDetails("anotherBoolean", "anotherBoolean", objectSchemaInfo);
-            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         BooleansColumnInfo(ColumnInfo src, boolean mutable) {
@@ -333,7 +332,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         some_test_BooleansRealmProxyInterface realmObjectSource = (some_test_BooleansRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.Booleans.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
+        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
         builder.addBoolean(columnInfo.doneIndex, realmObjectSource.realmGet$done());

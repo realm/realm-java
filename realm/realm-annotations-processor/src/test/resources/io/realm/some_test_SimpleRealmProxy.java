@@ -47,7 +47,6 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("Simple");
             this.nameIndex = addColumnDetails("name", "name", objectSchemaInfo);
             this.ageIndex = addColumnDetails("age", "age", objectSchemaInfo);
-            this.maxColumnIndexValue = objectSchemaInfo.getMaxColumnIndex();
         }
 
         SimpleColumnInfo(ColumnInfo src, boolean mutable) {
@@ -261,7 +260,7 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         some_test_SimpleRealmProxyInterface realmObjectSource = (some_test_SimpleRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.Simple.class);
-        OsObjectBuilder builder = new OsObjectBuilder(table, columnInfo.maxColumnIndexValue, flags);
+        OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
         builder.addString(columnInfo.nameIndex, realmObjectSource.realmGet$name());
