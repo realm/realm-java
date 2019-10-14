@@ -85,7 +85,7 @@ public class PendingRow implements Row {
     }
 
     @Override
-    public long getColumnKey() {
+    public long getObjectKey() {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

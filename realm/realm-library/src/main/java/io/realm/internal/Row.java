@@ -61,9 +61,9 @@ public interface Row {
     Table getTable();
 
     /**
-     * Returns the column key in the original source table, not the tableview.
+     * Returns the object key in the original source table, not the tableview.
      */
-    long getColumnKey();
+    long getObjectKey();
 
     long getLong(long columnKey);
 

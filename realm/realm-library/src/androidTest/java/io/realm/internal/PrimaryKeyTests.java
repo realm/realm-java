@@ -21,7 +21,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,14 +43,12 @@ public class PrimaryKeyTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private android.content.Context context;
     private RealmConfiguration config;
     private OsSharedRealm sharedRealm;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         config = configFactory.createConfiguration();
-        context = InstrumentationRegistry.getInstrumentation().getContext();
     }
 
     @After
@@ -149,22 +146,20 @@ public class PrimaryKeyTests {
     }
 
     @Test
-    @Ignore("__CORE6__: using index should be deprecated, use ColKey, ObjKey")
     public void addEmptyRowWithPrimaryKeyString() {
         Table t = getTableWithStringPrimaryKey();
         UncheckedRow row = OsObject.createWithPrimaryKey(t, "Foo");
         assertEquals(1, t.size());
-        assertEquals("Foo", row.getString(0));
+        assertEquals("Foo", row.getString(row.getColumnKey("colName")));
         sharedRealm.cancelTransaction();
     }
 
     @Test
-    @Ignore("__CORE6__: using index should be deprecated, use ColKey, ObjKey")
     public void addEmptyRowWithPrimaryKeyLong() {
         Table t = getTableWithIntegerPrimaryKey();
         UncheckedRow row = OsObject.createWithPrimaryKey(t, 42);
         assertEquals(1, t.size());
-        assertEquals(42L, row.getLong(0));
+        assertEquals(42L, row.getLong(row.getColumnKey("colName")));
         sharedRealm.cancelTransaction();
     }
 }

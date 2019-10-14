@@ -31,14 +31,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnCount(J
     return Java_io_realm_internal_UncheckedRow_nativeGetColumnCount(env, obj, nativeRowPtr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnKeyByName(JNIEnv* env, jobject obj,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnKey(JNIEnv* env, jobject obj,
                                                                                jlong nativeRowPtr, jstring columnName)
 {
     if (!OBJ(nativeRowPtr)->is_valid()) {
         ThrowException(env, IllegalArgument, "Object passed is not valid");
     }
 
-    ColKey col_key (Java_io_realm_internal_UncheckedRow_nativeGetColumnKeyByName(env, obj, nativeRowPtr, columnName));
+    ColKey col_key (Java_io_realm_internal_UncheckedRow_nativeGetColumnKey(env, obj, nativeRowPtr, columnName));
     if (!bool(col_key)) {
         JStringAccessor column_name(env, columnName);
         ThrowException(env, IllegalArgument, concat_stringdata("Field not found: ", column_name));

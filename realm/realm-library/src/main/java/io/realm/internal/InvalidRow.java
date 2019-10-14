@@ -55,7 +55,7 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public long getColumnKey() {
+    public long getObjectKey() {
         throw getStubException();
     }
 

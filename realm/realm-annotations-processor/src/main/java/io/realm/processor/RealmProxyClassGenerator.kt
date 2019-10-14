@@ -301,7 +301,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("final Row row = proxyState.getRow\$realm()")
                     if (metadata.isNullable(field)) {
                         beginControlFlow("if (value == null)")
-                            emitStatement("row.getTable().setNull(%s, row.getColumnKey(), true)", fieldColKeyVariableReference(field))
+                            emitStatement("row.getTable().setNull(%s, row.getObjectKey(), true)", fieldColKeyVariableReference(field))
                             emitStatement("return")
                         endControlFlow()
                     } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
@@ -309,7 +309,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
                         endControlFlow()
                     }
-                    emitStatement("row.getTable().set%s(%s, row.getColumnKey(), value, true)", fieldJavaType, fieldColKeyVariableReference(field))
+                    emitStatement("row.getTable().set%s(%s, row.getObjectKey(), value, true)", fieldJavaType, fieldColKeyVariableReference(field))
                     emitStatement("return")
                 }
                 emitStatement("proxyState.getRealm\$realm().checkIfValid()")
@@ -392,7 +392,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("return")
                     endControlFlow()
                     emitStatement("proxyState.checkValidObject(value)")
-                    emitStatement("row.getTable().setLink(%s, row.getColumnKey(), ((RealmObjectProxy) value).realmGet\$proxyState().getRow\$realm().getColumnKey(), true)", fieldColKeyVariableReference(field))
+                    emitStatement("row.getTable().setLink(%s, row.getObjectKey(), ((RealmObjectProxy) value).realmGet\$proxyState().getRow\$realm().getObjectKey(), true)", fieldColKeyVariableReference(field))
                     emitStatement("return")
                 }
                 emitStatement("proxyState.getRealm\$realm().checkIfValid()")
@@ -401,7 +401,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("return")
                 endControlFlow()
                 emitStatement("proxyState.checkValidObject(value)")
-                emitStatement("proxyState.getRow\$realm().setLink(%s, ((RealmObjectProxy) value).realmGet\$proxyState().getRow\$realm().getColumnKey())", fieldColKeyVariableReference(field))
+                emitStatement("proxyState.getRow\$realm().setLink(%s, ((RealmObjectProxy) value).realmGet\$proxyState().getRow\$realm().getObjectKey())", fieldColKeyVariableReference(field))
             endMethod()
             // Setter - End
         }
@@ -486,7 +486,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         beginControlFlow("for (int i = 0; i < objects; i++)")
                             emitStatement("%s linkedObject = value.get(i)", genericType)
                             emitStatement("proxyState.checkValidObject(linkedObject)")
-                            emitStatement("osList.setRow(i, ((RealmObjectProxy) linkedObject).realmGet\$proxyState().getRow\$realm().getColumnKey())")
+                            emitStatement("osList.setRow(i, ((RealmObjectProxy) linkedObject).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                         endControlFlow()
                         nextControlFlow("else")
                             emitStatement("osList.removeAll()")
@@ -497,7 +497,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             beginControlFlow("for (int i = 0; i < objects; i++)")
                             emitStatement("%s linkedObject = value.get(i)", genericType)
                             emitStatement("proxyState.checkValidObject(linkedObject)")
-                            emitStatement("osList.addRow(((RealmObjectProxy) linkedObject).realmGet\$proxyState().getRow\$realm().getColumnKey())")
+                            emitStatement("osList.addRow(((RealmObjectProxy) linkedObject).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                         endControlFlow()
                     endControlFlow()
             } else {
@@ -949,7 +949,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             // If object is already in the Realm there is nothing to update
             beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
-                emitStatement("return ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getColumnKey()")
+                emitStatement("return ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey()")
             endControlFlow()
 
             emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
@@ -1041,7 +1041,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("continue")
                     endControlFlow()
                     beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
-                        emitStatement("cache.put(object, ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getColumnKey())")
+                        emitStatement("cache.put(object, ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                         emitStatement("continue")
                     endControlFlow()
 
@@ -1110,7 +1110,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             // If object is already in the Realm there is nothing to update
             beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
-                emitStatement("return ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getColumnKey()")
+                emitStatement("return ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey()")
             endControlFlow()
             emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
             emitStatement("long tableNativePtr = table.getNativePtr()")
@@ -1216,7 +1216,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     endControlFlow()
 
                     beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
-                        emitStatement("cache.put(object, ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getColumnKey())")
+                        emitStatement("cache.put(object, ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                         emitStatement("continue")
                     endControlFlow()
                     addPrimaryKeyCheckIfNeeded(metadata, false, writer)
@@ -1666,7 +1666,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod("int", "hashCode", EnumSet.of(Modifier.PUBLIC))
                 emitStatement("String realmName = proxyState.getRealm\$realm().getPath()")
                 emitStatement("String tableName = proxyState.getRow\$realm().getTable().getName()")
-                emitStatement("long rowIndex = proxyState.getRow\$realm().getColumnKey()")
+                emitStatement("long rowIndex = proxyState.getRow\$realm().getObjectKey()")
                 emitEmptyLine()
                 emitStatement("int result = 17")
                 emitStatement("result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0)")
@@ -1702,7 +1702,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 emitStatement("String otherTableName = %s.proxyState.getRow\$realm().getTable().getName()", otherObjectVarName)
                 emitStatement("if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false")
                 emitEmptyLine()
-                emitStatement("if (proxyState.getRow\$realm().getColumnKey() != %s.proxyState.getRow\$realm().getColumnKey()) return false", otherObjectVarName)
+                emitStatement("if (proxyState.getRow\$realm().getObjectKey() != %s.proxyState.getRow\$realm().getObjectKey()) return false", otherObjectVarName)
                 emitEmptyLine()
                 emitStatement("return true")
             endMethod()

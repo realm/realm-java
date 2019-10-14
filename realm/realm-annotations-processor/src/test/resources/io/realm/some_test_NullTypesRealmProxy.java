@@ -244,7 +244,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldStringNotNull' to null.");
             }
-            row.getTable().setString(columnInfo.fieldStringNotNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setString(columnInfo.fieldStringNotNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -270,10 +270,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                row.getTable().setNull(columnInfo.fieldStringNullColKey, row.getColumnKey(), true);
+                row.getTable().setNull(columnInfo.fieldStringNullColKey, row.getObjectKey(), true);
                 return;
             }
-            row.getTable().setString(columnInfo.fieldStringNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setString(columnInfo.fieldStringNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -302,7 +302,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldBooleanNotNull' to null.");
             }
-            row.getTable().setBoolean(columnInfo.fieldBooleanNotNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setBoolean(columnInfo.fieldBooleanNotNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -331,10 +331,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                row.getTable().setNull(columnInfo.fieldBooleanNullColKey, row.getColumnKey(), true);
+                row.getTable().setNull(columnInfo.fieldBooleanNullColKey, row.getObjectKey(), true);
                 return;
             }
-            row.getTable().setBoolean(columnInfo.fieldBooleanNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setBoolean(columnInfo.fieldBooleanNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -363,7 +363,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldBytesNotNull' to null.");
             }
-            row.getTable().setBinaryByteArray(columnInfo.fieldBytesNotNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setBinaryByteArray(columnInfo.fieldBytesNotNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -389,10 +389,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                row.getTable().setNull(columnInfo.fieldBytesNullColKey, row.getColumnKey(), true);
+                row.getTable().setNull(columnInfo.fieldBytesNullColKey, row.getObjectKey(), true);
                 return;
             }
-            row.getTable().setBinaryByteArray(columnInfo.fieldBytesNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setBinaryByteArray(columnInfo.fieldBytesNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -421,7 +421,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldByteNotNull' to null.");
             }
-            row.getTable().setLong(columnInfo.fieldByteNotNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setLong(columnInfo.fieldByteNotNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -450,10 +450,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                row.getTable().setNull(columnInfo.fieldByteNullColKey, row.getColumnKey(), true);
+                row.getTable().setNull(columnInfo.fieldByteNullColKey, row.getObjectKey(), true);
                 return;
             }
-            row.getTable().setLong(columnInfo.fieldByteNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setLong(columnInfo.fieldByteNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -482,7 +482,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldShortNotNull' to null.");
             }
-            row.getTable().setLong(columnInfo.fieldShortNotNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setLong(columnInfo.fieldShortNotNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -511,10 +511,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                row.getTable().setNull(columnInfo.fieldShortNullColKey, row.getColumnKey(), true);
+                row.getTable().setNull(columnInfo.fieldShortNullColKey, row.getObjectKey(), true);
                 return;
             }
-            row.getTable().setLong(columnInfo.fieldShortNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setLong(columnInfo.fieldShortNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -543,7 +543,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldIntegerNotNull' to null.");
             }
-            row.getTable().setLong(columnInfo.fieldIntegerNotNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setLong(columnInfo.fieldIntegerNotNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -572,10 +572,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                row.getTable().setNull(columnInfo.fieldIntegerNullColKey, row.getColumnKey(), true);
+                row.getTable().setNull(columnInfo.fieldIntegerNullColKey, row.getObjectKey(), true);
                 return;
             }
-            row.getTable().setLong(columnInfo.fieldIntegerNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setLong(columnInfo.fieldIntegerNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -604,7 +604,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldLongNotNull' to null.");
             }
-            row.getTable().setLong(columnInfo.fieldLongNotNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setLong(columnInfo.fieldLongNotNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -633,10 +633,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                row.getTable().setNull(columnInfo.fieldLongNullColKey, row.getColumnKey(), true);
+                row.getTable().setNull(columnInfo.fieldLongNullColKey, row.getObjectKey(), true);
                 return;
             }
-            row.getTable().setLong(columnInfo.fieldLongNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setLong(columnInfo.fieldLongNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -665,7 +665,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldFloatNotNull' to null.");
             }
-            row.getTable().setFloat(columnInfo.fieldFloatNotNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setFloat(columnInfo.fieldFloatNotNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -694,10 +694,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                row.getTable().setNull(columnInfo.fieldFloatNullColKey, row.getColumnKey(), true);
+                row.getTable().setNull(columnInfo.fieldFloatNullColKey, row.getObjectKey(), true);
                 return;
             }
-            row.getTable().setFloat(columnInfo.fieldFloatNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setFloat(columnInfo.fieldFloatNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -726,7 +726,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldDoubleNotNull' to null.");
             }
-            row.getTable().setDouble(columnInfo.fieldDoubleNotNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setDouble(columnInfo.fieldDoubleNotNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -755,10 +755,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                row.getTable().setNull(columnInfo.fieldDoubleNullColKey, row.getColumnKey(), true);
+                row.getTable().setNull(columnInfo.fieldDoubleNullColKey, row.getObjectKey(), true);
                 return;
             }
-            row.getTable().setDouble(columnInfo.fieldDoubleNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setDouble(columnInfo.fieldDoubleNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -787,7 +787,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (value == null) {
                 throw new IllegalArgumentException("Trying to set non-nullable field 'fieldDateNotNull' to null.");
             }
-            row.getTable().setDate(columnInfo.fieldDateNotNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setDate(columnInfo.fieldDateNotNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -816,10 +816,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
-                row.getTable().setNull(columnInfo.fieldDateNullColKey, row.getColumnKey(), true);
+                row.getTable().setNull(columnInfo.fieldDateNullColKey, row.getObjectKey(), true);
                 return;
             }
-            row.getTable().setDate(columnInfo.fieldDateNullColKey, row.getColumnKey(), value, true);
+            row.getTable().setDate(columnInfo.fieldDateNullColKey, row.getObjectKey(), value, true);
             return;
         }
 
@@ -859,7 +859,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
                 return;
             }
             proxyState.checkValidObject(value);
-            row.getTable().setLink(columnInfo.fieldObjectNullColKey, row.getColumnKey(), ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getColumnKey(), true);
+            row.getTable().setLink(columnInfo.fieldObjectNullColKey, row.getObjectKey(), ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getObjectKey(), true);
             return;
         }
 
@@ -869,7 +869,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             return;
         }
         proxyState.checkValidObject(value);
-        proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullColKey, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getColumnKey());
+        proxyState.getRow$realm().setLink(columnInfo.fieldObjectNullColKey, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getObjectKey());
     }
 
     @Override
@@ -2286,7 +2286,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
 
     public static long insert(Realm realm, some.test.NullTypes object, Map<RealmModel,Long> cache) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-            return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getColumnKey();
+            return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey();
         }
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
@@ -2636,7 +2636,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
                 continue;
             }
             if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-                cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getColumnKey());
+                cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
             long rowIndex = OsObject.createRow(table);
@@ -2975,7 +2975,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
 
     public static long insertOrUpdate(Realm realm, some.test.NullTypes object, Map<RealmModel,Long> cache) {
         if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-            return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getColumnKey();
+            return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey();
         }
         Table table = realm.getTable(some.test.NullTypes.class);
         long tableNativePtr = table.getNativePtr();
@@ -3407,7 +3407,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
                 continue;
             }
             if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-                cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getColumnKey());
+                cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
             long rowIndex = OsObject.createRow(table);
@@ -4115,7 +4115,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
     public int hashCode() {
         String realmName = proxyState.getRealm$realm().getPath();
         String tableName = proxyState.getRow$realm().getTable().getName();
-        long rowIndex = proxyState.getRow$realm().getColumnKey();
+        long rowIndex = proxyState.getRow$realm().getObjectKey();
 
         int result = 17;
         result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
@@ -4138,7 +4138,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         String otherTableName = aNullTypes.proxyState.getRow$realm().getTable().getName();
         if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
 
-        if (proxyState.getRow$realm().getColumnKey() != aNullTypes.proxyState.getRow$realm().getColumnKey()) return false;
+        if (proxyState.getRow$realm().getObjectKey() != aNullTypes.proxyState.getRow$realm().getObjectKey()) return false;
 
         return true;
     }
