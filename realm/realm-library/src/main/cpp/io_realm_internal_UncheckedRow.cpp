@@ -35,23 +35,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnCount
     return static_cast<jlong>(OBJ(nativeRowPtr)->get_table()->get_column_count()); // noexcept
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnName(JNIEnv* env, jobject,
-                                                                                  jlong nativeRowPtr,
-                                                                                  jlong columnKey)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return 0;
-    }
-    try {
-        ColKey col_key(columnKey);
-        return to_jstring(env, OBJ(nativeRowPtr)->get_table()->get_column_name(col_key));//TODO validate access via Table::valid_column?
-    }
-    CATCH_STD();
-    return NULL;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnKey(JNIEnv* env, jobject,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnKeyByName(JNIEnv* env, jobject,
                                                                                  jlong nativeRowPtr,
                                                                                  jstring columnName)
 {
@@ -116,7 +100,7 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
     return column_type;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetIndex(JNIEnv* env, jobject, jlong nativeRowPtr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnKey(JNIEnv* env, jobject, jlong nativeRowPtr)
 {
     TR_ENTER_PTR(nativeRowPtr)
     if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
@@ -399,7 +383,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsAttached(
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeHasColumn(JNIEnv* env, jobject obj,
                                                                                jlong nativeRowPtr, jstring columnName)
 {
-    ColKey col_key (Java_io_realm_internal_UncheckedRow_nativeGetColumnKey(env, obj, nativeRowPtr, columnName));
+    ColKey col_key (Java_io_realm_internal_UncheckedRow_nativeGetColumnKeyByName(env, obj, nativeRowPtr, columnName));
     return to_jbool(bool(col_key));
 }
 

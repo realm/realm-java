@@ -66,12 +66,12 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     /**
-     * Gets the row object associated to an index in a Table.
+     * Gets the row object associated with a row key in a Table.
      *
      * @param context the Realm context.
      * @param table the Table that holds the row.
      * @param rowKey Row key.
-     * @return an instance of Row for the table and index specified.
+     * @return an instance of Row for the table and row key specified.
      */
     static UncheckedRow getByRowKey(NativeContext context, Table table, long rowKey) {
         long nativeRowPointer = table.nativeGetRowPtr(table.getNativePtr(), rowKey);
@@ -106,7 +106,7 @@ public class UncheckedRow implements NativeObject, Row {
         if (columnName == null) {
             throw new IllegalArgumentException("Column name can not be null.");
         }
-        return nativeGetColumnKey(nativePtr, columnName);
+        return nativeGetColumnKeyByName(nativePtr, columnName);
     }
 
     @Override
@@ -122,8 +122,8 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public long getIndex() {
-        return nativeGetIndex(nativePtr);
+    public long getColumnKey() {
+        return nativeGetColumnKey(nativePtr);
     }
 
     @Override
@@ -221,7 +221,7 @@ public class UncheckedRow implements NativeObject, Row {
     /**
      * Sets a string value to a row pointer.
      *
-     * @param columnIndex 0 based index value of the cell column.
+     * @param columnKey column key.
      * @param value the value to to a row
      */
     @Override
@@ -260,7 +260,7 @@ public class UncheckedRow implements NativeObject, Row {
     /**
      * Sets null to a row pointer.
      *
-     * @param columnIndex 0 based index value of the cell column.
+     * @param columnKey column key.
      */
     @Override
     public void setNull(long columnKey) {
@@ -296,15 +296,13 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native long nativeGetColumnCount(long nativeTablePtr);
 
-    protected native String nativeGetColumnName(long nativeTablePtr, long columnKey);
-
-    protected native long nativeGetColumnKey(long nativeTablePtr, String columnName);
+    protected native long nativeGetColumnKeyByName(long nativeTablePtr, String columnName);
 
     protected native String[] nativeGetColumnNames(long nativeTablePtr);
 
     protected native int nativeGetColumnType(long nativeTablePtr, long columnKey);
 
-    protected native long nativeGetIndex(long nativeRowPtr);
+    protected native long nativeGetColumnKey(long nativeRowPtr);
 
     protected native long nativeGetLong(long nativeRowPtr, long columnKey);
 

@@ -112,7 +112,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
 
         proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
         Row row = proxy.realmGet$proxyState().getRow$realm();
-        row.getTable().moveLastOver(row.getIndex());
+        row.getTable().moveLastOver(row.getColumnKey());
         proxy.realmGet$proxyState().setRow$realm(InvalidRow.INSTANCE);
     }
 

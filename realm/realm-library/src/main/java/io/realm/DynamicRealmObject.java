@@ -744,7 +744,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                         "Type of object is wrong. Was %s, expected %s",
                         inputTable.getName(), table.getName()));
             }
-            proxyState.getRow$realm().setLink(columnKey, value.proxyState.getRow$realm().getIndex());
+            proxyState.getRow$realm().setLink(columnKey, value.proxyState.getRow$realm().getColumnKey());
         }
     }
 
@@ -841,7 +841,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                         obj.realmGet$proxyState().getRow$realm().getTable().getClassName(),
                         linkTargetTableName));
             }
-            indices[i] = obj.realmGet$proxyState().getRow$realm().getIndex();
+            indices[i] = obj.realmGet$proxyState().getRow$realm().getColumnKey();
         }
 
         osList.removeAll();
@@ -998,7 +998,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
         String realmName = proxyState.getRealm$realm().getPath();
         String tableName = proxyState.getRow$realm().getTable().getName();
-        long rowIndex = proxyState.getRow$realm().getIndex();
+        long rowIndex = proxyState.getRow$realm().getColumnKey();
 
         int result = 17;
         result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
@@ -1033,7 +1033,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             return false;
         }
 
-        return proxyState.getRow$realm().getIndex() == other.proxyState.getRow$realm().getIndex();
+        return proxyState.getRow$realm().getColumnKey() == other.proxyState.getRow$realm().getColumnKey();
     }
 
     @Override

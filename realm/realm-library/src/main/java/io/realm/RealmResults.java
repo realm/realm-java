@@ -429,8 +429,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
 
             // Check that type matches the expected one
             Table currentTable = osResults.getTable();
-            long columnIndex = currentTable.getColumnKey(fieldName);
-            Table expectedTable = currentTable.getLinkTarget(columnIndex);
+            long columnKey = currentTable.getColumnKey(fieldName);
+            Table expectedTable = currentTable.getLinkTarget(columnKey);
             Table inputTable = proxyState.getRow$realm().getTable();
             if (!expectedTable.hasSameSchema(inputTable)) {
                 throw new IllegalArgumentException(String.format(Locale.US,
@@ -757,7 +757,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     public String asJSON() {
         // maxDepth = -1:
         // Follow links to infinite depth, but only follow each link exactly once.
-        // Cycle links are printed as a simple sequence of integers of row indexes in the link column.
+        // Cycle links are printed as a simple sequence of integers of row keys in the link column.
         return osResults.toJSON(-1);
     }
 
