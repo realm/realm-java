@@ -4593,6 +4593,7 @@ public class RealmTests {
                 .name("stress-test.realm")
                 .encryptionKey(TestHelper.getRandomKey(seed))
                 .build();
+        Realm.deleteRealm(config);
         Realm.getInstance(config).close();
 
         new Thread(new Runnable() {
