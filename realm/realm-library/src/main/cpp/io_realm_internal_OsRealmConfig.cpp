@@ -58,7 +58,6 @@ static_assert(SchemaMode::Manual == static_cast<SchemaMode>(io_realm_internal_Os
 
 static void finalize_realm_config(jlong ptr)
 {
-    TR_ENTER_PTR(ptr)
     delete reinterpret_cast<Realm::Config*>(ptr);
 }
 
@@ -96,7 +95,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetEncryptionK
                                                                                    jlong native_ptr,
                                                                                    jbyteArray j_key_array)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         JByteArrayAccessor jarray_accessor(env, j_key_array);
         auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
@@ -110,7 +108,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetEncryptionK
 JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInMemory(JNIEnv*, jclass, jlong native_ptr,
                                                                               jboolean in_mem)
 {
-    TR_ENTER_PTR(native_ptr)
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
     config.in_memory = in_mem; // no throw
 }
@@ -121,7 +118,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
                                                                                   jlong schema_info_ptr,
                                                                                   jobject j_migration_callback)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
         config.schema_mode = static_cast<SchemaMode>(schema_mode);
@@ -171,8 +167,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
 JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetCompactOnLaunchCallback(
     JNIEnv* env, jclass, jlong native_ptr, jobject j_compact_on_launch)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
         if (j_compact_on_launch) {
@@ -205,8 +199,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
                                                                                             jlong native_ptr,
                                                                                             jobject j_init_callback)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
 
@@ -243,8 +235,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
 JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNotification(
     JNIEnv*, jclass, jlong native_ptr, jboolean enable_auto_change_notification)
 {
-    TR_ENTER_PTR(native_ptr)
-
     // No throws
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
     config.automatic_change_notifications = enable_auto_change_notification;
@@ -256,7 +246,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
     jstring j_refresh_token, jboolean j_is_partial, jbyte j_session_stop_policy, jstring j_url_prefix,
     jstring j_custom_auth_header_name, jobjectArray j_custom_headers_array, jbyte j_client_reset_mode)
 {
-    TR_ENTER_PTR(native_ptr)
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
     // sync_config should only be initialized once!
     REALM_ASSERT(!config.sync_config);
@@ -409,8 +398,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigS
     JNIEnv* env, jclass, jlong native_ptr, jboolean sync_client_validate_ssl,
     jstring j_sync_ssl_trust_certificate_path)
 {
-    TR_ENTER_PTR(native_ptr);
-
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
     // To ensure the sync_config has been created and this function won't be called multiple time on the same config.
     REALM_ASSERT(config.sync_config);
@@ -462,8 +449,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigP
     JNIEnv* env, jclass, jlong native_ptr, jbyte proxy_type,
     jstring j_proxy_address, jint proxy_port)
 {
-    TR_ENTER_PTR(native_ptr);
-
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
     // To ensure the sync_config has been created and this function won't be called multiple time on the same config.
     REALM_ASSERT(config.sync_config);

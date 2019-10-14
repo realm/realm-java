@@ -35,7 +35,6 @@ using namespace realm::_impl;
 
 static void finalize_descriptor(jlong ptr)
 {
-    TR_ENTER_PTR(ptr)
     delete reinterpret_cast<IncludeDescriptor*>(ptr);
 }
 

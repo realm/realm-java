@@ -36,7 +36,6 @@ static void finalize_subscription(jlong ptr);
 
 static void finalize_subscription(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<SubscriptionWrapper*>(ptr);
 }
 

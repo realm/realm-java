@@ -158,7 +158,6 @@ private:
 
 static void finalize_object(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<ObjectWrapper*>(ptr);
 }
 
@@ -257,8 +256,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeGetFinalizerPtr(JN
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreate(JNIEnv*, jclass, jlong shared_realm_ptr,
                                                                      jlong obj_ptr)
 {
-    TR_ENTER_PTR(obj_ptr)
-
     // FIXME: Currently OsObject is only used for object notifications. Since the Object Store's schema has not been
     // fully integrated with realm-java, we pass a dummy ObjectSchema to create Object.
     static const ObjectSchema dummy_object_schema;
@@ -272,8 +269,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreate(JNIEnv*, jc
 JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStartListening(JNIEnv* env, jobject instance,
                                                                             jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto wrapper = reinterpret_cast<ObjectWrapper*>(native_ptr);
         if (!wrapper->m_row_object_weak_ref) {
@@ -293,8 +288,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStartListening(JNIE
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStopListening(JNIEnv* env, jobject, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto wrapper = reinterpret_cast<ObjectWrapper*>(native_ptr);
         wrapper->m_notification_token = {};

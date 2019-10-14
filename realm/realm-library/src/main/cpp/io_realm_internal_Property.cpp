@@ -38,7 +38,6 @@ static_assert(io_realm_internal_Property_TYPE_ARRAY == static_cast<jint>(Propert
 
 static void finalize_property(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<Property*>(ptr);
 }
 
@@ -109,14 +108,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetFinalizerPtr(JN
 
 JNIEXPORT jint JNICALL Java_io_realm_internal_Property_nativeGetType(JNIEnv*, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr);
     auto& property = *reinterpret_cast<Property*>(native_ptr);
     return static_cast<jint>(property.type);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetColumnKey(JNIEnv*, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr);
     auto& property = *reinterpret_cast<Property*>(native_ptr);
     return static_cast<jlong>(property.column_key.value);
 }
@@ -124,7 +121,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetColumnKey(JNIEn
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Property_nativeGetLinkedObjectName(JNIEnv* env, jclass,
                                                                                     jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr);
     try {
         auto& property = *reinterpret_cast<Property*>(native_ptr);
         std::string name = property.object_type;

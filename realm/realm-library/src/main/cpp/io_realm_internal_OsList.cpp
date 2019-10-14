@@ -35,7 +35,6 @@ typedef ObservableCollectionWrapper<List> ListWrapper;
 namespace {
 void finalize_list(jlong ptr)
 {
-    TR_ENTER_PTR(ptr)
     delete reinterpret_cast<ListWrapper*>(ptr);
 }
 
@@ -83,8 +82,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeGetFinalizerPtr(JNIE
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* env, jclass, jlong shared_realm_ptr,
                                                                         jlong obj_ptr, jlong column_key)
 {
-    TR_ENTER_PTR(obj_ptr)
-
     try {
         auto& obj = *reinterpret_cast<realm::Obj*>(obj_ptr);
 
@@ -120,8 +117,6 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeGetRow(JNIEnv* env, jclass, jlong list_ptr,
                                                                    jlong column_index)
 {
-    TR_ENTER_PTR(list_ptr)
-
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         auto obj = wrapper.collection().get(column_index);
@@ -134,7 +129,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeGetRow(JNIEnv* env, 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddRow(JNIEnv* env, jclass, jlong list_ptr,
                                                                   jlong target_obj_key)
 {
-    TR_ENTER_PTR(list_ptr)
 
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
@@ -146,8 +140,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddRow(JNIEnv* env, j
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertRow(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                      jlong target_obj_key)
 {
-    TR_ENTER_PTR(list_ptr)
-
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         wrapper.collection().insert(static_cast<size_t>(pos), ObjKey(target_obj_key));
@@ -158,8 +150,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertRow(JNIEnv* env
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetRow(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                   jlong target_obj_key)
 {
-    TR_ENTER_PTR(list_ptr)
-
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         wrapper.collection().set(static_cast<size_t>(pos), ObjKey(target_obj_key));
@@ -170,8 +160,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetRow(JNIEnv* env, j
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeMove(JNIEnv* env, jclass, jlong list_ptr,
                                                                 jlong source_index, jlong target_index)
 {
-    TR_ENTER_PTR(list_ptr)
-
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         wrapper.collection().move(source_index, target_index);
@@ -181,8 +169,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeMove(JNIEnv* env, jcl
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeRemove(JNIEnv* env, jclass, jlong list_ptr, jlong index)
 {
-    TR_ENTER_PTR(list_ptr)
-
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         wrapper.collection().remove(index);
@@ -192,8 +178,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeRemove(JNIEnv* env, j
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeRemoveAll(JNIEnv* env, jclass, jlong list_ptr)
 {
-    TR_ENTER_PTR(list_ptr)
-
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         wrapper.collection().remove_all();
@@ -203,8 +187,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeRemoveAll(JNIEnv* env
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeSize(JNIEnv* env, jclass, jlong list_ptr)
 {
-    TR_ENTER_PTR(list_ptr)
-
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         return wrapper.collection().size();
@@ -215,8 +197,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeSize(JNIEnv* env, jc
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeGetQuery(JNIEnv* env, jclass, jlong list_ptr)
 {
-    TR_ENTER_PTR(list_ptr)
-
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         auto query = wrapper.collection().get_query();
@@ -228,8 +208,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeGetQuery(JNIEnv* env
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsList_nativeIsValid(JNIEnv* env, jclass, jlong list_ptr)
 {
-    TR_ENTER_PTR(list_ptr)
-
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         return wrapper.collection().is_valid();
@@ -240,8 +218,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsList_nativeIsValid(JNIEnv* e
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeDelete(JNIEnv* env, jclass, jlong list_ptr, jlong index)
 {
-    TR_ENTER_PTR(list_ptr)
-
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         wrapper.collection().delete_at(S(index));
@@ -251,8 +227,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeDelete(JNIEnv* env, j
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeDeleteAll(JNIEnv* env, jclass, jlong list_ptr)
 {
-    TR_ENTER_PTR(list_ptr)
-
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         wrapper.collection().delete_all();
@@ -263,8 +237,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeDeleteAll(JNIEnv* env
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeStartListening(JNIEnv* env, jobject instance,
                                                                               jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto wrapper = reinterpret_cast<ListWrapper*>(native_ptr);
         wrapper->start_listening(env, instance);
@@ -274,8 +246,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeStartListening(JNIEnv
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeStopListening(JNIEnv* env, jobject, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto wrapper = reinterpret_cast<ListWrapper*>(native_ptr);
         wrapper->stop_listening();
@@ -285,7 +255,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeStopListening(JNIEnv*
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddNull(JNIEnv* env, jclass, jlong list_ptr)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         check_nullable(env, list_ptr);
         add_value(env, list_ptr, Any());
@@ -295,7 +264,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddNull(JNIEnv* env, 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertNull(JNIEnv* env, jclass, jlong list_ptr, jlong pos)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         check_nullable(env, list_ptr);
         insert_value(env, list_ptr, pos, Any());
@@ -305,7 +273,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertNull(JNIEnv* en
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetNull(JNIEnv* env, jclass, jlong list_ptr, jlong pos)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         check_nullable(env, list_ptr);
         set_value(env, list_ptr, pos, Any());
@@ -315,7 +282,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetNull(JNIEnv* env, 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddLong(JNIEnv* env, jclass, jlong list_ptr, jlong value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         add_value(env, list_ptr, Any(value));
     }
@@ -325,7 +291,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddLong(JNIEnv* env, 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertLong(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                       jlong value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         insert_value(env, list_ptr, pos, Any(value));
     }
@@ -335,7 +300,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertLong(JNIEnv* en
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetLong(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                    jlong value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         set_value(env, list_ptr, pos, Any(value));
     }
@@ -345,7 +309,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetLong(JNIEnv* env, 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddDouble(JNIEnv* env, jclass, jlong list_ptr,
                                                                      jdouble value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         add_value(env, list_ptr, Any(value));
     }
@@ -355,7 +318,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddDouble(JNIEnv* env
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertDouble(JNIEnv* env, jclass, jlong list_ptr,
                                                                         jlong pos, jdouble value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         insert_value(env, list_ptr, pos, Any(value));
     }
@@ -365,7 +327,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertDouble(JNIEnv* 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetDouble(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                      jdouble value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         set_value(env, list_ptr, pos, Any(value));
     }
@@ -374,7 +335,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetDouble(JNIEnv* env
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddFloat(JNIEnv* env, jclass, jlong list_ptr, jfloat value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         add_value(env, list_ptr, Any(value));
     }
@@ -384,7 +344,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddFloat(JNIEnv* env,
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertFloat(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                        jfloat value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         insert_value(env, list_ptr, pos, Any(value));
     }
@@ -394,7 +353,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertFloat(JNIEnv* e
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetFloat(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                     jfloat value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         set_value(env, list_ptr, pos, Any(value));
     }
@@ -404,7 +362,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetFloat(JNIEnv* env,
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddBoolean(JNIEnv* env, jclass, jlong list_ptr,
                                                                       jboolean value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         add_value(env, list_ptr, Any(value));
     }
@@ -414,7 +371,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddBoolean(JNIEnv* en
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertBoolean(JNIEnv* env, jclass, jlong list_ptr,
                                                                          jlong pos, jboolean value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         insert_value(env, list_ptr, pos, Any(value));
     }
@@ -424,7 +380,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertBoolean(JNIEnv*
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetBoolean(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                       jboolean value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         set_value(env, list_ptr, pos, Any(value));
     }
@@ -434,7 +389,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetBoolean(JNIEnv* en
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddBinary(JNIEnv* env, jclass, jlong list_ptr,
                                                                      jbyteArray value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         check_nullable(env, list_ptr, value);
         JByteArrayAccessor accessor(env, value);
@@ -446,7 +400,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddBinary(JNIEnv* env
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertBinary(JNIEnv* env, jclass, jlong list_ptr,
                                                                         jlong pos, jbyteArray value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         check_nullable(env, list_ptr, value);
         JByteArrayAccessor accessor(env, value);
@@ -458,7 +411,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertBinary(JNIEnv* 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetBinary(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                      jbyteArray value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         check_nullable(env, list_ptr, value);
         JByteArrayAccessor accessor(env, value);
@@ -469,7 +421,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetBinary(JNIEnv* env
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddDate(JNIEnv* env, jclass, jlong list_ptr, jlong value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         add_value(env, list_ptr, Any(value));
     }
@@ -479,7 +430,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddDate(JNIEnv* env, 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertDate(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                       jlong value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         insert_value(env, list_ptr, pos, Any(value));
     }
@@ -489,7 +439,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertDate(JNIEnv* en
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetDate(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                    jlong value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         set_value(env, list_ptr, pos, Any(value));
     }
@@ -499,7 +448,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetDate(JNIEnv* env, 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddString(JNIEnv* env, jclass, jlong list_ptr,
                                                                      jstring value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         check_nullable(env, list_ptr, value);
         JStringAccessor accessor(env, value);
@@ -511,7 +459,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddString(JNIEnv* env
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertString(JNIEnv* env, jclass, jlong list_ptr,
                                                                         jlong pos, jstring value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         check_nullable(env, list_ptr, value);
         JStringAccessor accessor(env, value);
@@ -523,7 +470,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertString(JNIEnv* 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetString(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                      jstring value)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         check_nullable(env, list_ptr, value);
         JStringAccessor accessor(env, value);
@@ -534,7 +480,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetString(JNIEnv* env
 
 JNIEXPORT jobject JNICALL Java_io_realm_internal_OsList_nativeGetValue(JNIEnv* env, jclass, jlong list_ptr, jlong pos)
 {
-    TR_ENTER_PTR(list_ptr)
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         JavaAccessorContext context(env);

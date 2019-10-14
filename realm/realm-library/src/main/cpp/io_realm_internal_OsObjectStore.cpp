@@ -37,7 +37,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetPrimaryKeyF
                                                                                           jstring j_class_name,
                                                                                           jstring j_pk_field_name)
 {
-    TR_ENTER_PTR(shared_realm_ptr)
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         JStringAccessor class_name_accessor(env, j_class_name);
@@ -87,7 +86,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObjectStore_nativeGetPrimaryK
                                                                                              jlong shared_realm_ptr,
                                                                                              jstring j_class_name)
 {
-    TR_ENTER_PTR(shared_realm_ptr)
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         JStringAccessor class_name_accessor(env, j_class_name);
@@ -102,7 +100,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetSchemaVersi
                                                                                    jlong shared_realm_ptr,
                                                                                    jlong schema_version)
 {
-    TR_ENTER_PTR(shared_realm_ptr)
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         shared_realm->verify_in_write();
@@ -114,7 +111,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetSchemaVersi
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectStore_nativeGetSchemaVersion(JNIEnv* env, jclass,
                                                                                     jlong shared_realm_ptr)
 {
-    TR_ENTER_PTR(shared_realm_ptr)
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         return ObjectStore::get_schema_version(shared_realm->read_group());
@@ -127,7 +123,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsObjectStore_nativeDeleteTabl
                                                                                         jlong shared_realm_ptr,
                                                                                         jstring j_class_name)
 {
-    TR_ENTER_PTR(shared_realm_ptr)
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         JStringAccessor class_name_accessor(env, j_class_name);

@@ -835,7 +835,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(JNIEnv* env
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(JNIEnv*, jobject, jlong nativeTableRefPtr)
 {
-    TR_ENTER_PTR(nativeTableRefPtr)
     if(TBL_REF(nativeTableRefPtr)) {
         return JNI_TRUE;
     } else {
@@ -853,7 +852,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema(JNIE
 
 static void finalize_table(jlong ptr)
 {
-    TR_ENTER_PTR(ptr)
     delete reinterpret_cast<realm::TableRef*>(ptr);
 }
 

@@ -37,7 +37,6 @@ static void finalize_results(jlong ptr);
 
 static void finalize_results(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<ResultsWrapper*>(ptr);
 }
 
@@ -66,7 +65,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNI
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateSnapshot(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr);
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto snapshot_results = wrapper->collection().snapshot();
@@ -80,7 +78,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateSnapshot(JN
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeContains(JNIEnv* env, jclass, jlong native_ptr,
                                                                             jlong native_obj_ptr)
 {
-    TR_ENTER_PTR(native_ptr);
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         const Obj* obj = reinterpret_cast<Obj*>(native_obj_ptr);
@@ -94,7 +91,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeContains(JNIEn
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetRow(JNIEnv* env, jclass, jlong native_ptr,
                                                                        jint index)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto obj = wrapper->collection().get(static_cast<size_t>(index));
@@ -106,7 +102,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetRow(JNIEnv* en
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeFirstRow(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto optional_obj = wrapper->collection().first();
@@ -121,7 +116,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeFirstRow(JNIEnv* 
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeLastRow(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto optional_obj = wrapper->collection().last();
@@ -135,7 +129,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeLastRow(JNIEnv* e
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeClear(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         wrapper->collection().clear();
@@ -145,7 +138,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeClear(JNIEnv* env,
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeSize(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         return static_cast<jlong>(wrapper->collection().size());
@@ -157,7 +149,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeSize(JNIEnv* env,
 JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEnv* env, jclass, jlong native_ptr,
                                                                             jlong column_key, jbyte agg_func)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
 
@@ -212,7 +203,6 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEn
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeSort(JNIEnv* env, jclass, jlong native_ptr,
                                                                      jobject j_sort_desc)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto sorted_result = wrapper->collection().sort(JavaQueryDescriptor(env, j_sort_desc).sort_descriptor());
@@ -225,7 +215,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeSort(JNIEnv* env,
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeDistinct(JNIEnv* env, jclass, jlong native_ptr,
                                                                          jobject j_distinct_desc)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto distinct_result =
@@ -239,8 +228,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeDistinct(JNIEnv* 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeStartListening(JNIEnv* env, jobject instance,
                                                                               jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         wrapper->start_listening(env, instance);
@@ -250,8 +237,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeStartListening(JNI
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeStopListening(JNIEnv* env, jobject, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         wrapper->stop_listening();
@@ -267,7 +252,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetFinalizerPtr(J
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeWhere(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
 
@@ -282,7 +266,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeWhere(JNIEnv* env
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_OsResults_toJSON(JNIEnv* env, jclass, jlong native_ptr, jint maxDepth)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
 
@@ -298,7 +281,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsResults_toJSON(JNIEnv* env, j
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeIndexOf(JNIEnv* env, jclass, jlong native_ptr,
                                                                         jlong obj_native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         Obj* obj = reinterpret_cast<Obj*>(obj_native_ptr);
@@ -311,7 +293,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeIndexOf(JNIEnv* e
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeDeleteLast(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto obj = wrapper->collection().last();
@@ -326,8 +307,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeDeleteLast(JNI
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeDeleteFirst(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto obj = wrapper->collection().first();
@@ -353,42 +332,36 @@ static inline void update_objects(JNIEnv* env, jlong results_ptr, jstring& j_fie
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetNull(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name)
 {
-    TR_ENTER_PTR(native_ptr)
     auto value = JavaValue();
     update_objects(env, native_ptr, j_field_name, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBoolean(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jboolean j_value)
 {
-    TR_ENTER_PTR(native_ptr)
     JavaValue value(j_value);
     update_objects(env, native_ptr, j_field_name, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetInt(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong j_value)
 {
-    TR_ENTER_PTR(native_ptr)
     JavaValue value(j_value);
     update_objects(env, native_ptr, j_field_name, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetFloat(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jfloat j_value)
 {
-    TR_ENTER_PTR(native_ptr)
     JavaValue value(j_value);
     update_objects(env, native_ptr, j_field_name, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetDouble(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jdouble j_value)
 {
-    TR_ENTER_PTR(native_ptr)
     JavaValue value(j_value);
     update_objects(env, native_ptr, j_field_name, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetString(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jstring j_value)
 {
-    TR_ENTER_PTR(native_ptr)
     JStringAccessor str(env, j_value);
     JavaValue value = str.is_null() ? JavaValue() : JavaValue(std::string(str));
     update_objects(env, native_ptr, j_field_name, value);
@@ -396,7 +369,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetString(JNIEnv* 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBinary(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jbyteArray j_value)
 {
-    TR_ENTER_PTR(native_ptr)
     auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
     JavaValue value(data);
     update_objects(env, native_ptr, j_field_name, value);
@@ -404,14 +376,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBinary(JNIEnv* 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetTimestamp(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong j_value)
 {
-    TR_ENTER_PTR(native_ptr)
     JavaValue value(from_milliseconds(j_value));
     update_objects(env, native_ptr, j_field_name, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObject(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong row_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
     JavaValue value(reinterpret_cast<Obj*>(row_ptr));
     update_objects(env, native_ptr, j_field_name, value);
 }
@@ -429,8 +399,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetList(JNIEnv* en
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeDelete(JNIEnv* env, jclass, jlong native_ptr,
                                                                       jlong index)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto obj = wrapper->collection().get(index);
@@ -443,7 +411,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeDelete(JNIEnv* env
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeIsValid(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         return wrapper->collection().is_valid();
@@ -454,7 +421,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeIsValid(JNIEnv
 
 JNIEXPORT jbyte JNICALL Java_io_realm_internal_OsResults_nativeGetMode(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         switch (wrapper->collection().get_mode()) {
@@ -482,7 +448,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFrom
                                                                                            jlong src_table_ref_ptr,
                                                                                            jlong src_col_key)
 {
-    TR_ENTER_PTR(obj_ptr)
     Obj* obj = OBJ(obj_ptr);
     if (!ROW_VALID(env, obj)) {
         return reinterpret_cast<jlong>(nullptr);
@@ -503,7 +468,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeEvaluateQueryIfNee
                                                                                     jlong native_ptr,
                                                                                     jboolean wants_notifications)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         wrapper->collection().evaluate_query_if_needed(wants_notifications);
