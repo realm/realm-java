@@ -106,6 +106,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
@@ -4572,5 +4573,77 @@ public class RealmTests {
             // No Realm instance should be opened at this time.
             Realm.deleteRealm(config);
         }
+    }
+
+    // Attempts to reproduce https://github.com/realm/realm-java/issues/6152
+    @Test
+    @RunTestInLooperThread
+    public void encryption_stressTest() {
+        final int WRITER_THREADS = 20;
+        final int TEST_OBJECTS = 100_000;
+        final int MAX_STRING_LENGTH = 1000;
+        final AtomicInteger id = new AtomicInteger(0);
+        final CountDownLatch writersDone = new CountDownLatch(WRITER_THREADS);
+        final CountDownLatch mainReaderDone = new CountDownLatch(1);
+        long seed = System.nanoTime();
+        RealmLog.error("Starting test with seed: " + seed);
+        Random random = new Random(seed);
+
+        final RealmConfiguration config = new RealmConfiguration.Builder() //.configFactory.createConfigurationBuilder()
+                .name("stress-test.realm")
+                .encryptionKey(TestHelper.getRandomKey(seed))
+                .build();
+        Realm.getInstance(config).close();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(config);
+                for (int i = 0; i < WRITER_THREADS; i++) {
+                    realm.executeTransaction(r -> {
+                        for (int j = 0; j < (TEST_OBJECTS / WRITER_THREADS); j++) {
+                            AllJavaTypes obj = new AllJavaTypes(id.incrementAndGet());
+                            obj.setFieldString(TestHelper.getRandomString(random.nextInt(MAX_STRING_LENGTH)));
+                            r.insert(obj);
+                        }
+                    });
+                }
+                realm.close();
+                writersDone.countDown();
+            }
+        }).start();
+
+        Realm realm = Realm.getInstance(config);
+        looperThread.closeAfterTest(realm);
+        RealmResults<AllJavaTypes> results = realm.where(AllJavaTypes.class).findAllAsync();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllJavaTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllJavaTypes> results, OrderedCollectionChangeSet changeSet) {
+                for (AllJavaTypes obj : results) {
+                    String s = obj.getFieldString();
+                }
+
+                if (results.size() == TEST_OBJECTS) {
+                    realm.close();
+                    mainReaderDone.countDown();
+                }
+            }
+        });
+
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    writersDone.await();
+                    mainReaderDone.await();
+                } catch (InterruptedException e) {
+                    fail(e.toString());
+                }
+                looperThread.testComplete();
+            }
+        });
+        looperThread.keepStrongReference(t);
+        t.start();
     }
 }
