@@ -1040,7 +1040,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     public String toString() {
         proxyState.getRealm$realm().checkIfValid();
 
-        if (!proxyState.getRow$realm().isAttached()) {
+        if (!proxyState.getRow$realm().isValid()) {
             return "Invalid object";
         }
 

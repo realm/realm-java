@@ -348,8 +348,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeNullifyLink(JNI
     CATCH_STD()
 }
 
-//TODO rename isValid
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsAttached(JNIEnv*, jobject, jlong nativeRowPtr)
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsValid(JNIEnv*, jobject, jlong nativeRowPtr)
 {
     return to_jbool(OBJ(nativeRowPtr)->is_valid());
 }
@@ -381,7 +380,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull(JNIEnv*
     if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
         return;
     }
-    if (!COL_NULLABLE(env, OBJ(nativeRowPtr)->get_table(), columnKey)) {//TODO do we need the const_cast?
+    if (!COL_NULLABLE(env, OBJ(nativeRowPtr)->get_table(), columnKey)) {
         return;
     }
     try {

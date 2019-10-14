@@ -158,7 +158,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
         @Override
         public final boolean isValid() {
-            return !getRealm().isClosed() && getRow().isAttached();
+            return !getRealm().isClosed() && getRow().isValid();
         }
 
         @Override

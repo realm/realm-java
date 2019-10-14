@@ -114,7 +114,7 @@ public interface Row {
      *
      * @return {@code true} if the row is still valid and attached to the underlying data. {@code false} otherwise.
      */
-    boolean isAttached();
+    boolean isValid();
 
     /**
      * Throws {@link IllegalStateException} if the row is not attached.

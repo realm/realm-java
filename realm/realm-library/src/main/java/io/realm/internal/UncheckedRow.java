@@ -278,13 +278,13 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public boolean isAttached() {
-        return nativePtr != 0 && nativeIsAttached(nativePtr);
+    public boolean isValid() {
+        return nativePtr != 0 && nativeIsValid(nativePtr);
     }
 
     @Override
     public void checkIfAttached() {
-        if (!isAttached()) {
+        if (!isValid()) {
             throw new IllegalStateException("Object is no longer managed by Realm. Has it been deleted?");
         }
     }
@@ -340,7 +340,7 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native void nativeNullifyLink(long nativeRowPtr, long columnKey);
 
-    protected native boolean nativeIsAttached(long nativeRowPtr);
+    protected native boolean nativeIsValid(long nativeRowPtr);
 
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
 

@@ -285,7 +285,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeIndexOf(JNIEnv* e
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         Obj* obj = reinterpret_cast<Obj*>(obj_native_ptr);
 
-        return static_cast<jlong>(wrapper->collection().index_of(*obj));//TODO confirm change
+        return static_cast<jlong>(wrapper->collection().index_of(*obj));
     }
     CATCH_STD()
     return npos;
@@ -311,7 +311,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsResults_nativeDeleteFirst(JN
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto obj = wrapper->collection().first();
         if (obj && obj->is_valid()) {
-            obj->remove();//TODO confirm it's the correct change
+            obj->remove();
             return JNI_TRUE;
         }
     }

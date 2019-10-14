@@ -200,7 +200,7 @@ public class PendingRow implements Row {
     }
 
     @Override
-    public boolean isAttached() {
+    public boolean isValid() {
         return false;
     }
 

@@ -288,7 +288,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLong(JNIEnv* env, 
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
     if (!TYPE_VALID(env, table, columnKey, type_Int)) {
-        return 0;//TODO throw instead of returning a default value , check for similar use cases
+        return 0;
     }
     return table->get_object(ObjKey(rowKey)).get<Int>(ColKey(columnKey)); // noexcept
 }
