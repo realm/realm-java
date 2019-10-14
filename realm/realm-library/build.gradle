@@ -411,17 +411,17 @@ publishing {
 
             pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
-
-        objectServerPublication(MavenPublication) {
-            groupId 'io.realm'
-            artifactId 'realm-android-library-object-server'
-            version project.version
-            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
-            artifact sourcesJar
-            artifact javadocJar
-
-            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
-        }
+//
+//        objectServerPublication(MavenPublication) {
+//            groupId 'io.realm'
+//            artifactId 'realm-android-library-object-server'
+//            version project.version
+//            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
+//            artifact sourcesJar
+//            artifact javadocJar
+//
+//            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
+//        }
     }
     repositories {
         maven {
@@ -447,7 +447,7 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-            publications('basePublication', 'objectServerPublication')
+            publications('basePublication' /*, 'objectServerPublication' */)
             publishPom = true
             publishIvy = false
         }
