@@ -90,11 +90,18 @@ android {
         debug {
             // FIXME: If enabled, crashes with https://issuetracker.google.com/issues/37116868
             testCoverageEnabled = false
+            debuggable true
+            jniDebuggable true
+            minifyEnabled false
             // minifyEnabled = true;
             // proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
         release {
+            testCoverageEnabled = false
+            debuggable true
+            jniDebuggable true
+            minifyEnabled false
             // minifyEnabled = true;
         }
     }
@@ -150,6 +157,8 @@ android {
 //            proguardFiles 'proguard-rules-build-common.pro', 'proguard-rules-build-objectServer.pro'
 //        }
     }
+
+    publishNonDefault true
 
     variantFilter { variant ->
         def names = variant.flavors*.name

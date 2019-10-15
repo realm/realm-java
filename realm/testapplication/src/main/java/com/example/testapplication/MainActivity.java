@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private RealmResults<StringOnly> results;
     private Thread t;
     private Thread writerThread;
+    private RealmConfiguration config;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,15 +32,15 @@ public class MainActivity extends AppCompatActivity {
     public void encryption_stressTest() {
         final int TRANSACTIONS = 50;
         final int TEST_OBJECTS = 100_000;
-        final int MAX_STRING_LENGTH = 100;
+        final int MAX_STRING_LENGTH = 1000;
         final AtomicInteger id = new AtomicInteger(0);
-        final CountDownLatch writersDone = new CountDownLatch(TRANSACTIONS);
+        final CountDownLatch writersDone = new CountDownLatch(1);
         final CountDownLatch mainReaderDone = new CountDownLatch(1);
         long seed = System.nanoTime();
         RealmLog.error("Starting test with seed: " + seed);
         Random random = new Random(seed);
 
-        final RealmConfiguration config = new RealmConfiguration.Builder() //.configFactory.createConfigurationBuilder()
+        config = new RealmConfiguration.Builder() //.configFactory.createConfigurationBuilder()
                 .name("stress-test.realm")
                 .encryptionKey(getRandomKey(seed))
                 .build();
@@ -69,14 +70,15 @@ public class MainActivity extends AppCompatActivity {
         results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<StringOnly>>() {
             @Override
             public void onChange(RealmResults<StringOnly> results, OrderedCollectionChangeSet changeSet) {
+                RealmLog.info("Progress: " + results.size() + " of " + TEST_OBJECTS);
+                RealmLog.info("Starting to read all string");
                 for (StringOnly obj : results) {
                     String s = obj.getChars();
                 }
-
-                RealmLog.info("Progress: " + results.size() + " of " + TEST_OBJECTS);
-
+//
                 if (results.size() == TEST_OBJECTS) {
                     realm.close();
+                    Realm.getInstance(config).close();
                     mainReaderDone.countDown();
                 }
             }

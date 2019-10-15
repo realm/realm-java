@@ -22,7 +22,7 @@ function(build_existing_realm_core core_source_path)
         set(debug_lib_suffix "-dbg")
         add_compile_options(-DREALM_DEBUG)
     else()
-        add_compile_options(-DNDEBUG)
+        add_compile_options(-DREALM_DEBUG) # Force debug core no matter build type
     endif()
 
     # We mirror relevant flags from this script
