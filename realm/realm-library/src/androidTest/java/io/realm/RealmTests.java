@@ -4579,7 +4579,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void encryption_stressTest() {
-        final int WRITER_THREADS = 20;
+        final int WRITER_THREADS = 50;
         final int TEST_OBJECTS = 100_000;
         final int MAX_STRING_LENGTH = 1000;
         final AtomicInteger id = new AtomicInteger(0);
@@ -4589,7 +4589,7 @@ public class RealmTests {
         RealmLog.error("Starting test with seed: " + seed);
         Random random = new Random(seed);
 
-        final RealmConfiguration config = new RealmConfiguration.Builder() //.configFactory.createConfigurationBuilder()
+        final RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("stress-test.realm")
                 .encryptionKey(TestHelper.getRandomKey(seed))
                 .build();
@@ -4626,7 +4626,6 @@ public class RealmTests {
                 }
 
                 if (results.size() == TEST_OBJECTS) {
-                    realm.close();
                     mainReaderDone.countDown();
                 }
             }
