@@ -478,6 +478,13 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         return nativeIsFrozen(nativePtr);
     }
 
+    /**
+     * Returns a frozen copy of this Realm.
+     */
+    public OsSharedRealm freeze() {
+        return new OsSharedRealm(osRealmConfig, getVersionID());
+    }
+
     // addIterator(), detachIterators() and invalidateIterators() are used to make RealmResults stable iterators work.
     // The iterator will iterate on a snapshot Results if it is accessed inside a transaction.
     // See https://github.com/realm/realm-java/issues/3883 for more information.
@@ -633,5 +640,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     private static native boolean nativeIsPartial(long nativePtr);
 
     private static native boolean nativeIsFrozen(long nativePtr);
+
+    private static native long nativeFreeze(long nativePtr);
 
 }

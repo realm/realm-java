@@ -446,7 +446,7 @@ abstract class BaseRealm implements Closeable {
      */
     public boolean isFrozen() {
         checkIfValid();
-        return sharedRealm.isFrozen();
+        return frozen;
     }
 
     /**

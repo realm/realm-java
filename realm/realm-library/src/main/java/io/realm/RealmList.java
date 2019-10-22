@@ -157,7 +157,12 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         }
 
         BaseRealm frozenRealm = realm.freeze();
-        return frozenRealm.importFromReadTransaction(this);
+        OsList frozenList = getOsList().freeze(frozenRealm.sharedRealm);
+        if (className != null) {
+            return new RealmList<>(className, frozenList, frozenRealm);
+        } else {
+            return new RealmList<>(clazz, frozenList, frozenRealm);
+        }
     }
 
     /**

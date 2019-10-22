@@ -22,8 +22,7 @@ import io.realm.internal.UncheckedRow;
 /**
  * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
  */
-abstract class OrderedRealmCollectionImpl<E>
-        extends AbstractList<E> implements OrderedRealmCollection<E> {
+abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements OrderedRealmCollection<E> {
     private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by 'RealmResults' or" +
             " 'OrderedRealmCollectionSnapshot'.";
 
@@ -632,5 +631,10 @@ abstract class OrderedRealmCollectionImpl<E>
 
     private SchemaConnector getSchemaConnector() {
         return new SchemaConnector(realm.getSchema());
+    }
+
+    @Override
+    public RealmCollection<E> freeze() {
+        throw new UnsupportedOperationException();
     }
 }

@@ -533,7 +533,12 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         }
 
         BaseRealm frozenRealm = realm.freeze();
-        return frozenRealm.importFromReadTransaction(this);
+        OsResults frozenResults = osResults.freeze();
+        if (className != null) {
+            return new RealmResults<>(frozenRealm, frozenResults, className);
+        } else {
+            return new RealmResults<>(frozenRealm, frozenResults, classSpec);
+        }
     }
 
     private Class<?> getListType(RealmList list) {

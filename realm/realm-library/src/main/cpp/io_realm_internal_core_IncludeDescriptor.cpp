@@ -73,7 +73,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_core_IncludeDescriptor_nativeCrea
         std::vector<std::vector<LinkPathPart>> include_path;
         include_path.reserve(1);
         include_path.emplace_back(parts);
-        return reinterpret_cast<jlong>(new IncludeDescriptor(*starting_table, include_path));
+        return reinterpret_cast<jlong>(new IncludeDescriptor(ConstTableRef(starting_table), include_path));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);

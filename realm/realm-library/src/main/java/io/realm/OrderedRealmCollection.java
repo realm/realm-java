@@ -227,11 +227,4 @@ public interface OrderedRealmCollection<E> extends List<E>, RealmCollection<E> {
      * @see OrderedRealmCollectionSnapshot
      */
     OrderedRealmCollectionSnapshot<E> createSnapshot();
-
-    /**
-     * FIXME
-     * @return
-     */
-    @Override
-    OrderedRealmCollection<E> freeze();
 }

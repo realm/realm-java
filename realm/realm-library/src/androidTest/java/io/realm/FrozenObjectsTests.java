@@ -19,14 +19,18 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.File;
 
 import javax.annotation.Nullable;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -42,6 +46,8 @@ import static org.junit.Assert.fail;
  */
 @RunWith(AndroidJUnit4.class)
 public class FrozenObjectsTests {
+
+    private static final int DATA_SIZE = 10;
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
@@ -67,6 +73,16 @@ public class FrozenObjectsTests {
         if (frozenRealm != null) {
             frozenRealm.close();
         }
+
+        // FIXME: Work-around for https://github.com/realm/realm-core/issues/3435
+        deleteRealm(realmConfig);
+    }
+
+    private void deleteRealm(RealmConfiguration configuration) {
+        String canonicalPath = configuration.getPath();
+        File realmFolder = configuration.getRealmDirectory();
+        String realmFileName = configuration.getRealmFileName();
+        assertTrue(Util.deleteRealm(canonicalPath, realmFolder, realmFileName));
     }
 
     @Test
@@ -270,10 +286,10 @@ public class FrozenObjectsTests {
 
     @Test
     public void queryFrozenRealmAcrossThreads() throws InterruptedException {
-        Realm frozenRealm = createDataForFrozenRealm(10);
+        final Realm frozenRealm = createDataForFrozenRealm(DATA_SIZE);
         Thread t = new Thread(() -> {
             RealmResults<AllTypes> results = frozenRealm.where(AllTypes.class).findAll();
-            assertEquals(10, results.size());
+            assertEquals(DATA_SIZE, results.size());
         });
         t.start();
         t.join();
@@ -282,10 +298,10 @@ public class FrozenObjectsTests {
 
     @Test
     public void canReadFrozenResultsAcrossThreads() throws InterruptedException {
-        Realm frozenRealm = createDataForFrozenRealm(10);
+        Realm frozenRealm = createDataForFrozenRealm(DATA_SIZE);
         RealmResults<AllTypes> results = frozenRealm.where(AllTypes.class).findAll();
         Thread t = new Thread(() -> {
-            assertEquals(10, results.size());
+            assertEquals(DATA_SIZE, results.size());
             assertTrue(results.isFrozen());
         });
         t.start();
@@ -295,7 +311,7 @@ public class FrozenObjectsTests {
 
     @Test
     public void canReadFrozenListsAcrossThreads() throws InterruptedException {
-        Realm frozenRealm = createDataForFrozenRealm(10);
+        Realm frozenRealm = createDataForFrozenRealm(DATA_SIZE);
         RealmList<Dog> list = frozenRealm.where(AllTypes.class).findFirst().getColumnRealmList();
         Thread t = new Thread(() -> {
             assertEquals(0, list.size());
@@ -308,7 +324,7 @@ public class FrozenObjectsTests {
 
     @Test
     public void canReadFrozenObjectsAcrossThreads() throws InterruptedException {
-        Realm frozenRealm = createDataForFrozenRealm(10);
+        Realm frozenRealm = createDataForFrozenRealm(DATA_SIZE);
         AllTypes obj = frozenRealm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findFirst();
         Thread t = new Thread(() -> {
             assertEquals(0, obj.getColumnLong());
@@ -322,7 +338,7 @@ public class FrozenObjectsTests {
 
     @Test
     public void frozenObjectsReturnsFrozenRealms() {
-        Realm frozenRealm = createDataForFrozenRealm(10);
+        Realm frozenRealm = createDataForFrozenRealm(DATA_SIZE);
         RealmResults<AllTypes> results = frozenRealm.where(AllTypes.class).findAll();
         AllTypes obj = results.first();
         RealmList<Dog> list = obj.getColumnRealmList();
@@ -333,15 +349,66 @@ public class FrozenObjectsTests {
         frozenRealm.close();
     }
 
+    @Test
+    public void freezeResults() throws InterruptedException {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> frozenResults = results.freeze();
+        Thread t = new Thread(() -> {
+            assertEquals(DATA_SIZE, frozenResults.size());
+            assertTrue(frozenResults.isFrozen());
+            assertEquals(1, frozenResults.where().equalTo(AllTypes.FIELD_LONG, 1).findAll().size());
+        });
+        t.start();
+        t.join();
+        frozenResults.getRealm().close(); // FIXME: What to do about frozen Realm lifecycles?
+    }
+
+    @Test
+    public void freezeLists() throws InterruptedException {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        RealmList<Dog> frozenObjectList = obj.getColumnRealmList().freeze();
+        RealmList<String> frozenStringList = obj.getColumnStringList().freeze();
+        Thread t = new Thread(() -> {
+            assertEquals(5, frozenObjectList.size());
+            assertTrue(frozenObjectList.isFrozen());
+            assertEquals(1, frozenObjectList.where().equalTo(Dog.FIELD_NAME, "Dog 1").findAll().size());
+
+            assertEquals(3, frozenStringList.size());
+            assertTrue(frozenStringList.isFrozen());
+            assertEquals("Foo", frozenStringList.first());
+        });
+        t.start();
+        t.join();
+        frozenObjectList.getRealm().close(); // FIXME: What to do about frozen Realm lifecycles?
+    }
+
+    @Test
+    public void freezeObject() {
+        // FIXME
+    }
+
     private Realm createDataForFrozenRealm(int dataSize) {
+        return createDataForLiveRealm(dataSize).freeze();
+    }
+
+    private Realm createDataForLiveRealm(int dataSize) {
         realm.executeTransaction(r -> {
+
+            RealmList<Dog> list = new RealmList<>();
+            for (int i = 0; i < 5; i++) {
+                list.add(r.copyToRealm(new Dog("Dog " + i)));
+            }
             for (int i = 0; i < dataSize; i++) {
                 AllTypes obj = new AllTypes();
                 obj.setColumnString("String " + i);
                 obj.setColumnLong(i);
+                obj.setColumnRealmList(list);
+                obj.setColumnStringList(new RealmList<String>("Foo", "Bar", "Baz"));
                 r.insert(obj);
             }
         });
-        return realm.freeze();
+        return realm;
     }
 }
