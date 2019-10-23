@@ -724,6 +724,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * @throws IllegalArgumentException if field name doesn't exist, it doesn't link to other Realm objects, the type
      * of DynamicRealmObject doesn't match or it belongs to a different Realm.
      */
+    @SuppressWarnings("ReferenceEquality")
     public void setObject(String fieldName, @Nullable DynamicRealmObject value) {
         proxyState.getRealm$realm().checkIfValid();
 
@@ -801,6 +802,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
     }
 
+    @SuppressWarnings("ReferenceEquality")
     private void setModelList(String fieldName, RealmList<DynamicRealmObject> list) {
         long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
         OsList osList = proxyState.getRow$realm().getModelList(columnKey);

@@ -610,6 +610,7 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
+    @SuppressWarnings("ReferenceEquality")
     public void realm_emittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         subscription = realm.asFlowable().subscribe(new Consumer<Realm>() {
@@ -644,6 +645,7 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
+    @SuppressWarnings("ReferenceEquality")
     public void dynamicRealm_emittedOnSubscribe() {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
@@ -688,6 +690,7 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
+    @SuppressWarnings("ReferenceEquality")
     public void unsubscribe_sameThread() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         subscription = realm.asFlowable().subscribe(new Consumer<Realm>() {
@@ -704,6 +707,7 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
+    @SuppressWarnings("ReferenceEquality")
     public void unsubscribe_fromOtherThread() {
         final CountDownLatch unsubscribeCompleted = new CountDownLatch(1);
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);

@@ -208,6 +208,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
      *
      * @param value model object
      */
+    @SuppressWarnings("ReferenceEquality")
     public void checkValidObject(RealmModel value) {
         if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
             throw new IllegalArgumentException("'value' is not a valid managed object.");

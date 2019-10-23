@@ -1510,6 +1510,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     }
 
     // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
+    @SuppressWarnings("ReferenceEquality")
     private <E extends RealmModel> E copyToRealmIfNeeded(E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;

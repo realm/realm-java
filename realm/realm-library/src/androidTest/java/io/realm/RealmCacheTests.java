@@ -66,6 +66,7 @@ public class RealmCacheTests {
 
     // Tests that the closed Realm isn't kept in the Realm instance cache.
     @Test
+    @SuppressWarnings("ReferenceEquality")
     public void typedRealmCacheIsCleared() {
         Realm typedRealm = Realm.getInstance(defaultConfig);
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
@@ -85,6 +86,7 @@ public class RealmCacheTests {
 
     // Tests that the closed DynamicRealms isn't kept in the DynamicRealm instance cache.
     @Test
+    @SuppressWarnings("ReferenceEquality")
     public void dynamicRealmCacheIsCleared() {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
         Realm typedRealm = Realm.getInstance(defaultConfig);
@@ -241,6 +243,7 @@ public class RealmCacheTests {
     }
 
     @Test
+    @SuppressWarnings("ReferenceEquality")
     public void differentThreadsDifferentInstance() throws InterruptedException {
         final CountDownLatch closeLatch = new CountDownLatch(1);
 

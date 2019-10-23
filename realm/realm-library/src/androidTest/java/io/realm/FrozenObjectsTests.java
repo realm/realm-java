@@ -38,6 +38,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -398,6 +399,40 @@ public class FrozenObjectsTests {
         t.start();
         t.join();
         frozenObj.getRealm().close(); // FIXME: What to do about frozen Realm lifecycles?
+    }
+
+    @Test
+    public void frozenRealms_notEqualToLiveRealm() {
+        assertNotEquals(realm, frozenRealm);
+    }
+
+    @Test
+    public void frozenRealm_notEqualToFrozenRealmAtOtherVersion() {
+        realm.beginTransaction();
+        realm.commitTransaction();
+        Realm otherFrozenRealm = realm.freeze();
+        try {
+            assertNotEquals(frozenRealm, otherFrozenRealm);
+        } finally {
+            otherFrozenRealm.close();
+        }
+    }
+
+    @Test
+    public void frozenRealm_equalToFrozenRealmAtSameVersion() throws InterruptedException {
+        Realm otherFrozenRealm = realm.freeze();
+        assertEquals(frozenRealm, otherFrozenRealm); // Same thread
+
+        Thread t = new Thread(() -> {
+            Realm otherThreadFrozenRealm = Realm.getInstance(realmConfig).freeze();
+            try {
+                assertEquals(frozenRealm, otherThreadFrozenRealm);
+            } finally {
+                otherThreadFrozenRealm.close();
+            }
+        });
+        t.start();
+        t.join();
     }
 
     private Realm createDataForFrozenRealm(int dataSize) {
