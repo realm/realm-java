@@ -184,6 +184,11 @@ public enum InvalidRow implements Row {
         throw getStubException();
     }
 
+    @Override
+    public Row freeze(OsSharedRealm frozenRealm) {
+        throw getStubException();
+    }
+
     private RuntimeException getStubException() {
         return new IllegalStateException("Object is no longer managed by Realm. Has it been deleted?");
     }

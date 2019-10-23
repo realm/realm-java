@@ -35,8 +35,8 @@ import io.realm.RealmFieldType;
 public class UncheckedRow implements NativeObject, Row {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    private final NativeContext context; // This is only kept because for now it's needed by the constructor of LinkView
-    private final Table parent;
+    protected final NativeContext context; // This is only kept because for now it's needed by the constructor of LinkView
+    protected final Table parent;
     private final long nativePtr;
 
     public UncheckedRow(NativeContext context, Table parent, long nativePtr) {
@@ -294,6 +294,11 @@ public class UncheckedRow implements NativeObject, Row {
         return nativeHasColumn(nativePtr, fieldName);
     }
 
+    @Override
+    public Row freeze(OsSharedRealm frozenRealm) {
+        return new UncheckedRow(context, parent.freeze(), nativeFreeze(nativePtr, frozenRealm.getNativePtr()));
+    }
+
     protected native long nativeGetColumnCount(long nativeTablePtr);
 
     protected native String nativeGetColumnName(long nativeTablePtr, long columnKey);
@@ -349,6 +354,8 @@ public class UncheckedRow implements NativeObject, Row {
     protected native boolean nativeIsNull(long nativeRowPtr, long columnKey);
 
     protected native void nativeSetNull(long nativeRowPtr, long columnKey);
+
+    protected native long nativeFreeze(long nativeRowPtr, long frozenRealmNativePtr);
 
     private static native long nativeGetFinalizerPtr();
 }

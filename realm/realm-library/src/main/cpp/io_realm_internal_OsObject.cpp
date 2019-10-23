@@ -318,7 +318,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRow(JNIEnv* 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObject(JNIEnv* env, jclass,
                                                                               jlong shared_realm_ptr, jlong table_ref_ptr)
 {
-//TODO use Obj with key instead of Row in the heap
+    //TODO use Obj with key instead of Row in the heap
     try {
         TableRef table = TBL_REF(table_ref_ptr);
         Obj* obj =  new Obj(table->create_object());

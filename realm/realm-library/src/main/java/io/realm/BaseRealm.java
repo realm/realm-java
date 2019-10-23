@@ -450,48 +450,6 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * FIXME
-     *
-     * It is up to callers of this method ensure that all invariants are upheld, i.e. only import
-     * live data that belong to the same Realm. Behavior is undefined if not.
-     *
-     * @param results
-     * @param <E>
-     * @return
-     */
-    <E> RealmResults<E> importFromReadTransaction(RealmResults<E> results) {
-        return null;
-    }
-
-    /**
-     * FIXME
-     *
-     * It is up to callers of this method ensure that all invariants are upheld, i.e. only import
-     * live data that belong to the same Realm. Behavior is undefined if not.
-     *
-     * @param list
-     * @param <E>
-     * @return
-     */
-    <E> RealmList<E> importFromReadTransaction(RealmList<E> list) {
-        return null;
-    }
-
-    /**
-     * FIXME
-     *
-     * It is up to callers of this method ensure that all invariants are upheld, i.e. only import
-     * live data that belong to the same Realm. Behavior is undefined if not.
-     *
-     * @param object
-     * @param <E>
-     * @return
-     */
-    <E extends RealmModel> RealmResults<E> importFromReadTransaction(E object) {
-        return null;
-    }
-
-    /**
      * Checks if a Realm's underlying resources are still available or not getting accessed from the wrong thread.
      */
     protected void checkIfValid() {

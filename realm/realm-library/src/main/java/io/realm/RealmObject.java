@@ -18,6 +18,8 @@ package io.realm;
 
 import android.app.IntentService;
 
+import java.util.Collections;
+
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.annotations.RealmClass;
@@ -170,9 +172,10 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * FIXME
      * @return
      */
-    public final RealmObject freeze() {
+    @SuppressWarnings("TypeParameterUnusedInFormals") // FIXME: Consider adding type parameters to all RealmObject/RealmModel classes?
+    public final <E extends RealmModel> E freeze() {
         //noinspection unchecked
-        return RealmObject.freeze(this);
+        return (E) RealmObject.freeze(this);
     }
 
     /**
@@ -201,7 +204,20 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             BaseRealm frozenRealm = realm.freeze();
             //noinspection unchecked
-            return (E) frozenRealm.importFromReadTransaction(object);
+
+            Row frozenRow = proxy.realmGet$proxyState().getRow$realm().freeze(frozenRealm.sharedRealm);
+            if (frozenRealm instanceof DynamicRealm) {
+                //noinspection unchecked
+                return (E) new DynamicRealmObject(frozenRealm, frozenRow);
+            } else if (frozenRealm instanceof Realm) {
+                //noinspection unchecked
+                Class<E> modelClass = (Class<E>) object.getClass().getSuperclass();
+                return (E) frozenRealm.getConfiguration().getSchemaMediator().newInstance(
+                        modelClass, frozenRealm, frozenRow, realm.getSchema().getColumnInfo(modelClass),
+                        false, Collections.<String>emptyList());
+            } else {
+                throw new UnsupportedOperationException("Unknown Realm type: " + frozenRealm.getClass().getName());
+            }
         } else {
             throw new IllegalArgumentException("It is only possible to freeze valid managed Realm objects.");
         }

@@ -385,8 +385,19 @@ public class FrozenObjectsTests {
     }
 
     @Test
-    public void freezeObject() {
-        // FIXME
+    public void freezeObject() throws InterruptedException {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        AllTypes obj = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findFirst();
+        AllTypes frozenObj = obj.freeze();
+        Thread t = new Thread(() -> {
+            assertTrue(frozenObj.isFrozen());
+            assertEquals(0, frozenObj.getColumnLong());
+            assertTrue(frozenObj.getColumnRealmList().isFrozen());
+            assertTrue(frozenObj.getColumnRealmObject().isFrozen());
+        });
+        t.start();
+        t.join();
+        frozenObj.getRealm().close(); // FIXME: What to do about frozen Realm lifecycles?
     }
 
     private Realm createDataForFrozenRealm(int dataSize) {
@@ -406,6 +417,7 @@ public class FrozenObjectsTests {
                 obj.setColumnLong(i);
                 obj.setColumnRealmList(list);
                 obj.setColumnStringList(new RealmList<String>("Foo", "Bar", "Baz"));
+                obj.setColumnRealmObject(r.copyToRealm(new Dog("Dog 42")));
                 r.insert(obj);
             }
         });

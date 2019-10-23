@@ -214,6 +214,11 @@ public class PendingRow implements Row {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
+    @Override
+    public Row freeze(OsSharedRealm frozenRealm) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
     private void clearPendingCollection() {
         pendingOsResults.removeListener(this, listener);
         pendingOsResults = null;
