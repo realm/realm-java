@@ -65,21 +65,21 @@ public class RealmProxyMediatorTests {
         final Set<Long> indexSet = new HashSet<Long>();
         int indexCount = 0;
 
-        indexSet.add(columnInfo.nameIndex);
+        indexSet.add(columnInfo.nameColKey);
         indexCount++;
-        indexSet.add(columnInfo.ageIndex);
+        indexSet.add(columnInfo.ageColKey);
         indexCount++;
-        indexSet.add(columnInfo.heightIndex);
+        indexSet.add(columnInfo.heightColKey);
         indexCount++;
-        indexSet.add(columnInfo.weightIndex);
+        indexSet.add(columnInfo.weightColKey);
         indexCount++;
-        indexSet.add(columnInfo.hasTailIndex);
+        indexSet.add(columnInfo.hasTailColKey);
         indexCount++;
-        indexSet.add(columnInfo.birthdayIndex);
+        indexSet.add(columnInfo.birthdayColKey);
         indexCount++;
-        indexSet.add(columnInfo.ownerIndex);
+        indexSet.add(columnInfo.ownerColKey);
         indexCount++;
-        indexSet.add(columnInfo.scaredOfDogIndex);
+        indexSet.add(columnInfo.scaredOfDogColKey);
         indexCount++;
 
         assertEquals(indexCount, indexSet.size());

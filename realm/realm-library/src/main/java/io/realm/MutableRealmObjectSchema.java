@@ -165,12 +165,12 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         if (!hasField(fieldName)) {
             throw new IllegalStateException(fieldName + " does not exist.");
         }
-        long columnIndex = getColumnKey(fieldName);
+        long columnKey = getColumnKey(fieldName);
         String className = getClassName();
         if (fieldName.equals(OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, className))) {
             OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, className, fieldName);
         }
-        table.removeColumn(columnIndex);
+        table.removeColumn(columnKey);
         return this;
     }
 
@@ -184,7 +184,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         long columnKey = getColumnKey(currentFieldName);
         table.renameColumn(columnKey, newFieldName);
 
-        // ATTENTION: We don't need to re-set the PK table here since the column index won't be changed when renaming.
+        // ATTENTION: We don't need to re-set the PK table here since the column key won't be changed when renaming.
 
         return this;
     }
@@ -346,9 +346,9 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             }
         } catch (Exception e) {
             // If something went wrong, revert all attributes.
-            long columnIndex = getColumnKey(fieldName);
+            long columnKey = getColumnKey(fieldName);
             if (indexAdded) {
-                table.removeSearchIndex(columnIndex);
+                table.removeSearchIndex(columnKey);
             }
             throw (RuntimeException) e;
         }

@@ -314,7 +314,7 @@ public class FrozenObjectsTests {
         Realm frozenRealm = createDataForFrozenRealm(DATA_SIZE);
         RealmList<Dog> list = frozenRealm.where(AllTypes.class).findFirst().getColumnRealmList();
         Thread t = new Thread(() -> {
-            assertEquals(0, list.size());
+            assertEquals(5, list.size());
             assertTrue(list.isFrozen());
         });
         t.start();

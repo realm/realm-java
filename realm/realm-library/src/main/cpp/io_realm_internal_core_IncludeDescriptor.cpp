@@ -35,7 +35,6 @@ using namespace realm::_impl;
 
 static void finalize_descriptor(jlong ptr)
 {
-    TR_ENTER_PTR(ptr)
     delete reinterpret_cast<IncludeDescriptor*>(ptr);
 }
 
@@ -55,25 +54,25 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_core_IncludeDescriptor_nativeCrea
     try {
         JLongArrayAccessor table_arr(env, table_pointers);
         JLongArrayAccessor colkeys_arr(env, column_keys);
-        auto starting_table = reinterpret_cast<Table*>(starting_table_ptr);
+        auto starting_table = reinterpret_cast<TableRef*>(starting_table_ptr);
         std::vector<LinkPathPart> parts;
         parts.reserve(colkeys_arr.size());
         for (int i = 0; i < colkeys_arr.size(); ++i) {
             auto col_key = static_cast<size_t>(colkeys_arr[i]);
-            auto table_ptr = reinterpret_cast<Table *>(table_arr[i]);
+            auto table_ptr = reinterpret_cast<TableRef*>(table_arr[i]);
             if (table_ptr == nullptr) {
                 parts.emplace_back(LinkPathPart(ColKey(col_key)));
             }
             else {
-                const ConstTableRef ref = table_ptr->get_table_ref();
-                parts.emplace_back(LinkPathPart(ColKey(col_key), ref));
+                parts.emplace_back(LinkPathPart(ColKey(col_key), *static_cast<ConstTableRef*>(table_ptr)));
             }
         }
 
         std::vector<std::vector<LinkPathPart>> include_path;
         include_path.reserve(1);
         include_path.emplace_back(parts);
-        return reinterpret_cast<jlong>(new IncludeDescriptor(ConstTableRef(starting_table), include_path));
+
+        return reinterpret_cast<jlong>(new IncludeDescriptor(*starting_table, include_path));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);

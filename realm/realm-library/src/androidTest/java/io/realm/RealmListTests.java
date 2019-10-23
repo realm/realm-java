@@ -716,10 +716,10 @@ public class RealmListTests extends CollectionTests {
     public void toString_managedMode() {
         StringBuilder sb = new StringBuilder("RealmList<Dog>@[");
         for (int i = 0; i < collection.size() - 1; i++) {
-            sb.append(((RealmObjectProxy) (collection.get(i))).realmGet$proxyState().getRow$realm().getIndex());
+            sb.append(((RealmObjectProxy) (collection.get(i))).realmGet$proxyState().getRow$realm().getObjectKey());
             sb.append(",");
         }
-        sb.append(((RealmObjectProxy)collection.get(TEST_SIZE - 1)).realmGet$proxyState().getRow$realm().getIndex());
+        sb.append(((RealmObjectProxy)collection.get(TEST_SIZE - 1)).realmGet$proxyState().getRow$realm().getObjectKey());
         sb.append("]");
 
         assertEquals(sb.toString(), collection.toString());

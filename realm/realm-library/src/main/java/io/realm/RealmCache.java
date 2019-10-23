@@ -293,8 +293,6 @@ final class RealmCache {
         return cache.doCreateRealmOrGetFromCache(configuration, realmClass, version);
     }
 
-
-
     private synchronized <E extends BaseRealm> E doCreateRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, OsSharedRealm.VersionID version) {
         ReferenceCounter referenceCounter = getRefCounter(realmClass, version);
         boolean firstRealmInstanceInProcess = (getTotalGlobalRefCount() == 0);

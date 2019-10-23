@@ -332,8 +332,8 @@ public:
                                                  size_t /*property_index*/) const
     {
         const std::map<ColKey, JavaValue>& map = dict.get_property_list();
-         auto it = map.find(prop.column_key);
-         return it == map.end() ? util::none : util::make_optional(it->second);
+        auto it = map.find(prop.column_key);
+        return it == map.end() ? util::none : util::make_optional(it->second);
     }
 
     // Get the default value for the given property in the given object schema,
@@ -474,7 +474,6 @@ inline StringData JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKe
     if (!v.has_value()) {
         return StringData();
     }
-    //check_value_not_null(v, "String");
     return StringData(v.get_string());
 }
 

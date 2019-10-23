@@ -49,10 +49,6 @@ public class Table implements NativeObject {
 
     private final OsSharedRealm sharedRealm;
 
-    Table(Table parent, long nativeTableRefPointer) {
-        this(parent.sharedRealm, nativeTableRefPointer);
-    }
-
     Table(OsSharedRealm sharedRealm, long nativeTableRefPointer) {
         this.context = sharedRealm.context;
         this.sharedRealm = sharedRealm;
@@ -136,7 +132,7 @@ public class Table implements NativeObject {
     /**
      * Adds a link column to the table dynamically.
      *
-     * @return the index of the new column.
+     * @return the column key of the new column.
      */
     public long addColumnLink(RealmFieldType type, String name, Table table) {
         verifyColumnName(name);
@@ -146,14 +142,14 @@ public class Table implements NativeObject {
     /**
      * Removes a column in the table dynamically.
      * <p>
-     * It should be noted if {@code columnIndex} is the same as the primary key column index,
+     * It should be noted if {@code columnKey} is the same as the primary key column key,
      * the primary key column is removed from the meta table.
      *
-     * @param columnIndex the column index to be removed.
+     * @param columnKey the column key to be removed.
      */
     public void removeColumn(long columnKey) {
         final String className = getClassName();
-        // Checks the PK column index before removing a column. We don't know if we're hitting a PK col,
+        // Checks the PK column key before removing a column. We don't know if we're hitting a PK col,
         // but it should be noted that once a column is removed, there is no way we can find whether
         // a PK exists or not.
         final String columnName = getColumnName(columnKey);
@@ -278,7 +274,7 @@ public class Table implements NativeObject {
     }
 
     /**
-     * Returns the name of a column identified by columnIndex. Notice that the index is zero based.
+     * Returns the name of a column identified by columnKey.
      *
      * @param columnKey the key of the column to find.
      * @return the name of the column.
@@ -299,7 +295,7 @@ public class Table implements NativeObject {
     }
 
     /**
-     * Gets the type of a column identified by the columnIndex.
+     * Gets the type of a column identified by the columnKey.
      *
      * @param columnKey key of the column.
      * @return the type of the particular column.
@@ -309,12 +305,10 @@ public class Table implements NativeObject {
     }
 
     /**
-     * FIXME: This is probably no longer supported?
-     *
-     * Removes a row from the specific index. If it is not the last row in the table, it then moves the last row into
+     * Removes a row from the specific row key. If it is not the last row in the table, it then moves the last row into
      * the vacated slot.
      *
-     * @param rowKey the row index (starting with 0)
+     * @param rowKey the row key
      */
     public void moveLastOver(long rowKey) {
         checkImmutable();
@@ -372,8 +366,8 @@ public class Table implements NativeObject {
     /**
      * Gets the value of a (string) cell.
      *
-     * @param columnIndex 0 based index value of the column
-     * @param rowIndex 0 based index of the row.
+     * @param columnKey column key.
+     * @param rowKey row key.
      * @return value of the particular cell
      */
     public String getString(long columnKey, long rowKey) {
@@ -398,7 +392,7 @@ public class Table implements NativeObject {
      * Returns a non-checking Row. Incorrect use of this Row will cause a hard core crash.
      * If error checking is required, use {@link #getCheckedRow(long)} instead.
      *
-     * @param index the index of row to fetch.
+     * @param rowKey row  key to fetch.
      * @return the unsafe row wrapper object.
      */
     public UncheckedRow getUncheckedRow(long rowKey) {
@@ -466,10 +460,10 @@ public class Table implements NativeObject {
     }
 
     /**
-     * Sets a String value to a cell of Table, pointed by column and row index.
+     * Sets a String value to a cell of Table, pointed by column and row key.
      *
-     * @param columnIndex 0 based index value of the cell column.
-     * @param rowIndex 0 based index value of the cell row.
+     * @param columnKey cell column.
+     * @param rowKey cell row.
      * @param value a String value to set in the cell.
      */
     public void setString(long columnKey, long rowKey, @Nullable String value, boolean isDefault) {
@@ -592,7 +586,7 @@ public class Table implements NativeObject {
     /**
      * Searches for first occurrence of null. Beware that the order in the column is undefined.
      *
-     * @param columnIndex the column to search in.
+     * @param columnKey the column to search in.
      * @return the row index for the first match found or {@link #NO_MATCH}.
      */
     public long findFirstNull(long columnKey) {
@@ -792,8 +786,6 @@ public class Table implements NativeObject {
     private native long nativeWhere(long nativeTableRefPtr);
 
     public static native long nativeFindFirstInt(long nativeTableRefPtr, long columnKey, long value);
-
-    public static native long nativeRunTest();
 
     private native long nativeFindFirstBool(long nativePtr, long columnKey, boolean value);
 

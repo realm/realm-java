@@ -20,7 +20,6 @@ package io.realm;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -41,7 +40,6 @@ import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsString;
-import io.realm.exceptions.RealmError;
 import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 

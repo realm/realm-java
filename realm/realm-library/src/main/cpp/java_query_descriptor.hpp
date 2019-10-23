@@ -61,7 +61,6 @@ private:
     JNIEnv* m_env;
     jobject m_sort_desc_obj;
 
-    std::vector<std::vector<size_t>> get_column_indices() const noexcept;
     std::vector<std::vector<ColKey>> get_column_keys() const noexcept;
     std::vector<bool> get_ascendings() const noexcept;
 

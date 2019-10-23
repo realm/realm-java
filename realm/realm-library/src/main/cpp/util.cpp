@@ -271,7 +271,7 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
     env->DeleteLocalRef(exception);
 }
 
-void ThrowNullValueException(JNIEnv* env, Table* table, ColKey col_key)
+void ThrowNullValueException(JNIEnv* env, const Table* table, ColKey col_key)
 {
     std::ostringstream ss;
     ss << "Trying to set a non-nullable field '" << table->get_column_name(col_key) << "' in '" << table->get_name()

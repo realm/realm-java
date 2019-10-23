@@ -164,7 +164,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
         @Override
         public final boolean isValid() {
-            return !getRealm().isClosed() && getRow().isAttached();
+            return !getRealm().isClosed() && getRow().isValid();
         }
 
         @Override
@@ -196,7 +196,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         public final void increment(long inc) {
             getRealm().checkIfValidAndInTransaction();
             Row row = getRow();
-            row.getTable().incrementLong(getColumnIndex(), row.getIndex(), inc);
+            row.getTable().incrementLong(getColumnIndex(), row.getObjectKey(), inc);
         }
 
         @Override
@@ -220,7 +220,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         private void setValue(@Nullable Long value, boolean isDefault) {
             Row row = getRow();
             Table table = row.getTable();
-            long rowIndex = row.getIndex();
+            long rowIndex = row.getObjectKey();
             long columnIndex = getColumnIndex();
             if (value == null) {
                 table.setNull(columnIndex, rowIndex, isDefault);

@@ -128,9 +128,6 @@ public class CheckedRow extends UncheckedRow {
     protected native long nativeGetColumnCount(long nativeTablePtr);
 
     @Override
-    protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
-
-    @Override
     protected native long nativeGetColumnKey(long nativeTablePtr, String columnName);
 
     @Override

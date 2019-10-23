@@ -31,7 +31,6 @@ using namespace realm::_impl;
 
 static void finalize_schema(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<Schema*>(ptr);
 }
 
@@ -62,8 +61,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeGetObjectSchem
                                                                                       jlong native_ptr,
                                                                                       jstring j_class_name)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         JStringAccessor class_name_accessor(env, j_class_name);
         StringData class_name(class_name_accessor);

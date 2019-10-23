@@ -32,7 +32,6 @@ using namespace realm::_impl;
 
 static void finalize_object_schema(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<ObjectSchema*>(ptr);
 }
 
@@ -61,7 +60,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeAddProper
                                                                                      jlongArray j_persisted_properties,
                                                                                      jlongArray j_computed_properties)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         ObjectSchema& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
         JLongArrayAccessor persisted_properties(env, j_persisted_properties);
@@ -91,7 +89,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeAddProper
 JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetClassName(JNIEnv* env, jclass,
                                                                                        jlong nativePtr)
 {
-    TR_ENTER_PTR(nativePtr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(nativePtr);
         auto name = object_schema->name;
@@ -106,7 +103,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrope
                                                                                     jlong native_ptr,
                                                                                     jstring j_property_name)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
         JStringAccessor property_name_accessor(env, j_property_name);
@@ -125,8 +121,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrope
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrimaryKeyProperty(JNIEnv* env, jclass,
                                                                                               jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
         auto* property = object_schema.primary_key_property();
@@ -136,21 +130,4 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrima
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetMaxColumnIndex(JNIEnv* env, jclass,
-                                                                                         jlong native_ptr)
-{
-    TR_ENTER_PTR(native_ptr)
-
-    try {
-        auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
-        if (object_schema.persisted_properties.empty()) {
-            return static_cast<jlong>(-1);
-        } else {
-            return static_cast<jlong>(object_schema.persisted_properties.size());
-        }
-    }
-    CATCH_STD()
-    return static_cast<jlong>(-1);
 }

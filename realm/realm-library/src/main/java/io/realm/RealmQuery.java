@@ -2404,7 +2404,7 @@ public class RealmQuery<E> {
         if (!queryDescriptors.isEmpty()) {
             RealmObjectProxy obj = (RealmObjectProxy) findAll().first(null);
             if (obj != null) {
-                return obj.realmGet$proxyState().getRow$realm().getIndex();
+                return obj.realmGet$proxyState().getRow$realm().getObjectKey();
             } else {
                 return -1;
             }

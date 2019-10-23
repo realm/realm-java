@@ -67,7 +67,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved);
 #define S(x) static_cast<size_t>(x)
 #define B(x) static_cast<bool>(x)
 #define Q(x) reinterpret_cast<realm::Query*>(x)
-#define ROW(x) reinterpret_cast<realm::Obj*>(x)//TODO rename ROW to OBJ
+#define OBJ(x) reinterpret_cast<realm::Obj*>(x)
 #define TBL_REF(x) *reinterpret_cast<realm::TableRef*>(x)
 
 // Exception handling
@@ -93,7 +93,7 @@ void ConvertException(JNIEnv* env, const char* file, int line);
 void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr,
                     const std::string& itemStr = "");
 void ThrowException(JNIEnv* env, ExceptionKind exception, const char* classStr);
-void ThrowNullValueException(JNIEnv* env, realm::Table* table, realm::ColKey col_key);
+void ThrowNullValueException(JNIEnv* env, const realm::Table* table, realm::ColKey col_key);
 
 // Check parameters
 
@@ -103,7 +103,7 @@ void ThrowNullValueException(JNIEnv* env, realm::Table* table, realm::ColKey col
 #if CHECK_PARAMETERS
 
 #define TYPE_VALID(env, ptr, col, type) TypeValid(env, ptr, col, type)
-#define COL_NULLABLE(env, ptr, columnKey) ColIsNullable(env, ptr, columnKey)
+#define COL_NULLABLE(env, table_ref, columnKey) ColIsNullable(env, table_ref, columnKey)
 
 #else
 
@@ -173,31 +173,31 @@ inline bool TypeValid(JNIEnv* env, realm::ConstTableRef table, jlong columnIndex
 }
 
 template <class T>
-inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnKey)
+inline bool ColIsNullable(JNIEnv* env, T table_ref, jlong columnKey)
 {
     realm::ColKey col = realm::ColKey(columnKey);
-    int colType = pTable->get_column_type(col);
+    int colType = table_ref->get_column_type(col);
     if (colType == realm::type_Link) {
         return true;
     }
 
     if (colType == realm::type_LinkList) {
-        ThrowException(env, IllegalArgument, "RealmList(" + std::string(pTable->get_column_name(col)) + ") is not nullable.");
+        ThrowException(env, IllegalArgument, "RealmList(" + std::string(table_ref->get_column_name(col)) + ") is not nullable.");
         return false;
     }
 
     // checking for primitive list
-    if (pTable->is_list(col)) {
-        ThrowException(env, IllegalArgument, "RealmList(" + std::string(pTable->get_column_name(col)) + ") is not nullable.");
+    if (table_ref->is_list(col)) {
+        ThrowException(env, IllegalArgument, "RealmList(" + std::string(table_ref->get_column_name(col)) + ") is not nullable.");
         return false;
     }
 
-    if (pTable->is_nullable(col)) {
+    if (table_ref->is_nullable(col)) {
         return true;
     }
 
     realm::jni_util::Log::e("Expected nullable column type");
-    ThrowException(env, IllegalArgument, "This field(" + std::string(pTable->get_column_name(col)) + ") is not nullable.");
+    ThrowException(env, IllegalArgument, "This field(" + std::string(table_ref->get_column_name(col)) + ") is not nullable.");
     return false;
 }
 

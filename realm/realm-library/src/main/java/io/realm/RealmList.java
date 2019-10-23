@@ -873,7 +873,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             } else if (isClassForRealmModel(clazz)) {
                 for (int i = 0; i < size(); i++) {
                     //noinspection ConstantConditions
-                    sb.append(((RealmObjectProxy) get(i)).realmGet$proxyState().getRow$realm().getIndex());
+                    sb.append(((RealmObjectProxy) get(i)).realmGet$proxyState().getRow$realm().getObjectKey());
                     sb.append(separator);
                 }
                 if (0 < size()) {
@@ -1481,7 +1481,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     @Override
     public void appendValue(Object value) {
         final RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.addRow(proxy.realmGet$proxyState().getRow$realm().getIndex());
+        osList.addRow(proxy.realmGet$proxyState().getRow$realm().getObjectKey());
     }
 
     @Override
@@ -1495,7 +1495,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
         checkInsertIndex(index);
 
         RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getIndex());
+        osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
     }
 
     @Override
@@ -1506,7 +1506,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     @Override
     protected void setValue(int index, Object value) {
         RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getIndex());
+        osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
     }
 
     // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.

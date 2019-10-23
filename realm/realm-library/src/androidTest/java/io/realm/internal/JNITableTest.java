@@ -20,7 +20,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,7 +41,6 @@ import static junit.framework.Assert.fail;
 
 
 @RunWith(AndroidJUnit4.class)
-@Ignore("__CORE6__: using index should be deprecated, use ColKey, ObjKey")
 public class JNITableTest {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
@@ -80,47 +78,6 @@ public class JNITableTest {
 
         String expected = "The Table temp contains 3 columns: stringCol, intCol, boolCol. And 2 rows.";
         assertEquals(expected, t.toString());
-    }
-
-    @Test
-    public void rowOperationsOnZeroRow() {
-        Table t = TestHelper.createTable(sharedRealm, "temp");
-
-        sharedRealm.beginTransaction();
-        // Removes rows without columns.
-        try { t.moveLastOver(0);  fail("No rows in table"); } catch (RuntimeException ignored) {}
-        try { t.moveLastOver(10); fail("No rows in table"); } catch (RuntimeException ignored) {}
-
-        // Column added, remove rows again.
-        t.addColumn(RealmFieldType.STRING, "");
-        try { t.moveLastOver(0);  fail("No rows in table"); } catch (RuntimeException ignored) {}
-        try { t.moveLastOver(10); fail("No rows in table"); } catch (RuntimeException ignored) {}
-        sharedRealm.commitTransaction();
-    }
-
-    @Test
-    public void zeroColOperations() {
-        Table tableZeroCols = TestHelper.createTable(sharedRealm, "temp");
-
-        sharedRealm.beginTransaction();
-        // Col operations
-        try {
-            tableZeroCols.removeColumn(0);
-            fail("No columns in table");
-        } catch (RuntimeException ignored) {}
-        try {
-            tableZeroCols.renameColumn(0, "newName");
-            fail("No columns in table");
-        } catch (RuntimeException ignored) {}
-        try {
-            tableZeroCols.removeColumn(10);
-            fail("No columns in table");
-        } catch (RuntimeException ignored) {}
-        try {
-            tableZeroCols.renameColumn(10, "newName");
-            fail("No columns in table");
-        } catch (RuntimeException ignored) {}
-        sharedRealm.commitTransaction();
     }
 
     @Test
@@ -406,8 +363,6 @@ public class JNITableTest {
             long colKey6 = table.addColumn(RealmFieldType.FLOAT, RealmFieldType.FLOAT.name().toLowerCase(Locale.ENGLISH) + "Col");
             long colKey7 = table.addColumn(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE.name().toLowerCase(Locale.ENGLISH) + "Col");
             long colKey8 = table.addColumnLink(RealmFieldType.OBJECT, RealmFieldType.OBJECT.name().toLowerCase(Locale.ENGLISH) + "Col", table);
-
-//            sharedRealm.commitTransaction();
 
             long[] columnKeys = new long[]{colKey1, colKey2, colKey3, colKey4, colKey5, colKey6, colKey7, colKey8};
             Object[] datas = new Object[]{"string value",

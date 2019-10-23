@@ -352,7 +352,7 @@ public class DynamicRealm extends BaseRealm {
 //        }
 //        Table table = sharedRealm.getTable("class___Class");
 //        TableQuery query = table.where()
-//                .equalTo(new long[]{table.getColumnKey("name")}, new long[]{NativeObject.NULLPTR}, className);
+//                .equalTo(new long[]{table.getObjectKey("name")}, new long[]{NativeObject.NULLPTR}, className);
 //        OsResults result = OsResults.createFromQuery(sharedRealm, query);
 //        return new RealmResults<>(this, result, ClassPermissions.class).first(null);
 //    }
