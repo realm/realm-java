@@ -4545,4 +4545,21 @@ public class RealmTests {
             Realm.deleteRealm(config);
         }
     }
+
+    @Test
+    public void hittingMaxNumberOfVersionsThrows() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .name("versions-test.realm")
+                .maxNumberOfActiveVersions(1)
+                .build();
+        Realm realm = Realm.getInstance(config);
+        try {
+            realm.beginTransaction();
+            fail();
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().contains("Number of active versions (2) in the Realm exceeded the limit of 1"));
+        } finally {
+            realm.close();
+        }
+    }
 }

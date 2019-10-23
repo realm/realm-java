@@ -54,6 +54,8 @@ import io.realm.RealmResults;
  */
 public class RealmObservableFactory implements RxObservableFactory {
 
+    private final boolean returnFrozenObjects;
+
     // Maps for storing strong references to Realm classes while they are subscribed to.
     // This is needed if users create Observables without manually maintaining a reference to them.
     // In that case RealmObjects/RealmResults/RealmLists might be GC'ed too early.
@@ -111,6 +113,16 @@ public class RealmObservableFactory implements RxObservableFactory {
         }, BACK_PRESSURE_STRATEGY);
     }
 
+    /**
+     * Constructs the factory for creating Realm observables for RxJava.
+     *
+     * @param emitFrozenObjects {@code true} if all objects should be frozen before being returned
+ *                              to the user. {@code false} if they should be live objects.
+     */
+    public RealmObservableFactory(boolean emitFrozenObjects) {
+        this.returnFrozenObjects = emitFrozenObjects;
+    }
+
     @Override
     public Flowable<DynamicRealm> from(DynamicRealm realm) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
@@ -123,7 +135,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void onChange(DynamicRealm realm) {
                         if (!emitter.isCancelled()) {
-                            emitter.onNext(realm);
+                            emitter.onNext(returnFrozenObjects ? realm.freeze() : realm);
                         }
                     }
                 };
@@ -158,7 +170,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void onChange(RealmResults<E> results) {
                         if (!emitter.isCancelled()) {
-                            emitter.onNext(results);
+                            emitter.onNext(returnFrozenObjects ? results.freeze() : results);
                         }
                     }
                 };
@@ -193,9 +205,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 resultsRefs.get().acquireReference(results);
                 final OrderedRealmCollectionChangeListener<RealmResults<E>> listener = new OrderedRealmCollectionChangeListener<RealmResults<E>>() {
                     @Override
-                    public void onChange(RealmResults<E> e, OrderedCollectionChangeSet changeSet) {
+                    public void onChange(RealmResults<E> results, OrderedCollectionChangeSet changeSet) {
                         if (!emitter.isDisposed()) {
-                            emitter.onNext(new CollectionChange<RealmResults<E>>(results, changeSet));
+                            emitter.onNext(new CollectionChange<RealmResults<E>>(returnFrozenObjects ? results.freeze() : results, changeSet));
                         }
                     }
                 };
@@ -231,7 +243,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void onChange(RealmResults<E> results) {
                         if (!emitter.isCancelled()) {
-                            emitter.onNext(results);
+                            emitter.onNext(returnFrozenObjects ? results.freeze() : results);
                         }
                     }
                 };
@@ -268,7 +280,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void onChange(RealmResults<E> results, OrderedCollectionChangeSet changeSet) {
                         if (!emitter.isDisposed()) {
-                            emitter.onNext(new CollectionChange<>(results, changeSet));
+                            emitter.onNext(new CollectionChange<>(returnFrozenObjects ? results.freeze() : results, changeSet));
                         }
                     }
                 };
@@ -302,9 +314,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 listRefs.get().acquireReference(list);
                 final RealmChangeListener<RealmList<E>> listener = new RealmChangeListener<RealmList<E>>() {
                     @Override
-                    public void onChange(RealmList<E> results) {
+                    public void onChange(RealmList<E> list) {
                         if (!emitter.isCancelled()) {
-                            emitter.onNext(list);
+                            emitter.onNext(returnFrozenObjects ? list.freeze() : list);
                         }
                     }
                 };
@@ -339,9 +351,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 listRefs.get().acquireReference(list);
                 final OrderedRealmCollectionChangeListener<RealmList<E>> listener = new OrderedRealmCollectionChangeListener<RealmList<E>>() {
                     @Override
-                    public void onChange(RealmList<E> results, OrderedCollectionChangeSet changeSet) {
+                    public void onChange(RealmList<E> list, OrderedCollectionChangeSet changeSet) {
                         if (!emitter.isDisposed()) {
-                            emitter.onNext(new CollectionChange<>(results, changeSet));
+                            emitter.onNext(new CollectionChange<>(returnFrozenObjects ? list.freeze() : list, changeSet));
                         }
                     }
                 };
@@ -375,9 +387,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 listRefs.get().acquireReference(list);
                 final RealmChangeListener<RealmList<E>> listener = new RealmChangeListener<RealmList<E>>() {
                     @Override
-                    public void onChange(RealmList<E> results) {
+                    public void onChange(RealmList<E> list) {
                         if (!emitter.isCancelled()) {
-                            emitter.onNext(list);
+                            emitter.onNext(returnFrozenObjects ? list.freeze() : list);
                         }
                     }
                 };
@@ -414,7 +426,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void onChange(RealmList<E> results, OrderedCollectionChangeSet changeSet) {
                         if (!emitter.isDisposed()) {
-                            emitter.onNext(new CollectionChange<>(results, changeSet));
+                            emitter.onNext(new CollectionChange<>(returnFrozenObjects ? results.freeze() : results, changeSet));
                         }
                     }
                 };
@@ -450,7 +462,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void onChange(E obj) {
                         if (!emitter.isCancelled()) {
-                            emitter.onNext(obj);
+                            emitter.onNext(returnFrozenObjects ? RealmObject.freeze(obj) : obj);
                         }
                     }
                 };
@@ -487,7 +499,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void onChange(E obj, ObjectChangeSet changeSet) {
                         if (!emitter.isDisposed()) {
-                            emitter.onNext(new ObjectChange<>(obj, changeSet));
+                            emitter.onNext(new ObjectChange<>(returnFrozenObjects ? RealmObject.freeze(obj) : obj, changeSet));
                         }
                     }
                 };
@@ -523,7 +535,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void onChange(DynamicRealmObject obj) {
                         if (!emitter.isCancelled()) {
-                            emitter.onNext(obj);
+                            emitter.onNext(returnFrozenObjects ? RealmObject.freeze(obj) : obj);
                         }
                     }
                 };
@@ -560,7 +572,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void onChange(DynamicRealmObject obj, ObjectChangeSet changeSet) {
                         if (!emitter.isDisposed()) {
-                            emitter.onNext(new ObjectChange<>(obj, changeSet));
+                            emitter.onNext(new ObjectChange<>(returnFrozenObjects ? RealmObject.freeze(obj) : obj, changeSet));
                         }
                     }
                 };

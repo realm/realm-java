@@ -129,6 +129,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               @Nullable RxObservableFactory rxFactory,
                               @Nullable Realm.Transaction initialDataTransaction,
                               boolean readOnly,
+                              long maxNumberOfActiveVersions,
                               SyncUser user,
                               URI serverUrl,
                               SyncSession.ErrorHandler errorHandler,
@@ -157,7 +158,8 @@ public class SyncConfiguration extends RealmConfiguration {
                 initialDataTransaction,
                 readOnly,
                 compactOnLaunch,
-                false
+                false,
+                maxNumberOfActiveVersions
         );
 
         this.user = user;
@@ -1159,6 +1161,26 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Sets the maximum number of live versions in the Realm file before an {@link IllegalStateException is thrown when
+         * attempting to write more data.
+         * <p>
+         * Realm is capable of concurrently handling many different versions of Realm objects. This can e.g. happen if you
+         * have Realm open on many different threads or are freezing objects while data is being written to the file.
+         * <p>
+         * Under normal circumstances this is not a problem, but if the number of active versions grow to large, it will
+         * have a negative effect on the filesize on disk.
+         * <p>
+         * Setting this parameters can therefore be used to prevent uses of Realm that can result in very large Realms.
+         *
+         * @param number the maximum number of active versions before an exception is thrown.
+         * @see <a href="https://realm.io/docs/java/latest/#faq-large-realm-file-size">FAQ</a>
+         */
+        public Builder maxNumberOfActiveVersions(long number) {
+            this.maxNumberOfActiveVersions = number;
+            return this;
+        }
+
+        /**
          * Creates the RealmConfiguration based on the builder parameters.
          *
          * @return the created {@link SyncConfiguration}.
@@ -1277,6 +1299,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     rxFactory,
                     initialDataTransaction,
                     readOnly,
+                    maxNumberOfActiveVersions,
 
                     // Sync Configuration specific
                     user,
