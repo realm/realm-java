@@ -183,7 +183,7 @@ public final class ProxyState<E extends RealmModel> implements PendingRow.FrontE
     }
 
     public boolean isLoaded() {
-        return !(row instanceof PendingRow);
+        return row.isLoaded();
     }
 
     public void load() {

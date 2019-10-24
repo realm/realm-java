@@ -186,7 +186,12 @@ public enum InvalidRow implements Row {
 
     @Override
     public Row freeze(OsSharedRealm frozenRealm) {
-        throw getStubException();
+        return INSTANCE;
+    }
+
+    @Override
+    public boolean isLoaded() {
+        return true;
     }
 
     private RuntimeException getStubException() {

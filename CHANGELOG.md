@@ -2,6 +2,7 @@
 
 ### Breaking Changes
 * None (Yeah right).
+* All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`
 
 ### Enhancements
 * None.
@@ -12,8 +13,8 @@
 * APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
 
 ### Internal
-* [ObjectServer] The OKHttp client will now follow redirects from the Realm Object Server.
 * `OsSharedRealm.VersionID.hashCode()` was not implemented correctly and included the memory location in the hashcode.
+* OKHttp was upgraded to 3.10.0 from 3.9.0.
 
 ## 6.0.0(YYYY-MM-DD)
 

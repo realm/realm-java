@@ -26,19 +26,26 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import io.reactivex.Flowable;
+import io.reactivex.Scheduler;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.internal.util.Pair;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -320,20 +327,18 @@ public class RxJavaTests {
     }
 
     @Test
-    @UiThreadTest
+    @RunTestInLooperThread
     public void realmResults_emittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        Realm realm = looperThread.getRealm();
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         subscription = results.asFlowable().subscribe(new Consumer<RealmResults<AllTypes>>() {
             @Override
-            @SuppressWarnings("ReferenceEquality")
             public void accept(RealmResults<AllTypes> rxResults) throws Exception {
-                assertTrue(rxResults == results);
-                subscribedNotified.set(true);
+                assertTrue(rxResults.isFrozen());
+                looperThread.testComplete();
             }
         });
-        assertTrue(subscribedNotified.get());
-        subscription.dispose();
     }
 
     @Test
@@ -433,14 +438,12 @@ public class RxJavaTests {
     public void realmResults_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         Realm realm = looperThread.getRealm();
-        realm.beginTransaction();
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
-        realm.commitTransaction();
 
         subscription = results.asFlowable().subscribe(new Consumer<RealmResults<AllTypes>>() {
             @Override
             public void accept(RealmResults<AllTypes> allTypes) throws Exception {
-                if (subscriberCalled.incrementAndGet() == 2) {
+                if (results.size() == 1) {
                     looperThread.testComplete();
                 }
             }
@@ -456,9 +459,7 @@ public class RxJavaTests {
     public void realmResults_emittedChangesetOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         Realm realm = looperThread.getRealm();
-        realm.beginTransaction();
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
-        realm.commitTransaction();
 
         subscription = results.asChangesetObservable().subscribe(new Consumer<CollectionChange<RealmResults<AllTypes>>>() {
             @Override
@@ -573,20 +574,17 @@ public class RxJavaTests {
     }
 
     @Test
-    @UiThreadTest
+    @RunTestInLooperThread
     public void findAllAsync_emittedOnSubscribe() {
-        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        Realm realm = looperThread.getRealm();
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         subscription = results.asFlowable().subscribe(new Consumer<RealmResults<AllTypes>>() {
             @Override
-            @SuppressWarnings("ReferenceEquality")
             public void accept(RealmResults<AllTypes> rxResults) throws Exception {
-                assertTrue(rxResults == results);
-                subscribedNotified.set(true);
+                assertTrue(rxResults.isFrozen());
+                looperThread.testComplete();
             }
         });
-        assertTrue(subscribedNotified.get());
-        subscription.dispose();
     }
 
     @Test
@@ -1087,4 +1085,36 @@ public class RxJavaTests {
         }
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void realmResults_readableAcrossThreads() {
+        final long TEST_SIZE = 10;
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        Realm realm = looperThread.getRealm();
+
+        realm.beginTransaction();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            realm.createObject(AllTypes.class).setColumnLong(1);
+        }
+        realm.commitTransaction();
+
+        subscription = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findAllAsync().asFlowable()
+                .subscribeOn(Schedulers.io())
+                .filter(results -> {
+                    return results.isLoaded();
+                })
+                .map(results -> {
+                    RealmLog.error(Thread.currentThread().getName());
+                    return new Pair<>(results.size(), results);
+                })
+                .observeOn(Schedulers.computation())
+                .subscribe(
+                        pair -> {
+                            RealmLog.error(Thread.currentThread().getName());
+                            assertEquals(TEST_SIZE, pair.first.intValue());
+                            assertEquals(TEST_SIZE, pair.second.size());
+                            looperThread.testComplete();
+                        }
+                );
+    }
 }

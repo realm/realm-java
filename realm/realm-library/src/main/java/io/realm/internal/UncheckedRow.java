@@ -296,7 +296,15 @@ public class UncheckedRow implements NativeObject, Row {
 
     @Override
     public Row freeze(OsSharedRealm frozenRealm) {
+        if (!isValid()) {
+            return InvalidRow.INSTANCE;
+        }
         return new UncheckedRow(context, parent.freeze(), nativeFreeze(nativePtr, frozenRealm.getNativePtr()));
+    }
+
+    @Override
+    public boolean isLoaded() {
+        return true;
     }
 
     protected native long nativeGetColumnCount(long nativeTablePtr);

@@ -4,7 +4,6 @@ import java.util.AbstractList;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 

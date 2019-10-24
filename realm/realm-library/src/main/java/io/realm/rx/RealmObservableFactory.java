@@ -16,6 +16,8 @@
 
 package io.realm.rx;
 
+import android.os.Looper;
+
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -26,7 +28,9 @@ import io.reactivex.FlowableOnSubscribe;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Scheduler;
 import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposables;
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
@@ -42,6 +46,7 @@ import io.realm.RealmObject;
 import io.realm.RealmObjectChangeListener;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import io.realm.log.RealmLog;
 
 /**
  * Factory class for creating Observables for RxJava (&lt;=2.0.*).
@@ -159,6 +164,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     @Override
     public <E> Flowable<RealmResults<E>> from(final Realm realm, final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler(realm);
         return Flowable.create(new FlowableOnSubscribe<RealmResults<E>>() {
             @Override
             public void subscribe(final FlowableEmitter<RealmResults<E>> emitter) throws Exception {
@@ -187,31 +193,50 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(results);
+                emitter.onNext(returnFrozenObjects ? results.freeze() : results);
 
             }
-        }, BACK_PRESSURE_STRATEGY);
+        }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
+    }
+
+    private Scheduler getScheduler(Realm realm) {
+        Looper looper = Looper.myLooper();
+        if (looper == null) {
+            throw new IllegalStateException("No looper found");
+        }
+        return AndroidSchedulers.from(looper);
     }
 
     @Override
     public <E> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(Realm realm, final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
         return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmResults<E>>>() {
+            private final OrderedRealmCollectionChangeListener<RealmResults<E>> listener;
+            private ObservableEmitter<CollectionChange<RealmResults<E>>> emitter;
+
+            // Class initializer (which will run on the caller thread, sidestepping Realm thread confinement
+            // restrictions). Doing it this way will result in RealmResults leaking if the Flowable isn't
+            // subscribed and unsubscribed to. Using a ThreadSafeReference will prevent the Java leak, but will
+            // instead result in Realm pinning the version for as long as the app runs, which is far worse.
+            {
+                resultsRefs.get().acquireReference(results);
+                listener = new OrderedRealmCollectionChangeListener<RealmResults<E>>() {
+                    @Override
+                    public void onChange(RealmResults<E> results, OrderedCollectionChangeSet changeSet) {
+                        if (emitter != null && !emitter.isDisposed()) {
+                            emitter.onNext(new CollectionChange<>(returnFrozenObjects ? results.freeze() : results, changeSet));
+                        }
+                    }
+                };
+                results.addChangeListener(listener);
+            }
+
             @Override
             public void subscribe(final ObservableEmitter<CollectionChange<RealmResults<E>>> emitter) throws Exception {
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final Realm observableRealm = Realm.getInstance(realmConfig);
-                resultsRefs.get().acquireReference(results);
-                final OrderedRealmCollectionChangeListener<RealmResults<E>> listener = new OrderedRealmCollectionChangeListener<RealmResults<E>>() {
-                    @Override
-                    public void onChange(RealmResults<E> results, OrderedCollectionChangeSet changeSet) {
-                        if (!emitter.isDisposed()) {
-                            emitter.onNext(new CollectionChange<RealmResults<E>>(returnFrozenObjects ? results.freeze() : results, changeSet));
-                        }
-                    }
-                };
-                results.addChangeListener(listener);
+                this.emitter = emitter;
 
                 // Cleanup when stream is disposed
                 emitter.setDisposable(Disposables.fromRunnable(new Runnable() {
@@ -224,7 +249,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(new CollectionChange<>(results, null));
+                emitter.onNext(new CollectionChange<>(returnFrozenObjects ? results.freeze() : results, null));
             }
         });
     }

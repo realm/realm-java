@@ -103,7 +103,7 @@ public class FrozenObjectsTests {
     }
 
     @Test
-    public void freezeRealmInsideWriteTransactionsThrows() {
+    public void frozenRealmsCannotStartTransactions() {
         try {
             frozenRealm.beginTransaction();
             fail();
@@ -355,6 +355,11 @@ public class FrozenObjectsTests {
         Realm realm = createDataForLiveRealm(DATA_SIZE);
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> frozenResults = results.freeze();
+        assertEquals(DATA_SIZE, frozenResults.size());
+        assertTrue(frozenResults.isFrozen());
+        assertTrue(frozenResults.isValid());
+        assertTrue(frozenResults.isLoaded());
+
         Thread t = new Thread(() -> {
             assertEquals(DATA_SIZE, frozenResults.size());
             assertTrue(frozenResults.isFrozen());
@@ -364,6 +369,38 @@ public class FrozenObjectsTests {
         t.join();
         frozenResults.getRealm().close(); // FIXME: What to do about frozen Realm lifecycles?
     }
+
+    @Test
+    @RunTestInLooperThread
+    public void freezeAsyncResults() {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        looperThread.keepStrongReference(results);
+        assertFalse(results.isLoaded());
+        assertTrue(results.isValid());
+        assertEquals(0, results.size());
+
+        RealmResults<AllTypes> frozenResults = results.freeze();
+        assertFalse(frozenResults.isLoaded());
+        assertTrue(frozenResults.isValid());
+        assertEquals(0, frozenResults.size());
+
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertTrue(results.isLoaded());
+                assertTrue(results.isValid());
+                assertEquals(DATA_SIZE, results.size());
+
+                RealmResults<AllTypes> frozenResults = results.freeze();
+                assertFalse(frozenResults.isLoaded());
+                assertTrue(frozenResults.isValid());
+                assertEquals(DATA_SIZE, frozenResults.size());
+                looperThread.testComplete();
+            }
+        });
+    }
+
 
     @Test
     public void freezeLists() throws InterruptedException {
@@ -399,6 +436,32 @@ public class FrozenObjectsTests {
         t.start();
         t.join();
         frozenObj.getRealm().close(); // FIXME: What to do about frozen Realm lifecycles?
+    }
+
+    @Test
+    public void freezeDeletedObject() {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        AllTypes obj = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findFirst();
+        realm.executeTransaction(r -> {
+            obj.deleteFromRealm();
+        });
+        AllTypes frozenObj = obj.freeze();
+        assertFalse(frozenObj.isValid());
+        assertTrue(frozenObj.isFrozen());
+        assertTrue(frozenObj.isLoaded());
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void freezePendingObject() {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        AllTypes obj = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findFirstAsync();
+
+        AllTypes frozenObj = obj.freeze();
+        assertFalse(frozenObj.isValid());
+        assertFalse(frozenObj.isLoaded());
+        assertTrue(frozenObj.isFrozen());
+        looperThread.testComplete();
     }
 
     @Test

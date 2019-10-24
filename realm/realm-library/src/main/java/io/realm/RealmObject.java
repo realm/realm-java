@@ -199,7 +199,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @return
      */
     public static <E extends RealmModel> E freeze(E object) {
-        if (object instanceof RealmObjectProxy && RealmObject.isValid(object)) {
+        if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
             BaseRealm frozenRealm = realm.freeze();

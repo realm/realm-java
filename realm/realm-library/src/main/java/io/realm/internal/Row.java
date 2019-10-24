@@ -133,4 +133,10 @@ public interface Row {
      * Returns a frozen copy of this Row.
      */
     Row freeze(OsSharedRealm frozenRealm);
+
+    /**
+     * Return weather the row is considered to be loaded, i.e. it doesn't represent a query in flight.
+     *
+     */
+    boolean isLoaded();
 }
