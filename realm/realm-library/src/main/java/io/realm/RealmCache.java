@@ -67,20 +67,134 @@ final class RealmCache {
         void onCall();
     }
 
-    // Internal class keeping track of how instances have been handed out.
-    private static class ReferenceCounter {
+    private static abstract class ReferenceCounter {
+
+        // How many references to this Realm instance in this thread.
+        protected final ThreadLocal<Integer> localCount = new ThreadLocal<>();
+        // How many threads have instances refer to this configuration.
+        protected int globalCount = 0;
+
+        // Returns `true` if an instance of the Realm is available on the caller thread.
+        abstract boolean hasInstanceAvailableForThread();
+
+        // Increment how many times an instance has been handed out for the current thread.
+        public void incrementThreadCount(int increment) {
+            Integer currentCount = localCount.get();
+            localCount.set(currentCount != null ? currentCount + increment : increment);
+        }
+
+        // Returns the Realm instance for the caller thread
+        abstract BaseRealm getRealmInstance();
+
+        // Cache the Realm instance. Should only be called when `hasInstanceAvailableForThread` returns false.
+        abstract void realmCreated(BaseRealm realm);
+
+        // FIXME
+        abstract void clearThreadLocalCache();
+
+        // Returns the number of instances handed out for the caller thread.
+        public int getThreadLocalCount() {
+            Integer refCount = localCount.get();
+            return (refCount != null) ? refCount : 0;
+        }
+
+        // FIXME
+        public void setThreadCount(int refCount) {
+            localCount.set(refCount);
+        }
+
+        // FIXME
+        public int getGlobalCount() {
+            return globalCount;
+        }
+    }
+
+    // Reference counter for Realms that are accessible across all threads
+    private static class GlobalReferenceCounter extends ReferenceCounter {
+        private BaseRealm cachedRealm;
+        private OsSharedRealm.VersionID version;
+
+        public GlobalReferenceCounter(OsSharedRealm.VersionID version) {
+            this.version = version;
+        }
+
+        @Override
+        boolean hasInstanceAvailableForThread() {
+            return cachedRealm != null;
+        }
+
+        @Override
+        BaseRealm getRealmInstance() {
+            return cachedRealm;
+        }
+
+        @Override
+        void realmCreated(BaseRealm realm) {
+            // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
+            cachedRealm = realm;
+
+            localCount.set(0);
+            // This is the first instance in current thread, increase the global count.
+            globalCount++;
+
+        }
+
+        @Override
+        public void clearThreadLocalCache() {
+            String canonicalPath = cachedRealm.getPath();
+
+            // The last instance in this thread.
+            // Clears local ref & counter.
+            localCount.set(null);
+
+            // Clears global counter.
+            globalCount--;
+            if (globalCount < 0) {
+                // Should never happen.
+                throw new IllegalStateException("Global reference counter of Realm" + canonicalPath + " got corrupted.");
+            }
+        }
+    }
+
+    // Reference counter for Realms that are thread confined
+    private static class ThreadConfinedReferenceCounter extends ReferenceCounter {
         // The Realm instance in this thread.
         private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<>();
-        // How many references to this Realm instance in this thread.
-        private final ThreadLocal<Integer> localCount = new ThreadLocal<>();
-        // How many threads have instances refer to this configuration.
-        private int globalCount = 0;
-        // What version of Realm is held by this cache. (-1,-1) indicates a live Realm where the
-        // version will change. Any other version number indicates the Realm is frozen.
-        private final OsSharedRealm.VersionID version;
 
-        private ReferenceCounter(OsSharedRealm.VersionID version) {
-            this.version = version;
+        @Override
+        public boolean hasInstanceAvailableForThread() {
+            return localRealm.get() != null;
+        }
+
+        @Override
+        public BaseRealm getRealmInstance() {
+            return localRealm.get();
+        }
+
+        @Override
+        public void realmCreated(BaseRealm realm) {
+            // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
+            localRealm.set(realm);
+            localCount.set(0);
+            // This is the first instance in current thread, increase the global count.
+            globalCount++;
+        }
+
+        @Override
+        public void clearThreadLocalCache() {
+            String canonicalPath = localRealm.get().getPath();
+
+            // The last instance in this thread.
+            // Clears local ref & counter.
+            localCount.set(null);
+            localRealm.set(null);
+
+            // Clears global counter.
+            globalCount--;
+            if (globalCount < 0) {
+                // Should never happen.
+                throw new IllegalStateException("Global reference counter of Realm" + canonicalPath + " got corrupted.");
+            }
         }
     }
 
@@ -346,15 +460,14 @@ final class RealmCache {
             validateConfiguration(configuration);
         }
 
-        if (referenceCounter.localRealm.get() == null) {
+        if (!referenceCounter.hasInstanceAvailableForThread()) {
             createInstance(realmClass, referenceCounter, realmFileIsBeingCreated, version);
         }
 
-        Integer refCount = referenceCounter.localCount.get();
-        referenceCounter.localCount.set(refCount + 1);
+        referenceCounter.incrementThreadCount(1);
 
         //noinspection unchecked
-        return (E) referenceCounter.localRealm.get();
+        return (E) referenceCounter.getRealmInstance();
     }
 
     private <E extends BaseRealm> ReferenceCounter getRefCounter(Class<E> realmClass, OsSharedRealm.VersionID version) {
@@ -362,7 +475,12 @@ final class RealmCache {
         Pair<RealmCacheType, OsSharedRealm.VersionID> key = new Pair<>(cacheType, version);
         ReferenceCounter refCounter = refAndCountMap.get(key);
         if (refCounter == null) {
-            refCounter = new ReferenceCounter(version);
+            if (version.equals(OsSharedRealm.VersionID.LIVE)) {
+                refCounter = new ThreadConfinedReferenceCounter();
+            } else {
+                refCounter = new GlobalReferenceCounter(version);
+            }
+
             refAndCountMap.put(key, refCounter);
         }
         return refCounter;
@@ -391,12 +509,8 @@ final class RealmCache {
             throw new IllegalArgumentException(WRONG_REALM_CLASS_MESSAGE);
         }
 
-        // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
-        referenceCounter.localRealm.set(realm);
-        referenceCounter.localCount.set(0);
 
-        // This is the first instance in current thread, increase the global count.
-        referenceCounter.globalCount++;
+        referenceCounter.realmCreated(realm);
     }
 
     /**
@@ -459,10 +573,7 @@ final class RealmCache {
     synchronized void release(BaseRealm realm) {
         String canonicalPath = realm.getPath();
         ReferenceCounter referenceCounter = getRefCounter(realm.getClass(), (realm.isFrozen()) ? realm.sharedRealm.getVersionID() : OsSharedRealm.VersionID.LIVE);
-        Integer refCount = referenceCounter.localCount.get();
-        if (refCount == null) {
-            refCount = 0;
-        }
+        int refCount = referenceCounter.getThreadLocalCount();
 
         if (refCount <= 0) {
             RealmLog.warn("%s has been closed already. refCount is %s", canonicalPath, refCount);
@@ -473,34 +584,33 @@ final class RealmCache {
         refCount -= 1;
 
         if (refCount == 0) {
-            // The last instance in this thread.
-            // Clears local ref & counter.
-            referenceCounter.localCount.set(null);
-            referenceCounter.localRealm.set(null);
-
-            // Clears global counter.
-            referenceCounter.globalCount--;
-            if (referenceCounter.globalCount < 0) {
-                // Should never happen.
-                throw new IllegalStateException("Global reference counter of Realm" + canonicalPath +
-                        " got corrupted.");
-            }
+            referenceCounter.clearThreadLocalCache();
 
             // No more local reference to this Realm in current thread, close the instance.
             realm.doClose();
 
             // No more instance of typed Realm and dynamic Realm.
-            if (getTotalGlobalRefCount() == 0) {
+            if (geTotalLiveRealmGlobalRefCount() == 0) {
                 // We keep the cache in the caches list even when its global counter reaches 0. It will be reused when
                 // next time a Realm instance with the same path is opened. By not removing it, the lock on
                 // cachesList is not needed here.
                 configuration = null;
+
+                // FIXME: Close all frozen Realms. This can introduce race conditions on other
+                // threads if the lifecyle of using Realm data is not correctly controlled.
+                // We need to run experiments to verify weather we should use this approach
+                // or require that people manually close Frozen Realms.
+                for (ReferenceCounter counter : refAndCountMap.values()) {
+                    if (counter instanceof GlobalReferenceCounter) {
+                        counter.getRealmInstance().close();
+                    }
+                }
                 ObjectServerFacade.getFacade(realm.getConfiguration().isSyncConfiguration())
                         .realmClosed(realm.getConfiguration());
             }
 
         } else {
-            referenceCounter.localCount.set(refCount);
+            referenceCounter.setThreadCount(refCount);
         }
     }
 
@@ -671,8 +781,7 @@ final class RealmCache {
         // Access local ref count only, no need to by synchronized.
         int totalRefCount = 0;
         for (ReferenceCounter referenceCounter : cache.refAndCountMap.values()) {
-            Integer localCount = referenceCounter.localCount.get();
-            totalRefCount += (localCount != null) ? localCount : 0;
+            totalRefCount += referenceCounter.getThreadLocalCount();
         }
         return totalRefCount;
     }
@@ -687,7 +796,21 @@ final class RealmCache {
     private int getTotalGlobalRefCount() {
         int totalRefCount = 0;
         for (ReferenceCounter referenceCounter : refAndCountMap.values()) {
-            totalRefCount += referenceCounter.globalCount;
+            totalRefCount += referenceCounter.getGlobalCount();
+        }
+
+        return totalRefCount;
+    }
+
+    /**
+     * Returns the total number of threads containg a reference to a live instance of the Realm.
+     */
+    private int geTotalLiveRealmGlobalRefCount() {
+        int totalRefCount = 0;
+        for (ReferenceCounter referenceCounter : refAndCountMap.values()) {
+            if (referenceCounter instanceof ThreadConfinedReferenceCounter) {
+                totalRefCount += referenceCounter.getGlobalCount();
+            }
         }
 
         return totalRefCount;
