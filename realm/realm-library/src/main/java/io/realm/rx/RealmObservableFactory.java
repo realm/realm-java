@@ -97,7 +97,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     @Override
                     public void onChange(Realm realm) {
                         if (!emitter.isCancelled()) {
-                            emitter.onNext(realm);
+                            emitter.onNext(returnFrozenObjects ? realm.freeze() : realm);
                         }
                     }
                 };
@@ -113,7 +113,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(observableRealm);
+                emitter.onNext(returnFrozenObjects ? observableRealm.freeze() : observableRealm);
             }
         }, BACK_PRESSURE_STRATEGY);
     }
@@ -167,7 +167,10 @@ public class RealmObservableFactory implements RxObservableFactory {
         Scheduler scheduler = getScheduler(realm);
         return Flowable.create(new FlowableOnSubscribe<RealmResults<E>>() {
             @Override
-            public void subscribe(final FlowableEmitter<RealmResults<E>> emitter) throws Exception {
+            public void subscribe(final FlowableEmitter<RealmResults<E>> emitter) {
+                // If the Realm has been closed, just create an empty Observable because we assume it is going to be diposed shortly.
+                if (!results.isValid()) return;
+
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final Realm observableRealm = Realm.getInstance(realmConfig);
