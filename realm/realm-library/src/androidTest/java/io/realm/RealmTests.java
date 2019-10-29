@@ -4573,4 +4573,57 @@ public class RealmTests {
             Realm.deleteRealm(config);
         }
     }
+
+    // Attempts to reproduce https://github.com/realm/realm-java/issues/6152
+    @Test
+    @RunTestInLooperThread
+    public void encryption_stressTest() {
+        final int WRITER_TRANSACTIONS = 50;
+        final int TEST_OBJECTS = 100_000;
+        final int MAX_STRING_LENGTH = 1000;
+        final AtomicInteger id = new AtomicInteger(0);
+        long seed = System.nanoTime();
+        Random random = new Random(seed);
+
+        final RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .name("stress-test.realm")
+                .encryptionKey(TestHelper.getRandomKey(seed))
+                .build();
+        Realm.deleteRealm(config);
+        Realm.getInstance(config).close();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(config);
+                for (int i = 0; i < WRITER_TRANSACTIONS; i++) {
+                    realm.executeTransaction(r -> {
+                        for (int j = 0; j < (TEST_OBJECTS / WRITER_TRANSACTIONS); j++) {
+                            AllJavaTypes obj = new AllJavaTypes(id.incrementAndGet());
+                            obj.setFieldString(TestHelper.getRandomString(random.nextInt(MAX_STRING_LENGTH)));
+                            r.insert(obj);
+                        }
+                    });
+                }
+                realm.close();
+            }
+        }).start();
+
+        Realm realm = Realm.getInstance(config);
+        looperThread.closeAfterTest(realm);
+        RealmResults<AllJavaTypes> results = realm.where(AllJavaTypes.class).findAllAsync();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllJavaTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllJavaTypes> results, OrderedCollectionChangeSet changeSet) {
+                for (AllJavaTypes obj : results) {
+                    String s = obj.getFieldString();
+                }
+
+                if (results.size() == TEST_OBJECTS) {
+                    looperThread.testComplete();
+                }
+            }
+        });
+    }
 }
