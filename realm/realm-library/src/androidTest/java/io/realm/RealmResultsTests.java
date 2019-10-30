@@ -1819,8 +1819,6 @@ public class RealmResultsTests extends CollectionTests {
                 "        \"columnDateList\": [ \"" + now + "\", \"" + now + "\"]\n" +
                 "    }\n" +
                 "]";
-        RealmLog.error(json);
-        RealmLog.error(expectedJSON);
         JSONAssert.assertEquals(expectedJSON, json, false);
     }
 
