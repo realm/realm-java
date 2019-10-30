@@ -95,7 +95,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 
 
 task sourcesJar(type: Jar) {
-//    from android.sourceSets.objectServer.java.srcDirs
+    from android.sourceSets.objectServer.java.srcDirs
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }

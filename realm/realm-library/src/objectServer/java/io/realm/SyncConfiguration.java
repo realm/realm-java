@@ -1162,7 +1162,7 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the maximum number of live versions in the Realm file before an {@link IllegalStateException is thrown when
+         * Sets the maximum number of live versions in the Realm file before an {@link IllegalStateException} is thrown when
          * attempting to write more data.
          * <p>
          * Realm is capable of concurrently handling many different versions of Realm objects. This can e.g. happen if you
