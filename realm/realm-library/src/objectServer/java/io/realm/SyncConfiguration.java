@@ -221,7 +221,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true);
+        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE);
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -550,6 +550,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private String syncUrlPrefix = null;
         @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
         private ClientResyncMode clientResyncMode = null;
+        private long maxNumberOfActiveVersions = Long.MAX_VALUE;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration. This SyncConfiguration
@@ -1221,7 +1222,7 @@ public class SyncConfiguration extends RealmConfiguration {
             }
 
             if (rxFactory == null && isRxJavaAvailable()) {
-                rxFactory = new RealmObservableFactory();
+                rxFactory = new RealmObservableFactory(true);
             }
 
             // Determine location on disk
