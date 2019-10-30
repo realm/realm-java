@@ -88,6 +88,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     @Override
     public Flowable<Realm> from(Realm realm) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe <Realm>() {
             @Override
             public void subscribe(final FlowableEmitter<Realm> emitter) throws Exception {
@@ -115,7 +116,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Emit current value immediately
                 emitter.onNext(returnFrozenObjects ? observableRealm.freeze() : observableRealm);
             }
-        }, BACK_PRESSURE_STRATEGY);
+        }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     /**
@@ -131,6 +132,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     @Override
     public Flowable<DynamicRealm> from(DynamicRealm realm) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<DynamicRealm>() {
             @Override
             public void subscribe(final FlowableEmitter<DynamicRealm> emitter) throws Exception {
@@ -156,15 +158,15 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(observableRealm);
+                emitter.onNext(returnFrozenObjects ? observableRealm.freeze() : observableRealm);
             }
-        }, BACK_PRESSURE_STRATEGY);
+        }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
     public <E> Flowable<RealmResults<E>> from(final Realm realm, final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
-        Scheduler scheduler = getScheduler(realm);
+        Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<RealmResults<E>>() {
             @Override
             public void subscribe(final FlowableEmitter<RealmResults<E>> emitter) {
@@ -202,7 +204,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
-    private Scheduler getScheduler(Realm realm) {
+    private Scheduler getScheduler() {
         Looper looper = Looper.myLooper();
         if (looper == null) {
             throw new IllegalStateException("No looper found");
@@ -213,33 +215,23 @@ public class RealmObservableFactory implements RxObservableFactory {
     @Override
     public <E> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(Realm realm, final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmResults<E>>>() {
-            private final OrderedRealmCollectionChangeListener<RealmResults<E>> listener;
-            private ObservableEmitter<CollectionChange<RealmResults<E>>> emitter;
-
-            // Class initializer (which will run on the caller thread, sidestepping Realm thread confinement
-            // restrictions). Doing it this way will result in RealmResults leaking if the Flowable isn't
-            // subscribed and unsubscribed to. Using a ThreadSafeReference will prevent the Java leak, but will
-            // instead result in Realm pinning the version for as long as the app runs, which is far worse.
-            {
-                resultsRefs.get().acquireReference(results);
-                listener = new OrderedRealmCollectionChangeListener<RealmResults<E>>() {
-                    @Override
-                    public void onChange(RealmResults<E> results, OrderedCollectionChangeSet changeSet) {
-                        if (emitter != null && !emitter.isDisposed()) {
-                            emitter.onNext(new CollectionChange<>(returnFrozenObjects ? results.freeze() : results, changeSet));
-                        }
-                    }
-                };
-                results.addChangeListener(listener);
-            }
-
             @Override
             public void subscribe(final ObservableEmitter<CollectionChange<RealmResults<E>>> emitter) throws Exception {
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final Realm observableRealm = Realm.getInstance(realmConfig);
-                this.emitter = emitter;
+                resultsRefs.get().acquireReference(results);
+                final OrderedRealmCollectionChangeListener<RealmResults<E>> listener = new OrderedRealmCollectionChangeListener<RealmResults<E>>() {
+                    @Override
+                    public void onChange(RealmResults<E> e, OrderedCollectionChangeSet changeSet) {
+                        if (!emitter.isDisposed()) {
+                            emitter.onNext(new CollectionChange<RealmResults<E>>(returnFrozenObjects ? results.freeze() : results, changeSet));
+                        }
+                    }
+                };
+                results.addChangeListener(listener);
 
                 // Cleanup when stream is disposed
                 emitter.setDisposable(Disposables.fromRunnable(new Runnable() {
@@ -254,12 +246,13 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Emit current value immediately
                 emitter.onNext(new CollectionChange<>(returnFrozenObjects ? results.freeze() : results, null));
             }
-        });
+        }).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
     public <E> Flowable<RealmResults<E>> from(DynamicRealm realm, final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<RealmResults<E>>() {
             @Override
             public void subscribe(final FlowableEmitter<RealmResults<E>> emitter) throws Exception {
@@ -288,15 +281,16 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(results);
+                emitter.onNext(returnFrozenObjects ? results.freeze() : results);
 
             }
-        }, BACK_PRESSURE_STRATEGY);
+        }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
     public <E> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(DynamicRealm realm, final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmResults<E>>>() {
             @Override
             public void subscribe(final ObservableEmitter<CollectionChange<RealmResults<E>>> emitter) throws Exception {
@@ -325,14 +319,15 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(new CollectionChange<>(results, null));
+                emitter.onNext(new CollectionChange<>(returnFrozenObjects ? results.freeze() : results, null));
             }
-        });
+        }).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
     public <E> Flowable<RealmList<E>> from(Realm realm, final RealmList<E> list) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<RealmList<E>>() {
             @Override
             public void subscribe(final FlowableEmitter<RealmList<E>> emitter) throws Exception {
@@ -361,15 +356,16 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(list);
+                emitter.onNext(returnFrozenObjects ? list.freeze() : list);
 
             }
-        }, BACK_PRESSURE_STRATEGY);
+        }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
     public <E> Observable<CollectionChange<RealmList<E>>> changesetsFrom(Realm realm, final RealmList<E> list) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmList<E>>>() {
             @Override
             public void subscribe(final ObservableEmitter<CollectionChange<RealmList<E>>> emitter) throws Exception {
@@ -398,14 +394,15 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(new CollectionChange<>(list, null));
+                emitter.onNext(new CollectionChange<>(returnFrozenObjects ? list.freeze() : list, null));
             }
-        });
+        }).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
     public <E> Flowable<RealmList<E>> from(DynamicRealm realm, final RealmList<E> list) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<RealmList<E>>() {
             @Override
             public void subscribe(final FlowableEmitter<RealmList<E>> emitter) throws Exception {
@@ -434,15 +431,16 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(list);
+                emitter.onNext(returnFrozenObjects ? list.freeze() : list);
 
             }
-        }, BACK_PRESSURE_STRATEGY);
+        }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
     public <E> Observable<CollectionChange<RealmList<E>>> changesetsFrom(DynamicRealm realm, final RealmList<E> list) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmList<E>>>() {
             @Override
             public void subscribe(final ObservableEmitter<CollectionChange<RealmList<E>>> emitter) throws Exception {
@@ -452,9 +450,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 listRefs.get().acquireReference(list);
                 final OrderedRealmCollectionChangeListener<RealmList<E>> listener = new OrderedRealmCollectionChangeListener<RealmList<E>>() {
                     @Override
-                    public void onChange(RealmList<E> results, OrderedCollectionChangeSet changeSet) {
+                    public void onChange(RealmList<E> list, OrderedCollectionChangeSet changeSet) {
                         if (!emitter.isDisposed()) {
-                            emitter.onNext(new CollectionChange<>(returnFrozenObjects ? results.freeze() : results, changeSet));
+                            emitter.onNext(new CollectionChange<>(returnFrozenObjects ? list.freeze() : list, changeSet));
                         }
                     }
                 };
@@ -471,14 +469,15 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(new CollectionChange<>(list, null));
+                emitter.onNext(new CollectionChange<>(returnFrozenObjects ? list.freeze() : list, null));
             }
-        });
+        }).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
     public <E extends RealmModel> Flowable<E> from(final Realm realm, final E object) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<E>() {
             @Override
             public void subscribe(final FlowableEmitter<E> emitter) throws Exception {
@@ -507,15 +506,16 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(object);
+                emitter.onNext(returnFrozenObjects ? RealmObject.freeze(object) : object);
 
             }
-        }, BACK_PRESSURE_STRATEGY);
+        }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
     public <E extends RealmModel> Observable<ObjectChange<E>> changesetsFrom(Realm realm, final E object) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<ObjectChange<E>>() {
             @Override
             public void subscribe(final ObservableEmitter<ObjectChange<E>> emitter) throws Exception {
@@ -544,14 +544,15 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(new ObjectChange<>(object, null));
+                emitter.onNext(new ObjectChange<>(returnFrozenObjects ? RealmObject.freeze(object) : object, null));
             }
-        });
+        }).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
     public Flowable<DynamicRealmObject> from(DynamicRealm realm, final DynamicRealmObject object) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<DynamicRealmObject>() {
             @Override
             public void subscribe(final FlowableEmitter<DynamicRealmObject> emitter) throws Exception {
@@ -580,15 +581,16 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(object);
+                emitter.onNext(returnFrozenObjects ? RealmObject.freeze(object) : object);
 
             }
-        }, BACK_PRESSURE_STRATEGY);
+        }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
     public Observable<ObjectChange<DynamicRealmObject>> changesetsFrom(DynamicRealm realm, final DynamicRealmObject object) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+        Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<ObjectChange<DynamicRealmObject>>() {
             @Override
             public void subscribe(final ObservableEmitter<ObjectChange<DynamicRealmObject>> emitter) throws Exception {
@@ -617,9 +619,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                emitter.onNext(new ObjectChange<>(object, null));
+                emitter.onNext(new ObjectChange<>(returnFrozenObjects ? RealmObject.freeze(object) : object, null));
             }
-        });
+        }).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
 
     @Override
