@@ -7,6 +7,7 @@ Anyone using encrypted Realms are strongly advised to upgrade to this version or
 
 ### Fixed
 * Race condition using encrypted Realms could lead to the Realm ending up corrupted when the file increased in size. This could manifest as a wide array of different error messages. Most commonly seen has been "Fatal signal 11 (SIGSEGV) from Java_io_realm_internal_UncheckedRow_nativeGetString", "XXX" and "YYY". ([#6152](https://github.com/realm/realm-java/issues/6152), since 5.0.0)
+* `RealmResults.asJSON()` now prints lists with primitive values directly instead of wrapping each value in an object with an `!ARRAY_VALUE` property.
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
