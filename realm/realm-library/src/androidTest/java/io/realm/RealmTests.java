@@ -4574,7 +4574,7 @@ public class RealmTests {
         }
     }
 
-    // Attempts to reproduce https://github.com/realm/realm-java/issues/6152
+    // Test for https://github.com/realm/realm-java/issues/6152
     @Test
     @RunTestInLooperThread
     public void encryption_stressTest() {
@@ -4585,14 +4585,11 @@ public class RealmTests {
         long seed = System.nanoTime();
         Random random = new Random(seed);
 
-        final RealmConfiguration config = configFactory.createConfigurationBuilder()
-                .name("stress-test.realm")
+        RealmConfiguration config = looperThread.createConfigurationBuilder()
                 .encryptionKey(TestHelper.getRandomKey(seed))
                 .build();
-        Realm.deleteRealm(config);
-        Realm.getInstance(config).close();
 
-        new Thread(new Runnable() {
+        Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
                 Realm realm = Realm.getInstance(config);
@@ -4607,7 +4604,8 @@ public class RealmTests {
                 }
                 realm.close();
             }
-        }).start();
+        });
+        t.start();
 
         Realm realm = Realm.getInstance(config);
         looperThread.closeAfterTest(realm);
@@ -4621,6 +4619,11 @@ public class RealmTests {
                 }
 
                 if (results.size() == TEST_OBJECTS) {
+                    try {
+                        t.join(5000);
+                    } catch (InterruptedException e) {
+                        fail("workerthread failed to finish in time.");
+                    }
                     looperThread.testComplete();
                 }
             }
