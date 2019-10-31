@@ -92,7 +92,10 @@ public class FrozenObjectsTests {
         assertEquals(realm.getPath(), frozenRealm.getPath());
         assertTrue(frozenRealm.isFrozen());
         frozenRealm.close();
+    }
 
+    @Test
+    public void freezeDynamicRealm() {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realmConfig);
         DynamicRealm frozenDynamicRealm = dynamicRealm.freeze();
         assertEquals(dynamicRealm.getPath(), frozenDynamicRealm.getPath());
@@ -367,7 +370,27 @@ public class FrozenObjectsTests {
         });
         t.start();
         t.join();
-        frozenResults.getRealm().close(); // FIXME: What to do about frozen Realm lifecycles?
+    }
+
+    @Test
+    public void freezeDynamicResults() throws InterruptedException {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        DynamicRealm dynRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        RealmResults<DynamicRealmObject> results = dynRealm.where(AllTypes.CLASS_NAME).findAll();
+        RealmResults<DynamicRealmObject> frozenResults = results.freeze();
+        assertEquals(DATA_SIZE, frozenResults.size());
+        assertTrue(frozenResults.isFrozen());
+        assertTrue(frozenResults.isValid());
+        assertTrue(frozenResults.isLoaded());
+
+        Thread t = new Thread(() -> {
+            assertEquals(DATA_SIZE, frozenResults.size());
+            assertTrue(frozenResults.isFrozen());
+            assertEquals(1, frozenResults.where().equalTo(AllTypes.FIELD_LONG, 1).findAll().size());
+        });
+        t.start();
+        t.join();
+        dynRealm.close();
     }
 
     @Test
@@ -419,7 +442,26 @@ public class FrozenObjectsTests {
         });
         t.start();
         t.join();
-        frozenObjectList.getRealm().close(); // FIXME: What to do about frozen Realm lifecycles?
+    }
+
+    @Test
+    public void freezeDynamicList() throws InterruptedException {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        DynamicRealm dynRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        DynamicRealmObject obj = dynRealm.where(AllTypes.CLASS_NAME).findFirst();
+        RealmList<DynamicRealmObject> frozenObjectList = obj.getList(AllTypes.FIELD_REALMLIST).freeze();
+        RealmList<String> frozenStringList = obj.getList(AllTypes.FIELD_STRING_LIST, String.class).freeze();
+        Thread t = new Thread(() -> {
+            assertEquals(5, frozenObjectList.size());
+            assertTrue(frozenObjectList.isFrozen());
+            assertEquals(1, frozenObjectList.where().equalTo(Dog.FIELD_NAME, "Dog 1").findAll().size());
+
+            assertEquals(3, frozenStringList.size());
+            assertTrue(frozenStringList.isFrozen());
+            assertEquals("Foo", frozenStringList.first());
+        });
+        t.start();
+        t.join();
     }
 
     @Test
@@ -435,7 +477,23 @@ public class FrozenObjectsTests {
         });
         t.start();
         t.join();
-        frozenObj.getRealm().close(); // FIXME: What to do about frozen Realm lifecycles?
+    }
+
+    @Test
+    public void freezeDynamicObject() throws InterruptedException {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        DynamicRealm dynRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        DynamicRealmObject obj = dynRealm.where(AllTypes.CLASS_NAME).sort(AllTypes.FIELD_LONG).findFirst();
+        DynamicRealmObject frozenObj = obj.freeze();
+        Thread t = new Thread(() -> {
+            assertTrue(frozenObj.isFrozen());
+            assertEquals(0, frozenObj.getLong(AllTypes.FIELD_LONG));
+            assertTrue(frozenObj.getList(AllTypes.FIELD_REALMLIST).isFrozen());
+            assertTrue(frozenObj.getObject(AllTypes.FIELD_REALMOBJECT).isFrozen());
+        });
+        t.start();
+        t.join();
+        dynRealm.close();
     }
 
     @Test
