@@ -407,8 +407,8 @@ publishing {
             artifactId 'realm-android-library'
             version project.version
             artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-base-release.aar")
-            artifact sourcesJar
-            artifact javadocJar
+//            artifact sourcesJar
+//            artifact javadocJar
 
             pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
@@ -418,8 +418,8 @@ publishing {
             artifactId 'realm-android-library-object-server'
             version project.version
             artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
-            artifact sourcesJar
-            artifact javadocJar
+//            artifact sourcesJar
+//            artifact javadocJar
 
             pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
         }
@@ -455,10 +455,10 @@ artifactory {
     }
 }
 
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
+//artifacts {
+//    archives javadocJar
+//    archives sourcesJar
+//}
 
 
 def coreDownloaded = false
