@@ -1,8 +1,8 @@
 ## 7.0.0(YYYY-MM-DD)
 
 ### Breaking Changes
-* None (Yeah right).
-* All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`
+* RxJava Flowables and Observables are now subscribed to and unsubscribed to asynchronously on the thread holding the live Realm, instead of now previously where this was done synchrously.
+* All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`. By using frozen objects, it is possible to parse RealmObjects across threads, which means that all RxJava operators should now be supported without needing to copy Realm data into unmanaged objects.
 
 ### Enhancements
 * None.
