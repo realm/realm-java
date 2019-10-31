@@ -46,7 +46,6 @@ import io.realm.RealmObject;
 import io.realm.RealmObjectChangeListener;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.log.RealmLog;
 
 /**
  * Factory class for creating Observables for RxJava (&lt;=2.0.*).
@@ -87,6 +86,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public Flowable<Realm> from(Realm realm) {
+        if (realm.isFrozen()) {
+            return Flowable.just(realm);
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe <Realm>() {
@@ -133,6 +135,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public Flowable<DynamicRealm> from(DynamicRealm realm) {
+        if (realm.isFrozen()) {
+            return Flowable.just(realm);
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<DynamicRealm>() {
@@ -169,6 +174,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E> Flowable<RealmResults<E>> from(final Realm realm, final RealmResults<E> results) {
+        if (realm.isFrozen()) {
+            return Flowable.just(results);
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<RealmResults<E>>() {
@@ -220,6 +228,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(Realm realm, final RealmResults<E> results) {
+        if (realm.isFrozen()) {
+            return Observable.just(new CollectionChange<RealmResults<E>>(results, null));
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmResults<E>>>() {
@@ -262,6 +273,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E> Flowable<RealmResults<E>> from(DynamicRealm realm, final RealmResults<E> results) {
+        if (realm.isFrozen()) {
+            return Flowable.just(results);
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<RealmResults<E>>() {
@@ -305,6 +319,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E> Observable<CollectionChange<RealmResults<E>>> changesetsFrom(DynamicRealm realm, final RealmResults<E> results) {
+        if (realm.isFrozen()) {
+            return Observable.just(new CollectionChange<RealmResults<E>>(results, null));
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmResults<E>>>() {
@@ -347,6 +364,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E> Flowable<RealmList<E>> from(Realm realm, final RealmList<E> list) {
+        if (realm.isFrozen()) {
+            return Flowable.just(list);
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<RealmList<E>>() {
@@ -390,6 +410,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E> Observable<CollectionChange<RealmList<E>>> changesetsFrom(Realm realm, final RealmList<E> list) {
+        if (realm.isFrozen()) {
+            return Observable.just(new CollectionChange<RealmList<E>>(list, null));
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmList<E>>>() {
@@ -432,6 +455,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E> Flowable<RealmList<E>> from(DynamicRealm realm, final RealmList<E> list) {
+        if (realm.isFrozen()) {
+            return Flowable.just(list);
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<RealmList<E>>() {
@@ -475,6 +501,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E> Observable<CollectionChange<RealmList<E>>> changesetsFrom(DynamicRealm realm, final RealmList<E> list) {
+        if (realm.isFrozen()) {
+            return Observable.just(new CollectionChange<RealmList<E>>(list, null));
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<CollectionChange<RealmList<E>>>() {
@@ -517,6 +546,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E extends RealmModel> Flowable<E> from(final Realm realm, final E object) {
+        if (realm.isFrozen()) {
+            return Flowable.just(object);
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<E>() {
@@ -560,6 +592,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E extends RealmModel> Observable<ObjectChange<E>> changesetsFrom(Realm realm, final E object) {
+        if (realm.isFrozen()) {
+            return Observable.just(new ObjectChange<E>(object, null));
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<ObjectChange<E>>() {
@@ -602,6 +637,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public Flowable<DynamicRealmObject> from(DynamicRealm realm, final DynamicRealmObject object) {
+        if (realm.isFrozen()) {
+            return Flowable.just(object);
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Flowable.create(new FlowableOnSubscribe<DynamicRealmObject>() {
@@ -645,6 +683,9 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public Observable<ObjectChange<DynamicRealmObject>> changesetsFrom(DynamicRealm realm, final DynamicRealmObject object) {
+        if (realm.isFrozen()) {
+            return Observable.just(new ObjectChange<DynamicRealmObject>(object, null));
+        }
         final RealmConfiguration realmConfig = realm.getConfiguration();
         Scheduler scheduler = getScheduler();
         return Observable.create(new ObservableOnSubscribe<ObjectChange<DynamicRealmObject>>() {
@@ -704,7 +745,6 @@ public class RealmObservableFactory implements RxObservableFactory {
     public int hashCode() {
         return 37; // Random number
     }
-
 
     // Helper class for keeping track of strong references to objects.
     private static class StrongReferenceCounter<K> {
