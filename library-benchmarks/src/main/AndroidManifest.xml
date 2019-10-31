@@ -2,11 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="io.realm.benchmarks">
 
-    <application
-        android:debuggable="false"
-        tools:ignore="HardcodedDebugMode"
-        tools:replace="android:debuggable"
-    />
+    <application />
 
 </manifest>
 
