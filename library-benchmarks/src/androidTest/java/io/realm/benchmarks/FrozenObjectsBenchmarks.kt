@@ -108,7 +108,6 @@ class FrozenObjectsBenchmarks {
         benchmarkRule.measureRepeated {
             list.freeze()
         }
-
     }
 
     @Test

@@ -25,7 +25,7 @@ import io.realm.internal.Table;
 
 
 /**
- * A {@link io.realm.internal.PendingRow} that has been frozen. This behaves in many ways similar
+ * A PendingRow that has been frozen. This behaves in many ways similar
  * to an deleted Row, but will report {@link #isLoaded()} as {@code as false}.
  */
 public enum FrozenPendingRow implements Row {

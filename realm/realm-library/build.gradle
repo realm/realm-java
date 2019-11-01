@@ -216,7 +216,6 @@ dependencies {
     objectServerImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
 
     kaptAndroidTest project(':realm-annotations-processor')
-    androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
     androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test:rules:1.0.2'
@@ -407,8 +406,8 @@ publishing {
             artifactId 'realm-android-library'
             version project.version
             artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-base-release.aar")
-//            artifact sourcesJar
-//            artifact javadocJar
+            artifact sourcesJar
+            artifact javadocJar
 
             pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
@@ -418,8 +417,8 @@ publishing {
             artifactId 'realm-android-library-object-server'
             version project.version
             artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
-//            artifact sourcesJar
-//            artifact javadocJar
+            artifact sourcesJar
+            artifact javadocJar
 
             pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
         }
@@ -455,10 +454,10 @@ artifactory {
     }
 }
 
-//artifacts {
-//    archives javadocJar
-//    archives sourcesJar
-//}
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
 
 
 def coreDownloaded = false

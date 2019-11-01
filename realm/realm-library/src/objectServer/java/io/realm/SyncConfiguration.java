@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
-import io.reactivex.annotations.Beta;
+import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
@@ -107,7 +107,8 @@ public class SyncConfiguration extends RealmConfiguration {
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
     private final boolean syncClientValidateSsl;
-    @Nullable private final String serverCertificateAssetName;
+    @Nullable
+    private final String serverCertificateAssetName;
     @Nullable private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
     private final long initialDataTimeoutMillis;
