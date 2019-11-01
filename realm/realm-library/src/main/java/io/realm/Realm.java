@@ -1983,15 +1983,10 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * FIXME
-     * @return
+     * {@inheritDoc}
      */
     @Override
     public Realm freeze() {
-//        if (isInTransaction()) {
-//            // FIXME: Is this true?
-//            throw new IllegalStateException("Cannot freeze objects inside a write transaction");
-//        }
         return RealmCache.createRealmOrGetFromCache(configuration, Realm.class, sharedRealm.getVersionID());
     }
 

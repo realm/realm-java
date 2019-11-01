@@ -824,9 +824,8 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         case IS_VALID: collection.isValid(); break;
                         case IS_MANAGED: collection.isManaged(); return true;
 
-                        // FIXME
+                        // These methods are threadsafe pr. design
                         case IS_FROZEN:
-                            break;
                         case FREEZE:
                             break;
                     }

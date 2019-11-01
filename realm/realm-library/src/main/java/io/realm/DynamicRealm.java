@@ -86,10 +86,6 @@ public class DynamicRealm extends BaseRealm {
         this.schema = new MutableRealmSchema(this);
     }
 
-//    private DynamicRealm(OsSharedRealm realm) {
-//        super(realm.freeze());
-//    }
-//
     /**
      * Realm static constructor that returns a dynamic variant of the Realm instance defined by provided
      * {@link io.realm.RealmConfiguration}. Dynamic Realms do not care about schemaVersion and schemas, so opening a
@@ -291,11 +287,6 @@ public class DynamicRealm extends BaseRealm {
         return new DynamicRealm(sharedRealm);
     }
 
-//    static DynamicRealm createFrozenInstance(OsSharedRealm realm) {
-//        return new DynamicRealm(realm, true);
-//    }
-
-
     /**
      * {@inheritDoc}
      */
@@ -404,16 +395,10 @@ public class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * FIXME
-     * @return
+     * {@inheritDoc}
      */
     @Override
     public DynamicRealm freeze() {
-        if (isInTransaction()) {
-            // FIXME: Is this true?
-            throw new IllegalStateException("Cannot freeze objects inside a write transaction");
-        }
-
         // In some cases a Read transaction has not been begun for the the Realm, which means
         // we cannot read the current version. In that case, do some work that will create the
         // read transaction.

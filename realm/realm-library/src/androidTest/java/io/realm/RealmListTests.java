@@ -784,12 +784,8 @@ public class RealmListTests extends CollectionTests {
                     case DELETE_ALL_FROM_REALM: results.deleteAllFromRealm(); break;
                     case IS_VALID: continue; // Does not throw.
                     case IS_MANAGED: continue; // Does not throw.
-
-                    // FIXME
-                    case IS_FROZEN:
-                        break;
-                    case FREEZE:
-                        break;
+                    case IS_FROZEN: continue; // Does not throw
+                    case FREEZE: results.freeze(); break;
                 }
                 fail(method + " should have thrown an Exception.");
             } catch (IllegalStateException ignored) {

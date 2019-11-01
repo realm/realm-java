@@ -438,11 +438,27 @@ abstract class BaseRealm implements Closeable {
         sharedRealm.cancelTransaction();
     }
 
+    /**
+     * Returns a frozen snapshot of the current Realm. This Realm can be read and queried from any thread without throwing
+     * an {@link IllegalStateException}. A frozen Realm has its own lifecycle and can be closed by calling {@link #close()},
+     * but fully closing the Realm that spawned the frozen copy will also close the frozen Realm.
+     * <p>
+     * Frozen data can be queried as normal, but trying to mutate it in any way or attempting to register any listener will
+     * throw an {@link IllegalStateException}.
+     * <p>
+     * Note: Keeping a large number of Realms with different versions alive can have a negative impact on the filesize
+     * of the Realm. In order to catch such use patterns it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
+     *
+     * @return a frozen copy of this Realm.
+     * @throws IllegalStateException if this method is called from inside a write transaction.
+     */
     public abstract BaseRealm freeze();
 
     /**
-     * FIXME
-     * @return
+     * Returns whether or not this Realm is frozen.
+     *
+     * @return {@code true} if the Realm is frozen, {@code false} if it is not.
+     * @see #freeze()
      */
     public boolean isFrozen() {
         checkIfValid();

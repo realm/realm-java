@@ -4243,12 +4243,10 @@ public class RealmTests {
         dynRealm.close();
         assertEquals(3, Realm.getGlobalInstanceCount(config));
         realm.close();
-        realm1.close();
-        assertEquals(2, Realm.getGlobalInstanceCount(config));
-        frozenRealm.close();
-        assertEquals(1, Realm.getGlobalInstanceCount(config));
-        frozenDynamicRealm.close();
+        realm1.close(); // Fully closing the live Realm also closes all frozen Realms
         assertEquals(0, Realm.getGlobalInstanceCount(config));
+        assertTrue(frozenRealm.isClosed());
+        assertTrue(frozenDynamicRealm.isClosed());
     }
 
     @Test

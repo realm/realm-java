@@ -116,7 +116,6 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
         @Override
         public boolean isFrozen() {
-            //FIXME
             return false;
         }
 
