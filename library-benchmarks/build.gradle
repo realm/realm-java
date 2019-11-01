@@ -41,7 +41,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.benchmark.junit4.AndroidBenchmarkRunner"
-        testInstrumentationRunnerArgument  'androidx.benchmark.suppressErrors', 'EMULATOR,UNLOCKED'
+        testInstrumentationRunnerArgument 'androidx.benchmark.suppressErrors', 'EMULATOR,UNLOCKED'
     }
 
     buildTypes {
@@ -70,8 +70,8 @@ repositories {
 }
 
 dependencies {
-    androidTestImplementation "androidx.benchmark:benchmark-junit4:1.0.0-rc01"
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation "androidx.benchmark:benchmark-junit4:1.0.0-rc01"
     androidTestImplementation 'junit:junit:4.12'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
