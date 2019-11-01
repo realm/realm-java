@@ -37,10 +37,10 @@ public interface ManagableObject {
      */
     boolean isValid();
 
-
     /**
-     * FIXME
-     * @return
+     * Returns whether or not this object is frozen.
+     *
+     * @return {@code true} if the object is frozen, {@code false} if it is not.
      */
     boolean isFrozen();
 }

@@ -631,9 +631,4 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
     private SchemaConnector getSchemaConnector() {
         return new SchemaConnector(realm.getSchema());
     }
-
-    @Override
-    public RealmCollection<E> freeze() {
-        throw new UnsupportedOperationException();
-    }
 }

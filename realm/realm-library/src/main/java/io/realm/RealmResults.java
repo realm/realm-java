@@ -521,11 +521,17 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isFrozen() {
         return realm != null && realm.isFrozen();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public RealmResults<E> freeze() {
         if (!isValid()) {

@@ -213,7 +213,7 @@ abstract class BaseRealm implements Closeable {
         checkIfValid();
         sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
         if (frozen) {
-            throw new IllegalStateException("It is not possible to add a change listener to frozen Realm since it never changes.");
+            throw new IllegalStateException("It is not possible to add a change listener to a frozen Realm since it never changes.");
         }
         //noinspection unchecked
         sharedRealm.realmNotifier.addChangeListener((T) this, listener);

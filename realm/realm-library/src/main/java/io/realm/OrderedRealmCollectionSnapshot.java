@@ -162,8 +162,9 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
 
     @Override
     public OrderedRealmCollection<E> freeze() {
-        //FIXME
-        return null;
+        // TODO: Technically, nothing prevents us from supporting this, but I'm hard pressed to find
+        // a use case.
+        throw getUnsupportedException("freeze");
     }
 
     /**
@@ -224,7 +225,6 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
 
     @Override
     public boolean isFrozen() {
-        // FIXME
         return false;
     }
 }

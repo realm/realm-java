@@ -1166,12 +1166,11 @@ public class SyncConfiguration extends RealmConfiguration {
          * attempting to write more data.
          * <p>
          * Realm is capable of concurrently handling many different versions of Realm objects. This can e.g. happen if you
-         * have Realm open on many different threads or are freezing objects while data is being written to the file.
+         * have a Realm open on many different threads or are freezing objects while data is being written to the file.
          * <p>
          * Under normal circumstances this is not a problem, but if the number of active versions grow to large, it will
-         * have a negative effect on the filesize on disk.
-         * <p>
-         * Setting this parameters can therefore be used to prevent uses of Realm that can result in very large Realms.
+         * have a negative effect on the filesize on disk. Setting this parameters can therefore be used to prevent uses of
+         * Realm that can result in very large Realms.
          *
          * @param number the maximum number of active versions before an exception is thrown.
          * @see <a href="https://realm.io/docs/java/latest/#faq-large-realm-file-size">FAQ</a>

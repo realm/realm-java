@@ -394,6 +394,33 @@ public class FrozenObjectsTests {
     }
 
     @Test
+    public void freezeSnapshot() {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+        OrderedRealmCollectionSnapshot<AllTypes> snapshot = results.createSnapshot();
+        try {
+            snapshot.freeze();
+            fail();
+        } catch(UnsupportedOperationException ignored) {
+        }
+    }
+
+    @Test
+    public void freezeDynamicSnapshot() {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        DynamicRealm dynRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        RealmResults<DynamicRealmObject> results = dynRealm.where(AllTypes.CLASS_NAME).findAll();
+        OrderedRealmCollectionSnapshot<DynamicRealmObject> snapshot = results.createSnapshot();
+        try {
+            snapshot.freeze();
+            fail();
+        } catch(UnsupportedOperationException ignored) {
+        } finally {
+            dynRealm.close();
+        }
+    }
+
+    @Test
     @RunTestInLooperThread
     public void freezeAsyncResults() {
         Realm realm = createDataForLiveRealm(DATA_SIZE);

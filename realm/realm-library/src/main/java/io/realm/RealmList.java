@@ -147,8 +147,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     }
 
     /**
-     * FIXME
-     * @return
+     * {@inheritDoc}
      */
     @Override
     public RealmList<E> freeze() {
