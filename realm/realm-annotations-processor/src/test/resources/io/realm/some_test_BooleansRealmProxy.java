@@ -502,9 +502,15 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         if (o == null || getClass() != o.getClass()) return false;
         some_test_BooleansRealmProxy aBooleans = (some_test_BooleansRealmProxy)o;
 
-        String path = proxyState.getRealm$realm().getPath();
-        String otherPath = aBooleans.proxyState.getRealm$realm().getPath();
+        BaseRealm realm = proxyState.getRealm$realm();
+        BaseRealm otherRealm = aBooleans.proxyState.getRealm$realm();
+        String path = realm.getPath();
+        String otherPath = otherRealm.getPath();
         if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
+        if (realm.isFrozen() != otherRealm.isFrozen()) return false;
+        if (!realm.sharedRealm.getVersionID().equals(otherRealm.sharedRealm.getVersionID())) {
+            return false;
+        }
 
         String tableName = proxyState.getRow$realm().getTable().getName();
         String otherTableName = aBooleans.proxyState.getRow$realm().getTable().getName();

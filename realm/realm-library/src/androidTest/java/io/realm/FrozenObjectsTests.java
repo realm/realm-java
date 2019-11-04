@@ -598,7 +598,7 @@ public class FrozenObjectsTests {
             AllJavaTypes copiedObject = bgRealm.copyToRealmOrUpdate(frozenObject);
             bgRealm.commitTransaction();
 
-            assertEquals(DATA_SIZE, bgRealm.where(AllTypes.class).count());
+            assertEquals(1, bgRealm.where(AllJavaTypes.class).count());
             assertEquals(frozenObject.getFieldLong(), copiedObject.getFieldLong());
             bgRealm.close();
         });
@@ -681,6 +681,50 @@ public class FrozenObjectsTests {
         });
         t.start();
         t.join();
+    }
+
+    @Test
+    public void realmObject_equals() throws InterruptedException {
+        realm = createDataForLiveRealm(DATA_SIZE);
+        AllTypes obj1 = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findFirst();
+        AllTypes obj2 = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findFirst();
+        AllTypes obj1Frozen = obj1.freeze();
+        AllTypes obj2Frozen = obj2.freeze();
+
+        assertEquals(obj1, obj2);
+        assertEquals(obj1Frozen, obj2Frozen);
+        assertFalse(obj1.equals(obj1Frozen));
+        Thread t = new Thread(() -> {
+            Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+            AllTypes bgObj1 = bgRealm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findFirst();
+            AllTypes bgObj1Frozen = bgObj1.freeze();
+            assertEquals(obj1Frozen, obj2Frozen);
+            assertEquals(obj1Frozen, bgObj1Frozen);
+            bgRealm.close();
+        });
+        t.start();
+        t.join();
+    }
+
+    @Test
+    public void realmObject_returnsFrozenRealm() {
+        realm = createDataForLiveRealm(DATA_SIZE);
+        AllTypes obj = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findFirst().freeze();
+        assertTrue(obj.getRealm().isFrozen());
+    }
+
+    @Test
+    public void realmList_returnsFrozenRealm() {
+        realm = createDataForLiveRealm(DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findAll().freeze();
+        assertTrue(results.getRealm().isFrozen());
+    }
+
+    @Test
+    public void realmResults_returnsFrozenRealm() {
+        realm = createDataForLiveRealm(DATA_SIZE);
+        RealmList<Dog> list = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findFirst().getColumnRealmList().freeze();
+        assertTrue(list.getRealm().isFrozen());
     }
 
     private Realm createDataForFrozenRealm(int dataSize) {

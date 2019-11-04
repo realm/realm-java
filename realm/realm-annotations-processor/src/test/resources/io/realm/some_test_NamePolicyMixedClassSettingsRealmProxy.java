@@ -450,9 +450,15 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         if (o == null || getClass() != o.getClass()) return false;
         some_test_NamePolicyMixedClassSettingsRealmProxy aNamePolicyMixedClassSettings = (some_test_NamePolicyMixedClassSettingsRealmProxy)o;
 
-        String path = proxyState.getRealm$realm().getPath();
-        String otherPath = aNamePolicyMixedClassSettings.proxyState.getRealm$realm().getPath();
+        BaseRealm realm = proxyState.getRealm$realm();
+        BaseRealm otherRealm = aNamePolicyMixedClassSettings.proxyState.getRealm$realm();
+        String path = realm.getPath();
+        String otherPath = otherRealm.getPath();
         if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
+        if (realm.isFrozen() != otherRealm.isFrozen()) return false;
+        if (!realm.sharedRealm.getVersionID().equals(otherRealm.sharedRealm.getVersionID())) {
+            return false;
+        }
 
         String tableName = proxyState.getRow$realm().getTable().getName();
         String otherTableName = aNamePolicyMixedClassSettings.proxyState.getRow$realm().getTable().getName();
