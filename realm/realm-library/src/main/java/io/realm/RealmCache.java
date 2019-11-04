@@ -109,11 +109,6 @@ final class RealmCache {
     // Reference counter for Realms that are accessible across all threads
     private static class GlobalReferenceCounter extends ReferenceCounter {
         private BaseRealm cachedRealm;
-        private OsSharedRealm.VersionID version;
-
-        public GlobalReferenceCounter(OsSharedRealm.VersionID version) {
-            this.version = version;
-        }
 
         @Override
         boolean hasInstanceAvailableForThread() {
@@ -488,7 +483,7 @@ final class RealmCache {
             if (version.equals(OsSharedRealm.VersionID.LIVE)) {
                 refCounter = new ThreadConfinedReferenceCounter();
             } else {
-                refCounter = new GlobalReferenceCounter(version);
+                refCounter = new GlobalReferenceCounter();
             }
 
             refAndCountMap.put(key, refCounter);
