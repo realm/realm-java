@@ -838,17 +838,6 @@ abstract class BaseRealm implements Closeable {
         return sharedRealm;
     }
 
-    @Override
-    public int hashCode() {
-        int result = (frozen ? 1 : 0);
-        if (!frozen) {
-            result = 31 * result + (int) (threadId ^ (threadId >>> 32));
-        }
-        result = 31 * result + configuration.hashCode();
-        result = 31 * result + sharedRealm.getVersionID().hashCode();
-        return result;
-    }
-
     public static final class RealmObjectContext {
         private BaseRealm realm;
         private Row row;
