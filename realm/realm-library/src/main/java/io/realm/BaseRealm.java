@@ -839,25 +839,6 @@ abstract class BaseRealm implements Closeable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        // This should catch all live Realms as the RealmCache makes sure that only one
-        // instance lives pr. thread.
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        BaseRealm baseRealm = (BaseRealm) o;
-
-        if (frozen != baseRealm.frozen) return false;
-        if (!frozen) {
-            throw new IllegalStateException("Multiple live Realms exist on the same thread. This should never happen");
-        }
-        if (!configuration.getPath().equals(baseRealm.configuration.getPath())) return false;
-        if (!sharedRealm.getVersionID().equals(baseRealm.sharedRealm.getVersionID())) return false;
-
-        return true;
-    }
-
-    @Override
     public int hashCode() {
         int result = (frozen ? 1 : 0);
         if (!frozen) {
