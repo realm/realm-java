@@ -760,7 +760,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     "Map<RealmModel,RealmObjectProxy>", "cache",
                     "Set<ImportFlag>", "flags")
 
-                beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null)")
+                beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null)")
                     emitStatement("final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm()")
                     beginControlFlow("if (otherRealm.threadId != realm.threadId)")
                         emitStatement("throw new IllegalArgumentException(\"Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.\")")
@@ -948,7 +948,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod("long","insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", qualifiedJavaClassName.toString(), "object", "Map<RealmModel,Long>", "cache")
 
             // If object is already in the Realm there is nothing to update
-            beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
+            beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
                 emitStatement("return ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey()")
             endControlFlow()
 
@@ -1040,7 +1040,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     beginControlFlow("if (cache.containsKey(object))")
                         emitStatement("continue")
                     endControlFlow()
-                    beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
+                    beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
                         emitStatement("cache.put(object, ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                         emitStatement("continue")
                     endControlFlow()
@@ -1109,7 +1109,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod("long", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", qualifiedJavaClassName.toString(), "object", "Map<RealmModel,Long>", "cache")
 
             // If object is already in the Realm there is nothing to update
-            beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
+            beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
                 emitStatement("return ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey()")
             endControlFlow()
             emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
@@ -1215,7 +1215,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("continue")
                     endControlFlow()
 
-                    beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
+                    beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
                         emitStatement("cache.put(object, ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                         emitStatement("continue")
                     endControlFlow()

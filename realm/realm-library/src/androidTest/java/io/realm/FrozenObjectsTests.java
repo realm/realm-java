@@ -25,9 +25,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.Arrays;
 
 import javax.annotation.Nullable;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.internal.Util;
@@ -43,7 +45,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Class testing various aspects of the frozen objects features
+ * Class testing that the frozen objects feature works correctly.
  */
 @RunWith(AndroidJUnit4.class)
 public class FrozenObjectsTests {
@@ -421,38 +423,6 @@ public class FrozenObjectsTests {
     }
 
     @Test
-    @RunTestInLooperThread
-    public void freezeAsyncResults() {
-        Realm realm = createDataForLiveRealm(DATA_SIZE);
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
-        looperThread.keepStrongReference(results);
-        assertFalse(results.isLoaded());
-        assertTrue(results.isValid());
-        assertEquals(0, results.size());
-
-        RealmResults<AllTypes> frozenResults = results.freeze();
-        assertFalse(frozenResults.isLoaded());
-        assertTrue(frozenResults.isValid());
-        assertEquals(0, frozenResults.size());
-
-        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
-            @Override
-            public void onChange(RealmResults<AllTypes> results) {
-                assertTrue(results.isLoaded());
-                assertTrue(results.isValid());
-                assertEquals(DATA_SIZE, results.size());
-
-                RealmResults<AllTypes> frozenResults = results.freeze();
-                assertFalse(frozenResults.isLoaded());
-                assertTrue(frozenResults.isValid());
-                assertEquals(DATA_SIZE, frozenResults.size());
-                looperThread.testComplete();
-            }
-        });
-    }
-
-
-    @Test
     public void freezeLists() throws InterruptedException {
         Realm realm = createDataForLiveRealm(DATA_SIZE);
         AllTypes obj = realm.where(AllTypes.class).findFirst();
@@ -578,6 +548,136 @@ public class FrozenObjectsTests {
             } finally {
                 otherThreadFrozenRealm.close();
             }
+        });
+        t.start();
+        t.join();
+    }
+
+    @Test
+    public void frozenRealm_closeFromOtherThread() throws InterruptedException {
+        assertFalse(frozenRealm.isClosed());
+        Thread t = new Thread(() -> {
+            frozenRealm.close();
+            assertTrue(frozenRealm.isClosed());
+        });
+        t.start();
+        t.join();
+    }
+
+    @Test
+    public void copyToRealm() throws InterruptedException {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        AllTypes frozenObject = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findFirst().freeze();
+
+        Thread t = new Thread(() -> {
+            Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+            bgRealm.beginTransaction();
+            AllTypes copiedObject = bgRealm.copyToRealm(frozenObject);
+            bgRealm.commitTransaction();
+
+            assertEquals(DATA_SIZE + 1, bgRealm.where(AllTypes.class).count());
+            assertEquals(frozenObject.getColumnLong(), copiedObject.getColumnLong());
+            assertEquals(frozenObject.getColumnString(), copiedObject.getColumnString());
+            assertEquals(frozenObject.getColumnRealmList().size(), copiedObject.getColumnRealmList().size());
+            bgRealm.close();
+        });
+        t.start();
+        t.join();
+    }
+
+    @Test
+    public void copyToRealmOrUpdate() throws InterruptedException {
+        realm.executeTransaction(r -> {
+            r.createObject(AllJavaTypes.class, 42);
+        });
+        AllJavaTypes frozenObject = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_ID, 42).findFirst().freeze();
+
+        Thread t = new Thread(() -> {
+            Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+            bgRealm.beginTransaction();
+            AllJavaTypes copiedObject = bgRealm.copyToRealmOrUpdate(frozenObject);
+            bgRealm.commitTransaction();
+
+            assertEquals(DATA_SIZE, bgRealm.where(AllTypes.class).count());
+            assertEquals(frozenObject.getFieldLong(), copiedObject.getFieldLong());
+            bgRealm.close();
+        });
+        t.start();
+        t.join();
+    }
+
+    @Test
+    public void insert() throws InterruptedException {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        AllTypes frozenObject = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findFirst().freeze();
+
+        Thread t = new Thread(() -> {
+            Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+            bgRealm.beginTransaction();
+            bgRealm.insert(frozenObject);
+            bgRealm.commitTransaction();
+
+            assertEquals(DATA_SIZE + 1, bgRealm.where(AllTypes.class).count());
+            bgRealm.close();
+        });
+        t.start();
+        t.join();
+    }
+
+    @Test
+    public void insertList() throws InterruptedException {
+        Realm realm = createDataForLiveRealm(DATA_SIZE);
+        AllTypes frozenObject1 = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG, Sort.ASCENDING).findFirst().freeze();
+        AllTypes frozenObject2 = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG, Sort.DESCENDING).findFirst().freeze();
+
+        Thread t = new Thread(() -> {
+            Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+            bgRealm.beginTransaction();
+            bgRealm.insert(Arrays.asList(frozenObject1, frozenObject2));
+            bgRealm.commitTransaction();
+
+            assertEquals(DATA_SIZE + 2, bgRealm.where(AllTypes.class).count());
+            bgRealm.close();
+        });
+        t.start();
+        t.join();
+    }
+
+    @Test
+    public void insertOrUpdate() throws InterruptedException {
+        realm.executeTransaction(r -> {
+            r.createObject(AllJavaTypes.class, 42);
+        });
+        AllJavaTypes frozenObject = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_ID, 42).findFirst().freeze();
+
+        Thread t = new Thread(() -> {
+            Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+            bgRealm.beginTransaction();
+            bgRealm.insertOrUpdate(frozenObject);
+            bgRealm.commitTransaction();
+            assertEquals(1, bgRealm.where(AllJavaTypes.class).count());
+            bgRealm.close();
+        });
+        t.start();
+        t.join();
+    }
+
+    @Test
+    public void insertOrUpdateList() throws InterruptedException {
+        realm.executeTransaction(r -> {
+            r.createObject(AllJavaTypes.class, 42);
+            r.createObject(AllJavaTypes.class, 43);
+        });
+        AllJavaTypes frozenObject1 = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_ID, 42).findFirst().freeze();
+        AllJavaTypes frozenObject2 = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_ID, 42).findFirst().freeze();
+
+        Thread t = new Thread(() -> {
+            Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+            bgRealm.beginTransaction();
+            bgRealm.insertOrUpdate(Arrays.asList(frozenObject1, frozenObject1, frozenObject2));
+            bgRealm.commitTransaction();
+            assertEquals(2, bgRealm.where(AllJavaTypes.class).count());
+            bgRealm.close();
         });
         t.start();
         t.join();

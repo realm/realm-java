@@ -157,7 +157,7 @@ public class SyncedRealmMigrationTests {
         list.add(expectedObjectSchema);
         OsSchemaInfo schemaInfo = new OsSchemaInfo(list);
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config).schemaInfo(schemaInfo);
-        OsSharedRealm.getInstance(configBuilder).close();
+        OsSharedRealm.getInstance(configBuilder, OsSharedRealm.VersionID.LIVE).close();
 
         thrown.expectMessage(
                 CoreMatchers.containsString("The following changes cannot be made in additive-only schema mode:"));

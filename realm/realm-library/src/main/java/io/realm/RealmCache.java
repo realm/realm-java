@@ -93,10 +93,7 @@ final class RealmCache {
         abstract void clearThreadLocalCache();
 
         // Returns the number of instances handed out for the caller thread.
-        public int getThreadLocalCount() {
-            Integer refCount = localCount.get();
-            return (refCount != null) ? refCount : 0;
-        }
+        abstract int getThreadLocalCount();
 
         // FIXME
         public void setThreadCount(int refCount) {
@@ -154,6 +151,13 @@ final class RealmCache {
                 throw new IllegalStateException("Global reference counter of Realm" + canonicalPath + " got corrupted.");
             }
         }
+
+        @Override
+        int getThreadLocalCount() {
+            // For frozen Realms the Realm can be accessed from all threads, so the concept
+            // of a thread local count doesn't make sense. Just return the global count instead.
+            return globalCount;
+        }
     }
 
     // Reference counter for Realms that are thread confined
@@ -195,6 +199,12 @@ final class RealmCache {
                 // Should never happen.
                 throw new IllegalStateException("Global reference counter of Realm" + canonicalPath + " got corrupted.");
             }
+        }
+
+        @Override
+        public int getThreadLocalCount() {
+            Integer refCount = localCount.get();
+            return (refCount != null) ? refCount : 0;
         }
     }
 

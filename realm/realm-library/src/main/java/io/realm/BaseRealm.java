@@ -590,7 +590,7 @@ abstract class BaseRealm implements Closeable {
      */
     @Override
     public void close() {
-        if (this.threadId != Thread.currentThread().getId()) {
+        if (!frozen && this.threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
         }
 
@@ -619,7 +619,7 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if attempting to close from another thread.
      */
     public boolean isClosed() {
-        if (this.threadId != Thread.currentThread().getId()) {
+        if (!frozen && this.threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }
 
