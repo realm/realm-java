@@ -5,3 +5,5 @@
 -dontnote com.android.org.conscrypt.SSLParametersImpl
 -dontnote org.apache.harmony.xnet.provider.jsse.SSLParametersImpl
 -dontnote sun.security.ssl.SSLContextImpl
+
+-dontwarn okhttp3.internal.platform.*
