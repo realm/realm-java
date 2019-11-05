@@ -226,9 +226,11 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         }
     }
 
-
     /**
      * Creates a {@code OsSharedRealm} instance in dynamic schema mode.
+     *
+     * @param config configuration to use
+     * @param version which version to use for a frozen instance or {@link VersionID#LIVE} for a live Realm.
      */
     public static OsSharedRealm getInstance(RealmConfiguration config, VersionID version) {
         OsRealmConfig.Builder builder = new OsRealmConfig.Builder(config);
@@ -237,6 +239,9 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     /**
      * Creates a {@code ShareRealm} instance from the given {@link OsRealmConfig.Builder}.
+     *
+     * @param configBuilder configuration to use
+     * @param version which version to use for a frozen instance or {@link VersionID#LIVE} for a live Realm.
      */
     public static OsSharedRealm getInstance(OsRealmConfig.Builder configBuilder, VersionID version) {
         OsRealmConfig osRealmConfig = configBuilder.build();
