@@ -694,7 +694,6 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
-    @SuppressWarnings("ReferenceEquality")
     public void getRealm() {
         RealmResults<AllTypes> collection = realm.where(AllTypes.class).findAll();
         assertTrue(realm == collection.getRealm());

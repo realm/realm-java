@@ -1118,7 +1118,6 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    @SuppressWarnings("ReferenceEquality")
     public void getRealm() {
         assertTrue(realm == collection.getRealm());
     }

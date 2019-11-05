@@ -3521,7 +3521,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @SuppressWarnings("ReferenceEquality")
     public void getRealm() {
         assertTrue(realm == realm.where(AllTypes.class).getRealm());
     }
