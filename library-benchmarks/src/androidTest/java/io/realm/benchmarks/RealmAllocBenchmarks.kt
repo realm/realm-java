@@ -18,8 +18,8 @@ package io.realm.benchmarks
 
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
 import io.realm.RealmConfiguration
 import io.realm.benchmarks.entities.AllTypes
