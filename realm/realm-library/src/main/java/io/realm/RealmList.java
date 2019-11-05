@@ -151,16 +151,20 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public RealmList<E> freeze() {
-        if (!isValid()) {
-            throw new IllegalStateException("Only valid, managed RealmLists can be frozen.");
-        }
+        if (isManaged()) {
+            if (!isValid()) {
+                throw new IllegalStateException("Only valid, managed RealmLists can be frozen.");
+            }
 
-        BaseRealm frozenRealm = realm.freeze();
-        OsList frozenList = getOsList().freeze(frozenRealm.sharedRealm);
-        if (className != null) {
-            return new RealmList<>(className, frozenList, frozenRealm);
+            BaseRealm frozenRealm = realm.freeze();
+            OsList frozenList = getOsList().freeze(frozenRealm.sharedRealm);
+            if (className != null) {
+                return new RealmList<>(className, frozenList, frozenRealm);
+            } else {
+                return new RealmList<>(clazz, frozenList, frozenRealm);
+            }
         } else {
-            return new RealmList<>(clazz, frozenList, frozenRealm);
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -169,7 +173,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public boolean isFrozen() {
-        return realm.isFrozen();
+        return (realm != null && realm.isFrozen());
     }
 
     /**
