@@ -461,7 +461,10 @@ abstract class BaseRealm implements Closeable {
      * @see #freeze()
      */
     public boolean isFrozen() {
-        checkIfValid();
+        // This method needs to be threadsafe even for live Realms, so don't call {@link #checkIfValid}
+        if (sharedRealm == null || sharedRealm.isClosed()) {
+            throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+        }
         return frozen;
     }
 
