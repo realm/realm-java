@@ -1,4 +1,4 @@
-## 6.0.1(YYYY-MM-DD)
+## 6.0.1(2019-11-11)
 
 NOTE: Anyone using encrypted Realms are strongly advised to upgrade to this version.
 
@@ -19,7 +19,7 @@ NOTE: Anyone using encrypted Realms are strongly advised to upgrade to this vers
 * Updated to Realm Core 5.23.6.
 
 ### Credits
-* Thanks to Vladimir Konkov (@vladimirfx) for help with isolating ([#6152]()).
+* Thanks to Vladimir Konkov (@vladimirfx) for help with isolating ([#6152](https://github.com/realm/realm-java/issues/6152)).
 
 
 ## 6.0.0(2019-10-01)
