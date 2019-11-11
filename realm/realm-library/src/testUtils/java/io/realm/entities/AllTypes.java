@@ -129,6 +129,10 @@ public class AllTypes extends RealmObject {
         return columnMutableRealmInteger;
     }
 
+    public void setColumnMutableRealmInteger(int value) {
+        columnMutableRealmInteger.set(value);
+    }
+
     public void setColumnBinary(byte[] columnBinary) {
         this.columnBinary = columnBinary;
     }

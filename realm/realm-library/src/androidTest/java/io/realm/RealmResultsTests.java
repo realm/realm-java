@@ -1738,6 +1738,7 @@ public class RealmResultsTests extends CollectionTests {
         allTypes.setColumnBoolean(false);
         allTypes.setColumnDate(date);
         allTypes.setColumnBinary(new byte[]{1, 2, 3});
+        allTypes.setColumnMutableRealmInteger(0);
         allTypes.setColumnRealmObject(dog1);
         allTypes.getColumnRealmList().add(dog2);
         allTypes.getColumnRealmList().add(dog3);
@@ -1809,55 +1810,13 @@ public class RealmResultsTests extends CollectionTests {
                 "                ]\n" +
                 "            }\n" +
                 "        ],\n" +
-                "        \"columnStringList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": \"Foo\"\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": \"Bar\"\n" +
-                "            }\n" +
-                "        ],\n" +
+                "        \"columnStringList\": [ \"Foo\", \"Bar\" ]," +
                 "        \"columnBinaryList\": [],\n" +
-                "        \"columnBooleanList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": false\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": true\n" +
-                "            }\n" +
-                "        ],\n" +
-                "        \"columnLongList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 1000\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 2000\n" +
-                "            }\n" +
-                "        ],\n" +
-                "        \"columnDoubleList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 1.123\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 5.3209999999999997\n" +
-                "            }\n" +
-                "        ],\n" +
-                "        \"columnFloatList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 0.12\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": 0.13\n" +
-                "            }\n" +
-                "        ],\n" +
-                "        \"columnDateList\": [\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": \"" + now + "\"\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"!ARRAY_VALUE\": \"" + now + "\"\n" +
-                "            }\n" +
-                "        ]\n" +
+                "        \"columnBooleanList\": [ false, true ],\n" +
+                "        \"columnLongList\": [ 1000, 2000 ],\n" +
+                "        \"columnDoubleList\": [ 1.123, 5.3209999999999997 ],\n" +
+                "        \"columnFloatList\": [ 0.12, 0.13 ],\n" +
+                "        \"columnDateList\": [ \"" + now + "\", \"" + now + "\"]\n" +
                 "    }\n" +
                 "]";
         JSONAssert.assertEquals(expectedJSON, json, false);

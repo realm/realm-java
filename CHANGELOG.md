@@ -1,3 +1,27 @@
+## 6.0.1(2019-11-11)
+
+NOTE: Anyone using encrypted Realms are strongly advised to upgrade to this version.
+
+### Enhancements
+* None
+
+### Fixed
+* When using encrypted Realms a race condition could lead to the Realm ending up corrupted when the file increased in size. This could manifest as a wide array of different error messages. Most commonly seen has been "Fatal signal 11 (SIGSEGV) from Java_io_realm_internal_UncheckedRow_nativeGetString", "RealmFileException: Top ref outside file" and "Unable to open a realm at path. ACCESS_ERROR: Invalid mnemonic". ([#6152](https://github.com/realm/realm-java/issues/6152), since 5.0.0)
+* `RealmResults.asJSON()` now prints lists with primitive values directly instead of wrapping each value in an object with an `!ARRAY_VALUE` property.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* Updated to Realm Sync 4.7.12.
+* Updated to Realm Core 5.23.6.
+
+### Credits
+* Thanks to Vladimir Konkov (@vladimirfx) for help with isolating ([#6152](https://github.com/realm/realm-java/issues/6152)).
+
+
 ## 6.0.0(2019-10-01)
 
 ### Breaking Changes
