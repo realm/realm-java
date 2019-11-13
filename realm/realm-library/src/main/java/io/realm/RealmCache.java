@@ -602,13 +602,17 @@ final class RealmCache {
                 // cachesList is not needed here.
                 configuration = null;
 
-                // FIXME: Close all frozen Realms. This can introduce race conditions on other
+                // TODO: Close all frozen Realms. This can introduce race conditions on other
                 // threads if the lifecyle of using Realm data is not correctly controlled.
                 // We need to run experiments to verify weather we should use this approach
                 // or require that people manually close Frozen Realms.
                 for (ReferenceCounter counter : refAndCountMap.values()) {
                     if (counter instanceof GlobalReferenceCounter) {
-                        counter.getRealmInstance().close();
+                        BaseRealm cachedRealm = counter.getRealmInstance();
+                        // Since we don't remove ReferenceCounters, need to check if the Realm is still open
+                        if (cachedRealm != null) {
+                            cachedRealm.close();
+                        }
                     }
                 }
                 ObjectServerFacade.getFacade(realm.getConfiguration().isSyncConfiguration())

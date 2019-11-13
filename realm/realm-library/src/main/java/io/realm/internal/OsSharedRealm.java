@@ -191,7 +191,9 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
         this.capabilities = capabilities;
         this.realmNotifier = realmNotifier;
-        nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
+        if (version.equals(VersionID.LIVE)) {
+            nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
+        }
     }
 
     /**
