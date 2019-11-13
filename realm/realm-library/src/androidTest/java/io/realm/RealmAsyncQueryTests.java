@@ -1388,8 +1388,10 @@ public class RealmAsyncQueryTests {
         assertFalse(results.isLoaded());
         assertTrue(results.isValid());
         assertEquals(0, results.size());
+        assertFalse(results.isFrozen());
 
         RealmResults<AllTypes> frozenResults = results.freeze();
+        assertTrue(frozenResults.isFrozen());
         assertFalse(frozenResults.isLoaded());
         assertTrue(frozenResults.isValid());
         assertEquals(0, frozenResults.size());

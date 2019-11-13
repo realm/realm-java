@@ -90,6 +90,7 @@ public class FrozenObjectsTests {
 
     @Test
     public void freezeRealm() {
+        assertFalse(realm.isFrozen());
         Realm frozenRealm = realm.freeze();
         assertEquals(realm.getPath(), frozenRealm.getPath());
         assertTrue(frozenRealm.isFrozen());
