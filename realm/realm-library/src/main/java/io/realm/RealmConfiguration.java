@@ -790,7 +790,7 @@ public class RealmConfiguration {
          * Realm is capable of concurrently handling many different versions of Realm objects. This can e.g. happen if you
          * have a Realm open on many different threads or are freezing objects while data is being written to the file.
          * <p>
-         * Under normal circumstances this is not a problem, but if the number of active versions grow to large, it will
+         * Under normal circumstances this is not a problem, but if the number of active versions grow too large, it will
          * have a negative effect on the filesize on disk. Setting this parameters can therefore be used to prevent uses of
          * Realm that can result in very large Realms.
          *

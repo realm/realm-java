@@ -2,12 +2,12 @@
 
 ### Breaking Changes
 * RxJava Flowables and Observables are now subscribed to and unsubscribed to asynchronously on the thread holding the live Realm, instead of previously where this was done synchronously.
-* All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without needing to copy Realm data into unmanaged objects. 
+* All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without the need to copy Realm data into unmanaged objects. 
 
 ### Enhancements
 * Added `Realm.freeze()`, `RealmObject.freeze()`, `RealmResults.freeze()` and `RealmList.freeze()`. These methods will return a frozen snapshot of the current Realm data. This data can be read from any thread without throwing an `IllegalStateException`. All frozen Realms and data can be closed by calling `Realm.close()` on the frozen Realm, but fully closing all live Realms will also close the frozen ones. Frozen data can be queried as normal, but trying to mutate it in any way will throw an `IllegalStateException`. This includes all methods that attempt to refresh or add changelisteners. (Issue [#6590](https://github.com/realm/realm-java/pull/6590))
 * Added `Realm.isFrozen()`, `RealmObject.isFrozen()`, `RealmObject.isFrozen(RealmModel)`, `RealmResults.isFrozen()` and `RealmList.isFrozen()`, which returns whether or not the data is frozen.
-* Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having to many versions has a negative impact on the filesize of the Realm. 
+* Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having too many versions can dramatically increase the filesize of the Realm. 
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
