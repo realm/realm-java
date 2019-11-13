@@ -1,3 +1,20 @@
+## 6.0.2(YYYY-MM-DD)
+
+### Enhancements
+* None
+
+### Fixed
+* [ObjectServer] `SyncSession` progress listeners now work correctly in combination with `SyncConfiguration.waitForInitialRemoteData()`.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* Updated to Object Store commit: ad96a4c334b475dd67d50c1ca419e257d7a21e18.
+
+
 ## 6.0.1(2019-11-11)
 
 NOTE: Anyone using encrypted Realms are strongly advised to upgrade to this version.
