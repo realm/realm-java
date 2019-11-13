@@ -134,4 +134,8 @@ public class ObjectServerFacade {
     public void downloadInitialSubscriptions(Realm realm) {
         // Do nothing
     }
+
+    public void createNativeSyncSession(RealmConfiguration configuration) {
+        // Do nothing
+    }
 }

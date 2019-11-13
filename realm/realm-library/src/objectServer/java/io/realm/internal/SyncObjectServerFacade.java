@@ -290,4 +290,15 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             }
         }
     }
+
+    @Override
+    public void createNativeSyncSession(RealmConfiguration configuration) {
+        if (configuration instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            OsRealmConfig config = new OsRealmConfig.Builder(syncConfig).build();
+            SyncManager.getOrCreateSession(syncConfig, config.getResolvedRealmURI());
+        } else {
+            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
+        }
+    }
 }
