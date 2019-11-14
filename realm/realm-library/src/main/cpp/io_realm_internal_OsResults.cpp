@@ -487,5 +487,5 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeFreeze(JNIEnv* en
         return reinterpret_cast<jlong>(new ResultsWrapper(results));
     }
     CATCH_STD()
-    reinterpret_cast<jlong>(nullptr);
+    return reinterpret_cast<jlong>(nullptr);
 }
