@@ -27,14 +27,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
-import io.realm.Realm;
-import io.realm.SyncConfiguration;
-import io.realm.SyncManager;
-import io.realm.SyncSession;
-import io.realm.SyncUser;
-import io.realm.UserStore;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.LogLevel;
