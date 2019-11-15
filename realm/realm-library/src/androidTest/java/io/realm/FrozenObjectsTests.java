@@ -76,16 +76,19 @@ public class FrozenObjectsTests {
         if (frozenRealm != null) {
             frozenRealm.close();
         }
-
-        // FIXME: Work-around for https://github.com/realm/realm-core/issues/3435
-        deleteRealm(realmConfig);
     }
 
-    private void deleteRealm(RealmConfiguration configuration) {
-        String canonicalPath = configuration.getPath();
-        File realmFolder = configuration.getRealmDirectory();
-        String realmFileName = configuration.getRealmFileName();
-        assertTrue(Util.deleteRealm(canonicalPath, realmFolder, realmFileName));
+    @Test
+    public void deleteFrozenRealm() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder().name("deletable.realm").build();
+        realm = Realm.getInstance(config);
+        frozenRealm = realm.freeze();
+        try {
+            Realm.deleteRealm(config);
+        } catch (IllegalStateException ignore) {
+        }
+        realm.close();
+        assertTrue(Realm.deleteRealm(config));
     }
 
     @Test
