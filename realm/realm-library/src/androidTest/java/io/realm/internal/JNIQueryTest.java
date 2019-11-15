@@ -137,7 +137,7 @@ public class JNIQueryTest {
     }
 
     @Test
-    @Ignore("FIXME: Points to problems in Core 6")
+    @Ignore("Core 6 does not validate incorrect ColKey's. Consider if this should be changed. SDK User should hopefully never encounter this.")
     public void invalidColumnIndexContains() {
         Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
         TableQuery query = table.where();
