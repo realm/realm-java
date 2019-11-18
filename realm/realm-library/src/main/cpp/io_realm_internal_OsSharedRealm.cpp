@@ -544,5 +544,5 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeFreeze(JNIEnv
         return reinterpret_cast<jlong>(new SharedRealm(std::move(shared_realm->freeze())));
     }
     CATCH_STD()
-    return -1;
+    return reinterpret_cast<jlong>(nullptr);
 }

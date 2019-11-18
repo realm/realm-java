@@ -399,7 +399,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeFreeze(JNIEnv*
         return reinterpret_cast<jlong>(frozen_obj);
     }
     CATCH_STD()
-    return -1;
+    return reinterpret_cast<jlong>(nullptr);
 }
 
 

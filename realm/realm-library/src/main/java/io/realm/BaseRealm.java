@@ -447,7 +447,7 @@ abstract class BaseRealm implements Closeable {
      * throw an {@link IllegalStateException}.
      * <p>
      * Note: Keeping a large number of Realms with different versions alive can have a negative impact on the filesize
-     * of the Realm. In order to catch such use patterns it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
+     * of the Realm. In order to avoid such a situation, it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
      *
      * @return a frozen copy of this Realm.
      * @throws IllegalStateException if this method is called from inside a write transaction.

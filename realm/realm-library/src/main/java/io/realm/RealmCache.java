@@ -34,6 +34,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.Capabilities;
@@ -72,7 +73,7 @@ final class RealmCache {
         // How many references to this Realm instance in this thread.
         protected final ThreadLocal<Integer> localCount = new ThreadLocal<>();
         // How many threads have instances refer to this configuration.
-        protected int globalCount = 0;
+        protected AtomicInteger globalCount = new AtomicInteger(0);
 
         // Returns `true` if an instance of the Realm is available on the caller thread.
         abstract boolean hasInstanceAvailableForThread();
@@ -87,22 +88,24 @@ final class RealmCache {
         abstract BaseRealm getRealmInstance();
 
         // Cache the Realm instance. Should only be called when `hasInstanceAvailableForThread` returns false.
-        abstract void realmCreated(BaseRealm realm);
+        abstract void onRealmCreated(BaseRealm realm);
 
-        // FIXME
+        // Clears the the cache for a given thread when all Realms on that thread are closed.
         abstract void clearThreadLocalCache();
 
         // Returns the number of instances handed out for the caller thread.
         abstract int getThreadLocalCount();
 
-        // FIXME
+        // Updates the number of references handed out for a given thread
         public void setThreadCount(int refCount) {
             localCount.set(refCount);
         }
 
-        // FIXME
+        // Returns the number of gloal instances handed out. This is roughly equivalent
+        // to the number of threads currently using the Realm as each thread also does
+        // reference counting of Realm instances.
         public int getGlobalCount() {
-            return globalCount;
+            return globalCount.get();
         }
     }
 
@@ -121,13 +124,13 @@ final class RealmCache {
         }
 
         @Override
-        void realmCreated(BaseRealm realm) {
+        void onRealmCreated(BaseRealm realm) {
             // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
             cachedRealm = realm;
 
             localCount.set(0);
             // This is the first instance in current thread, increase the global count.
-            globalCount++;
+            globalCount.incrementAndGet();
 
         }
 
@@ -140,10 +143,9 @@ final class RealmCache {
             localCount.set(null);
 
             // Clears global counter.
-            globalCount--;
-            if (globalCount < 0) {
+            if (globalCount.decrementAndGet() < 0) {
                 // Should never happen.
-                throw new IllegalStateException("Global reference counter of Realm" + canonicalPath + " got corrupted.");
+                throw new IllegalStateException("Global reference counter of Realm" + canonicalPath + " not be negative.");
             }
         }
 
@@ -151,7 +153,7 @@ final class RealmCache {
         int getThreadLocalCount() {
             // For frozen Realms the Realm can be accessed from all threads, so the concept
             // of a thread local count doesn't make sense. Just return the global count instead.
-            return globalCount;
+            return globalCount.get();
         }
     }
 
@@ -171,12 +173,12 @@ final class RealmCache {
         }
 
         @Override
-        public void realmCreated(BaseRealm realm) {
+        public void onRealmCreated(BaseRealm realm) {
             // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
             localRealm.set(realm);
             localCount.set(0);
             // This is the first instance in current thread, increase the global count.
-            globalCount++;
+            globalCount.incrementAndGet();
         }
 
         @Override
@@ -189,10 +191,9 @@ final class RealmCache {
             localRealm.set(null);
 
             // Clears global counter.
-            globalCount--;
-            if (globalCount < 0) {
+            if (globalCount.decrementAndGet() < 0) {
                 // Should never happen.
-                throw new IllegalStateException("Global reference counter of Realm" + canonicalPath + " got corrupted.");
+                throw new IllegalStateException("Global reference counter of Realm" + canonicalPath + " can not be negative.");
             }
         }
 
@@ -422,35 +423,32 @@ final class RealmCache {
             copyAssetFileIfNeeded(configuration);
             OsSharedRealm sharedRealm = null;
             try {
-                if (configuration.isSyncConfiguration()) {
-                    // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
-                    // before proceeding. We need to open the Realm instance first to start any potential underlying
-                    // SyncSession so this will work.
-                    if (realmFileIsBeingCreated) {
+                // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
+                // before proceeding. We need to open the Realm instance first to start any potential underlying
+                // SyncSession so this will work.
+                if (configuration.isSyncConfiguration() && realmFileIsBeingCreated) {
+                    // Manually create the Java session wrapper session as this might otherwise
+                    // not be created
+                    OsRealmConfig osConfig = new OsRealmConfig.Builder(configuration).build();
+                    ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osConfig);
 
-                        // Manually create the Java session wrapper session as this might otherwise
-                        // not be created
-                        OsRealmConfig osConfig = new OsRealmConfig.Builder(configuration).build();
-                        ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osConfig);
-
-                        if (ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration)) {
-                            // Partial Realms are not supported by async open yet, so continue to
-                            // use the old way of opening those Realms.
-                            sharedRealm = OsSharedRealm.getInstance(configuration, OsSharedRealm.VersionID.LIVE);
-                            try {
-                                ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
-                            } catch (Throwable t) {
-                                // If an error happened while downloading initial data, we need to reset the file so we can
-                                // download it again on the next attempt.
-                                sharedRealm.close();
-                                sharedRealm = null;
-                                deleteRealmFileOnDisk(configuration);
-                                throw t;
-                            }
-                        } else {
-                            // Fully synchronized Realms are supported by AsyncOpen
+                    if (ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration)) {
+                        // Partial Realms are not supported by async open yet, so continue to
+                        // use the old way of opening those Realms.
+                        sharedRealm = OsSharedRealm.getInstance(configuration, OsSharedRealm.VersionID.LIVE);
+                        try {
                             ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
+                        } catch (Throwable t) {
+                            // If an error happened while downloading initial data, we need to reset the file so we can
+                            // download it again on the next attempt.
+                            sharedRealm.close();
+                            sharedRealm = null;
+                            deleteRealmFileOnDisk(configuration);
+                            throw t;
                         }
+                    } else {
+                        // Fully synchronized Realms are supported by AsyncOpen
+                        ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
                     }
                 }
             } finally {
@@ -516,7 +514,7 @@ final class RealmCache {
         }
 
 
-        referenceCounter.realmCreated(realm);
+        referenceCounter.onRealmCreated(realm);
     }
 
     /**
@@ -596,27 +594,24 @@ final class RealmCache {
             realm.doClose();
 
             // No more instance of typed Realm and dynamic Realm.
-            if (geTotalLiveRealmGlobalRefCount() == 0) {
+            if (getTotalLiveRealmGlobalRefCount() == 0) {
                 // We keep the cache in the caches list even when its global counter reaches 0. It will be reused when
                 // next time a Realm instance with the same path is opened. By not removing it, the lock on
                 // cachesList is not needed here.
                 configuration = null;
 
-                // TODO: Close all frozen Realms. This can introduce race conditions on other
+                // Close all frozen Realms. This can introduce race conditions on other
                 // threads if the lifecyle of using Realm data is not correctly controlled.
-                // We need to run experiments to verify weather we should use this approach
-                // or require that people manually close Frozen Realms.
                 for (ReferenceCounter counter : refAndCountMap.values()) {
                     if (counter instanceof GlobalReferenceCounter) {
                         BaseRealm cachedRealm = counter.getRealmInstance();
-                        // Since we don't remove ReferenceCounters, need to check if the Realm is still open
+                        // Since we don't remove ReferenceCounters, we need to check if the Realm is still open
                         if (cachedRealm != null) {
                             cachedRealm.close();
                         }
                     }
                 }
-                ObjectServerFacade.getFacade(realm.getConfiguration().isSyncConfiguration())
-                        .realmClosed(realm.getConfiguration());
+                ObjectServerFacade.getFacade(realm.getConfiguration().isSyncConfiguration()).realmClosed(realm.getConfiguration());
             }
 
         } else {
@@ -788,7 +783,7 @@ final class RealmCache {
             return 0;
         }
 
-        // Access local ref count only, no need to by synchronized.
+        // Access local ref count only, no need to be synchronized.
         int totalRefCount = 0;
         for (ReferenceCounter referenceCounter : cache.refAndCountMap.values()) {
             totalRefCount += referenceCounter.getThreadLocalCount();
@@ -815,7 +810,7 @@ final class RealmCache {
     /**
      * Returns the total number of threads containg a reference to a live instance of the Realm.
      */
-    private int geTotalLiveRealmGlobalRefCount() {
+    private int getTotalLiveRealmGlobalRefCount() {
         int totalRefCount = 0;
         for (ReferenceCounter referenceCounter : refAndCountMap.values()) {
             if (referenceCounter instanceof ThreadConfinedReferenceCounter) {

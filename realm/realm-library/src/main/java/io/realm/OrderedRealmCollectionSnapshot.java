@@ -162,8 +162,9 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
 
     @Override
     public OrderedRealmCollection<E> freeze() {
-        // TODO: Technically, nothing prevents us from supporting this, but I'm hard pressed to find
-        // a use case.
+        // Technically, nothing prevents us from supporting this, but there isn't any good use
+        // case for supporting it, since snapshots should only be used when modifying Results.
+        // So for now, this is disabled.
         throw getUnsupportedException("freeze");
     }
 

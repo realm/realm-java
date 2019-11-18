@@ -135,7 +135,7 @@ public interface Row {
     Row freeze(OsSharedRealm frozenRealm);
 
     /**
-     * Return weather the row is considered to be loaded, i.e. it doesn't represent a query in flight.
+     * Return whether the row is considered to be loaded, i.e. it doesn't represent a query in flight.
      *
      */
     boolean isLoaded();

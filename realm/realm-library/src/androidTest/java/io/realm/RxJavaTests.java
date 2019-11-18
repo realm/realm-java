@@ -35,7 +35,6 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.internal.util.Pair;
-import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -1077,7 +1076,6 @@ public class RxJavaTests {
     @Test
     @RunTestInLooperThread
     public void realmResults_readableAcrossThreads() {
-        // FIXME: Make a test like this for all from methods
         final long TEST_SIZE = 10;
         Realm realm = looperThread.getRealm();
 
@@ -1090,16 +1088,13 @@ public class RxJavaTests {
         subscription = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findAllAsync().asFlowable()
                 .subscribeOn(Schedulers.io())
                 .filter(RealmResults::isLoaded)
-                .map(results -> {
-                    RealmLog.error(Thread.currentThread().getName());
-                    return new Pair<>(results.size(), results);
-                })
+                .map(results -> new Pair<>(results.size(), new Pair<>(results, results.first())))
                 .observeOn(Schedulers.computation())
                 .subscribe(
                         pair -> {
-                            RealmLog.error(Thread.currentThread().getName());
                             assertEquals(TEST_SIZE, pair.first.intValue());
-                            assertEquals(TEST_SIZE, pair.second.size());
+                            assertEquals(TEST_SIZE, pair.second.first.size());
+                            assertEquals(pair.second.second.getColumnLong(), pair.second.first.first().getColumnLong());
                             looperThread.testComplete();
                         }
                 );

@@ -1570,6 +1570,10 @@ public class Realm extends BaseRealm {
             throw new IllegalArgumentException("Transaction should not be null");
         }
 
+        if (isFrozen()) {
+            throw new IllegalStateException("Write transactions on a frozen Realm is not allowed.");
+        }
+
         // Avoid to call canDeliverNotification() in bg thread.
         final boolean canDeliverNotification = sharedRealm.capabilities.canDeliverNotification();
 

@@ -19,12 +19,10 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.util.Arrays;
 
 import javax.annotation.Nullable;
@@ -32,8 +30,6 @@ import javax.annotation.Nullable;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
-import io.realm.internal.Util;
-import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -71,17 +67,14 @@ public class FrozenObjectsTests {
     @After
     public void tearDown() {
         if (realm != null) {
-            realm.close();
-        }
-        if (frozenRealm != null) {
-            frozenRealm.close();
+            realm.close(); // This also closes the frozen Realm
         }
     }
 
     @Test
     public void deleteFrozenRealm() {
         RealmConfiguration config = configFactory.createConfigurationBuilder().name("deletable.realm").build();
-        realm = Realm.getInstance(config);
+        Realm realm = Realm.getInstance(config);
         frozenRealm = realm.freeze();
         try {
             Realm.deleteRealm(config);
@@ -168,7 +161,6 @@ public class FrozenObjectsTests {
             });
             fail();
         } catch (IllegalStateException ignore) {
-            RealmLog.error(ignore.toString());
         }
 
         try {
@@ -179,7 +171,6 @@ public class FrozenObjectsTests {
             });
             fail();
         } catch (IllegalStateException ignore) {
-            RealmLog.error(ignore.toString());
         }
         frozenRealm.close();
         looperThread.testComplete();
@@ -267,6 +258,12 @@ public class FrozenObjectsTests {
         } catch (IllegalStateException ignore) {
         } finally {
             realm.cancelTransaction();
+        }
+
+        try {
+            frozenRealm.executeTransactionAsync(r -> {  /* Do nothing */ });
+        } catch (IllegalStateException ignore) {
+        } finally {
             frozenRealm.close();
         }
     }
@@ -303,7 +300,6 @@ public class FrozenObjectsTests {
         });
         t.start();
         t.join();
-        frozenRealm.close();
     }
 
     @Test
@@ -316,7 +312,6 @@ public class FrozenObjectsTests {
         });
         t.start();
         t.join();
-        frozenRealm.close();
     }
 
     @Test
@@ -329,7 +324,6 @@ public class FrozenObjectsTests {
         });
         t.start();
         t.join();
-        frozenRealm.close();
     }
 
     @Test
@@ -343,7 +337,6 @@ public class FrozenObjectsTests {
         });
         t.start();
         t.join();
-        frozenRealm.close();
     }
 
     @Test
@@ -356,7 +349,6 @@ public class FrozenObjectsTests {
         assertTrue(results.getRealm().isFrozen());
         assertTrue(obj.getRealm().isFrozen());
         assertTrue(list.getRealm().isFrozen());
-        frozenRealm.close();
     }
 
     @Test
@@ -672,6 +664,10 @@ public class FrozenObjectsTests {
             r.createObject(AllJavaTypes.class, 42);
             r.createObject(AllJavaTypes.class, 43);
         });
+
+        // Create two Java objects pointing to the same underlying Realm object in order to verify
+        // that insertOrUpdate works correctly both for the same Java object but also for two
+        // different Java objects representing the same Realm Object.
         AllJavaTypes frozenObject1 = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_ID, 42).findFirst().freeze();
         AllJavaTypes frozenObject2 = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_ID, 42).findFirst().freeze();
 

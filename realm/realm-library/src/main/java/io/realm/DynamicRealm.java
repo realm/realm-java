@@ -399,7 +399,7 @@ public class DynamicRealm extends BaseRealm {
      */
     @Override
     public DynamicRealm freeze() {
-        // In some cases a Read transaction has not been begun for the the Realm, which means
+        // In some cases a Read transaction has not begun for the Realm, which means
         // we cannot read the current version. In that case, do some work that will create the
         // read transaction.
         OsSharedRealm.VersionID version;

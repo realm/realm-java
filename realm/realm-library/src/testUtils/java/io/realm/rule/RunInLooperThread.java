@@ -408,7 +408,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
         private final RunTestInLooperThread annotation;
         private final Statement base;
 
-        RunInLooperThreadStatement(RunTestInLooperThread annotation, Statement base) {
+         RunInLooperThreadStatement(RunTestInLooperThread annotation, Statement base) {
             this.annotation = annotation;
             this.base = base;
         }

@@ -48,7 +48,7 @@ class FrozenObjectsBenchmarks {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().context)
-        RealmLog.error("SETUP");
+        RealmLog.error("SETUP")
         realmConfig = RealmConfiguration.Builder().name("frozen${Random().nextLong()}.realm").build()
         realm = Realm.getInstance(realmConfig)
         realm.executeTransaction { realm ->

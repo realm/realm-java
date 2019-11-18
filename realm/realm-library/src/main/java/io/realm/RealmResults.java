@@ -535,7 +535,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     @Override
     public RealmResults<E> freeze() {
         if (!isValid()) {
-            throw new IllegalStateException("Only valid, managed RealmLists can be frozen.");
+            throw new IllegalStateException("Only valid, managed RealmResults can be frozen.");
         }
 
         BaseRealm frozenRealm = realm.freeze();

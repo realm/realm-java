@@ -174,7 +174,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * Returns a frozen snapshot of this object. The frozen copy can be read and queried from any thread without throwing
      * an {@link IllegalStateException}.
      * <p>
-     * Freezing an RealmObject also creates a frozen Realm which has its own lifecycle, but if the live Realm that spawned the
+     * Freezing a RealmObject also creates a frozen Realm which has its own lifecycle, but if the live Realm that spawned the
      * original collection is fully closed (i.e. all instances across all threads are closed), the frozen Realm and
      * object will be closed as well.
      * <p>
@@ -182,7 +182,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * throw an {@link IllegalStateException}.
      * <p>
      * Note: Keeping a large number of frozen objects with different versions alive can have a negative impact on the filesize
-     * of the Realm. In order to catch such use patterns it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
+     * of the Realm. In order to avoid such a situation it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
      *
      * @return a frozen copy of this object.
      * @throws IllegalStateException if this method is called from inside a write transaction.
@@ -212,7 +212,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * Returns a frozen snapshot of this object. The frozen copy can be read and queried from any thread without throwing
      * an {@link IllegalStateException}.
      * <p>
-     * Freezing an RealmObject also creates a frozen Realm which has its own lifecycle, but if the live Realm that spawned the
+     * Freezing a RealmObject also creates a frozen Realm which has its own lifecycle, but if the live Realm that spawned the
      * original collection is fully closed (i.e. all instances across all threads are closed), the frozen Realm and
      * object will be closed as well.
      * <p>
@@ -220,7 +220,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * throw an {@link IllegalStateException}.
      * <p>
      * Note: Keeping a large number of frozen objects with different versions alive can have a negative impact on the filesize
-     * of the Realm. In order to catch such use patterns it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
+     * of the Realm. In order to avoid such a situation it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
      *
      * @return a frozen copy of this object.
      * @throws IllegalStateException if this method is called from inside a write transaction.

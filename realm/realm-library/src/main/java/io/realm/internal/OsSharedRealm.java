@@ -357,8 +357,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     public void refresh() {
-        // TODO: Ideally this check should be in ObjectStore, but it currently seems problematic
-        // to do. Revisit this after the OS implementation is done.
         if (isFrozen()) {
             throw new IllegalStateException("It is not possible to refresh frozen Realms.");
         }
