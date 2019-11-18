@@ -30,6 +30,7 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Scheduler;
 import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposables;
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
@@ -45,7 +46,6 @@ import io.realm.RealmObject;
 import io.realm.RealmObjectChangeListener;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.internal.rxjava.RealmAndroidSchedulers;
 
 /**
  * Factory class for creating Observables for RxJava (&lt;=2.0.*).
@@ -223,7 +223,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         if (looper == null) {
             throw new IllegalStateException("No looper found");
         }
-        return RealmAndroidSchedulers.from(looper);
+        return AndroidSchedulers.from(looper);
     }
 
     @Override
