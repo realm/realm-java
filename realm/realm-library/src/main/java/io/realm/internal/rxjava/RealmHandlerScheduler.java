@@ -31,12 +31,14 @@ import java.util.concurrent.TimeUnit;
  * Including the source code directly thus means increasing the library size a little bit, but we avoid
  * having to explain to people that RxAndroid is also required if using RxJava or add a lot of
  * complicated logic to the RealmTransformer to detect it automatically.
+ *
+ * Prefixed with Realm to avoid auto-complete issues in user projects.
  */
-final class HandlerScheduler extends Scheduler {
+final class RealmHandlerScheduler extends Scheduler {
     private final Handler handler;
     private final boolean async;
 
-    HandlerScheduler(Handler handler, boolean async) {
+    RealmHandlerScheduler(Handler handler, boolean async) {
         this.handler = handler;
         this.async = async;
     }

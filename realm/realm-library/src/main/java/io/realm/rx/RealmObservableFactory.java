@@ -45,7 +45,7 @@ import io.realm.RealmObject;
 import io.realm.RealmObjectChangeListener;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.internal.rxjava.AndroidSchedulers;
+import io.realm.internal.rxjava.RealmAndroidSchedulers;
 
 /**
  * Factory class for creating Observables for RxJava (&lt;=2.0.*).
@@ -223,7 +223,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         if (looper == null) {
             throw new IllegalStateException("No looper found");
         }
-        return AndroidSchedulers.from(looper);
+        return RealmAndroidSchedulers.from(looper);
     }
 
     @Override

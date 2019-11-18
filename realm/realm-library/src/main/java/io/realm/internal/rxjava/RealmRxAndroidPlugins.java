@@ -28,11 +28,13 @@ import io.reactivex.functions.Function;
  * Including the source code directly thus means increasing the library size a little bit, but we avoid
  * having to explain to people that RxAndroid is also required if using RxJava or add a lot of
  * complicated logic to the RealmTransformer to detect it automatically.
+ *
+ * Prefixed with Realm to avoid auto-complete issues in user projects.
  */
 /**
  * Utility class to inject handlers to certain standard RxAndroid operations.
  */
-public final class RxAndroidPlugins {
+public final class RealmRxAndroidPlugins {
 
     private static volatile Function<Callable<Scheduler>, Scheduler> onInitMainThreadHandler;
     private static volatile Function<Scheduler, Scheduler> onMainThreadHandler;
@@ -119,7 +121,7 @@ public final class RxAndroidPlugins {
         }
     }
 
-    private RxAndroidPlugins() {
+    private RealmRxAndroidPlugins() {
         throw new AssertionError("No instances.");
     }
 }

@@ -29,16 +29,18 @@ import java.util.concurrent.Callable;
  * Including the source code directly thus means increasing the library size a little bit, but we avoid
  * having to explain to people that RxAndroid is also required if using RxJava or add a lot of
  * complicated logic to the RealmTransformer to detect it automatically.
+ *
+ * Prefixed with Realm to avoid auto-complete issues in user projects.
  */
 /** Android-specific Schedulers. */
-public final class AndroidSchedulers {
+public final class RealmAndroidSchedulers {
 
     private static final class MainHolder {
         static final Scheduler DEFAULT
-            = new HandlerScheduler(new Handler(Looper.getMainLooper()), false);
+            = new RealmHandlerScheduler(new Handler(Looper.getMainLooper()), false);
     }
 
-    private static final Scheduler MAIN_THREAD = RxAndroidPlugins.initMainThreadScheduler(
+    private static final Scheduler MAIN_THREAD = RealmRxAndroidPlugins.initMainThreadScheduler(
             new Callable<Scheduler>() {
                 @Override public Scheduler call() throws Exception {
                     return MainHolder.DEFAULT;
@@ -47,7 +49,7 @@ public final class AndroidSchedulers {
 
     /** A {@link Scheduler} which executes actions on the Android main thread. */
     public static Scheduler mainThread() {
-        return RxAndroidPlugins.onMainThreadScheduler(MAIN_THREAD);
+        return RealmRxAndroidPlugins.onMainThreadScheduler(MAIN_THREAD);
     }
 
     /** A {@link Scheduler} which executes actions on {@code looper}. */
@@ -77,10 +79,10 @@ public final class AndroidSchedulers {
             }
             message.recycle();
         }
-        return new HandlerScheduler(new Handler(looper), async);
+        return new RealmHandlerScheduler(new Handler(looper), async);
     }
 
-    private AndroidSchedulers() {
+    private RealmAndroidSchedulers() {
         throw new AssertionError("No instances.");
     }
 }
