@@ -174,7 +174,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * Returns a frozen snapshot of this object. The frozen copy can be read and queried from any thread without throwing
      * an {@link IllegalStateException}.
      * <p>
-     * Freezing an RealmObject also creates a frozen Realm which has its own lifecycle, but if the live Realm that spawned the
+     * Freezing a RealmObject also creates a frozen Realm which has its own lifecycle, but if the live Realm that spawned the
      * original collection is fully closed (i.e. all instances across all threads are closed), the frozen Realm and
      * object will be closed as well.
      * <p>
