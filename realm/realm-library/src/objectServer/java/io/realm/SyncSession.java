@@ -601,6 +601,7 @@ public class SyncSession {
      * If the session is already stopped, calling this method will do nothing.
      */
     public synchronized void stop() {
+        close();
         nativeStop(configuration.getPath());
     }
 
