@@ -503,6 +503,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         SyncManager.getSession(configOld).uploadAllLocalChanges();
         realm.close();
         user.logOut();
+        assertTrue(SyncManager.getAllSessions(user).isEmpty());
 
         // 2. Local state should now be completely reset. Open the same sync Realm but different local name again with
         // a new configuration which should download the uploaded changes (pray it managed to do so within the time frame).
