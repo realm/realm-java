@@ -1,3 +1,11 @@
+## 6.0.2(YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixed
+* The `@RealmModule` annotation would be stripped on an empty class when using R8 resulting in apps crashing on startup with `io.realm.DefaultRealmModule is not a RealmModule. Add @RealmModule to the class definition.`. ([#6449](https://github.com/realm/realm-java/issues/6449))
+
 ## 6.0.1(2019-11-11)
 
 NOTE: Anyone using encrypted Realms are strongly advised to upgrade to this version.
