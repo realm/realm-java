@@ -67,7 +67,7 @@ In case you don't want to use the precompiled version, you can build Realm yours
 ### Prerequisites
 
  * Download the [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * The latest stable version of Android Studio. Currently [3.1.4](https://developer.android.com/studio/).
+ * The latest stable version of Android Studio. Currently [3.5.2](https://developer.android.com/studio/).
  * Download & install the Android SDK **Build-Tools 27.0.2**, **Android Oreo (API 27)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
 
