@@ -45,6 +45,7 @@ import javax.net.ssl.X509TrustManager;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
+import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
 import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.network.NetworkStateReceiver;
@@ -253,7 +254,7 @@ public class SyncManager {
     public static synchronized SyncSession getOrCreateSession(SyncConfiguration syncConfiguration, @Nullable URI resolvedRealmURL) {
         // This will not create a new native (Object Store) session, this will only associate a Realm's path
         // with a SyncSession. Object Store's SyncManager is responsible of the life cycle (including creation)
-        // of the native session, the provided Java wrap, helps interact with the native session, when reporting error
+        // of the native session. The provided Java wrap, helps interact with the native session, when reporting error
         // or requesting an access_token for example.
 
         //noinspection ConstantConditions
@@ -267,7 +268,7 @@ public class SyncManager {
             session = new SyncSession(syncConfiguration);
             sessions.put(syncConfiguration.getPath(), session);
             if (sessions.size() == 1) {
-                RealmLog.debug("first session created add network listener");
+                RealmLog.debug("First session created. Adding network listener.");
                 NetworkStateReceiver.addListener(networkListener);
             }
             if (resolvedRealmURL != null) {
@@ -279,6 +280,13 @@ public class SyncManager {
                 // syncing.
                 session.getAccessToken(authServer, "");
             }
+
+            // The underlying session will be created as part of opening the Realm, but this approach
+            // does not work when using `Realm.getInstanceAsync()` in combination with AsyncOpen.
+            //
+            // So instead we manually create the underlying native session.
+            OsRealmConfig config = new OsRealmConfig.Builder(syncConfiguration).build();
+            nativeCreateSession(config.getNativePtr());
         }
 
         return session;
@@ -766,4 +774,5 @@ public class SyncManager {
     private static native void nativeReset();
     private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
     private static native void nativeReconnect();
+    private static native void nativeCreateSession(long nativeConfigPtr);
 }

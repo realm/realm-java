@@ -20,7 +20,6 @@ import android.os.SystemClock;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,12 +29,9 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.Nullable;
-
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
-import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
@@ -45,7 +41,6 @@ import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -479,6 +474,83 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
                 assertTrue(results.isLoaded());
                 assertFalse(changeSet.isCompleteResult());
                 looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void progressListenersWorkWhenUsingWaitForInitialRemoteData() throws InterruptedException {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+
+        // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
+        final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .fullSynchronization()
+                .schema(StringOnly.class)
+                .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                .build();
+        Realm realm = Realm.getInstance(configOld);
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                for (int i = 0; i < 10; i++) {
+                    realm.createObject(StringOnly.class).setChars("Foo" + i);
+                }
+            }
+        });
+        SyncManager.getSession(configOld).uploadAllLocalChanges();
+        realm.close();
+        user.logOut();
+        assertTrue(SyncManager.getAllSessions(user).isEmpty());
+
+        // 2. Local state should now be completely reset. Open the same sync Realm but different local name again with
+        // a new configuration which should download the uploaded changes (pray it managed to do so within the time frame).
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
+        SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
+                .name("newRealm")
+                .fullSynchronization()
+                .schema(StringOnly.class)
+                .waitForInitialRemoteData()
+                .build();
+        assertFalse(config.realmExists());
+        AtomicBoolean indefineteListenerComplete = new AtomicBoolean(false);
+        AtomicBoolean currentChangesListenerComplete = new AtomicBoolean(false);
+        RealmAsyncTask task = Realm.getInstanceAsync(config, new Realm.Callback() {
+
+            @Override
+            public void onSuccess(Realm realm) {
+                realm.close();
+                if (!indefineteListenerComplete.get()) {
+                    fail("Indefinete progress listener did not report complete.");
+                }
+                if (!currentChangesListenerComplete.get()) {
+                    fail("Current changes progress listener did not report complete.");
+                }
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(Throwable exception) {
+                fail(exception.toString());
+            }
+        });
+        looperThread.keepStrongReference(task);
+        SyncManager.getSession(config).addDownloadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
+            @Override
+            public void onChange(Progress progress) {
+                if (progress.isTransferComplete()) {
+                    indefineteListenerComplete.set(true);
+                }
+            }
+        });
+        SyncManager.getSession(config).addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+            @Override
+            public void onChange(Progress progress) {
+                if (progress.isTransferComplete()) {
+                    currentChangesListenerComplete.set(true);
+                }
             }
         });
     }
