@@ -9,6 +9,8 @@
 
 -dontwarn javax.**
 -dontwarn io.realm.**
+-dontwarn io.reactivex.android.**
+
 -keep class io.realm.RealmCollection
 -keep class io.realm.OrderedRealmCollection
 -keepclasseswithmembernames class io.realm.** {
