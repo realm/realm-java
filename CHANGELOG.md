@@ -14,7 +14,7 @@
 
 ### Internal
 * Updated to Object Store commit: ad96a4c334b475dd67d50c1ca419e257d7a21e18.
-
+* Updated to Realm Sync v4.8.3.
 
 ## 6.0.1(2019-11-11)
 
