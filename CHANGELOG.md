@@ -1,10 +1,11 @@
 ## 6.0.2(YYYY-MM-DD)
 
 ### Enhancements
-* None
+* None.
 
 ### Fixed
 * [ObjectServer] `SyncSession` progress listeners now work correctly in combination with `SyncConfiguration.waitForInitialRemoteData()`.
+* The `@RealmModule` annotation would be stripped on an empty class when using R8 resulting in apps crashing on startup with `io.realm.DefaultRealmModule is not a RealmModule. Add @RealmModule to the class definition.`. ([#6449](https://github.com/realm/realm-java/issues/6449))
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
