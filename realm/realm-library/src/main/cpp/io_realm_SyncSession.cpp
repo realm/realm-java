@@ -90,7 +90,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
     try {
         // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
         std::string local_realm_path(JStringAccessor(env, j_local_realm_path));
-        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_active_session(local_realm_path);
+        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_session(local_realm_path);
         if (!session) {
             // FIXME: We should lift this restriction
             ThrowException(env, IllegalState,
@@ -137,7 +137,7 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveProgressListener(JN
 {
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
-        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_active_session(local_realm_path);
+        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_session(local_realm_path);
         if (session) {
             session->unregister_progress_notifier(static_cast<uint64_t>(listener_token));
         }

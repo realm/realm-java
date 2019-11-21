@@ -18,6 +18,7 @@
 
 #include <realm/group_shared.hpp>
 
+#include <object-store/src/impl/realm_coordinator.hpp>
 #include <sync/sync_manager.hpp>
 #include <sync/sync_session.hpp>
 #include <binding_callback_thread_observer.hpp>
@@ -135,6 +136,15 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReconnect(JNIEnv* env, jc
     TR_ENTER()
     try {
         SyncManager::shared().reconnect();
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeCreateSession(JNIEnv* env, jclass, jlong j_native_config_ptr)
+{
+    try {
+        auto& config = *reinterpret_cast<Realm::Config*>(j_native_config_ptr);
+        _impl::RealmCoordinator::get_coordinator(config)->create_session(config);
     }
     CATCH_STD()
 }
