@@ -1,4 +1,4 @@
-## 6.0.2(YYYY-MM-DD)
+## 6.0.2(2019-11-21)
 
 ### Enhancements
 * None.
