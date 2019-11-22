@@ -123,20 +123,8 @@ class MutableRealmSchema extends RealmSchema {
             throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
         }
 
-        // Checks if there is a primary key defined for the old class.
-        String pkField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, oldClassName);
-        if (pkField != null) {
-            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, oldClassName, null);
-        }
-
         realm.getSharedRealm().renameTable(oldInternalName, newInternalName);
         Table table = realm.getSharedRealm().getTable(newInternalName);
-
-        // Sets the primary key for the new class if necessary.
-        if (pkField != null) {
-            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, newClassName, pkField);
-        }
-
         RealmObjectSchema objectSchema = removeFromClassNameToSchemaMap(oldInternalName);
         if (objectSchema == null || !objectSchema.getTable().isValid() || !objectSchema.getClassName().equals(newClassName)) {
             objectSchema = new MutableRealmObjectSchema(realm, this, table);

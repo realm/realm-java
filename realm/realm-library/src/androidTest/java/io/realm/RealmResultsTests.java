@@ -1765,33 +1765,40 @@ public class RealmResultsTests extends CollectionTests {
         String json = all.asJSON();
         final String expectedJSON = "[\n" +
                 "    {\n" +
+                "        \"_key\": 100,\n" +
                 "        \"columnString\": \"alltypes1\",\n" +
                 "        \"columnLong\": 1337,\n" +
                 "        \"columnFloat\": 3.1400001,\n" +
                 "        \"columnDouble\": 0.89122999999999997,\n" +
                 "        \"columnBoolean\": false,\n" +
                 "        \"columnDate\": \"" + now + "\",\n" +
-                "        \"columnBinary\": \"010203\",\n" +
+                "        \"columnBinary\": \"AQID\",\n" +
+                "        \"columnMutableRealmInteger\": null,\n" +
                 "        \"columnRealmObject\": [\n" +
                 "            {\n" +
+                "                \"_key\": 100,\n" +
                 "                \"name\": \"dog1\",\n" +
                 "                \"age\": 1,\n" +
                 "                \"height\": 1.1,\n" +
                 "                \"weight\": 10.100000381469727,\n" +
                 "                \"hasTail\": true,\n" +
-                "                \"birthday\": \"" + now + "\"\n" +
+                "                \"birthday\": \"" + now + "\",\n" +
+                "                \"owner\": null\n" +
                 "            }\n" +
                 "        ],\n" +
                 "        \"columnRealmList\": [\n" +
                 "            {\n" +
+                "                \"_key\": 101,\n" +
                 "                \"name\": \"dog2\",\n" +
                 "                \"age\": 2,\n" +
                 "                \"height\": 2.0999999,\n" +
                 "                \"weight\": 20.100000381469727,\n" +
                 "                \"hasTail\": false,\n" +
-                "                \"birthday\": \"" + now + "\"\n" +
+                "                \"birthday\": \"" + now + "\",\n" +
+                "                \"owner\": null\n" +
                 "            },\n" +
                 "            {\n" +
+                "                \"_key\": 102,\n" +
                 "                \"name\": \"dog3\",\n" +
                 "                \"age\": 3,\n" +
                 "                \"height\": 3.0999999,\n" +
@@ -1800,8 +1807,10 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"birthday\": \"" + now + "\",\n" +
                 "                \"owner\": [\n" +
                 "                    {\n" +
+                "                        \"_key\": 0,\n" +
                 "                        \"name\": \"Dog owner 1\",\n" +
-                "                        \"dogs\": []\n" +
+                "                        \"dogs\": [],\n" +
+                "                        \"cat\": null\n" +
                 "                    }\n" +
                 "                ]\n" +
                 "            }\n" +
@@ -1863,31 +1872,47 @@ public class RealmResultsTests extends CollectionTests {
         String json = realmObjects.asJSON();
         String expectedJSON = "[\n" +
                 "    {\n" +
+                "        \"_key\": 0,\n" +
                 "        \"id\": 0,\n" +
                 "        \"name\": \"One\",\n" +
                 "        \"date\": \"" + now + "\",\n" +
                 "        \"object\": [\n" +
                 "            {\n" +
+                "                \"_key\": 1,\n" +
                 "                \"id\": 0,\n" +
                 "                \"name\": \"Two\",\n" +
                 "                \"date\": \"" + now + "\",\n" +
-                "                \"object\": \"0\"\n" +
+                "                \"object\": {\n" +
+                "                    \"table\": \"class_CyclicType\",\n" +
+                "                    \"key\": 0\n" +
+                "                },\n" +
+                "                \"otherObject\": null,\n" +
+                "                \"objects\": []\n" +
                 "            }\n" +
                 "        ],\n" +
+                "        \"otherObject\": null,\n" +
                 "        \"objects\": []\n" +
                 "    },\n" +
                 "    {\n" +
+                "        \"_key\": 1,\n" +
                 "        \"id\": 0,\n" +
                 "        \"name\": \"Two\",\n" +
                 "        \"date\": \"" + now + "\",\n" +
                 "        \"object\": [\n" +
                 "            {\n" +
+                "                \"_key\": 0,\n" +
                 "                \"id\": 0,\n" +
                 "                \"name\": \"One\",\n" +
                 "                \"date\": \"" + now + "\",\n" +
-                "                \"object\": \"1\"\n" +
+                "                \"object\": {\n" +
+                "                    \"table\": \"class_CyclicType\",\n" +
+                "                    \"key\": 1\n" +
+                "                },\n" +
+                "                \"otherObject\": null,\n" +
+                "                \"objects\": []\n" +
                 "            }\n" +
                 "        ],\n" +
+                "        \"otherObject\": null,\n" +
                 "        \"objects\": []\n" +
                 "    }\n" +
                 "]";
