@@ -268,6 +268,11 @@ final class RealmCache {
         Future<?> future = BaseRealm.asyncTaskExecutor.submitTransaction(createRealmRunnable);
         createRealmRunnable.setFuture(future);
 
+        // For Realms using Async Open on the server, we need to create the session right away
+        // in order to interact with it in a imperative way, e.g. by attaching download progress
+        // listeners
+        ObjectServerFacade.getSyncFacadeIfPossible().createNativeSyncSession(configuration);
+
         return new RealmAsyncTaskImpl(future, BaseRealm.asyncTaskExecutor);
     }
 

@@ -22,7 +22,6 @@ import android.support.test.runner.AndroidJUnit4;
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -1739,6 +1738,7 @@ public class RealmResultsTests extends CollectionTests {
         allTypes.setColumnBoolean(false);
         allTypes.setColumnDate(date);
         allTypes.setColumnBinary(new byte[]{1, 2, 3});
+        allTypes.setColumnMutableRealmInteger(0);
         allTypes.setColumnRealmObject(dog1);
         allTypes.getColumnRealmList().add(dog2);
         allTypes.getColumnRealmList().add(dog3);
