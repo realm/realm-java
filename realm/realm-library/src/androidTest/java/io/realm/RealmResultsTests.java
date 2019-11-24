@@ -1773,7 +1773,7 @@ public class RealmResultsTests extends CollectionTests {
                 "        \"columnBoolean\": false,\n" +
                 "        \"columnDate\": \"" + now + "\",\n" +
                 "        \"columnBinary\": \"AQID\",\n" +
-                "        \"columnMutableRealmInteger\": null,\n" +
+                "        \"columnMutableRealmInteger\": 0,\n" +
                 "        \"columnRealmObject\": [\n" +
                 "            {\n" +
                 "                \"_key\": 100,\n" +
