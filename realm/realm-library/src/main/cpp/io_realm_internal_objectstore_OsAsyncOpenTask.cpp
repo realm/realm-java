@@ -58,7 +58,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAsyncOpenTask_start
                 }
                 catch (const std::exception& e) {
                     jstring j_error_msg = to_jstring(local_env, e.what());
-                    local_env->CallObjectMethod(task.get(), java_notify_error, j_error_msg);
+                    local_env->CallVoidMethod(task.get(), java_notify_error, j_error_msg);
                     local_env->DeleteLocalRef(j_error_msg);
                 }
             }

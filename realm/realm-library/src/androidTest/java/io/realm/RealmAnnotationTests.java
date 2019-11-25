@@ -127,10 +127,10 @@ public class RealmAnnotationTests {
     }
 
     @Test
-    public void primaryKey_isIndexed() {
+    public void string_primaryKey_isNotIndexed() {
         Table table = realm.getTable(PrimaryKeyAsString.class);
         assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsString.CLASS_NAME));
-        assertTrue(table.hasSearchIndex(table.getColumnKey("name")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("name")));
 
         table = realm.getTable(PrimaryKeyAsLong.class);
         assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsLong.CLASS_NAME));

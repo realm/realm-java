@@ -30,7 +30,6 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
@@ -137,27 +136,7 @@ public class JNIQueryTest {
     }
 
     @Test
-    @Ignore("Core 6 does not validate incorrect ColKey's. Consider if this should be changed. SDK User should hopefully never encounter this.")
-    public void invalidColumnIndexContains() {
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
-        TableQuery query = table.where();
-
-        // String
-        try { query.contains(new long[]{-1}, oneNullTable, "hey"); fail("-1 column index"); } catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{9}, oneNullTable, "hey");  fail("9 column index"); }  catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{10}, oneNullTable, "hey"); fail("10 column index"); } catch (RuntimeException ignore) {}
-        // String case true
-        try { query.contains(new long[]{-1}, oneNullTable, "hey", Case.SENSITIVE); fail("-1 column index"); } catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{9}, oneNullTable, "hey", Case.SENSITIVE);  fail("9 column index"); }  catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{10}, oneNullTable, "hey", Case.SENSITIVE); fail("-0 column index"); } catch (RuntimeException ignore) {}
-
-        // String case false
-        try { query.contains(new long[]{-1}, oneNullTable, "hey", Case.INSENSITIVE); fail("-1 column index"); } catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{9}, oneNullTable, "hey", Case.INSENSITIVE);  fail("9 column index"); }  catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{10}, oneNullTable, "hey", Case.INSENSITIVE); fail("10 column index"); } catch (RuntimeException ignore) {}
-    }
-
-    @Test
+     @Test
     public void shouldFind() {
         // Creates a table.
         Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {

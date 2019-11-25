@@ -19,6 +19,48 @@
 * OKHttp was upgraded to 3.10.0 from 3.9.0.
 
 
+## 6.0.2(2019-11-21)
+
+### Enhancements
+* None.
+
+### Fixed
+* [ObjectServer] `SyncSession` progress listeners now work correctly in combination with `SyncConfiguration.waitForInitialRemoteData()`.
+* The `@RealmModule` annotation would be stripped on an empty class when using R8 resulting in apps crashing on startup with `io.realm.DefaultRealmModule is not a RealmModule. Add @RealmModule to the class definition.`. ([#6449](https://github.com/realm/realm-java/issues/6449))
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* Updated to Object Store commit: ad96a4c334b475dd67d50c1ca419e257d7a21e18.
+* Updated to Realm Sync v4.8.3.
+
+## 6.0.1(2019-11-11)
+
+NOTE: Anyone using encrypted Realms are strongly advised to upgrade to this version.
+
+### Enhancements
+* None
+
+### Fixed
+* When using encrypted Realms a race condition could lead to the Realm ending up corrupted when the file increased in size. This could manifest as a wide array of different error messages. Most commonly seen has been "Fatal signal 11 (SIGSEGV) from Java_io_realm_internal_UncheckedRow_nativeGetString", "RealmFileException: Top ref outside file" and "Unable to open a realm at path. ACCESS_ERROR: Invalid mnemonic". ([#6152](https://github.com/realm/realm-java/issues/6152), since 5.0.0)
+* `RealmResults.asJSON()` now prints lists with primitive values directly instead of wrapping each value in an object with an `!ARRAY_VALUE` property.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* Updated to Realm Sync 4.7.12.
+* Updated to Realm Core 5.23.6.
+
+### Credits
+* Thanks to Vladimir Konkov (@vladimirfx) for help with isolating ([#6152](https://github.com/realm/realm-java/issues/6152)).
+
+
 ## 6.0.0(2019-10-01)
 
 ### Breaking Changes
