@@ -401,7 +401,7 @@ public:
     // using the provided value. If `update` is true then upsert semantics
     // should be used for this.
     template<typename T>
-    T unbox(JavaValue const& /*v*/, bool /*create*/= false, bool /*update*/= false, bool /*diff_on_update*/= false, ObjKey /*current_row = realm::npos*/ = ObjKey()) const {
+    T unbox(JavaValue const& /*v*/, CreatePolicy = CreatePolicy::Skip, ObjKey /*current_row*/ = ObjKey()) const {
         throw std::logic_error("Missing template specialization"); // All types should have specialized templates
     }
 
@@ -441,35 +441,35 @@ private:
 };
 
 template <>
-inline bool JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKey) const
+inline bool JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Boolean");
     return v.get_boolean() == JNI_TRUE;
 }
 
 template <>
-inline int64_t JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKey) const
+inline int64_t JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Long");
     return static_cast<int64_t>(v.get_int());
 }
 
 template <>
-inline double JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKey) const
+inline double JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Double");
     return static_cast<double>(v.get_double());
 }
 
 template <>
-inline float JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKey) const
+inline float JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Float");
     return static_cast<float>(v.get_float());
 }
 
 template <>
-inline StringData JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKey) const
+inline StringData JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     if (!v.has_value()) {
         return StringData();
@@ -478,7 +478,7 @@ inline StringData JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKe
 }
 
 template <>
-inline BinaryData JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKey) const
+inline BinaryData JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     if (!v.has_value()) {
         return BinaryData();
@@ -488,49 +488,49 @@ inline BinaryData JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKe
 }
 
 template <>
-inline Timestamp JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKey) const
+inline Timestamp JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? v.get_date() : Timestamp();
 }
 
 template <>
-inline Obj JavaContext::unbox(JavaValue const& v, bool create, bool update, bool diff_on_update, ObjKey current_row) const
+inline Obj JavaContext::unbox(JavaValue const& v, CreatePolicy policy, ObjKey current_row) const
 {
     if (v.get_type() == JavaValueType::Object) {
         return *v.get_object();
-    } else if (!create) {
+    } else if (policy == CreatePolicy::Skip) {
         return Obj();
     }
     REALM_ASSERT(object_schema);
-    return Object::create(const_cast<JavaContext&>(*this), realm, *object_schema, v, update, diff_on_update, current_row).obj();
+    return Object::create(const_cast<JavaContext&>(*this), realm, *object_schema, v, policy, current_row).obj();
 }
 
 template <>
-inline util::Optional<bool> JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKey) const
+inline util::Optional<bool> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(v.get_boolean() == JNI_TRUE) : util::none;
 }
 
 template <>
-inline util::Optional<int64_t> JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKey) const
+inline util::Optional<int64_t> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(static_cast<int64_t>(v.get_int())) : util::none;
 }
 
 template <>
-inline util::Optional<double> JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKey) const
+inline util::Optional<double> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(v.get_double()) : util::none;
 }
 
 template <>
-inline util::Optional<float> JavaContext::unbox(JavaValue const& v, bool, bool, bool, ObjKey) const
+inline util::Optional<float> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(v.get_float()) : util::none;
 }
 
 template <>
-inline Mixed JavaContext::unbox(JavaValue const&, bool, bool, bool, ObjKey) const
+inline Mixed JavaContext::unbox(JavaValue const&, CreatePolicy, ObjKey) const
 {
     REALM_TERMINATE("'Mixed' not supported");
 }

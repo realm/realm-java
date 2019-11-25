@@ -21,7 +21,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +29,6 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
@@ -134,28 +132,6 @@ public class JNIQueryTest {
         try { table.where().equalTo(new long[]{0}, oneNullTable, 1).endGroup().validateQuery(); fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
 
         try { table.where().equalTo(new long[]{0}, oneNullTable, 1).endGroup().find();    fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
-    }
-
-    @Test
-    @Ignore("__CORE6__ fails on CI on armeabi-v7a but passes locally with x86_64")
-    public void invalidColumnIndexContains() {
-        Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
-        TableQuery query = table.where();
-
-        // String
-        try { query.contains(new long[]{-1}, oneNullTable, "hey"); fail("-1 column index"); } catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{9}, oneNullTable, "hey");  fail("9 column index"); }  catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{10}, oneNullTable, "hey"); fail("10 column index"); } catch (RuntimeException ignore) {}
-
-        // String case true
-        try { query.contains(new long[]{-1}, oneNullTable, "hey", Case.SENSITIVE); fail("-1 column index"); } catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{9}, oneNullTable, "hey", Case.SENSITIVE);  fail("9 column index"); }  catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{10}, oneNullTable, "hey", Case.SENSITIVE); fail("-0 column index"); } catch (RuntimeException ignore) {}
-
-        // String case false
-        try { query.contains(new long[]{-1}, oneNullTable, "hey", Case.INSENSITIVE); fail("-1 column index"); } catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{9}, oneNullTable, "hey", Case.INSENSITIVE);  fail("9 column index"); }  catch (RuntimeException ignore) {}
-        try { query.contains(new long[]{10}, oneNullTable, "hey", Case.INSENSITIVE); fail("10 column index"); } catch (RuntimeException ignore) {}
     }
 
     @Test
