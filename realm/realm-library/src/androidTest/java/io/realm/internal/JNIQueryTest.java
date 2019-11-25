@@ -136,7 +136,6 @@ public class JNIQueryTest {
     }
 
     @Test
-     @Test
     public void shouldFind() {
         // Creates a table.
         Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
