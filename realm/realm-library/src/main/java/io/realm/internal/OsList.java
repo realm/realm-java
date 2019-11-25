@@ -266,7 +266,7 @@ public class OsList implements NativeObject, ObservableCollection {
     public OsList freeze(OsSharedRealm frozenRealm) {
         return new OsList(frozenRealm,
                 nativeFreeze(nativePtr, frozenRealm.getNativePtr()),
-                (targetTable != null) ? targetTable.freeze() : null);
+                (targetTable != null) ? targetTable.freeze(frozenRealm) : null);
     }
 
     private static native long nativeGetFinalizerPtr();

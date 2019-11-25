@@ -320,9 +320,8 @@ public class OsResults implements NativeObject, ObservableCollection {
         return osResults;
     }
 
-    public OsResults freeze() {
-        OsSharedRealm frozenRealm = sharedRealm.freeze();
-        OsResults results = new OsResults(frozenRealm, table.freeze(), nativeFreeze(nativePtr, frozenRealm.getNativePtr()));
+    public OsResults freeze(OsSharedRealm frozenRealm) {
+        OsResults results = new OsResults(frozenRealm, table.freeze(frozenRealm), nativeFreeze(nativePtr, frozenRealm.getNativePtr()));
         if (isLoaded()) {
             results.load();
         }

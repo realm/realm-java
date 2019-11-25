@@ -299,7 +299,7 @@ public class UncheckedRow implements NativeObject, Row {
         if (!isValid()) {
             return InvalidRow.INSTANCE;
         }
-        return new UncheckedRow(context, parent.freeze(), nativeFreeze(nativePtr, frozenRealm.getNativePtr()));
+        return new UncheckedRow(context, parent.freeze(frozenRealm), nativeFreeze(nativePtr, frozenRealm.getNativePtr()));
     }
 
     @Override

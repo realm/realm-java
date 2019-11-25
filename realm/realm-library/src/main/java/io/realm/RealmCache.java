@@ -141,6 +141,7 @@ final class RealmCache {
             // The last instance in this thread.
             // Clears local ref & counter.
             localCount.set(null);
+            cachedRealm = null;
 
             // Clears global counter.
             if (globalCount.decrementAndGet() < 0) {
@@ -607,7 +608,10 @@ final class RealmCache {
                         BaseRealm cachedRealm = counter.getRealmInstance();
                         // Since we don't remove ReferenceCounters, we need to check if the Realm is still open
                         if (cachedRealm != null) {
-                            cachedRealm.close();
+                            // Gracefully close frozen Realms in a similar way to what a user would normally do.
+                            while (!cachedRealm.isClosed()) {
+                                cachedRealm.close();
+                            }
                         }
                     }
                 }

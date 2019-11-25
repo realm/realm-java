@@ -229,8 +229,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
-            BaseRealm frozenRealm = realm.freeze();
-            //noinspection unchecked
+            BaseRealm frozenRealm = (realm.isFrozen()) ? realm : realm.freeze();
 
             Row frozenRow = proxy.realmGet$proxyState().getRow$realm().freeze(frozenRealm.sharedRealm);
             if (frozenRealm instanceof DynamicRealm) {

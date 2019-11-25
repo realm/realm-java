@@ -539,7 +539,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         }
 
         BaseRealm frozenRealm = realm.freeze();
-        OsResults frozenResults = osResults.freeze();
+        OsResults frozenResults = osResults.freeze(frozenRealm.sharedRealm);
         if (className != null) {
             return new RealmResults<>(frozenRealm, frozenResults, className);
         } else {

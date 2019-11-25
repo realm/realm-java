@@ -66,9 +66,7 @@ public class FrozenObjectsTests {
 
     @After
     public void tearDown() {
-        if (realm != null) {
-            realm.close(); // This also closes the frozen Realm
-        }
+        realm.close(); // This also closes the frozen Realm
     }
 
     @Test
@@ -455,6 +453,7 @@ public class FrozenObjectsTests {
         });
         t.start();
         t.join();
+        dynRealm.close();
     }
 
     @Test
@@ -487,6 +486,7 @@ public class FrozenObjectsTests {
         t.start();
         t.join();
         dynRealm.close();
+        assertTrue(Realm.getGlobalInstanceCount(realm.getConfiguration()) > 0);
     }
 
     @Test
@@ -538,11 +538,12 @@ public class FrozenObjectsTests {
         assertEquals(frozenRealm, otherFrozenRealm); // Same thread
 
         Thread t = new Thread(() -> {
-            Realm otherThreadFrozenRealm = Realm.getInstance(realmConfig).freeze();
+            Realm bgRealm = Realm.getInstance(realmConfig);
+            Realm otherThreadFrozenRealm = bgRealm.freeze();
             try {
                 assertEquals(frozenRealm, otherThreadFrozenRealm);
             } finally {
-                otherThreadFrozenRealm.close();
+                bgRealm.close();
             }
         });
         t.start();
