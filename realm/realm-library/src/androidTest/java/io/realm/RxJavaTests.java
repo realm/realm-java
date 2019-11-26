@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
@@ -35,9 +36,9 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.internal.util.Pair;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -59,9 +60,6 @@ public class RxJavaTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
-    @Rule
-    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-
     private Realm realm;
     private Disposable subscription;
 
@@ -73,7 +71,42 @@ public class RxJavaTests {
             if (subscription != null && !subscription.isDisposed()) {
                 subscription.dispose();
                 realm.close();
+
+
+
+                // Wait for Realm Observables to fully close
+                while (Realm.getGlobalInstanceCount(realm.configuration) > 0) {
+                    RealmLog.error("Counter: " + Realm.getGlobalInstanceCount(realm.configuration));
+                    SystemClock.sleep(10);
+                }
             }
+        });
+    }
+
+    private void disposeSuccessfulTest(BaseRealm testRealm) {
+        looperThread.postRunnable(() -> {
+            if (subscription != null) {
+                subscription.dispose();
+            }
+            if (!testRealm.getConfiguration().equals(realm.getConfiguration())) {
+                throw new IllegalStateException("This method only works for Realms with the same configuration as the looper Realm");
+            }
+            testRealm.close();
+            if (!realm.equals(testRealm)) {
+                realm.close();
+            }
+            looperThread.postRunnable(new Runnable() {
+                @Override
+                public void run() {
+                    // Wait for Subscription to dispose of external resources
+                    if (Realm.getGlobalInstanceCount(testRealm.getConfiguration()) == 0) {
+                        looperThread.testComplete();
+                    } else {
+                        RealmLog.error("" + Realm.getGlobalInstanceCount(testRealm.getConfiguration()));
+                        looperThread.postRunnable(this);
+                    }
+                }
+            });
         });
     }
 
@@ -88,7 +121,7 @@ public class RxJavaTests {
             assertTrue(rxObject.isFrozen());
             assertNotEquals(rxObject, obj); // Frozen objects are not equal to their live counter parts.
             assertEquals(rxObject.getFieldId(), obj.getFieldId());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -103,7 +136,7 @@ public class RxJavaTests {
             assertTrue(change.getObject().isFrozen());
             assertEquals(change.getObject().getFieldId(), obj.getFieldId());
             assertNull(change.getChangeset());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -115,19 +148,18 @@ public class RxJavaTests {
         final DynamicRealmObject obj = dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 42);
         dynamicRealm.commitTransaction();
 
-        subscription = obj.<DynamicRealmObject>asChangesetObservable().subscribe(change -> {
+        subscription = obj.<DynamicRealmObject>asChangesetObservable()
+                .subscribe(change -> {
             assertTrue(change.getObject().isFrozen());
             assertEquals(change.getObject().getLong(AllJavaTypes.FIELD_ID), obj.getLong(AllJavaTypes.FIELD_ID));
             assertNull(change.getChangeset());
-            dynamicRealm.close();
-            looperThread.testComplete();
+            disposeSuccessfulTest(dynamicRealm);
         });
     }
 
     @Test
     @RunTestInLooperThread
     public void realmObject_emittedOnUpdate() {
-        final AtomicInteger subscriberCalled = new AtomicInteger(0);
         realm.beginTransaction();
         final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -139,7 +171,7 @@ public class RxJavaTests {
                 obj.setColumnLong(1);
                 realm.commitTransaction();
             } else if (rxObject.getColumnLong() == 1) {
-                looperThread.testComplete();
+                disposeSuccessfulTest(realm);
             }
         });
     }
@@ -161,7 +193,7 @@ public class RxJavaTests {
             } else if (rxObject.getColumnLong() == 1) {
                 assertNotNull(change.getChangeset());
                 assertTrue(change.getChangeset().isFieldChanged(AllTypes.FIELD_LONG));
-                looperThread.testComplete();
+                disposeSuccessfulTest(realm);
             }
         });
     }
@@ -169,24 +201,23 @@ public class RxJavaTests {
     @Test
     @RunTestInLooperThread
     public void dynamicRealmObject_emittedChangesetOnUpdate() {
-        DynamicRealm realm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        looperThread.closeAfterTest(realm);
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
 
-        realm.beginTransaction();
-        final DynamicRealmObject obj = realm.createObject(AllTypes.CLASS_NAME);
-        realm.commitTransaction();
+        dynamicRealm.beginTransaction();
+        final DynamicRealmObject obj = dynamicRealm.createObject(AllTypes.CLASS_NAME);
+        dynamicRealm.commitTransaction();
 
         subscription = obj.<DynamicRealmObject>asChangesetObservable().subscribe(change -> {
             DynamicRealmObject rxObject = change.getObject();
             assertTrue(rxObject.isFrozen());
             if (rxObject.getLong(AllTypes.FIELD_LONG) == 0) {
-                realm.beginTransaction();
+                dynamicRealm.beginTransaction();
                 obj.setLong(AllTypes.FIELD_LONG, 1);
-                realm.commitTransaction();
+                dynamicRealm.commitTransaction();
             } else if (rxObject.getLong(AllTypes.FIELD_LONG) == 1) {
                 assertNotNull(change.getChangeset());
                 assertTrue(change.getChangeset().isFieldChanged(AllTypes.FIELD_LONG));
-                looperThread.testComplete();
+                disposeSuccessfulTest(dynamicRealm);
             }
         });
     }
@@ -202,7 +233,7 @@ public class RxJavaTests {
                 .subscribe(rxObject -> {
                     assertTrue(rxObject.isFrozen());
                     assertEquals(42, rxObject.getColumnLong());
-                    looperThread.testComplete();
+                    disposeSuccessfulTest(realm);
                 });
     }
 
@@ -217,7 +248,7 @@ public class RxJavaTests {
         subscription = asyncObj.<AllTypes>asFlowable().subscribe(rxObject -> {
             assertTrue(rxObject.isFrozen());
             assertEquals(42, rxObject.getColumnLong());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -233,7 +264,7 @@ public class RxJavaTests {
             if (rxObject.getColumnLong() == 1) {
                 realm.executeTransaction(r -> realm.where(AllTypes.class).findFirst().setColumnLong(42));
             } else if (rxObject.getColumnLong() == 42) {
-                looperThread.testComplete();
+                disposeSuccessfulTest(realm);
             }
         });
     }
@@ -253,7 +284,7 @@ public class RxJavaTests {
             } else if (rxObject.isValid()) {
                 realm.executeTransactionAsync(r -> r.delete(AllTypes.class));
             } else if (!rxObject.isValid()) {
-                looperThread.testComplete();
+                disposeSuccessfulTest(realm);
             }
         });
     }
@@ -264,7 +295,7 @@ public class RxJavaTests {
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         subscription = results.asFlowable().subscribe(rxResults -> {
             assertTrue(rxResults.isFrozen());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -276,7 +307,7 @@ public class RxJavaTests {
             RealmResults<AllTypes> rxResults = change.getCollection();
             assertTrue(rxResults.isFrozen());
             assertEquals(results, rxResults);
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -292,7 +323,7 @@ public class RxJavaTests {
             assertTrue(rxList.isFrozen());
             assertEquals(1, rxList.size());
             assertEquals("dog", rxList.first().getName());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -310,7 +341,7 @@ public class RxJavaTests {
             assertEquals(1, rxList.size());
             assertEquals("dog", rxList.first().getName());
             assertNull(change.getChangeset());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -322,8 +353,7 @@ public class RxJavaTests {
         subscription = results.asFlowable().subscribe(rxResults -> {
             assertTrue(rxResults.isFrozen());
             assertTrue(rxResults.equals(results));
-            dynamicRealm.close();
-            looperThread.testComplete();
+            disposeSuccessfulTest(dynamicRealm);
         });
     }
 
@@ -336,8 +366,7 @@ public class RxJavaTests {
             assertTrue(change.getCollection().isFrozen());
             assertEquals(results, change.getCollection());
             assertNull(change.getChangeset());
-            dynamicRealm.close();
-            looperThread.testComplete();
+            disposeSuccessfulTest(dynamicRealm);
         });
     }
 
@@ -349,7 +378,7 @@ public class RxJavaTests {
         subscription = results.asFlowable().subscribe(rxResults -> {
             assertTrue(rxResults.isFrozen());
             if (rxResults.size() == 1) {
-                looperThread.testComplete();
+                disposeSuccessfulTest(realm);
             }
         });
 
@@ -370,7 +399,7 @@ public class RxJavaTests {
                 realm.executeTransaction(r -> r.createObject(AllTypes.class));
             } else if (rxResults.size() == 1) {
                 assertEquals(1, change.getChangeset().getInsertions().length);
-                looperThread.testComplete();
+                disposeSuccessfulTest(realm);
             }
         });
     }
@@ -388,7 +417,7 @@ public class RxJavaTests {
                 realm.executeTransaction(r -> list.add(new Dog()));
             } else {
                 assertEquals(1, list.size());
-                looperThread.testComplete();
+                disposeSuccessfulTest(realm);
             }
         });
     }
@@ -409,7 +438,7 @@ public class RxJavaTests {
                 realm.commitTransaction();
             } else if (rxList.size() == 1) {
                 assertEquals(1, change.getChangeset().getInsertions().length);
-                looperThread.testComplete();
+                disposeSuccessfulTest(realm);
             }
         });
     }
@@ -423,8 +452,7 @@ public class RxJavaTests {
         subscription = results.asFlowable().subscribe(rxResults -> {
             assertTrue(rxResults.isFrozen());
             if (rxResults.isLoaded() && rxResults.size() == 1) {
-                dynamicRealm.close();
-                looperThread.testComplete();
+                disposeSuccessfulTest(dynamicRealm);
             }
         });
 
@@ -437,35 +465,35 @@ public class RxJavaTests {
     @RunTestInLooperThread
     public void dynamicRealmResults_emittedChangesetOnUpdate() {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        looperThread.closeAfterTest(dynamicRealm);
         RealmResults<DynamicRealmObject> results = dynamicRealm.where(AllTypes.CLASS_NAME).findAll();
 
-        subscription = results.asChangesetObservable().subscribe(change -> {
-            RealmResults<DynamicRealmObject> collection = change.getCollection();
-            if (collection.isLoaded() && collection.isEmpty()) {
-                looperThread.postRunnable(() -> {
-                    DynamicRealm dynRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-                    dynRealm.executeTransaction(dr -> {
-                        dr.createObject(AllTypes.CLASS_NAME);
+        subscription = results.asChangesetObservable()
+            .subscribe(change -> {
+                RealmResults<DynamicRealmObject> collection = change.getCollection();
+                if (collection.isLoaded() && collection.isEmpty()) {
+                    looperThread.postRunnable(() -> {
+                        DynamicRealm dynRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+                        dynRealm.executeTransaction(dr -> {
+                            dr.createObject(AllTypes.CLASS_NAME);
+                        });
+                        dynRealm.close();
                     });
-                });
-            }
+                }
 
-            if (collection.isLoaded() && collection.size() == 1) {
-                assertEquals(1, change.getChangeset().getInsertions().length);
-                looperThread.testComplete();
-            }
-        });
+                if (collection.isLoaded() && collection.size() == 1) {
+                    assertEquals(1, change.getChangeset().getInsertions().length);
+                    disposeSuccessfulTest(dynamicRealm);
+                }
+            });
     }
 
     @Test
     @RunTestInLooperThread
     public void findAllAsync_emittedOnSubscribe() {
-        Realm realm = looperThread.getRealm();
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         subscription = results.asFlowable().subscribe(rxResults -> {
             assertTrue(rxResults.isFrozen());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -477,7 +505,7 @@ public class RxJavaTests {
         subscription = realm.where(AllTypes.class).findAllAsync().asFlowable().subscribe(rxResults -> {
             assertTrue(rxResults.isFrozen());
             if (subscriberCalled.incrementAndGet() == 2) {
-                looperThread.testComplete();
+                disposeSuccessfulTest(realm);
             }
         });
 
@@ -492,7 +520,7 @@ public class RxJavaTests {
         subscription = realm.asFlowable().subscribe(rxRealm -> {
             assertTrue(rxRealm.isFrozen());
             assertEquals(realm.getPath(), rxRealm.getPath());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -505,7 +533,7 @@ public class RxJavaTests {
                 realm.executeTransaction(r -> r.createObject(AllTypes.class));
             } else {
                 assertEquals(1, realm.where(AllTypes.class).count());
-                looperThread.testComplete();
+                disposeSuccessfulTest(realm);
             }
         });
     }
@@ -515,12 +543,11 @@ public class RxJavaTests {
     @SuppressWarnings("ReferenceEquality")
     public void dynamicRealm_emittedOnSubscribe() {
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
-        looperThread.closeAfterTest(dynamicRealm);
         subscription = dynamicRealm.asFlowable().subscribe(rxRealm -> {
             assertTrue(rxRealm.isFrozen());
             assertEquals(rxRealm.getPath(), dynamicRealm.getPath());
             assertEquals(rxRealm.sharedRealm.getVersionID(), dynamicRealm.sharedRealm.getVersionID());
-            looperThread.testComplete();
+            disposeSuccessfulTest(dynamicRealm);
         });
     }
 
@@ -534,7 +561,7 @@ public class RxJavaTests {
                 dynamicRealm.executeTransaction(r -> r.createObject("AllTypes"));
             } else {
                 assertEquals(1, rxRealm.where(AllTypes.CLASS_NAME).count());
-                looperThread.testComplete();
+                disposeSuccessfulTest(dynamicRealm);
             }
         });
     }
@@ -543,10 +570,9 @@ public class RxJavaTests {
     @RunTestInLooperThread
     @SuppressWarnings("ReferenceEquality")
     public void unsubscribe_sameThread() {
-        Realm realm = looperThread.getRealm();
         subscription = realm.asFlowable()
                 .doOnCancel(() -> {
-                    looperThread.testComplete();
+                    disposeSuccessfulTest(realm);
                 })
                 .subscribe(rxRealm -> {
             assertTrue(rxRealm.isFrozen());
@@ -562,7 +588,7 @@ public class RxJavaTests {
     public void unsubscribe_fromOtherThread() {
         subscription = realm.asFlowable()
             .doFinally(() -> {
-                looperThread.testComplete();
+                disposeSuccessfulTest(realm);
             })
             .subscribe(new Consumer<Realm>() {
                 @Override
@@ -590,7 +616,7 @@ public class RxJavaTests {
         subscription = obs.subscribe(
                 cyclicType -> fail(),
                 ignoredError -> {
-                    looperThread.testComplete();
+                    disposeSuccessfulTest(realm);
                 }
         );
     }
@@ -603,7 +629,7 @@ public class RxJavaTests {
                 .doFinally(() -> {
                     looperThread.postRunnable(() -> {
                         assertTrue(realm.isClosed());
-                        looperThread.testComplete();
+                        disposeSuccessfulTest(realm);
                     });
                 });
 
@@ -626,7 +652,7 @@ public class RxJavaTests {
                     assertFalse(dynamicRealm.isClosed());
                     looperThread.postRunnable(() -> {
                         assertTrue(dynamicRealm.isClosed());
-                        looperThread.testComplete();
+                        disposeSuccessfulTest(dynamicRealm);
                     });
                 });
 
@@ -638,14 +664,13 @@ public class RxJavaTests {
     @Test
     @RunTestInLooperThread
     public void realmResults_closeInDoOnUnsubscribe() {
-        Realm realm = looperThread.getRealm();
         Flowable<RealmResults<AllTypes>> observable = realm.where(AllTypes.class).findAll().asFlowable()
                 .doOnCancel(() -> realm.close());
 
         subscription = observable.subscribe(ignored -> {});
         subscription.dispose();
         assertTrue(realm.isClosed());
-        looperThread.testComplete();
+        disposeSuccessfulTest(realm);
     }
 
     @Test
@@ -660,7 +685,7 @@ public class RxJavaTests {
                 .doFinally(() -> {
                     looperThread.postRunnable(() -> {
                         assertTrue(realm.isClosed());
-                        looperThread.testComplete();
+                        disposeSuccessfulTest(realm);
                     });
                 });
 
@@ -681,7 +706,7 @@ public class RxJavaTests {
                 .doFinally(() -> {
                     looperThread.postRunnable(() -> {
                         assertTrue(dynamicRealm.isClosed());
-                        looperThread.testComplete();
+                        disposeSuccessfulTest(dynamicRealm);
                     });
                 });
 
@@ -702,7 +727,7 @@ public class RxJavaTests {
                 .doFinally(() -> {
                     looperThread.postRunnable(() -> {
                         assertTrue(realm.isClosed());
-                        looperThread.testComplete();
+                        disposeSuccessfulTest(realm);
                     });
                 });
 
@@ -725,7 +750,7 @@ public class RxJavaTests {
                 .doFinally(() -> {
                     looperThread.postRunnable(() -> {
                         assertTrue(dynamicRealm.isClosed());
-                        looperThread.testComplete();
+                        disposeSuccessfulTest(dynamicRealm);
                     });
                 }).subscribe(ignored -> subscription.dispose());
     }
@@ -754,7 +779,7 @@ public class RxJavaTests {
                         // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
                         Runtime.getRuntime().gc();
                         if (innerCounter.incrementAndGet() == TEST_SIZE) {
-                            looperThread.testComplete();
+                            disposeSuccessfulTest(realm);
                         }
                     }, throwable -> fail(throwable.toString()));
         }
@@ -768,25 +793,24 @@ public class RxJavaTests {
     public void dynamicRealmResults_gcStressTest() {
         final int TEST_SIZE = 50;
         final AtomicLong innerCounter = new AtomicLong();
-        final DynamicRealm realm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        looperThread.closeAfterTest(realm);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
 
-        realm.beginTransaction();
+        dynamicRealm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
-            realm.createObject(AllTypes.CLASS_NAME).set(AllTypes.FIELD_LONG, i);
+            dynamicRealm.createObject(AllTypes.CLASS_NAME).set(AllTypes.FIELD_LONG, i);
         }
-        realm.commitTransaction();
+        dynamicRealm.commitTransaction();
 
         for (int i = 0; i < TEST_SIZE; i++) {
             // Doesn't keep a reference to the Observable.
-            realm.where(AllTypes.CLASS_NAME).equalTo(AllTypes.FIELD_LONG, i).findAllAsync().asFlowable()
+            dynamicRealm.where(AllTypes.CLASS_NAME).equalTo(AllTypes.FIELD_LONG, i).findAllAsync().asFlowable()
                     .filter(results -> results.isLoaded())
                     .take(1) // Unsubscribes from Realm.
                     .subscribe(dynamicRealmObjects -> {
                         // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
                         Runtime.getRuntime().gc();
                         if (innerCounter.incrementAndGet() == TEST_SIZE) {
-                            looperThread.testComplete();
+                            disposeSuccessfulTest(dynamicRealm);
                         }
                     }, throwable -> fail(throwable.toString()));
         }
@@ -800,7 +824,6 @@ public class RxJavaTests {
     public void realmObject_gcStressTest() {
         final int TEST_SIZE = 50;
         final AtomicLong innerCounter = new AtomicLong();
-        final Realm realm = looperThread.getRealm();
 
         realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -817,7 +840,7 @@ public class RxJavaTests {
                         // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
                         Runtime.getRuntime().gc();
                         if (innerCounter.incrementAndGet() == TEST_SIZE) {
-                            looperThread.testComplete();
+                            disposeSuccessfulTest(realm);
                         }
                     }, throwable -> fail(throwable.toString()));
         }
@@ -831,25 +854,24 @@ public class RxJavaTests {
     public void dynamicRealmObject_gcStressTest() {
         final int TEST_SIZE = 50;
         final AtomicLong innerCounter = new AtomicLong();
-        final DynamicRealm realm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        looperThread.closeAfterTest(realm);
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
 
-        realm.beginTransaction();
+        dynamicRealm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
-            realm.createObject(AllTypes.CLASS_NAME).set(AllTypes.FIELD_LONG, i);
+            dynamicRealm.createObject(AllTypes.CLASS_NAME).set(AllTypes.FIELD_LONG, i);
         }
-        realm.commitTransaction();
+        dynamicRealm.commitTransaction();
 
         for (int i = 0; i < TEST_SIZE; i++) {
             // Doesn't keep a reference to the Observable.
-            realm.where(AllTypes.CLASS_NAME).equalTo(AllTypes.FIELD_LONG, i).findFirstAsync().<DynamicRealmObject>asFlowable()
+            dynamicRealm.where(AllTypes.CLASS_NAME).equalTo(AllTypes.FIELD_LONG, i).findFirstAsync().<DynamicRealmObject>asFlowable()
                     .filter(obj -> obj.isLoaded())
                     .take(1) // Unsubscribes from Realm.
                     .subscribe(dynamicRealmObject -> {
                         // Not guaranteed, but can result in the GC of other RealmResults waiting for a result.
                         Runtime.getRuntime().gc();
                         if (innerCounter.incrementAndGet() == TEST_SIZE) {
-                            looperThread.testComplete();
+                            disposeSuccessfulTest(dynamicRealm);
                         }
                     }, throwable -> fail(throwable.toString()));
         }
@@ -863,20 +885,20 @@ public class RxJavaTests {
         subscription = frozenRealm.asFlowable()
                 .subscribe(rxRealm -> {
                     assertEquals(frozenRealm, rxRealm);
-                    looperThread.testComplete();
+                    disposeSuccessfulTest(realm);
                 });
     }
 
     @Test
     @RunTestInLooperThread
     public void asFlowable_frozenDynamicRealm() {
-        DynamicRealm dynRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        DynamicRealm frozenDynamicRealm = dynRealm.freeze();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        DynamicRealm frozenDynamicRealm = dynamicRealm.freeze();
         subscription = frozenDynamicRealm.asFlowable()
                 .subscribe(rxRealm -> {
                     assertEquals(frozenDynamicRealm, rxRealm);
-                    dynRealm.close();
-                    looperThread.testComplete();
+                    dynamicRealm.close();
+                    disposeSuccessfulTest(dynamicRealm);
                 });
     }
 
@@ -887,7 +909,7 @@ public class RxJavaTests {
         subscription = frozenResults.asFlowable().subscribe(rxResults -> {
             assertTrue(rxResults.isFrozen());
             assertEquals(frozenResults, rxResults);
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -900,33 +922,33 @@ public class RxJavaTests {
             assertTrue(rxResults.isFrozen());
             assertEquals(frozenResults, rxResults);
             assertNull(change.getChangeset());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
     @Test
     @RunTestInLooperThread
     public void asFlowable_frozenDynamicRealmResults() {
-        DynamicRealm dynRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        final RealmResults<DynamicRealmObject> frozenResults = dynRealm.where(AllTypes.CLASS_NAME).findAll().freeze();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        final RealmResults<DynamicRealmObject> frozenResults = dynamicRealm.where(AllTypes.CLASS_NAME).findAll().freeze();
         subscription = frozenResults.asFlowable().subscribe(rxResults -> {
             assertTrue(rxResults.isFrozen());
             assertEquals(frozenResults, rxResults);
-            looperThread.testComplete();
+            disposeSuccessfulTest(dynamicRealm);
         });
     }
 
     @Test
     @RunTestInLooperThread
     public void asChangesetObservable_frozenDynamicRealmResults() {
-        DynamicRealm dynRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        final RealmResults<DynamicRealmObject> frozenResults = dynRealm.where(AllTypes.CLASS_NAME).findAll().freeze();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        final RealmResults<DynamicRealmObject> frozenResults = dynamicRealm.where(AllTypes.CLASS_NAME).findAll().freeze();
         subscription = frozenResults.asChangesetObservable().subscribe(change -> {
             RealmResults<DynamicRealmObject> rxResults = change.getCollection();
             assertTrue(rxResults.isFrozen());
             assertEquals(frozenResults, rxResults);
             assertNull(change.getChangeset());
-            looperThread.testComplete();
+            disposeSuccessfulTest(dynamicRealm);
         });
     }
 
@@ -942,7 +964,7 @@ public class RxJavaTests {
         subscription = frozenList.asFlowable().subscribe(rxList -> {
             assertTrue(rxList.isFrozen());
             assertEquals(frozenList, rxList);
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -960,7 +982,7 @@ public class RxJavaTests {
             assertTrue(rxList.isFrozen());
             assertEquals(frozenList, rxList);
             assertNull(change.getChangeset());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -972,14 +994,13 @@ public class RxJavaTests {
         list.add(new Dog("dog"));
         realm.commitTransaction();
 
-        DynamicRealm dynRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        RealmList<DynamicRealmObject> frozenList = dynRealm.where(AllTypes.CLASS_NAME).findFirst().getList(AllTypes.FIELD_REALMLIST).freeze();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        RealmList<DynamicRealmObject> frozenList = dynamicRealm.where(AllTypes.CLASS_NAME).findFirst().getList(AllTypes.FIELD_REALMLIST).freeze();
 
         subscription = frozenList.asFlowable().subscribe(rxList -> {
             assertTrue(rxList.isFrozen());
             assertEquals(frozenList, rxList);
-            dynRealm.close();
-            looperThread.testComplete();
+            disposeSuccessfulTest(dynamicRealm);
         });
     }
 
@@ -991,16 +1012,15 @@ public class RxJavaTests {
         list.add(new Dog("dog"));
         realm.commitTransaction();
 
-        DynamicRealm dynRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        RealmList<DynamicRealmObject> frozenList = dynRealm.where(AllTypes.CLASS_NAME).findFirst().getList(AllTypes.FIELD_REALMLIST).freeze();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        RealmList<DynamicRealmObject> frozenList = dynamicRealm.where(AllTypes.CLASS_NAME).findFirst().getList(AllTypes.FIELD_REALMLIST).freeze();
 
         subscription = frozenList.asChangesetObservable().subscribe(change -> {
             RealmList<DynamicRealmObject> rxList = change.getCollection();
             assertTrue(rxList.isFrozen());
             assertEquals(frozenList, rxList);
             assertNull(change.getChangeset());
-            dynRealm.close();
-            looperThread.testComplete();
+            disposeSuccessfulTest(dynamicRealm);
         });
     }
 
@@ -1015,7 +1035,7 @@ public class RxJavaTests {
             assertTrue(rxObject.isFrozen());
             assertNotEquals(rxObject, obj);
             assertEquals(rxObject.getFieldId(), obj.getFieldId());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -1031,7 +1051,7 @@ public class RxJavaTests {
             assertTrue(rxObject.isFrozen());
             assertNotEquals(rxObject, obj);
             assertEquals(rxObject.getFieldId(), obj.getFieldId());
-            looperThread.testComplete();
+            disposeSuccessfulTest(realm);
         });
     }
 
@@ -1042,14 +1062,14 @@ public class RxJavaTests {
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        DynamicRealm dynRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        DynamicRealmObject obj = dynRealm.where(AllTypes.CLASS_NAME).findFirst();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        DynamicRealmObject obj = dynamicRealm.where(AllTypes.CLASS_NAME).findFirst();
 
         DynamicRealmObject frozenObject = obj.<DynamicRealmObject>freeze();
         subscription = frozenObject.asFlowable().subscribe(rxObject -> {
             assertTrue(rxObject.isFrozen());
             assertEquals(rxObject, frozenObject);
-            looperThread.testComplete();
+            disposeSuccessfulTest(dynamicRealm);
         });
     }
 
@@ -1060,8 +1080,8 @@ public class RxJavaTests {
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        DynamicRealm dynRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        DynamicRealmObject obj = dynRealm.where(AllTypes.CLASS_NAME).findFirst();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        DynamicRealmObject obj = dynamicRealm.where(AllTypes.CLASS_NAME).findFirst();
 
         DynamicRealmObject frozenObject = obj.<DynamicRealmObject>freeze();
         subscription = frozenObject.asChangesetObservable().subscribe(change -> {
@@ -1069,7 +1089,7 @@ public class RxJavaTests {
             assertTrue(rxObject.isFrozen());
             assertEquals(rxObject, frozenObject);
             assertNull(change.getChangeset());
-            looperThread.testComplete();
+            disposeSuccessfulTest(dynamicRealm);
         });
     }
 
@@ -1095,7 +1115,7 @@ public class RxJavaTests {
                             assertEquals(TEST_SIZE, pair.first.intValue());
                             assertEquals(TEST_SIZE, pair.second.first.size());
                             assertEquals(pair.second.second.getColumnLong(), pair.second.first.first().getColumnLong());
-                            looperThread.testComplete();
+                            disposeSuccessfulTest(realm);
                         }
                 );
     }
