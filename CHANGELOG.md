@@ -1,3 +1,24 @@
+## 6.1.0(YYYY-MM-DD)
+
+### Enhancements
+* The Realm Gradle plugin now applies `kapt` when used in Kotlin Multiplatform projects. Note, Realm Java still only works for the Android part of a Kotlin Multiplatform project. (Issue [#6653](https://github.com/realm/realm-java/issues/6653))
+
+### Fixed
+* None.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* Updated to Object Store commit: ad96a4c334b475dd67d50c1ca419e257d7a21e18.
+* Updated to Realm Sync v4.8.3.
+
+### Credits
+* Thanks to @sellmair (Sebastian Sellmair) for improving Kotlin Multiplatform support.
+
+
 ## 6.0.2(2019-11-21)
 
 ### Enhancements
