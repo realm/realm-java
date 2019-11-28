@@ -54,6 +54,7 @@ import io.realm.entities.StringOnly;
 import io.realm.entities.StringOnlyRequired;
 import io.realm.entities.Thread;
 import io.realm.entities.migration.MigrationClassRenamed;
+import io.realm.entities.migration.MigrationCore6PKStringIndexedByDefault;
 import io.realm.entities.migration.MigrationFieldRenameAndAdd;
 import io.realm.entities.migration.MigrationFieldRenamed;
 import io.realm.entities.migration.MigrationFieldTypeToInt;
@@ -1430,6 +1431,23 @@ public class RealmMigrationTests {
         } finally {
             dynamicRealm.close();
         }
+    }
+
+    // File format 9 (up to Core5) added an index automatically to the primary key, in Core6 string based PK are not
+    // indexed because the search index is derived from the ObjectKey.
+    @Test
+    public void core5AutomaticIndexOnStringPKShouldOpenInCore6() throws IOException {
+        configFactory.copyRealmFromAssets(context,
+                "core6_string_pk_indexed.realm", "core6.realm");
+        Realm realm = Realm.getInstance(configFactory.createConfigurationBuilder()
+                .name("core6.realm")
+                .schema(MigrationCore6PKStringIndexedByDefault.class)
+                .build());
+        assertFalse(realm.isEmpty());
+        assertTrue(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
+        MigrationCore6PKStringIndexedByDefault first = realm.where(MigrationCore6PKStringIndexedByDefault.class).findFirst();
+        assertNotNull(first);
+        assertEquals("Foo", first.name);
     }
 
     // TODO Add unit tests for default nullability
