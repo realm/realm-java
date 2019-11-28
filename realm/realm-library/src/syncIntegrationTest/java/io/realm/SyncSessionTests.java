@@ -46,7 +46,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     }
 
     private void getSession(SessionCallback callback) {
-        // Work-around for a race conditions happening when shutting down a Looper test and
+        // Work-around for a race condition happening when shutting down a Looper test and
         // Resetting the SyncManager
         // The problem is the `@After` block which runs as soon as the test method has completed.
         // For integration tests this will attempt to reset the SyncManager which will fail
@@ -274,7 +274,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
     }
 
     // A Realm that was opened before a user logged out should be able to resume uploading if the user logs back in.
-    @Ignore("__CORE6__ this test is flaky in Core6, realm `custom-admin-user` is not closed causing the session assertion to fail")
     @Test
     public void logBackResumeUpload() throws InterruptedException {
         final String uniqueName = UUID.randomUUID().toString();
@@ -314,6 +313,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
         handlerThread.start();
         Looper looper = handlerThread.getLooper();
         Handler handler = new Handler(looper);
+        AtomicReference<RealmResults<StringOnly>> allResults = new AtomicReference<>();// notifier could be GC'ed before it get a chance to trigger the second commit, so declaring it outside the Runnable
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -329,8 +329,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                         .waitForInitialRemoteData()
                         .build();
                 final Realm adminRealm = Realm.getInstance(adminConfig);
-
-                RealmResults<StringOnly> all = adminRealm.where(StringOnly.class).sort(StringOnly.FIELD_CHARS).findAll();
+                allResults.set(adminRealm.where(StringOnly.class).sort(StringOnly.FIELD_CHARS).findAll());
                 RealmChangeListener<RealmResults<StringOnly>> realmChangeListener = new RealmChangeListener<RealmResults<StringOnly>>() {
                     @Override
                     public void onChange(RealmResults<StringOnly> stringOnlies) {
@@ -347,7 +346,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                         }
                     }
                 };
-                all.addChangeListener(realmChangeListener);
+                allResults.get().addChangeListener(realmChangeListener);
 
                 // login again to re-activate the user
                 SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);
