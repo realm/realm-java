@@ -1105,13 +1105,26 @@ public class RxJavaTests {
         }
         realm.commitTransaction();
 
+        AtomicLong startingThread = new AtomicLong(Thread.currentThread().getId());
+        AtomicLong subscriberThread = new AtomicLong();
         subscription = realm.where(AllTypes.class).sort(AllTypes.FIELD_LONG).findAllAsync().asFlowable()
+                .doOnSubscribe((r) -> {
+                    subscriberThread.set(Thread.currentThread().getId());
+                })
+                // Note, that Realm automatically subscribes on the thread with the live Realm
+                // so calling subscribeOn has very little effect.
+                // In most cases you probably want to call `observeOn` directly after `ad
                 .subscribeOn(Schedulers.io())
-                .filter(RealmResults::isLoaded)
+                .filter(results -> {
+                    assertNotEquals(startingThread, subscriberThread);
+                    return results.isLoaded();
+                })
                 .map(results -> new Pair<>(results.size(), new Pair<>(results, results.first())))
                 .observeOn(Schedulers.computation())
                 .subscribe(
                         pair -> {
+                            assertNotEquals(startingThread.get(), Thread.currentThread().getId());
+                            assertNotEquals(subscriberThread.get(), Thread.currentThread().getId());
                             assertEquals(TEST_SIZE, pair.first.intValue());
                             assertEquals(TEST_SIZE, pair.second.first.size());
                             assertEquals(pair.second.second.getColumnLong(), pair.second.first.first().getColumnLong());
