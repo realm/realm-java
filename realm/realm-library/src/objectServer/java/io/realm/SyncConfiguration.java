@@ -479,15 +479,6 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns whether this configuration is for a fully synchronized Realm or not.
-     *
-     * @see Builder#fullSynchronization() for more details.
-     */
-    public boolean isFullySynchronizedRealm() {
-        return !isPartial;
-    }
-
-    /**
      * Returns the url prefix used when establishing a sync connection to the Realm Object Server.
      */
     @Nullable
