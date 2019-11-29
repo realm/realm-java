@@ -1111,12 +1111,12 @@ public class RxJavaTests {
                 .doOnSubscribe((r) -> {
                     subscriberThread.set(Thread.currentThread().getId());
                 })
-                // Note, that Realm automatically subscribes on the thread with the live Realm
-                // so calling subscribeOn has very little effect.
-                // In most cases you probably want to call `observeOn` directly after `ad
+                // Note that Realm automatically subscribes on the thread with the live Realm
+                // so calling `subscribeOn()` has very little effect.
+                // In most cases you probably want to call `observeOn` directly after `asFlowable()`.
                 .subscribeOn(Schedulers.io())
                 .filter(results -> {
-                    assertNotEquals(startingThread, subscriberThread);
+                    assertNotEquals(startingThread.get(), subscriberThread.get());
                     return results.isLoaded();
                 })
                 .map(results -> new Pair<>(results.size(), new Pair<>(results, results.first())))

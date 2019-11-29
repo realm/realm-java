@@ -246,7 +246,7 @@ abstract class BaseRealm implements Closeable {
      * {@code onComplete} will never be called.
      * <p>
      * Items emitted from Realm Flowables are frozen (See {@link #freeze()}. This means that they
-     * are immutable and can be be read on any thread.
+     * are immutable and can be read on any thread.
      * <p>
      * Realm Flowables always emit items from the thread holding the live Realm. This means that if
      * you need to do further processing, it is recommend to observe the values on a computation

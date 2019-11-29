@@ -704,7 +704,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * {@code onComplete} will never be called.
      * <p>
      * Items emitted from Realm Flowables are frozen (See {@link #freeze()}. This means that they
-     * are immutable and can be be read on any thread.
+     * are immutable and can be read on any thread.
      * <p>
      * Realm Flowables always emit items from the thread holding the live RealmResults. This means that if
      * you need to do further processing, it is recommend to observe the values on a computation
@@ -764,7 +764,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * RealmResults will continually be emitted as the RealmResults are updated - {@code onComplete} will never be called.
      * <p>
      * Items emitted from Realm Observables are frozen (See {@link #freeze()}. This means that they
-     * are immutable and can be be read on any thread.
+     * are immutable and can be read on any thread.
      * <p>
      * Realm Observables always emit items from the thread holding the live Realm. This means that if
      * you need to do further processing, it is recommend to observe the values on a computation

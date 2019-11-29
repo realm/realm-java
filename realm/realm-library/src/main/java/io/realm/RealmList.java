@@ -907,7 +907,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@code onComplete} will never be called.
      * <p>
      * Items emitted from Realm Flowables are frozen (See {@link #freeze()}. This means that they
-     * are immutable and can be be read on any thread.
+     * are immutable and can be read on any thread.
      * <p>
      * Realm Flowables always emit items from the thread holding the live RealmList. This means that if
      * you need to do further processing, it is recommend to observe the values on a computation
@@ -960,7 +960,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * RealmList will continually be emitted as the RealmList is updated - {@code onComplete} will never be called.
      * <p>
      * Items emitted from Realm Observables are frozen (See {@link #freeze()}. This means that they
-     * are immutable and can be be read on any thread.
+     * are immutable and can be read on any thread.
      * <p>
      * Realm Observables always emit items from the thread holding the live Realm. This means that if
      * you need to do further processing, it is recommend to observe the values on a computation
