@@ -772,8 +772,11 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 case MAX_DATE:
                 case IS_VALID:
                 case IS_MANAGED:
+                case IS_FROZEN:
+                case FREEZE:
                     realm.cancelTransaction();
                     continue;
+
                 default:
                     fail("Unknown method: " + method);
             }

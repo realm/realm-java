@@ -101,6 +101,8 @@ public class RealmConfiguration {
     private final Realm.Transaction initialDataTransaction;
     private final boolean readOnly;
     private final CompactOnLaunchCallback compactOnLaunch;
+    private final long maxNumberOfActiveVersions;
+
     /**
      * Whether this RealmConfiguration is intended to open a
      * recovery Realm produced after an offline/online client reset.
@@ -123,7 +125,8 @@ public class RealmConfiguration {
             @Nullable Realm.Transaction initialDataTransaction,
             boolean readOnly,
             @Nullable CompactOnLaunchCallback compactOnLaunch,
-            boolean isRecoveryConfiguration) {
+            boolean isRecoveryConfiguration,
+            long maxNumberOfActiveVersions) {
         this.realmDirectory = realmDirectory;
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
@@ -139,6 +142,7 @@ public class RealmConfiguration {
         this.readOnly = readOnly;
         this.compactOnLaunch = compactOnLaunch;
         this.isRecoveryConfiguration = isRecoveryConfiguration;
+        this.maxNumberOfActiveVersions = maxNumberOfActiveVersions;
     }
 
     public File getRealmDirectory() {
@@ -281,6 +285,13 @@ public class RealmConfiguration {
         return isRecoveryConfiguration;
     }
 
+    /**
+     * @return the maximum number of active versions allowed before an exception is thrown.
+     */
+    public long getMaxNumberOfActiveVersions() {
+        return maxNumberOfActiveVersions;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) { return true; }
@@ -314,7 +325,10 @@ public class RealmConfiguration {
         if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) {
             return false;
         }
-        return compactOnLaunch != null ? compactOnLaunch.equals(that.compactOnLaunch) : that.compactOnLaunch == null;
+        if (compactOnLaunch != null ? !compactOnLaunch.equals(that.compactOnLaunch) : that.compactOnLaunch != null) {
+            return false;
+        }
+        return maxNumberOfActiveVersions == that.maxNumberOfActiveVersions;
     }
 
     @Override
@@ -334,6 +348,7 @@ public class RealmConfiguration {
         result = 31 * result + (readOnly ? 1 : 0);
         result = 31 * result + (compactOnLaunch != null ? compactOnLaunch.hashCode() : 0);
         result = 31 * result + (isRecoveryConfiguration ? 1 : 0);
+        result = 31 * result + (int) (maxNumberOfActiveVersions ^ (maxNumberOfActiveVersions >>> 32));
         return result;
     }
 
@@ -409,6 +424,8 @@ public class RealmConfiguration {
         stringBuilder.append("readOnly: ").append(readOnly);
         stringBuilder.append("\n");
         stringBuilder.append("compactOnLaunch: ").append(compactOnLaunch);
+        stringBuilder.append("\n");
+        stringBuilder.append("maxNumberOfActiveVersions: ").append(maxNumberOfActiveVersions);
 
         return stringBuilder.toString();
     }
@@ -466,6 +483,7 @@ public class RealmConfiguration {
         private Realm.Transaction initialDataTransaction;
         private boolean readOnly;
         private CompactOnLaunchCallback compactOnLaunch;
+        private long maxNumberOfActiveVersions = Long.MAX_VALUE;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -766,6 +784,28 @@ public class RealmConfiguration {
         }
 
         /**
+         * Sets the maximum number of live versions in the Realm file before an {@link IllegalStateException} is thrown when
+         * attempting to write more data.
+         * <p>
+         * Realm is capable of concurrently handling many different versions of Realm objects. This can e.g. happen if you
+         * have a Realm open on many different threads or are freezing objects while data is being written to the file.
+         * <p>
+         * Under normal circumstances this is not a problem, but if the number of active versions grow too large, it will
+         * have a negative effect on the filesize on disk. Setting this parameters can therefore be used to prevent uses of
+         * Realm that can result in very large Realms.
+         *
+         * @param number the maximum number of active versions before an exception is thrown.
+         * @see <a href="https://realm.io/docs/java/latest/#faq-large-realm-file-size">FAQ</a>
+         */
+        public Builder maxNumberOfActiveVersions(long number) {
+            if (number < 1) {
+                throw new IllegalArgumentException("Only positive numbers above 0 are allowed. Yours was: " + number);
+            }
+            this.maxNumberOfActiveVersions = number;
+            return this;
+        }
+
+        /**
          * DEBUG method. This restricts the Realm schema to only consist of the provided classes without having to
          * create a module. These classes must be available in the default module. Calling this will remove any
          * previously configured modules.
@@ -810,9 +850,8 @@ public class RealmConfiguration {
             }
 
             if (rxFactory == null && isRxJavaAvailable()) {
-                rxFactory = new RealmObservableFactory();
+                rxFactory = new RealmObservableFactory(true);
             }
-
 
             return new RealmConfiguration(directory,
                     fileName,
@@ -828,7 +867,8 @@ public class RealmConfiguration {
                     initialDataTransaction,
                     readOnly,
                     compactOnLaunch,
-                    false
+                    false,
+                    maxNumberOfActiveVersions
             );
         }
 

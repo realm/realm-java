@@ -34,6 +34,14 @@ public class OsList implements NativeObject, ObservableCollection {
         }
     }
 
+    // Use for creating a copy of the OsList, e.g when freezing it.
+    private OsList(OsSharedRealm sharedRealm, long listNativePtr, @Nullable Table targetTable) {
+        this.nativePtr = listNativePtr;
+        this.targetTable = targetTable;
+        this.context = sharedRealm.context;
+        context.addReference(this);
+    }
+
     @Override
     public long getNativePtr() {
         return nativePtr;
@@ -255,6 +263,12 @@ public class OsList implements NativeObject, ObservableCollection {
         observerPairs.foreach(new Callback(changeset));
     }
 
+    public OsList freeze(OsSharedRealm frozenRealm) {
+        return new OsList(frozenRealm,
+                nativeFreeze(nativePtr, frozenRealm.getNativePtr()),
+                (targetTable != null) ? targetTable.freeze(frozenRealm) : null);
+    }
+
     private static native long nativeGetFinalizerPtr();
 
     // TODO: nativeTablePtr is not necessary. It is used to create FieldDescriptor which should be generated from
@@ -339,4 +353,6 @@ public class OsList implements NativeObject, ObservableCollection {
     private native void nativeStartListening(long nativePtr);
 
     private native void nativeStopListening(long nativePtr);
+
+    private static native long nativeFreeze(long nativePtr, long sharedRealmNativePtr);
 }

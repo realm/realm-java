@@ -389,6 +389,20 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull(JNIEnv*
     CATCH_STD()
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeFreeze(JNIEnv* env, jobject, jlong j_native_row_ptr,
+                                                                         jlong j_frozen_realm_native_ptr)
+{
+    try {
+        Obj* obj = reinterpret_cast<Obj*>(j_native_row_ptr);
+        auto frozen_realm = *(reinterpret_cast<SharedRealm*>(j_frozen_realm_native_ptr));
+        auto frozen_obj = new Obj(frozen_realm->transaction().import_copy_of(*obj));
+        return reinterpret_cast<jlong>(frozen_obj);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+
 static void finalize_unchecked_row(jlong ptr)
 {
     delete OBJ(ptr);

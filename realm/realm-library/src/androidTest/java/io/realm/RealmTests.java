@@ -4208,27 +4208,45 @@ public class RealmTests {
         Realm realm = Realm.getInstance(config);
         assertEquals(1, Realm.getGlobalInstanceCount(config));
 
+        Realm realm1 = Realm.getInstance(config);
+        assertEquals(1, Realm.getGlobalInstanceCount(config));
+
+        // Even though each Realm type points to the same Realm on disk, we report them as
+        // multiple global instances
+
         // Opens thread local DynamicRealm.
         DynamicRealm dynRealm = DynamicRealm.getInstance(config);
         assertEquals(2, Realm.getGlobalInstanceCount(config));
+
+        // Create frozen Realms.
+        Realm frozenRealm = realm.freeze();
+        assertTrue(frozenRealm.isFrozen());
+        assertEquals(3, Realm.getGlobalInstanceCount(config));
+
+        DynamicRealm frozenDynamicRealm = dynRealm.freeze();
+        assertTrue(frozenDynamicRealm.isFrozen());
+        assertEquals(4, Realm.getGlobalInstanceCount(config));
 
         // Opens Realm in another thread.
         new Thread(new Runnable() {
             @Override
             public void run() {
                 Realm realm = Realm.getInstance(config);
-                assertEquals(3, Realm.getGlobalInstanceCount(config));
+                assertEquals(5, Realm.getGlobalInstanceCount(config));
                 realm.close();
-                assertEquals(2, Realm.getGlobalInstanceCount(config));
+                assertEquals(4, Realm.getGlobalInstanceCount(config));
                 bgDone.countDown();
             }
         }).start();
 
         TestHelper.awaitOrFail(bgDone);
         dynRealm.close();
-        assertEquals(1, Realm.getGlobalInstanceCount(config));
+        assertEquals(3, Realm.getGlobalInstanceCount(config));
         realm.close();
+        realm1.close(); // Fully closing the live Realm also closes all frozen Realms
         assertEquals(0, Realm.getGlobalInstanceCount(config));
+        assertTrue(frozenRealm.isClosed());
+        assertTrue(frozenDynamicRealm.isClosed());
     }
 
     @Test
@@ -4522,6 +4540,23 @@ public class RealmTests {
         } catch (RealmMigrationNeededException ignored) {
             // No Realm instance should be opened at this time.
             Realm.deleteRealm(config);
+        }
+    }
+
+    @Test
+    public void hittingMaxNumberOfVersionsThrows() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .name("versions-test.realm")
+                .maxNumberOfActiveVersions(1)
+                .build();
+        Realm realm = Realm.getInstance(config);
+        try {
+            realm.beginTransaction();
+            fail();
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().contains("Number of active versions (2) in the Realm exceeded the limit of 1"));
+        } finally {
+            realm.close();
         }
     }
 

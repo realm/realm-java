@@ -48,7 +48,7 @@ public class JNIColumnInfoTest {
     public void setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         RealmConfiguration config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
 
         table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override

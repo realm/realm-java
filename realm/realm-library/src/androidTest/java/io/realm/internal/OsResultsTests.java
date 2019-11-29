@@ -94,7 +94,7 @@ public class OsResultsTests {
     private OsSharedRealm getSharedRealm(RealmConfiguration config) {
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config)
                 .autoUpdateNotification(true);
-        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configBuilder);
+        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configBuilder, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         OsObjectStore.setSchemaVersion(sharedRealm, OsObjectStore.SCHEMA_NOT_VERSIONED);
         sharedRealm.commitTransaction();

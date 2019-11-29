@@ -428,10 +428,12 @@ JNIEXPORT jbyte JNICALL Java_io_realm_internal_OsResults_nativeGetMode(JNIEnv* e
                 return io_realm_internal_OsResults_MODE_EMPTY;
             case Results::Mode::Table:
                 return io_realm_internal_OsResults_MODE_TABLE;
+            case Results::Mode::List:
+                return io_realm_internal_OsResults_MODE_LIST;
             case Results::Mode::Query:
                 return io_realm_internal_OsResults_MODE_QUERY;
             case Results::Mode::LinkList:
-                return io_realm_internal_OsResults_MODE_LINKVIEW;
+                return io_realm_internal_OsResults_MODE_LINK_LIST;
             case Results::Mode::TableView:
                 return io_realm_internal_OsResults_MODE_TABLEVIEW;
             default:
@@ -439,7 +441,7 @@ JNIEXPORT jbyte JNICALL Java_io_realm_internal_OsResults_nativeGetMode(JNIEnv* e
         }
     }
     CATCH_STD()
-    return -1; // Invalid mode value
+    return -1;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFromBacklinks(JNIEnv *env, jclass,
@@ -473,4 +475,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeEvaluateQueryIfNee
         wrapper->collection().evaluate_query_if_needed(wants_notifications);
     }
     CATCH_STD()
+}
+
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeFreeze(JNIEnv* env, jclass, jlong native_ptr, jlong frozen_realm_native_ptr)
+{
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+        auto frozen_realm = *(reinterpret_cast<SharedRealm*>(frozen_realm_native_ptr));
+        Results results = wrapper->collection().freeze(frozen_realm);
+        return reinterpret_cast<jlong>(new ResultsWrapper(results));
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
 }

@@ -54,7 +54,7 @@ public class QueryDescriptorTests {
     @Before
     public void setUp() {
         RealmConfiguration config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         table = sharedRealm.createTable("test_table");
     }

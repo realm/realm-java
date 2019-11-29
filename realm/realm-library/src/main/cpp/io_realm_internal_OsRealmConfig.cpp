@@ -75,7 +75,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsRealmConfig_nativeGetFinalizerP
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreate(JNIEnv* env, jclass, jstring j_realm_path,
                                                                           jstring j_fifo_fallback_dir,
-                                                                          jboolean enable_format_upgrade)
+                                                                          jboolean enable_format_upgrade,
+                                                                          jlong j_max_number_of_active_versions)
 {
     TR_ENTER()
     try {
@@ -85,6 +86,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreate(JNIEnv
         config_ptr->path = realm_path;
         config_ptr->disable_format_upgrade = !enable_format_upgrade;
         config_ptr->fifo_files_fallback_path = fifo_fallback_dir;
+        config_ptr->max_number_of_active_versions = j_max_number_of_active_versions;
         return reinterpret_cast<jlong>(config_ptr);
     }
     CATCH_STD()

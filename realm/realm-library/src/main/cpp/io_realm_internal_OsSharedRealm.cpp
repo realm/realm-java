@@ -62,11 +62,20 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeInit(JNIEnv* e
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetSharedRealm(JNIEnv* env, jclass, jlong config_ptr,
+                                                                                jlong j_version_no, jlong j_version_index,
                                                                                 jobject realm_notifier)
 {
     auto& config = *reinterpret_cast<Realm::Config*>(config_ptr);
     try {
-        auto shared_realm = Realm::get_shared_realm(config);
+        SharedRealm shared_realm;
+        if (j_version_no == -1 && j_version_index == -1) {
+            shared_realm = Realm::get_shared_realm(config);
+        }
+        else {
+            VersionID version(static_cast<uint_fast64_t>(j_version_no), static_cast<uint_fast32_t>(j_version_index));
+            shared_realm = Realm::get_frozen_realm(config, version);
+        }
+
         // The migration callback & initialization callback could throw.
         if (env->ExceptionCheck()) {
             return reinterpret_cast<jlong>(nullptr);
@@ -178,12 +187,13 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetVersi
                                                                                    jlong shared_realm_ptr)
 {
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    if (!shared_realm->is_in_read_transaction() && !shared_realm->is_in_transaction()) {
-        return NULL;
-    }
     try {
-        DB::VersionID version_id = shared_realm->current_transaction_version().value();
+        util::Optional<DB::VersionID> opt_version_id = shared_realm->current_transaction_version();
+        if (!opt_version_id) {
+            return NULL;
+        }
 
+        DB::VersionID version_id = opt_version_id.value();
         jlong version_array[2];
         version_array[0] = static_cast<jlong>(version_id.version);
         version_array[1] = static_cast<jlong>(version_id.index);
@@ -515,4 +525,24 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsPartial(
     // No throws
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     return to_jbool(shared_realm->is_partial());
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsFrozen(JNIEnv* env, jclass, jlong shared_realm_ptr)
+{
+    try {
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        return to_jbool(shared_realm->is_frozen());
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeFreeze(JNIEnv* env, jclass, jlong shared_realm_ptr)
+{
+    try {
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        return reinterpret_cast<jlong>(new SharedRealm(std::move(shared_realm->freeze())));
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
 }

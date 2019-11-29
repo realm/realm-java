@@ -120,6 +120,14 @@ public class CheckedRow extends UncheckedRow {
     }
 
     @Override
+    public Row freeze(OsSharedRealm frozenRealm) {
+        if (!isValid()) {
+            return InvalidRow.INSTANCE;
+        }
+        return new CheckedRow(context, parent.freeze(frozenRealm), nativeFreeze(getNativePtr(), frozenRealm.getNativePtr()));
+    }
+
+    @Override
     protected native long nativeGetColumnCount(long nativeTablePtr);
 
     @Override

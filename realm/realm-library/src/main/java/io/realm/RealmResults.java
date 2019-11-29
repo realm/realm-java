@@ -20,6 +20,7 @@ import android.annotation.SuppressLint;
 import android.os.Looper;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import javax.annotation.Nullable;
@@ -520,6 +521,32 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isFrozen() {
+        return realm != null && realm.isFrozen();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RealmResults<E> freeze() {
+        if (!isValid()) {
+            throw new IllegalStateException("Only valid, managed RealmResults can be frozen.");
+        }
+
+        BaseRealm frozenRealm = realm.freeze();
+        OsResults frozenResults = osResults.freeze(frozenRealm.sharedRealm);
+        if (className != null) {
+            return new RealmResults<>(frozenRealm, frozenResults, className);
+        } else {
+            return new RealmResults<>(frozenRealm, frozenResults, classSpec);
+        }
+    }
+
     private Class<?> getListType(RealmList list) {
         if (!list.isEmpty()) {
             return list.first().getClass();
@@ -676,6 +703,21 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * subscribed to. RealmResults will continually be emitted as the RealmResults are updated -
      * {@code onComplete} will never be called.
      * <p>
+     * Items emitted from Realm Flowables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Flowables always emit items from the thread holding the live RealmResults. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * realm.where(Foo.class).findAllAsync().asFlowable()
+     *   .observeOn(Schedulers.computation())
+     *   .map(rxResults -> doExpensiveWork(rxResults))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
+     * <p>
      * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
@@ -688,15 +730,12 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * }
      * </pre>
      * <p>
-     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
-     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
-     * instead.
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete}
      * or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
+     * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
@@ -723,14 +762,26 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * time an RealmResults is emitted.
      * <p>
      * RealmResults will continually be emitted as the RealmResults are updated - {@code onComplete} will never be called.
-     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
-     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
-     * instead.
+     * <p>
+     * Items emitted from Realm Observables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Observables always emit items from the thread holding the live Realm. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * realm.where(Foo.class).findAllAsync().asChangesetObservable()
+     *   .observeOn(Schedulers.computation())
+     *   .map((rxResults, changes) -> doExpensiveWork(rxResults, changes))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
+     * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public Observable<CollectionChange<RealmResults<E>>> asChangesetObservable() {

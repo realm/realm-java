@@ -160,6 +160,14 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
         return this;
     }
 
+    @Override
+    public OrderedRealmCollection<E> freeze() {
+        // Technically, nothing prevents us from supporting this, but there isn't any good use
+        // case for supporting it, since snapshots should only be used when modifying Results.
+        // So for now, this is disabled.
+        throw getUnsupportedException("freeze");
+    }
+
     /**
      * Deletes the object at the given index from the Realm. The object at the given index will become invalid. Just
      * returns if the object is invalid already.
@@ -214,5 +222,10 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
     @Override
     public boolean deleteAllFromRealm() {
         return super.deleteAllFromRealm();
+    }
+
+    @Override
+    public boolean isFrozen() {
+        return false;
     }
 }
