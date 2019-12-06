@@ -279,19 +279,6 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         return this;
     }
 
-    @Override
-    public RealmObjectSchema transform(Function function) {
-        //noinspection ConstantConditions
-        if (function != null) {
-            long size = table.size();
-            for (long i = 0; i < size; i++) {
-                function.apply(new DynamicRealmObject(realm, table.getCheckedRow(i)));
-            }
-        }
-
-        return this;
-    }
-
     /**
      * Returns a field descriptor based on the internal field names found in the Realm file.
      *

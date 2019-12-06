@@ -64,6 +64,22 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNI
     return reinterpret_cast<jlong>(nullptr);
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResultsFromTable(JNIEnv* env, jclass,
+                                                                             jlong shared_realm_ptr,
+                                                                             jlong table_ptr)
+{
+    TR_ENTER()
+    try {
+        auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        auto table = reinterpret_cast<Table*>(table_ptr);
+        Results results(shared_realm, *table);
+        auto wrapper = new ResultsWrapper(results);
+        return reinterpret_cast<jlong>(wrapper);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateSnapshot(JNIEnv* env, jclass, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr);

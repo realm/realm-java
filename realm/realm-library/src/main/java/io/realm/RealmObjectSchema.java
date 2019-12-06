@@ -27,9 +27,11 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Required;
+import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -399,12 +401,30 @@ public abstract class RealmObjectSchema {
     /**
      * Runs a transformation function on each RealmObject instance of the current class. The object will be represented
      * as a {@link DynamicRealmObject}.
+     * <p>
+     * There is no guarantees in which order the objects are re
      *
      * @param function transformation function.
      * @return this schema.
      * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
-    public abstract RealmObjectSchema transform(Function function);
+    public RealmObjectSchema transform(Function function) {
+        //noinspection ConstantConditions
+        if (function != null) {
+            // Users might delete object being transformed or accidentally delete other objects
+            // in the same table. E.g. cascading deletes if it is referenced by an object being deleted.
+            OsResults results = OsResults.createFromTable(realm.sharedRealm, table).createSnapshot();
+            long size = results.size();
+            for (long i = 0; i < size; i++) {
+                DynamicRealmObject obj = new DynamicRealmObject(realm, new CheckedRow(results.getUncheckedRow((int) i)));
+                if (obj.isValid()) {
+                    function.apply(obj);
+                }
+            }
+        }
+
+        return this;
+    }
 
     /**
      * Returns the type used by the underlying storage engine to represent this field.
