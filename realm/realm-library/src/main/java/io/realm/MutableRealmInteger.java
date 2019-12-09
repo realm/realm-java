@@ -115,6 +115,11 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         }
 
         @Override
+        public boolean isFrozen() {
+            return false;
+        }
+
+        @Override
         public void set(@Nullable Long newValue) {
             value = newValue;
         }
@@ -196,6 +201,11 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         @Override
         public final void decrement(long dec) {
             increment(-dec);
+        }
+
+        @Override
+        public boolean isFrozen() {
+            return getRealm().isFrozen();
         }
 
         private BaseRealm getRealm() {

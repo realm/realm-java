@@ -3,8 +3,7 @@ package io.realm.internal;
 import java.lang.ref.WeakReference;
 import java.util.Date;
 
-import javax.annotation.Nullable;
-
+import io.realm.FrozenPendingRow;
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
 import io.realm.internal.core.DescriptorOrdering;
@@ -212,6 +211,16 @@ public class PendingRow implements Row {
     @Override
     public boolean hasColumn(String fieldName) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public Row freeze(OsSharedRealm frozenRealm) {
+        return FrozenPendingRow.INSTANCE;
+    }
+
+    @Override
+    public boolean isLoaded() {
+        return false;
     }
 
     private void clearPendingCollection() {

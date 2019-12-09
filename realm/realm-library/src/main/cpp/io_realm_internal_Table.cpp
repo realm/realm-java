@@ -859,3 +859,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetFinalizerPtr(JNIEn
 {
     return reinterpret_cast<jlong>(&finalize_table);
 }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFreeze(JNIEnv*, jclass, jlong j_frozen_shared_realm_ptr, jlong j_table_ptr)
+{
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(j_frozen_shared_realm_ptr));
+    TableRef table = TableRef(TBL_REF(j_table_ptr));
+    TableRef* frozen_table = new TableRef(shared_realm->transaction().import_copy_of(table));
+    return reinterpret_cast<jlong>(frozen_table);
+}

@@ -239,7 +239,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
     }
 
     public static some.test.NamePolicyModuleDefaults copyOrUpdate(Realm realm, NamePolicyModuleDefaultsColumnInfo columnInfo, some.test.NamePolicyModuleDefaults object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
+        if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
                 throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
@@ -282,7 +282,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
     }
 
     public static long insert(Realm realm, some.test.NamePolicyModuleDefaults object, Map<RealmModel,Long> cache) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+        if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey();
         }
         Table table = realm.getTable(some.test.NamePolicyModuleDefaults.class);
@@ -311,7 +311,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
             if (cache.containsKey(object)) {
                 continue;
             }
-            if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+            if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
@@ -329,7 +329,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
     }
 
     public static long insertOrUpdate(Realm realm, some.test.NamePolicyModuleDefaults object, Map<RealmModel,Long> cache) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+        if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey();
         }
         Table table = realm.getTable(some.test.NamePolicyModuleDefaults.class);
@@ -362,7 +362,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
             if (cache.containsKey(object)) {
                 continue;
             }
-            if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+            if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
@@ -450,9 +450,15 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         if (o == null || getClass() != o.getClass()) return false;
         some_test_NamePolicyModuleDefaultsRealmProxy aNamePolicyModuleDefaults = (some_test_NamePolicyModuleDefaultsRealmProxy)o;
 
-        String path = proxyState.getRealm$realm().getPath();
-        String otherPath = aNamePolicyModuleDefaults.proxyState.getRealm$realm().getPath();
+        BaseRealm realm = proxyState.getRealm$realm();
+        BaseRealm otherRealm = aNamePolicyModuleDefaults.proxyState.getRealm$realm();
+        String path = realm.getPath();
+        String otherPath = otherRealm.getPath();
         if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
+        if (realm.isFrozen() != otherRealm.isFrozen()) return false;
+        if (!realm.sharedRealm.getVersionID().equals(otherRealm.sharedRealm.getVersionID())) {
+            return false;
+        }
 
         String tableName = proxyState.getRow$realm().getTable().getName();
         String otherTableName = aNamePolicyModuleDefaults.proxyState.getRow$realm().getTable().getName();

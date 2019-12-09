@@ -128,4 +128,15 @@ public interface Row {
      * @return {@code true} if field name exists, {@code false} otherwise.
      */
     boolean hasColumn(String fieldName);
+
+    /**
+     * Returns a frozen copy of this Row.
+     */
+    Row freeze(OsSharedRealm frozenRealm);
+
+    /**
+     * Return whether the row is considered to be loaded, i.e. it doesn't represent a query in flight.
+     *
+     */
+    boolean isLoaded();
 }

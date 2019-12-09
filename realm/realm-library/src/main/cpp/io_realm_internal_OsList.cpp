@@ -488,3 +488,16 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsList_nativeGetValue(JNIEnv* e
 
     return nullptr;
 }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeFreeze(JNIEnv* env, jclass, jlong native_list_ptr, jlong frozen_realm_native_ptr)
+{
+    try {
+        auto& wrapper = *reinterpret_cast<ListWrapper*>(native_list_ptr);
+        auto frozen_realm = *(reinterpret_cast<SharedRealm*>(frozen_realm_native_ptr));
+        List list = wrapper.collection().freeze(frozen_realm);
+        return reinterpret_cast<jlong>(new ListWrapper(list));
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+

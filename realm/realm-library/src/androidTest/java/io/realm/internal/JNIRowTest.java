@@ -54,7 +54,7 @@ public class JNIRowTest {
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
 
         sharedRealm.beginTransaction();
     }

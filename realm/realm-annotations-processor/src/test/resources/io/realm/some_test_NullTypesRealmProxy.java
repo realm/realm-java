@@ -2191,7 +2191,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public static some.test.NullTypes copyOrUpdate(Realm realm, NullTypesColumnInfo columnInfo, some.test.NullTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
+        if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
             if (otherRealm.threadId != realm.threadId) {
                 throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
@@ -2285,7 +2285,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public static long insert(Realm realm, some.test.NullTypes object, Map<RealmModel,Long> cache) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+        if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey();
         }
         Table table = realm.getTable(some.test.NullTypes.class);
@@ -2635,7 +2635,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (cache.containsKey(object)) {
                 continue;
             }
-            if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+            if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
@@ -2974,7 +2974,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
     }
 
     public static long insertOrUpdate(Realm realm, some.test.NullTypes object, Map<RealmModel,Long> cache) {
-        if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+        if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey();
         }
         Table table = realm.getTable(some.test.NullTypes.class);
@@ -3406,7 +3406,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
             if (cache.containsKey(object)) {
                 continue;
             }
-            if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+            if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
@@ -4130,9 +4130,15 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         if (o == null || getClass() != o.getClass()) return false;
         some_test_NullTypesRealmProxy aNullTypes = (some_test_NullTypesRealmProxy)o;
 
-        String path = proxyState.getRealm$realm().getPath();
-        String otherPath = aNullTypes.proxyState.getRealm$realm().getPath();
+        BaseRealm realm = proxyState.getRealm$realm();
+        BaseRealm otherRealm = aNullTypes.proxyState.getRealm$realm();
+        String path = realm.getPath();
+        String otherPath = otherRealm.getPath();
         if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
+        if (realm.isFrozen() != otherRealm.isFrozen()) return false;
+        if (!realm.sharedRealm.getVersionID().equals(otherRealm.sharedRealm.getVersionID())) {
+            return false;
+        }
 
         String tableName = proxyState.getRow$realm().getTable().getName();
         String otherTableName = aNullTypes.proxyState.getRow$realm().getTable().getName();

@@ -605,6 +605,8 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         case DELETE_ALL_FROM_REALM:
                         case IS_VALID:
                         case IS_MANAGED:
+                        case IS_FROZEN:
+                        case FREEZE:
                             continue;
 
                         default:
@@ -637,6 +639,8 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                     case DELETE_ALL_FROM_REALM:
                     case IS_VALID:
                     case IS_MANAGED:
+                    case IS_FROZEN:
+                    case FREEZE:
                         continue;
 
                     default:
@@ -823,6 +827,11 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         case DELETE_ALL_FROM_REALM: collection.deleteAllFromRealm(); break;
                         case IS_VALID: collection.isValid(); break;
                         case IS_MANAGED: collection.isManaged(); return true;
+
+                        // These methods are threadsafe pr. design
+                        case IS_FROZEN:
+                        case FREEZE:
+                            return true;
                     }
                     return false;
                 } catch (IllegalStateException ignored) {

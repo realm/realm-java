@@ -666,6 +666,16 @@ public class Table implements NativeObject {
         return nativeHasSameSchema(this.nativeTableRefPtr, table.nativeTableRefPtr);
     }
 
+    /**
+     * Returns a frozen copy of this table.
+     */
+    public Table freeze(OsSharedRealm frozenRealm) {
+        if (!frozenRealm.isFrozen()) {
+            throw new IllegalArgumentException("Frozen Realm required");
+        }
+        return new Table(frozenRealm, nativeFreeze(frozenRealm.getNativePtr(), nativeTableRefPtr));
+    }
+
     @Nullable
     public static String getClassNameForTable(@Nullable String name) {
         if (name == null) { return null; }
@@ -796,4 +806,6 @@ public class Table implements NativeObject {
     private native boolean nativeHasSameSchema(long thisTable, long otherTable);
 
     private static native long nativeGetFinalizerPtr();
+
+    private static native long nativeFreeze(long frozenSharedRealmPtr, long nativeTableRefPtr);
 }

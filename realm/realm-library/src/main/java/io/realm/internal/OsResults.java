@@ -23,7 +23,6 @@ import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
-import io.realm.MutableRealmInteger;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
@@ -247,17 +246,20 @@ public class OsResults implements NativeObject, ObservableCollection {
     @SuppressWarnings("WeakerAccess")
     public static final byte MODE_TABLE = 1;
     @SuppressWarnings("WeakerAccess")
-    public static final byte MODE_QUERY = 2;
+    public static final byte MODE_LIST = 2;
     @SuppressWarnings("WeakerAccess")
-    public static final byte MODE_LINKVIEW = 3;
+    public static final byte MODE_QUERY = 3;
     @SuppressWarnings("WeakerAccess")
-    public static final byte MODE_TABLEVIEW = 4;
+    public static final byte MODE_LINK_LIST = 4;
+    @SuppressWarnings("WeakerAccess")
+    public static final byte MODE_TABLEVIEW = 5;
 
     public enum Mode {
         EMPTY,          // Backed by nothing (for missing tables)
         TABLE,          // Backed directly by a Table
+        PRIMITIVE_LIST, // List of primitives
         QUERY,          // Backed by a query that has not yet been turned into a TableView
-        LINKVIEW,       // Backed directly by a LinkView
+        LINK_LIST,      // Backed directly by a LinkView
         TABLEVIEW;      // Backed by a TableView created from a Query
 
         static Mode getByValue(byte value) {
@@ -268,8 +270,10 @@ public class OsResults implements NativeObject, ObservableCollection {
                     return TABLE;
                 case MODE_QUERY:
                     return QUERY;
-                case MODE_LINKVIEW:
-                    return LINKVIEW;
+                case MODE_LIST:
+                    return PRIMITIVE_LIST;
+                case MODE_LINK_LIST:
+                    return LINK_LIST;
                 case MODE_TABLEVIEW:
                     return TABLEVIEW;
                 default:
@@ -314,6 +318,14 @@ public class OsResults implements NativeObject, ObservableCollection {
         OsResults osResults = new OsResults(sharedRealm, table, nativeCreateSnapshot(nativePtr));
         osResults.isSnapshot = true;
         return osResults;
+    }
+
+    public OsResults freeze(OsSharedRealm frozenRealm) {
+        OsResults results = new OsResults(frozenRealm, table.freeze(frozenRealm), nativeFreeze(nativePtr, frozenRealm.getNativePtr()));
+        if (isLoaded()) {
+            results.load();
+        }
+        return results;
     }
 
     @Override
@@ -658,6 +670,8 @@ public class OsResults implements NativeObject, ObservableCollection {
     protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long descriptorOrderingPtr);
 
     private static native long nativeCreateSnapshot(long nativePtr);
+
+    private static native long nativeFreeze(long nativePtr, long frozenRealmNativePtr);
 
     private static native long nativeGetRow(long nativePtr, int index);
 
