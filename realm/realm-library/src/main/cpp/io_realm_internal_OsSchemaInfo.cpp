@@ -37,7 +37,6 @@ static void finalize_schema(jlong ptr)
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeCreateFromList(JNIEnv* env, jclass,
                                                                                  jlongArray objectSchemaPtrs_)
 {
-    TR_ENTER()
     try {
         std::vector<ObjectSchema> object_schemas;
         JLongArrayAccessor array(env, objectSchemaPtrs_);
@@ -53,7 +52,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeCreateFromList
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_schema);
 }
 

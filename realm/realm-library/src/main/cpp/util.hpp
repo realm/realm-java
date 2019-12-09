@@ -93,7 +93,7 @@ void ConvertException(JNIEnv* env, const char* file, int line);
 void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr,
                     const std::string& itemStr = "");
 void ThrowException(JNIEnv* env, ExceptionKind exception, const char* classStr);
-void ThrowNullValueException(JNIEnv* env, const realm::Table* table, realm::ColKey col_key);
+void ThrowNullValueException(JNIEnv* env, const realm::TableRef table, realm::ColKey col_key);
 
 // Check parameters
 
@@ -149,10 +149,10 @@ inline bool RowIsValid(JNIEnv* env, realm::Obj* rowPtr)
 }
 
 template <class T>
-inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
+inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnKey, int expectColType)
 {
-    realm::ColKey col_key(columnIndex);
-    int colType = pTable->get_column_type(col_key);
+    realm::ColKey col_key(columnKey);
+    auto colType = col_key.get_type();
     if (colType != expectColType) {
         realm::jni_util::Log::e("Expected columnType %1, but got %2.", expectColType, colType);
         ThrowException(env, IllegalArgument, "ColumnType of '" + std::string(pTable->get_column_name(col_key)) + "' is invalid.");
@@ -160,10 +160,11 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColTy
     }
     return true;
 }
-inline bool TypeValid(JNIEnv* env, realm::ConstTableRef table, jlong columnIndex, int expectColType)
+
+inline bool TypeValid(JNIEnv* env, realm::ConstTableRef table, jlong columnKey, int expectColType)
 {
-    realm::ColKey col_key(columnIndex);
-    int colType = table->get_column_type(col_key);
+    realm::ColKey col_key(columnKey);
+    auto colType = col_key.get_type();
     if (colType != expectColType) {
         realm::jni_util::Log::e("Expected columnType %1, but got %2.", expectColType, colType);
         ThrowException(env, IllegalArgument, "ColumnType of '" + std::string(table->get_column_name(col_key)) + "' is invalid.");

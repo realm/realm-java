@@ -46,7 +46,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedPro
                                                                                       jboolean is_primary,
                                                                                       jboolean is_indexed)
 {
-    TR_ENTER()
     try {
         JStringAccessor str(env, j_name_str);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
@@ -71,7 +70,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedLin
                                                                                           jint type,
                                                                                           jstring j_target_class_name)
 {
-    TR_ENTER()
     try {
         JStringAccessor name(env, j_name_str);
         JStringAccessor link_name(env, j_target_class_name);
@@ -87,7 +85,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateComputedLink
                                                                                          jstring j_source_class_name,
                                                                                          jstring j_source_field_name)
 {
-    TR_ENTER()
     try {
         JStringAccessor name(env, j_name_str);
         JStringAccessor target_class_name(env, j_source_class_name);
@@ -102,7 +99,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateComputedLink
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_property);
 }
 

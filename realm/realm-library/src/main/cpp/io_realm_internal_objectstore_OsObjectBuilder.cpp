@@ -29,13 +29,11 @@ typedef std::map<ColKey, JavaValue> OsObjectData;
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeDestroyBuilder(JNIEnv*, jclass, jlong data_ptr)
 {
-    TR_ENTER()
     delete reinterpret_cast<OsObjectData*>(data_ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeCreateBuilder(JNIEnv* env, jclass)
 {
-    TR_ENTER()
     try {
         auto map = new std::map<ColKey, JavaValue>();
         return reinterpret_cast<jlong>(map);

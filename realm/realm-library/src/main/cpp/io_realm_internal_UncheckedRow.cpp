@@ -111,7 +111,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLong(JNIEnv
         return 0;
     }
     ColKey col_key(columnKey);
-    if (OBJ(nativeRowPtr)->get_table()->is_nullable(col_key)) {
+    if (col_key.get_attrs().test(col_attr_Nullable)) {
         auto val = OBJ(nativeRowPtr)->get<util::Optional<int64_t>>(col_key);
         return val.value();
     } else {
@@ -290,7 +290,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetString(JNIEn
 
     try {
         ColKey col_key(columnKey);
-        if ((value == nullptr) && !(OBJ(nativeRowPtr)->get_table()->is_nullable(col_key))) {
+        if ((value == nullptr) && !col_key.get_attrs().test(col_attr_Nullable)) {
             ThrowNullValueException(env, OBJ(nativeRowPtr)->get_table(), ColKey(columnKey));
             return;
         }
@@ -311,7 +311,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetByteArray(JN
     try {
         auto& obj = *reinterpret_cast<realm::Obj*>(nativeRowPtr);
         ColKey col_key(columnKey);
-        if (value == nullptr && !(obj.get_table()->is_nullable(col_key))) {
+        if ((value == nullptr) && !col_key.get_attrs().test(col_attr_Nullable)) {
             ThrowNullValueException(env, OBJ(nativeRowPtr)->get_table(), ColKey(columnKey));
             return;
         }
@@ -396,6 +396,5 @@ static void finalize_unchecked_row(jlong ptr)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_unchecked_row);
 }

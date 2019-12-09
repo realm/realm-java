@@ -47,7 +47,6 @@ static SyncUserIdentifier create_sync_user_identifier(JNIEnv* env, jstring j_use
 
 JNIEXPORT jstring JNICALL Java_io_realm_RealmFileUserStore_nativeGetCurrentUser(JNIEnv* env, jclass)
 {
-    TR_ENTER()
     try {
         auto user = SyncManager::shared().get_current_user();
         return to_user_string_or_null(env, user);
@@ -59,7 +58,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmFileUserStore_nativeGetCurrentUser(
 JNIEXPORT jstring JNICALL Java_io_realm_RealmFileUserStore_nativeGetUser(JNIEnv* env, jclass, jstring j_user_id,
                                                                          jstring j_auth_url)
 {
-    TR_ENTER()
     try {
         auto user = SyncManager::shared().get_existing_logged_in_user(
             create_sync_user_identifier(env, j_user_id, j_auth_url));
@@ -73,7 +71,6 @@ JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeUpdateOrCreateUser
                                                                                  jstring j_user_id, jstring json_token,
                                                                                  jstring j_auth_url)
 {
-    TR_ENTER()
     try {
         JStringAccessor user_json_token(env, json_token); // throws
         SyncManager::shared().get_user(create_sync_user_identifier(env, j_user_id, j_auth_url), user_json_token);
@@ -84,7 +81,6 @@ JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeUpdateOrCreateUser
 JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeLogoutUser(JNIEnv* env, jclass, jstring j_user_id,
                                                                          jstring j_auth_url)
 {
-    TR_ENTER()
     try {
         auto user = SyncManager::shared().get_existing_logged_in_user(
             create_sync_user_identifier(env, j_user_id, j_auth_url));
@@ -98,7 +94,6 @@ JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeLogoutUser(JNIEnv*
 JNIEXPORT jboolean JNICALL Java_io_realm_RealmFileUserStore_nativeIsActive(JNIEnv* env, jclass, jstring j_user_id,
                                                                            jstring j_auth_url)
 {
-    TR_ENTER()
     try {
         auto user = SyncManager::shared().get_existing_logged_in_user(
             create_sync_user_identifier(env, j_user_id, j_auth_url));
@@ -112,7 +107,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_RealmFileUserStore_nativeIsActive(JNIEn
 
 JNIEXPORT jobjectArray JNICALL Java_io_realm_RealmFileUserStore_nativeGetAllUsers(JNIEnv* env, jclass)
 {
-    TR_ENTER()
     auto all_users = SyncManager::shared().all_logged_in_users();
     if (!all_users.empty()) {
         size_t len = all_users.size();

@@ -81,7 +81,6 @@ static jintArray index_set_to_indices_array(JNIEnv* env, const IndexSet& index_s
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_changeset);
 }
 

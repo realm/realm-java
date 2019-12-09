@@ -185,26 +185,8 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
         }
     }
 
-    Obj obj;
-#if REALM_ENABLE_SYNC
-    if (is_pk_null) {
-        obj = sync::create_object_with_primary_key(static_cast<Transaction&>(shared_realm->read_group()), *table, util::none);
-    }
-    else {
-        obj = sync::create_object_with_primary_key(static_cast<Transaction&>(shared_realm->read_group()), *table,
-                                                   util::Optional<int64_t>(pk_value));
-    }
-#else
-    obj = table->create_object();
-
-    if (is_pk_null) {
-        obj.set_null(col_key);
-    }
-    else {
-        obj.set<int64_t>(col_key, pk_value);
-    }
-#endif
-    return obj;
+    Mixed pk_val = is_pk_null ? Mixed() : Mixed(util::Optional<int64_t>(pk_value));
+    return table->create_object_with_primary_key(pk_val);
 }
 
 static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ref_ptr,
@@ -230,26 +212,11 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
-
-    Obj obj;
-#if REALM_ENABLE_SYNC
-    obj = sync::create_object_with_primary_key(static_cast<Transaction&>(shared_realm->read_group()), *table, StringData(str_accessor));
-#else
-    obj = table->create_object();
-    if (pk_value) {
-        obj.set(col_key, StringData(str_accessor));
-    }
-    else {
-        obj.set(col_key, null{});
-    }
-#endif
-
-    return obj;
+    return table->create_object_with_primary_key(StringData(str_accessor));
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_object);
 }
 

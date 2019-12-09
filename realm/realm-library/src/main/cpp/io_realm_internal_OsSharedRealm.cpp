@@ -52,8 +52,6 @@ typedef ObservableCollectionWrapper<Results> ResultsWrapper;
 JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeInit(JNIEnv* env, jclass,
                                                                      jstring temporary_directory_path)
 {
-    TR_ENTER()
-
     try {
         JStringAccessor path(env, temporary_directory_path);    // throws
         DBOptions::set_sys_tmp_dir(std::string(path)); // throws
@@ -429,7 +427,6 @@ static void finalize_shared_realm(jlong ptr)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_shared_realm);
 }
 

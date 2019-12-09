@@ -69,7 +69,6 @@ static JavaClass& get_shared_realm_class(JNIEnv* env)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsRealmConfig_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_realm_config);
 }
 
@@ -77,7 +76,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreate(JNIEnv
                                                                           jstring j_fifo_fallback_dir,
                                                                           jboolean enable_format_upgrade)
 {
-    TR_ENTER()
     try {
         JStringAccessor realm_path(env, j_realm_path);
         JStringAccessor fifo_fallback_dir(env, j_fifo_fallback_dir);

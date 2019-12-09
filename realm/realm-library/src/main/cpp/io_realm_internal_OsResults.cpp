@@ -45,7 +45,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNI
                                                                              jlong query_ptr,
                                                                              jlong descriptor_ordering_ptr)
 {
-    TR_ENTER()
     try {
         auto query = reinterpret_cast<Query*>(query_ptr);
         if (!TABLE_VALID(env, query->get_table())) {
@@ -246,7 +245,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeStopListening(JNIE
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_results);
 }
 

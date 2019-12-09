@@ -75,7 +75,6 @@ inline void check_nullable(JNIEnv* env, jlong list_ptr, jobject jobject_ptr = nu
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_list);
 }
 
@@ -95,7 +94,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
         if (wrapper_ptr->collection().get_type() == PropertyType::Object) {
             auto link_view_ref = obj.get_linklist(ColKey(column_key));
 
-            TableRef* target_table_ptr = new TableRef(link_view_ref.get_target_table().get_table_ref());
+            TableRef* target_table_ptr = new TableRef(link_view_ref.get_target_table());
             ret[1] = reinterpret_cast<jlong>(target_table_ptr);
         }
         else {

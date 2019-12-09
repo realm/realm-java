@@ -38,7 +38,6 @@ static void finalize_object_schema(jlong ptr)
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeCreateRealmObjectSchema(JNIEnv* env, jclass,
                                                                                                 jstring j_name_str)
 {
-    TR_ENTER()
     try {
         JStringAccessor name(env, j_name_str);
         ObjectSchema* object_schema = new ObjectSchema();
@@ -51,7 +50,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeCreateRe
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_object_schema);
 }
 

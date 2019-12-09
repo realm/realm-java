@@ -141,7 +141,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsObjectStore_nativeCallWithLo
                                                                                    jstring j_realm_path,
                                                                                    jobject j_runnable)
 {
-    TR_ENTER();
     try {
         JStringAccessor path_accessor(env, j_realm_path);
         std::string realm_path(path_accessor);

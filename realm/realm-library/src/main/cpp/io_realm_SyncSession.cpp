@@ -63,7 +63,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JN
                                                                               jstring j_access_token,
                                                                               jstring j_sync_realm_url)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -150,7 +149,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
                                                                                      jint callback_id,
                                                                                      jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -184,7 +182,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForUploadCompleti
                                                                                    jint callback_id,
                                                                                    jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -216,7 +213,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForUploadCompleti
 
 JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -240,7 +236,6 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jc
 
 JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetConnectionState(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -328,7 +323,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveConnectionListener(
 
 JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStart(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -346,7 +340,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStart(JNIEnv* env, jclass
 
 JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStop(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -359,7 +352,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStop(JNIEnv* env, jclass,
 
 JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeSetUrlPrefix(JNIEnv* env, jclass, jstring j_local_realm_path, jstring j_url_prefix)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);

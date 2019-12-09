@@ -40,7 +40,6 @@ static void finalize_descriptor(jlong ptr)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_core_IncludeDescriptor_nativeGetFinalizerMethodPtr(JNIEnv* env, jclass)
 {
-    TR_ENTER()
     try {
         return reinterpret_cast<jlong>(&finalize_descriptor);
     }
@@ -50,7 +49,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_core_IncludeDescriptor_nativeGetF
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_core_IncludeDescriptor_nativeCreate(JNIEnv* env, jclass, jlong starting_table_ptr, jlongArray column_keys, jlongArray table_pointers)
 {
-    TR_ENTER()
     try {
         JLongArrayAccessor table_arr(env, table_pointers);
         JLongArrayAccessor colkeys_arr(env, column_keys);

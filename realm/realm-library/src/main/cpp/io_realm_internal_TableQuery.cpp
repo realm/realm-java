@@ -1716,6 +1716,5 @@ static void finalize_table_query(jlong ptr)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_table_query);
 }
