@@ -280,14 +280,14 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
         SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
-        long rowIndex = OsObject.createRow(table);
-        cache.put(object, rowIndex);
+        long colKey = OsObject.createRow(table);
+        cache.put(object, colKey);
         String realmGet$name = ((some_test_SimpleRealmProxyInterface) object).realmGet$name();
         if (realmGet$name != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.nameColKey, rowIndex, realmGet$name, false);
+            Table.nativeSetString(tableNativePtr, columnInfo.nameColKey, colKey, realmGet$name, false);
         }
-        Table.nativeSetLong(tableNativePtr, columnInfo.ageColKey, rowIndex, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
-        return rowIndex;
+        Table.nativeSetLong(tableNativePtr, columnInfo.ageColKey, colKey, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
+        return colKey;
     }
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
@@ -304,13 +304,13 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
-            long rowIndex = OsObject.createRow(table);
-            cache.put(object, rowIndex);
+            long colKey = OsObject.createRow(table);
+            cache.put(object, colKey);
             String realmGet$name = ((some_test_SimpleRealmProxyInterface) object).realmGet$name();
             if (realmGet$name != null) {
-                Table.nativeSetString(tableNativePtr, columnInfo.nameColKey, rowIndex, realmGet$name, false);
+                Table.nativeSetString(tableNativePtr, columnInfo.nameColKey, colKey, realmGet$name, false);
             }
-            Table.nativeSetLong(tableNativePtr, columnInfo.ageColKey, rowIndex, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
+            Table.nativeSetLong(tableNativePtr, columnInfo.ageColKey, colKey, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
         }
     }
 
@@ -321,16 +321,16 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         Table table = realm.getTable(some.test.Simple.class);
         long tableNativePtr = table.getNativePtr();
         SimpleColumnInfo columnInfo = (SimpleColumnInfo) realm.getSchema().getColumnInfo(some.test.Simple.class);
-        long rowIndex = OsObject.createRow(table);
-        cache.put(object, rowIndex);
+        long colKey = OsObject.createRow(table);
+        cache.put(object, colKey);
         String realmGet$name = ((some_test_SimpleRealmProxyInterface) object).realmGet$name();
         if (realmGet$name != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.nameColKey, rowIndex, realmGet$name, false);
+            Table.nativeSetString(tableNativePtr, columnInfo.nameColKey, colKey, realmGet$name, false);
         } else {
-            Table.nativeSetNull(tableNativePtr, columnInfo.nameColKey, rowIndex, false);
+            Table.nativeSetNull(tableNativePtr, columnInfo.nameColKey, colKey, false);
         }
-        Table.nativeSetLong(tableNativePtr, columnInfo.ageColKey, rowIndex, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
-        return rowIndex;
+        Table.nativeSetLong(tableNativePtr, columnInfo.ageColKey, colKey, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
+        return colKey;
     }
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
@@ -347,15 +347,15 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
-            long rowIndex = OsObject.createRow(table);
-            cache.put(object, rowIndex);
+            long colKey = OsObject.createRow(table);
+            cache.put(object, colKey);
             String realmGet$name = ((some_test_SimpleRealmProxyInterface) object).realmGet$name();
             if (realmGet$name != null) {
-                Table.nativeSetString(tableNativePtr, columnInfo.nameColKey, rowIndex, realmGet$name, false);
+                Table.nativeSetString(tableNativePtr, columnInfo.nameColKey, colKey, realmGet$name, false);
             } else {
-                Table.nativeSetNull(tableNativePtr, columnInfo.nameColKey, rowIndex, false);
+                Table.nativeSetNull(tableNativePtr, columnInfo.nameColKey, colKey, false);
             }
-            Table.nativeSetLong(tableNativePtr, columnInfo.ageColKey, rowIndex, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
+            Table.nativeSetLong(tableNativePtr, columnInfo.ageColKey, colKey, ((some_test_SimpleRealmProxyInterface) object).realmGet$age(), false);
         }
     }
 

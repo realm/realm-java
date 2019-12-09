@@ -792,31 +792,31 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         if (metadata.isNullable(primaryKeyElement!!)) {
                             if (Utils.isString(primaryKeyElement)) {
                                 emitStatement("String value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                                emitStatement("long rowIndex = Table.NO_MATCH")
+                                emitStatement("long colKey = Table.NO_MATCH")
                                 beginControlFlow("if (value == null)")
-                                    emitStatement("rowIndex = table.findFirstNull(pkColumnKey)")
+                                    emitStatement("colKey = table.findFirstNull(pkColumnKey)")
                                 nextControlFlow("else")
-                                    emitStatement("rowIndex = table.findFirstString(pkColumnKey, value)")
+                                    emitStatement("colKey = table.findFirstString(pkColumnKey, value)")
                                 endControlFlow()
                             } else {
                                 emitStatement("Number value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                                emitStatement("long rowIndex = Table.NO_MATCH")
+                                emitStatement("long colKey = Table.NO_MATCH")
                                 beginControlFlow("if (value == null)")
-                                    emitStatement("rowIndex = table.findFirstNull(pkColumnKey)")
+                                    emitStatement("colKey = table.findFirstNull(pkColumnKey)")
                                 nextControlFlow("else")
-                                    emitStatement("rowIndex = table.findFirstLong(pkColumnKey, value.longValue())")
+                                    emitStatement("colKey = table.findFirstLong(pkColumnKey, value.longValue())")
                                 endControlFlow()
                             }
                         } else {
                             val pkType = if (Utils.isString(metadata.primaryKey)) "String" else "Long"
-                            emitStatement("long rowIndex = table.findFirst%s(pkColumnKey, ((%s) object).%s())", pkType, interfaceName, primaryKeyGetter)
+                            emitStatement("long colKey = table.findFirst%s(pkColumnKey, ((%s) object).%s())", pkType, interfaceName, primaryKeyGetter)
                         }
 
-                        beginControlFlow("if (rowIndex == Table.NO_MATCH)")
+                        beginControlFlow("if (colKey == Table.NO_MATCH)")
                             emitStatement("canUpdate = false")
                         nextControlFlow("else")
                             beginControlFlow("try")
-                                emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), columnInfo, false, Collections.<String> emptyList())")
+                                emitStatement("objectContext.set(realm, table.getUncheckedRow(colKey), columnInfo, false, Collections.<String> emptyList())")
                                 emitStatement("realmObject = new %s()", generatedClassName)
                                 emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                             nextControlFlow("finally")
@@ -841,7 +841,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 "int",
                 "short",
                 "byte" -> {
-                    emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, rowIndex, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
+                    emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, colKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
                 }
                 "java.lang.Long",
                 "java.lang.Integer",
@@ -849,89 +849,89 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 "java.lang.Byte" -> {
                     emitStatement("Number %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, rowIndex, %s.longValue(), false)", fieldName, getter)
+                        emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, colKey, %s.longValue(), false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, rowIndex, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "io.realm.MutableRealmInteger" -> {
                     emitStatement("Long %s = ((%s) object).%s().get()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, rowIndex, %s.longValue(), false)", fieldName, getter)
+                        emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, colKey, %s.longValue(), false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, rowIndex, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "double" -> {
-                    emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sColKey, rowIndex, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
+                    emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sColKey, colKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
                 }
                 "java.lang.Double" -> {
                     emitStatement("Double %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sColKey, rowIndex, %s, false)", fieldName, getter)
+                        emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sColKey, colKey, %s, false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, rowIndex, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "float" -> {
-                    emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sColKey, rowIndex, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
+                    emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sColKey, colKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
                 }
                 "java.lang.Float" -> {
                     emitStatement("Float %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sColKey, rowIndex, %s, false)", fieldName, getter)
+                        emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sColKey, colKey, %s, false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, rowIndex, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "boolean" -> {
-                    emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sColKey, rowIndex, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
+                    emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sColKey, colKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
                 }
                 "java.lang.Boolean" -> {
                     emitStatement("Boolean %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sColKey, rowIndex, %s, false)", fieldName, getter)
+                        emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sColKey, colKey, %s, false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, rowIndex, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "byte[]" -> {
                     emitStatement("byte[] %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetByteArray(tableNativePtr, columnInfo.%sColKey, rowIndex, %s, false)", fieldName, getter)
+                        emitStatement("Table.nativeSetByteArray(tableNativePtr, columnInfo.%sColKey, colKey, %s, false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, rowIndex, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "java.util.Date" -> {
                     emitStatement("java.util.Date %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetTimestamp(tableNativePtr, columnInfo.%sColKey, rowIndex, %s.getTime(), false)", fieldName, getter)
+                        emitStatement("Table.nativeSetTimestamp(tableNativePtr, columnInfo.%sColKey, colKey, %s.getTime(), false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, rowIndex, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "java.lang.String" -> {
                     emitStatement("String %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetString(tableNativePtr, columnInfo.%sColKey, rowIndex, %s, false)", fieldName, getter)
+                        emitStatement("Table.nativeSetString(tableNativePtr, columnInfo.%sColKey, colKey, %s, false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, rowIndex, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
@@ -975,7 +975,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             beginControlFlow("if (cache%s == null)", fieldName)
                                 emitStatement("cache%s = %s.insert(realm, %sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
                             endControlFlow()
-                            emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, rowIndex, cache%1\$s, false)", fieldName)
+                            emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, colKey, cache%1\$s, false)", fieldName)
                         endControlFlow()
                     }
                     Utils.isRealmModelList(field) -> {
@@ -983,7 +983,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitEmptyLine()
                         emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                         beginControlFlow("if (%sList != null)", fieldName)
-                            emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1\$sColKey)", fieldName)
+                            emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
                             beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                 emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
                                 beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
@@ -999,7 +999,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitEmptyLine()
                         emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                         beginControlFlow("if (%sList != null)", fieldName)
-                            emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1\$sColKey)", fieldName)
+                            emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
                             beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                 beginControlFlow("if (%1\$sItem == null)", fieldName)
                                     emitStatement(fieldName + "OsList.addNull()")
@@ -1017,7 +1017,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 }
             }
 
-            emitStatement("return rowIndex")
+            emitStatement("return colKey")
             endMethod()
             emitEmptyLine()
         }
@@ -1060,14 +1060,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 beginControlFlow("if (cache%s == null)", fieldName)
                                     emitStatement("cache%s = %s.insert(realm, %sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
                                 endControlFlow()
-                                emitStatement("table.setLink(columnInfo.%1\$sColKey, rowIndex, cache%1\$s, false)", fieldName)
+                                emitStatement("table.setLink(columnInfo.%1\$sColKey, colKey, cache%1\$s, false)", fieldName)
                             endControlFlow()
                         } else if (Utils.isRealmModelList(field)) {
                             val genericType = Utils.getGenericTypeQualifiedName(field)
                             emitEmptyLine()
                             emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                             beginControlFlow("if (%sList != null)", fieldName)
-                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1\$sColKey)", fieldName)
+                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
                                 beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                     emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
                                     beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
@@ -1082,7 +1082,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitEmptyLine()
                             emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                             beginControlFlow("if (%sList != null)", fieldName)
-                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1\$sColKey)", fieldName)
+                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
                                 beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                     beginControlFlow("if (%1\$sItem == null)", fieldName)
                                         emitStatement("%1\$sOsList.addNull()", fieldName)
@@ -1134,15 +1134,15 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         beginControlFlow("if (cache%s == null)", fieldName)
                             emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, %1\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                         endControlFlow()
-                        emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, rowIndex, cache%1\$s, false)", fieldName)
+                        emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, colKey, cache%1\$s, false)", fieldName)
                     nextControlFlow("else")
                         // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
-                        emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sColKey, rowIndex)", fieldName)
+                        emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sColKey, colKey)", fieldName)
                     endControlFlow()
                 } else if (Utils.isRealmModelList(field)) {
                     val genericType = Utils.getGenericTypeQualifiedName(field)
                     emitEmptyLine()
-                    emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1\$sColKey)", fieldName)
+                    emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
                     emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                     beginControlFlow("if (%1\$sList != null && %1\$sList.size() == %1\$sOsList.size())", fieldName)
                         emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
@@ -1172,7 +1172,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     val genericType = Utils.getGenericTypeQualifiedName(field)
                     val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
                     emitEmptyLine()
-                    emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1\$sColKey)", fieldName)
+                    emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
                     emitStatement("%1\$sOsList.removeAll()", fieldName)
                     emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                     beginControlFlow("if (%sList != null)", fieldName)
@@ -1192,7 +1192,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 }
             }
 
-            emitStatement("return rowIndex")
+            emitStatement("return colKey")
             endMethod()
             emitEmptyLine()
         }
@@ -1235,16 +1235,16 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     beginControlFlow("if (cache%s == null)", fieldName)
                                         emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, %1\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                                     endControlFlow()
-                                    emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, rowIndex, cache%1\$s, false)", fieldName)
+                                    emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, colKey, cache%1\$s, false)", fieldName)
                                 nextControlFlow("else")
                                     // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
-                                    emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sColKey, rowIndex)", fieldName)
+                                    emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sColKey, colKey)", fieldName)
                                 endControlFlow()
                             }
                             Utils.isRealmModelList(field) -> {
                                 val genericType = Utils.getGenericTypeQualifiedName(field)
                                 emitEmptyLine()
-                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1\$sColKey)", fieldName)
+                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
                                 emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                                 beginControlFlow("if (%1\$sList != null && %1\$sList.size() == %1\$sOsList.size())", fieldName)
                                     emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
@@ -1275,7 +1275,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 val genericType = Utils.getGenericTypeQualifiedName(field)
                                 val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
                                 emitEmptyLine()
-                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(rowIndex), columnInfo.%1\$sColKey)", fieldName)
+                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
                                 emitStatement("%1\$sOsList.removeAll()", fieldName)
                                 emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                                 beginControlFlow("if (%sList != null)", fieldName)
@@ -1311,38 +1311,38 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 if (metadata.isNullable(primaryKeyElement!!)) {
                     if (Utils.isString(primaryKeyElement)) {
                         emitStatement("String primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                        emitStatement("long rowIndex = Table.NO_MATCH")
+                        emitStatement("long colKey = Table.NO_MATCH")
                         beginControlFlow("if (primaryKeyValue == null)")
-                            emitStatement("rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
+                            emitStatement("colKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
                         nextControlFlow("else")
-                            emitStatement("rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, primaryKeyValue)")
+                            emitStatement("colKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, primaryKeyValue)")
                         endControlFlow()
                     } else {
                         emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                        emitStatement("long rowIndex = Table.NO_MATCH")
+                        emitStatement("long colKey = Table.NO_MATCH")
                         beginControlFlow("if (primaryKeyValue == null)")
-                            emitStatement("rowIndex = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
+                            emitStatement("colKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
                         nextControlFlow("else")
-                            emitStatement("rowIndex = Table.nativeFindFirstInt(tableNativePtr, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
+                            emitStatement("colKey = Table.nativeFindFirstInt(tableNativePtr, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
                         endControlFlow()
                     }
                 } else {
-                    emitStatement("long rowIndex = Table.NO_MATCH")
+                    emitStatement("long colKey = Table.NO_MATCH")
                     emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                     beginControlFlow("if (primaryKeyValue != null)")
                         if (Utils.isString(metadata.primaryKey)) {
-                            emitStatement("rowIndex = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, (String)primaryKeyValue)")
+                            emitStatement("colKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, (String)primaryKeyValue)")
                         } else {
-                            emitStatement("rowIndex = Table.nativeFindFirstInt(tableNativePtr, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
+                            emitStatement("colKey = Table.nativeFindFirstInt(tableNativePtr, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
                         }
                     endControlFlow()
                 }
 
-                beginControlFlow("if (rowIndex == Table.NO_MATCH)")
+                beginControlFlow("if (colKey == Table.NO_MATCH)")
                     if (Utils.isString(metadata.primaryKey)) {
-                        emitStatement("rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnKey, primaryKeyValue)")
+                        emitStatement("colKey = OsObject.createRowWithPrimaryKey(table, pkColumnKey, primaryKeyValue)")
                     } else {
-                        emitStatement("rowIndex = OsObject.createRowWithPrimaryKey(table, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
+                        emitStatement("colKey = OsObject.createRowWithPrimaryKey(table, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
                     }
     
                     if (throwIfPrimaryKeyDuplicate) {
@@ -1350,10 +1350,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("Table.throwDuplicatePrimaryKeyException(primaryKeyValue)")
                     }
                 endControlFlow()
-                emitStatement("cache.put(object, rowIndex)")
+                emitStatement("cache.put(object, colKey)")
             } else {
-                emitStatement("long rowIndex = OsObject.createRow(table)")
-                emitStatement("cache.put(object, rowIndex)")
+                emitStatement("long colKey = OsObject.createRow(table)")
+                emitStatement("cache.put(object, colKey)")
             }
         }
     }
@@ -1666,12 +1666,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod("int", "hashCode", EnumSet.of(Modifier.PUBLIC))
                 emitStatement("String realmName = proxyState.getRealm\$realm().getPath()")
                 emitStatement("String tableName = proxyState.getRow\$realm().getTable().getName()")
-                emitStatement("long rowIndex = proxyState.getRow\$realm().getObjectKey()")
+                emitStatement("long colKey = proxyState.getRow\$realm().getObjectKey()")
                 emitEmptyLine()
                 emitStatement("int result = 17")
                 emitStatement("result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0)")
                 emitStatement("result = 31 * result + ((tableName != null) ? tableName.hashCode() : 0)")
-                emitStatement("result = 31 * result + (int) (rowIndex ^ (rowIndex >>> 32))")
+                emitStatement("result = 31 * result + (int) (colKey ^ (colKey >>> 32))")
                 emitStatement("return result")
             endMethod()
             emitEmptyLine()
@@ -1737,22 +1737,22 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                     emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
                     emitStatement("long pkColumnKey = %s", fieldColKeyVariableReference(metadata.primaryKey))
-                    emitStatement("long rowIndex = Table.NO_MATCH")
+                    emitStatement("long colKey = Table.NO_MATCH")
                     if (metadata.isNullable(metadata.primaryKey!!)) {
                         beginControlFlow("if (json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
-                            emitStatement("rowIndex = table.findFirstNull(pkColumnKey)")
+                            emitStatement("colKey = table.findFirstNull(pkColumnKey)")
                         nextControlFlow("else")
-                            emitStatement("rowIndex = table.findFirst%s(pkColumnKey, json.get%s(\"%s\"))", pkType, pkType, metadata.primaryKey!!.simpleName)
+                            emitStatement("colKey = table.findFirst%s(pkColumnKey, json.get%s(\"%s\"))", pkType, pkType, metadata.primaryKey!!.simpleName)
                         endControlFlow()
                     } else {
                         beginControlFlow("if (!json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
-                            emitStatement("rowIndex = table.findFirst%s(pkColumnKey, json.get%s(\"%s\"))", pkType, pkType, metadata.primaryKey!!.simpleName)
+                            emitStatement("colKey = table.findFirst%s(pkColumnKey, json.get%s(\"%s\"))", pkType, pkType, metadata.primaryKey!!.simpleName)
                         endControlFlow()
                     }
-                    beginControlFlow("if (rowIndex != Table.NO_MATCH)")
+                    beginControlFlow("if (colKey != Table.NO_MATCH)")
                         emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
                         beginControlFlow("try")
-                            emitStatement("objectContext.set(realm, table.getUncheckedRow(rowIndex), realm.getSchema().getColumnInfo(%s.class), false, Collections.<String> emptyList())", qualifiedJavaClassName)
+                            emitStatement("objectContext.set(realm, table.getUncheckedRow(colKey), realm.getSchema().getColumnInfo(%s.class), false, Collections.<String> emptyList())", qualifiedJavaClassName)
                             emitStatement("obj = new %s()", generatedClassName)
                         nextControlFlow("finally")
                             emitStatement("objectContext.clear()")
