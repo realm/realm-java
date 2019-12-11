@@ -835,7 +835,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
         OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("AllTypes", 20, 1);
-        builder.addPersistedProperty("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
