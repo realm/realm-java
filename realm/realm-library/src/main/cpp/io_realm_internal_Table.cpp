@@ -217,7 +217,6 @@ JNIEXPORT jobjectArray JNICALL Java_io_realm_internal_Table_nativeGetColumnNames
 {
     try {
         TableRef table = TBL_REF(nativeTableRefPtr);
-        table->get_name();
         ColKeys col_keys = table->get_column_keys();
         size_t size = col_keys.size();
         jobjectArray col_keys_array = env->NewObjectArray(size, JavaClassGlobalDef::java_lang_string(), 0);

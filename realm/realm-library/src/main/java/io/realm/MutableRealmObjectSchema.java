@@ -226,7 +226,8 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
                             currentPKField));
         }
         long columnKey = getColumnKey(fieldName);
-        if (!table.hasSearchIndex(columnKey)) {
+        final RealmFieldType fieldType = getFieldType(fieldName);
+        if (fieldType != RealmFieldType.STRING && !table.hasSearchIndex(columnKey)) {
             // No exception will be thrown since adding PrimaryKey implies the column has an index.
             table.addSearchIndex(columnKey);
         }

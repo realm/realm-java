@@ -31,6 +31,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotSame;
 import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertFalse;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -66,7 +67,7 @@ public class ColumnInfoTests {
 
         // Checks precondition.
         assertNotSame(sourceColumnInfo, targetColumnInfo);
-        assertNotSame(sourceColumnInfo.getColumnKeysMap(), targetColumnInfo.getColumnKeysMap());
+        assertFalse(sourceColumnInfo.getColumnKeysMap().equals(targetColumnInfo.getColumnKeysMap()));
 
         sourceColumnInfo.nameColKey = 1;
         sourceColumnInfo.ageColKey = 2;

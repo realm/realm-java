@@ -71,7 +71,7 @@ public class JNIColumnInfoTest {
         assertEquals(2, table.getColumnCount());
 
         long columnKey = table.getColumnKey("lastName");
-        assertNotSame(-1, columnKey);
+        assertNotSame(Table.NO_MATCH, columnKey);
 
         assertEquals(RealmFieldType.STRING, table.getColumnType(columnKey));
     }

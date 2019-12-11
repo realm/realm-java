@@ -82,7 +82,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     protected void after() {
         try {
             for (RealmConfiguration configuration : configurations) {
-                 Realm.deleteRealm(configuration);
+                Realm.deleteRealm(configuration);
             }
         } catch (IllegalStateException e) {
             // Only throws the exception caused by deleting the opened Realm if the test case itself doesn't throw.

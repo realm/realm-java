@@ -68,7 +68,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetPrimaryKeyF
             }
 
             // Check duplicated values. The pk field must have been indexed before set as a PK.
-            if (table->get_distinct_view(pk_column_col).size() != table->size()) {
+            // __CORE6__ work around until table->contains_unique_values is provided by Core6
+            //           since calling get_distinct_view is not possible on non indexed column (throws)
+            auto tv = table->where().find_all();
+            tv.distinct(pk_column_col);
+            if (tv.size() != table->size()) {
+            // if (table->get_distinct_view(pk_column_col).size() != table->size()) {
                 THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                      format("Field '%1' cannot be set as primary key since there are duplicated "
                                             "values for field '%1' in Class '%2'.",

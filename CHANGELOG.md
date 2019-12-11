@@ -2,12 +2,16 @@
 
 ### Breaking Changes
 * RxJava Flowables and Observables are now subscribed to and unsubscribed to asynchronously on the thread holding the live Realm, instead of previously where this was done synchronously.
-* All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without the need to copy Realm data into unmanaged objects. 
+* All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without the need to copy Realm data into unmanaged objects.
+* MIPS is not supported anymore.
+* Realm requires `minSdkVersion` 16.
+* `IncompatibleSyncedFileException` is removed and no longer thrown.
 
 ### Enhancements
 * Added `Realm.freeze()`, `RealmObject.freeze()`, `RealmResults.freeze()` and `RealmList.freeze()`. These methods will return a frozen version of the current Realm data. This data can be read from any thread without throwing an `IllegalStateException`, but will never change. All frozen Realms and data can be closed by calling `Realm.close()` on the frozen Realm, but fully closing all live Realms will also close the frozen ones. Frozen data can be queried as normal, but trying to mutate it in any way will throw an `IllegalStateException`. This includes all methods that attempt to refresh or add change listeners. (Issue [#6590](https://github.com/realm/realm-java/pull/6590))
 * Added `Realm.isFrozen()`, `RealmObject.isFrozen()`, `RealmObject.isFrozen(RealmModel)`, `RealmResults.isFrozen()` and `RealmList.isFrozen()`, which returns whether or not the data is frozen.
-* Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having too many versions can dramatically increase the filesize of the Realm. 
+* Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having too many versions can dramatically increase the filesize of the Realm.
+* `RealmResults.asJSON()` is no longer `@Beta`
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
@@ -167,7 +171,7 @@ None.
 * None.
 
 ### Fixed
-* [ObjectServer] The C++ networking layer now correctly uses any system defined proxy the same way the Java networking layer does. (Issue [#6574](https://github.com/realm/realm-java/pull/6574)). 
+* [ObjectServer] The C++ networking layer now correctly uses any system defined proxy the same way the Java networking layer does. (Issue [#6574](https://github.com/realm/realm-java/pull/6574)).
 * The Realm bytecode transformer now works correctly with Android Gradle Plugin 3.6.0-alpha01 and beyond. (Issue [#6531](https://github.com/realm/realm-java/issues/6531)).
 * Queries on RealmLists with objects containing indexed integers could return the wrong result. (Issue [#6522](https://github.com/realm/realm-java/issues/6522), since 5.11.0)
 
@@ -186,7 +190,7 @@ None.
 ## 5.13.0(2019-07-23)
 
 ### Enhancements
-* [ObjectServer] Added support for faster initial synchronization for fully synchronized Realms. (Issue [#6469](https://github.com/realm/realm-java/issues/6469)) 
+* [ObjectServer] Added support for faster initial synchronization for fully synchronized Realms. (Issue [#6469](https://github.com/realm/realm-java/issues/6469))
 * [ObjectServer] Improved session lifecycle debug output. (Issue [#6552](https://github.com/realm/realm-java/pull/6552)).
 
 ### Fixed
@@ -211,7 +215,7 @@ None.
 
 ### Fixed
 * [ObjectServer] `PermissionManager` stopped working if an intermittent network error was reported. (Issue [#6492](https://github.com/realm/realm-java/issues/6492), since 3.7.0)
-* The Kotlin extensions library no longer defines a `app_name`, which in some cases conflicted with the `app_name` defined by applications. (Issue [#6536](https://github.com/realm/realm-java/issues/6536), since 4.3.0) 
+* The Kotlin extensions library no longer defines a `app_name`, which in some cases conflicted with the `app_name` defined by applications. (Issue [#6536](https://github.com/realm/realm-java/issues/6536), since 4.3.0)
 
 ### Compatibility
 * Realm Object Server: 3.21.0 or later.
@@ -236,7 +240,7 @@ NOTE: This version is only compatible with Realm Object Server 3.21.0 or later.
 * Added support for incremental annotation processing added in Gradle 4.7. (Issue [#5906](https://github.com/realm/realm-java/issues/5906)).
 
 ### Fixed
-* [ObjectServer] Fix an error in the calculation of the `downloadableBytes` value sent by `ProgressListeners`. 
+* [ObjectServer] Fix an error in the calculation of the `downloadableBytes` value sent by `ProgressListeners`.
 * [ObjectServer] HTTP requests made by the Sync client now always include a Host: header, as required by HTTP/1.1, although its value will be empty if no value is specified by the application.
 * [ObjectServer] The server no longer rejects subscriptions based on queries with distinct and/or limit clauses.
 * [ObjectServer] If a user had `canCreate` but not `canUpdate` privileges on a class, the user would be able to create the object, but not actually set any meaningful values on that object, despite the rule that objects created within the same transaction can always be modified.
@@ -261,7 +265,7 @@ NOTE: This version is only compatible with Realm Object Server 3.21.0 or later.
 * [ObjectServer] Added the option of setting a time-to-live for subscriptions. Setting this will automatically delete the subscription after the provided TTL has expired and the subscription hasn't been used. (Issue [#6453](https://github.com/realm/realm-java/issues/6453))
 
 ### Fixed
-* Dates returned from the Realm file no longer overflow or underflow if they exceed `Long.MAX_VALUE` or `Long.MIN_VALUE` but instead clamp to their respective value. (Issue [#2722](https://github.com/realm/realm-java/issues/2722)) 
+* Dates returned from the Realm file no longer overflow or underflow if they exceed `Long.MAX_VALUE` or `Long.MIN_VALUE` but instead clamp to their respective value. (Issue [#2722](https://github.com/realm/realm-java/issues/2722))
 
 ### Compatibility
 * Realm Object Server: 3.11.0 or later.
@@ -346,7 +350,7 @@ This release also contains all changes from 5.8.0-BETA1 and 5.8.0-BETA2.
 * None
 
 ### Fixed
-* `RealmResults` listeners not triggering the initial callback for Query-based Realm when the device is offline [#6235](https://github.com/realm/realm-java/issues/6235). 
+* `RealmResults` listeners not triggering the initial callback for Query-based Realm when the device is offline [#6235](https://github.com/realm/realm-java/issues/6235).
 
 ### Known Bugs
 * `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` has been rewritten to support import flags. It is currently ~30% slower than in 5.7.0.
@@ -403,11 +407,11 @@ This release also contains all changes from 5.8.0-BETA1 and 5.8.0-BETA2.
 ## 5.7.0 (2018-09-24)
 
 ### Enhancements
-* [ObjectServer] Devices will now report download progress for read-only Realms which 
-  will allow the server to compact files sooner, saving server space. This does not affect 
-  the client. You will need to upgrade your Realm Object Server to at least version 3.11.0 
-  or use [Realm Cloud](https://cloud.realm.io). If you try to connect to a ROS v3.10.x or 
-  previous, you will see an error like `Wrong protocol version in Sync HTTP request, 
+* [ObjectServer] Devices will now report download progress for read-only Realms which
+  will allow the server to compact files sooner, saving server space. This does not affect
+  the client. You will need to upgrade your Realm Object Server to at least version 3.11.0
+  or use [Realm Cloud](https://cloud.realm.io). If you try to connect to a ROS v3.10.x or
+  previous, you will see an error like `Wrong protocol version in Sync HTTP request,
   client protocol version = 25, server protocol version = 24`.
 
 ### Fixed
@@ -459,7 +463,7 @@ This release also contains all changes from 5.8.0-BETA1 and 5.8.0-BETA2.
 * [ObjectServer] Added Kotlin extension property `Realm.syncSession` for synchronized Realms.
 * [ObjectServer] Added Kotlin extension method `Realm.classPermissions<RealmModel>()`.
 * [ObjectServer] Added support for starting and stopping synchronization using `SyncSession.start()` and `SyncSession.stop()` (#6135).
-* [ObjectServer] Added API's for making it easier to work with network proxies (#6163): 
+* [ObjectServer] Added API's for making it easier to work with network proxies (#6163):
   * `SyncManager.setAuthorizationHeaderName(String headerName)`
   * `SyncManager.setAuthorizationHeaderName(String headerName, String host)`
   * `SyncManager.addCustomRequestHeader(String headerName, String headerValue)`
@@ -467,7 +471,7 @@ This release also contains all changes from 5.8.0-BETA1 and 5.8.0-BETA2.
   * `SyncManager.addCustomRequestHeaders(Map<String, String> headers)`
   * `SyncManager.addCustomRequestHeaders(Map<String, String> headers, String host)`
   * `SyncConfiguration.Builder.urlPrefix(String prefix)`
- 
+
 ### Fixed
 * Methods and classes requiring synchronized Realms have been removed from the standard AAR package. They are now only visible when enabling synchronized Realms in Gradle. The methods and classes will still be visible in the source files and docs, but annotated with `@ObjectServer` (#5799).
 
@@ -477,7 +481,7 @@ This release also contains all changes from 5.8.0-BETA1 and 5.8.0-BETA2.
 * Updated to Object Store commit: b0fc2814d9e6061ce5ba1da887aab6cfba4755ca
 
 ### Credits
-* Thanks to @lucasdornelasv for improving the performance of `Realm.copyToRealm()`, `Realm.copyToRealmOrUpdate()` and `Realm.copyFromRealm()` #(6124). 
+* Thanks to @lucasdornelasv for improving the performance of `Realm.copyToRealm()`, `Realm.copyToRealmOrUpdate()` and `Realm.copyFromRealm()` #(6124).
 
 
 ## 5.4.3 (YYYY-MM-DD)
