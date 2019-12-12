@@ -36,86 +36,85 @@ public interface Row {
     long getColumnCount();
 
     /**
-     * Returns the name of a column identified by columnIndex. Notice that the index is zero based.
+     * Returns all the column names of the tables.
      *
-     * @param columnIndex the column index.
-     * @return the name of the column.
+     * @return array of column names.
      */
-    String getColumnName(long columnIndex);
+    String[] getColumnNames();
 
     /**
-     * Returns the 0-based index of a column based on the name.
+     * Returns the column key from a column name.
      *
      * @param columnName column name
-     * @return the index, {@code -1} if not found
+     * @return the column key
      */
-    long getColumnIndex(String columnName);
+    long getColumnKey(String columnName);
 
     /**
-     * Gets the type of a column identified by the columnIndex.
+     * Gets the type of a column identified by the columnKey.
      *
-     * @param columnIndex index of the column.
+     * @param columnKey column key.
      * @return the type of the particular column.
      */
-    RealmFieldType getColumnType(long columnIndex);
+    RealmFieldType getColumnType(long columnKey);
 
     Table getTable();
 
     /**
-     * Returns the index in the original source table, not the tableview.
+     * Returns the object key in the original source table, not the tableview.
      */
-    long getIndex();
+    long getObjectKey();
 
-    long getLong(long columnIndex);
+    long getLong(long columnKey);
 
-    boolean getBoolean(long columnIndex);
+    boolean getBoolean(long columnKey);
 
-    float getFloat(long columnIndex);
+    float getFloat(long columnKey);
 
-    double getDouble(long columnIndex);
+    double getDouble(long columnKey);
 
-    Date getDate(long columnIndex);
+    Date getDate(long columnKey);
 
-    String getString(long columnIndex);
+    String getString(long columnKey);
 
-    byte[] getBinaryByteArray(long columnIndex);
+    byte[] getBinaryByteArray(long columnKey);
 
-    long getLink(long columnIndex);
+    long getLink(long columnKey);
 
-    boolean isNullLink(long columnIndex);
+    boolean isNullLink(long columnKey);
 
-    OsList getModelList(long columnIndex);
+    OsList getModelList(long columnKey);
 
-    OsList getValueList(long columnIndex, RealmFieldType fieldType);
+    OsList getValueList(long columnKey, RealmFieldType fieldType);
 
-    void setLong(long columnIndex, long value);
+    void setLong(long columnKey, long value);
 
-    void setBoolean(long columnIndex, boolean value);
+    void setBoolean(long columnKey, boolean value);
 
-    void setFloat(long columnIndex, float value);
+    void setFloat(long columnKey, float value);
 
-    void setDouble(long columnIndex, double value);
+    void setDouble(long columnKey, double value);
 
-    void setDate(long columnIndex, Date date);
+    void setDate(long columnKey, Date date);
 
-    void setString(long columnIndex, @Nullable String value);
+    void setString(long columnKey, @Nullable String value);
 
-    void setBinaryByteArray(long columnIndex, @Nullable byte[] data);
+    void setBinaryByteArray(long columnKey, @Nullable byte[] data);
 
-    void setLink(long columnIndex, long value);
+    void setLink(long columnKey, long value);
 
-    void nullifyLink(long columnIndex);
+    void nullifyLink(long columnKey);
 
-    boolean isNull(long columnIndex);
+    boolean isNull(long columnKey);
 
-    void setNull(long columnIndex);
+    void setNull(long columnKey);
 
     /**
      * Checks if the row is still valid.
      *
      * @return {@code true} if the row is still valid and attached to the underlying data. {@code false} otherwise.
      */
-    boolean isAttached();
+    boolean isValid();
 
     /**
      * Throws {@link IllegalStateException} if the row is not attached.
@@ -129,4 +128,15 @@ public interface Row {
      * @return {@code true} if field name exists, {@code false} otherwise.
      */
     boolean hasColumn(String fieldName);
+
+    /**
+     * Returns a frozen copy of this Row.
+     */
+    Row freeze(OsSharedRealm frozenRealm);
+
+    /**
+     * Return whether the row is considered to be loaded, i.e. it doesn't represent a query in flight.
+     *
+     */
+    boolean isLoaded();
 }

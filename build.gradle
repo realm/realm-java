@@ -11,6 +11,22 @@ apply plugin: 'ch.netzwerg.release'
 
 def currentVersion = file("${projectDir}/version.txt").text.trim()
 
+// Shared configuration that copies relevant properties from the root level and parse them on to
+// child projects.
+def copyProperties = {
+    if (project.hasProperty('buildTargetABIs')) {
+        // Valid options: armeabi-v7a, arm64-v8a, x86, x86_64
+        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
+    }
+    if (project.hasProperty('coreSourcePath')) {
+        def absolutePath = file(project.getProperty('coreSourcePath')).absolutePath
+        startParameter.projectProperties += [coreSourcePath: absolutePath]
+    }
+    if (project.hasProperty('s3cfg')) {
+        startParameter.projectProperties += [s3cfg: project.getProperty('s3cfg')]
+    }
+}
+
 task assembleAnnotations(type:GradleBuild) {
     group = 'Build'
     description = 'Assemble the Realm annotations'
@@ -56,12 +72,7 @@ task assembleRealm(type:GradleBuild) {
     dependsOn installBuildTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['assemble', 'javadocJar', 'sourcesJar']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
-    if (project.hasProperty('s3cfg')) {
-        startParameter.projectProperties += [s3cfg: project.getProperty('s3cfg')]
-    }
+    configure copyProperties
 }
 
 task checkExamples(type:GradleBuild) {
@@ -69,9 +80,7 @@ task checkExamples(type:GradleBuild) {
     description = 'Run the JVM tests and checks the examples'
     buildFile = file('examples/build.gradle')
     tasks = ['check']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
+    configure copyProperties
 }
 
 task checkRealm(type:GradleBuild) {
@@ -79,9 +88,7 @@ task checkRealm(type:GradleBuild) {
     description = 'Run the JVM tests and checks Realm project'
     buildFile = file('realm/build.gradle')
     tasks = ['check']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
+    configure copyProperties
 }
 
 task check {
@@ -97,9 +104,7 @@ task assembleUnitTests(type:GradleBuild) {
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['assembleAndroidTest']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
+    configure copyProperties
 }
 
 task connectedUnitTests(type:GradleBuild) {
@@ -108,9 +113,7 @@ task connectedUnitTests(type:GradleBuild) {
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['connectedAndroidTest']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
+    configure copyProperties
 }
 
 task assembleBenchmarks(type:GradleBuild) {
@@ -119,9 +122,7 @@ task assembleBenchmarks(type:GradleBuild) {
     dependsOn installTransformer
     buildFile = file('library-benchmarks/build.gradle')
     tasks = ['assembleAndroidTest']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
+    configure copyProperties
 }
 
 task connectedBenchmarks(type:GradleBuild) {
@@ -130,9 +131,7 @@ task connectedBenchmarks(type:GradleBuild) {
     dependsOn installTransformer
     buildFile = file('library-benchmarks/build.gradle')
     tasks = ['connectedAndroidTest']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
+    configure copyProperties
 }
 
 task installRealm(type:GradleBuild) {
@@ -142,12 +141,7 @@ task installRealm(type:GradleBuild) {
     dependsOn installBuildTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['publishToMavenLocal']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
-    if (project.hasProperty('s3cfg')) {
-        startParameter.projectProperties += [s3cfg: project.getProperty('s3cfg')]
-    }
+    configure copyProperties
 }
 
 task assembleGradlePlugin(type:GradleBuild) {
@@ -198,9 +192,7 @@ task javadoc(type:GradleBuild) {
     group = 'Docs'
     buildFile = file('realm/build.gradle')
     tasks = ['javadocJar']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
+    configure copyProperties
 }
 
 task sourcesJar(type:GradleBuild) {
@@ -208,9 +200,7 @@ task sourcesJar(type:GradleBuild) {
     group = 'Docs'
     buildFile = file('realm/build.gradle')
     tasks = ['sourcesJar']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
+    configure copyProperties
 }
 
 task assemble {
@@ -266,12 +256,7 @@ task cleanRealm(type:GradleBuild) {
     group = 'Clean'
     buildFile = file('realm/build.gradle')
     tasks = ['clean']
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
-    if (project.hasProperty('dontCleanJniFiles')) {
-        startParameter.projectProperties += [dontCleanJniFiles: project.getProperty('dontCleanJniFiles')]
-    }
+    configure copyProperties
 }
 
 task cleanGradlePlugin(type:GradleBuild) {
@@ -388,9 +373,7 @@ task bintrayRealm(type: GradleBuild) {
     buildFile = file('realm/build.gradle')
     tasks = ['bintrayUploadAll']
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
+    configure copyProperties
 }
 
 task bintrayAnnotations(type: GradleBuild) {
@@ -432,9 +415,7 @@ task ojoRealm(type: GradleBuild) {
     buildFile = file('realm/build.gradle')
     tasks = ['ojoUpload']
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    if (project.hasProperty('buildTargetABIs')) {
-        startParameter.projectProperties += [buildTargetABIs: project.getProperty('buildTargetABIs')]
-    }
+    configure copyProperties
 }
 
 task ojoAnnotations(type: GradleBuild) {

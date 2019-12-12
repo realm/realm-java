@@ -28,15 +28,6 @@
 
 #include "realm/util/logger.hpp"
 
-#define TR_ENTER()                                                                                                   \
-    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) {                                              \
-        realm::jni_util::Log::t(" --> %1", __FUNCTION__);                                                            \
-    }
-#define TR_ENTER_PTR(ptr)                                                                                            \
-    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) {                                              \
-        realm::jni_util::Log::t(" --> %1 %2", __FUNCTION__, static_cast<int64_t>(ptr));                              \
-    }
-
 namespace realm {
 
 namespace jni_util {

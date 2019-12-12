@@ -160,6 +160,14 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
         return this;
     }
 
+    @Override
+    public OrderedRealmCollection<E> freeze() {
+        // Technically, nothing prevents us from supporting this, but there isn't any good use
+        // case for supporting it, since snapshots should only be used when modifying Results.
+        // So for now, this is disabled.
+        throw getUnsupportedException("freeze");
+    }
+
     /**
      * Deletes the object at the given index from the Realm. The object at the given index will become invalid. Just
      * returns if the object is invalid already.
@@ -172,7 +180,7 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
     public void deleteFromRealm(int location) {
         realm.checkIfValidAndInTransaction();
         UncheckedRow row = osResults.getUncheckedRow(location);
-        if (row.isAttached()) {
+        if (row.isValid()) {
             osResults.delete(location);
         }
     }
@@ -187,7 +195,7 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
     public boolean deleteFirstFromRealm() {
         realm.checkIfValidAndInTransaction();
         UncheckedRow row = osResults.firstUncheckedRow();
-        return row != null && row.isAttached() && osResults.deleteFirst();
+        return row != null && row.isValid() && osResults.deleteFirst();
     }
 
     /**
@@ -200,7 +208,7 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
     public boolean deleteLastFromRealm() {
         realm.checkIfValidAndInTransaction();
         UncheckedRow row = osResults.lastUncheckedRow();
-        return row != null && row.isAttached() && osResults.deleteLast();
+        return row != null && row.isValid() && osResults.deleteLast();
     }
 
     /**
@@ -214,5 +222,10 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
     @Override
     public boolean deleteAllFromRealm() {
         return super.deleteAllFromRealm();
+    }
+
+    @Override
+    public boolean isFrozen() {
+        return false;
     }
 }

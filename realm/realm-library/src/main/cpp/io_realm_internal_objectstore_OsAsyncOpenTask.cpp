@@ -34,7 +34,6 @@ using namespace realm::_impl;
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAsyncOpenTask_start(JNIEnv* env, jobject obj, jlong config_ptr)
 {
-    TR_ENTER()
     try {
 
         static JavaClass java_async_open_task_class(env, "io/realm/internal/objectstore/OsAsyncOpenTask");
@@ -50,7 +49,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAsyncOpenTask_start
             jni_util::JniUtils::get_env(true)->DeleteGlobalRef(obj);
         };
         std::shared_ptr<_jobject> task_obj(env->NewGlobalRef(global_obj), deleter);
-        task->start([task=std::move(task_obj)](realm::ThreadSafeReference<realm::Realm> realm_ref, std::exception_ptr error) {
+        task->start([task=std::move(task_obj)](realm::ThreadSafeReference realm_ref, std::exception_ptr error) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
             if (error) {
                 try {
@@ -77,7 +76,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAsyncOpenTask_start
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsAsyncOpenTask_cancel(JNIEnv*, jobject, jlong task_ptr)
 {
-    TR_ENTER()
     AsyncOpenTask* task = reinterpret_cast<AsyncOpenTask*>(task_ptr);
     task->cancel();
 }

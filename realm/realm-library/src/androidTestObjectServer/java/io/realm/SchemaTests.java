@@ -19,7 +19,6 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,10 +45,6 @@ public class SchemaTests {
     public void setUp() {
         SyncUser user = SyncTestUtils.createTestUser();
         config = configFactory.createSyncConfigurationBuilder(user, "realm://objectserver.realm.io/~/default").build();
-    }
-
-    @After
-    public void tearDown() throws Exception {
     }
 
     @Test

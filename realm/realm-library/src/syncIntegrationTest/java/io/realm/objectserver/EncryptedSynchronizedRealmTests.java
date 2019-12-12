@@ -1,13 +1,10 @@
 package io.realm.objectserver;
 
-import android.os.SystemClock;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.ObjectServerError;
 import io.realm.Realm;
@@ -21,7 +18,7 @@ import io.realm.SyncTestUtils;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmFileException;
+import io.realm.exceptions.RealmError;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
@@ -146,7 +143,7 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         try {
             realm = Realm.getInstance(configWithoutEncryption);
             fail("It should not be possible to open the Realm without the encryption key set previously.");
-        } catch (RealmFileException ignored) {
+        } catch (RealmError ignored) {
         } finally {
             if (realm != null) {
                 realm.close();

@@ -54,7 +54,7 @@ public class QueryDescriptorTests {
     @Before
     public void setUp() {
         RealmConfiguration config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         table = sharedRealm.createTable("test_table");
     }
@@ -66,18 +66,26 @@ public class QueryDescriptorTests {
 
     @Test
     public void getInstanceForDistinct() {
-        for (RealmFieldType type : QueryDescriptor.DISTINCT_VALID_FIELD_TYPES) {
-            long column = table.addColumn(type, type.name());
-            table.addSearchIndex(column);
-        }
+        RealmFieldType[] types = new RealmFieldType[]{RealmFieldType.BOOLEAN,
+                RealmFieldType.INTEGER,
+                RealmFieldType.STRING,
+                RealmFieldType.DATE};
+        long columnKey1 = table.addColumn(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN.name());
+        long columnKey2 = table.addColumn(RealmFieldType.INTEGER, RealmFieldType.INTEGER.name());
+        long columnKey3 = table.addColumn(RealmFieldType.STRING, RealmFieldType.STRING.name());
+        long columnKey4 = table.addColumn(RealmFieldType.DATE, RealmFieldType.DATE.name());
 
-        long i = 0;
-        for (RealmFieldType type : QueryDescriptor.DISTINCT_VALID_FIELD_TYPES) {
-            QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForDistinct(null, table, type.name());
-            assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
-            assertEquals(i, sortDescriptor.getColumnIndices()[0][0]);
+        table.addSearchIndex(columnKey1);
+        table.addSearchIndex(columnKey2);
+        table.addSearchIndex(columnKey3);
+        table.addSearchIndex(columnKey4);
+        long[] columnsKey = new long[]{columnKey1, columnKey2, columnKey3, columnKey4};
+
+        for (int i = 0; i < columnsKey.length; i++) {
+            QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForDistinct(null, table, types[i].name());
+            assertEquals(1, sortDescriptor.getColumnKeys()[0].length);
+            assertEquals(columnsKey[i], sortDescriptor.getColumnKeys()[0][0]);
             assertNull(sortDescriptor.getAscendings());
-            i++;
         }
     }
 
@@ -112,14 +120,14 @@ public class QueryDescriptorTests {
         long intColumn = table.addColumn(intType, intType.name());
         table.addSearchIndex(intColumn);
 
-        QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForDistinct(null, table, new String[] {
+        QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForDistinct(null, table, new String[]{
                 stringType.name(), intType.name()});
-        assertEquals(2, sortDescriptor.getColumnIndices().length);
+        assertEquals(2, sortDescriptor.getColumnKeys().length);
         assertNull(sortDescriptor.getAscendings());
-        assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
-        assertEquals(stringColumn, sortDescriptor.getColumnIndices()[0][0]);
-        assertEquals(1, sortDescriptor.getColumnIndices()[1].length);
-        assertEquals(intColumn, sortDescriptor.getColumnIndices()[1][0]);
+        assertEquals(1, sortDescriptor.getColumnKeys()[0].length);
+        assertEquals(stringColumn, sortDescriptor.getColumnKeys()[0][0]);
+        assertEquals(1, sortDescriptor.getColumnKeys()[1].length);
+        assertEquals(intColumn, sortDescriptor.getColumnKeys()[1][0]);
     }
 
     @Test
@@ -138,38 +146,48 @@ public class QueryDescriptorTests {
 
     @Test
     public void getInstanceForSort() {
-        for (RealmFieldType type : QueryDescriptor.SORT_VALID_FIELD_TYPES) {
-            table.addColumn(type, type.name());
-        }
+        RealmFieldType[] types = new RealmFieldType[]{RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.FLOAT, RealmFieldType.DOUBLE,
+                RealmFieldType.STRING, RealmFieldType.DATE};
+        long columnKey1 = table.addColumn(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN.name());
+        long columnKey2 = table.addColumn(RealmFieldType.INTEGER, RealmFieldType.INTEGER.name());
+        long columnKey3 = table.addColumn(RealmFieldType.FLOAT, RealmFieldType.FLOAT.name());
+        long columnKey4 = table.addColumn(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE.name());
+        long columnKey5 = table.addColumn(RealmFieldType.STRING, RealmFieldType.STRING.name());
+        long columnKey6 = table.addColumn(RealmFieldType.DATE, RealmFieldType.DATE.name());
 
-        long i = 0;
-        for (RealmFieldType type : QueryDescriptor.SORT_VALID_FIELD_TYPES) {
-            QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForSort(null, table, type.name(), Sort.DESCENDING);
-            assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
-            assertEquals(i, sortDescriptor.getColumnIndices()[0][0]);
+        long[] columnsKey = new long[]{columnKey1, columnKey2, columnKey3, columnKey4, columnKey5, columnKey6};
+
+        for (int i = 0; i < columnsKey.length; i++) {
+            QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForSort(null, table, types[i].name(), Sort.DESCENDING);
+            assertEquals(1, sortDescriptor.getColumnKeys()[0].length);
+            assertEquals(columnsKey[i], sortDescriptor.getColumnKeys()[0][0]);
             assertFalse(sortDescriptor.getAscendings()[0]);
-            i++;
         }
     }
 
     @Test
     public void getInstanceForSort_linkField() {
-        for (RealmFieldType type : QueryDescriptor.DISTINCT_VALID_FIELD_TYPES) {
-            long column = table.addColumn(type, type.name());
-            table.addSearchIndex(column);
-        }
+        RealmFieldType[] types = new RealmFieldType[]{RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.STRING, RealmFieldType.DATE};
+        long columnKey1 = table.addColumn(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN.name());
+        long columnKey2 = table.addColumn(RealmFieldType.INTEGER, RealmFieldType.INTEGER.name());
+        long columnKey3 = table.addColumn(RealmFieldType.STRING, RealmFieldType.STRING.name());
+        long columnKey4 = table.addColumn(RealmFieldType.DATE, RealmFieldType.DATE.name());
+        table.addSearchIndex(columnKey1);
+        table.addSearchIndex(columnKey2);
+        table.addSearchIndex(columnKey3);
+        table.addSearchIndex(columnKey4);
+        long[] columnsKey = new long[]{columnKey1, columnKey2, columnKey3, columnKey4};
+
         RealmFieldType objectType = RealmFieldType.OBJECT;
         long columnLink = table.addColumnLink(objectType, objectType.name(), table);
 
-        long i = 0;
-        for (RealmFieldType type : QueryDescriptor.DISTINCT_VALID_FIELD_TYPES) {
+        for (int j = 0; j < columnsKey.length; j++) {
             QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForSort(null, table,
-                    String.format("%s.%s", objectType.name(), type.name()), Sort.ASCENDING);
-            assertEquals(2, sortDescriptor.getColumnIndices()[0].length);
-            assertEquals(columnLink, sortDescriptor.getColumnIndices()[0][0]);
-            assertEquals(i, sortDescriptor.getColumnIndices()[0][1]);
+                    String.format("%s.%s", objectType.name(), types[j].name()), Sort.ASCENDING);
+            assertEquals(2, sortDescriptor.getColumnKeys()[0].length);
+            assertEquals(columnLink, sortDescriptor.getColumnKeys()[0][0]);
+            assertEquals(columnsKey[j], sortDescriptor.getColumnKeys()[0][1]);
             assertTrue(sortDescriptor.getAscendings()[0]);
-            i++;
         }
     }
 
@@ -180,18 +198,18 @@ public class QueryDescriptorTests {
         RealmFieldType intType = RealmFieldType.INTEGER;
         long intColumn = table.addColumn(intType, intType.name());
 
-        QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForSort(null, table, new String[] {
-                stringType.name(), intType.name()}, new Sort[] {Sort.ASCENDING, Sort.DESCENDING});
+        QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForSort(null, table, new String[]{
+                stringType.name(), intType.name()}, new Sort[]{Sort.ASCENDING, Sort.DESCENDING});
 
         assertEquals(2, sortDescriptor.getAscendings().length);
-        assertEquals(2, sortDescriptor.getColumnIndices().length);
+        assertEquals(2, sortDescriptor.getColumnKeys().length);
 
-        assertEquals(1, sortDescriptor.getColumnIndices()[0].length);
-        assertEquals(stringColumn, sortDescriptor.getColumnIndices()[0][0]);
+        assertEquals(1, sortDescriptor.getColumnKeys()[0].length);
+        assertEquals(stringColumn, sortDescriptor.getColumnKeys()[0][0]);
         assertTrue(sortDescriptor.getAscendings()[0]);
 
-        assertEquals(1, sortDescriptor.getColumnIndices()[1].length);
-        assertEquals(intColumn, sortDescriptor.getColumnIndices()[1][0]);
+        assertEquals(1, sortDescriptor.getColumnKeys()[1].length);
+        assertEquals(intColumn, sortDescriptor.getColumnKeys()[1][0]);
         assertFalse(sortDescriptor.getAscendings()[1]);
 
     }
@@ -206,7 +224,7 @@ public class QueryDescriptorTests {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Number of fields and sort orders do not match.");
         QueryDescriptor.getInstanceForSort(null, table,
-                new String[] {stringType.name(), intType.name()}, new Sort[] {Sort.ASCENDING});
+                new String[]{stringType.name(), intType.name()}, new Sort[]{Sort.ASCENDING});
 
     }
 

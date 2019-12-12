@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2019 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,160 +13,165 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package io.realm.internal;
+package io.realm;
 
 import java.util.Date;
 
-import io.realm.RealmFieldType;
+import io.realm.internal.InvalidRow;
+import io.realm.internal.OsList;
+import io.realm.internal.OsSharedRealm;
+import io.realm.internal.Row;
+import io.realm.internal.Table;
 
 
 /**
- * Row wrapper that stubs all access with IllegalStateExceptions except for isValid. This can be used instead of
- * adding null checks everywhere when the underlying Row accessor in Realm's underlying storage engine is no longer
- * available.
+ * A PendingRow that has been frozen. This behaves in many ways similar
+ * to a deleted Row, but will report {@link #isLoaded()} as {@code as false}.
  */
-public enum InvalidRow implements Row {
+public enum FrozenPendingRow implements Row {
     INSTANCE;
+
+    private static final String QUERY_NOT_RETURNED_MESSAGE =
+            "This object was frozen while a query for it was still running.";
 
     @Override
     public long getColumnCount() {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public String[] getColumnNames() {
-        throw getStubException();
+        throw new  IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public long getColumnKey(String columnName) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public RealmFieldType getColumnType(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public Table getTable() {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public long getObjectKey() {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public long getLong(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public boolean getBoolean(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public float getFloat(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public double getDouble(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public Date getDate(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public String getString(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public byte[] getBinaryByteArray(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public long getLink(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public boolean isNullLink(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public OsList getModelList(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public OsList getValueList(long columnKey, RealmFieldType fieldType) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setLong(long columnKey, long value) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setBoolean(long columnKey, boolean value) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setFloat(long columnKey, float value) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setDouble(long columnKey, double value) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setDate(long columnKey, Date date) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setString(long columnKey, String value) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setBinaryByteArray(long columnKey, byte[] data) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setLink(long columnKey, long value) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void nullifyLink(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public boolean isNull(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setNull(long columnKey) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
@@ -176,25 +181,21 @@ public enum InvalidRow implements Row {
 
     @Override
     public void checkIfAttached() {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public boolean hasColumn(String fieldName) {
-        throw getStubException();
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public Row freeze(OsSharedRealm frozenRealm) {
-        return INSTANCE;
+        return InvalidRow.INSTANCE;
     }
 
     @Override
     public boolean isLoaded() {
-        return true;
-    }
-
-    private RuntimeException getStubException() {
-        return new IllegalStateException("Object is no longer managed by Realm. Has it been deleted?");
+        return false;
     }
 }

@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
-import io.reactivex.annotations.Beta;
+import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
@@ -107,7 +107,8 @@ public class SyncConfiguration extends RealmConfiguration {
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
     private final boolean syncClientValidateSsl;
-    @Nullable private final String serverCertificateAssetName;
+    @Nullable
+    private final String serverCertificateAssetName;
     @Nullable private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
     private final long initialDataTimeoutMillis;
@@ -129,6 +130,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               @Nullable RxObservableFactory rxFactory,
                               @Nullable Realm.Transaction initialDataTransaction,
                               boolean readOnly,
+                              long maxNumberOfActiveVersions,
                               SyncUser user,
                               URI serverUrl,
                               SyncSession.ErrorHandler errorHandler,
@@ -157,7 +159,8 @@ public class SyncConfiguration extends RealmConfiguration {
                 initialDataTransaction,
                 readOnly,
                 compactOnLaunch,
-                false
+                false,
+                maxNumberOfActiveVersions
         );
 
         this.user = user;
@@ -219,7 +222,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true);
+        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE);
     }
 
     static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
@@ -534,6 +537,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private String syncUrlPrefix = null;
         @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
         private ClientResyncMode clientResyncMode = null;
+        private long maxNumberOfActiveVersions = Long.MAX_VALUE;
 
         /**
          * Creates an instance of the Builder for the SyncConfiguration. This SyncConfiguration
@@ -1149,6 +1153,28 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Sets the maximum number of live versions in the Realm file before an {@link IllegalStateException} is thrown when
+         * attempting to write more data.
+         * <p>
+         * Realm is capable of concurrently handling many different versions of Realm objects. This can happen if you
+         * have a Realm open on many different threads or are freezing objects while data is being written to the file.
+         * <p>
+         * Under normal circumstances this is not a problem, but if the number of active versions grow too large, it will
+         * have a negative effect on the filesize on disk. Setting this parameters can therefore be used to prevent uses of
+         * Realm that can result in very large Realms.
+         * <p>
+         * Note, the version number will also increase when changes from other devices are integrated on this device,
+         * so the number of active versions will also depend on what other devices writing to the same Realm are doing.
+         *
+         * @param number the maximum number of active versions before an exception is thrown.
+         * @see <a href="https://realm.io/docs/java/latest/#faq-large-realm-file-size">FAQ</a>
+         */
+        public Builder maxNumberOfActiveVersions(long number) {
+            this.maxNumberOfActiveVersions = number;
+            return this;
+        }
+
+        /**
          * Creates the RealmConfiguration based on the builder parameters.
          *
          * @return the created {@link SyncConfiguration}.
@@ -1189,7 +1215,7 @@ public class SyncConfiguration extends RealmConfiguration {
             }
 
             if (rxFactory == null && isRxJavaAvailable()) {
-                rxFactory = new RealmObservableFactory();
+                rxFactory = new RealmObservableFactory(true);
             }
 
             // Determine location on disk
@@ -1267,6 +1293,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     rxFactory,
                     initialDataTransaction,
                     readOnly,
+                    maxNumberOfActiveVersions,
 
                     // Sync Configuration specific
                     user,

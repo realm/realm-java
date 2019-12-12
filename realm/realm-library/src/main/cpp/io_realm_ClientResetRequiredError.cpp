@@ -26,7 +26,6 @@ using namespace realm;
 JNIEXPORT void JNICALL Java_io_realm_ClientResetRequiredError_nativeExecuteClientReset(JNIEnv* env, jobject,
                                                                                jstring localRealmPath)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, localRealmPath);
         if (!SyncManager::shared().immediately_run_file_actions(std::string(local_realm_path))) {

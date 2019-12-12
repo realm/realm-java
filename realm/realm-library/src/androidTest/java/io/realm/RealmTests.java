@@ -33,7 +33,6 @@ import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -105,7 +104,6 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.OsSharedRealm;
-import io.realm.internal.Table;
 import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
@@ -1161,8 +1159,8 @@ public class RealmTests {
         assertEquals(1, compactOnLaunchCount.get());
 
         realm = Realm.getInstance(realmConfig);
-        // Called 2 more times. The PK table migration logic (the old PK bug) needs to open/close the Realm once.
-        assertEquals(3, compactOnLaunchCount.get());
+
+        assertEquals(2, compactOnLaunchCount.get());
 
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -1170,7 +1168,7 @@ public class RealmTests {
                 Realm bgRealm = Realm.getInstance(realmConfig);
                 bgRealm.close();
                 // compactOnLaunch should not be called anymore!
-                assertEquals(3, compactOnLaunchCount.get());
+                assertEquals(2, compactOnLaunchCount.get());
             }
         });
         thread.start();
@@ -1183,7 +1181,7 @@ public class RealmTests {
 
         realm.close();
 
-        assertEquals(3, compactOnLaunchCount.get());
+        assertEquals(2, compactOnLaunchCount.get());
     }
 
     @Test
@@ -4010,9 +4008,8 @@ public class RealmTests {
         assertFalse(bgRealmSecondWaitResult.get());
     }
 
-    // Tests if waitForChange still blocks if stopWaitForChange has been called for a realm in a different thread.
     @Test
-    public void waitForChange_blockSpecificThreadOnly() throws InterruptedException {
+    public void waitForChange_stopWaitForChangeReleasesAllWaitingThreads() throws InterruptedException {
         final CountDownLatch bgRealmsOpened = new CountDownLatch(2);
         final CountDownLatch bgRealmsClosed = new CountDownLatch(2);
         final AtomicBoolean bgRealmFirstWaitResult = new AtomicBoolean(true);
@@ -4038,7 +4035,8 @@ public class RealmTests {
             public void run() {
                 Realm realm = Realm.getInstance(realmConfig);
                 bgRealmsOpened.countDown();
-                bgRealmSecondWaitResult.set(realm.waitForChange());
+                bgRealmSecondWaitResult.set(realm.waitForChange());//In Core 6 calling stopWaitForChange will release all waiting threads
+                // which causes query below to run before `populateTestRealm` happens
                 bgRealmWaitForChangeResult.set(realm.where(AllTypes.class).count());
                 realm.close();
                 bgRealmsClosed.countDown();
@@ -4054,8 +4052,8 @@ public class RealmTests {
         populateTestRealm();
         TestHelper.awaitOrFail(bgRealmsClosed);
         assertFalse(bgRealmFirstWaitResult.get());
-        assertTrue(bgRealmSecondWaitResult.get());
-        assertEquals(TEST_DATA_SIZE, bgRealmWaitForChangeResult.get());
+        assertFalse(bgRealmSecondWaitResult.get());
+        assertEquals(0, bgRealmWaitForChangeResult.get());
     }
 
     // Checks if waitForChange() does not respond to Thread.interrupt().
@@ -4199,53 +4197,6 @@ public class RealmTests {
         assertFalse(bgRealmChangeResult.get());
     }
 
-    // Check if the column indices cache is refreshed if the index of a defined column is changed by another Realm
-    // instance.
-    @Test
-    public void nonAdditiveSchemaChangesWhenTypedRealmExists() throws InterruptedException {
-        final String TEST_CHARS = "TEST_CHARS";
-        final RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
-                .schema(StringOnly.class)
-                .name("schemaChangeTest")
-                .build();
-        Realm realm = Realm.getInstance(realmConfig);
-        io_realm_entities_StringOnlyRealmProxy.StringOnlyColumnInfo columnInfo
-                = (io_realm_entities_StringOnlyRealmProxy.StringOnlyColumnInfo) realm.getSchema().getColumnInfo(StringOnly.class);
-        assertEquals(0, columnInfo.charsIndex);
-
-        realm.beginTransaction();
-        StringOnly stringOnly = realm.createObject(StringOnly.class);
-        stringOnly.setChars(TEST_CHARS);
-        realm.commitTransaction();
-
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                // Here we try to change the column index of FIELD_CHARS from 0 to 1.
-                DynamicRealm realm = DynamicRealm.getInstance(realmConfig);
-                realm.beginTransaction();
-                RealmObjectSchema stringOnlySchema = realm.getSchema().get(StringOnly.CLASS_NAME);
-                assertEquals(0, stringOnlySchema.getColumnIndex(StringOnly.FIELD_CHARS));
-                Table table = stringOnlySchema.getTable();
-                // Please notice that we cannot do it by removing/adding a column since it is not allowed by Object
-                // Store. Do it by using the internal API insertColumn.
-                table.insertColumn(0, RealmFieldType.INTEGER, "NewColumn");
-                assertEquals(1, stringOnlySchema.getColumnIndex(StringOnly.FIELD_CHARS));
-                realm.commitTransaction();
-                realm.close();
-            }
-        });
-        thread.start();
-        thread.join();
-        realm.refresh();
-
-        // The columnInfo object never changes, only the indexes it references will.
-        assertSame(columnInfo, realm.getSchema().getColumnInfo(StringOnly.class));
-        assertEquals(TEST_CHARS, stringOnly.getChars());
-        assertEquals(1, columnInfo.charsIndex);
-        realm.close();
-    }
-
     @Test
     public void getGlobalInstanceCount() {
         final CountDownLatch bgDone = new CountDownLatch(1);
@@ -4257,27 +4208,45 @@ public class RealmTests {
         Realm realm = Realm.getInstance(config);
         assertEquals(1, Realm.getGlobalInstanceCount(config));
 
+        Realm realm1 = Realm.getInstance(config);
+        assertEquals(1, Realm.getGlobalInstanceCount(config));
+
+        // Even though each Realm type points to the same Realm on disk, we report them as
+        // multiple global instances
+
         // Opens thread local DynamicRealm.
         DynamicRealm dynRealm = DynamicRealm.getInstance(config);
         assertEquals(2, Realm.getGlobalInstanceCount(config));
+
+        // Create frozen Realms.
+        Realm frozenRealm = realm.freeze();
+        assertTrue(frozenRealm.isFrozen());
+        assertEquals(3, Realm.getGlobalInstanceCount(config));
+
+        DynamicRealm frozenDynamicRealm = dynRealm.freeze();
+        assertTrue(frozenDynamicRealm.isFrozen());
+        assertEquals(4, Realm.getGlobalInstanceCount(config));
 
         // Opens Realm in another thread.
         new Thread(new Runnable() {
             @Override
             public void run() {
                 Realm realm = Realm.getInstance(config);
-                assertEquals(3, Realm.getGlobalInstanceCount(config));
+                assertEquals(5, Realm.getGlobalInstanceCount(config));
                 realm.close();
-                assertEquals(2, Realm.getGlobalInstanceCount(config));
+                assertEquals(4, Realm.getGlobalInstanceCount(config));
                 bgDone.countDown();
             }
         }).start();
 
         TestHelper.awaitOrFail(bgDone);
         dynRealm.close();
-        assertEquals(1, Realm.getGlobalInstanceCount(config));
+        assertEquals(3, Realm.getGlobalInstanceCount(config));
         realm.close();
+        realm1.close(); // Fully closing the live Realm also closes all frozen Realms
         assertEquals(0, Realm.getGlobalInstanceCount(config));
+        assertTrue(frozenRealm.isClosed());
+        assertTrue(frozenDynamicRealm.isClosed());
     }
 
     @Test
@@ -4571,6 +4540,23 @@ public class RealmTests {
         } catch (RealmMigrationNeededException ignored) {
             // No Realm instance should be opened at this time.
             Realm.deleteRealm(config);
+        }
+    }
+
+    @Test
+    public void hittingMaxNumberOfVersionsThrows() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .name("versions-test.realm")
+                .maxNumberOfActiveVersions(1)
+                .build();
+        Realm realm = Realm.getInstance(config);
+        try {
+            realm.beginTransaction();
+            fail();
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().contains("Number of active versions (2) in the Realm exceeded the limit of 1"));
+        } finally {
+            realm.close();
         }
     }
 

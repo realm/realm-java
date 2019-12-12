@@ -189,8 +189,8 @@ public class Property implements NativeObject {
         return nativeGetLinkedObjectName(nativePtr);
     }
 
-    public long getColumnIndex() {
-        return nativeGetColumnIndex(nativePtr);
+    public long getColumnKey() {
+        return nativeGetColumnKey(nativePtr);
     }
 
     @Override
@@ -217,7 +217,7 @@ public class Property implements NativeObject {
 
     private static native int nativeGetType(long nativePtr);
 
-    private static native long nativeGetColumnIndex(long nativePtr);
+    private static native long nativeGetColumnKey(long nativePtr);
 
     // Return null if the property is not OBJECT, LIST or LINKING_OBJECT type.
     private static native String nativeGetLinkedObjectName(long nativePtr);

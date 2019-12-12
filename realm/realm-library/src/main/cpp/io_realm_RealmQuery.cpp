@@ -29,7 +29,6 @@ using namespace realm;
 
 JNIEXPORT jstring JNICALL Java_io_realm_RealmQuery_nativeSerializeQuery(JNIEnv* env, jclass, jlong table_query_ptr, jlong descriptor_ptr)
 {
-    TR_ENTER()
     try {
         auto query = reinterpret_cast<Query*>(table_query_ptr);
         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
@@ -49,7 +48,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmQuery_nativeSerializeQuery(JNIEnv* 
 JNIEXPORT jlong JNICALL Java_io_realm_RealmQuery_nativeSubscribe(JNIEnv* env, jclass, jlong shared_realm_ptr,
         jstring j_name, jlong table_query_ptr, jlong descriptor_ptr, REALM_UNUSED jlong time_to_live_ms, REALM_UNUSED jboolean update)
 {
-    TR_ENTER()
     try {
         auto realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
         auto name = util::Optional<std::string>(JStringAccessor(env, j_name));
@@ -57,8 +55,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmQuery_nativeSubscribe(JNIEnv* env, jc
         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
         Results r(realm, *query, *descriptor);
 #if REALM_ENABLE_SYNC
-        RowExpr row = partial_sync::subscribe_blocking(r, name, util::Optional<int64_t>(time_to_live_ms), update);
-        return to_jlong_or_not_found(row.get_index());
+        Obj obj = partial_sync::subscribe_blocking(r, name, util::Optional<int64_t>(time_to_live_ms), update);
+        return to_jlong_or_not_found(obj.get_key());
 #endif
     }
     CATCH_STD()

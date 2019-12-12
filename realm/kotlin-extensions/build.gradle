@@ -80,8 +80,6 @@ dependencies {
     androidTestObjectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
     androidTestObjectServerImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
     androidTestObjectServerImplementation 'com.google.code.findbugs:jsr305:3.0.2'
-
-
 }
 
 repositories {
@@ -225,7 +223,7 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-             publications('basePublication', 'objectServerPublication')
+            publications('basePublication', 'objectServerPublication')
             publishPom = true
             publishIvy = false
         }

@@ -19,9 +19,9 @@ public class OsList implements NativeObject, ObservableCollection {
     private final ObserverPairList<CollectionObserverPair> observerPairs =
             new ObserverPairList<CollectionObserverPair>();
 
-    public OsList(UncheckedRow row, long columnIndex) {
+    public OsList(UncheckedRow row, long columnKey) {
         OsSharedRealm sharedRealm = row.getTable().getSharedRealm();
-        long[] ptrs = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnIndex);
+        long[] ptrs = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
 
         this.nativePtr = ptrs[0];
         this.context = sharedRealm.context;
@@ -32,6 +32,14 @@ public class OsList implements NativeObject, ObservableCollection {
         } else {
             targetTable = null;
         }
+    }
+
+    // Use for creating a copy of the OsList, e.g when freezing it.
+    private OsList(OsSharedRealm sharedRealm, long listNativePtr, @Nullable Table targetTable) {
+        this.nativePtr = listNativePtr;
+        this.targetTable = targetTable;
+        this.context = sharedRealm.context;
+        context.addReference(this);
     }
 
     @Override
@@ -255,12 +263,18 @@ public class OsList implements NativeObject, ObservableCollection {
         observerPairs.foreach(new Callback(changeset));
     }
 
+    public OsList freeze(OsSharedRealm frozenRealm) {
+        return new OsList(frozenRealm,
+                nativeFreeze(nativePtr, frozenRealm.getNativePtr()),
+                (targetTable != null) ? targetTable.freeze(frozenRealm) : null);
+    }
+
     private static native long nativeGetFinalizerPtr();
 
     // TODO: nativeTablePtr is not necessary. It is used to create FieldDescriptor which should be generated from
     // OsSchemaInfo.
     // Returns {nativeListPtr, nativeTablePtr}
-    private static native long[] nativeCreate(long nativeSharedRealmPtr, long nativeRowPtr, long columnIndex);
+    private static native long[] nativeCreate(long nativeSharedRealmPtr, long nativeRowPtr, long columnKey);
 
     private static native long nativeGetRow(long nativePtr, long index);
 
@@ -339,4 +353,6 @@ public class OsList implements NativeObject, ObservableCollection {
     private native void nativeStartListening(long nativePtr);
 
     private native void nativeStopListening(long nativePtr);
+
+    private static native long nativeFreeze(long nativePtr, long sharedRealmNativePtr);
 }

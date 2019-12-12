@@ -184,4 +184,23 @@ public interface RealmCollection<E> extends Collection<E>, ManagableObject {
      */
     @Override
     boolean contains(@Nullable Object object);
+
+    /**
+     * Returns a frozen snapshot of this collection. The frozen copy can be read and queried from any thread without throwing
+     * an {@link IllegalStateException}.
+     * <p>
+     * Freezing a collection also creates a Realm which has its own lifecycle, but if the live Realm that spawned the
+     * original collection is fully closed (i.e. all instances across all threads are closed), the frozen Realm and this
+     * collection will be closed as well.
+     * <p>
+     * Frozen collections can be queried as normal, but trying to mutate it in any way or attempting to register a listener will
+     * throw an {@link IllegalStateException}.
+     * <p>
+     * Note: Keeping a large number of frozen collections with different versions alive can have a negative impact on the filesize
+     * of the Realm. In order to avoid such a situation, it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
+     *
+     * @return a frozen copy of this collection.
+     * @throws IllegalStateException if this method is called from inside a write transaction.
+     */
+    RealmCollection<E> freeze();
 }

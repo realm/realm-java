@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.hamcrest.CoreMatchers;
@@ -26,21 +25,17 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.entities.IndexedFields;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.IncompatibleSyncedFileException;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
-import io.realm.objectserver.utils.StringOnlyModule;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -156,7 +151,7 @@ public class SyncedRealmMigrationTests {
         list.add(expectedObjectSchema);
         OsSchemaInfo schemaInfo = new OsSchemaInfo(list);
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config).schemaInfo(schemaInfo);
-        OsSharedRealm.getInstance(configBuilder).close();
+        OsSharedRealm.getInstance(configBuilder, OsSharedRealm.VersionID.LIVE).close();
 
         thrown.expectMessage(
                 CoreMatchers.containsString("The following changes cannot be made in additive-only schema mode:"));
@@ -300,62 +295,11 @@ public class SyncedRealmMigrationTests {
         // Add one extra field which doesn't exist in the typed Realm.
         objectSchema.addField("oneMoreField", int.class);
         dynamicRealm.commitTransaction();
-        // Clear column indices cache.
+        // Clear column keys cache.
         dynamicRealm.close();
 
         // Verify schema again.
         Realm realm = Realm.getInstance(config);
-        realm.close();
-    }
-
-    @Test
-    public void offlineClientReset() throws IOException {
-        SyncConfiguration config = configFactory
-                .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
-                .modules(new StringOnlyModule())
-                .build();
-
-        String path = config.getPath();
-        File realmFile = new File (path);
-        assertFalse(realmFile.exists());
-        // copy the 1.x Realm
-        configFactory.copyRealmFromAssets(InstrumentationRegistry.getContext(), "sync-1.x.realm", config);
-        assertTrue(realmFile.exists());
-
-        // open the file using the new ROS 2.x server
-        try {
-            Realm.getInstance(config);
-            fail("should throw IncompatibleSyncedFileException");
-        } catch (IncompatibleSyncedFileException expected) {
-            String recoveryPath = expected.getRecoveryPath();
-            assertTrue(new File(recoveryPath).exists());
-            // can open the backup Realm
-            RealmConfiguration backupRealmConfiguration = expected.getBackupRealmConfiguration(null, new StringOnlyModule());
-            Realm backupRealm = Realm.getInstance(backupRealmConfiguration);
-            assertFalse(backupRealm.isEmpty());
-            RealmResults<StringOnly> all = backupRealm.where(StringOnly.class).findAll();
-            assertEquals(1, all.size());
-            assertEquals("Hello from ROS 1.X", all.get(0).getChars());
-
-            // make sure it's read only
-            try {
-                backupRealm.beginTransaction();
-                fail("Backup Realm should be read-only, we should throw");
-            } catch (IllegalStateException ignored) {
-            }
-            backupRealm.close();
-
-            // we can open in dynamic mode
-            DynamicRealm dynamicRealm = DynamicRealm.getInstance(backupRealmConfiguration);
-            dynamicRealm.getSchema().checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME);
-            RealmResults<DynamicRealmObject> allDynamic = dynamicRealm.where(StringOnly.CLASS_NAME).findAll();
-            assertEquals(1, allDynamic.size());
-            assertEquals("Hello from ROS 1.X", allDynamic.first().getString(StringOnly.FIELD_CHARS));
-            dynamicRealm.close();
-        }
-
-        Realm realm = Realm.getInstance(config);
-        assertTrue(realm.isEmpty());
         realm.close();
     }
 }
