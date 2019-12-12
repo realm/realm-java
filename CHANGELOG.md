@@ -1,4 +1,4 @@
-## 7.0.0(YYYY-MM-DD)
+## 7.0.0-beta.0 (YYYY-MM-DD)
 
 ### Breaking Changes
 * RxJava Flowables and Observables are now subscribed to and unsubscribed to asynchronously on the thread holding the live Realm, instead of previously where this was done synchronously.
