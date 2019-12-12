@@ -43,7 +43,7 @@ class Realm implements Plugin<Project> {
 
         def syncEnabledDefault = false
         def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
-        def isKotlinProject = project.plugins.findPlugin('kotlin-android') != null
+        def isKotlinProject = project.plugins.findPlugin('kotlin-android') != null || project.plugins.findPlugin("kotlin-multiplatform") != null
         def useKotlinExtensionsDefault = isKotlinProject
         def hasAnnotationProcessorConfiguration = project.getConfigurations().findByName('annotationProcessor') != null
         // TODO add a parameter in 'realm' block if this should be specified by users

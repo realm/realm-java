@@ -473,20 +473,6 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Whether this configuration is for a query-based Realm.
-     * <p>
-     * Query-based synchronization allows a synchronized Realm to be opened in such a way that
-     * only objects queried by the user are synchronized to the device.
-     *
-     * @return {@code true} to open a query-based Realm {@code false} otherwise.
-     * @deprecated use {@link #isFullySynchronizedRealm()} instead.
-     */
-    @Deprecated
-    public boolean isPartialRealm() {
-        return isPartial;
-    }
-
-    /**
      * Returns whether this configuration is for a fully synchronized Realm or not.
      *
      * @see Builder#fullSynchronization() for more details.
@@ -1049,10 +1035,14 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Setting this will open a query-based Realm.
+         * Define this Realm as a fully synchronized Realm.
+         * <p>
+         * Full synchronization, unlike the default query-based synchronization, will transparently
+         * synchronize the entire Realm without needing to query for the data. This option is
+         * useful if the serverside Realm is small and all the data in the Realm should be
+         * available to the user.
          *
-         * @see #isPartialRealm()
-         * @deprecated Use {@link SyncUser#createConfiguration(String)} instead.
+         * @see #isFullySynchronizedRealm() ()
          */
         @Deprecated
         public SyncConfiguration.Builder partialRealm() {

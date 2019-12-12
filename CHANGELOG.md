@@ -1,6 +1,9 @@
 ## 7.0.0-beta.0 (YYYY-MM-DD)
 
 ### Breaking Changes
+
+* [ObjectServer] Query-based Sync is now the default mode of synchronization. To enable Full Realm synchronization use `SyncConfiguration.Builder.fullSynchronization()`. `SyncConfiguration.Builder.partialRealm()` has been deprecated.
+* [ObjectServer] `SyncConfiguration.isPartialRealm()` has been replaced by `SyncConfiguration.isFullySynchronizedRealm()`.
 * RxJava Flowables and Observables are now subscribed to and unsubscribed to asynchronously on the thread holding the live Realm, instead of previously where this was done synchronously.
 * All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without the need to copy Realm data into unmanaged objects.
 * MIPS is not supported anymore.
@@ -21,6 +24,27 @@
 ### Internal
 * `OsSharedRealm.VersionID.hashCode()` was not implemented correctly and included the memory location in the hashcode.
 * OKHttp was upgraded to 3.10.0 from 3.9.0.
+
+
+## 6.1.0(YYYY-MM-DD)
+
+### Enhancements
+* The Realm Gradle plugin now applies `kapt` when used in Kotlin Multiplatform projects. Note, Realm Java still only works for the Android part of a Kotlin Multiplatform project. (Issue [#6653](https://github.com/realm/realm-java/issues/6653))
+
+### Fixed
+* None.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* Updated to Object Store commit: ad96a4c334b475dd67d50c1ca419e257d7a21e18.
+* Updated to Realm Sync v4.8.3.
+
+### Credits
+* Thanks to @sellmair (Sebastian Sellmair) for improving Kotlin Multiplatform support.
 
 
 ## 6.0.2(2019-11-21)
