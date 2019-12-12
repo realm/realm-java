@@ -4,7 +4,7 @@
 * RxJava Flowables and Observables are now subscribed to and unsubscribed to asynchronously on the thread holding the live Realm, instead of previously where this was done synchronously.
 * All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without the need to copy Realm data into unmanaged objects.
 * MIPS is not supported anymore.
-* Realm requires `minSdkVersion` 16.
+* Realm now requires `minSdkVersion` 16. Up from 9.
 * `IncompatibleSyncedFileException` is removed and no longer thrown.
 
 ### Enhancements
