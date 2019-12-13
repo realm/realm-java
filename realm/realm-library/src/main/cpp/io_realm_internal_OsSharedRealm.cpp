@@ -297,7 +297,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
         table =
             sync::create_table_with_primary_key(static_cast<Transaction&>(group), table_name, pkType, field_name, is_nullable);
 #else
-        table = group.add_table_with_primary_key(table_name, pkType, field_name, is_nullable);
+        //__CORE6__ work around until we decide if add_table_with_primary_key should throw if called with the same table name
+        if (!group.has_table(table_name)) {
+            table = group.add_table_with_primary_key(table_name, pkType, field_name, is_nullable);
+        } else {
+            throw TableNameInUse();
+        }
 #endif
         return reinterpret_cast<jlong>(new TableRef(table));
     }
