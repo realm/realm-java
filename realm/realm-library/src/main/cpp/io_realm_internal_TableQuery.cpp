@@ -1093,7 +1093,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNot(JNIEnv* env, 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    ConstTableRef pTable = pQuery->get_table();
     try {
         auto r = pQuery->find();
         return to_jlong_or_not_found(r);
