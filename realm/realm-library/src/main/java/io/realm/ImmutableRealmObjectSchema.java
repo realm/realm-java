@@ -101,6 +101,11 @@ class ImmutableRealmObjectSchema extends RealmObjectSchema {
         throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
     }
 
+    @Override
+    public RealmObjectSchema transform(Function function) {
+        throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
+    }
+
     /**
      * Returns a field descriptor based on Java field names found in model classes.
      *

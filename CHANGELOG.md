@@ -1,7 +1,7 @@
 ## 6.0.3(YYYY-MM-DD)
 
 ### Enhancements
-* `RealmObjectSchema.transform` now also works for typed Realms instead of throwing a `UnsupportedOperationException`. 
+* None.
 
 ### Fixed
 * `RealmObjectSchema.transform()` would crash if one of the `DynamicRealmObject` provided are deleted from the Realm. (Issue [#6657](https://github.com/realm/realm-java/issues/6657), since 0.86.0)

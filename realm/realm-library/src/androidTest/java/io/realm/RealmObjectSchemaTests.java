@@ -1199,31 +1199,28 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void transform() {
-        switch(type) {
-            case MUTABLE: {
-                String className = DOG_SCHEMA.getClassName();
-                DynamicRealmObject dog1 = ((DynamicRealm) realm).createObject(className);
-                dog1.setInt("age", 1);
-                DynamicRealmObject dog2 = ((DynamicRealm) realm).createObject(className);
-                dog2.setInt("age", 2);
-
-                DOG_SCHEMA.transform(obj -> obj.setInt("age", obj.getInt("age") + 1));
-                assertEquals(5, ((DynamicRealm) realm).where("Dog").sum("age").intValue());
-                break;
-            }
-            case IMMUTABLE: {
-                Dog dog1 = ((Realm) realm).createObject(Dog.class);
-                dog1.setAge(1);
-                Dog dog2 = ((Realm) realm).createObject(Dog.class);
-                dog2.setAge(2);
-                DOG_SCHEMA.transform(obj -> obj.setInt("age", obj.getInt("age") + 1));
-                assertEquals(5, ((Realm) realm).where(Dog.class).sum("age").intValue());
-                break;
-            }
-            default:
-                fail();
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            thrown.expect(UnsupportedOperationException.class);
+            DOG_SCHEMA.transform(new RealmObjectSchema.Function() {
+                @Override
+                public void apply(DynamicRealmObject obj) {
+                }
+            });
+            return;
         }
-    }
+        String className = DOG_SCHEMA.getClassName();
+        DynamicRealmObject dog1 = ((DynamicRealm)realm).createObject(className);
+        dog1.setInt("age", 1);
+        DynamicRealmObject dog2 = ((DynamicRealm)realm).createObject(className);
+        dog2.setInt("age", 2);
+
+        DOG_SCHEMA.transform(new RealmObjectSchema.Function() {
+            @Override
+            public void apply(DynamicRealmObject obj) {
+                obj.setInt("age", obj.getInt("age") + 1);
+            }
+        });
+        assertEquals(5, ((DynamicRealm)realm).where("Dog").sum("age").intValue());    }
 
     @Test
     public void transformObjectReferences() {
@@ -1248,6 +1245,9 @@ public class RealmObjectSchemaTests {
 
     @Test
     public void transform_deleteObjects() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
 
         RealmObjectSchema classSchema = realm.getSchema().get("CyclicType");
 
@@ -1258,35 +1258,17 @@ public class RealmObjectSchemaTests {
             }
         });
 
-        switch (type) {
-            case MUTABLE:
-                String className = classSchema.getClassName();
-                for (int i = 0; i < 10; i++) {
-                    DynamicRealmObject parentObj = ((DynamicRealm)realm).createObject(className);
-                    DynamicRealmObject childObj = ((DynamicRealm)realm).createObject(className);
-                    parentObj.setLong(CyclicType.FIELD_ID, i);
-                    parentObj.setObject(CyclicType.FIELD_OBJECT, childObj);
-                    childObj.setLong(CyclicType.FIELD_ID, i + 100);
-                }
-                assertEquals(20, ((DynamicRealm) realm).where((className)).count());
-                transform.run();
-                assertEquals(10, ((DynamicRealm) realm).where((className)).count());
-                break;
-            case IMMUTABLE:
-                for (int i = 0; i < 10; i++) {
-                    CyclicType parentObj = ((Realm)realm).createObject(CyclicType.class);
-                    CyclicType childObj = ((Realm)realm).createObject(CyclicType.class);
-                    parentObj.setId(i);
-                    parentObj.setObject(childObj);
-                    childObj.setId(i + 100);
-                }
-                assertEquals(20, ((Realm) realm).where((CyclicType.class)).count());
-                transform.run();
-                assertEquals(10, ((Realm) realm).where(CyclicType.class).count());
-                break;
-            default:
-                fail();
+        String className = classSchema.getClassName();
+        for (int i = 0; i < 10; i++) {
+            DynamicRealmObject parentObj = ((DynamicRealm)realm).createObject(className);
+            DynamicRealmObject childObj = ((DynamicRealm)realm).createObject(className);
+            parentObj.setLong(CyclicType.FIELD_ID, i);
+            parentObj.setObject(CyclicType.FIELD_OBJECT, childObj);
+            childObj.setLong(CyclicType.FIELD_ID, i + 100);
         }
+        assertEquals(20, ((DynamicRealm) realm).where((className)).count());
+        transform.run();
+        assertEquals(10, ((DynamicRealm) realm).where((className)).count());
     }
 
     @Test
