@@ -19,31 +19,42 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.text.TextUtils;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.ManagedRealmListForValueTests;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.TestHelper;
 import io.realm.entities.AllTypes;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 /**
  * Class used to stress test multiple actions across different threads.
@@ -56,47 +67,38 @@ import static org.junit.Assert.assertFalse;
 @RunWith(Parameterized.class)
 public class ThreadStressTests {
 
-    @Parameterized.Parameters(name = "Encryption: {0}")
-    public static List<Boolean> data() {
-        return Arrays.asList(Boolean.TRUE, Boolean.FALSE);
+    @Parameterized.Parameters(name = "Encryption: {0}, ReuseThreads: {1}")
+    public static List<Boolean[]> parameters() {
+        ArrayList<Boolean[]> list = new ArrayList<>();
+        list.add(new Boolean[] { Boolean.TRUE, Boolean.TRUE });
+        list.add(new Boolean[] { Boolean.TRUE, Boolean.FALSE });
+        list.add(new Boolean[] { Boolean.FALSE, Boolean.TRUE });
+        list.add(new Boolean[] { Boolean.FALSE, Boolean.FALSE });
+        return list;
     }
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private final boolean useEncryption;
+    @Parameterized.Parameter
+    public boolean reuseThreads;
+    @Parameterized.Parameter(1)
+    public boolean useEncryption;
+
+    private int originalLogLevel;
     private final static int MAX_THREADS = 100;
     private final static int MAX_CREATE = 1000;
+    private ExecutorService executor;
     private RealmConfiguration realmConfig;
     private Random random;
-    private List<ThreadWrapper> threads = new CopyOnWriteArrayList<>();
+    private List<Future> threads = new CopyOnWriteArrayList<>();
     private AtomicInteger workerThreadId = new AtomicInteger(0);
 
     enum CRUDAction {
-        CREATE(0),
-        READ(1),
-        UPDATE(2),
-        DELETE(3);
-
-        private final int val;
-
-        CRUDAction(int val) {
-            this.val = val;
-        }
-
-        public static CRUDAction fromValue(int value) {
-            for (CRUDAction action : values()) {
-                if (action.val == value) {
-                    return action;
-                }
-            }
-            throw new IllegalArgumentException("Unknown value: " + value);
-        }
-    }
-
-    public interface ThreadWrapper {
-        void start();
-        void join();
+        CREATE,
+        READ,
+        UPDATE,
+        DELETE
     }
 
     public interface AsyncTaskRunner {
@@ -107,14 +109,12 @@ public class ThreadStressTests {
         void run(Realm realm);
     }
 
-    public ThreadStressTests(boolean useEncryption) {
-        this.useEncryption = useEncryption;
-    }
-
     @Before
     public void setUp() {
+        originalLogLevel = RealmLog.getLevel();
+        RealmLog.setLevel(LogLevel.INFO);
         long seed = System.currentTimeMillis();
-        RealmLog.error("Starting stress test with seed: " + seed);
+        RealmLog.info("Starting stress test with seed: " + seed);
         random = new Random(seed);
         RealmConfiguration.Builder builder = configFactory.createConfigurationBuilder();
         if (useEncryption) {
@@ -122,6 +122,12 @@ public class ThreadStressTests {
         }
         realmConfig = configFactory.createConfiguration();
         Realm.deleteRealm(realmConfig);
+        executor = Executors.newFixedThreadPool(reuseThreads ? random.nextInt(MAX_THREADS) : MAX_THREADS);
+    }
+
+    @After
+    public void tearDown() {
+        RealmLog.setLevel(originalLogLevel);
     }
 
     private void populateTestRealm(Realm realm, int objects) {
@@ -157,50 +163,49 @@ public class ThreadStressTests {
     }
 
     @Test
-    public void threadStressTest() {
+    public void threadStressTest() throws ExecutionException, InterruptedException {
         Realm realm = Realm.getInstance(realmConfig);
         populateTestRealm(realm);
         for (int i = 0; i < MAX_THREADS; i++) {
-            CRUDAction action = CRUDAction.fromValue(random.nextInt(4));
-            ThreadWrapper thread = null;
+            CRUDAction action = CRUDAction.values()[random.nextInt(4)];
+            Runnable task = null;
             switch(action) {
                 case CREATE:
-                    thread = createObjects(random.nextInt(MAX_CREATE), random.nextBoolean());
+                    task = createObjects(random.nextInt(MAX_CREATE), random.nextBoolean());
                     break;
                 case READ:
-                    thread = readObjects(random.nextBoolean());
+                    task = readObjects(random.nextBoolean());
                     break;
                 case UPDATE:
-                    thread = updateObjects(random.nextBoolean(), random.nextBoolean());
+                    task = updateObjects(random.nextBoolean(), random.nextBoolean());
                     break;
                 case DELETE:
-                    thread = deleteObjects(random.nextBoolean(), random.nextBoolean());
+                    task = deleteObjects(random.nextBoolean(), random.nextBoolean());
                     break;
             }
-            threads.add(thread);
-            thread.start();
+            threads.add(executor.submit(task));
         }
-        for (ThreadWrapper thread : threads) {
-            thread.join();
+        for (Future task : threads) {
+            assertNull(task.get());
         }
         realm.close();
     }
 
-    private ThreadWrapper createObjects(int objectsCount, boolean asyncTransaction) {
+    private Runnable createObjects(int objectsCount, boolean asyncTransaction) {
         if (asyncTransaction) {
             return createTaskInHandlerThread((realm, success) -> {
-                RealmLog.error("Creating objects (async): " + Thread.currentThread().getName());
+                RealmLog.info("Creating objects (async): " + Thread.currentThread().getName());
                 realm.executeTransactionAsync(bgRealm -> populateTestRealm(bgRealm, objectsCount), success::countDown);
             });
         } else {
             return createTaskInThread((realm) -> {
-                RealmLog.error("Creating objects: " + Thread.currentThread().getName());
+                RealmLog.info("Creating objects: " + Thread.currentThread().getName());
                 populateTestRealm(realm, objectsCount);
             });
         }
     }
 
-    private ThreadWrapper deleteObjects(boolean filterObjects, boolean asyncTransaction) {
+    private Runnable deleteObjects(boolean filterObjects, boolean asyncTransaction) {
         TaskRunner delete = realm -> {
             if (filterObjects) {
                 realm.where(AllTypes.class)
@@ -215,19 +220,19 @@ public class ThreadStressTests {
 
         if (asyncTransaction) {
             return createTaskInHandlerThread(((realm, success) -> {
-                RealmLog.error("Deleting objects (async): " + Thread.currentThread().getName());
+                RealmLog.info("Deleting objects (async): " + Thread.currentThread().getName());
                 realm.executeTransactionAsync(delete::run, success::countDown);
             }));
         } else {
             return createTaskInThread((realm) -> {
-                RealmLog.error("Deleting objects: " + Thread.currentThread().getName());
+                RealmLog.info("Deleting objects: " + Thread.currentThread().getName());
                 realm.executeTransaction(delete::run);
             });
         }
     }
 
 
-    private ThreadWrapper updateObjects(boolean filterObjects, boolean asyncTransaction) {
+    private Runnable updateObjects(boolean filterObjects, boolean asyncTransaction) {
         TaskRunner update = realm -> {
             RealmResults<AllTypes> results;
             if (filterObjects) {
@@ -245,24 +250,24 @@ public class ThreadStressTests {
 
         if (asyncTransaction) {
             return createTaskInHandlerThread(((realm, success) -> {
-                RealmLog.error("Updating objects (async): " + Thread.currentThread().getName());
+                RealmLog.info("Updating objects (async): " + Thread.currentThread().getName());
                 realm.executeTransactionAsync(update::run, success::countDown);
             }));
         } else {
             return createTaskInThread((realm) -> {
-                RealmLog.error("Updating objects: " + Thread.currentThread().getName());
+                RealmLog.info("Updating objects: " + Thread.currentThread().getName());
                 realm.executeTransaction(update::run);
             });
         }
     }
 
-    private ThreadWrapper readObjects(boolean asyncQuery) {
+    private Runnable readObjects(boolean asyncQuery) {
         if (asyncQuery) {
             return createTaskInHandlerThread(new AsyncTaskRunner() {
                 private RealmResults<AllTypes> liveResults;
                 @Override
                 public void run(Realm realm, CountDownLatch success) {
-                    RealmLog.error("Reading objects (async): " + Thread.currentThread().getName());
+                    RealmLog.info("Reading objects (async): " + Thread.currentThread().getName());
                     liveResults = realm.where(AllTypes.class)
                             .lessThan(AllTypes.FIELD_LONG, random.nextInt((int) realm.where(AllTypes.class).count() + 1))
                             .equalTo(AllTypes.FIELD_BOOLEAN, random.nextBoolean())
@@ -272,7 +277,7 @@ public class ThreadStressTests {
                             assertFalse(TextUtils.isEmpty(result.getColumnString()));
                         }
                         if (updatedResults.isLoaded()) {
-                            RealmLog.error("Query finished on: " + Thread.currentThread().getName());
+                            RealmLog.info("Query finished on: " + Thread.currentThread().getName());
                             success.countDown();
                         }
                     });
@@ -280,7 +285,7 @@ public class ThreadStressTests {
             });
         } else {
             return createTaskInThread((realm) -> {
-                RealmLog.error("Reading objects: " + Thread.currentThread().getName());
+                RealmLog.info("Reading objects: " + Thread.currentThread().getName());
                 RealmResults<AllTypes> results = realm.where(AllTypes.class)
                         .lessThan(AllTypes.FIELD_LONG, random.nextInt((int) realm.where(AllTypes.class).count() + 1))
                         .equalTo(AllTypes.FIELD_BOOLEAN, random.nextBoolean())
@@ -292,33 +297,16 @@ public class ThreadStressTests {
         }
     }
 
-    private ThreadWrapper createTaskInThread(TaskRunner runnable) {
-        return new ThreadWrapper() {
-            private Thread thread;
-
-            @Override
-            public void start() {
-                thread = new Thread(() -> {
-                    Realm realm = Realm.getInstance(realmConfig);
-                    runnable.run(realm);
-                    realm.close();
-                }, "Worker: " + workerThreadId.incrementAndGet());
-                thread.start();
-            }
-
-            @Override
-            public void join() {
-                try {
-                    thread.join();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+    private Runnable createTaskInThread(TaskRunner runnable) {
+        return () -> {
+            Realm realm = Realm.getInstance(realmConfig);
+            runnable.run(realm);
+            realm.close();
         };
     }
 
-    private ThreadWrapper createTaskInHandlerThread(AsyncTaskRunner wrapper) {
-        return new ThreadWrapper() {
+    private Runnable createTaskInHandlerThread(AsyncTaskRunner wrapper) {
+        return new Runnable() {
             CountDownLatch successLatch = new CountDownLatch(1);
             CountDownLatch closeLatch = new CountDownLatch(1);
             volatile Handler handler;
@@ -327,7 +315,7 @@ public class ThreadStressTests {
             AsyncTaskRunner wrapperStrongRef = wrapper;
 
             @Override
-            public void start() {
+            public void run() {
                 handlerThread = new HandlerThread("HandlerWorker: " + workerThreadId.incrementAndGet());
                 handlerThread.start();
                 Looper looper = handlerThread.getLooper();
@@ -336,10 +324,7 @@ public class ThreadStressTests {
                     realm.set(Realm.getInstance(realmConfig));
                     wrapperStrongRef.run(realm.get(), successLatch);
                 });
-            }
 
-            @Override
-            public void join() {
                 TestHelper.awaitOrFail(successLatch);
                 handler.post(() -> {
                     realm.get().close();
