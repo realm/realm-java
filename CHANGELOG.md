@@ -5,6 +5,7 @@
 
 ### Fixed
 * `RealmObjectSchema.transform()` would crash if one of the `DynamicRealmObject` provided are deleted from the Realm. (Issue [#6657](https://github.com/realm/realm-java/issues/6657), since 0.86.0)
+* The Realm Transformer will no longer attempt to send anonymous metrics when Gradle is invoked with `--offline`. (Issue [#6691](https://github.com/realm/realm-java/issues/6691))
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
