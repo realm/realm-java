@@ -298,6 +298,11 @@ public class OsResults implements NativeObject, ObservableCollection {
         return createFromQuery(sharedRealm, query, new DescriptorOrdering());
     }
 
+    public static OsResults createFromTable(OsSharedRealm sharedRealm, Table table) {
+        long ptr = nativeCreateResultsFromTable(sharedRealm.getNativePtr(), table.getNativePtr());
+        return new OsResults(sharedRealm, table, ptr);
+    }
+
     OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
@@ -656,6 +661,8 @@ public class OsResults implements NativeObject, ObservableCollection {
     private static native long nativeGetFinalizerPtr();
 
     protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long descriptorOrderingPtr);
+
+    private static native long nativeCreateResultsFromTable(long sharedRealmNativePtr, long tablePtr);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 

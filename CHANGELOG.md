@@ -1,3 +1,20 @@
+## 6.0.3(YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixed
+* `RealmObjectSchema.transform()` would crash if one of the `DynamicRealmObject` provided are deleted from the Realm. (Issue [#6657](https://github.com/realm/realm-java/issues/6657), since 0.86.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* None.
+
+
 ## 6.0.2(2019-11-21)
 
 ### Enhancements

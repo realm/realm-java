@@ -20,7 +20,9 @@ import java.util.Locale;
 
 import javax.annotation.Nonnull;
 
+import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -283,9 +285,19 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     public RealmObjectSchema transform(Function function) {
         //noinspection ConstantConditions
         if (function != null) {
-            long size = table.size();
-            for (long i = 0; i < size; i++) {
-                function.apply(new DynamicRealmObject(realm, table.getCheckedRow(i)));
+            // Users might delete object being transformed or accidentally delete other objects
+            // in the same table. E.g. cascading deletes if it is referenced by an object being deleted.
+            OsResults results = OsResults.createFromTable(realm.sharedRealm, table).createSnapshot();
+            long original_size = results.size();
+            if (original_size > Integer.MAX_VALUE) {
+                throw new UnsupportedOperationException("Too many results to iterate: " + original_size);
+            }
+            int size = (int) results.size();
+            for (int i = 0; i < size; i++) {
+                DynamicRealmObject obj = new DynamicRealmObject(realm, new CheckedRow(results.getUncheckedRow(i)));
+                if (obj.isValid()) {
+                    function.apply(obj);
+                }
             }
         }
 

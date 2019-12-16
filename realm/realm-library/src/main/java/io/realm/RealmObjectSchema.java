@@ -27,9 +27,11 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Required;
+import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -399,6 +401,8 @@ public abstract class RealmObjectSchema {
     /**
      * Runs a transformation function on each RealmObject instance of the current class. The object will be represented
      * as a {@link DynamicRealmObject}.
+     * <p>
+     * There is no guarantees in which order the objects are returned.
      *
      * @param function transformation function.
      * @return this schema.
