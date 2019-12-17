@@ -1,7 +1,10 @@
 ## 7.0.0-beta (YYYY-MM-DD)
 
-### Breaking Changes
+Based on v6.0.2.
 
+NOTE: This version bumps the Realm file format to version 10. It is not possible to downgrade version 9 or earlier. Files created with older versions of Realm will be automatically upgraded.
+
+### Breaking Changes
 * RxJava Flowables and Observables are now subscribed to and unsubscribed to asynchronously on the thread holding the live Realm, instead of previously where this was done synchronously.
 * All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without the need to copy Realm data into unmanaged objects.
 * MIPS is not supported anymore.
@@ -15,6 +18,8 @@
 * Added `Realm.isFrozen()`, `RealmObject.isFrozen()`, `RealmObject.isFrozen(RealmModel)`, `RealmResults.isFrozen()` and `RealmList.isFrozen()`, which returns whether or not the data is frozen.
 * Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having too many versions can dramatically increase the filesize of the Realm.
 * `RealmResults.asJSON()` is no longer `@Beta`.
+* Storing large binary blobs in Realm files no longer forces the file to be at least 8x the size of the largest blob.
+* Reduce the size of transaction logs stored inside the Realm file, reducing file size growth from large transactions.
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
