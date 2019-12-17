@@ -22,7 +22,6 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,16 +45,12 @@ import static org.junit.Assert.assertTrue;
  * This class test interoperability with Realms created on iOS.
  */
 @RunWith(AndroidJUnit4.class)
-@Ignore("__CORE6__: asset file, Upgrade interrupted https://github.com/realm/realm-core-private/issues/201 also need " +
-        "to regenerate the iOS Realm files using the realm-java/realm/realm-library/src/androidTest/assets/ios/README.md" +
-        "Generate iOS files once Cocoa complets the migration to Core6")
-//FIXME this is using primarily Realm files of format version 3 now we have sync to test interop between platform ... these tests should be disabled
 public class IOSRealmTests {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private static final String[] IOS_VERSIONS = new String[] {"0.98.0"};
+    private static final String[] IOS_VERSIONS = new String[] {"6.0.0-beta.2"};
     private static final String REALM_NAME = "alltypes.realm";
     private Realm realm;
     private Context context;
@@ -162,7 +157,7 @@ public class IOSRealmTests {
             assertFalse(obj.isBoolCol());
             assertEquals(Short.MIN_VALUE, obj.getShortCol());
             assertEquals(Integer.MIN_VALUE, obj.getIntCol());
-            assertEquals(Integer.MIN_VALUE, obj.getLongCol());
+            assertEquals(Long.MIN_VALUE, obj.getLongCol());
             assertEquals(Long.MIN_VALUE, obj.getLongLongCol());
             assertEquals(-Float.MAX_VALUE, obj.getFloatCol(), 0F);
             assertEquals(-Double.MAX_VALUE, obj.getDoubleCol(), 0D);
@@ -173,7 +168,6 @@ public class IOSRealmTests {
     }
 
     @Test
-    @SuppressWarnings("ConstantOverflow")
     public void iOSDataTypesMaximumValues() throws IOException {
         for (String iosVersion : IOS_VERSIONS) {
             configFactory.copyRealmFromAssets(context,
@@ -183,13 +177,13 @@ public class IOSRealmTests {
             IOSAllTypes obj = realm.where(IOSAllTypes.class).findFirst();
             assertEquals(Short.MAX_VALUE, obj.getShortCol());
             assertEquals(Integer.MAX_VALUE, obj.getIntCol());
-            assertEquals(Integer.MAX_VALUE, obj.getLongCol());
+            assertEquals(Long.MAX_VALUE, obj.getLongCol());
             assertEquals(Long.MAX_VALUE, obj.getLongLongCol());
             assertEquals(Float.MAX_VALUE, obj.getFloatCol(), 0F);
             assertEquals(Double.MAX_VALUE, obj.getDoubleCol(), 0D);
             assertArrayEquals(new byte[0], obj.getByteCol());
             assertEquals("", obj.getStringCol());
-            assertEquals(Long.MIN_VALUE, obj.getDateCol().getTime());
+            assertEquals(Long.MAX_VALUE, obj.getDateCol().getTime());
         }
     }
 
