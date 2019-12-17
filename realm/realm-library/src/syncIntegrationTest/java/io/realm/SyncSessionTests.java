@@ -563,7 +563,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    @Ignore("__CORE6__ this test is flaky in Core6, listener is not triggered")
+//    @Ignore("__CORE6__ this test is flaky in Core6, listener is not triggered")
     public void registerConnectionListener() {
         getSession(session -> {
             session.addConnectionChangeListener((oldState, newState) -> {
