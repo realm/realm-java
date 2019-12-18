@@ -1224,7 +1224,7 @@ public class RealmObjectTests {
             }
         }).start();
         TestHelper.awaitOrFail(bgRealmDone);
-        realm.waitForChange();
+        realm.refresh();
 
         // Object should no longer be available.
         assertFalse(obj.isValid());

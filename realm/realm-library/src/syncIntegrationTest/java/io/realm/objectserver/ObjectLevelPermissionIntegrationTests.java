@@ -145,7 +145,7 @@ public class ObjectLevelPermissionIntegrationTests extends IsolatedIntegrationTe
         user1Realm.close();
 
         // Connect with admin user and verify that user1 object is visible (non-partial Realm)
-        SyncUser adminUser = UserFactory.createNicknameUser(Constants.AUTH_URL, "admin2", true);
+        SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, Constants.DEFAULT_REALM)
                 .fullSynchronization()
                 .modules(schemaModules)
