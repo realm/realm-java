@@ -611,10 +611,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     private static native void nativeWriteCopy(long nativeSharedRealmPtr, String path, @Nullable byte[] key);
 
-    private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
-
-    private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
-
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
 
     private static native void nativeSetAutoRefresh(long nativePtr, boolean enabled);
