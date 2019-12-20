@@ -366,7 +366,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     }
 
     private void runJavaRequestCustomHeadersTest() {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "test", false);
+        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "test", true);
 
         AtomicBoolean headerSet = new AtomicBoolean(false);
         RealmLog.setLevel(LogLevel.ALL);
