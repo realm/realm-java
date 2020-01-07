@@ -2,6 +2,7 @@
 
 ### Enhancements
 * The Realm Gradle plugin now applies `kapt` when used in Kotlin Multiplatform projects. Note, Realm Java still only works for the Android part of a Kotlin Multiplatform project. (Issue [#6653](https://github.com/realm/realm-java/issues/6653))
+* The error message shown when no native code could be found for the device is now much more descriptive. This is particular helpful if an app is using App Bundle or APK Split and the resulting APK was side-loaded outside the Google Play Store. (Issue [#6673](https://github.com/realm/realm-java/issues/6673))
 
 ### Fixed
 * None.
@@ -12,6 +13,7 @@
 * APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
 
 ### Internal
+* Updated to ReLinker 1.4.0.
 * Updated to Object Store commit: ad96a4c334b475dd67d50c1ca419e257d7a21e18.
 * Updated to Realm Sync v4.8.3.
 

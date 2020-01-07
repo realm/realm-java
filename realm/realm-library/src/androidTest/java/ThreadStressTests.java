@@ -122,7 +122,7 @@ public class ThreadStressTests {
         }
         realmConfig = configFactory.createConfiguration();
         Realm.deleteRealm(realmConfig);
-        executor = Executors.newFixedThreadPool(reuseThreads ? random.nextInt(MAX_THREADS) : MAX_THREADS);
+        executor = Executors.newFixedThreadPool(reuseThreads ? Math.max(random.nextInt(MAX_THREADS), 1) : MAX_THREADS);
     }
 
     @After
