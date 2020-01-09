@@ -406,6 +406,14 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         nativeSetAutoRefresh(nativePtr, enabled);
     }
 
+    public boolean waitForChange() {
+        return nativeWaitForChange(nativePtr);
+    }
+
+    public void stopWaitForChange() {
+        nativeStopWaitForChange(nativePtr);
+    }
+
     public boolean isAutoRefresh() {
         return nativeIsAutoRefresh(nativePtr);
     }
@@ -610,6 +618,10 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     private static native long nativeSize(long nativeSharedRealmPtr);
 
     private static native void nativeWriteCopy(long nativeSharedRealmPtr, String path, @Nullable byte[] key);
+
+    private static native boolean nativeWaitForChange(long nativeSharedRealmPtr);
+
+    private static native void nativeStopWaitForChange(long nativeSharedRealmPtr);
 
     private static native boolean nativeCompact(long nativeSharedRealmPtr);
 

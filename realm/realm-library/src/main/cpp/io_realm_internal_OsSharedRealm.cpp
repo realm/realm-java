@@ -398,6 +398,28 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeWriteCopy(JNIE
     CATCH_STD()
 }
 
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeWaitForChange(JNIEnv* env, jclass,
+                                                                                  jlong shared_realm_ptr)
+{
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        return static_cast<jboolean>(shared_realm->wait_for_change());
+    }
+    CATCH_STD()
+
+    return JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeStopWaitForChange(JNIEnv* env, jclass,
+                                                                                  jlong shared_realm_ptr)
+{
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    try {
+        shared_realm->wait_for_change_release();
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeCompact(JNIEnv* env, jclass,
                                                                             jlong shared_realm_ptr)
 {

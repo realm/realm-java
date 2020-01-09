@@ -336,6 +336,59 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Blocks the current thread until new changes to the Realm are available or {@link #stopWaitForChange()}
+     * is called from another thread. Once stopWaitForChange is called, all future calls to this method will
+     * return false immediately.
+     *
+     * @return {@code true} if the Realm was updated to the latest version, {@code false} if it was
+     * cancelled by calling stopWaitForChange.
+     * @throws IllegalStateException if calling this from within a transaction or from a Looper thread.
+     * @throws RealmMigrationNeededException on typed {@link Realm} if the latest version contains
+     * incompatible schema changes.
+     */
+    public boolean waitForChange() {
+        checkIfValid();
+        if (isInTransaction()) {
+            throw new IllegalStateException("Cannot wait for changes inside of a transaction.");
+        }
+        if (Looper.myLooper() != null) {
+            throw new IllegalStateException("Cannot wait for changes inside a Looper thread. Use RealmChangeListeners instead.");
+        }
+        boolean hasChanged = sharedRealm.waitForChange();
+        if (hasChanged) {
+            // Since this Realm instance has been waiting for change, advance realm & refresh realm.
+            sharedRealm.refresh();
+        }
+        return hasChanged;
+    }
+
+    /**
+     * Makes any current {@link #waitForChange()} return {@code false} immediately. Once this is called,
+     * all future calls to waitForChange will immediately return {@code false}.
+     * <p>
+     * This method is thread-safe and should _only_ be called from another thread than the one that
+     * called waitForChange.
+     *
+     * @throws IllegalStateException if the {@link io.realm.Realm} instance has already been closed.
+     */
+    public void stopWaitForChange() {
+        if (realmCache != null) {
+            realmCache.invokeWithLock(new RealmCache.Callback0() {
+                @Override
+                public void onCall() {
+                    // Checks if the Realm instance has been closed.
+                    if (sharedRealm == null || sharedRealm.isClosed()) {
+                        throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+                    }
+                    sharedRealm.stopWaitForChange();
+                }
+            });
+        } else {
+            throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+        }
+    }
+
+    /**
      * Starts a transaction which must be closed by {@link io.realm.Realm#commitTransaction()} or aborted by
      * {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically create, update and delete objects
      * within a Realm.
