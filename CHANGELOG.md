@@ -11,7 +11,6 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * [ObjectServer] Removed deprecated method `SyncCredentials.nickname(name)` and `SyncCredentials.nickname(name, isAdmin)`. Use `SyncCredentials.usernamePassword(username, password)` instead.
 * [ObjectServer] Deprecated state `SyncSession.State.ERROR` has been removed. Use `SyncConfiguration.Builder.errorHandler(ErrorHandler)` instead.
 * [ObjectServer] `IncompatibleSyncedFileException` is removed as it is no longer used.
-* Removed deprecated methods `Realm.waitForChange()` and `Realm.stopWaitForChange()`. Use `Realm.addChangeListener(listener)` instead.
 * RxJava Flowables and Observables are now subscribed to and unsubscribed to asynchronously on the thread holding the live Realm, instead of previously where this was done synchronously.
 * All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(boolean))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without the need to copy Realm data into unmanaged objects.
 * MIPS is not supported anymore.
