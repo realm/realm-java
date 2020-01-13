@@ -345,9 +345,7 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if calling this from within a transaction or from a Looper thread.
      * @throws RealmMigrationNeededException on typed {@link Realm} if the latest version contains
      * incompatible schema changes.
-     * @deprecated this method will be removed on the next-major release.
      */
-    @Deprecated
     public boolean waitForChange() {
         checkIfValid();
         if (isInTransaction()) {
@@ -372,9 +370,7 @@ abstract class BaseRealm implements Closeable {
      * called waitForChange.
      *
      * @throws IllegalStateException if the {@link io.realm.Realm} instance has already been closed.
-     * @deprecated this method will be removed in the next-major release
      */
-    @Deprecated
     public void stopWaitForChange() {
         if (realmCache != null) {
             realmCache.invokeWithLock(new RealmCache.Callback0() {

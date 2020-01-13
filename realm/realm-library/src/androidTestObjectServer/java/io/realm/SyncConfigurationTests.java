@@ -76,15 +76,10 @@ public class SyncConfigurationTests {
 
     @Test
     public void user_invalidUserThrows() {
-        try {
-            new SyncConfiguration.Builder(null, "realm://ros.realm.io/default");
-        } catch (IllegalArgumentException ignore) {
-        }
-
         SyncUser user = createTestUser(0); // Create user that has expired credentials
         try {
-            new SyncConfiguration.Builder(user, "realm://ros.realm.io/default");
-        } catch (IllegalArgumentException ignore) {
+            user.createConfiguration("realm://ros.realm.io/default");
+        } catch (IllegalStateException ignore) {
         }
     }
 
@@ -480,17 +475,6 @@ public class SyncConfigurationTests {
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().startsWith("The default configuration can only be created for users that are logged in."));
         }
-    }
-
-    @Test
-    public void automatic_isFullySynchronized() {
-        SyncUser user = SyncTestUtils.createTestUser();
-
-        SyncConfiguration config = SyncConfiguration.automatic();
-        assertFalse(config.isFullySynchronizedRealm());
-
-        config = SyncConfiguration.automatic(user);
-        assertFalse(config.isFullySynchronizedRealm());
     }
 
     @Test

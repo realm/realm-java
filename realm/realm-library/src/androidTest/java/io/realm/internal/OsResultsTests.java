@@ -356,7 +356,6 @@ public class OsResultsTests {
 
         addRowAsync(sharedRealm);
 
-        sharedRealm.waitForChange();
         sharedRealm.refresh();
         TestHelper.awaitOrFail(latch);
     }

@@ -233,49 +233,6 @@ public class SyncConfiguration extends RealmConfiguration {
         }
     }
 
-    /**
-     * Creates an automatic default configuration based on the the currently logged in user.
-     * <p>
-     * This configuration will point to the default Realm on the server where the user was
-     * authenticated.
-     *
-     * @throws IllegalStateException if no user are logged in, or multiple users have. Only one should
-     * be logged in when calling this method.
-     * @return The constructed {@link SyncConfiguration}.
-     * @deprecated use {@link SyncUser#getDefaultConfiguration()} instead.
-     */
-    @Deprecated
-    @Beta
-    public static SyncConfiguration automatic() {
-        SyncUser user = SyncUser.current();
-        if (user == null) {
-            throw new IllegalStateException("No user was logged in.");
-        }
-        return user.getDefaultConfiguration();
-    }
-
-    /**
-     * Creates an automatic default configuration for the provided user.
-     * <p>
-     * This configuration will point to the default Realm on the server where the user was
-     * authenticated.
-     *
-     * @throws IllegalArgumentException if no user was provided or the user isn't valid.
-     * @return The constructed {@link SyncConfiguration}.
-     * @deprecated use {@link SyncUser#getDefaultConfiguration()} instead.
-     */
-    @Deprecated
-    @Beta
-    public static SyncConfiguration automatic(SyncUser user) {
-        if (user == null) {
-            throw new IllegalArgumentException("Non-null 'user' required.");
-        }
-        if (!user.isValid()) {
-            throw new IllegalArgumentException("User is no logger valid.  Log the user in again.");
-        }
-        return user.getDefaultConfiguration();
-    }
-
     // Extract the full server path, minus the file name
     private static String getServerPath(URI serverUrl) {
         String path = serverUrl.getPath();
@@ -538,41 +495,6 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
         private ClientResyncMode clientResyncMode = null;
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
-
-        /**
-         * Creates an instance of the Builder for the SyncConfiguration. This SyncConfiguration
-         * will be for a fully synchronized Realm.
-         * <p>
-         * Opening a synchronized Realm requires a valid user and an unique URI that identifies that Realm. In URIs,
-         * {@code /~/} can be used as a placeholder for a user ID in case the Realm should only be available to one
-         * user e.g., {@code "realm://objectserver.realm.io/~/default"}.
-         * <p>
-         * The URL cannot end with {@code .realm}, {@code .realm.lock} or {@code .realm.management}.
-         * <p>
-         * The {@code /~/} will automatically be replaced with the user ID when creating the {@link SyncConfiguration}.
-         * <p>
-         * Moreover, the URI defines the local location on disk. The default location of a synchronized Realm file is
-         * {@code /data/data/<packageName>/files/realm-object-server/<user-id>/<last-path-segment>}, but this behavior
-         * can be overwritten using {@link #name(String)} and {@link #directory(File)}.
-         * <p>
-         * Many Android devices are using FAT32 file systems. FAT32 file systems have a limitation that
-         * file names cannot be longer than 255 characters. Moreover, the entire URI should not exceed 256 characters.
-         * If file name and underlying path are too long to handle for FAT32, a shorter unique name will be generated.
-         * See also @{link https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx}.
-         *
-         * @param user the user for this Realm. An authenticated {@link SyncUser} is required to open any Realm managed
-         *             by a Realm Object Server.
-         * @param uri URI identifying the Realm. If only a path like {@code /~/default} is given, the configuration will
-         *            assume the file is located on the same server returned by {@link SyncUser#getAuthenticationUrl()}.
-         *
-         * @see SyncUser#isValid()
-         * @deprecated Use {@link SyncUser#createConfiguration(String)} instead.
-         */
-        @Deprecated
-        public Builder(SyncUser user, String uri) {
-            this(BaseRealm.applicationContext, user, uri);
-            fullSynchronization();
-        }
 
         Builder(Context context, SyncUser user, String url) {
             //noinspection ConstantConditions
@@ -1031,22 +953,6 @@ public class SyncConfiguration extends RealmConfiguration {
          */
         public SyncConfiguration.Builder readOnly() {
             this.readOnly = true;
-            return this;
-        }
-
-        /**
-         * Define this Realm as a fully synchronized Realm.
-         * <p>
-         * Full synchronization, unlike the default query-based synchronization, will transparently
-         * synchronize the entire Realm without needing to query for the data. This option is
-         * useful if the serverside Realm is small and all the data in the Realm should be
-         * available to the user.
-         *
-         * @see #isFullySynchronizedRealm() ()
-         */
-        @Deprecated
-        public SyncConfiguration.Builder partialRealm() {
-            this.isPartial = true;
             return this;
         }
 

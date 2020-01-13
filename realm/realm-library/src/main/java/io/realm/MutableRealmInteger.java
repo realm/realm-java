@@ -18,7 +18,7 @@ package io.realm;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
-import io.realm.internal.ManagableObject;
+import io.realm.internal.ManageableObject;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 
@@ -91,7 +91,7 @@ import io.realm.internal.Table;
  * Neither can be GCed until all references to both are unreachable.
  */
 @Beta
-public abstract class MutableRealmInteger implements Comparable<MutableRealmInteger>, ManagableObject {
+public abstract class MutableRealmInteger implements Comparable<MutableRealmInteger>, ManageableObject {
 
     /**
      * Unmanaged Implementation.

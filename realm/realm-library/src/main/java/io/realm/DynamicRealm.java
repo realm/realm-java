@@ -195,7 +195,7 @@ public class DynamicRealm extends BaseRealm {
      * @see io.realm.RealmChangeListener
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
-     * @see #waitForChange()
+     * @see #refresh()
      */
     public void addChangeListener(RealmChangeListener<DynamicRealm> listener) {
         addListener(listener);

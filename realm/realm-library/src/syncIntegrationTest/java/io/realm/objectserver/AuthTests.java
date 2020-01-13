@@ -167,58 +167,6 @@ public class AuthTests extends StandardIntegrationTest {
     }
 
     @Test
-    @RunTestInLooperThread
-    public void login_withNickname() {
-        SyncCredentials credentials = SyncCredentials.nickname("foo", false);
-        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
-            @Override
-            public void onSuccess(SyncUser user) {
-                assertFalse(user.isAdmin());
-                final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                        .errorHandler((session, error) -> fail("Session failed: " + error))
-                        .build();
-
-                final Realm realm = Realm.getInstance(config);
-                looperThread.closeAfterTest(realm);
-                assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
-                assertTrue(config.getUser().isValid());
-                looperThread.testComplete();
-            }
-
-            @Override
-            public void onError(ObjectServerError error) {
-                fail("Login failed: " + error);
-            }
-        });
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void login_withNicknameAsAdmin() {
-        SyncCredentials credentials = SyncCredentials.nickname("foo", true);
-        SyncUser.logInAsync(credentials, Constants.AUTH_URL, new SyncUser.Callback<SyncUser>() {
-            @Override
-            public void onSuccess(SyncUser user) {
-                assertTrue(user.isAdmin());
-                final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                        .errorHandler((session, error) -> fail("Session failed: " + error))
-                        .build();
-
-                final Realm realm = Realm.getInstance(config);
-                looperThread.closeAfterTest(realm);
-                assertFalse(Util.isEmptyString(config.getUser().getIdentity()));
-                assertTrue(config.getUser().isValid());
-                looperThread.testComplete();
-            }
-
-            @Override
-            public void onError(ObjectServerError error) {
-                fail("Login failed: " + error);
-            }
-        });
-    }
-
-    @Test
     public void loginAsync_errorHandlerThrows() throws InterruptedException {
         final AtomicBoolean errorThrown = new AtomicBoolean(false);
 

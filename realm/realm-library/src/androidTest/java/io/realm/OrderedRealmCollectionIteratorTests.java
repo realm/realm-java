@@ -845,7 +845,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             }
         }).start();
         TestHelper.awaitOrFail(bgDone);
-        realm.waitForChange();
+        realm.refresh();
         try {
             it.next();
             assertEquals(TEST_SIZE, collection.size());

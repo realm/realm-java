@@ -264,19 +264,6 @@ public enum ErrorCode {
         return UNKNOWN;
     }
 
-    @Deprecated
-    public static ErrorCode fromInt(int errorCode) {
-        ErrorCode[] errorCodes = values();
-        for (int i = 0; i < errorCodes.length; i++) {
-            ErrorCode error = errorCodes[i];
-            if (error.intValue() == errorCode) {
-                return error;
-            }
-        }
-        RealmLog.warn("Unknown error code: " + errorCode);
-        return UNKNOWN;
-    }
-
     /**
      * Helper method for mapping between {@link Exception} and {@link ErrorCode}.
      * @param exception to be mapped as an {@link ErrorCode}.

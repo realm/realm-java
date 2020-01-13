@@ -99,7 +99,7 @@ import io.realm.sync.permissions.Role;
  * onStart/onStop.
  * <p>
  * Realm instances coordinate their state across threads using the {@link android.os.Handler} mechanism. This also means
- * that Realm instances on threads without a {@link android.os.Looper} cannot receive updates unless {@link #waitForChange()}
+ * that Realm instances on threads without a {@link android.os.Looper} cannot receive updates unless {@link #refresh()}
  * is manually called.
  * <p>
  * A standard pattern for working with Realm in Android activities can be seen below:
@@ -655,7 +655,6 @@ public class Realm extends BaseRealm {
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws IOException if something was wrong with the input stream.
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
         //noinspection ConstantConditions
         if (clazz == null || inputStream == null) {
@@ -695,7 +694,6 @@ public class Realm extends BaseRealm {
      * @throws RealmException if unable to read JSON.
      * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, InputStream in) {
         //noinspection ConstantConditions
         if (clazz == null || in == null) {
@@ -873,7 +871,6 @@ public class Realm extends BaseRealm {
      * @throws IOException if something went wrong with the input stream.
      */
     @Nullable
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
         //noinspection ConstantConditions
         if (clazz == null || inputStream == null) {
@@ -931,7 +928,6 @@ public class Realm extends BaseRealm {
      * @throws RealmException if failure to read JSON.
      * @see #createObjectFromJson(Class, java.io.InputStream)
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream in) {
         //noinspection ConstantConditions
         if (clazz == null || in == null) {
