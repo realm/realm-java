@@ -412,3 +412,86 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetFinalizerPt
 {
     return reinterpret_cast<jlong>(&finalize_unchecked_row);
 }
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetDecimal128(JNIEnv* env, jobject,
+                                                                                    jlong nativeRowPtr,
+                                                                                    jlong columnKey)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return nullptr;
+    }
+
+    try {
+//        BinaryData bin = OBJ(nativeRowPtr)->get<BinaryData>(ColKey(columnKey));
+//        return JavaClassGlobalDef::new_byte_array(env, bin);
+        (void) columnKey;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDecimal128(JNIEnv* env, jobject,
+                                                                              jlong nativeRowPtr, jlong columnKey,
+                                                                              jlong j_high_value, jlong j_low_value)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return;
+    }
+
+    try {
+//        auto& obj = *reinterpret_cast<realm::Obj*>(nativeRowPtr);
+//        ColKey col_key(columnKey);
+//        if ((value == nullptr) && !col_key.get_attrs().test(col_attr_Nullable)) {
+//            ThrowNullValueException(env, OBJ(nativeRowPtr)->get_table(), ColKey(columnKey));
+//            return;
+//        }
+//
+//        JByteArrayAccessor jarray_accessor(env, value);
+//        obj.set(col_key, jarray_accessor.transform<BinaryData>());
+        (void) columnKey;
+        (void) j_high_value;
+        (void) j_low_value;
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetObjectId(JNIEnv* env, jobject,
+                                                                                    jlong nativeRowPtr,
+                                                                                    jlong columnKey)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return nullptr;
+    }
+
+    try {
+//        BinaryData bin = OBJ(nativeRowPtr)->get<BinaryData>(ColKey(columnKey));
+//        return JavaClassGlobalDef::new_byte_array(env, bin);
+        (void) columnKey;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetObjectId(JNIEnv* env, jobject,
+                                                                              jlong nativeRowPtr, jlong columnKey,
+                                                                              jbyteArray value)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return;
+    }
+
+    try {
+//        auto& obj = *reinterpret_cast<realm::Obj*>(nativeRowPtr);
+//        ColKey col_key(columnKey);
+//        if ((value == nullptr) && !col_key.get_attrs().test(col_attr_Nullable)) {
+//            ThrowNullValueException(env, OBJ(nativeRowPtr)->get_table(), ColKey(columnKey));
+//            return;
+//        }
+//
+//        JByteArrayAccessor jarray_accessor(env, value);
+//        obj.set(col_key, jarray_accessor.transform<BinaryData>());
+        (void) columnKey;
+        (void) value;
+    }
+    CATCH_STD()
+}

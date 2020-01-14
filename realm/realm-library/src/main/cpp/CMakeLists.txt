@@ -69,6 +69,7 @@ capitalizeFirstLetter(buildTypeCap "${CMAKE_BUILD_TYPE}")
 # Generate JNI header files. Each build has its own JNI header in its build_dir/jni_include.
 # WARNING: The classes_PATH is not part the public API offered by the Android Gradle Plugin
 # so it might change without warning when upgrading the plugin.
+set(bsonlib_PATH ${CMAKE_SOURCE_DIR}/../../../cmake-libs/bson-3.12.0.jar)
 set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/javac/${REALM_FLAVOR}${buildTypeCap}/compile${realmFlavorCap}${buildTypeCap}JavaWithJavac/classes/)
 set(classes_LIST
     io.realm.RealmQuery
@@ -95,7 +96,7 @@ if (build_SYNC)
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
-    CLASSPATH ${classes_PATH}
+    CLASSPATH ${classes_PATH} ${bsonlib_PATH}
     OUTPUT_DIR ${jni_headers_PATH}
     DEPENDS ${classes_PATH}
 )

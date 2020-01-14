@@ -1,0 +1,6 @@
+The files in this directory are only being used by CMake during the build process in order to
+generate the JNI header files. Ideally we would have pulled the jars from a Maven repository, but
+this doesn't seem to be supported by CMake. So the JAR files needs to be added manually.
+
+This also means that when updating some dependencies in `build.gradle` we also need to add a cached
+version here. These dependencies are all annotated with a description saying the same thing.

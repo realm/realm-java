@@ -52,6 +52,8 @@ object Constants {
         REALM_INTEGER("INTEGER", "Long"),
         OBJECT("OBJECT", "Object"),
         LIST("LIST", "List"),
+        DECIMAL128("DECIMAL128", "Decimal128"),
+        OBJECT_ID("OBJECT_ID", "ObjectId"),
 
         BACKLINK("LINKING_OBJECTS", null),
 
@@ -61,7 +63,9 @@ object Constants {
         BINARY_LIST("BINARY_LIST", "List"),
         DATE_LIST("DATE_LIST", "List"),
         FLOAT_LIST("FLOAT_LIST", "List"),
-        DOUBLE_LIST("DOUBLE_LIST", "List");
+        DOUBLE_LIST("DOUBLE_LIST", "List"),
+        DECIMAL128_LIST("DECIMAL128_LIST", "List"),
+        OBJECTID_LIST("OBJECT_ID_LIST", "List");
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.
@@ -70,34 +74,42 @@ object Constants {
     }
 
     init {
-        JAVA_TO_REALM_TYPES["byte"] = RealmFieldType.INTEGER
-        JAVA_TO_REALM_TYPES["short"] = RealmFieldType.INTEGER
-        JAVA_TO_REALM_TYPES["int"] = RealmFieldType.INTEGER
-        JAVA_TO_REALM_TYPES["long"] = RealmFieldType.INTEGER
-        JAVA_TO_REALM_TYPES["float"] = RealmFieldType.FLOAT
-        JAVA_TO_REALM_TYPES["double"] = RealmFieldType.DOUBLE
-        JAVA_TO_REALM_TYPES["boolean"] = RealmFieldType.BOOLEAN
-        JAVA_TO_REALM_TYPES["java.lang.Byte"] = RealmFieldType.INTEGER
-        JAVA_TO_REALM_TYPES["java.lang.Short"] = RealmFieldType.INTEGER
-        JAVA_TO_REALM_TYPES["java.lang.Integer"] = RealmFieldType.INTEGER
-        JAVA_TO_REALM_TYPES["java.lang.Long"] = RealmFieldType.INTEGER
-        JAVA_TO_REALM_TYPES["java.lang.Float"] = RealmFieldType.FLOAT
-        JAVA_TO_REALM_TYPES["java.lang.Double"] = RealmFieldType.DOUBLE
-        JAVA_TO_REALM_TYPES["java.lang.Boolean"] = RealmFieldType.BOOLEAN
-        JAVA_TO_REALM_TYPES["java.lang.String"] = RealmFieldType.STRING
-        JAVA_TO_REALM_TYPES["java.util.Date"] = RealmFieldType.DATE
-        JAVA_TO_REALM_TYPES["byte[]"] = RealmFieldType.BINARY
-        // TODO: add support for char and Char
+        JAVA_TO_REALM_TYPES.apply {
+            this["byte"] = RealmFieldType.INTEGER
+            this["short"] = RealmFieldType.INTEGER
+            this["int"] = RealmFieldType.INTEGER
+            this["long"] = RealmFieldType.INTEGER
+            this["float"] = RealmFieldType.FLOAT
+            this["double"] = RealmFieldType.DOUBLE
+            this["boolean"] = RealmFieldType.BOOLEAN
+            this["java.lang.Byte"] = RealmFieldType.INTEGER
+            this["java.lang.Short"] = RealmFieldType.INTEGER
+            this["java.lang.Integer"] = RealmFieldType.INTEGER
+            this["java.lang.Long"] = RealmFieldType.INTEGER
+            this["java.lang.Float"] = RealmFieldType.FLOAT
+            this["java.lang.Double"] = RealmFieldType.DOUBLE
+            this["java.lang.Boolean"] = RealmFieldType.BOOLEAN
+            this["java.lang.String"] = RealmFieldType.STRING
+            this["java.util.Date"] = RealmFieldType.DATE
+            this["byte[]"] = RealmFieldType.BINARY
+            this["org.bson.types.Decimal128"] = RealmFieldType.DECIMAL128
+            this["org.bson.types.ObjectId"] = RealmFieldType.OBJECT_ID
+            // TODO: add support for char and Char
+        }
 
-        LIST_ELEMENT_TYPE_TO_REALM_TYPES["java.lang.Byte"] = RealmFieldType.INTEGER_LIST
-        LIST_ELEMENT_TYPE_TO_REALM_TYPES["java.lang.Short"] = RealmFieldType.INTEGER_LIST
-        LIST_ELEMENT_TYPE_TO_REALM_TYPES["java.lang.Integer"] = RealmFieldType.INTEGER_LIST
-        LIST_ELEMENT_TYPE_TO_REALM_TYPES["java.lang.Long"] = RealmFieldType.INTEGER_LIST
-        LIST_ELEMENT_TYPE_TO_REALM_TYPES["java.lang.Float"] = RealmFieldType.FLOAT_LIST
-        LIST_ELEMENT_TYPE_TO_REALM_TYPES["java.lang.Double"] = RealmFieldType.DOUBLE_LIST
-        LIST_ELEMENT_TYPE_TO_REALM_TYPES["java.lang.Boolean"] = RealmFieldType.BOOLEAN_LIST
-        LIST_ELEMENT_TYPE_TO_REALM_TYPES["java.lang.String"] = RealmFieldType.STRING_LIST
-        LIST_ELEMENT_TYPE_TO_REALM_TYPES["java.util.Date"] = RealmFieldType.DATE_LIST
-        LIST_ELEMENT_TYPE_TO_REALM_TYPES["byte[]"] = RealmFieldType.BINARY_LIST
+        LIST_ELEMENT_TYPE_TO_REALM_TYPES.apply {
+            this["java.lang.Byte"] = RealmFieldType.INTEGER_LIST
+            this["java.lang.Short"] = RealmFieldType.INTEGER_LIST
+            this["java.lang.Integer"] = RealmFieldType.INTEGER_LIST
+            this["java.lang.Long"] = RealmFieldType.INTEGER_LIST
+            this["java.lang.Float"] = RealmFieldType.FLOAT_LIST
+            this["java.lang.Double"] = RealmFieldType.DOUBLE_LIST
+            this["java.lang.Boolean"] = RealmFieldType.BOOLEAN_LIST
+            this["java.lang.String"] = RealmFieldType.STRING_LIST
+            this["java.util.Date"] = RealmFieldType.DATE_LIST
+            this["byte[]"] = RealmFieldType.BINARY_LIST
+            this["org.bson.types.Decimal128"] = RealmFieldType.DECIMAL128
+            this["org.bson.types.ObjectId"] = RealmFieldType.OBJECT_ID
+        }
     }
 }

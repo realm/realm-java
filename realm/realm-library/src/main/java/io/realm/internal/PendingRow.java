@@ -1,5 +1,8 @@
 package io.realm.internal;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.lang.ref.WeakReference;
 import java.util.Date;
 
@@ -124,6 +127,16 @@ public class PendingRow implements Row {
     }
 
     @Override
+    public Decimal128 getDecimal128(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public ObjectId getObjectId(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
     public long getLink(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
@@ -196,6 +209,16 @@ public class PendingRow implements Row {
     @Override
     public void setNull(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public void setDecimal128(long columnKey, Decimal128 value) {
+
+    }
+
+    @Override
+    public void setObjectId(long columnKey, ObjectId value) {
+
     }
 
     @Override

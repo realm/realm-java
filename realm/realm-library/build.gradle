@@ -216,7 +216,8 @@ dependencies {
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
     objectServerImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
-    objectServerImplementation 'org.mongodb:bson:3.12.0' // FIXME: Optional?
+    // When updating this, `libs/bson-x.jar` must also be updated.
+    implementation 'org.mongodb:bson:3.12.0' // FIXME: Optional/Sync only? Also figure out how to include maven dependency
 
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'

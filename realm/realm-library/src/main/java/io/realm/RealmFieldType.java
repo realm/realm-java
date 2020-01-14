@@ -54,7 +54,7 @@ interface RealmFieldTypeConstants {
     int CORE_TYPE_VALUE_LIST = 13;
     int CORE_TYPE_VALUE_LINKING_OBJECTS = 14;
     int CORE_TYPE_VALUE_DECIMAL128 = 15; // FIXME
-    int CORE_TYPE_VALUE_OBJECTID = 15; // FIXME
+    int CORE_TYPE_VALUE_OBJECTID = 16; // FIXME
 
     int MAX_CORE_TYPE_VALUE = CORE_TYPE_VALUE_LINKING_OBJECTS;
 }
@@ -77,6 +77,8 @@ public enum RealmFieldType {
     FLOAT(CORE_TYPE_VALUE_FLOAT),
     DOUBLE(CORE_TYPE_VALUE_DOUBLE),
     OBJECT(CORE_TYPE_VALUE_OBJECT),
+    DECIMAL128(CORE_TYPE_VALUE_DECIMAL128),
+    OBJECT_ID(CORE_TYPE_VALUE_OBJECTID),
 
     LIST(CORE_TYPE_VALUE_LIST),
     LINKING_OBJECTS(CORE_TYPE_VALUE_LINKING_OBJECTS),
@@ -88,10 +90,8 @@ public enum RealmFieldType {
     DATE_LIST(CORE_TYPE_VALUE_DATE + LIST_OFFSET),
     FLOAT_LIST(CORE_TYPE_VALUE_FLOAT + LIST_OFFSET),
     DOUBLE_LIST(CORE_TYPE_VALUE_DOUBLE + LIST_OFFSET),
-
-    DECIMAL128(CORE_TYPE_VALUE_DECIMAL128),
-    OBJECT_ID(CORE_TYPE_VALUE_OBJECTID);
-
+    DECIMAL128_LIST(CORE_TYPE_VALUE_DECIMAL128 + LIST_OFFSET),
+    OBJECT_ID_LIST(CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET);
 
     // Primitive array for fast mapping between between native values and their Realm type.
     private static final RealmFieldType[] basicTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
@@ -150,22 +150,16 @@ public enum RealmFieldType {
             case CORE_TYPE_VALUE_OBJECT:
                 return(obj instanceof ObjectId);
             case CORE_TYPE_VALUE_LIST:
-                return false;
             case CORE_TYPE_VALUE_LINKING_OBJECTS:
-                return false;
             case CORE_TYPE_VALUE_INTEGER + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_BOOLEAN + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_STRING + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_BINARY + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_DATE + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_FLOAT + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_DOUBLE + LIST_OFFSET:
+            case CORE_TYPE_VALUE_DECIMAL128 + LIST_OFFSET:
+            case CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET:
                 return false;
             default:
                 throw new RuntimeException("Unsupported Realm type:  " + this);
