@@ -160,6 +160,20 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Decimal128> decimal128ItemCallback = new ItemCallback<Decimal128>() {
+        @Override
+        public void handleItem(long listPtr, Decimal128 item) {
+            nativeAddDecimal128ListItem(listPtr, item.getHigh(), item.getLow());
+        }
+    };
+
+    private static ItemCallback<ObjectId> objectIdItemCallback = new ItemCallback<ObjectId>() {
+        @Override
+        public void handleItem(long listPtr, ObjectId item) {
+            nativeAddObjectIdListItem(listPtr, item.toByteArray());
+        }
+    };
+
     // If true, fields will not be updated if the same value would be written to it.
     private final boolean ignoreFieldsWithSameValue;
 
@@ -373,11 +387,11 @@ public class OsObjectBuilder implements Closeable {
     }
 
     public void addDecimal128List(long columnIndex, RealmList<Decimal128> list) {
-        // FIXME
+        addListItem(builderPtr, columnIndex, list, decimal128ItemCallback);
     }
 
     public void addObjectIdList(long columnIndex, RealmList<ObjectId> list) {
-        // FIXME
+        addListItem(builderPtr, columnIndex, list, objectIdItemCallback);
     }
 
     private void addEmptyList(long columnIndex) {
