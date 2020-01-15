@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import org.bson.types.ObjectId;
+
 import javax.annotation.Nullable;
 
 import io.realm.ObjectChangeSet;
@@ -235,6 +237,12 @@ public class OsObject implements NativeObject {
             long value = primaryKeyValue == null ? 0 : Long.parseLong(primaryKeyValue.toString());
             return nativeCreateRowWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                     primaryKeyColumnIndex, value, primaryKeyValue == null);
+        } else if (type == RealmFieldType.OBJECT_ID) {
+            if (primaryKeyValue != null && !(primaryKeyValue instanceof ObjectId)) {
+                throw new IllegalArgumentException("Primary key value is not an ObjectId: " + primaryKeyValue);
+            }
+            return nativeCreateRowWithObjectIdPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+                    primaryKeyColumnIndex, ((ObjectId) primaryKeyValue).toByteArray());
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
         }
@@ -278,5 +286,10 @@ public class OsObject implements NativeObject {
     private static native long nativeCreateRowWithStringPrimaryKey(long sharedRealmPtr,
                                                                    long tableRefPtr, long pk_column_index,
                                                                    String primaryKeyValue);
+
+    private static native long nativeCreateRowWithObjectIdPrimaryKey(long sharedRealmPtr,
+                                                                     long tableRefPtr, long pk_column_index,
+                                                                     byte[] primaryKeyValue);
+
 
 }

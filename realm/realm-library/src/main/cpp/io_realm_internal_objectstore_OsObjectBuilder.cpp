@@ -131,6 +131,33 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDecimal128
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong j_high_value, jlong j_low_value)
+{
+    try {
+        // FIXME
+(void) data_ptr;
+(void) column_key;
+(void) j_high_value;
+(void) j_low_value;
+//        const JavaValue value(from_milliseconds(j_value));
+//        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectId
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jbyteArray j_data)
+{
+    try {
+        // FIXME
+(void) data_ptr;
+(void) column_key;
+(void) j_data;
+//        const JavaValue value(from_milliseconds(j_value));
+//        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObject
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong row_ptr)
@@ -316,6 +343,33 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     try {
         const JavaValue value(reinterpret_cast<Obj*>(row_ptr));
         add_list_element(list_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDecimal128ListItem
+        (JNIEnv* env, jclass, jlong list_ptr, jlong j_high_value, jlong j_low_value)
+{
+    try {
+        // FIXME
+(void) list_ptr;
+(void) j_high_value;
+(void) j_low_value;
+//        const JavaValue value(reinterpret_cast<Obj*>(row_ptr));
+//        add_list_element(list_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectIdListItem
+        (JNIEnv* env, jclass, jlong list_ptr, jbyteArray j_data)
+{
+    try {
+        // FIXME
+(void) list_ptr;
+(void) j_data;
+//        const JavaValue value(reinterpret_cast<Obj*>(row_ptr));
+//        add_list_element(list_ptr, value);
     }
     CATCH_STD()
 }

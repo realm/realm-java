@@ -16,6 +16,9 @@
 
 package io.realm.entities;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import io.realm.RealmList;
@@ -86,6 +89,8 @@ public class AllJavaTypes extends RealmObject {
     private boolean fieldBoolean;
     private Date fieldDate;
     private byte[] fieldBinary;
+    private Decimal128 fieldDecimal128;
+    private ObjectId fieldObjectId;
     private AllJavaTypes fieldObject;
     private RealmList<AllJavaTypes> fieldList;
 

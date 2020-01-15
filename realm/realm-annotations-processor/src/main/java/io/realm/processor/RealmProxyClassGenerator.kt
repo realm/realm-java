@@ -549,6 +549,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         if (typeUtils.isSameType(elementTypeMirror, typeMirrors.FLOAT_MIRROR)) {
             return "$osListVariableName.addFloat($valueVariableName.floatValue())"
         }
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.DECIMAL128_MIRROR)) {
+            return "$osListVariableName.addDecimal128($valueVariableName)"
+        }
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.OBJECT_ID_MIRROR)) {
+            return "$osListVariableName.addObjectId($valueVariableName)"
+        }
         throw RuntimeException("unexpected element type: $elementTypeMirror")
     }
 
@@ -798,6 +804,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 nextControlFlow("else")
                                     emitStatement("colKey = table.findFirstString(pkColumnKey, value)")
                                 endControlFlow()
+                            } else if (Utils.isObjectId(primaryKeyElement)) {
+                                emitStatement("org.bson.types.ObjectId value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
+                                emitStatement("long colKey = Table.NO_MATCH")
+                                beginControlFlow("if (value == null)")
+                                emitStatement("colKey = table.findFirstNull(pkColumnKey)")
+                                nextControlFlow("else")
+                                emitStatement("colKey = table.findFirstObjectId(pkColumnKey, value)")
+                                endControlFlow()
                             } else {
                                 emitStatement("Number value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                                 emitStatement("long colKey = Table.NO_MATCH")
@@ -933,6 +947,26 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             nextControlFlow("else")
                                 emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
                         }
+                    endControlFlow()
+                }
+                "org.bson.types.Decimal128" -> {
+                    emitStatement("org.bson.types.Decimal128 %s = ((%s) object).%s()", getter, interfaceName, getter)
+                    beginControlFlow("if (%s != null)", getter)
+                    emitStatement("Table.nativeSetDecimal128(tableNativePtr, columnInfo.%1\$sColKey, colKey, %2\$s.getHigh(), %2\$s.getLow(), false)", fieldName, getter)
+                    if (isUpdate) {
+                        nextControlFlow("else")
+                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
+                    }
+                    endControlFlow()
+                }
+                "org.bson.types.ObjectId" -> {
+                    emitStatement("org.bson.types.ObjectId %s = ((%s) object).%s()", getter, interfaceName, getter)
+                    beginControlFlow("if (%s != null)", getter)
+                    emitStatement("Table.nativeSetObjectId(tableNativePtr, columnInfo.%sColKey, colKey, %s.toByteArray(), false)", fieldName, getter)
+                    if (isUpdate) {
+                        nextControlFlow("else")
+                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
+                    }
                     endControlFlow()
                 }
                 else -> {
@@ -1313,9 +1347,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("String primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                         emitStatement("long colKey = Table.NO_MATCH")
                         beginControlFlow("if (primaryKeyValue == null)")
-                            emitStatement("colKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
+                        emitStatement("colKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
                         nextControlFlow("else")
-                            emitStatement("colKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, primaryKeyValue)")
+                        emitStatement("colKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, primaryKeyValue)")
+                        endControlFlow()
+                    } else if (Utils.isObjectId(primaryKeyElement)) {
+                        emitStatement("org.bson.types.ObjectId primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
+                        emitStatement("long colKey = Table.NO_MATCH")
+                        beginControlFlow("if (primaryKeyValue == null)")
+                        emitStatement("colKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
+                        nextControlFlow("else")
+                        emitStatement("colKey = Table.nativeFindFirstObjectId(tableNativePtr, pkColumnKey, primaryKeyValue.toByteArray())")
                         endControlFlow()
                     } else {
                         emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
@@ -1332,6 +1374,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     beginControlFlow("if (primaryKeyValue != null)")
                         if (Utils.isString(metadata.primaryKey)) {
                             emitStatement("colKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, (String)primaryKeyValue)")
+                        } else if (Utils.isObjectId(metadata.primaryKey)) {
+                            emitStatement("colKey = Table.nativeFindFirstObjectId(tableNativePtr, pkColumnKey, ((org.bson.types.ObjectId)primaryKeyValue).toByteArray())")
                         } else {
                             emitStatement("colKey = Table.nativeFindFirstInt(tableNativePtr, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
                         }
@@ -1339,7 +1383,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 }
 
                 beginControlFlow("if (colKey == Table.NO_MATCH)")
-                    if (Utils.isString(metadata.primaryKey)) {
+                    if (Utils.isString(metadata.primaryKey) || Utils.isObjectId(metadata.primaryKey)) {
                         emitStatement("colKey = OsObject.createRowWithPrimaryKey(table, pkColumnKey, primaryKeyValue)")
                     } else {
                         emitStatement("colKey = OsObject.createRowWithPrimaryKey(table, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)

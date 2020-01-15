@@ -15,6 +15,9 @@
  */
 package io.realm.internal.objectstore;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.io.Closeable;
 import java.util.Date;
 import java.util.List;
@@ -259,6 +262,22 @@ public class OsObjectBuilder implements Closeable {
         }
     }
 
+    public void addDecimal128(long columnIndex, Decimal128 val) {
+        if (val == null) {
+            nativeAddNull(builderPtr, columnIndex);
+        } else {
+            nativeAddDecimal128(builderPtr, columnIndex, val.getHigh(), val.getLow());
+        }
+    }
+
+    public void addObjectId(long columnIndex, ObjectId val) {
+        if (val == null) {
+            nativeAddNull(builderPtr, columnIndex);
+        } else {
+            nativeAddObjectId(builderPtr, columnIndex, val.toByteArray());
+        }
+    }
+
     public void addNull(long columnIndex) {
         nativeAddNull(builderPtr, columnIndex);
     }
@@ -353,6 +372,14 @@ public class OsObjectBuilder implements Closeable {
         addListItem(builderPtr, columnIndex, list, mutableRealmIntegerItemCallback);
     }
 
+    public void addDecimal128List(long columnIndex, RealmList<Decimal128> list) {
+        // FIXME
+    }
+
+    public void addObjectIdList(long columnIndex, RealmList<ObjectId> list) {
+        // FIXME
+    }
+
     private void addEmptyList(long columnIndex) {
         long listPtr = nativeStartList(0);
         nativeStopList(builderPtr, columnIndex, listPtr);
@@ -424,6 +451,8 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddByteArray(long builderPtr, long columnIndex, byte[] val);
     private static native void nativeAddDate(long builderPtr, long columnIndex, long val);
     private static native void nativeAddObject(long builderPtr, long columnIndex, long rowPtr);
+    private static native void nativeAddDecimal128(long builderPtr, long columnIndex, long high, long low);
+    private static native void nativeAddObjectId(long builderPtr, long columnIndex, byte[] data);
 
     // Methods for adding lists
     // Lists sent across JNI one element at a time
@@ -437,6 +466,8 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddBooleanListItem(long listPtr, boolean val);
     private static native void nativeAddByteArrayListItem(long listPtr, byte[] val);
     private static native void nativeAddDateListItem(long listPtr, long val);
+    private static native void nativeAddDecimal128ListItem(long listPtr, long high, long low);
+    private static native void nativeAddObjectIdListItem(long listPtr, byte[] data);
     private static native void nativeAddObjectListItem(long listPtr, long rowPtr);
     private static native void nativeAddObjectList(long builderPtr, long columnIndex, long[] rowPtrs);
 }

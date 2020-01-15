@@ -71,6 +71,7 @@ android {
 
         buildTypes {
             debug {
+                defaultConfig.minSdkVersion 21 // Required to enable MultiDex
                 javaCompileOptions {
                     annotationProcessorOptions {
                         arguments += [ 'realm.suppressWarnings' : 'false' ]
