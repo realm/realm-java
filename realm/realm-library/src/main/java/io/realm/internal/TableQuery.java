@@ -16,6 +16,9 @@
 
 package io.realm.internal;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import javax.annotation.Nullable;
@@ -409,6 +412,83 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
+    // Queries for Decimal128
+
+    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeEqual(nativePtr, columnKeys, tablePtrs, value.getHigh(), value.getLow());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery notEqualTo(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeNotEqual(nativePtr, columnKeys, tablePtrs, value.getHigh(), value.getLow());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThan(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeLess(nativePtr, columnKeys, tablePtrs, value.getHigh(), value.getLow());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThanOrEqual(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeLessEqual(nativePtr, columnKeys, tablePtrs, value.getHigh(), value.getLow());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThan(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeGreater(nativePtr, columnKeys, tablePtrs, value.getHigh(), value.getLow());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThanOrEqual(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeGreaterEqual(nativePtr, columnKeys, tablePtrs,  value.getHigh(), value.getLow());
+        queryValidated = false;
+        return this;
+    }
+
+
+    // Queries for ObjectId
+
+    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeEqualObjectId(nativePtr, columnKeys, tablePtrs, value.toByteArray());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery notEqualTo(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeNotEqualObjectId(nativePtr, columnKeys, tablePtrs, value.toByteArray());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThan(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeLessObjectId(nativePtr, columnKeys, tablePtrs, value.toByteArray());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThanOrEqual(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeLessEqualObjectId(nativePtr, columnKeys, tablePtrs, value.toByteArray());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThan(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeGreaterObjectId(nativePtr, columnKeys, tablePtrs, value.toByteArray());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThanOrEqual(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeGreaterEqualObjectId(nativePtr, columnKeys, tablePtrs,  value.toByteArray());
+        queryValidated = false;
+        return this;
+    }
+
     // Searching methods.
 
     /**
@@ -637,6 +717,30 @@ public class TableQuery implements NativeObject {
     private native void nativeLike(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, String value, boolean caseSensitive);
 
     private native void nativeContains(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, String value, boolean caseSensitive);
+
+    private native void nativeEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long high, long low);
+
+    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long high, long low);
+
+    private native void nativeGreater(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long high, long low);
+
+    private native void nativeGreaterEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long high, long low);
+
+    private native void nativeLess(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long high, long low);
+
+    private native void nativeLessEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long high, long low);
+
+    private native void nativeEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, byte[] data);
+
+    private native void nativeNotEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, byte[] data);
+
+    private native void nativeGreaterObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, byte[] data);
+
+    private native void nativeGreaterEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, byte[] data);
+
+    private native void nativeLessObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, byte[] data);
+
+    private native void nativeLessEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, byte[] data);
 
     private native void nativeIsEmpty(long nativePtr, long[] columnKeys, long[] tablePtrs);
 

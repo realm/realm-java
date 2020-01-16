@@ -315,19 +315,29 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Equal-to comparison.
      *
-     * @param fieldName
-     * @param value
-     * @return
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Decimal128 value) {
-        // FIXME
-        return this;
+        realm.checkIfValid();
+        return equalToWithoutThreadValidation(fieldName, value);
     }
 
+    /**
+     * Equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
     public RealmQuery<E> equalTo(String fieldName, @Nullable ObjectId value) {
-        // FIXME
-        return this;
+        realm.checkIfValid();
+        return equalToWithoutThreadValidation(fieldName, value);
     }
 
     private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable String value, Case casing) {
@@ -390,7 +400,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Short value) {
         realm.checkIfValid();
-
         return equalToWithoutThreadValidation(fieldName, value);
     }
 
@@ -543,6 +552,27 @@ public class RealmQuery<E> {
         this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
     }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Decimal128 value) {
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        if (value == null) {
+            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+        } else {
+            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        }
+        return this;
+    }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable ObjectId value) {
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        if (value == null) {
+            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+        } else {
+            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        }
+        return this;
+    }
+
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
@@ -817,6 +847,44 @@ public class RealmQuery<E> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
+    public RealmQuery<E> notEqualTo(String fieldName, Decimal128 value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        if (value == null) {
+            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+        } else {
+            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        }
+        return this;
+    }
+
+    /**
+     * Not-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> notEqualTo(String fieldName, ObjectId value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
+        if (value == null) {
+            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+        } else {
+            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        }
+        return this;
+    }
+
+    /**
+     * Not-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Byte value) {
         realm.checkIfValid();
 
@@ -1069,14 +1137,33 @@ public class RealmQuery<E> {
         return this;
     }
 
-    public RealmQuery<E> greatherThan(String fieldName, Decimal128 value) {
-        // FIXME
+    /**
+     * Greater-than comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> greaterThan(String fieldName, Decimal128 value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
     }
 
-
-    public RealmQuery<E> greatherThan(String fieldName, ObjectId value) {
-        // FIXME
+    /**
+     * Greater-than comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> greaterThan(String fieldName, ObjectId value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
+        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
     }
 
@@ -1161,6 +1248,36 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Greater-than-or-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> greatherThanOrEqualTo(String fieldName, Decimal128 value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        return this;
+    }
+
+    /**
+     * Greater-than-or-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> greatherThanOrEqualTo(String fieldName, ObjectId value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
+        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        return this;
+    }
+
+    /**
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
@@ -1192,13 +1309,33 @@ public class RealmQuery<E> {
         return this;
     }
 
+    /**
+     * Less-than comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
     public RealmQuery<E> lessThan(String fieldName, Decimal128 value) {
-        // FIXME
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
     }
 
+    /**
+     * Less-than comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
     public RealmQuery<E> lessThan(String fieldName, ObjectId value) {
-        // FIXME
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
+        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
     }
 
@@ -1244,7 +1381,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, Date value) {
         realm.checkIfValid();
-
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DATE);
         this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
@@ -1276,20 +1412,38 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, long value) {
         realm.checkIfValid();
-
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
         this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
     }
 
+    /**
+     * Less-than-or-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Decimal128 value) {
-        // FIXME
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
     }
 
-
+    /**
+     * Less-than-or-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, ObjectId value) {
-        // FIXME
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
+        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
     }
 

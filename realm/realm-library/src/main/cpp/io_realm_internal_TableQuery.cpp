@@ -849,6 +849,46 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JZ(J
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JJJ(JNIEnv* env, jobject,
+                                                                                jlong nativeQueryPtr,
+                                                                                jlongArray columnKeys,
+                                                                                jlongArray tablePointers,
+                                                                                jlong high,
+                                                                                jlong low)
+{
+    // FIXME
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualObjectId(JNIEnv* env, jobject,
+                                                                             jlong nativeQueryPtr,
+                                                                             jlongArray columnKeys,
+                                                                             jlongArray tablePointers,
+                                                                             jbyteArray data)
+{
+    // FIXME
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLess__J_3J_3JJJ(JNIEnv* env, jobject,
+                                                                               jlong nativeQueryPtr,
+                                                                               jlongArray columnKeys,
+                                                                               jlongArray tablePointers,
+                                                                               jlong high,
+                                                                               jlong low)
+{
+    // FIXME
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessObjectId(JNIEnv* env, jobject,
+                                                                            jlong nativeQueryPtr,
+                                                                            jlongArray columnKeys,
+                                                                            jlongArray tablePointers,
+                                                                            jbyteArray data)
+{
+    // FIXME
+}
+
+
+
 // String
 
 enum StringPredicate { StringEqual, StringNotEqual, StringContains, StringBeginsWith, StringEndsWith, StringLike };
