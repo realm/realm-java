@@ -857,6 +857,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JJJ(
                                                                                 jlong low)
 {
     // FIXME
+    (void) env;
+    (void) nativeQueryPtr;
+    (void) columnKeys;
+    (void) tablePointers;
+    (void) high;
+    (void) low;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualObjectId(JNIEnv* env, jobject,
@@ -865,7 +871,43 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualObjectId(JNI
                                                                              jlongArray tablePointers,
                                                                              jbyteArray data)
 {
-    // FIXME
+// FIXME
+(void) env;
+(void) nativeQueryPtr;
+(void) columnKeys;
+(void) tablePointers;
+(void) data;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3J_3JJJ(JNIEnv* env, jobject,
+                                                                                jlong nativeQueryPtr,
+                                                                                jlongArray columnKeys,
+                                                                                jlongArray tablePointers,
+                                                                                jlong high,
+                                                                                jlong low)
+{
+// FIXME
+(void) env;
+(void) nativeQueryPtr;
+(void) columnKeys;
+(void) tablePointers;
+(void) high;
+(void) low;
+
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualObjectId(JNIEnv* env, jobject,
+                                                                             jlong nativeQueryPtr,
+                                                                             jlongArray columnKeys,
+                                                                             jlongArray tablePointers,
+                                                                             jbyteArray data)
+{
+// FIXME
+(void) env;
+(void) nativeQueryPtr;
+(void) columnKeys;
+(void) tablePointers;
+(void) data;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLess__J_3J_3JJJ(JNIEnv* env, jobject,
@@ -875,7 +917,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLess__J_3J_3JJJ(J
                                                                                jlong high,
                                                                                jlong low)
 {
-    // FIXME
+// FIXME
+(void) env;
+(void) nativeQueryPtr;
+(void) columnKeys;
+(void) tablePointers;
+(void) high;
+(void) low;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessObjectId(JNIEnv* env, jobject,
@@ -884,10 +932,105 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessObjectId(JNIE
                                                                             jlongArray tablePointers,
                                                                             jbyteArray data)
 {
-    // FIXME
+// FIXME
+(void) env;
+(void) nativeQueryPtr;
+(void) columnKeys;
+(void) tablePointers;
+(void) data;
 }
 
 
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqual__J_3J_3JJJ(JNIEnv* env, jobject,
+                                                                               jlong nativeQueryPtr,
+                                                                               jlongArray columnKeys,
+                                                                               jlongArray tablePointers,
+                                                                               jlong high,
+                                                                               jlong low)
+{
+// FIXME
+(void) env;
+(void) nativeQueryPtr;
+(void) columnKeys;
+(void) tablePointers;
+(void) high;
+(void) low;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualObjectId(JNIEnv* env, jobject,
+                                                                            jlong nativeQueryPtr,
+                                                                            jlongArray columnKeys,
+                                                                            jlongArray tablePointers,
+                                                                            jbyteArray data)
+{
+// FIXME
+(void) env;
+(void) nativeQueryPtr;
+(void) columnKeys;
+(void) tablePointers;
+(void) data;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreater__J_3J_3JJJ(JNIEnv* env, jobject,
+                                                                               jlong nativeQueryPtr,
+                                                                               jlongArray columnKeys,
+                                                                               jlongArray tablePointers,
+                                                                               jlong high,
+                                                                               jlong low)
+{
+// FIXME
+(void) env;
+(void) nativeQueryPtr;
+(void) columnKeys;
+(void) tablePointers;
+(void) high;
+(void) low;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterObjectId(JNIEnv* env, jobject,
+                                                                            jlong nativeQueryPtr,
+                                                                            jlongArray columnKeys,
+                                                                            jlongArray tablePointers,
+                                                                            jbyteArray data)
+{
+// FIXME
+(void) env;
+(void) nativeQueryPtr;
+(void) columnKeys;
+(void) tablePointers;
+(void) data;
+}
+
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqual__J_3J_3JJJ(JNIEnv* env, jobject,
+                                                                               jlong nativeQueryPtr,
+                                                                               jlongArray columnKeys,
+                                                                               jlongArray tablePointers,
+                                                                               jlong high,
+                                                                               jlong low)
+{
+// FIXME
+(void) env;
+(void) nativeQueryPtr;
+(void) columnKeys;
+(void) tablePointers;
+(void) high;
+(void) low;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualObjectId(JNIEnv* env, jobject,
+                                                                            jlong nativeQueryPtr,
+                                                                            jlongArray columnKeys,
+                                                                            jlongArray tablePointers,
+                                                                            jbyteArray data)
+{
+// FIXME
+(void) env;
+(void) nativeQueryPtr;
+(void) columnKeys;
+(void) tablePointers;
+(void) data;
+}
 
 // String
 
