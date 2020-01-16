@@ -5,7 +5,7 @@
 * The error message shown when no native code could be found for the device is now much more descriptive. This is particular helpful if an app is using App Bundle or APK Split and the resulting APK was side-loaded outside the Google Play Store. (Issue [#6673](https://github.com/realm/realm-java/issues/6673))
 
 ### Fixed
-* None.
+* Fixed using `RealmList` with a primitive type sometimes crashing with `Destruction of mutex in use`. (Issue [#6689](https://github.com/realm/realm-java/issues/6689)) 
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
@@ -14,8 +14,9 @@
 
 ### Internal
 * Updated to ReLinker 1.4.0.
-* Updated to Object Store commit: ad96a4c334b475dd67d50c1ca419e257d7a21e18.
-* Updated to Realm Sync v4.8.3.
+* Updated to Object Store commit: 2a204063e1e1a366efbdd909fbea9effceb7d3c4.
+* Updated to Realm Sync 4.9.2.
+* Updated to Realm Core 5.23.8.
 
 ### Credits
 * Thanks to @sellmair (Sebastian Sellmair) for improving Kotlin Multiplatform support.
