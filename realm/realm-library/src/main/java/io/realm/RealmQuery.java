@@ -19,6 +19,9 @@ package io.realm;
 
 import android.text.TextUtils;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
@@ -309,6 +312,22 @@ public class RealmQuery<E> {
         realm.checkIfValid();
 
         return equalToWithoutThreadValidation(fieldName, value, casing);
+    }
+
+    /**
+     *
+     * @param fieldName
+     * @param value
+     * @return
+     */
+    public RealmQuery<E> equalTo(String fieldName, @Nullable Decimal128 value) {
+        // FIXME
+        return this;
+    }
+
+    public RealmQuery<E> equalTo(String fieldName, @Nullable ObjectId value) {
+        // FIXME
+        return this;
     }
 
     private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable String value, Case casing) {
@@ -1050,6 +1069,17 @@ public class RealmQuery<E> {
         return this;
     }
 
+    public RealmQuery<E> greatherThan(String fieldName, Decimal128 value) {
+        // FIXME
+        return this;
+    }
+
+
+    public RealmQuery<E> greatherThan(String fieldName, ObjectId value) {
+        // FIXME
+        return this;
+    }
+
     /**
      * Greater-than-or-equal-to comparison.
      *
@@ -1162,6 +1192,16 @@ public class RealmQuery<E> {
         return this;
     }
 
+    public RealmQuery<E> lessThan(String fieldName, Decimal128 value) {
+        // FIXME
+        return this;
+    }
+
+    public RealmQuery<E> lessThan(String fieldName, ObjectId value) {
+        // FIXME
+        return this;
+    }
+
     /**
      * Less-than comparison.
      *
@@ -1239,6 +1279,17 @@ public class RealmQuery<E> {
 
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
         this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        return this;
+    }
+
+    public RealmQuery<E> lessThanOrEqualTo(String fieldName, Decimal128 value) {
+        // FIXME
+        return this;
+    }
+
+
+    public RealmQuery<E> lessThanOrEqualTo(String fieldName, ObjectId value) {
+        // FIXME
         return this;
     }
 
