@@ -15,7 +15,7 @@
 ### Internal
 * Updated to ReLinker 1.4.0.
 * Updated to Object Store commit: 2a204063e1e1a366efbdd909fbea9effceb7d3c4.
-* Updated to Realm Sync 4.9.2.
+* Updated to Realm Sync 4.9.3.
 * Updated to Realm Core 5.23.8.
 
 ### Credits
