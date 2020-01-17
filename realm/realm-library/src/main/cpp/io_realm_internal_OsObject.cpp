@@ -351,3 +351,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithObjec
     CATCH_STD()
     return realm::npos;
 }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithObjectIdPrimaryKey(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jbyteArray pk_value)
+{
+    // FIXME
+(void) shared_realm_ptr;
+(void) table_ref_ptr;
+(void) pk_column_ndx;
+(void) pk_value;
+    try {
+//        Obj obj = do_create_row_with_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value);
+//        return (jlong)(obj.get_key().value);
+    }
+    CATCH_STD()
+    return realm::npos;
+}

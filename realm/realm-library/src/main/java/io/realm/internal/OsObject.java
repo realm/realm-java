@@ -206,6 +206,11 @@ public class OsObject implements NativeObject {
             return new UncheckedRow(sharedRealm.context, table,
                     nativeCreateNewObjectWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                             primaryKeyColumnKey, value, primaryKeyValue == null));
+        } else if (type == RealmFieldType.OBJECT_ID) {
+            ObjectId value = (ObjectId) primaryKeyValue;
+            return new UncheckedRow(sharedRealm.context, table,
+                    nativeCreateNewObjectWithObjectIdPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+                            primaryKeyColumnKey, value, primaryKeyValue == null));
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
         }
@@ -289,7 +294,10 @@ public class OsObject implements NativeObject {
 
     private static native long nativeCreateRowWithObjectIdPrimaryKey(long sharedRealmPtr,
                                                                      long tableRefPtr, long pk_column_index,
-                                                                     byte[] primaryKeyValue);
+                                                                     @Nullable byte[] primaryKeyValue);
 
+    private static native long nativeCreateNewObjectWithObjectIdPrimaryKey(long sharedRealmPtr,
+                                                                           long tableRefPtr, long pk_column_index,
+                                                                           @Nullable byte[] data);
 
 }
