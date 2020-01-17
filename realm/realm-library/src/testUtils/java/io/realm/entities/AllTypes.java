@@ -23,6 +23,9 @@ import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Required;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 public class AllTypes extends RealmObject {
 
     public static final String CLASS_NAME = "AllTypes";
@@ -34,6 +37,8 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_DATE = "columnDate";
     public static final String FIELD_BINARY = "columnBinary";
     public static final String FIELD_MUTABLEREALMINTEGER = "columnMutableRealmInteger";
+    public static final String FIELD_DECIMAL128 = "columnDecimal128";
+    public static final String FIELD_OBJECT_ID = "columnObjectId";
     public static final String FIELD_REALMOBJECT = "columnRealmObject";
     public static final String FIELD_REALMLIST = "columnRealmList";
 
@@ -60,6 +65,10 @@ public class AllTypes extends RealmObject {
     private Date columnDate = new Date(0);
     @Required
     private byte[] columnBinary = new byte[0];
+    @Required
+    private Decimal128 columnDecimal128;
+    @Required
+    private ObjectId columnObjectId;
 
     private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
     private Dog columnRealmObject;
@@ -72,6 +81,8 @@ public class AllTypes extends RealmObject {
     private RealmList<Double> columnDoubleList;
     private RealmList<Float> columnFloatList;
     private RealmList<Date> columnDateList;
+    private RealmList<Decimal128> columnDecimal128List;
+    private RealmList<ObjectId> columnObjectIdList;
 
     public String getColumnString() {
         return columnString;
@@ -207,5 +218,37 @@ public class AllTypes extends RealmObject {
 
     public void setColumnDateList(RealmList<Date> columnDateList) {
         this.columnDateList = columnDateList;
+    }
+
+    public Decimal128 getColumnDecimal128() {
+        return columnDecimal128;
+    }
+
+    public void setColumnDecimal128(Decimal128 columnDecimal128) {
+        this.columnDecimal128 = columnDecimal128;
+    }
+
+    public ObjectId getColumnObjectId() {
+        return columnObjectId;
+    }
+
+    public void setColumnObjectId(ObjectId columnObjectId) {
+        this.columnObjectId = columnObjectId;
+    }
+
+    public RealmList<Decimal128> getColumnDecimal128List() {
+        return columnDecimal128List;
+    }
+
+    public void setColumnDecimal128List(RealmList<Decimal128> columnDecimal128List) {
+        this.columnDecimal128List = columnDecimal128List;
+    }
+
+    public RealmList<ObjectId> getColumnObjectIdList() {
+        return columnObjectIdList;
+    }
+
+    public void setColumnObjectIdList(RealmList<ObjectId> columnObjectIdList) {
+        this.columnObjectIdList = columnObjectIdList;
     }
 }

@@ -18,10 +18,13 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
@@ -34,6 +37,7 @@ import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
 import io.realm.entities.IndexedFields;
+import io.realm.entities.MongoDBTypes;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
@@ -67,6 +71,8 @@ public class RealmQueryTests extends QueryTests {
             allTypes.setColumnFloat(1.2345f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
+            allTypes.setColumnObjectId(new ObjectId(new Date(i)));
+            allTypes.setColumnDecimal128(new Decimal128(new BigDecimal(i + ".23456789")));
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
             nonLatinFieldNames.setΔέλτα(i);
@@ -649,6 +655,77 @@ public class RealmQueryTests extends QueryTests {
         resultList = realm.where(AllTypes.class).greaterThan(AllTypes.FIELD_FLOAT, 11.0f)
                 .equalTo(AllTypes.FIELD_LONG, 1).findAll();
         assertEquals(0, resultList.size());
+    }
+
+    @Test
+    public void equalTo_decimal128() {
+        populateTestRealm(realm, 10);
+        // FIXME
+    }
+
+    @Test
+    public void equalTo_objectId() {
+        populateTestRealm(realm, 10);
+        // FIXME
+    }
+
+    @Test
+    public void notEqualTo_decimal128() {
+        populateTestRealm(realm, 10);
+        // FIXME
+    }
+
+    @Test
+    public void notEqualTo_objectId() {
+        populateTestRealm(realm, 10);
+        // FIXME
+    }
+
+    @Test
+    public void lessThan_decimal128() {
+        populateTestRealm(realm, 10);
+        // FIXME
+    }
+
+    @Test
+    public void lessThan_objectId() {
+        populateTestRealm(realm, 10);
+        // FIXME
+    }
+
+    @Test
+    public void lessThanOrEqualTo_decimal128() {
+        populateTestRealm(realm, 10);
+        // FIXME
+    }
+
+    @Test
+    public void lessThanOrEqualTo_objectId() {
+        populateTestRealm(realm, 10);
+        // FIXME
+    }
+
+    @Test
+    public void greaterThan_decimal128() {
+        populateTestRealm(realm, 10);
+        // FIXME
+    }
+
+    @Test
+    public void greaterThan_objectId() {
+        populateTestRealm(realm, 10);
+        // FIXME
+    }
+
+    @Test
+    public void greaterThanOrEqual_decimal128() {
+        populateTestRealm(realm, 10);
+        // FIXME
+    }
+
+    @Test
+    public void greaterThanOrEqual_objectId() {
+        // FIXME
     }
 
     @Test

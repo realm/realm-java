@@ -19,6 +19,9 @@ package io.realm;
 import android.annotation.SuppressLint;
 import android.os.Looper;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -418,6 +421,34 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         osResults.setObject(fieldName, row);
     }
 
+    /**
+     * FIXME
+     *
+     * @param fieldName
+     * @param value
+     */
+    public void setDecimal128(String fieldName, @Nullable Decimal128 value) {
+        checkNonEmptyFieldName(fieldName);
+        realm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.DECIMAL128);
+        osResults.setDecimal128(fieldName, value);
+    }
+
+    /**
+     * FIXME
+     *
+     * @param fieldName
+     * @param value
+     */
+    public void setObjectId(String fieldName, @Nullable ObjectId value) {
+        checkNonEmptyFieldName(fieldName);
+        realm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.DECIMAL128);
+        osResults.setObjectId(fieldName, value);
+    }
+
     private Row checkRealmObjectConstraints(String fieldName, @Nullable RealmModel value) {
         if (value != null) {
             if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
@@ -516,8 +547,21 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                 checkTypeOfListElements(list, Double.class);
                 osResults.setDoubleList(fieldName, (RealmList<Double>) list);
                 break;
-            default:
+            default: {
+                // Handle Decimal128 and ObjectId in a special way since they might not be on the
+                // classpath
+                try {
+                    if (columnType == RealmFieldType.DECIMAL128_LIST) {
+                        checkTypeOfListElements(list, Decimal128.class);
+                        osResults.setDecimal128List(fieldName, (RealmList<Decimal128>) list);
+                    } else if (columnType == RealmFieldType.OBJECT_ID_LIST) {
+                        checkTypeOfListElements(list, Decimal128.class);
+                        osResults.setObjectIdList(fieldName, (RealmList<Decimal128>) list);
+                    }
+                } catch (ClassNotFoundException e) {
+                }
                 throw new IllegalArgumentException(String.format("Field '%s' is not a list but a %s", fieldName, columnType));
+            }
         }
     }
 

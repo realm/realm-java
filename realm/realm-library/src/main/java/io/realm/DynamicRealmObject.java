@@ -15,6 +15,10 @@
  */
 package io.realm;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
@@ -514,6 +518,12 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 case DATE:
                     value = JsonUtils.stringToDate(strValue);
                     break;
+                case DECIMAL128:
+                    value = new Decimal128(new BigDecimal(strValue));
+                    break;
+                case OBJECT_ID:
+                    value = new ObjectId(strValue);
+                    break;
                 default:
                     throw new IllegalArgumentException(String.format(Locale.US,
                             "Field %s is not a String field, " +
@@ -558,6 +568,16 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             RealmList<?> list = (RealmList<?>) value;
             setList(fieldName, list);
         } else {
+            // Handle Decimal128 and ObjectId in a special way since they might not be on the
+            // classpath
+            try {
+                if (valueClass == Decimal128.class) {
+                    setDecimal128(fieldName, (Decimal128) value);
+                } else if (valueClass == ObjectId.class) {
+                    setObjectId(fieldName, (ObjectId) value);
+                }
+            } catch (ClassNotFoundException ignore) {
+            }
             throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
         }
     }
@@ -713,6 +733,42 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             proxyState.getRow$realm().setNull(columnKey);
         } else {
             proxyState.getRow$realm().setDate(columnKey, value);
+        }
+    }
+
+    /**
+     * Sets the {@code Decimal128} value of the given field.
+     *
+     * @param fieldName field name.
+     * @param value value to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't a Decimal128 field.
+     */
+    public void setDecimal128(String fieldName, @Nullable Decimal128 value) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        if (value == null) {
+            proxyState.getRow$realm().setNull(columnKey);
+        } else {
+            proxyState.getRow$realm().setDecimal128(columnKey, value);
+        }
+    }
+
+    /**
+     * Sets the {@code ObjectId} value of the given field.
+     *
+     * @param fieldName field name.
+     * @param value value to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't a ObjectId field.
+     */
+    public void setObjectId(String fieldName, @Nullable ObjectId value) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        if (value == null) {
+            proxyState.getRow$realm().setNull(columnKey);
+        } else {
+            proxyState.getRow$realm().setObjectId(columnKey, value);
         }
     }
 
