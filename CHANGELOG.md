@@ -1,9 +1,12 @@
-## 6.0.3(YYYY-MM-DD)
+## 6.1.0(2020-01-17)
 
 ### Enhancements
-* None.
+* The Realm Gradle plugin now applies `kapt` when used in Kotlin Multiplatform projects. Note, Realm Java still only works for the Android part of a Kotlin Multiplatform project. (Issue [#6653](https://github.com/realm/realm-java/issues/6653))
+* The error message shown when no native code could be found for the device is now much more descriptive. This is particular helpful if an app is using App Bundle or APK Split and the resulting APK was side-loaded outside the Google Play Store. (Issue [#6673](https://github.com/realm/realm-java/issues/6673))
+* `RealmResults.asJson()` now encode binary data as Base64 and null object links are reported as `null` instead of `[]`.
 
 ### Fixed
+* Fixed using `RealmList` with a primitive type sometimes crashing with `Destruction of mutex in use`. (Issue [#6689](https://github.com/realm/realm-java/issues/6689)) 
 * `RealmObjectSchema.transform()` would crash if one of the `DynamicRealmObject` provided are deleted from the Realm. (Issue [#6657](https://github.com/realm/realm-java/issues/6657), since 0.86.0)
 * The Realm Transformer will no longer attempt to send anonymous metrics when Gradle is invoked with `--offline`. (Issue [#6691](https://github.com/realm/realm-java/issues/6691))
 
@@ -13,7 +16,13 @@
 * APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
 
 ### Internal
-* None.
+* Updated to ReLinker 1.4.0.
+* Updated to Object Store commit: 2a204063e1e1a366efbdd909fbea9effceb7d3c4.
+* Updated to Realm Sync 4.9.4.
+* Updated to Realm Core 5.23.8.
+
+### Credits
+* Thanks to @sellmair (Sebastian Sellmair) for improving Kotlin Multiplatform support.
 
 
 ## 6.0.2(2019-11-21)

@@ -244,7 +244,7 @@ public:
     // using the provided value. If `update` is true then upsert semantics
     // should be used for this.
     template <typename T>
-    T unbox(util::Any& v, bool /*create*/ = false, bool /*update*/ = false) const
+    T unbox(util::Any& v, CreatePolicy = CreatePolicy::Skip) const
     {
         return any_cast<T>(v);
     }
@@ -344,35 +344,35 @@ inline JPrimitiveArrayAccessor<jlongArray, jlong>::ElementsHolder::~ElementsHold
 }
 
 template <>
-inline bool JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+inline bool JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 {
     check_value_not_null(v, "Boolean");
     return any_cast<jboolean>(v) == JNI_TRUE;
 }
 
 template <>
-inline int64_t JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+inline int64_t JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 {
     check_value_not_null(v, "Long");
     return static_cast<int64_t>(any_cast<jlong>(v));
 }
 
 template <>
-inline double JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+inline double JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 {
     check_value_not_null(v, "Double");
     return static_cast<double>(any_cast<jdouble>(v));
 }
 
 template <>
-inline float JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+inline float JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 {
     check_value_not_null(v, "Float");
     return static_cast<float>(any_cast<jfloat>(v));
 }
 
 template <>
-inline StringData JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+inline StringData JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 {
     if (!v.has_value()) {
         return StringData();
@@ -382,7 +382,7 @@ inline StringData JavaAccessorContext::unbox(util::Any& v, bool, bool) const
 }
 
 template <>
-inline BinaryData JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+inline BinaryData JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 {
     if (!v.has_value())
         return BinaryData();
@@ -391,43 +391,43 @@ inline BinaryData JavaAccessorContext::unbox(util::Any& v, bool, bool) const
 }
 
 template <>
-inline Timestamp JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+inline Timestamp JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 {
     return v.has_value() ? from_milliseconds(any_cast<jlong>(v)) : Timestamp();
 }
 
 template <>
-inline RowExpr JavaAccessorContext::unbox(util::Any&, bool, bool) const
+inline RowExpr JavaAccessorContext::unbox(util::Any&, CreatePolicy) const
 {
     REALM_TERMINATE("not supported");
 }
 
 template <>
-inline util::Optional<bool> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+inline util::Optional<bool> JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 {
     return v.has_value() ? util::make_optional(any_cast<jboolean>(v) == JNI_TRUE) : util::none;
 }
 
 template <>
-inline util::Optional<int64_t> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+inline util::Optional<int64_t> JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 {
     return v.has_value() ? util::make_optional(static_cast<int64_t>(any_cast<jlong>(v))) : util::none;
 }
 
 template <>
-inline util::Optional<double> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+inline util::Optional<double> JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 {
     return v.has_value() ? util::make_optional(any_cast<jdouble>(v)) : util::none;
 }
 
 template <>
-inline util::Optional<float> JavaAccessorContext::unbox(util::Any& v, bool, bool) const
+inline util::Optional<float> JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 {
     return v.has_value() ? util::make_optional(any_cast<jfloat>(v)) : util::none;
 }
 
 template <>
-inline Mixed JavaAccessorContext::unbox(util::Any&, bool, bool) const
+inline Mixed JavaAccessorContext::unbox(util::Any&, CreatePolicy) const
 {
     REALM_TERMINATE("not supported");
 }

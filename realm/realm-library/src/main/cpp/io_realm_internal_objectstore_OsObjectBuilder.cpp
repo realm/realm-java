@@ -166,7 +166,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativ
         JavaContext ctx(env, shared_realm, object_schema);
         auto list = *reinterpret_cast<OsObjectData*>(builder_ptr);
         JavaValue values = JavaValue(list);
-        Object obj = Object::create(ctx, shared_realm, object_schema, values, update_existing, ignore_same_values);
+        CreatePolicy policy;
+        if (ignore_same_values) {
+            policy = CreatePolicy::UpdateModified;
+        }
+        else if (update_existing) {
+            policy = CreatePolicy::UpdateAll;
+        }
+        else {
+            policy = CreatePolicy::ForceCreate;
+        }
+
+        Object obj = Object::create(ctx, shared_realm, object_schema, values, policy);
         return reinterpret_cast<jlong>(new Row(obj.row()));
     }
     CATCH_STD()
