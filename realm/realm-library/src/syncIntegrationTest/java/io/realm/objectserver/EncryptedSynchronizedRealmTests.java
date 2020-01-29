@@ -18,7 +18,6 @@ import io.realm.SyncTestUtils;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmFileException;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
