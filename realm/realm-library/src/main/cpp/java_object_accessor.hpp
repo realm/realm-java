@@ -28,6 +28,8 @@
 #include "object_accessor.hpp"
 #include "object-store/src/property.hpp"
 
+#include <realm/decimal128.hpp>
+#include <realm/object_id.hpp>
 #include <realm/util/any.hpp>
 
 using namespace realm::_impl;
@@ -40,6 +42,8 @@ using namespace realm::_impl;
     X(Double) \
     X(Date) \
     X(Binary) \
+    X(Decimal128) \
+    X(ObjectId) \
     X(Object) \
     X(List) \
     X(PropertyList) \
@@ -73,6 +77,8 @@ template <> struct JavaValueTypeRepr<JavaValueType::Float>   { using Type = jflo
 template <> struct JavaValueTypeRepr<JavaValueType::Double>  { using Type = jdouble; };
 template <> struct JavaValueTypeRepr<JavaValueType::Date>    { using Type = Timestamp; };
 template <> struct JavaValueTypeRepr<JavaValueType::Binary>  { using Type = OwnedBinaryData; };
+template <> struct JavaValueTypeRepr<JavaValueType::Decimal128>  { using Type = Decimal128; };
+template <> struct JavaValueTypeRepr<JavaValueType::ObjectId>  { using Type = ObjectId; };
 template <> struct JavaValueTypeRepr<JavaValueType::Object>  { using Type = Obj*; };
 template <> struct JavaValueTypeRepr<JavaValueType::List>    { using Type = std::vector<JavaValue>; };
 template <> struct JavaValueTypeRepr<JavaValueType::PropertyList> { using Type = std::map<ColKey, JavaValue>; };

@@ -210,7 +210,7 @@ public class OsObject implements NativeObject {
             ObjectId value = (ObjectId) primaryKeyValue;
             return new UncheckedRow(sharedRealm.context, table,
                     nativeCreateNewObjectWithObjectIdPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
-                            primaryKeyColumnKey, value, primaryKeyValue == null));
+                            primaryKeyColumnKey, value.toByteArray()));
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
         }

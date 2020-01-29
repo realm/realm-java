@@ -570,13 +570,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         } else {
             // Handle Decimal128 and ObjectId in a special way since they might not be on the
             // classpath
-            try {
-                if (valueClass == Decimal128.class) {
-                    setDecimal128(fieldName, (Decimal128) value);
-                } else if (valueClass == ObjectId.class) {
-                    setObjectId(fieldName, (ObjectId) value);
-                }
-            } catch (ClassNotFoundException ignore) {
+            if (valueClass == Decimal128.class) {
+                setDecimal128(fieldName, (Decimal128) value);
+            } else if (valueClass == ObjectId.class) {
+                setObjectId(fieldName, (ObjectId) value);
             }
             throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
         }

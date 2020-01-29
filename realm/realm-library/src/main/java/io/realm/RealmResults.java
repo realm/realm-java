@@ -550,15 +550,12 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             default: {
                 // Handle Decimal128 and ObjectId in a special way since they might not be on the
                 // classpath
-                try {
-                    if (columnType == RealmFieldType.DECIMAL128_LIST) {
-                        checkTypeOfListElements(list, Decimal128.class);
-                        osResults.setDecimal128List(fieldName, (RealmList<Decimal128>) list);
-                    } else if (columnType == RealmFieldType.OBJECT_ID_LIST) {
-                        checkTypeOfListElements(list, Decimal128.class);
-                        osResults.setObjectIdList(fieldName, (RealmList<Decimal128>) list);
-                    }
-                } catch (ClassNotFoundException e) {
+                if (columnType == RealmFieldType.DECIMAL128_LIST) {
+                    checkTypeOfListElements(list, Decimal128.class);
+                    osResults.setDecimal128List(fieldName, (RealmList<Decimal128>) list);
+                } else if (columnType == RealmFieldType.OBJECT_ID_LIST) {
+                    checkTypeOfListElements(list, ObjectId.class);
+                    osResults.setObjectIdList(fieldName, (RealmList<ObjectId>) list);
                 }
                 throw new IllegalArgumentException(String.format("Field '%s' is not a list but a %s", fieldName, columnType));
             }
