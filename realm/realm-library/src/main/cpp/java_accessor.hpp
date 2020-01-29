@@ -244,7 +244,7 @@ public:
     // using the provided value. If `update` is true then upsert semantics
     // should be used for this.
     template <typename T>
-    T unbox(util::Any& v, CreatePolicy=CreatePolicy::ForceCreate) const
+    T unbox(util::Any& v, CreatePolicy=CreatePolicy::Skip) const
     {
         return any_cast<T>(v);
     }

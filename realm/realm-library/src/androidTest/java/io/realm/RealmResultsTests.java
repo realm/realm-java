@@ -1765,7 +1765,7 @@ public class RealmResultsTests extends CollectionTests {
         String json = all.asJSON();
         final String expectedJSON = "[\n" +
                 "    {\n" +
-                "        \"_key\": 100,\n" +
+                "        \"_key\":100,\n" +
                 "        \"columnString\": \"alltypes1\",\n" +
                 "        \"columnLong\": 1337,\n" +
                 "        \"columnFloat\": 3.1400001,\n" +
@@ -1883,9 +1883,9 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"name\": \"Two\",\n" +
                 "                \"date\": \"" + now + "\",\n" +
                 "                \"object\": {\n" +
-                "                    \"table\": \"class_CyclicType\",\n" +
-                "                    \"key\": 0\n" +
-                "                },\n" +
+                "                       \"table\": \"class_CyclicType\",\n" +
+                "                       \"key\": 0\n" +
+                "                  },\n" +
                 "                \"otherObject\": null,\n" +
                 "                \"objects\": []\n" +
                 "            }\n" +
@@ -1905,9 +1905,9 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"name\": \"One\",\n" +
                 "                \"date\": \"" + now + "\",\n" +
                 "                \"object\": {\n" +
-                "                    \"table\": \"class_CyclicType\",\n" +
-                "                    \"key\": 1\n" +
-                "                },\n" +
+                "                       \"table\": \"class_CyclicType\",\n" +
+                "                       \"key\": 1\n" +
+                "                  },\n" +
                 "                \"otherObject\": null,\n" +
                 "                \"objects\": []\n" +
                 "            }\n" +
