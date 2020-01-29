@@ -76,15 +76,10 @@ public class SyncConfigurationTests {
 
     @Test
     public void user_invalidUserThrows() {
-        try {
-            new SyncConfiguration.Builder(null, "realm://ros.realm.io/default");
-        } catch (IllegalArgumentException ignore) {
-        }
-
         SyncUser user = createTestUser(0); // Create user that has expired credentials
         try {
-            new SyncConfiguration.Builder(user, "realm://ros.realm.io/default");
-        } catch (IllegalArgumentException ignore) {
+            user.createConfiguration("realm://ros.realm.io/default");
+        } catch (IllegalStateException ignore) {
         }
     }
 
@@ -530,7 +525,7 @@ public class SyncConfigurationTests {
                 .fullSynchronization()
                 .build();
         assertEquals(ClientResyncMode.RECOVER_LOCAL_REALM, config.getClientResyncMode());
-        
+
         // Default mode for query-based Realms
         config = user.createConfiguration(url).build();
         assertEquals(ClientResyncMode.MANUAL, config.getClientResyncMode());

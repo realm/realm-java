@@ -27,8 +27,7 @@ import io.realm.log.RealmLog;
  */
 public enum ErrorCode {
 
-    // See Client::Error in https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp
-    // See https://github.com/realm/realm-object-server/blob/master/object-server/doc/problems.md
+    // See Client::Error in https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp#L1230
     // See https://github.com/realm/realm-sync/blob/develop/src/realm/sync/protocol.hpp
 
     // Catch-all
@@ -78,12 +77,15 @@ public enum ErrorCode {
     PARTIAL_SYNC_DISABLED(Type.PROTOCOL, 214),                     // Partial sync disabled (BIND)
     UNSUPPORTED_SESSION_FEATURE(Type.PROTOCOL, 215),               // Unsupported session-level feature
     BAD_ORIGIN_FILE_IDENT(Type.PROTOCOL, 216),                     // Bad origin file identifier (UPLOAD)
+    BAD_CLIENT_FILE(Type.PROTOCOL, 217),                           // Synchronization no longer possible for client-side file
+    SERVER_FILE_DELETED(Type.PROTOCOL, 218),                       // Server file was deleted while session was bound to it
+    CLIENT_FILE_BLACKLISTED(Type.PROTOCOL, 219),                   // Client file has been blacklisted (IDENT)
+    USER_BLACKLISTED(Type.PROTOCOL, 220),                          // User has been blacklisted (BIND)
+    TRANSACT_BEFORE_UPLOAD(Type.PROTOCOL, 221),                    // Serialized transaction before upload completion
+    CLIENT_FILE_EXPIRED(Type.PROTOCOL, 222),                       // Client file has expired
 
     // Sync Network Client errors.
-    // TODO: All enums in here should be prefixed with `CLIENT_`, but in order to avoid
-    // breaking changes, this is not the case for all of them. This should be fixed in the
-    // next major release.
-    // See https://github.com/realm/realm-java/issues/6387
+    // See https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp#L1230
     CLIENT_CONNECTION_CLOSED(Type.SESSION, 100),            // Connection closed (no error)
     CLIENT_UNKNOWN_MESSAGE(Type.SESSION, 101),              // Unknown type of input message
     CLIENT_LIMITS_EXCEEDED(Type.SESSION, 103),              // Limits exceeded in input message
@@ -96,16 +98,26 @@ public enum ErrorCode {
     CLIENT_BAD_ORIGIN_FILE_IDENT(Type.SESSION, 110),        // Bad origin file identifier in changeset header (DOWNLOAD)
     CLIENT_BAD_SERVER_VERSION(Type.SESSION, 111),           // Bad server version in changeset header (DOWNLOAD)
     CLIENT_BAD_CHANGESET(Type.SESSION, 112),                // Bad changeset (DOWNLOAD)
-    BAD_REQUEST_IDENT(Type.SESSION, 113),                   // Bad request identifier (MARK)
-    BAD_ERROR_CODE(Type.SESSION, 114),                      // Bad error code (ERROR)
-    BAD_COMPRESSION(Type.SESSION, 115),                     // Bad compression (DOWNLOAD)
-    BAD_CLIENT_VERSION_DOWNLOAD(Type.SESSION, 116),         // Bad last integrated client version in changeset header (DOWNLOAD)
-    SSL_SERVER_CERT_REJECTED(Type.SESSION, 117),            // SSL server certificate rejected
-    PONG_TIMEOUT(Type.SESSION, 118),                        // Timeout on reception of PONG respone message
+    CLIENT_BAD_REQUEST_IDENT(Type.SESSION, 113),            // Bad request identifier (MARK)
+    CLIENT_BAD_ERROR_CODE(Type.SESSION, 114),               // Bad error code (ERROR)
+    CLIENT_BAD_COMPRESSION(Type.SESSION, 115),              // Bad compression (DOWNLOAD)
+    CLIENT_BAD_CLIENT_VERSION_DOWNLOAD(Type.SESSION, 116),  // Bad last integrated client version in changeset header (DOWNLOAD)
+    CLIENT_SSL_SERVER_CERT_REJECTED(Type.SESSION, 117),     // SSL server certificate rejected
+    CLIENT_PONG_TIMEOUT(Type.SESSION, 118),                 // Timeout on reception of PONG respone message
     CLIENT_BAD_CLIENT_FILE_IDENT_SALT(Type.SESSION, 119),   // Bad client file identifier salt (IDENT)
     CLIENT_FILE_IDENT(Type.SESSION, 120),                   // Bad file identifier (ALLOC)
     CLIENT_CONNECT_TIMEOUT(Type.SESSION, 121),              // Sync connection was not fully established in time
     CLIENT_BAD_TIMESTAMP(Type.SESSION, 122),                // Bad timestamp (PONG)
+    CLIENT_BAD_PROTOCOL_FROM_SERVER(Type.SESSION, 123),     // Bad or missing protocol version information from server
+    CLIENT_TOO_OLD_FOR_SERVER(Type.SESSION, 124),           // Protocol version negotiation failed: Client is too old for server
+    CLIENT_TOO_NEW_FOR_SERVER(Type.SESSION, 125),           // Protocol version negotiation failed: Client is too new for server
+    CLIENT_PROTOCOL_MISMATCH(Type.SESSION, 126),            // Protocol version negotiation failed: No version supported by both client and server
+    CLIENT_BAD_STATE_MESSAGE(Type.SESSION, 127),            // Bad values in state message (STATE)
+    CLIENT_MISSING_PROTOCOL_FEATURE(Type.SESSION, 128),     // Requested feature missing in negotiated protocol version
+    CLIENT_BAD_SERIAL_TRANSACT_STATUS(Type.SESSION, 129),   // Bad status of serialized transaction (TRANSACT)
+    CLIENT_BAD_OBJECT_ID_SUBSTITUTIONS(Type.SESSION, 130),  // Bad encoded object identifier substitutions (TRANSACT)
+    CLIENT_HTTP_TUNNEL_FAILED(Type.SESSION, 131),           // Failed to establish HTTP tunnel with configured proxy
+
 
     // 300 - 599 Reserved for Standard HTTP error codes
     MULTIPLE_CHOICES(Type.HTTP, 300),
@@ -264,19 +276,6 @@ public enum ErrorCode {
         return UNKNOWN;
     }
 
-    @Deprecated
-    public static ErrorCode fromInt(int errorCode) {
-        ErrorCode[] errorCodes = values();
-        for (int i = 0; i < errorCodes.length; i++) {
-            ErrorCode error = errorCodes[i];
-            if (error.intValue() == errorCode) {
-                return error;
-            }
-        }
-        RealmLog.warn("Unknown error code: " + errorCode);
-        return UNKNOWN;
-    }
-
     /**
      * Helper method for mapping between {@link Exception} and {@link ErrorCode}.
      * @param exception to be mapped as an {@link ErrorCode}.
@@ -302,7 +301,6 @@ public enum ErrorCode {
         public static final String SESSION = "realm::sync::Client::Error"; // Session level errors from the native Sync Client
         public static final String UNKNOWN = "unknown"; // Catch-all category
     }
-
 
     public enum Category {
         FATAL,          // Abort session as soon as possible

@@ -75,6 +75,10 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
+    catch (const InvalidDatabase& e) {
+        ss << e.what() << " (" << e.get_path() << ") in " << file << " line " << line;
+        ThrowRealmFileException(env, ss.str(), realm::RealmFileException::Kind::AccessError, e.get_path());
+    }
     catch (RealmFileException& e) {
         ss << e.what() << " (" << e.underlying() << ") (" << e.path() << ") in " << file << " line " << line;
         ThrowRealmFileException(env, ss.str(), e.kind(), e.path());

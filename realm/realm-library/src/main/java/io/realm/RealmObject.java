@@ -24,7 +24,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.ManagableObject;
+import io.realm.internal.ManageableObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.log.RealmLog;
@@ -71,7 +71,7 @@ import io.realm.rx.ObjectChange;
  */
 
 @RealmClass
-public abstract class RealmObject implements RealmModel, ManagableObject {
+public abstract class RealmObject implements RealmModel, ManageableObject {
     static final String MSG_NULL_OBJECT = "'model' is null.";
     static final String MSG_DELETED_OBJECT = "the object is already deleted.";
     static final String MSG_DYNAMIC_OBJECT = "the object is an instance of DynamicRealmObject. Use DynamicRealmObject.getDynamicRealm() instead.";

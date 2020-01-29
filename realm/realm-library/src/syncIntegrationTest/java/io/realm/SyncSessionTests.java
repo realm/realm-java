@@ -7,6 +7,7 @@ import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -562,6 +563,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
+//    @Ignore("__CORE6__ this test is flaky in Core6, listener is not triggered")
     public void registerConnectionListener() {
         getSession(session -> {
             session.addConnectionChangeListener((oldState, newState) -> {

@@ -397,14 +397,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         nativeWriteCopy(nativePtr, file.getAbsolutePath(), key);
     }
 
-    public boolean waitForChange() {
-        return nativeWaitForChange(nativePtr);
-    }
-
-    public void stopWaitForChange() {
-        nativeStopWaitForChange(nativePtr);
-    }
-
     public boolean compact() {
         return nativeCompact(nativePtr);
     }
@@ -412,6 +404,14 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     public void setAutoRefresh(boolean enabled) {
         capabilities.checkCanDeliverNotification(null);
         nativeSetAutoRefresh(nativePtr, enabled);
+    }
+
+    public boolean waitForChange() {
+        return nativeWaitForChange(nativePtr);
+    }
+
+    public void stopWaitForChange() {
+        nativeStopWaitForChange(nativePtr);
     }
 
     public boolean isAutoRefresh() {

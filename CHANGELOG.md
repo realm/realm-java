@@ -1,10 +1,21 @@
 ## 7.0.0(YYYY-MM-DD)
 
+Based on v6.0.2.
+
+NOTE: This version bumps the Realm file format to version 10. It is not possible to downgrade version 9 or earlier. Files created with older versions of Realm will be automatically upgraded.
+
 ### Breaking Changes
+* [ObjectServer] Removed deprecated method `SyncConfiguration.Builder.partialRealm()`. Use `SyncConfiguration.Builder.fullSynchronization()` instead.
+* [ObjectServer] Removed deprecated methods `SyncConfiguration.automatic()` and `SyncConfiguration.automatic(User, Uri)`. Use `SyncUser.getDefaultConfiguration()` and `SyncUser.createConfiguration(Url)`.
+* [ObjectServer] Removed deprecated method `ErrorCode.fromInt(int)`.
+* [ObjectServer] Removed deprecated method `SyncCredentials.nickname(name)` and `SyncCredentials.nickname(name, isAdmin)`. Use `SyncCredentials.usernamePassword(username, password)` instead.
+* [ObjectServer] Deprecated state `SyncSession.State.ERROR` has been removed. Use `SyncConfiguration.Builder.errorHandler(ErrorHandler)` instead.
+* [ObjectServer] `IncompatibleSyncedFileException` is removed as it is no longer used.
+* [ObjectServer] New error codes thrown by the underlying sync layers now have proper enum mappings in `ErrorCode.java`. A few other errors have been renamed in order to have consistent naming. (Issue [#6387](https://github.com/realm/realm-java/issues/6387)) 
 * RxJava Flowables and Observables are now subscribed to and unsubscribed to asynchronously on the thread holding the live Realm, instead of previously where this was done synchronously.
 * All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without the need to copy Realm data into unmanaged objects.
 * MIPS is not supported anymore.
-* Realm requires `minSdkVersion` 16.
+* Realm now requires `minSdkVersion` 16. Up from 9.
 * `IncompatibleSyncedFileException` is removed and no longer thrown.
 
 ### Enhancements
