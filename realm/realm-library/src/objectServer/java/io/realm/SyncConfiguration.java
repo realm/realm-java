@@ -1080,28 +1080,6 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the maximum number of live versions in the Realm file before an {@link IllegalStateException} is thrown when
-         * attempting to write more data.
-         * <p>
-         * Realm is capable of concurrently handling many different versions of Realm objects. This can happen if you
-         * have a Realm open on many different threads or are freezing objects while data is being written to the file.
-         * <p>
-         * Under normal circumstances this is not a problem, but if the number of active versions grow too large, it will
-         * have a negative effect on the filesize on disk. Setting this parameters can therefore be used to prevent uses of
-         * Realm that can result in very large Realms.
-         * <p>
-         * Note, the version number will also increase when changes from other devices are integrated on this device,
-         * so the number of active versions will also depend on what other devices writing to the same Realm are doing.
-         *
-         * @param number the maximum number of active versions before an exception is thrown.
-         * @see <a href="https://realm.io/docs/java/latest/#faq-large-realm-file-size">FAQ</a>
-         */
-        public Builder maxNumberOfActiveVersions(long number) {
-            this.maxNumberOfActiveVersions = number;
-            return this;
-        }
-
-        /**
          * Creates the RealmConfiguration based on the builder parameters.
          *
          * @return the created {@link SyncConfiguration}.
