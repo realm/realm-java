@@ -24,6 +24,7 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * `RealmResults.asJSON()` is no longer `@Beta`.
 * Storing large binary blobs in Realm files no longer forces the file to be at least 8x the size of the largest blob.
 * Reduce the size of transaction logs stored inside the Realm file, reducing file size growth from large transactions.
+* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://realm.io/docs/java/latest/#embedded-objects). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.

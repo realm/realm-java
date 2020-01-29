@@ -57,7 +57,7 @@ import io.realm.annotations.Required
  * An unmanaged Model object will have, as the value of its backlink field, the value with which
  * the field is initialized (typically null).
  */
-class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement) {
+class Backlink(private val clazz: ClassMetaData, private val backlinkField: VariableElement) {
 
     /**
      * The fully-qualified name of the class containing the `targetField`, which is the field
@@ -74,7 +74,7 @@ class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement)
     /**
      * The fully-qualified name of the class to which the backlinks, from `targetField`, point.
      */
-    val sourceClass: QualifiedClassName? = Utils.getRealmResultsType(backlinkField)
+    val sourceClass: QualifiedClassName? = if (Utils.isRealmResults(backlinkField)) Utils.getRealmResultsType(backlinkField) else Utils.getModelClassQualifiedName(backlinkField)
 
     /**
      * The name of the field, in `SourceClass` that has a normal link to `targetClass`.
@@ -82,6 +82,11 @@ class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement)
      * `TargetClass` will cause the `targetField` of J to contain a backlink to I.
      */
     val sourceField: String? = backlinkField.getAnnotation(LinkingObjects::class.java)?.value
+
+    /**
+     * {@code true} if the parent link should be modeled as a single link instead of as a RealmResults.
+     */
+    val exposeAsRealmResults: Boolean = Utils.isRealmResults(backlinkField)
 
     val targetFieldType: String
         get() = backlinkField.asType().toString()
@@ -92,17 +97,7 @@ class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement)
      * @return true if the backlink source looks good.
      */
     fun validateSource(): Boolean {
-        // A @LinkingObjects cannot be @Required
-        if (backlinkField.getAnnotation(Required::class.java) != null) {
-            Utils.error(String.format(
-                    Locale.US,
-                    "The @LinkingObjects field \"%s.%s\" cannot be @Required.",
-                    targetClass,
-                    targetField))
-            return false
-        }
-
-        // The annotation must have an argument, identifying the linked field
+        // The annotation must have an argument, identifying the linked field.
         if (sourceField == null || sourceField == "") {
             Utils.error(String.format(
                     Locale.US,
@@ -122,14 +117,51 @@ class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement)
             return false
         }
 
-        // The annotated element must be a RealmResult
-        if (!Utils.isRealmResults(backlinkField)) {
+        if (Utils.isRealmResults(backlinkField)) {
+            return validateBacklinksAsRealmResults(backlinkField)
+        } else {
+            return validateBacklinkAsObjectReference(backlinkField)
+        }
+    }
+
+    private fun validateBacklinkAsObjectReference(field: VariableElement): Boolean {
+        // A @LinkingObjects can only be required if the class is embedded there is only one
+        // @LinkingField field defined. And even in that case, it requires runtime schema
+        // validation since we need to know if only one other type is pointing to it.
+        // If multiple types point to it, we cannot keep the contract of @Required.
+        if (field.getAnnotation(Required::class.java) != null && clazz.backlinkFields.isNotEmpty()) {
             Utils.error(String.format(
                     Locale.US,
-                    "The field \"%s.%s\" is a \"%s\". Fields annotated with @LinkingObjects must be RealmResults.",
+                    "@Required cannot be used on @LinkingObjects field if multiple @LinkingParents are defined: \"%s.%s\".",
                     targetClass,
-                    targetField,
-                    backlinkField.asType()))
+                    targetField))
+            return false
+        }
+
+        // A @LinkingObjects field must be final.
+        if (!field.modifiers.contains(Modifier.FINAL)) {
+            Utils.error(String.format(
+                    Locale.US,
+                    "The @LinkingObjects field \"%s.%s\" must be final.",
+                    targetClass,
+                    targetField))
+            return false
+        }
+
+        return true
+    }
+
+    private fun validateBacklinksAsRealmResults(field: VariableElement): Boolean {
+        // A @LinkingObjects can only be required if the class is embedded there is only one
+        // @LinkingField field defined. And even in that case, it requires runtime schema
+        // validation since we need to know if only one other type is pointing to it.
+        // If multiple types point to it, we cannot keep the contract of @Required.
+        if (field.getAnnotation(Required::class.java) != null) {
+            Utils.error(String.format(
+                    Locale.US,
+                    "The @LinkingObjects field \"%s.%s\" cannot be @Required.",
+                    targetClass,
+                    targetField))
             return false
         }
 
@@ -142,7 +174,7 @@ class Backlink(clazz: ClassMetaData, private val backlinkField: VariableElement)
             return false
         }
 
-        // A @LinkingObjects field must be final
+        // A @LinkingObjects field must be final.
         if (!backlinkField.modifiers.contains(Modifier.FINAL)) {
             Utils.error(String.format(
                     Locale.US,

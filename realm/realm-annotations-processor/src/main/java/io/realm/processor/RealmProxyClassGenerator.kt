@@ -597,19 +597,39 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         for (backlink in metadata.backlinkFields) {
             val cacheFieldName = backlink.targetField + BACKLINKS_FIELD_EXTENSION
             val realmResultsType = "RealmResults<" + backlink.sourceClass + ">"
-            // Getter, no setter
-            writer.apply {
-                emitAnnotation("Override")
-                beginMethod(realmResultsType, metadata.getInternalGetter(backlink.targetField), EnumSet.of(Modifier.PUBLIC))
-                    emitStatement("BaseRealm realm = proxyState.getRealm\$realm()")
-                    emitStatement("realm.checkIfValid()")
-                    emitStatement("proxyState.getRow\$realm().checkIfAttached()")
-                    beginControlFlow("if ($cacheFieldName == null)")
+            when (backlink.exposeAsRealmResults) {
+                true -> {
+                    // Getter, no setter
+                    writer.apply {
+                        emitAnnotation("Override")
+                        beginMethod(realmResultsType, metadata.getInternalGetter(backlink.targetField), EnumSet.of(Modifier.PUBLIC))
+                        emitStatement("BaseRealm realm = proxyState.getRealm\$realm()")
+                        emitStatement("realm.checkIfValid()")
+                        emitStatement("proxyState.getRow\$realm().checkIfAttached()")
+                        beginControlFlow("if ($cacheFieldName == null)")
                         emitStatement("$cacheFieldName = RealmResults.createBacklinkResults(realm, proxyState.getRow\$realm(), %s.class, \"%s\")", backlink.sourceClass, backlink.sourceField)
-                    endControlFlow()
-                    emitStatement("return $cacheFieldName")
-                endMethod()
-                emitEmptyLine()
+                        endControlFlow()
+                        emitStatement("return $cacheFieldName")
+                        endMethod()
+                        emitEmptyLine()
+                    }
+                }
+                false -> {
+                    // Getter, no setter
+                    writer.apply {
+                        emitAnnotation("Override")
+                        beginMethod(backlink.sourceClass.toString(), metadata.getInternalGetter(backlink.targetField), EnumSet.of(Modifier.PUBLIC))
+                        emitStatement("BaseRealm realm = proxyState.getRealm\$realm()")
+                        emitStatement("realm.checkIfValid()")
+                        emitStatement("proxyState.getRow\$realm().checkIfAttached()")
+                        beginControlFlow("if ($cacheFieldName == null)")
+                        emitStatement("$cacheFieldName = RealmResults.createBacklinkResults(realm, proxyState.getRow\$realm(), %s.class, \"%s\").first()", backlink.sourceClass, backlink.sourceField)
+                        endControlFlow()
+                        emitStatement("return $cacheFieldName") // TODO: Figure out the exact API for this
+                        endMethod()
+                        emitEmptyLine()
+                    }
+                }
             }
         }
     }
