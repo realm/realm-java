@@ -163,6 +163,12 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
+    public <E extends RealmModel> boolean isEmbedded(Class<E> clazz) {
+        checkSchemaHasClass(Util.getOriginalModelClass(clazz));
+        return originalMediator.isEmbedded(clazz);
+    }
+
+    @Override
     public boolean transformerApplied() {
         //noinspection SimplifiableIfStatement
         if (originalMediator == null) {

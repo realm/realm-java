@@ -198,6 +198,11 @@ public abstract class RealmProxyMediator {
     public abstract <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache);
 
     /**
+     * Returns whether or not this class is considered "embedded".
+     */
+    public abstract <E extends RealmModel> boolean isEmbedded(Class<E> clazz);
+
+    /**
      * Returns whether Realm transformer has been applied or not. Subclasses of this class are
      * created by the annotation processor and the Realm transformer will add an override of
      * this method that always return {@code true} if the transform was successful.

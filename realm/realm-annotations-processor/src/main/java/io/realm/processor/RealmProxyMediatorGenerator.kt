@@ -39,6 +39,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
     private val qualifiedProxyClasses = ArrayList<QualifiedClassName>()
     private val simpleModelClassNames = ArrayList<SimpleClassName>()
     private val internalClassNames = ArrayList<String>()
+    private val embeddedClass = ArrayList<Boolean>()
 
     init {
         for (metadata in classesToValidate) {
@@ -47,6 +48,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
             qualifiedProxyClasses.add(qualifiedProxyClassName)
             simpleModelClassNames.add(metadata.simpleJavaClassName)
             internalClassNames.add(metadata.internalClassName)
+            embeddedClass.add(metadata.embedded)
         }
     }
 
@@ -101,6 +103,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
             emitCreteOrUpdateUsingJsonObject(this)
             emitCreateUsingJsonStream(this)
             emitCreateDetachedCopyMethod(this)
+            emitIsEmbeddedMethod(this)
             endType()
             close()
         }
@@ -415,6 +418,24 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                 }, writer, false)
             endMethod()
             emitEmptyLine()   
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun emitIsEmbeddedMethod(writer: JavaWriter) {
+        writer.apply {
+            emitAnnotation("Override")
+            beginMethod(
+                    "<E extends RealmModel> boolean",
+                    "isEmbedded",
+                    EnumSet.of(Modifier.PUBLIC),
+                    "Class<E>", "clazz"
+            )
+            emitMediatorShortCircuitSwitch({ i: Int ->
+                emitStatement("return %s", if (embeddedClass[i]) "true" else "false")
+            }, writer, false)
+            endMethod()
+            emitEmptyLine()
         }
     }
 

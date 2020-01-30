@@ -165,6 +165,12 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
+    public <E extends RealmModel> boolean isEmbedded(Class<E> clazz) {
+        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(clazz));
+        return mediator.isEmbedded(clazz);
+    }
+
+    @Override
     public boolean transformerApplied() {
         for (Map.Entry<Class<? extends RealmModel>, RealmProxyMediator> entry : mediators.entrySet()) {
             if (!entry.getValue().transformerApplied()) {

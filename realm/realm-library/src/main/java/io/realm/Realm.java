@@ -970,6 +970,10 @@ public class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E createObject(Class<E> clazz) {
         checkIfValid();
+        RealmProxyMediator mediator = configuration.getSchemaMediator();
+        if (mediator.isEmbedded(clazz)) {
+            throw new IllegalArgumentException("Top-level queries are not allowed on embedded classes: " + mediator.getSimpleClassName(clazz));
+        }
         return createObjectInternal(clazz, true, Collections.<String>emptyList());
     }
 
@@ -1041,6 +1045,7 @@ public class Realm extends BaseRealm {
             List<String> excludeFields) {
         Table table = schema.getTable(clazz);
 
+        // FIXME Add support for embedded parent
         return configuration.getSchemaMediator().newInstance(clazz, this,
                 OsObject.createWithPrimaryKey(table, primaryKeyValue),
                 schema.getColumnInfo(clazz),
@@ -1424,10 +1429,7 @@ public class Realm extends BaseRealm {
      */
     public <E extends RealmModel> RealmQuery<E> where(Class<E> clazz) {
         checkIfValid();
-        // FIXME: This is probably a bit expensive. The boolean could be in the schema mediator.
-        // Don't do that until we know for sure it is needed.
-        String name = configuration.getSchemaMediator().getSimpleClassName(clazz);
-        if (schema.get(name).isEmbedded()) {
+        if (configuration.getSchemaMediator().isEmbedded(clazz)) {
             throw new IllegalArgumentException("Top-level queries are not allowed for embedded classes.");
         }
         return RealmQuery.createQuery(this, clazz);

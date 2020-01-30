@@ -206,4 +206,12 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         throw getMissingProxyClassException(clazz);
     }
 
+    @Override
+    public <E extends RealmModel> boolean isEmbedded(Class<E> clazz) {
+        if (clazz.equals(some.test.AllTypes.class)) {
+            return false;
+        }
+        throw getMissingProxyClassException(clazz);
+    }
+
 }
