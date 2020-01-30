@@ -36,12 +36,14 @@ static void finalize_object_schema(jlong ptr)
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeCreateRealmObjectSchema(JNIEnv* env, jclass,
-                                                                                                jstring j_name_str)
+                                                                                                jstring j_name_str,
+                                                                                                jboolean j_embedded)
 {
     try {
         JStringAccessor name(env, j_name_str);
         ObjectSchema* object_schema = new ObjectSchema();
         object_schema->name = name;
+        (void) j_embedded; // FIXME
         return reinterpret_cast<jlong>(object_schema);
     }
     CATCH_STD()
@@ -128,4 +130,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrima
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeIsEmbedded(JNIEnv* env, jclass, jlong native_ptr)
+{
+    try {
+        (void) native_ptr;
+        return false; // FIXME
+    }
+    CATCH_STD()
+    return false;
 }
