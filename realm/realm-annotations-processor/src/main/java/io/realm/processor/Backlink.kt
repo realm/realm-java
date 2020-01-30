@@ -125,6 +125,18 @@ class Backlink(private val clazz: ClassMetaData, private val backlinkField: Vari
     }
 
     private fun validateBacklinkAsObjectReference(field: VariableElement): Boolean {
+
+        // Using @LinkingObjects as a single parent reference is only allowed in embedded classes
+        if (!clazz.embedded && !Utils.isRealmResults(backlinkField)) {
+            Utils.error(String.format(
+                    Locale.US,
+                    "The field \"%s.%s\" is a \"%s\". Fields annotated with @LinkingObjects must be RealmResults.",
+                    targetClass,
+                    targetField,
+                    backlinkField.asType()))
+            return false
+        }
+
         // A @LinkingObjects can only be required if the class is embedded there is only one
         // @LinkingField field defined. And even in that case, it requires runtime schema
         // validation since we need to know if only one other type is pointing to it.
