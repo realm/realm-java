@@ -26,6 +26,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObjectStore;
@@ -412,6 +413,23 @@ public abstract class RealmObjectSchema {
     public RealmFieldType getFieldType(String fieldName) {
         long columnKey = getColumnKey(fieldName);
         return table.getColumnType(columnKey);
+    }
+
+    /**
+     * Returns {@code true} if objects of this type are considered "embedded".
+     * See {@link RealmClass#embedded()} for further details.
+     *
+     * @return {@code true} if objects of this type are embedded. {@code false} if not.
+     */
+    public boolean isEmbedded() {
+        return false; // FIXME
+    }
+
+    /**
+     * FIXME: Exactly how should the API look for switching between being embedded or not.
+     */
+    public void setEmbedded(boolean embedded) {
+        throw new UnsupportedOperationException();
     }
 
     /**

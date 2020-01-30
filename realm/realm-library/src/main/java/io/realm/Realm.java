@@ -1424,6 +1424,12 @@ public class Realm extends BaseRealm {
      */
     public <E extends RealmModel> RealmQuery<E> where(Class<E> clazz) {
         checkIfValid();
+        // FIXME: This is probably a bit expensive. The boolean could be in the schema mediator.
+        // Don't do that until we know for sure it is needed.
+        String name = configuration.getSchemaMediator().getSimpleClassName(clazz);
+        if (schema.get(name).isEmbedded()) {
+            throw new IllegalArgumentException("Top-level queries are not allowed for embedded classes.");
+        }
         return RealmQuery.createQuery(this, clazz);
     }
 
