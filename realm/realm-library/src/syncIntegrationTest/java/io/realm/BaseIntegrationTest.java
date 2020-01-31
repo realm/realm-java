@@ -93,7 +93,7 @@ public abstract class BaseIntegrationTest {
         public SyncConfiguration.Builder createSyncConfigurationBuilder(SyncUser user, String url) {
             return user.createConfiguration(url)
                     .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
-                    .modules(Realm.getDefaultModule(), new ObjectPermissionsModule())
+                    .modules(Realm.getDefaultModule())
                     .directory(looperThread.getRoot());
         }
 
