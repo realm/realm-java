@@ -64,7 +64,7 @@ public class SessionTests {
     @Before
     public void setUp() {
         user = createTestUser();
-        configuration = user.createConfiguration(REALM_URI).addModule(new ObjectPermissionsModule()).build();
+        configuration = user.createConfiguration(REALM_URI).build();
     }
 
     @Test
