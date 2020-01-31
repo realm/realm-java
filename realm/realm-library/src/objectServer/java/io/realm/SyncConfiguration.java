@@ -34,13 +34,11 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
-import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
-import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
@@ -1177,11 +1175,6 @@ public class SyncConfiguration extends RealmConfiguration {
                 } else {
                     RealmLog.warn("SSL Verification is disabled, the provided server certificate will not be used.");
                 }
-            }
-
-            // If query based sync is enabled, also add support for Object Level Permissions
-            if (isPartial) {
-                addModule(new ObjectPermissionsModule());
             }
 
             return new SyncConfiguration(

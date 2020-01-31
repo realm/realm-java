@@ -26,12 +26,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
-import io.realm.RealmModel;
-import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
-import io.realm.sync.permissions.RealmPrivileges;
 
 @Keep
 public final class OsSharedRealm implements Closeable, NativeObject {

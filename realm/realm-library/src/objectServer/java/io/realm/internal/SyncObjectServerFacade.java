@@ -39,7 +39,6 @@ import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectstore.OsAsyncOpenTask;
-import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.sync.Subscription;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
@@ -248,11 +247,6 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         }
         
         return false;
-    }
-
-    @Override
-    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
-        builder.addModule(new ObjectPermissionsModule());
     }
 
     @Override
