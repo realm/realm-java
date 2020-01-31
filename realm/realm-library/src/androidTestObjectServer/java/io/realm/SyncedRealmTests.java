@@ -19,6 +19,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -92,6 +93,7 @@ public class SyncedRealmTests {
 
     // Test for https://github.com/realm/realm-java/issues/6619
     @Test
+    @Ignore("Ignore, this is going to be removed anyway")
     public void testUpgragendingOptionalSubscriptionFields() throws IOException {
         SyncUser user = SyncTestUtils.createTestUser();
 
