@@ -19,7 +19,6 @@ import io.realm.Realm
 import io.realm.SyncConfiguration
 import io.realm.SyncManager
 import io.realm.SyncSession
-import io.realm.sync.permissions.ClassPermissions
 
 
 /**
