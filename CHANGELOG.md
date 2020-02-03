@@ -26,7 +26,7 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
-* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
 
 ### Internal
