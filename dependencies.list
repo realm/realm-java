@@ -1,7 +1,7 @@
 # Realm Sync release used by Realm Java (This includes Realm Core)
 # https://github.com/realm/realm-sync/releases
-REALM_SYNC_VERSION=5.0.0-beta.1
-REALM_SYNC_SHA256=0fa8fe96a5e018d0bef9299bb4f8cadebead4c8658e5a006d394226ccd51900a
+REALM_SYNC_VERSION=5.0.0-beta.2
+REALM_SYNC_SHA256=bbe58ad5110d66fe8c55a838486e09593e93ee96db8d07aa93a22abb52ead220
 
 # Object Server Release used by Integration tests. Installed using NPM.
 # Use `npm view realm-object-server versions` to get a list of available versions.

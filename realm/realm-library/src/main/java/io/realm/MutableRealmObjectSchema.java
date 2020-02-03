@@ -20,10 +20,10 @@ import java.util.Locale;
 
 import javax.annotation.Nonnull;
 
+import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.Table;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -296,18 +296,20 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     public RealmObjectSchema transform(Function function) {
         //noinspection ConstantConditions
         if (function != null) {
-
-            OsResults result = OsResults.createFromQuery(realm.sharedRealm, table.where(), new DescriptorOrdering());
-            OsResults snapshot = result.createSnapshot();
-            OsResults.ListIterator listIterator = new OsResults.ListIterator(snapshot, 0) {
-
-                @Override
-                protected Object convertRowToObject(UncheckedRow row) {
-                    function.apply(new DynamicRealmObject(realm, row));
-                    return null;
+            // Users might delete object being transformed or accidentally delete other objects
+            // in the same table. E.g. cascading deletes if it is referenced by an object being deleted.
+            OsResults result = OsResults.createFromQuery(realm.sharedRealm, table.where(), new DescriptorOrdering()).createSnapshot();
+            long original_size = result.size();
+            if (original_size > Integer.MAX_VALUE) {
+                throw new UnsupportedOperationException("Too many results to iterate: " + original_size);
+            }
+            int size = (int) result.size();
+            for (int i = 0; i < size; i++) {
+                DynamicRealmObject obj = new DynamicRealmObject(realm, new CheckedRow(result.getUncheckedRow(i)));
+                if (obj.isValid()) {
+                    function.apply(obj);
                 }
-            };
-            while (listIterator.hasNext()) listIterator.next();
+            }
         }
 
         return this;
