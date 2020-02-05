@@ -18,6 +18,7 @@ package io.realm;
 
 import io.realm.internal.OsRealmConfig;
 import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.sync.permissions.ObjectPermissionsModule;
 
 /**
  * Test rule used for creating SyncConfigurations. Will ensure that any Realm files are deleted when the
@@ -28,6 +29,7 @@ public class TestSyncConfigurationFactory extends TestRealmConfigurationFactory 
     public SyncConfiguration.Builder createSyncConfigurationBuilder(SyncUser user, String url) {
         return user.createConfiguration(url)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                .addModule(new ObjectPermissionsModule())
                 .directory(getRoot());
     }
 }

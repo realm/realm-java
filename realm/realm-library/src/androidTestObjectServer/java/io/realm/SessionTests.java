@@ -35,6 +35,7 @@ import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.sync.permissions.ObjectPermissionsModule;
 
 import static io.realm.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
@@ -64,7 +65,7 @@ public class SessionTests {
     @Before
     public void setUp() {
         user = createTestUser();
-        configuration = user.createConfiguration(REALM_URI).build();
+        configuration = user.createConfiguration(REALM_URI).addModule(new ObjectPermissionsModule()).build();
     }
 
     @Test

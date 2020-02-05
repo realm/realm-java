@@ -120,6 +120,10 @@ public class ObjectServerFacade {
         return false;
     }
 
+    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
+        // Do nothing
+    }
+
     /**
      * If the Realm is a Query-based Realm, ensure that all subscriptions are ACTIVE before
      * proceeding. This should only be called when opening a Realm for the first time.

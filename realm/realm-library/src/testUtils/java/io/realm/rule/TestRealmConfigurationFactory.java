@@ -131,6 +131,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     // You have to delete it yourself.
     public RealmConfiguration.Builder createConfigurationBuilder() {
         RealmConfiguration.Builder builder = new RealmConfiguration.Builder().directory(getRoot());
+        ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
         return builder;
     }
 
@@ -170,6 +171,8 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
         if (module != null) {
             builder.modules(module);
+        } else {
+            ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
         }
 
         if (key != null) {

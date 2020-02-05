@@ -51,6 +51,7 @@ public class UserFactory {
     private static synchronized void initFactory(boolean forceReset) {
         if (configuration == null || forceReset) {
             RealmConfiguration.Builder builder = new RealmConfiguration.Builder().name("user-factory.realm");
+            ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
             configuration = builder.build();
         }
     }

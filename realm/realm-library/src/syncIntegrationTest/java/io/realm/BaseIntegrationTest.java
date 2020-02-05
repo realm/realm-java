@@ -29,6 +29,7 @@ import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
 import io.realm.objectserver.utils.HttpUtils;
 import io.realm.rule.RunInLooperThread;
+import io.realm.sync.permissions.ObjectPermissionsModule;
 
 
 /**
@@ -93,7 +94,7 @@ public abstract class BaseIntegrationTest {
         public SyncConfiguration.Builder createSyncConfigurationBuilder(SyncUser user, String url) {
             return user.createConfiguration(url)
                     .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
-                    .modules(Realm.getDefaultModule())
+                    .modules(Realm.getDefaultModule(), new ObjectPermissionsModule())
                     .directory(looperThread.getRoot());
         }
 

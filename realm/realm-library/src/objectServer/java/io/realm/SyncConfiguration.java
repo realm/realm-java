@@ -42,6 +42,7 @@ import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
+import io.realm.sync.permissions.ObjectPermissionsModule;
 
 /**
  * A {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
@@ -1175,6 +1176,11 @@ public class SyncConfiguration extends RealmConfiguration {
                 } else {
                     RealmLog.warn("SSL Verification is disabled, the provided server certificate will not be used.");
                 }
+            }
+
+            // If query based sync is enabled, also add support for Object Level Permissions
+            if (isPartial) {
+                addModule(new ObjectPermissionsModule());
             }
 
             return new SyncConfiguration(
