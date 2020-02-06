@@ -93,7 +93,7 @@ public class SyncedRealmTests {
 
     // Test for https://github.com/realm/realm-java/issues/6619
     @Test
-    @Ignore("Ignore, this is going to be removed anyway")
+    @Ignore("Going to be removed anyway")
     public void testUpgragendingOptionalSubscriptionFields() throws IOException {
         SyncUser user = SyncTestUtils.createTestUser();
 

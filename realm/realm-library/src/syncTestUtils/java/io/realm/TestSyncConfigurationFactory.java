@@ -18,7 +18,7 @@ package io.realm;
 
 import io.realm.internal.OsRealmConfig;
 import io.realm.rule.TestRealmConfigurationFactory;
-import io.realm.sync.permissions.ObjectPermissionsModule;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 
 /**
  * Test rule used for creating SyncConfigurations. Will ensure that any Realm files are deleted when the

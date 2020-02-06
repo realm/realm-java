@@ -1,4 +1,4 @@
-package io.realm.sync.permissions;
+package io.realm.internal.sync.permissions;
 
 import io.realm.annotations.RealmModule;
 import io.realm.sync.Subscription;

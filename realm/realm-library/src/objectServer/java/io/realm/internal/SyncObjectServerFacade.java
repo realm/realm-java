@@ -40,7 +40,7 @@ import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectstore.OsAsyncOpenTask;
 import io.realm.sync.Subscription;
-import io.realm.sync.permissions.ObjectPermissionsModule;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
