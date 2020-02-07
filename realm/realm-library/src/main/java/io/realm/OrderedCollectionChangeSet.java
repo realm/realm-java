@@ -49,12 +49,6 @@ public interface OrderedCollectionChangeSet {
          * <p>
          * For local and fully synchronized Realms, this state should only be encountered if the
          * Realm could not be succesfully opened in the background,.
-         * <p>
-         * For partially synchronized Realms, it is only possible to get into this state if an error
-         * happened while evaluating the query on the server or some other error prevented data from
-         * being downloaded.
-         * <p>
-         * In this state, the content of the {@link RealmResults} is undefined.
          */
         ERROR
     }
