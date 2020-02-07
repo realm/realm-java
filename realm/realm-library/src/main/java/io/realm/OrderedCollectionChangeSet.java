@@ -124,43 +124,6 @@ public interface OrderedCollectionChangeSet {
     Throwable getError();
 
     /**
-     * Returns {@code true} if the query result is considered "complete". For all local Realms, or
-     * fully synchronized Realms, this method will always return {@code true}.
-     * <p>
-     * This method thus only makes sense for query-based synchronized Realms.
-     * <p>
-     * For those Realms, data is only downloaded when queried which means that until the data is
-     * downloaded, a local query might return a query result that would not have been possible on a
-     * fully synchronized Realm.
-     * <p>
-     * Consider the following case:
-     * <ol>
-     *   <li>An app is online and makes a query for all messages containing the word "Realm".</li>
-     *   <li>Partial synchronization downloads all those messages.</li>
-     *   <li>The app goes offline.</li>
-     *   <li>The app makes an offline query against all messages containing the word "Database".</li>
-     * </ol>
-     *
-     * Here there are two situations where the query result might be considered "incomplete".
-     * <p>
-     * The first is when the "Realm" query runs for the first time. The local query will finish
-     * faster than the network can download data so the query will initially report an empty
-     * incomplete query result.
-     * <p>
-     * The second is when the "Database" query is run. The initial query result will not be
-     * empty, but contain all messages that contain both "Realm" and "Database", as they are already
-     * available offline.
-     * <p>
-     * In both cases, a new notification will be triggered as soon as the device is able to download
-     * the data required to produce a "complete" query result.
-     *
-     * @return {@code true} if the query result is fully consistent with the server at some point in
-     * time. {@code false} if the query was executed while the device was offline or all data
-     * has not been downloaded yet.
-     */
-    boolean isCompleteResult();
-
-    /**
      *
      */
     class Range {

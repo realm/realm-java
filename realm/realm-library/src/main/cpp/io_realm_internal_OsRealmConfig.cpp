@@ -243,7 +243,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 #if REALM_ENABLE_SYNC
 JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
     JNIEnv* env, jclass, jlong native_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
-    jstring j_refresh_token, jboolean j_is_partial, jbyte j_session_stop_policy, jstring j_url_prefix,
+    jstring j_refresh_token, jbyte j_session_stop_policy, jstring j_url_prefix,
     jstring j_custom_auth_header_name, jobjectArray j_custom_headers_array, jbyte j_client_reset_mode)
 {
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
@@ -356,7 +356,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         config.sync_config->stop_policy = session_stop_policy;
         config.sync_config->bind_session_handler = std::move(bind_handler);
         config.sync_config->error_handler = std::move(error_handler);
-        config.sync_config->is_partial = (j_is_partial == JNI_TRUE);
         switch (j_client_reset_mode) {
             case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_RECOVER: config.sync_config->client_resync_mode = realm::ClientResyncMode::Recover; break;
             case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_DISCARD: config.sync_config->client_resync_mode = realm::ClientResyncMode::DiscardLocal; break;

@@ -495,17 +495,6 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    protected void checkIfPartialRealm() {
-        boolean isPartialRealm = false;
-        if (configuration.isSyncConfiguration()) {
-            isPartialRealm = ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration);
-        }
-
-        if (!isPartialRealm) {
-            throw new IllegalStateException("This method is only available on partially synchronized Realms.");
-        }
-    }
-
     /**
      * Checks if the Realm is valid and in a transaction.
      */
@@ -664,20 +653,13 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Deletes all objects from this Realm.
-     * <p>
-     * If the Realm is a partially synchronized Realm, all subscriptions will be cleared as well.
      *
-     * @throws IllegalStateException if the corresponding Realm is a partially synchronized Realm, is
-     * closed or called from an incorrect thread.
+     * @throws IllegalStateException if the Realm is closed or called from an incorrect thread.
      */
     public void deleteAll() {
         checkIfValid();
-        if (sharedRealm.isPartial()) {
-            throw new IllegalStateException(DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC);
-        }
-        boolean isPartialRealm = sharedRealm.isPartial();
         for (RealmObjectSchema objectSchema : getSchema().getAll()) {
-            getSchema().getTable(objectSchema.getClassName()).clear(isPartialRealm);
+            getSchema().getTable(objectSchema.getClassName()).clear();
         }
     }
 
