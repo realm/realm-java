@@ -34,16 +34,15 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
-import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
-import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 
 /**
  * A {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm

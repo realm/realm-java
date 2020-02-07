@@ -19,6 +19,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -92,7 +93,8 @@ public class SyncedRealmTests {
 
     // Test for https://github.com/realm/realm-java/issues/6619
     @Test
-    public void testUpgragendingOptionalSubscriptionFields() throws IOException {
+    @Ignore("Going to be removed anyway")
+    public void testUpgradingOptionalSubscriptionFields() throws IOException {
         SyncUser user = SyncTestUtils.createTestUser();
 
         // Put an older Realm at the location where Realm would otherwise create a new empty one.

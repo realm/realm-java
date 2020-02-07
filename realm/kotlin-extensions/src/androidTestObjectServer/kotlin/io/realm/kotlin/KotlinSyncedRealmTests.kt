@@ -2,15 +2,11 @@ package io.realm.kotlin
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-import io.realm.Realm
-import io.realm.SyncConfiguration
-import io.realm.SyncManager
-import io.realm.TestSyncConfigurationFactory
-import io.realm.entities.SimpleClass
+import io.realm.*
 import io.realm.objectserver.utils.Constants
-import io.realm.SyncTestUtils
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -53,19 +49,4 @@ class KotlinSyncedRealmTests {
         }
     }
 
-    @Test
-    fun classPermissions() {
-        assertNotNull(realm.classPermissions<SimpleClass>())
-    }
-
-    @Test
-    fun classPermissions_throwsForNonSyncRealm() {
-        realm.close()
-        realm = Realm.getInstance(configFactory.createConfiguration())
-        try {
-            realm.classPermissions<SimpleClass>()
-            fail()
-        } catch (ignored: IllegalStateException) {
-        }
-    }
 }

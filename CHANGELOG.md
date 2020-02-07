@@ -1,3 +1,21 @@
+## 8.0.0 (YYYY-MM-DD)
+
+### Breaking Changes
+* Removed all references and API's releated to permissions. These are now managed through MongoDB Realm. Read more [here](XXX).
+
+### Enhancements
+* None.
+
+### Fixed
+* None.
+
+### Compatibility
+* TODO.
+
+### Internal
+* None.
+
+
 ## 7.0.0-beta (YYYY-MM-DD)
 
 Based on v6.0.2.
