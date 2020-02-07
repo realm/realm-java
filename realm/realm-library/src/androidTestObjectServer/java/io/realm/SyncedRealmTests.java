@@ -94,7 +94,7 @@ public class SyncedRealmTests {
     // Test for https://github.com/realm/realm-java/issues/6619
     @Test
     @Ignore("Going to be removed anyway")
-    public void testUpgragendingOptionalSubscriptionFields() throws IOException {
+    public void testUpgradingOptionalSubscriptionFields() throws IOException {
         SyncUser user = SyncTestUtils.createTestUser();
 
         // Put an older Realm at the location where Realm would otherwise create a new empty one.
