@@ -19,7 +19,7 @@ package io.realm.internal;
  * This internal interface represents a java object that corresponds to data
  * that may be managed in the Realm core. It specifies the operations common to all such objects.
  */
-public interface ManagableObject {
+public interface ManageableObject {
 
     /**
      * Checks to see if this object is managed by Realm..
@@ -36,4 +36,11 @@ public interface ManagableObject {
      * @return {@code true} if this object is unmanaged or is still valid for use, {@code false} otherwise.
      */
     boolean isValid();
+
+    /**
+     * Returns whether or not this object is frozen.
+     *
+     * @return {@code true} if the object is frozen, {@code false} if it is not.
+     */
+    boolean isFrozen();
 }

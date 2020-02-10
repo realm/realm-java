@@ -45,10 +45,11 @@ import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.network.AuthenticateResponse;
-import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectserver.Token;
+import io.realm.internal.objectserver.SyncWorker;
 import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 
@@ -110,7 +111,6 @@ public class SyncSession {
     private static final byte STATE_VALUE_ACTIVE = 1;
     private static final byte STATE_VALUE_DYING = 2;
     private static final byte STATE_VALUE_INACTIVE = 3;
-    private static final byte STATE_VALUE_ERROR = 4;
 
     // List of Java connection change listeners
     private final CopyOnWriteArrayList<ConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
@@ -167,13 +167,7 @@ public class SyncSession {
          * The Realm was closed, but still contains data that needs to be synchronized to the server.
          * The session will attempt to upload all local data before going {@link #INACTIVE}.
          */
-        DYING(STATE_VALUE_DYING),
-
-        /**
-         * DEPRECATED: This is never used. Errors are reported to {@link ErrorHandler} instead.
-         */
-        @Deprecated
-        ERROR(STATE_VALUE_ERROR);
+        DYING(STATE_VALUE_DYING);
 
         final byte value;
 
@@ -600,6 +594,7 @@ public class SyncSession {
      * If the session is already stopped, calling this method will do nothing.
      */
     public synchronized void stop() {
+        close();
         nativeStop(configuration.getPath());
     }
 
@@ -740,7 +735,7 @@ public class SyncSession {
     }
 
     // Return the access token for the Realm this Session is connected to.
-    String getAccessToken(final AuthenticationServer authServer, String refreshToken) {
+    String getAccessToken(final RealmObjectServer authServer, String refreshToken) {
         // check first if there's a valid access_token we can return immediately
         if (getUser().isRealmAuthenticated(configuration)) {
             Token accessToken = getUser().getAccessToken(configuration);
@@ -772,7 +767,7 @@ public class SyncSession {
     }
 
     // Authenticate by getting access tokens for the specific Realm
-    private void authenticateRealm(final AuthenticationServer authServer) {
+    private void authenticateRealm(final RealmObjectServer authServer) {
         if (networkRequest != null) {
             networkRequest.cancel();
         }
@@ -827,7 +822,7 @@ public class SyncSession {
         networkRequest = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
     }
 
-    private void scheduleRefreshAccessToken(final AuthenticationServer authServer, long expireDateInMs) {
+    private void scheduleRefreshAccessToken(final RealmObjectServer authServer, long expireDateInMs) {
         onGoingAccessTokenQuery.set(true);
         // calculate the delay time before which we should refresh the access_token,
         // we adjust to 10 second to proactively refresh the access_token before the session
@@ -861,7 +856,7 @@ public class SyncSession {
     }
 
     // Authenticate by getting access tokens for the specific Realm
-    private void refreshAccessToken(final AuthenticationServer authServer) {
+    private void refreshAccessToken(final RealmObjectServer authServer) {
         // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
         clearScheduledAccessTokenRefresh();
 
@@ -879,6 +874,12 @@ public class SyncSession {
                 synchronized (SyncSession.this) {
                     if (!isClosed && !Thread.currentThread().isInterrupted() && !refreshTokenNetworkRequest.isCancelled()) {
                         RealmLog.debug("Access Token refreshed successfully, Sync URL: " + configuration.getServerUrl());
+
+                        SyncWorker syncWorker = response.getSyncWorker();
+                        if (syncWorker != null) {
+                            nativeSetUrlPrefix(configuration.getPath(), syncWorker.path());
+                        }
+
                         URI realmUrl = configuration.getServerUrl();
                         if (nativeRefreshAccessToken(configuration.getPath(), response.getAccessToken().value(), realmUrl.toString())) {
                             // replace the user old access_token
@@ -971,4 +972,5 @@ public class SyncSession {
     private static native byte nativeGetConnectionState(String localRealmPath);
     private static native void nativeStart(String localRealmPath);
     private static native void nativeStop(String localRealmPath);
+    private static native void nativeSetUrlPrefix(String localRealmPath, String urlPrefix);
 }

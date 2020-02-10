@@ -17,9 +17,11 @@
 package io.realm.internal;
 
 import java.io.File;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -145,7 +147,7 @@ public class OsRealmConfig implements NativeObject {
 
         // Package private because of the OsRealmConfig needs to carry the NativeContext. This should only be called
         // by the OsSharedRealm.
-        OsRealmConfig build() {
+        public OsRealmConfig build() {
             return new OsRealmConfig(configuration, fifoFallbackDir, autoUpdateNotification, schemaInfo,
                     migrationCallback, initializationCallback);
         }
@@ -165,6 +167,12 @@ public class OsRealmConfig implements NativeObject {
     private static final byte SYNCSESSION_STOP_POLICY_VALUE_IMMEDIATELY = 0;
     private static final byte SYNCSESSION_STOP_POLICY_VALUE_LIVE_INDEFINETELY = 1;
     private static final byte SYNCSESSION_STOP_POLICY_VALUE_AFTER_CHANGES_UPLOADED = 2;
+    private static final byte PROXYCONFIG_TYPE_VALUE_HTTP = 0;
+
+    // Public to be usable from the io.realm package
+    public static final byte CLIENT_RESYNC_MODE_RECOVER = 0;
+    public static final byte CLIENT_RESYNC_MODE_DISCARD = 1;
+    public static final byte CLIENT_RESYNC_MODE_MANUAL = 2;
 
     private final static long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
@@ -194,7 +202,7 @@ public class OsRealmConfig implements NativeObject {
                           @Nullable OsSharedRealm.MigrationCallback migrationCallback,
                           @Nullable OsSharedRealm.InitializationCallback initializationCallback) {
         this.realmConfiguration = config;
-        this.nativePtr = nativeCreate(config.getPath(), fifoFallbackDir,false, true);
+        this.nativePtr = nativeCreate(config.getPath(), fifoFallbackDir, true, config.getMaxNumberOfActiveVersions());
         NativeContext.dummyContext.addReference(this);
 
         // Retrieve Sync settings first. We need syncRealmUrl to identify if this is a SyncConfig
@@ -209,6 +217,7 @@ public class OsRealmConfig implements NativeObject {
         boolean isPartial = (Boolean.TRUE.equals(syncConfigurationOptions[7]));
         String urlPrefix = (String)(syncConfigurationOptions[8]);
         String customAuthorizationHeaderName = (String)(syncConfigurationOptions[9]);
+        Byte clientResyncMode = (Byte) syncConfigurationOptions[11];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]
@@ -277,13 +286,57 @@ public class OsRealmConfig implements NativeObject {
                     sessionStopPolicy,
                     urlPrefix,
                     customAuthorizationHeaderName,
-                    customHeaders);
+                    customHeaders,
+                    clientResyncMode);
             try {
                 resolvedRealmURI = new URI(resolvedSyncRealmUrl);
             } catch (URISyntaxException e) {
                 RealmLog.error(e, "Cannot create a URI from the Realm URL address");
             }
             nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
+
+            // TODO: maybe expose the option for a custom Proxy or ProxySelector in the config?
+            ProxySelector proxySelector = ProxySelector.getDefault();
+            if (resolvedRealmURI != null && proxySelector != null) {
+                URI websocketUrl = null;
+                try {
+                    // replace scheme in URI so that a proxy selector won't be confused by 'realm://'
+                    websocketUrl = new URI(resolvedSyncRealmUrl.replaceFirst("realm", "http"));
+                } catch (URISyntaxException e) {
+                    // we shouldn't ever get here if parsing the resolved url above worked
+                    RealmLog.error(e, "Cannot create a URI from the Realm URL address");
+                }
+                List<java.net.Proxy> proxies = proxySelector.select(websocketUrl);
+                if (proxies != null && !proxies.isEmpty()) {
+                    java.net.Proxy proxy = proxies.get(0);
+                    if (proxy.type() != java.net.Proxy.Type.DIRECT) {
+                        byte proxyType = -1;
+                        switch (proxy.type()) {
+                            case HTTP:
+                                proxyType = PROXYCONFIG_TYPE_VALUE_HTTP;
+                                break;
+                            default:
+                                // this should never happen
+                        }
+
+                        if (proxy.type() == java.net.Proxy.Type.HTTP) {
+                            java.net.SocketAddress address = proxy.address();
+                            if (address instanceof java.net.InetSocketAddress) {
+                                java.net.InetSocketAddress inetAddress = (java.net.InetSocketAddress) address;
+                                nativeSetSyncConfigProxySettings(nativePtr, proxyType,
+                                        inetAddress.getHostString(), inetAddress.getPort());
+                            } else {
+                                RealmLog.error("Unsupported proxy socket address type: " + address.getClass().getName());
+                            }
+                        } else {
+                            // FIXME: enable once realm-sync adds support for SOCKS proxies
+                            RealmLog.error("SOCKS proxies are not supported.");
+                        }
+                    }
+                }
+
+            }
+
         }
         this.resolvedRealmURI = resolvedRealmURI;
     }
@@ -310,7 +363,7 @@ public class OsRealmConfig implements NativeObject {
         return context;
     }
 
-    private static native long nativeCreate(String path, String fifoFallbackDir, boolean enableCache, boolean enableFormatUpdate);
+    private static native long nativeCreate(String path, String fifoFallbackDir, boolean enableFormatUpdate, long maxNumberOfActiveVersions);
 
     private static native void nativeSetEncryptionKey(long nativePtr, byte[] key);
 
@@ -330,10 +383,12 @@ public class OsRealmConfig implements NativeObject {
                                                               String userId, String refreshToken, boolean isPartial,
                                                               byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
-                                                              String[] customHeaders);
+                                                              String[] customHeaders, byte clientResetMode);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);
+
+    private static native void nativeSetSyncConfigProxySettings(long nativePtr, byte type, String address, int port);
 
     private static native long nativeGetFinalizerPtr();
 }

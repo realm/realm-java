@@ -36,13 +36,11 @@ static void finalize_subscription(jlong ptr);
 
 static void finalize_subscription(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<SubscriptionWrapper*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_sync_OsSubscription_nativeCreateOrUpdate(JNIEnv* env, jclass, jlong results_ptr, jstring j_subscription_name, jlong time_to_live, jboolean update)
 {
-    TR_ENTER()
     try {
         const auto results = reinterpret_cast<ResultsWrapper*>(results_ptr);
         JStringAccessor subscription_name(env, j_subscription_name);
@@ -62,13 +60,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_sync_OsSubscription_nativeCreateO
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_sync_OsSubscription_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_subscription);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_sync_OsSubscription_nativeStartListening(JNIEnv* env, jobject object, jlong native_ptr)
 {
-    TR_ENTER()
     try {
         auto wrapper = reinterpret_cast<SubscriptionWrapper*>(native_ptr);
         wrapper->start_listening(env, object);
@@ -78,7 +74,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_sync_OsSubscription_nativeStartLis
 
 JNIEXPORT void JNICALL Java_io_realm_internal_sync_OsSubscription_nativeStopListening(JNIEnv* env, jobject, jlong native_ptr)
 {
-    TR_ENTER()
     try {
         auto wrapper = reinterpret_cast<SubscriptionWrapper*>(native_ptr);
         wrapper->stop_listening();
@@ -88,7 +83,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_sync_OsSubscription_nativeStopList
 
 JNIEXPORT jint JNICALL Java_io_realm_internal_sync_OsSubscription_nativeGetState(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER()
     try {
         auto wrapper = reinterpret_cast<SubscriptionWrapper*>(native_ptr);
         return static_cast<jint>(wrapper->subscription().state());
@@ -99,7 +93,6 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_sync_OsSubscription_nativeGetState
 
 JNIEXPORT jobject JNICALL Java_io_realm_internal_sync_OsSubscription_nativeGetError(JNIEnv* env, jclass, jlong native_ptr)
 {
-    TR_ENTER()
     try {
         auto wrapper = reinterpret_cast<SubscriptionWrapper*>(native_ptr);
         auto err = wrapper->subscription().error();

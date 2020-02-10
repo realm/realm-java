@@ -193,7 +193,9 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.STRING, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            // Search index is not added to primary key string columns. Will compute key directly from primary key value.
+            // since Core6.0.0-alpha.25
+            assertFalse(objectSchema.hasIndex("pkField"));
 
             realmSchema.remove(validClassName);
 
@@ -203,7 +205,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.STRING, objectSchema.getFieldType("pkField"));
             assertTrue(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            assertFalse(objectSchema.hasIndex("pkField"));
         }
     }
 
@@ -541,7 +543,7 @@ public class RealmSchemaTests {
         assertNotSame(previousFoo, newFoo);
 
         try {
-            previousFoo.getClassName();
+            assertEquals("foo", previousFoo.getClassName());
             fail();
         } catch (IllegalStateException ignored) {
         }

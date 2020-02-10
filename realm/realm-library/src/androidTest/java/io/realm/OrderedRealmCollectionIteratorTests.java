@@ -772,8 +772,11 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 case MAX_DATE:
                 case IS_VALID:
                 case IS_MANAGED:
+                case IS_FROZEN:
+                case FREEZE:
                     realm.cancelTransaction();
                     continue;
+
                 default:
                     fail("Unknown method: " + method);
             }
@@ -842,7 +845,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             }
         }).start();
         TestHelper.awaitOrFail(bgDone);
-        realm.waitForChange();
+        realm.refresh();
         try {
             it.next();
             assertEquals(TEST_SIZE, collection.size());

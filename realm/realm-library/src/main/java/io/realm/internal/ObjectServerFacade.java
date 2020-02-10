@@ -66,7 +66,7 @@ public class ObjectServerFacade {
     }
 
     public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
-        return new Object[11];
+        return new Object[12];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -102,6 +102,7 @@ public class ObjectServerFacade {
      *
      * @throws {@code DownloadingRealmInterruptedException} if the thread was interrupted while blocked waiting for
      * this to complete.
+     * @throws {@code ObjectServerException } In any other kind of error is reported.
      */
     @SuppressWarnings("JavaDoc")
     public void downloadInitialRemoteChanges(RealmConfiguration config) {
@@ -131,6 +132,10 @@ public class ObjectServerFacade {
      * this to complete.
      */
     public void downloadInitialSubscriptions(Realm realm) {
+        // Do nothing
+    }
+
+    public void createNativeSyncSession(RealmConfiguration configuration) {
         // Do nothing
     }
 }

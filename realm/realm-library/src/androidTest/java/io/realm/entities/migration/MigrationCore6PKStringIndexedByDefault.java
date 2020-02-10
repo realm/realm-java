@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2019 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.internal.permissions;
+package io.realm.entities.migration;
 
-import io.realm.annotations.RealmModule;
-import io.realm.permissions.PermissionOffer;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
-@RealmModule(library = true, classes = { PermissionChange.class, PermissionOffer.class, PermissionOfferResponse.class })
-public class ManagementModule {
+public class MigrationCore6PKStringIndexedByDefault extends RealmObject {
+    @PrimaryKey
+    public String name;
 }

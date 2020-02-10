@@ -99,7 +99,7 @@ import io.realm.sync.permissions.Role;
  * onStart/onStop.
  * <p>
  * Realm instances coordinate their state across threads using the {@link android.os.Handler} mechanism. This also means
- * that Realm instances on threads without a {@link android.os.Looper} cannot receive updates unless {@link #waitForChange()}
+ * that Realm instances on threads without a {@link android.os.Looper} cannot receive updates unless {@link #refresh()}
  * is manually called.
  * <p>
  * A standard pattern for working with Realm in Android activities can be seen below:
@@ -159,8 +159,8 @@ public class Realm extends BaseRealm {
      * @param cache the {@link RealmCache} associated to this Realm instance.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
      */
-    private Realm(RealmCache cache) {
-        super(cache, createExpectedSchemaInfo(cache.getConfiguration().getSchemaMediator()));
+    private Realm(RealmCache cache, OsSharedRealm.VersionID version) {
+        super(cache, createExpectedSchemaInfo(cache.getConfiguration().getSchemaMediator()), version);
         schema = new ImmutableRealmSchema(this,
                 new ColumnIndices(configuration.getSchemaMediator(), sharedRealm.getSchemaInfo()));
         // FIXME: This is to work around the different behaviour between the read only Realms in the Object Store and
@@ -495,8 +495,8 @@ public class Realm extends BaseRealm {
      * @param cache the {@link RealmCache} where to create the realm in.
      * @return a {@link Realm} instance.
      */
-    static Realm createInstance(RealmCache cache) {
-        return new Realm(cache);
+    static Realm createInstance(RealmCache cache, OsSharedRealm.VersionID version) {
+        return new Realm(cache, version);
     }
 
     /**
@@ -655,7 +655,6 @@ public class Realm extends BaseRealm {
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws IOException if something was wrong with the input stream.
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
         //noinspection ConstantConditions
         if (clazz == null || inputStream == null) {
@@ -695,7 +694,6 @@ public class Realm extends BaseRealm {
      * @throws RealmException if unable to read JSON.
      * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, InputStream in) {
         //noinspection ConstantConditions
         if (clazz == null || in == null) {
@@ -873,7 +871,6 @@ public class Realm extends BaseRealm {
      * @throws IOException if something went wrong with the input stream.
      */
     @Nullable
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
         //noinspection ConstantConditions
         if (clazz == null || inputStream == null) {
@@ -931,7 +928,6 @@ public class Realm extends BaseRealm {
      * @throws RealmException if failure to read JSON.
      * @see #createObjectFromJson(Class, java.io.InputStream)
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream in) {
         //noinspection ConstantConditions
         if (clazz == null || in == null) {
@@ -1570,6 +1566,10 @@ public class Realm extends BaseRealm {
             throw new IllegalArgumentException("Transaction should not be null");
         }
 
+        if (isFrozen()) {
+            throw new IllegalStateException("Write transactions on a frozen Realm is not allowed.");
+        }
+
         // Avoid to call canDeliverNotification() in bg thread.
         final boolean canDeliverNotification = sharedRealm.capabilities.canDeliverNotification();
 
@@ -1848,7 +1848,7 @@ public class Realm extends BaseRealm {
                 // TODO Add support for DynamicRealm.executeTransactionAsync()
                 Table table = realm.sharedRealm.getTable("class___ResultSets");
                 TableQuery query = table.where()
-                        .equalTo(new long[]{table.getColumnIndex("name")}, new long[]{NativeObject.NULLPTR}, subscriptionName);
+                        .equalTo(new long[]{table.getColumnKey("name")}, new long[]{NativeObject.NULLPTR}, subscriptionName);
 
                 OsResults result = OsResults.createFromQuery(realm.sharedRealm, query);
                 long count = result.size();
@@ -1980,6 +1980,14 @@ public class Realm extends BaseRealm {
     @Nullable
     public Subscription getSubscription(String name) {
         return where(Subscription.class).equalTo("name", name).findFirst();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Realm freeze() {
+        return RealmCache.createRealmOrGetFromCache(configuration, Realm.class, sharedRealm.getVersionID());
     }
 
     Table getTable(Class<? extends RealmModel> clazz) {

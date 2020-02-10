@@ -16,8 +16,6 @@
 
 #include "io_realm_internal_core_DescriptorOrdering.h"
 
-#include <realm/views.hpp>
-
 #include "java_query_descriptor.hpp"
 #include "util.hpp"
 
@@ -28,19 +26,16 @@ using namespace realm::_impl;
 static void finalize_descriptor(jlong ptr);
 static void finalize_descriptor(jlong ptr)
 {
-    TR_ENTER_PTR(ptr)
     delete reinterpret_cast<DescriptorOrdering*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeGetFinalizerMethodPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_descriptor);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeCreate(JNIEnv* env, jclass)
 {
-   TR_ENTER()
    try {
         return reinterpret_cast<jlong>(new DescriptorOrdering());
     }
@@ -52,7 +47,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
                                                                              jlong descriptor_ptr,
                                                                              jobject j_sort_descriptor)
 {
-    TR_ENTER()
     try {
         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
         if (j_sort_descriptor) {
@@ -66,7 +60,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
                                                                              jlong descriptor_ptr,
                                                                              jobject j_distinct_descriptor)
 {
-    TR_ENTER()
     try {
         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
         if (j_distinct_descriptor) {
@@ -80,7 +73,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
                                                                              jlong descriptor_ptr,
                                                                              jlong limit)
 {
-    TR_ENTER()
     try {
          auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
          descriptor->append_limit(limit);
@@ -92,7 +84,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
                                                                             jlong descriptor_ptr,
                                                                             jlong include_descriptor_ptr)
 {
-    TR_ENTER()
     try {
         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
         auto include_descriptor = reinterpret_cast<IncludeDescriptor*>(include_descriptor_ptr);
@@ -104,7 +95,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeIsEmpty(JNIEnv* env, jclass,
                                                                              jlong descriptor_ptr)
 {
-    TR_ENTER()
     try {
         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
         return descriptor->is_empty() ? JNI_TRUE : JNI_FALSE;

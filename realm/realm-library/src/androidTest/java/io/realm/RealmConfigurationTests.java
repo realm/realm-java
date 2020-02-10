@@ -471,11 +471,11 @@ public class RealmConfigurationTests {
     public void hashCode_withDifferentRxObservableFactory() {
         RealmConfiguration config1 = configFactory.createConfigurationBuilder()
                 .directory(configFactory.getRoot())
-                .rxFactory(new RealmObservableFactory())
+                .rxFactory(new RealmObservableFactory(false))
                 .build();
         RealmConfiguration config2 = configFactory.createConfigurationBuilder()
                 .directory(configFactory.getRoot())
-                .rxFactory(new RealmObservableFactory() {
+                .rxFactory(new RealmObservableFactory(false) {
                     @Override
                     public int hashCode() {
                         return super.hashCode() + 1;
@@ -1093,6 +1093,28 @@ public class RealmConfigurationTests {
                     .build();
             fail();
         } catch (IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void maxNumberOfActiveVersions() {
+        RealmConfiguration config = new RealmConfiguration.Builder()
+                .maxNumberOfActiveVersions(42)
+                .build();
+        assertEquals(42, config.getMaxNumberOfActiveVersions());
+    }
+
+    @Test
+    public void maxNumberOfActiveVersions_throwsIfZeroOrNegative() {
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder();
+        try {
+            builder.maxNumberOfActiveVersions(0);
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        try {
+            builder.maxNumberOfActiveVersions(-1);
+        } catch (IllegalArgumentException ignore) {
         }
     }
 }

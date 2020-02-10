@@ -24,6 +24,8 @@ import javax.annotation.Nullable;
 import io.realm.SyncCredentials;
 import io.realm.SyncUser;
 import io.realm.internal.objectserver.Token;
+import io.realm.permissions.PermissionOffer;
+import io.realm.permissions.PermissionRequest;
 
 /**
  * Interface for handling communication with Realm Object Servers.
@@ -31,7 +33,7 @@ import io.realm.internal.objectserver.Token;
  * Note, no implementation of this class is responsible for handling retries or error handling. It is
  * only responsible for executing a given network request.
  */
-public interface AuthenticationServer {
+public interface RealmObjectServer {
 
     /**
      * Overrides the default header name used to send Realm Object Server credentials.
@@ -114,4 +116,33 @@ public interface AuthenticationServer {
      */
     UpdateAccountResponse confirmEmail(String confirmationToken, URL authenticationUrl);
 
+    /**
+     * Retrieves a list of all permissions for the given user.
+     */
+    RetrievePermissionsResponse getPermissions(Token userToken, URL baseUrl);
+
+    /**
+     * Updates a given set of permissions for a single Realm
+     */
+    ApplyPermissionsResponse applyPermissions(PermissionRequest request, Token refreshToken, URL baseUrl);
+
+    /**
+     * Creates an permissions offer for a Realm.
+     */
+    MakePermissionsOfferResponse makeOffer(PermissionOffer offer, Token refreshToken, URL baseUrl);
+
+    /**
+     * Accept a given permissions offer.
+     */
+    AcceptPermissionsOfferResponse acceptOffer(String offerToken, Token refreshToken, URL baseUrl);
+
+    /**
+     * Invalidates an already created permissions offer.
+     */
+    InvalidatePermissionsOfferResponse invalidateOffer(String id, Token refreshToken, URL baseUrl);
+
+    /**
+     * Retrieves a list of all permissions offers that has been created.
+     */
+    GetPermissionsOffersResponse getPermissionOffers(Token refreshToken, URL baseUrl);
 }

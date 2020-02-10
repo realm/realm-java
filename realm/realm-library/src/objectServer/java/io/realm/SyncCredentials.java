@@ -126,25 +126,6 @@ public class SyncCredentials {
     }
 
     /**
-     * Creates credentials using a nickname.
-     *
-     * Note: This is mainly intended for demo/test, since it's ie. possible to log user
-     * in by just knowing their "nickname" (no password required).
-     * This provider should not be used in production.
-     *
-     * @param nickname that identifies a user
-     * @return a set of credentials that can be used to log into the Object Server using
-     * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)}.
-     * @throws IllegalArgumentException if the nickname is either {@code null} or empty.
-     */
-    public static SyncCredentials nickname(String nickname, boolean isAdmin) {
-        assertStringNotEmpty(nickname, "nickname");
-        Map<String, Object> userInfo = new HashMap<String, Object>();
-        userInfo.put("is_admin", isAdmin);
-        return new SyncCredentials(nickname, IdentityProvider.NICKNAME, userInfo);
-    }
-
-    /**
      * Creates credentials based on a login with username and password. These credentials will only be verified
      * by the Object Server.
      *
@@ -320,11 +301,6 @@ public class SyncCredentials {
          * Credentials do not require user/password (anonymous user).
          */
         public static final String ANONYMOUS = "anonymous";
-
-        /**
-         * Credentials will be verified with a nickname.
-         */
-        public static final String NICKNAME = "nickname";
 
         /**
          * Credentials will be verified by the Object Server.

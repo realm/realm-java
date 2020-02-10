@@ -46,7 +46,7 @@ class ObjectServer {
         }
 
         // Setup Realm part of User-Agent string
-        String userAgent = "Unknown"; // Fallback in case of anything going wrong
+        String userAgentBindingInfo = "Unknown"; // Fallback in case of anything going wrong
         try {
             StringBuilder sb = new StringBuilder();
             sb.append("RealmJava/");
@@ -58,13 +58,7 @@ class ObjectServer {
             sb.append(", v");
             sb.append(Build.VERSION.SDK_INT);
             sb.append(")");
-
-            // Setup User part of User-Agent string
-            if (!Util.isEmptyString(appDefinedUserAgent)) {
-                sb.append(" ");
-                sb.append(appDefinedUserAgent);
-            }
-            userAgent = sb.toString();
+            userAgentBindingInfo = sb.toString();
         } catch (Exception e) {
             // Failures to construct the user agent should never cause the system itself to crash.
             RealmLog.warn("Constructing User-Agent description failed.", e);
@@ -87,12 +81,12 @@ class ObjectServer {
                             "Directory '%s' for SyncManager cannot be created. ",
                             dir.getPath()));
                 }
-                SyncManager.nativeInitializeSyncManager(dir.getPath(), userAgent);
+                SyncManager.nativeInitializeSyncManager(dir.getPath(), userAgentBindingInfo, appDefinedUserAgent);
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }
         } else {
-            SyncManager.nativeInitializeSyncManager(context.getFilesDir().getPath(), userAgent);
+            SyncManager.nativeInitializeSyncManager(context.getFilesDir().getPath(), userAgentBindingInfo, appDefinedUserAgent);
         }
 
         // Configure default UserStore

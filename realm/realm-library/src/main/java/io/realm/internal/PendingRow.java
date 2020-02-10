@@ -3,8 +3,7 @@ package io.realm.internal;
 import java.lang.ref.WeakReference;
 import java.util.Date;
 
-import javax.annotation.Nullable;
-
+import io.realm.FrozenPendingRow;
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
 import io.realm.internal.core.DescriptorOrdering;
@@ -65,17 +64,17 @@ public class PendingRow implements Row {
     }
 
     @Override
-    public String getColumnName(long columnIndex) {
+    public String[] getColumnNames() {
+        throw new  IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public long getColumnKey(String columnName) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public long getColumnIndex(String columnName) {
-        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
-    }
-
-    @Override
-    public RealmFieldType getColumnType(long columnIndex) {
+    public RealmFieldType getColumnType(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
@@ -85,122 +84,122 @@ public class PendingRow implements Row {
     }
 
     @Override
-    public long getIndex() {
+    public long getObjectKey() {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public long getLong(long columnIndex) {
+    public long getLong(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public boolean getBoolean(long columnIndex) {
+    public boolean getBoolean(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public float getFloat(long columnIndex) {
+    public float getFloat(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public double getDouble(long columnIndex) {
+    public double getDouble(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public Date getDate(long columnIndex) {
+    public Date getDate(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public String getString(long columnIndex) {
+    public String getString(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public byte[] getBinaryByteArray(long columnIndex) {
+    public byte[] getBinaryByteArray(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public long getLink(long columnIndex) {
+    public long getLink(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public boolean isNullLink(long columnIndex) {
+    public boolean isNullLink(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public OsList getModelList(long columnIndex) {
+    public OsList getModelList(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public OsList getValueList(long columnIndex, RealmFieldType fieldType) {
+    public OsList getValueList(long columnKey, RealmFieldType fieldType) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public void setLong(long columnIndex, long value) {
+    public void setLong(long columnKey, long value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public void setBoolean(long columnIndex, boolean value) {
+    public void setBoolean(long columnKey, boolean value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public void setFloat(long columnIndex, float value) {
+    public void setFloat(long columnKey, float value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public void setDouble(long columnIndex, double value) {
+    public void setDouble(long columnKey, double value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public void setDate(long columnIndex, Date date) {
+    public void setDate(long columnKey, Date date) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public void setString(long columnIndex, String value) {
+    public void setString(long columnKey, String value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public void setBinaryByteArray(long columnIndex, byte[] data) {
+    public void setBinaryByteArray(long columnKey, byte[] data) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public void setLink(long columnIndex, long value) {
+    public void setLink(long columnKey, long value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public void nullifyLink(long columnIndex) {
+    public void nullifyLink(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public boolean isNull(long columnIndex) {
+    public boolean isNull(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public void setNull(long columnIndex) {
+    public void setNull(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
-    public boolean isAttached() {
+    public boolean isValid() {
         return false;
     }
 
@@ -212,6 +211,16 @@ public class PendingRow implements Row {
     @Override
     public boolean hasColumn(String fieldName) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public Row freeze(OsSharedRealm frozenRealm) {
+        return FrozenPendingRow.INSTANCE;
+    }
+
+    @Override
+    public boolean isLoaded() {
+        return false;
     }
 
     private void clearPendingCollection() {

@@ -32,7 +32,7 @@ public class IOSAllTypes extends RealmObject {
     private boolean boolCol;
     private short shortCol;
     private int intCol;
-    private int longCol;
+    private long longCol;
     private long longLongCol;
     private float floatCol;
     private double doubleCol;
@@ -74,11 +74,11 @@ public class IOSAllTypes extends RealmObject {
         this.intCol = intCol;
     }
 
-    public int getLongCol() {
+    public long getLongCol() {
         return longCol;
     }
 
-    public void setLongCol(int longCol) {
+    public void setLongCol(long longCol) {
         this.longCol = longCol;
     }
 

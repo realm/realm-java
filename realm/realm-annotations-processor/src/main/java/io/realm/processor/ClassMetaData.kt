@@ -97,6 +97,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.FLOAT_MIRROR,
             typeMirrors.DATE_MIRROR
     )
+    private val stringType = typeMirrors.STRING_MIRROR
+
     private val typeUtils: Types = env.typeUtils
     private val elements: Elements = env.elementUtils
     private lateinit var defaultFieldNameFormatter: NameConverter
@@ -717,8 +719,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
         primaryKey = fieldElement
 
-        // Also add as index. All types of primary key can be indexed.
-        if (!indexedFields.contains(fieldElement)) {
+        // Also add as index. All non string types of primary key can be indexed.
+        if (!isStringPrimaryKeyType(fieldType) && !indexedFields.contains(fieldElement)) {
             indexedFields.add(fieldElement)
         }
 
@@ -755,6 +757,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         }
         return false
     }
+
+    private fun isStringPrimaryKeyType(type: TypeMirror): Boolean = typeUtils.isAssignable(type, stringType)
 
     private fun containsType(listOfTypes: List<TypeMirror>, type: TypeMirror): Boolean {
         for (i in listOfTypes.indices) {

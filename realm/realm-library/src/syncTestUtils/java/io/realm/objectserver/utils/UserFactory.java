@@ -99,11 +99,6 @@ public class UserFactory {
         return SyncUser.logIn(credentials, authUrl);
     }
 
-    public static SyncUser createNicknameUser(String authUrl, String nickname, boolean isAdmin) {
-        SyncCredentials credentials = SyncCredentials.nickname(nickname, isAdmin);
-        return SyncUser.logIn(credentials, authUrl);
-    }
-
     // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
     // test case.
     public static void resetInstance() {

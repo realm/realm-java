@@ -56,8 +56,8 @@ public class DynamicRealm extends BaseRealm {
 
     private final RealmSchema schema;
 
-    private DynamicRealm(final RealmCache cache) {
-        super(cache, null);
+    private DynamicRealm(final RealmCache cache, OsSharedRealm.VersionID version) {
+        super(cache, null, version);
         RealmCache.invokeWithGlobalRefCount(cache.getConfiguration(), new RealmCache.Callback() {
             @Override
             public void onResult(int count) {
@@ -195,7 +195,7 @@ public class DynamicRealm extends BaseRealm {
      * @see io.realm.RealmChangeListener
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
-     * @see #waitForChange()
+     * @see #refresh()
      */
     public void addChangeListener(RealmChangeListener<DynamicRealm> listener) {
         addListener(listener);
@@ -272,8 +272,8 @@ public class DynamicRealm extends BaseRealm {
      *
      * @return a {@link DynamicRealm} instance.
      */
-    static DynamicRealm createInstance(RealmCache cache) {
-        return new DynamicRealm(cache);
+    static DynamicRealm createInstance(RealmCache cache, OsSharedRealm.VersionID version) {
+        return new DynamicRealm(cache, version);
     }
 
     /**
@@ -343,7 +343,7 @@ public class DynamicRealm extends BaseRealm {
 //        }
 //        Table table = sharedRealm.getTable("class___Class");
 //        TableQuery query = table.where()
-//                .equalTo(new long[]{table.getColumnIndex("name")}, new long[]{NativeObject.NULLPTR}, className);
+//                .equalTo(new long[]{table.getObjectKey("name")}, new long[]{NativeObject.NULLPTR}, className);
 //        OsResults result = OsResults.createFromQuery(sharedRealm, query);
 //        return new RealmResults<>(this, result, ClassPermissions.class).first(null);
 //    }
@@ -392,6 +392,24 @@ public class DynamicRealm extends BaseRealm {
     @Override
     public RealmSchema getSchema() {
         return schema;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DynamicRealm freeze() {
+        // In some cases a Read transaction has not begun for the Realm, which means
+        // we cannot read the current version. In that case, do some work that will create the
+        // read transaction.
+        OsSharedRealm.VersionID version;
+        try {
+            version = sharedRealm.getVersionID();
+        } catch (IllegalStateException e) {
+            getVersion();
+            version = sharedRealm.getVersionID();
+        }
+        return RealmCache.createRealmOrGetFromCache(configuration, DynamicRealm.class, version);
     }
 
     /**

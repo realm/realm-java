@@ -46,7 +46,7 @@ public class OsSharedRealmTests {
     @Before
     public void setUp() {
         config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
     }
 
     @After
@@ -57,12 +57,9 @@ public class OsSharedRealmTests {
     }
 
     @Test
-    public void getVersionID() {
-        OsSharedRealm.VersionID versionID1 = sharedRealm.getVersionID();
-        sharedRealm.beginTransaction();
-        sharedRealm.commitTransaction();
-        OsSharedRealm.VersionID versionID2 = sharedRealm.getVersionID();
-        assertFalse(versionID1.equals(versionID2));
+    public void getVersionID_without_read_or_write_transaction_throws() {
+        thrown.expectMessage("Cannot get versionId, this could be related to a non existing read/write transaction");
+        sharedRealm.getVersionID();
     }
 
     @Test
@@ -138,7 +135,7 @@ public class OsSharedRealmTests {
 
 
     private void changeSchemaByAnotherRealm() {
-        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(config);
+        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         sharedRealm.createTable("NewTable");
         sharedRealm.commitTransaction();

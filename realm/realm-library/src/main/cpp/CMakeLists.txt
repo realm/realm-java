@@ -45,7 +45,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Initialize common compile & link flags.
 set(REALM_LINKER_FLAGS "")
-set(REALM_COMMON_CXX_FLAGS "")
+set(REALM_COMMON_CXX_FLAGS "-DREALM_PLATFORM_JAVA=1")
 
 # Setup lcache
 if(NDK_LCACHE)
@@ -90,11 +90,11 @@ if (build_SYNC)
     list(APPEND classes_LIST
         io.realm.ClientResetRequiredError io.realm.RealmFileUserStore
         io.realm.SyncManager io.realm.SyncSession io.realm.SyncUser
+        io.realm.internal.objectstore.OsAsyncOpenTask
     )
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
-
     CLASSPATH ${classes_PATH}
     OUTPUT_DIR ${jni_headers_PATH}
     DEPENDS ${classes_PATH}
@@ -112,8 +112,8 @@ set(openssl_URL "https://static.realm.io/downloads/openssl/${openssl_VERSION}/An
 message(STATUS "Downloading OpenSSL...")
 file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
 
-message(STATUS "Uncompressing OpenSSL...")
-execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}" WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
+message(STATUS "Uncompressing OpenSSL: ${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
+execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${openssl_FILENAME}" WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 message(STATUS "Importing OpenSSL...")
 include(${PROJECT_BINARY_DIR}/lib/cmake/OpenSSL/OpenSSLConfig.cmake)
 get_target_property(openssl_include_DIR OpenSSL::Crypto INTERFACE_INCLUDE_DIRECTORIES)
@@ -173,6 +173,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_sync_OsSubscription.cpp
     )
 endif()

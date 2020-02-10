@@ -67,25 +67,24 @@ In case you don't want to use the precompiled version, you can build Realm yours
 ### Prerequisites
 
  * Download the [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * The latest stable version of Android Studio. Currently [3.1.4](https://developer.android.com/studio/).
+ * The latest stable version of Android Studio. Currently [3.5.3](https://developer.android.com/studio/).
  * Download & install the Android SDK **Build-Tools 27.0.2**, **Android Oreo (API 27)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
+ * Install the NDK (currently r21) from the SDK Manager in Android Studio or using the [website](https://developer.android.com/ndk/downloads). If downloaded 
+You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library`.  The download will unzip as the directory `android-ndk-r21`.
 
- * Realm currently requires version r18b of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
-You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r18b`.
-
- * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
-
-    ```
-    ndk.dir=/Users/<username>/Library/Android/android-ndk-r18b
+ * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  If you installed it using the SDK Manager, it will automatically be detected. Otherwise, you need to define the variable `ndk.dir` in `realm/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
     ```
+    ndk.dir=/Users/<username>/Library/android-ndk-r21/
 
- * Add two environment variables to your profile (presuming you installed the NDK in `~/Library/android-ndk-r10e`):
+    ```
+
+ * Add two environment variables to your profile (presuming you installed the NDK in `~/Library/android-ndk-r21`):
 
     ```
     export ANDROID_HOME=~/Library/Android/sdk
-    export ANDROID_NDK_HOME=~/Library/Android/android-ndk-r18b
+    export ANDROID_NDK_HOME=~/Library/android-ndk-r21
     ```
 
  * If you are launching Android Studio from the macOS Finder, you should also run the following two commands:
@@ -146,6 +145,25 @@ That command will generate:
  * a jar file for the annotations processor
 
 The full build may take an hour or more, to complete.
+
+### Building from source
+
+It is possible to build Realm Java against a local checked out version of Realm Core. This is done by providing the following parameter when building: `-PcoreSourcePath=<path>`.
+
+E.g in the case where the `realm-java` and `realm-core` repos are checked out next to each other you can build from source using:
+
+```
+git clone https://github.com/realm/realm-java.git
+git clone https://github.com/realm/realm-core.git
+cd realm-java/realm
+./gradlew assembleBase -PcoreSourcePath=../../realm-core
+```
+
+Note: If the `realm-core` project has already been compiled for non-Android builds and CMake files have been generated, this might conflict with `realm-java` trying to build it. Cleanup the `realm-core` project by calling `git clean -xfd` inside it (beware that all unsaved changes will be lost).
+
+Note: Building from source with Realm Sync is not enabled yet. Only building the `Base` variant is supported.
+
+Note: If you want to build from source inside Android Studio, you need to update the Gradle parameters by going into the Realm projects settings `Settings > Build, Execution, Deployment > Compiler > Command-line options` and add `-PcoreSourcePath=<path>` to it.
 
 ### Other Commands
 

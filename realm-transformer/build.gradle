@@ -47,9 +47,7 @@ configurations {
 sourceSets {
     main {
         compileClasspath += configurations.provided
-        java {
-            srcDirs += ['build/generated-src/main/java', 'src/main/kotlin']
-        }
+        java.srcDirs += ['build/generated-src/main/java', 'src/main/kotlin']
     }
 }
 
@@ -58,7 +56,7 @@ dependencies {
     compile "io.realm:realm-annotations:${version}"
     compileOnly "com.android.tools.build:gradle:${properties.get("GRADLE_BUILD_TOOLS")}"
     compileOnly 'com.android.tools.build:gradle:3.1.1'
-    compile 'org.javassist:javassist:3.21.0-GA'
+    compile 'org.javassist:javassist:3.25.0-GA'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
 
     testCompile 'junit:junit:4.12'

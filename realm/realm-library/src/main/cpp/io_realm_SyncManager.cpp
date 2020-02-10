@@ -16,8 +16,7 @@
 
 #include "io_realm_SyncManager.h"
 
-#include <realm/group_shared.hpp>
-
+#include <object-store/src/impl/realm_coordinator.hpp>
 #include <sync/sync_manager.hpp>
 #include <sync/sync_session.hpp>
 #include <binding_callback_thread_observer.hpp>
@@ -85,20 +84,28 @@ struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {
 
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass)
 {
-    TR_ENTER()
     try {
         SyncManager::shared().reset_for_testing();
     }
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNIEnv* env, jclass, jstring j_sync_base_dir, jstring j_user_agent_info)
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNIEnv* env, jclass,
+                                                                             jstring j_sync_base_dir,
+                                                                             jstring j_user_agent_binding_info,
+                                                                             jstring j_user_agent_application_info)
 {
-    TR_ENTER()
     try {
         JStringAccessor base_file_path(env, j_sync_base_dir); // throws
-        JStringAccessor user_agent_info(env, j_user_agent_info); // throws
-        SyncManager::shared().configure(base_file_path, SyncManager::MetadataMode::NoEncryption, user_agent_info);
+        JStringAccessor user_agent_binding_info(env, j_user_agent_binding_info); // throws
+        JStringAccessor user_agent_application_info(env, j_user_agent_application_info); // throws
+
+        SyncClientConfig client_config;
+        client_config.base_file_path = base_file_path;
+        client_config.metadata_mode = SyncManager::MetadataMode::NoEncryption;
+        client_config.user_agent_binding_info = user_agent_binding_info;
+        client_config.user_agent_application_info = user_agent_application_info;
+        SyncManager::shared().configure(client_config);
 
         static AndroidClientListener client_thread_listener(env);
         // Register Sync Client thread start/stop callback
@@ -114,7 +121,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv*
                                                                          jint err_code, jstring err_message,
                                                                          jboolean is_fatal)
 {
-    TR_ENTER()
     try {
         JStringAccessor path(env, local_realm_path);
         JStringAccessor message(env, err_message);
@@ -132,9 +138,17 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv*
 
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReconnect(JNIEnv* env, jclass)
 {
-    TR_ENTER()
     try {
         SyncManager::shared().reconnect();
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeCreateSession(JNIEnv* env, jclass, jlong j_native_config_ptr)
+{
+    try {
+        auto& config = *reinterpret_cast<Realm::Config*>(j_native_config_ptr);
+        _impl::RealmCoordinator::get_coordinator(config)->create_session(config);
     }
     CATCH_STD()
 }

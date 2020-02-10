@@ -22,7 +22,7 @@ import io.realm.RealmFieldType;
 
 
 /**
- * Row wrapper that stubs all access with IllegalStateExceptions except for isAttached. This can be used instead of
+ * Row wrapper that stubs all access with IllegalStateExceptions except for isValid. This can be used instead of
  * adding null checks everywhere when the underlying Row accessor in Realm's underlying storage engine is no longer
  * available.
  */
@@ -35,17 +35,17 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public String getColumnName(long columnIndex) {
+    public String[] getColumnNames() {
         throw getStubException();
     }
 
     @Override
-    public long getColumnIndex(String columnName) {
+    public long getColumnKey(String columnName) {
         throw getStubException();
     }
 
     @Override
-    public RealmFieldType getColumnType(long columnIndex) {
+    public RealmFieldType getColumnType(long columnKey) {
         throw getStubException();
     }
 
@@ -55,122 +55,122 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public long getIndex() {
+    public long getObjectKey() {
         throw getStubException();
     }
 
     @Override
-    public long getLong(long columnIndex) {
+    public long getLong(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public boolean getBoolean(long columnIndex) {
+    public boolean getBoolean(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public float getFloat(long columnIndex) {
+    public float getFloat(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public double getDouble(long columnIndex) {
+    public double getDouble(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public Date getDate(long columnIndex) {
+    public Date getDate(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public String getString(long columnIndex) {
+    public String getString(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public byte[] getBinaryByteArray(long columnIndex) {
+    public byte[] getBinaryByteArray(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public long getLink(long columnIndex) {
+    public long getLink(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public boolean isNullLink(long columnIndex) {
+    public boolean isNullLink(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public OsList getModelList(long columnIndex) {
+    public OsList getModelList(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public OsList getValueList(long columnIndex, RealmFieldType fieldType) {
+    public OsList getValueList(long columnKey, RealmFieldType fieldType) {
         throw getStubException();
     }
 
     @Override
-    public void setLong(long columnIndex, long value) {
+    public void setLong(long columnKey, long value) {
         throw getStubException();
     }
 
     @Override
-    public void setBoolean(long columnIndex, boolean value) {
+    public void setBoolean(long columnKey, boolean value) {
         throw getStubException();
     }
 
     @Override
-    public void setFloat(long columnIndex, float value) {
+    public void setFloat(long columnKey, float value) {
         throw getStubException();
     }
 
     @Override
-    public void setDouble(long columnIndex, double value) {
+    public void setDouble(long columnKey, double value) {
         throw getStubException();
     }
 
     @Override
-    public void setDate(long columnIndex, Date date) {
+    public void setDate(long columnKey, Date date) {
         throw getStubException();
     }
 
     @Override
-    public void setString(long columnIndex, String value) {
+    public void setString(long columnKey, String value) {
         throw getStubException();
     }
 
     @Override
-    public void setBinaryByteArray(long columnIndex, byte[] data) {
+    public void setBinaryByteArray(long columnKey, byte[] data) {
         throw getStubException();
     }
 
     @Override
-    public void setLink(long columnIndex, long value) {
+    public void setLink(long columnKey, long value) {
         throw getStubException();
     }
 
     @Override
-    public void nullifyLink(long columnIndex) {
+    public void nullifyLink(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public boolean isNull(long columnIndex) {
+    public boolean isNull(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public void setNull(long columnIndex) {
+    public void setNull(long columnKey) {
         throw getStubException();
     }
 
     @Override
-    public boolean isAttached() {
+    public boolean isValid() {
         return false;
     }
 
@@ -182,6 +182,16 @@ public enum InvalidRow implements Row {
     @Override
     public boolean hasColumn(String fieldName) {
         throw getStubException();
+    }
+
+    @Override
+    public Row freeze(OsSharedRealm frozenRealm) {
+        return INSTANCE;
+    }
+
+    @Override
+    public boolean isLoaded() {
+        return true;
     }
 
     private RuntimeException getStubException() {

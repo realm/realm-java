@@ -16,9 +16,9 @@
 
 package io.realm.permissions;
 
-import io.realm.PermissionManager;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.SyncUser;
 
 
 /**
@@ -30,14 +30,14 @@ import io.realm.RealmConfiguration;
  * access can always read or write from the Realm. This means that {@code NONE < READ < WRITE < ADMIN}.
  *
  * @see PermissionRequest
- * @see io.realm.PermissionManager#applyPermissions(PermissionRequest, PermissionManager.ApplyPermissionsCallback)
+ * @see SyncUser#applyPermissionsAsync(PermissionRequest, SyncUser.Callback)
  */
 public enum AccessLevel {
 
     /**
      * The user does not have access to this Realm.
      */
-    NONE(false, false, false),
+    NONE("none", false, false, false),
 
     /**
      * User can only read the contents of the Realm.
@@ -56,27 +56,38 @@ public enum AccessLevel {
      * }
      * </pre>
      */
-    READ(true, false, false),
+    READ("read", true, false, false),
 
     /**
      * User can read and write the contents of the Realm.
      */
-    WRITE(true, true, false),
+    WRITE("write", true, true, false),
 
     /**
      * User can read, write, and administer the Realm. This includes both granting permissions as well as removing them
      * again.
      */
-    ADMIN(true, true, true);
+    ADMIN( "admin", true, true, true);
 
+    private final String key; // JSON description used by the Realm Object Server
     private final boolean mayRead;
     private final boolean mayWrite;
     private final boolean mayManage;
 
-    AccessLevel(boolean mayRead, boolean mayWrite, boolean mayManage) {
+    AccessLevel(String serverKey, boolean mayRead, boolean mayWrite, boolean mayManage) {
+        this.key = serverKey;
         this.mayRead = mayRead;
         this.mayWrite = mayWrite;
         this.mayManage = mayManage;
+    }
+
+    public static AccessLevel fromKey(String accessLevel) {
+        for (AccessLevel level : values()) {
+            if (level.getKey().equals(accessLevel)) {
+                return level;
+            }
+        }
+        throw new IllegalArgumentException("Unknown access level: " + accessLevel);
     }
 
     /**
@@ -101,5 +112,9 @@ public enum AccessLevel {
      */
     public boolean mayManage() {
         return mayManage;
+    }
+
+    public String getKey() {
+        return key;
     }
 }

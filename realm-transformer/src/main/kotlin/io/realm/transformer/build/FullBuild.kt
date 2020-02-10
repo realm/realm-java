@@ -17,6 +17,7 @@
 package io.realm.transformer.build
 
 import com.android.SdkConstants
+import com.android.build.api.transform.Format
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import io.realm.transformer.BytecodeModifier
@@ -130,10 +131,14 @@ class FullBuild(project: Project, outputProvider: TransformOutputProvider, trans
 
         // Use accessors instead of direct field access
         outputClassNames.forEach {
-            logger.debug("Modify accessors in class: $it")
-            val ctClass: CtClass = classPool.getCtClass(it)
-            BytecodeModifier.useRealmAccessors(classPool, ctClass, allManagedFields)
-            ctClass.writeFile(getOutputFile(outputProvider).canonicalPath)
+            logger.debug("Modifying accessors in class: $it")
+            try {
+                val ctClass: CtClass = classPool.getCtClass(it)
+                BytecodeModifier.useRealmAccessors(classPool, ctClass, allManagedFields)
+                ctClass.writeFile(getOutputFile(outputProvider, Format.DIRECTORY).canonicalPath)
+            } catch (e: Exception) {
+                throw RuntimeException("Failed to transform $it.", e)
+            }
         }
     }
 

@@ -150,6 +150,36 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@inheritDoc}
      */
     @Override
+    public RealmList<E> freeze() {
+        if (isManaged()) {
+            if (!isValid()) {
+                throw new IllegalStateException("Only valid, managed RealmLists can be frozen.");
+            }
+
+            BaseRealm frozenRealm = realm.freeze();
+            OsList frozenList = getOsList().freeze(frozenRealm.sharedRealm);
+            if (className != null) {
+                return new RealmList<>(className, frozenList, frozenRealm);
+            } else {
+                return new RealmList<>(clazz, frozenList, frozenRealm);
+            }
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isFrozen() {
+        return (realm != null && realm.isFrozen());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean isManaged() {
         return realm != null;
     }
@@ -846,7 +876,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             } else if (isClassForRealmModel(clazz)) {
                 for (int i = 0; i < size(); i++) {
                     //noinspection ConstantConditions
-                    sb.append(((RealmObjectProxy) get(i)).realmGet$proxyState().getRow$realm().getIndex());
+                    sb.append(((RealmObjectProxy) get(i)).realmGet$proxyState().getRow$realm().getObjectKey());
                     sb.append(separator);
                 }
                 if (0 < size()) {
@@ -876,6 +906,21 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * subscribed to. RealmList will continually be emitted as the RealmList is updated -
      * {@code onComplete} will never be called.
      * <p>
+     * Items emitted from Realm Flowables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Flowables always emit items from the thread holding the live RealmList. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * list.asFlowable()
+     *   .observeOn(Schedulers.computation())
+     *   .map(rxResults -> doExpensiveWork(rxResults))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
+     * <p>
      * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
@@ -887,9 +932,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * }
      * </pre>
      * <p>
-     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
-     * with {@code subscribeOn()} and {@code observeOn()}.
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
@@ -917,14 +959,25 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * <p>
      * RealmList will continually be emitted as the RealmList is updated - {@code onComplete} will never be called.
      * <p>
-     * * Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
-     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
-     * instead.
+     * Items emitted from Realm Observables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Observables always emit items from the thread holding the live Realm. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * list.asChangesetObservable()
+     *   .observeOn(Schedulers.computation())
+     *   .map((rxList, changes) -> doExpensiveWork(rxList, changes))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
+     * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public Observable<CollectionChange<RealmList<E>>> asChangesetObservable() {
@@ -1454,7 +1507,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     @Override
     public void appendValue(Object value) {
         final RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.addRow(proxy.realmGet$proxyState().getRow$realm().getIndex());
+        osList.addRow(proxy.realmGet$proxyState().getRow$realm().getObjectKey());
     }
 
     @Override
@@ -1468,7 +1521,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
         checkInsertIndex(index);
 
         RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getIndex());
+        osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
     }
 
     @Override
@@ -1479,7 +1532,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     @Override
     protected void setValue(int index, Object value) {
         RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getIndex());
+        osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
     }
 
     // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.

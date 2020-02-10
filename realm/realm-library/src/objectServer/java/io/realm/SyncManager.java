@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.os.SystemClock;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,12 +44,12 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.exceptions.RealmError;
 import io.realm.internal.Keep;
+import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
-import io.realm.internal.network.AuthenticationServer;
+import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.network.NetworkStateReceiver;
-import io.realm.internal.network.OkHttpAuthenticationServer;
+import io.realm.internal.network.OkHttpRealmObjectServer;
 import io.realm.log.RealmLog;
 import okhttp3.internal.tls.OkHostnameVerifier;
 
@@ -131,7 +129,7 @@ public class SyncManager {
 
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
-    private static volatile AuthenticationServer authServer = new OkHttpAuthenticationServer();
+    private static volatile RealmObjectServer authServer = new OkHttpRealmObjectServer();
     private static volatile UserStore userStore;
 
     // Header configuration
@@ -256,7 +254,7 @@ public class SyncManager {
     public static synchronized SyncSession getOrCreateSession(SyncConfiguration syncConfiguration, @Nullable URI resolvedRealmURL) {
         // This will not create a new native (Object Store) session, this will only associate a Realm's path
         // with a SyncSession. Object Store's SyncManager is responsible of the life cycle (including creation)
-        // of the native session, the provided Java wrap, helps interact with the native session, when reporting error
+        // of the native session. The provided Java wrap, helps interact with the native session, when reporting error
         // or requesting an access_token for example.
 
         //noinspection ConstantConditions
@@ -266,10 +264,11 @@ public class SyncManager {
 
         SyncSession session = sessions.get(syncConfiguration.getPath());
         if (session == null) {
+            RealmLog.debug("Creating session for: %s", syncConfiguration.getPath());
             session = new SyncSession(syncConfiguration);
             sessions.put(syncConfiguration.getPath(), session);
             if (sessions.size() == 1) {
-                RealmLog.debug("first session created add network listener");
+                RealmLog.debug("First session created. Adding network listener.");
                 NetworkStateReceiver.addListener(networkListener);
             }
             if (resolvedRealmURL != null) {
@@ -281,6 +280,13 @@ public class SyncManager {
                 // syncing.
                 session.getAccessToken(authServer, "");
             }
+
+            // The underlying session will be created as part of opening the Realm, but this approach
+            // does not work when using `Realm.getInstanceAsync()` in combination with AsyncOpen.
+            //
+            // So instead we manually create the underlying native session.
+            OsRealmConfig config = new OsRealmConfig.Builder(syncConfiguration).build();
+            nativeCreateSession(config.getNativePtr());
         }
 
         return session;
@@ -437,12 +443,13 @@ public class SyncManager {
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
         }
+        RealmLog.debug("Removing session for: %s", syncConfiguration.getPath());
         SyncSession syncSession = sessions.remove(syncConfiguration.getPath());
         if (syncSession != null) {
             syncSession.close();
         }
         if (sessions.isEmpty()) {
-            RealmLog.debug("last session dropped, remove network listener");
+            RealmLog.debug("Last session dropped. Remove network listener.");
             NetworkStateReceiver.removeListener(networkListener);
         }
     }
@@ -460,21 +467,21 @@ public class SyncManager {
         }
         ArrayList<SyncSession> allSessions = new ArrayList<SyncSession>();
         for (SyncSession syncSession : sessions.values()) {
-            if (syncSession.getState() != SyncSession.State.ERROR && syncSession.getUser().equals(syncUser)) {
+            if (syncSession.getUser().equals(syncUser)) {
                 allSessions.add(syncSession);
             }
         }
         return allSessions;
     }
 
-    static AuthenticationServer getAuthServer() {
+    static RealmObjectServer getAuthServer() {
         return authServer;
     }
 
     /**
      * Sets the auth server implementation used when validating credentials.
      */
-    static void setAuthServerImpl(AuthenticationServer authServerImpl) {
+    static void setAuthServerImpl(RealmObjectServer authServerImpl) {
         authServer = authServerImpl;
     }
 
@@ -763,8 +770,9 @@ public class SyncManager {
                 true);
     }
 
-    protected static native void nativeInitializeSyncManager(String syncBaseDir, String userAgent);
+    protected static native void nativeInitializeSyncManager(String syncBaseDir, String bindingUserAgentInfo, String appUserAgentInfo);
     private static native void nativeReset();
     private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
     private static native void nativeReconnect();
+    private static native void nativeCreateSession(long nativeConfigPtr);
 }
