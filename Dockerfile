@@ -67,9 +67,9 @@ RUN yes | sdkmanager \
 # Install the NDK
 RUN mkdir /opt/android-ndk-tmp && \
     cd /opt/android-ndk-tmp && \
-    wget -q https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip -O android-ndk.zip && \
+    wget -q https://dl.google.com/android/repository/android-ndk-r21-linux-x86_64.zip -O android-ndk.zip && \
     unzip android-ndk.zip && \
-    mv android-ndk-r18b /opt/android-ndk && \
+    mv android-ndk-r21 /opt/android-ndk && \
     rm -rf /opt/android-ndk-tmp && \
     chmod -R a+rX /opt/android-ndk
 
