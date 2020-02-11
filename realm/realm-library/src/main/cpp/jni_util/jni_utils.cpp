@@ -48,7 +48,10 @@ JNIEnv* JniUtils::get_env(bool attach_if_needed)
             REALM_ASSERT_RELEASE(ret == JNI_OK);
         }
         else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunreachable-code"
             REALM_ASSERT_RELEASE(false);
+#pragma clang diagnostic pop
         }
     }
 
