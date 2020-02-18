@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 ###########################################################################
-cmake_minimum_required(VERSION 3.6.0)
+cmake_minimum_required(VERSION 3.15.0)
 
 FUNCTION(capitalizeFirstLetter var value)
     string(SUBSTRING ${value} 0 1 firstLetter)
@@ -141,7 +141,7 @@ endif()
 #     -Wno-missing-field-initializers disable in object store as well.
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
-    -Wno-missing-field-initializers -Wno-unevaluated-expression")
+    -Wno-missing-field-initializers -Wno-unevaluated-expression --Wno-unreachable-code")
 set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections  -pthread -frtti -fvisibility=hidden -fvisibility-inlines-hidden -fsigned-char -std=c++14")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
