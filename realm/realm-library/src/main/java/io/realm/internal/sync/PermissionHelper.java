@@ -38,6 +38,9 @@ public class PermissionHelper {
      * @return
      */
     public static Permission findOrCreatePermissionForRole(RealmObject container, RealmList<Permission> permissions, String roleName) {
+        if (roleName == null) {
+            throw new IllegalArgumentException("Non-null 'roleName' required.");
+        }
         if (!container.isManaged()) {
             throw new IllegalStateException("'findOrCreate()' can only be called on managed objects.");
         }
@@ -49,7 +52,6 @@ public class PermissionHelper {
         // Find existing permission object or create new one
         Permission permission = permissions.where().equalTo("role.name", roleName).findFirst();
         if (permission == null) {
-
             // Find existing role or create new one
             Role role = realm.where(Role.class).equalTo("name", roleName).findFirst();
             if (role == null) {
