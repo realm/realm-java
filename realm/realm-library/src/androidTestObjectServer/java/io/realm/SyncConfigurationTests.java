@@ -484,17 +484,6 @@ public class SyncConfigurationTests {
     }
 
     @Test
-    public void automatic_isFullySynchronized() {
-        SyncUser user = SyncTestUtils.createTestUser();
-
-        SyncConfiguration config = SyncConfiguration.automatic();
-        assertFalse(config.isFullySynchronizedRealm());
-
-        config = SyncConfiguration.automatic(user);
-        assertFalse(config.isFullySynchronizedRealm());
-    }
-
-    @Test
     public void automatic_convertsAuthUrl() {
         Object[][] input = {
                 // AuthUrl -> Expected Realm URL
