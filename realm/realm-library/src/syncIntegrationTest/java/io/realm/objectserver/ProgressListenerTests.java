@@ -133,7 +133,6 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         return objectCounts;
     }
 
-    @Ignore("FIXME: See https://mongodb.slack.com/archives/CL7EWAHCY/p1582101560005200")
     @Test
     public void downloadProgressListener_changesOnly() {
         final CountDownLatch allChangesDownloaded = new CountDownLatch(1);
@@ -267,6 +266,7 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         realm.close();
     }
 
+    @Ignore("FIXME: See https://mongodb.slack.com/archives/CL7EWAHCY/p1582101560005200")
     @Test
     public void uploadProgressListener_changesOnly() {
         final CountDownLatch allChangeUploaded = new CountDownLatch(1);

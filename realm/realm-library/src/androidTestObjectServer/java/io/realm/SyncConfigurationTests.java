@@ -481,6 +481,7 @@ public class SyncConfigurationTests {
     public void getDefaultConfiguration_isFullySynchronized() {
         SyncUser user = createTestUser();
         SyncConfiguration config = user.getDefaultConfiguration();
+        assertFalse(config.isFullySynchronizedRealm());
     }
 
     @Test
