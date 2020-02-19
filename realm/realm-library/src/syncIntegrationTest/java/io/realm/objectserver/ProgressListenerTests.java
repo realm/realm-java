@@ -18,6 +18,7 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -132,6 +133,7 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         return objectCounts;
     }
 
+    @Ignore("FIXME: See https://mongodb.slack.com/archives/CL7EWAHCY/p1582101560005200")
     @Test
     public void downloadProgressListener_changesOnly() {
         final CountDownLatch allChangesDownloaded = new CountDownLatch(1);
