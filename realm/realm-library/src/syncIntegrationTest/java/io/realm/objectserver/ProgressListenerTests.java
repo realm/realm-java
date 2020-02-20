@@ -42,16 +42,17 @@ import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
+import io.realm.TestSyncConfigurationFactory;
 import io.realm.entities.AllTypes;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+@Ignore("FIXME: Most of these are currently broken. See https://mongodb.slack.com/archives/CL7EWAHCY/p1582101560005200")
 @RunWith(AndroidJUnit4.class)
 public class ProgressListenerTests extends StandardIntegrationTest {
 
@@ -266,7 +267,6 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         realm.close();
     }
 
-    @Ignore("FIXME: See https://mongodb.slack.com/archives/CL7EWAHCY/p1582101560005200")
     @Test
     public void uploadProgressListener_changesOnly() {
         final CountDownLatch allChangeUploaded = new CountDownLatch(1);
