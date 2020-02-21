@@ -32,7 +32,7 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 ### Internal
 * `OsSharedRealm.VersionID.hashCode()` was not implemented correctly and included the memory location in the hashcode.
 * OKHttp was upgraded to 3.10.0 from 3.9.0.
-* The NDK has been upgraded from NDK r10e to r21.
+* The NDK has been upgraded from r10e to r21.
 * The compiler used for C++ code has changed from GCC to Clang.
 * OpenSSL used by Realms encryption layer has been upgraded from 1.0.2k to 1.1.1b.
 

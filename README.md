@@ -76,15 +76,15 @@ You may unzip the file wherever you choose.  For macOS, a suggested location is 
  * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  If you installed it using the SDK Manager, it will automatically be detected. Otherwise, you need to define the variable `ndk.dir` in `realm/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
     ```
-    ndk.dir=/Users/<username>/Library/android-ndk-r21/
+    ndk.dir=/Users/<username>/Library/android-sdk/ndk/21.0.6113669
 
     ```
 
- * Add two environment variables to your profile (presuming you installed the NDK in `~/Library/android-ndk-r21`):
+ * Add two environment variables to your profile (presuming you installed the NDK using the SDK Manager):
 
     ```
-    export ANDROID_HOME=~/Library/Android/sdk
-    export ANDROID_NDK_HOME=~/Library/android-ndk-r21
+    export ANDROID_HOME=~/Library/android-sdk
+    export ANDROID_NDK_HOME=~/Library/android-sdk/ndk/21.0.6113669
     ```
 
  * If you are launching Android Studio from the macOS Finder, you should also run the following two commands:

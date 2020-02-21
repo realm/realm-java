@@ -1347,14 +1347,12 @@ public class RealmAsyncQueryTests {
                 if (updatesTriggered.get())  {
                     // Step 4: Test finished after all results's onChange gets called the 2nd time.
                     int count  = secondOnChangeCounter.addAndGet(1);
-                    RealmLog.error("SecondOnChangeCounter: " + count);
                     if (count == TEST_COUNT) {
                         realm.removeAllChangeListeners();
                         looperThread.testComplete();
                     }
                 } else {
                     int count  = firstOnChangeCounter.addAndGet(1);
-                    RealmLog.error("firstOnChangeCounter: " + count);
                     if (count == TEST_COUNT) {
                         // Step 3: Commits the transaction to trigger queries updates.
                         updatesTriggered.set(true);

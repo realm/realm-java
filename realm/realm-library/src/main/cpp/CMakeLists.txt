@@ -142,7 +142,7 @@ endif()
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
     -Wno-missing-field-initializers -Wno-unevaluated-expression -Wno-unreachable-code")
-set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections  -pthread -frtti -fvisibility=hidden -fvisibility-inlines-hidden -fsigned-char -std=c++14")
+set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections -pthread -frtti -fvisibility=hidden -fsigned-char -fno-stack-protector -std=c++14")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
