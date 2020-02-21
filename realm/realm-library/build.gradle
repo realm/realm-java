@@ -559,7 +559,7 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
     }
 }
 
-publishToMavenLocal.dependsOn assembleRelease
+publishToMavenLocal.dependsOn assemble
 preBuild.dependsOn deployCore
 
 if (project.hasProperty('dontCleanJniFiles')) {
@@ -635,7 +635,7 @@ android.productFlavors.all { flavor ->
     // BINTRAY
 
     task("bintrayAar${flavor.name.capitalize()}", type: Exec) {
-        dependsOn "assemble${flavor.name.capitalize()}Release"
+        dependsOn "assemble${flavor.name.capitalize()}"
         group = 'Publishing'
         commandLine 'curl',
                 '-X',
@@ -689,7 +689,7 @@ android.productFlavors.all { flavor ->
     // OJO
 
     task("ojoAar${flavor.name.capitalize()}", type: Exec) {
-        dependsOn "assemble${flavor.name.capitalize()}Release"
+        dependsOn "assemble${flavor.name.capitalize()}"
         group = 'Publishing'
         commandLine 'curl',
                 '-X',
