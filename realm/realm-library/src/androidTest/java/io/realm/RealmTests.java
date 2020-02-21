@@ -4600,6 +4600,7 @@ public class RealmTests {
         results.addChangeListener(new OrderedRealmCollectionChangeListener<RealmResults<AllJavaTypes>>() {
             @Override
             public void onChange(RealmResults<AllJavaTypes> results, OrderedCollectionChangeSet changeSet) {
+                RealmLog.error("Size: " + results.size());
                 for (AllJavaTypes obj : results) {
                     String s = obj.getFieldString();
                 }
