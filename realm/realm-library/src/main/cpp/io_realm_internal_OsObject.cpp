@@ -180,8 +180,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     }
     else {
         if (bool(table->find_first_int(col_key, pk_value))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
-                                 format(PK_EXCEPTION_MSG_FORMAT, reinterpret_cast<long long>(pk_value)));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, pk_value));
         }
     }
 
