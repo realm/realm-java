@@ -52,7 +52,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@Ignore("FIXME: Most of these are currently broken. See https://mongodb.slack.com/archives/CL7EWAHCY/p1582101560005200")
+@Ignore("FIXME: Most of these are currently broken. See https://jira.mongodb.org/browse/RSYNC-101")
 @RunWith(AndroidJUnit4.class)
 public class ProgressListenerTests extends StandardIntegrationTest {
 

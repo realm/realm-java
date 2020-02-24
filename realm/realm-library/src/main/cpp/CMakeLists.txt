@@ -148,7 +148,7 @@ if (build_SYNC)
 endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -Oz")
 # -ggdb doesn't play well with -flto
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -Og")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -glldb -g")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
 # Set Linker flags flags
