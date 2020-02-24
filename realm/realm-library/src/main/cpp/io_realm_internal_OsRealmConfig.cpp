@@ -291,7 +291,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                     case ECONNABORTED: error_code = 113; break;
                     default:
                         /* Do nothing */
-                        error_code = error_code;
+                        (void)0;
                 }
             } else if (std::strcmp(error_category, "realm.util.misc_ext") == 0) {
                 switch (util::MiscExtErrors(error_code)) {
@@ -300,7 +300,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                     case util::MiscExtErrors::delim_not_found: error_code = 3; break;
                     default:
                         /* Do nothing */
-                        error_code = error_code;
+                        (void)0;
                 }
             }
 

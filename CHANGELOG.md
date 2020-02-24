@@ -1,4 +1,4 @@
-## 8.0.0 (YYYY-MM-DD)
+## 10.0.0 (YYYY-MM-DD)
 
 ### Breaking Changes
 * Removed all references and API's releated to permissions. These are now managed through MongoDB Realm. Read more [here](XXX).
@@ -15,8 +15,7 @@
 ### Internal
 * None.
 
-
-## 7.0.0-beta (YYYY-MM-DD)
+## 7.0.0(YYYY-MM-DD)
 
 Based on v6.0.2.
 
@@ -31,17 +30,16 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * [ObjectServer] `IncompatibleSyncedFileException` is removed as it is no longer used.
 * [ObjectServer] New error codes thrown by the underlying sync layers now have proper enum mappings in `ErrorCode.java`. A few other errors have been renamed in order to have consistent naming. (Issue [#6387](https://github.com/realm/realm-java/issues/6387)) 
 * RxJava Flowables and Observables are now subscribed to and unsubscribed to asynchronously on the thread holding the live Realm, instead of previously where this was done synchronously.
-* All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(boolean))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without the need to copy Realm data into unmanaged objects.
+* All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without the need to copy Realm data into unmanaged objects.
 * MIPS is not supported anymore.
 * Realm now requires `minSdkVersion` 16. Up from 9.
+* [ObjectServer] `IncompatibleSyncedFileException` is removed and no longer thrown.
 
 ### Enhancements
 * Added `Realm.freeze()`, `RealmObject.freeze()`, `RealmResults.freeze()` and `RealmList.freeze()`. These methods will return a frozen version of the current Realm data. This data can be read from any thread without throwing an `IllegalStateException`, but will never change. All frozen Realms and data can be closed by calling `Realm.close()` on the frozen Realm, but fully closing all live Realms will also close the frozen ones. Frozen data can be queried as normal, but trying to mutate it in any way will throw an `IllegalStateException`. This includes all methods that attempt to refresh or add change listeners. (Issue [#6590](https://github.com/realm/realm-java/pull/6590))
 * Added `Realm.isFrozen()`, `RealmObject.isFrozen()`, `RealmObject.isFrozen(RealmModel)`, `RealmResults.isFrozen()` and `RealmList.isFrozen()`, which returns whether or not the data is frozen.
 * Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having too many versions can dramatically increase the filesize of the Realm.
-* `RealmResults.asJSON()` is no longer `@Beta`.
-* Storing large binary blobs in Realm files no longer forces the file to be at least 8x the size of the largest blob.
-* Reduce the size of transaction logs stored inside the Realm file, reducing file size growth from large transactions.
+* `RealmResults.asJSON()` is no longer `@Beta`
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
@@ -51,15 +49,22 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 ### Internal
 * `OsSharedRealm.VersionID.hashCode()` was not implemented correctly and included the memory location in the hashcode.
 * OKHttp was upgraded to 3.10.0 from 3.9.0.
+* The NDK has been upgraded from r10e to r21.
+* The compiler used for C++ code has changed from GCC to Clang.
+* OpenSSL used by Realms encryption layer has been upgraded from 1.0.2k to 1.1.1b.
 
 
-## 6.1.0(YYYY-MM-DD)
+## 6.1.0(2020-01-17)
 
 ### Enhancements
 * The Realm Gradle plugin now applies `kapt` when used in Kotlin Multiplatform projects. Note, Realm Java still only works for the Android part of a Kotlin Multiplatform project. (Issue [#6653](https://github.com/realm/realm-java/issues/6653))
+* The error message shown when no native code could be found for the device is now much more descriptive. This is particular helpful if an app is using App Bundle or APK Split and the resulting APK was side-loaded outside the Google Play Store. (Issue [#6673](https://github.com/realm/realm-java/issues/6673))
+* `RealmResults.asJson()` now encode binary data as Base64 and null object links are reported as `null` instead of `[]`.
 
 ### Fixed
-* None.
+* Fixed using `RealmList` with a primitive type sometimes crashing with `Destruction of mutex in use`. (Issue [#6689](https://github.com/realm/realm-java/issues/6689)) 
+* `RealmObjectSchema.transform()` would crash if one of the `DynamicRealmObject` provided are deleted from the Realm. (Issue [#6657](https://github.com/realm/realm-java/issues/6657), since 0.86.0)
+* The Realm Transformer will no longer attempt to send anonymous metrics when Gradle is invoked with `--offline`. (Issue [#6691](https://github.com/realm/realm-java/issues/6691))
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
@@ -67,8 +72,10 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
 
 ### Internal
-* Updated to Object Store commit: ad96a4c334b475dd67d50c1ca419e257d7a21e18.
-* Updated to Realm Sync v4.8.3.
+* Updated to ReLinker 1.4.0.
+* Updated to Object Store commit: 2a204063e1e1a366efbdd909fbea9effceb7d3c4.
+* Updated to Realm Sync 4.9.4.
+* Updated to Realm Core 5.23.8.
 
 ### Credits
 * Thanks to @sellmair (Sebastian Sellmair) for improving Kotlin Multiplatform support.

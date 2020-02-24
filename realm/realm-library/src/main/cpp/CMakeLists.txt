@@ -101,46 +101,30 @@ create_javah(TARGET jni_headers
 )
 
 include(RealmCore)
-
 use_realm_core(${build_SYNC} "${REALM_CORE_DIST_DIR}" "${CORE_SOURCE_PATH}")
 
-# Download openssl lib
-#string(TOLOWER "${CMAKE_BUILD_TYPE}" openssl_build_TYPE)
-set(openssl_build_TYPE "release")
+# Download OpenSSL lib
 # FIXME Read the openssl version from core when the core/sync release has that information.
-set(openssl_VERSION "1.0.2k")
-set(openssl_BUILD_NUMBER "1")
-set(openssl_FILENAME "openssl-${openssl_build_TYPE}-${openssl_VERSION}-${openssl_BUILD_NUMBER}-Android-${ANDROID_ABI}")
-set(openssl_URL "http://static.realm.io/downloads/openssl/${openssl_VERSION}/Android/${ANDROID_ABI}/${openssl_FILENAME}.tar.gz")
+set(openssl_VERSION "1.1.1b")
+set(openssl_FILENAME "openssl.tgz")
+set(openssl_URL "https://static.realm.io/downloads/openssl/${openssl_VERSION}/Android/${ANDROID_ABI}/${openssl_FILENAME}")
 
 message(STATUS "Downloading OpenSSL...")
-file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}.tar.gz")
+file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
 
-message(STATUS "Uncompressing OpenSSL...")
-execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${PROJECT_BINARY_DIR}/${openssl_FILENAME}.tar.gz"
-    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
-
+message(STATUS "Uncompressing OpenSSL: ${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
+execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${openssl_FILENAME}" WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
 message(STATUS "Importing OpenSSL...")
-include(${PROJECT_BINARY_DIR}/${openssl_FILENAME}/openssl.cmake)
-get_target_property(openssl_include_DIR crypto INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(crypto_LIB crypto IMPORTED_LOCATION)
-get_target_property(ssl_LIB ssl IMPORTED_LOCATION)
+include(${PROJECT_BINARY_DIR}/lib/cmake/OpenSSL/OpenSSLConfig.cmake)
+get_target_property(openssl_include_DIR OpenSSL::Crypto INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(crypto_LIB OpenSSL::Crypto IMPORTED_LOCATION)
+get_target_property(ssl_LIB OpenSSL::SSL IMPORTED_LOCATION)
 
 # build application's shared lib
 include_directories(
     ${CMAKE_SOURCE_DIR}
     ${jni_headers_PATH}
     ${CMAKE_SOURCE_DIR}/object-store/src)
-
-set(ANDROID_STL "gnustl_static")
-set(ANDROID_NO_UNDEFINED OFF)
-set(ANDROID_SO_UNDEFINED ON)
-
-if (ARMEABI)
-    set(ABI_CXX_FLAGS "-mthumb")
-elseif (ARMEABI_V7A)
-    set(ABI_CXX_FLAGS "-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16")
-endif()
 
 # Hack the memmove bug on Samsung device.
 if (ARMEABI OR ARMEABI_V7A)
@@ -157,19 +141,20 @@ endif()
 #     -Wno-missing-field-initializers disable in object store as well.
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
-    -Wno-missing-field-initializers  -Wno-maybe-uninitialized -Wno-uninitialized")
-set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -pthread -fvisibility=hidden -std=c++14 -fsigned-char")
+    -Wno-missing-field-initializers -Wno-unevaluated-expression -Wno-unreachable-code")
+set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections -pthread -frtti -fvisibility=hidden -fsigned-char -fno-stack-protector -std=c++14")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
-# There might be an issue with -Os of ndk gcc 4.9. It will hang the encryption related tests.
-# And this issue doesn't seem to impact the core compiling.
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
-#-ggdb doesn't play well with -flto
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -Og")
+set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -Oz")
+# -ggdb doesn't play well with -flto
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -glldb -g")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
 
-# Set link flags
+# Set Linker flags flags
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,-gc-sections")
+endif()
 if (build_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")
 endif()
@@ -215,9 +200,9 @@ add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SR
 add_dependencies(realm-jni jni_headers)
 
 if (build_SYNC)
-    target_link_libraries(realm-jni log android lib_realm_sync crypto ssl)
+    target_link_libraries(realm-jni log android lib_realm_sync OpenSSL::SSL OpenSSL::Crypto)
 else()
-    target_link_libraries(realm-jni log android lib_realm_core crypto)
+    target_link_libraries(realm-jni log android lib_realm_core OpenSSL::Crypto)
 endif()
 
 # Strip the release so files and backup the unstripped versions
