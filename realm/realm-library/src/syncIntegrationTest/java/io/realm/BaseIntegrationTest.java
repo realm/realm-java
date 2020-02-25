@@ -27,9 +27,9 @@ import java.io.IOException;
 
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
-import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.objectserver.utils.HttpUtils;
 import io.realm.rule.RunInLooperThread;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 
 
 /**

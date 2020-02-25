@@ -31,11 +31,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
-import io.realm.internal.sync.permissions.ObjectPermissionsModule;
+import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 
 import static io.realm.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
@@ -281,7 +282,7 @@ public class SessionTests {
                     try {
                         Realm.getInstance(backupRealmConfiguration);
                         fail("Expected to throw a Migration required");
-                    } catch (IllegalStateException expected) {
+                    } catch (RealmMigrationNeededException expected) {
                     }
 
                     // opening a DynamicRealm will work though

@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
-import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -41,17 +40,13 @@ import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
-import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
-import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
-import io.realm.sync.permissions.ObjectPrivileges;
-import io.realm.sync.permissions.RealmPrivileges;
 
 /**
  * Base class for all Realm instances.
@@ -345,7 +340,9 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if calling this from within a transaction or from a Looper thread.
      * @throws RealmMigrationNeededException on typed {@link Realm} if the latest version contains
      * incompatible schema changes.
+     * @deprecated this method will be removed on the next-major release.
      */
+    @Deprecated
     public boolean waitForChange() {
         checkIfValid();
         if (isInTransaction()) {
@@ -370,7 +367,9 @@ abstract class BaseRealm implements Closeable {
      * called waitForChange.
      *
      * @throws IllegalStateException if the {@link io.realm.Realm} instance has already been closed.
+     * @deprecated this method will be removed in the next-major release
      */
+    @Deprecated
     public void stopWaitForChange() {
         if (realmCache != null) {
             realmCache.invokeWithLock(new RealmCache.Callback0() {
@@ -556,43 +555,6 @@ abstract class BaseRealm implements Closeable {
      */
     public long getVersion() {
         return OsObjectStore.getSchemaVersion(sharedRealm);
-    }
-
-    /**
-     * Returns the privileges granted to the current user for this Realm.
-     *
-     * @return the privileges granted the current user for this Realm.
-     */
-    @Beta
-    @ObjectServer
-    public RealmPrivileges getPrivileges() {
-        checkIfValid();
-        return new RealmPrivileges(sharedRealm.getPrivileges());
-    }
-
-    /**
-     * Returns the privileges granted to the current user for the given object.
-     *
-     * @param object Realm object to get privileges for.
-     * @return the privileges granted the current user for the object.
-     * @throws IllegalArgumentException if the object is either null, unmanaged or not part of this Realm.
-     */
-    @Beta
-    @ObjectServer
-    public ObjectPrivileges getPrivileges(RealmModel object) {
-        checkIfValid();
-        //noinspection ConstantConditions
-        if (object == null) {
-            throw new IllegalArgumentException("Non-null 'object' required.");
-        }
-        if (!RealmObject.isManaged(object)) {
-            throw new IllegalArgumentException("Only managed objects have privileges. This is a an unmanaged object: " + object.toString());
-        }
-        if (!((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(getPath())) {
-            throw new IllegalArgumentException("Object belongs to a different Realm.");
-        }
-        UncheckedRow row = (UncheckedRow) ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm();
-        return new ObjectPrivileges(sharedRealm.getObjectPrivileges(row));
     }
 
     /**

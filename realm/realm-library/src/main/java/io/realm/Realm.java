@@ -16,10 +16,8 @@
 
 package io.realm;
 
-import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.content.Context;
-import android.os.Build;
 import android.os.SystemClock;
 import android.util.JsonReader;
 
@@ -74,10 +72,6 @@ import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
 import io.realm.sync.Subscription;
-import io.realm.sync.permissions.ClassPermissions;
-import io.realm.sync.permissions.ClassPrivileges;
-import io.realm.sync.permissions.RealmPermissions;
-import io.realm.sync.permissions.Role;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
@@ -1879,74 +1873,6 @@ public class Realm extends BaseRealm {
                 callback.onError(subscriptionName, error);
             }
         });
-    }
-
-    /**
-     * Returns all permissions associated with the current Realm. Attach a change listener
-     * using {@link RealmPermissions#addChangeListener(RealmChangeListener)} to be notified about
-     * any future changes.
-     *
-     * @return all permissions for the current Realm.
-     */
-    @Beta
-    @ObjectServer
-    public RealmPermissions getPermissions() {
-        checkIfValid();
-        return where(RealmPermissions.class).findFirst();
-    }
-
-    /**
-     * Returns all {@link Role} objects available in this Realm. Attach a change listener
-     * using {@link Role#addChangeListener(RealmChangeListener)} to be notified about
-     * any future changes.
-     *
-     * @return all roles available in the current Realm.
-     */
-    @Beta
-    @ObjectServer
-    public RealmResults<Role> getRoles() {
-        checkIfValid();
-        return where(Role.class).sort("name").findAll();
-    }
-
-    /**
-     * Returns the privileges granted the current user for the given class.
-     *
-     * @param clazz class to get privileges for.
-     * @return the privileges granted the current user for the given class.
-     */
-    @Beta
-    @ObjectServer
-    public ClassPrivileges getPrivileges(Class<? extends RealmModel> clazz) {
-        checkIfValid();
-        //noinspection ConstantConditions
-        if (clazz == null) {
-            throw new IllegalArgumentException("Non-null 'clazz' required.");
-        }
-        String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
-        return new ClassPrivileges(sharedRealm.getClassPrivileges(className));
-    }
-
-    /**
-     * Returns all permissions associated with the given class. Attach a change listener
-     * using {@link ClassPermissions#addChangeListener(RealmChangeListener)} to be notified about
-     * any future changes.
-     *
-     * @param clazz class to receive permissions for.
-     * @return the permissions for the given class or {@code null} if no permissions where found.
-     * @throws RealmException if the class is not part of this Realms schema.
-     */
-    @Beta
-    @ObjectServer
-    public ClassPermissions getPermissions(Class<? extends RealmModel> clazz) {
-        checkIfValid();
-        //noinspection ConstantConditions
-        if (clazz == null) {
-            throw new IllegalArgumentException("Non-null 'clazz' required.");
-        }
-        return where(ClassPermissions.class)
-                .equalTo("name", configuration.getSchemaMediator().getSimpleClassName(clazz))
-                .findFirst();
     }
 
     /**

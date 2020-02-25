@@ -155,6 +155,7 @@ private:
 class JniLogger {
 protected:
     JniLogger();
+    virtual ~JniLogger();
     // Used by JavaLogger.
     JniLogger(bool is_java_logger);
     // Indicate if this is a wrapper for Java RealmLogger class. See JavaLogger
