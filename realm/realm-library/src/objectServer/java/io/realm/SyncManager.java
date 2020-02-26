@@ -49,7 +49,6 @@ import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
 import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.network.NetworkStateReceiver;
-import io.realm.internal.network.OkHttpRealmObjectServer;
 import io.realm.log.RealmLog;
 import okhttp3.internal.tls.OkHostnameVerifier;
 

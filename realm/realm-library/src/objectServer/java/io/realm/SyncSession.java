@@ -44,7 +44,6 @@ import io.realm.internal.SyncObjectServerFacade;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.async.RealmAsyncTaskImpl;
-import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.network.ExponentialBackoffTask;
 import io.realm.internal.network.NetworkStateReceiver;

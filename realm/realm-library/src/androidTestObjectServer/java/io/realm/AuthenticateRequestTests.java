@@ -15,7 +15,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import io.realm.internal.network.AuthenticateRequest;
 import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.objectserver.Token;
 

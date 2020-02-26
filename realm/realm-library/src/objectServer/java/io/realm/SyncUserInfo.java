@@ -19,8 +19,6 @@ package io.realm;
 import java.util.Collections;
 import java.util.Map;
 
-import io.realm.internal.network.LookupUserIdResponse;
-
 /**
  * POJO representing information about a user that was retrieved from a user lookup call.
  * @see SyncUser#retrieveInfoForUser(String, String)

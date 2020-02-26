@@ -44,7 +44,6 @@ import java.util.UUID;
 
 import io.realm.entities.AllTypesModelModule;
 import io.realm.entities.StringOnly;
-import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;

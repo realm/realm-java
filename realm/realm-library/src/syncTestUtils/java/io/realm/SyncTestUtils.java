@@ -27,7 +27,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
