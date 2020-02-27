@@ -223,16 +223,12 @@ public class DynamicRealm extends BaseRealm {
      * Deletes all objects of the specified class from the Realm.
      *
      * @param className the class for which all objects should be removed.
-     * @throws IllegalStateException if the corresponding Realm is a partially synchronized Realm, is
-     * closed or called from an incorrect thread.
+     * @throws IllegalStateException if the Realm is closed or called from an incorrect thread.
      */
     public void delete(String className) {
         checkIfValid();
         checkIfInTransaction();
-        if (sharedRealm.isPartial()) {
-            throw new IllegalStateException(DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC);
-        }
-        schema.getTable(className).clear(sharedRealm.isPartial());
+        schema.getTable(className).clear();
     }
 
     /**

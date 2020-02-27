@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
+import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
@@ -60,7 +61,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
                 .schema(StringOnly.class)
-                .fullSynchronization()
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
 
@@ -85,7 +85,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         SyncConfiguration config2 = user.createConfiguration(Constants.USER_REALM)
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .build();
 
@@ -102,7 +101,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     public void waitForInitialRemoteData_mainThreadThrows() {
         final SyncUser user = SyncTestUtils.createTestUser(Constants.AUTH_URL);
         SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
-                .fullSynchronization()
                 .waitForInitialRemoteData()
                 .build();
 
@@ -126,7 +124,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
         final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
@@ -148,7 +145,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
                 .name("newRealm")
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .build();
@@ -248,7 +244,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
         final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .build();
         Realm realm = Realm.getInstance(configOld);
@@ -269,7 +264,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         final SyncConfiguration configNew = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .name("newRealm")
-                .fullSynchronization()
                 .waitForInitialRemoteData()
                 .readOnly()
                 .schema(StringOnly.class)
@@ -299,7 +293,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
             // schema.
             realm = Realm.getInstance(configNew);
             fail();
-        } catch (IllegalStateException ignored) {
+        } catch (RealmMigrationNeededException ignore) {
         } finally {
             if (realm != null) {
                 realm.close();
@@ -328,6 +322,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         }
     }
 
+    @Ignore("FIXME: Re-enable this once we can test againt a proper Stitch server")
     @Test
     public void defaultRealm() throws InterruptedException {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "test", true);
@@ -422,7 +417,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     private void runSyncAuthHeadersAndUrlPrefixTest() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "test", true);
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
-        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM)
+        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .urlPrefix("/foo")
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
@@ -432,11 +427,10 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
                 })
                 .build();
 
-        AtomicBoolean headersSet = new AtomicBoolean(false);
         RealmLog.setLevel(LogLevel.ALL);
         RealmLogger logger = (level, tag, throwable, message) -> {
             if (tag.equals("REALM_SYNC")
-                    && message.contains("GET /foo/%2Fdefault%2F__partial%")
+                    && message.contains("GET /foo/")
                     && message.contains("TestAuth: Realm-Access-Token version=1")
                     && message.contains("Test: test")) {
                 looperThread.testComplete();
@@ -450,34 +444,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         looperThread.closeAfterTest(realm);
     }
 
-
-    /**
-     * Tests https://github.com/realm/realm-java/issues/6235
-     * This checks that the INITIAL callback is called for query-based notifications even when
-     * the device is offline.
-     */
-    @Test
-    @RunTestInLooperThread
-    public void listenersTriggerWhenOffline() {
-        SyncUser user = SyncTestUtils.createTestUser(); // Creating a fake user will make it behave as "offline"
-        String url = "http://foo.com/offlineListeners";
-        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, url)
-                .build();
-        Realm realm = Realm.getInstance(config);
-        looperThread.closeAfterTest(realm);
-
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
-
-        looperThread.keepStrongReference(results);
-        results.addChangeListener((objects, changeSet) -> {
-            if(changeSet.getState() == OrderedCollectionChangeSet.State.INITIAL) {
-                assertTrue(results.isLoaded());
-                assertFalse(changeSet.isCompleteResult());
-                looperThread.testComplete();
-            }
-        });
-    }
-
     @Test
     @RunTestInLooperThread
     public void progressListenersWorkWhenUsingWaitForInitialRemoteData() throws InterruptedException {
@@ -487,7 +453,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
         final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
@@ -510,7 +475,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
                 .name("newRealm")
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .build();

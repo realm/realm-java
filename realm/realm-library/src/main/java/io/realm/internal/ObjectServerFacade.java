@@ -116,25 +116,6 @@ public class ObjectServerFacade {
         return false;
     }
 
-    public boolean isPartialRealm(RealmConfiguration configuration) {
-        return false;
-    }
-
-    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
-        // Do nothing
-    }
-
-    /**
-     * If the Realm is a Query-based Realm, ensure that all subscriptions are ACTIVE before
-     * proceeding. This should only be called when opening a Realm for the first time.
-     *
-     * @throws {@code DownloadingRealmInterruptedException} if the thread was interrupted while blocked waiting for
-     * this to complete.
-     */
-    public void downloadInitialSubscriptions(Realm realm) {
-        // Do nothing
-    }
-
     public void createNativeSyncSession(RealmConfiguration configuration) {
         // Do nothing
     }

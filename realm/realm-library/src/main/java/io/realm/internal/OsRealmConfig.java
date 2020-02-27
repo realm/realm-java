@@ -214,15 +214,14 @@ public class OsRealmConfig implements NativeObject {
         boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncConfigurationOptions[4]));
         String syncSslTrustCertificatePath = (String) syncConfigurationOptions[5];
         Byte sessionStopPolicy = (Byte) syncConfigurationOptions[6];
-        boolean isPartial = (Boolean.TRUE.equals(syncConfigurationOptions[7]));
-        String urlPrefix = (String)(syncConfigurationOptions[8]);
-        String customAuthorizationHeaderName = (String)(syncConfigurationOptions[9]);
-        Byte clientResyncMode = (Byte) syncConfigurationOptions[11];
+        String urlPrefix = (String)(syncConfigurationOptions[7]);
+        String customAuthorizationHeaderName = (String)(syncConfigurationOptions[8]);
+        Byte clientResyncMode = (Byte) syncConfigurationOptions[10];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]
         //noinspection unchecked
-        Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[10]);
+        Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[9]);
         String[] customHeaders = new String[customHeadersMap != null ? customHeadersMap.size() * 2 : 0];
         if (customHeadersMap != null) {
             int i = 0;
@@ -282,7 +281,6 @@ public class OsRealmConfig implements NativeObject {
                     syncRealmAuthUrl,
                     syncUserIdentifier,
                     syncRefreshToken,
-                    isPartial,
                     sessionStopPolicy,
                     urlPrefix,
                     customAuthorizationHeaderName,
@@ -380,7 +378,7 @@ public class OsRealmConfig implements NativeObject {
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
     private static native String nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl, String authUrl,
-                                                              String userId, String refreshToken, boolean isPartial,
+                                                              String userId, String refreshToken,
                                                               byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
                                                               String[] customHeaders, byte clientResetMode);
