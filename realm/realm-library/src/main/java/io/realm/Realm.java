@@ -163,9 +163,9 @@ public class Realm extends BaseRealm {
                 String tableName = Table.getTableNameForClass(mediator.getSimpleClassName(clazz));
                 if (!sharedRealm.hasTable(tableName)) {
                     sharedRealm.close();
-                    throw new IllegalStateException(String.format(Locale.US,
-                            "Cannot open the read only Realm at %s. '%s' is missing.",
-                                    configuration.getPath(), Table.getClassNameForTable(tableName)));
+                    throw new RealmMigrationNeededException(configuration.getPath(),
+                            String.format(Locale.US, "Cannot open the read only Realm. '%s' is missing.",
+                                    Table.getClassNameForTable(tableName)));
                 }
             }
         }

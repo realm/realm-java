@@ -293,7 +293,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
             // schema.
             realm = Realm.getInstance(configNew);
             fail();
-        } catch (IllegalStateException ignore) {
+        } catch (RealmMigrationNeededException ignore) {
         } finally {
             if (realm != null) {
                 realm.close();
