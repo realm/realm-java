@@ -20,7 +20,6 @@
 #include "object-store/src/sync/sync_config.hpp"
 #include "object-store/src/sync/sync_session.hpp"
 #include "object-store/src/results.hpp"
-#include "object-store/src/sync/partial_sync.hpp"
 
 #include "observable_collection_wrapper.hpp"
 #endif
@@ -514,6 +513,13 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetObjectPrivi
     return 0;
 }
 #endif
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsPartial(JNIEnv*, jclass, jlong /*shared_realm_ptr*/)
+{
+    // No throws
+    // auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    return to_jbool(false);
+}
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsFrozen(JNIEnv* env, jclass, jlong shared_realm_ptr)
 {

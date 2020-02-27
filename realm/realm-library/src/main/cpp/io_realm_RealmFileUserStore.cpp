@@ -68,12 +68,13 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmFileUserStore_nativeGetUser(JNIEnv*
 }
 
 JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeUpdateOrCreateUser(JNIEnv* env, jclass,
-                                                                                 jstring j_user_id, jstring json_token,
+                                                                                 jstring j_user_id,
+                                                                                 jstring j_refresh_json_token,
                                                                                  jstring j_auth_url)
 {
     try {
-        JStringAccessor user_json_token(env, json_token); // throws
-        SyncManager::shared().get_user(create_sync_user_identifier(env, j_user_id, j_auth_url), user_json_token);
+        JStringAccessor refresh_json_token(env, j_refresh_json_token); // throws
+        SyncManager::shared().get_user(create_sync_user_identifier(env, j_user_id, j_auth_url), refresh_json_token, refresh_json_token);
     }
     CATCH_STD()
 }

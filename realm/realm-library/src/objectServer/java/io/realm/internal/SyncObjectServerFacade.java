@@ -94,7 +94,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String rosServerUrl = syncConfig.getServerUrl().toString();
             String rosUserIdentity = user.getIdentity();
             String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
-            String rosSerializedUser = user.toJson();
+            String syncUserRefreshToken = user.getRefreshToken().toJson().toString();
+            String syncUserAccessToken = user.getAccessToken(((SyncConfiguration) config)).toJson().toString();
             byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
             String urlPrefix = syncConfig.getUrlPrefix();
             String customAuthorizationHeaderName = SyncManager.getAuthorizationHeaderName(syncConfig.getServerUrl());
@@ -103,7 +104,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     rosUserIdentity,
                     rosServerUrl,
                     syncRealmAuthUrl,
-                    rosSerializedUser,
+                    syncUserRefreshToken,
+                    syncUserAccessToken,
                     syncConfig.syncClientValidateSsl(),
                     syncConfig.getServerCertificateFilePath(),
                     sessionStopPolicy,
