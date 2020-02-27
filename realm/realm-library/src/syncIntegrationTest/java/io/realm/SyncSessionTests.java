@@ -24,8 +24,6 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.internal.OsRealmConfig;
-import io.realm.log.LogLevel;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
@@ -642,9 +640,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-    @Ignore("FIXME https://github.com/realm/realm-sync/issues/3234")
     public void waitForInitialRemoteData_throwsOnTimeout() {
-        RealmLog.setLevel(LogLevel.DEBUG);
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
