@@ -872,7 +872,7 @@ public class SyncUser {
      *
      * @return the user's refresh token. If this user has logged out or the login has expired {@code null} is returned.
      */
-    Token getRefreshToken() {
+    public Token getRefreshToken() {
         return refreshToken;
     }
 
@@ -900,7 +900,7 @@ public class SyncUser {
         return token != null && token.expiresMs() > System.currentTimeMillis();
     }
 
-    Token getAccessToken(SyncConfiguration configuration) {
+    public Token getAccessToken(SyncConfiguration configuration) {
         return realms.get(configuration);
     }
 

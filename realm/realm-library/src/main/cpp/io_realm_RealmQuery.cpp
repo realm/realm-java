@@ -18,9 +18,6 @@
 
 #include <results.hpp>
 #include <shared_realm.hpp>
-#if REALM_ENABLE_SYNC
-#include <sync/partial_sync.hpp>
-#endif
 
 #include "util.hpp"
 
