@@ -18,6 +18,7 @@ package io.realm;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -1531,6 +1532,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     // Queries nullable PrimaryKey.
+    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void equalTo_nullPrimaryKeys() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
@@ -1554,6 +1556,7 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).equalTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       (Long) null).findAll().first().getName());
     }
 
+    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void isNull_nullPrimaryKeys() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
@@ -1635,6 +1638,7 @@ public class RealmQueryTests extends QueryTests {
                         .findAll().first().getId());
     }
 
+    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void between_nullPrimaryKeysIsNotZero() {
         // Fills up a realm with one user PrimaryKey value and 9 numeric values, starting from -5.
@@ -1653,6 +1657,7 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(3, realm.where(PrimaryKeyAsBoxedLong.class).between(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1, 1).count());
     }
 
+    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void greaterThan_nullPrimaryKeysIsNotZero() {
         // Fills up a realm with one user PrimaryKey value and 9 numeric values, starting from -5.
@@ -1671,6 +1676,7 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(4, realm.where(PrimaryKeyAsBoxedLong.class).greaterThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1).count());
     }
 
+    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void greaterThanOrEqualTo_nullPrimaryKeysIsNotZero() {
         // Fills up a realm with one user PrimaryKey value and 9 numeric values, starting from -5.
@@ -1689,6 +1695,7 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(5, realm.where(PrimaryKeyAsBoxedLong.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1).count());
     }
 
+    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void lessThan_nullPrimaryKeysIsNotZero() {
         // Fills up a realm with one user PrimaryKey value and 9 numeric values, starting from -5.
@@ -1707,6 +1714,7 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(6, realm.where(PrimaryKeyAsBoxedLong.class).lessThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       1).count());
     }
 
+    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void lessThanOrEqualTo_nullPrimaryKeysIsNotZero() {
         // Fills up a realm with one user PrimaryKey value and 9 numeric values, starting from -5.

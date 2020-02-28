@@ -47,18 +47,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
-import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.ColumnIndices;
-import io.realm.internal.NativeObject;
 import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsObjectStore;
-import io.realm.internal.OsResults;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmCore;
@@ -66,12 +63,10 @@ import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
-import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
-import io.realm.sync.Subscription;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
@@ -384,11 +379,11 @@ public class Realm extends BaseRealm {
      * @return an instance of the Realm class.
      * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
-     * RealmObject classes or version has has changed so a migration is required.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file.
-     * @throws io.realm.exceptions.DownloadingRealmInterruptedException if {@link SyncConfiguration.Builder#waitForInitialRemoteData()}
      * was set and the thread opening the Realm was interrupted while the download was in progress.
      */
+//     * @throws io.realm.exceptions.DownloadingRealmInterruptedException if {@link SyncConfiguration.Builder#waitForInitialRemoteData()}
+//     * RealmObject classes or version has has changed so a migration is required.
     public static Realm getDefaultInstance() {
         RealmConfiguration configuration = getDefaultConfiguration();
         if (configuration == null) {
@@ -410,10 +405,10 @@ public class Realm extends BaseRealm {
      * classes or version has has changed so a migration is required.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file.
      * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
-     * @throws io.realm.exceptions.DownloadingRealmInterruptedException if {@link SyncConfiguration.Builder#waitForInitialRemoteData()}
-     * was set and the thread opening the Realm was interrupted while the download was in progress.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
+//     * @throws io.realm.exceptions.DownloadingRealmInterruptedException if {@link SyncConfiguration.Builder#waitForInitialRemoteData()}
+//     * was set and the thread opening the Realm was interrupted while the download was in progress.
     public static Realm getInstance(RealmConfiguration configuration) {
         //noinspection ConstantConditions
         if (configuration == null) {
@@ -1680,15 +1675,11 @@ public class Realm extends BaseRealm {
      * Deletes all objects of the specified class from the Realm.
      *
      * @param clazz the class which objects should be removed.
-     * @throws IllegalStateException if the corresponding Realm is a query-based synchronized Realm, is
-     * closed or called from an incorrect thread.
+     * @throws IllegalStateException if the Realm is closed or called from an incorrect thread.
      */
     public void delete(Class<? extends RealmModel> clazz) {
         checkIfValid();
-        if (sharedRealm.isPartial()) {
-            throw new IllegalStateException(DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC);
-        }
-        schema.getTable(clazz).clear(sharedRealm.isPartial());
+        schema.getTable(clazz).clear();
     }
 
 
@@ -1811,112 +1802,6 @@ public class Realm extends BaseRealm {
     }
 
     /**
-     * Cancel a named subscription that was created by calling {@link RealmQuery#findAllAsync(String)}.
-     * If after this, some objects are no longer part of any active subscription they will be removed
-     * locally from the device (but not on the server).
-     *
-     * The effect of unsubscribing is not immediate. The local Realm must coordinate with the Object
-     * Server before this can happen. A successful callback just indicate that the request was
-     * succesfully enqueued and any data will be removed as soon as possible. When the data is
-     * actually removed locally, a standard change notification will be triggered and from the
-     * perspective of the device it will look like the data was deleted.
-     *
-     * @param subscriptionName name of the subscription to remove
-     * @param callback callback reporting back if the intent to unsubscribe was enqueued successfully or failed.
-     * @return a {@link RealmAsyncTask} representing a cancellable task.
-     * @throws IllegalArgumentException if no {@code subscriptionName} or {@code callback} was provided.
-     * @throws IllegalStateException if called on a non-looper thread.
-     * @throws UnsupportedOperationException if the Realm is not a query-based synchronized Realm.
-     */
-    @Beta
-    public RealmAsyncTask unsubscribeAsync(String subscriptionName, Realm.UnsubscribeCallback callback) {
-        if (Util.isEmptyString(subscriptionName)) {
-            throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
-        }
-        //noinspection ConstantConditions
-        if (callback == null) {
-            throw new IllegalArgumentException("'callback' required.");
-        }
-        sharedRealm.capabilities.checkCanDeliverNotification("This method is only available from a Looper thread.");
-        if (!ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration)) {
-            throw new UnsupportedOperationException("Realm is fully synchronized Realm. This method is only available when using query-based synchronization: " + configuration.getPath());
-        }
-
-        return executeTransactionAsync(new Transaction() {
-            @Override
-            public void execute(Realm realm) {
-
-                // Need to manually run a dynamic query here.
-                // TODO Add support for DynamicRealm.executeTransactionAsync()
-                Table table = realm.sharedRealm.getTable("class___ResultSets");
-                TableQuery query = table.where()
-                        .equalTo(new long[]{table.getColumnKey("name")}, new long[]{NativeObject.NULLPTR}, subscriptionName);
-
-                OsResults result = OsResults.createFromQuery(realm.sharedRealm, query);
-                long count = result.size();
-                if (count == 0) {
-                    throw new IllegalArgumentException("No active subscription named '"+ subscriptionName +"' exists.");
-                }
-                if (count > 1) {
-                    RealmLog.warn("Multiple subscriptions named '" + subscriptionName +  "' exists. This should not be possible. They will all be deleted");
-                }
-                result.clear();
-            }
-        }, new Transaction.OnSuccess() {
-            @Override
-            public void onSuccess() {
-                callback.onSuccess(subscriptionName);
-            }
-        }, new Transaction.OnError() {
-            @Override
-            public void onError(Throwable error) {
-                callback.onError(subscriptionName, error);
-            }
-        });
-    }
-
-    /**
-     * Returns a list of all known subscriptions, regardless of their status.
-     *
-     * @return a list of all known subscriptions.
-     */
-    @Beta
-    @ObjectServer
-    public RealmResults<Subscription> getSubscriptions() {
-        return where(Subscription.class).findAll();
-    }
-
-    /**
-     * Returns a list of all subscriptions that match a given pattern. {@code *} can be used to
-     * indicate any number of unknown characters and {@code ?} represents a single unknown character.
-     *
-     * @param pattern which subscriptions to find.
-     * @return list of subscriptions that match the pattern.
-     * @throws IllegalArgumentException if an empty or {@code null} pattern is provided.
-     */
-    @Beta
-    @ObjectServer
-    public RealmResults<Subscription> getSubscriptions(String pattern) {
-        if (Util.isEmptyString(pattern)) {
-            throw new IllegalArgumentException("Non-empty 'pattern' required");
-        }
-        return where(Subscription.class).like("name", pattern).findAll();
-    }
-
-    /**
-     * Returns the first subscription that matches the given name.
-     *
-     * @param name the name of the subscription to find.
-     * @return returns the subscription that matches the name or {@code null} if no subscription matches the name.
-     */
-    @Beta
-    @ObjectServer
-    @Nullable
-    public Subscription getSubscription(String name) {
-        return where(Subscription.class).equalTo("name", name).findFirst();
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -2020,28 +1905,6 @@ public class Realm extends BaseRealm {
         interface OnError {
             void onError(Throwable error);
         }
-    }
-
-    /**
-     * Interface used when canceling query-based sync subscriptions.
-     *
-     * @see #unsubscribeAsync(String, UnsubscribeCallback)
-     */
-    public interface UnsubscribeCallback {
-        /**
-         * Callback invoked when the request to unsubscribe was succesfully enqueued.
-         *
-         * @param subscriptionName subscription that was canceled.
-         */
-        void onSuccess(String subscriptionName);
-
-        /**
-         * Callback invoked if an error happened while trying to unsubscribe.
-         *
-         * @param subscriptionName subscription on which the error occurred.
-         * @param error cause of error.
-         */
-        void onError(String subscriptionName, Throwable error);
     }
 
     /**

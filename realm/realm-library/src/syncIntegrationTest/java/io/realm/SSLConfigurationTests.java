@@ -60,7 +60,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         // 1. Copy a valid Realm to the server
         //noinspection unchecked
         final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .build();
         Realm realm = Realm.getInstance(syncConfig);
@@ -79,7 +78,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         //noinspection unchecked
         SyncConfiguration syncConfigSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
-                .fullSynchronization()
                 .name("useSsl")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
@@ -107,7 +105,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         // 1. Copy a valid Realm to the server
         //noinspection unchecked
         final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .build();
         Realm realm = Realm.getInstance(syncConfig);
@@ -126,7 +123,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         //noinspection unchecked
         SyncConfiguration syncConfigSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
-                .fullSynchronization()
                 .name("useSsl")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
@@ -246,7 +242,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         // 1. Copy a valid Realm to the server using ssl_verify_path option
         //noinspection unchecked
         final SyncConfiguration syncConfigWithCertificate = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .trustedRootCA("trusted_ca.pem")
                 .build();
@@ -266,7 +261,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         //noinspection unchecked
         SyncConfiguration syncConfigDisableSSL = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
-                .fullSynchronization()
                 .name("useSsl")
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
@@ -299,7 +293,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         // 1. Copy a valid Realm to the server using ssl_verify_path option
         //noinspection unchecked
         final SyncConfiguration syncConfig = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .build();
         Realm realm = Realm.getInstance(syncConfig);
@@ -319,7 +312,6 @@ public class SSLConfigurationTests extends StandardIntegrationTest {
         //noinspection unchecked
         SyncConfiguration syncConfigSecure = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM_SECURE)
                 .name("useSsl")
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .build();

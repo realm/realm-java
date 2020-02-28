@@ -42,7 +42,6 @@ import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
-import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 
 /**
  * A {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
@@ -59,26 +58,6 @@ import io.realm.internal.sync.permissions.ObjectPermissionsModule;
  * SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
  * }
  * </pre>
- *
- * Synchronized Realms come in two forms:
- * <ul>
- *     <li>
- *         <b>Query-based synchronization:</b>
- *         This is the default mode. The Realm will only synchronize data you have queried for.
- *         This means the Realm on the device is initially empty and will gradually fill up as
- *         you start to query for data. This is useful if the server side Realm is too large
- *         to fit on the device or contains data from multiple users. Data synchronized this way
- *         can also be removed from the device again without being deleted on the server.
- *     </li>
- *     <li>
- *         <b>Full synchronization</b>
- *         Enable this mode by setting {@link Builder#fullSynchronization()}. In this mode
- *         the entire Realm is synchronized in the background without having to query for
- *         data first. This means that data generally will be available quicker but should only
- *         be used if the server side Realm is small and doesn't contain data the device is not
- *         allowed to see.
- *     </li>
- * </ul>
  * <p>
  * Synchronized Realms only support additive migrations which can be detected and performed automatically, so
  * the following builder options are not accessible compared to a normal Realm:
@@ -112,7 +91,6 @@ public class SyncConfiguration extends RealmConfiguration {
     private final boolean waitForInitialData;
     private final long initialDataTimeoutMillis;
     private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
-    private final boolean isPartial;
     @Nullable private final String syncUrlPrefix;
     private final ClientResyncMode clientResyncMode;
 
@@ -140,7 +118,6 @@ public class SyncConfiguration extends RealmConfiguration {
                               boolean waitForInitialData,
                               long initialDataTimeoutMillis,
                               OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
-                              boolean isPartial,
                               CompactOnLaunchCallback compactOnLaunch,
                               @Nullable String syncUrlPrefix,
                               ClientResyncMode clientResyncMode) {
@@ -172,7 +149,6 @@ public class SyncConfiguration extends RealmConfiguration {
         this.waitForInitialData = waitForInitialData;
         this.initialDataTimeoutMillis = initialDataTimeoutMillis;
         this.sessionStopPolicy = sessionStopPolicy;
-        this.isPartial = isPartial;
         this.syncUrlPrefix = syncUrlPrefix;
         this.clientResyncMode = clientResyncMode;
     }
@@ -257,7 +233,6 @@ public class SyncConfiguration extends RealmConfiguration {
         if (syncClientValidateSsl != that.syncClientValidateSsl) return false;
         if (waitForInitialData != that.waitForInitialData) return false;
         if (initialDataTimeoutMillis != that.initialDataTimeoutMillis) return false;
-        if (isPartial != that.isPartial) return false;
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
@@ -284,7 +259,6 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + (waitForInitialData ? 1 : 0);
         result = 31 * result + (int) (initialDataTimeoutMillis ^ (initialDataTimeoutMillis >>> 32));
         result = 31 * result + sessionStopPolicy.hashCode();
-        result = 31 * result + (isPartial ? 1 : 0);
         result = 31 * result + (syncUrlPrefix != null ? syncUrlPrefix.hashCode() : 0);
         result = 31 * result + clientResyncMode.hashCode();
         return result;
@@ -313,8 +287,6 @@ public class SyncConfiguration extends RealmConfiguration {
         sb.append("initialDataTimeoutMillis: ").append(initialDataTimeoutMillis);
         sb.append("\n");
         sb.append("sessionStopPolicy: ").append(sessionStopPolicy);
-        sb.append("\n");
-        sb.append("isPartial: ").append(isPartial);
         sb.append("\n");
         sb.append("syncUrlPrefix: ").append(syncUrlPrefix);
         sb.append("\n");
@@ -429,15 +401,6 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns whether this configuration is for a fully synchronized Realm or not.
-     *
-     * @see Builder#fullSynchronization() for more details.
-     */
-    public boolean isFullySynchronizedRealm() {
-        return !isPartial;
-    }
-
-    /**
      * Returns the url prefix used when establishing a sync connection to the Realm Object Server.
      */
     @Nullable
@@ -488,7 +451,6 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable
         private String serverCertificateFilePath;
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
-        private boolean isPartial = true; // Partial Synchronization is enabled by default
         private CompactOnLaunchCallback compactOnLaunch;
         private String syncUrlPrefix = null;
         @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
@@ -956,19 +918,6 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Define this Realm as a fully synchronized Realm.
-         * <p>
-         * Full synchronization, unlike the default query-based synchronization, will transparently
-         * synchronize the entire Realm without needing to query for the data. This option is
-         * useful if the serverside Realm is small and all the data in the Realm should be
-         * available to the user.
-         */
-        public SyncConfiguration.Builder fullSynchronization() {
-            this.isPartial = false;
-            return this;
-        }
-
-        /**
          * Setting this will cause Realm to compact the Realm file if the Realm file has grown too large and a
          * significant amount of space can be recovered. See {@link DefaultCompactOnLaunchCallback} for details.
          */
@@ -1113,10 +1062,7 @@ public class SyncConfiguration extends RealmConfiguration {
             // Set the default Client Resync Mode based on the current type of Realm.
             // Eventually RECOVER_LOCAL_REALM should be the default for all types.
             if (clientResyncMode == null) {
-                clientResyncMode = (isPartial) ? ClientResyncMode.MANUAL : ClientResyncMode.RECOVER_LOCAL_REALM;
-            }
-            if (isPartial && clientResyncMode != ClientResyncMode.MANUAL) {
-                throw new IllegalStateException("Query-based sync only supports manual Client Resync. It was: " + clientResyncMode);
+                clientResyncMode = ClientResyncMode.RECOVER_LOCAL_REALM;
             }
 
             if (rxFactory == null && isRxJavaAvailable()) {
@@ -1178,11 +1124,6 @@ public class SyncConfiguration extends RealmConfiguration {
                 }
             }
 
-            // If query based sync is enabled, also add support for Object Level Permissions
-            if (isPartial) {
-                addModule(new ObjectPermissionsModule());
-            }
-
             return new SyncConfiguration(
                     // Realm Configuration options
                     realmFileDirectory,
@@ -1211,7 +1152,6 @@ public class SyncConfiguration extends RealmConfiguration {
                     waitForServerChanges,
                     initialDataTimeoutMillis,
                     sessionStopPolicy,
-                    isPartial,
                     compactOnLaunch,
                     syncUrlPrefix,
                     clientResyncMode

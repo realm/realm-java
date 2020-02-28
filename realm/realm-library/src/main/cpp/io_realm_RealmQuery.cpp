@@ -18,9 +18,6 @@
 
 #include <results.hpp>
 #include <shared_realm.hpp>
-#if REALM_ENABLE_SYNC
-#include <sync/partial_sync.hpp>
-#endif
 
 #include "util.hpp"
 
@@ -43,22 +40,4 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmQuery_nativeSerializeQuery(JNIEnv* 
     }
     CATCH_STD()
     return to_jstring(env, "");
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_RealmQuery_nativeSubscribe(JNIEnv* env, jclass, jlong shared_realm_ptr,
-        jstring j_name, jlong table_query_ptr, jlong descriptor_ptr, REALM_UNUSED jlong time_to_live_ms, REALM_UNUSED jboolean update)
-{
-    try {
-        auto realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
-        auto name = util::Optional<std::string>(JStringAccessor(env, j_name));
-        auto query = reinterpret_cast<Query*>(table_query_ptr);
-        auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
-        Results r(realm, *query, *descriptor);
-#if REALM_ENABLE_SYNC
-        Obj obj = partial_sync::subscribe_blocking(r, name, util::Optional<int64_t>(time_to_live_ms), update);
-        return to_jlong_or_not_found(obj.get_key());
-#endif
-    }
-    CATCH_STD()
-    return realm::npos;
 }

@@ -852,7 +852,7 @@ public class RealmMigrationTests {
         realm = Realm.getInstance(realmConfig);
         RealmObjectSchema schema = realm.getSchema().get("AnnotationTypes");
         assertTrue(schema.hasPrimaryKey());
-        assertTrue(schema.hasIndex("id"));
+        assertFalse(schema.hasIndex("id"));
         realm.close();
     }
 
@@ -886,7 +886,7 @@ public class RealmMigrationTests {
         Table table = realm.getTable(AnnotationTypes.class);
         assertEquals(3, table.getColumnCount());
         assertEquals("id", OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), "AnnotationTypes"));
-        assertTrue(table.hasSearchIndex(table.getColumnKey("id")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("id")));
         assertTrue(table.hasSearchIndex(table.getColumnKey("indexString")));
     }
 

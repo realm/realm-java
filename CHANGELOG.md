@@ -2,6 +2,7 @@
 
 ### Breaking Changes
 * Removed all references and API's releated to permissions. These are now managed through MongoDB Realm. Read more [here](XXX).
+* Removed Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partionKey()` has been added as a replacement. Read more [here](XXX).  
 
 ### Enhancements
 * Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://realm.io/docs/java/latest/#embedded-objects). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  

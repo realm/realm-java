@@ -161,9 +161,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEn
                 value = wrapper->collection().max(col_key);
                 break;
             case io_realm_internal_OsResults_AGGREGATE_FUNCTION_AVERAGE: {
-                Optional<double> value_count(wrapper->collection().average(col_key));
+                Optional<Mixed> value_count(wrapper->collection().average(col_key));
                 if (value_count) {
-                    value = Optional<Mixed>(Mixed(value_count.value()));
+                    value = value_count;
                 }
                 else {
                     value = Optional<Mixed>(0.0);

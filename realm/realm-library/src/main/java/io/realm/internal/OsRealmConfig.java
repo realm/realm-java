@@ -211,10 +211,10 @@ public class OsRealmConfig implements NativeObject {
         String syncRealmUrl = (String) syncConfigurationOptions[1];
         String syncRealmAuthUrl = (String) syncConfigurationOptions[2];
         String syncRefreshToken = (String) syncConfigurationOptions[3];
-        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncConfigurationOptions[4]));
-        String syncSslTrustCertificatePath = (String) syncConfigurationOptions[5];
-        Byte sessionStopPolicy = (Byte) syncConfigurationOptions[6];
-        boolean isPartial = (Boolean.TRUE.equals(syncConfigurationOptions[7]));
+        String syncAccessToken = (String) syncConfigurationOptions[4];
+        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncConfigurationOptions[5]));
+        String syncSslTrustCertificatePath = (String) syncConfigurationOptions[6];
+        Byte sessionStopPolicy = (Byte) syncConfigurationOptions[7];
         String urlPrefix = (String)(syncConfigurationOptions[8]);
         String customAuthorizationHeaderName = (String)(syncConfigurationOptions[9]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[11];
@@ -282,7 +282,7 @@ public class OsRealmConfig implements NativeObject {
                     syncRealmAuthUrl,
                     syncUserIdentifier,
                     syncRefreshToken,
-                    isPartial,
+                    syncAccessToken,
                     sessionStopPolicy,
                     urlPrefix,
                     customAuthorizationHeaderName,
@@ -380,7 +380,7 @@ public class OsRealmConfig implements NativeObject {
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
     private static native String nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl, String authUrl,
-                                                              String userId, String refreshToken, boolean isPartial,
+                                                              String userId, String refreshToken, String accessToken,
                                                               byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
                                                               String[] customHeaders, byte clientResetMode);

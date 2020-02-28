@@ -23,24 +23,18 @@ import android.net.ConnectivityManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
-import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectstore.OsAsyncOpenTask;
-import io.realm.sync.Subscription;
-import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -100,7 +94,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String rosServerUrl = syncConfig.getServerUrl().toString();
             String rosUserIdentity = user.getIdentity();
             String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
-            String rosSerializedUser = user.toJson();
+            String syncUserRefreshToken = user.getRefreshToken().toJson().toString();
+            String syncUserAccessToken = user.getAccessToken(((SyncConfiguration) config)).toJson().toString();
             byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
             String urlPrefix = syncConfig.getUrlPrefix();
             String customAuthorizationHeaderName = SyncManager.getAuthorizationHeaderName(syncConfig.getServerUrl());
@@ -109,18 +104,18 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     rosUserIdentity,
                     rosServerUrl,
                     syncRealmAuthUrl,
-                    rosSerializedUser,
+                    syncUserRefreshToken,
+                    syncUserAccessToken,
                     syncConfig.syncClientValidateSsl(),
                     syncConfig.getServerCertificateFilePath(),
                     sessionStopPolicy,
-                    !syncConfig.isFullySynchronizedRealm(),
                     urlPrefix,
                     customAuthorizationHeaderName,
                     customHeaders,
                     syncConfig.getClientResyncMode().getNativeValue()
             };
         } else {
-            return new Object[12];
+            return new Object[11];
         }
     }
 
@@ -188,11 +183,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                 if (new AndroidCapabilities().isMainThread()) {
                     throw new IllegalStateException("waitForInitialRemoteData() cannot be used synchronously on the main thread. Use Realm.getInstanceAsync() instead.");
                 }
-                if (syncConfig.isFullySynchronizedRealm()) {
-                    downloadInitialFullRealm(syncConfig);
-                } else {
-                    downloadInitialQueryBasedRealm(syncConfig);
-                }
+                downloadInitialFullRealm(syncConfig);
             }
         }
     }
@@ -206,89 +197,9 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         }
     }
 
-    private void downloadInitialQueryBasedRealm(SyncConfiguration syncConfig) {
-        if (syncConfig.shouldWaitForInitialRemoteData()) {
-            SyncSession session = SyncManager.getSession(syncConfig);
-            try {
-                long timeoutMillis = syncConfig.getInitialRemoteDataTimeout(TimeUnit.MILLISECONDS);
-                if (!syncConfig.isFullySynchronizedRealm()) {
-                    // For Query-based Realms we want to upload all our local changes
-                    // first since those might include subscriptions the server needs to process.
-                    // This means that once `downloadAllServerChanges` completes, all initial
-                    // subscriptions will also have been downloaded.
-                    //
-                    // Note that we are reusing the same timeout for uploading and downloading.
-                    // This means that in the worst case you end up with 2x the timeout for
-                    // Query-based Realms. This is probably an acceptable trade-of as trying
-                    // to expose this would not only complicate the API surface quite a lot,
-                    // but in most (almost all?) cases the amount of data to upload will be trivial.
-                    if (!session.uploadAllLocalChanges(timeoutMillis, TimeUnit.MILLISECONDS)) {
-                        throw new DownloadingRealmInterruptedException(syncConfig, "Failed to first upload local changes in " + timeoutMillis + " milliseconds");
-                    };
-                }
-                if (!session.downloadAllServerChanges(timeoutMillis, TimeUnit.MILLISECONDS)) {
-                    throw new DownloadingRealmInterruptedException(syncConfig, "Failed to download remote changes in " + timeoutMillis + " milliseconds");
-                }
-            } catch (InterruptedException e) {
-                throw new DownloadingRealmInterruptedException(syncConfig, e);
-            }
-        }
-    }
-
     @Override
     public boolean wasDownloadInterrupted(Throwable throwable) {
         return (throwable instanceof DownloadingRealmInterruptedException);
-    }
-
-    @Override
-    public boolean isPartialRealm(RealmConfiguration configuration) {
-        if (configuration instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            return !syncConfig.isFullySynchronizedRealm();
-        }
-        
-        return false;
-    }
-
-    @Override
-    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
-        builder.addModule(new ObjectPermissionsModule());
-    }
-
-    @Override
-    public void downloadInitialSubscriptions(Realm realm) {
-        if (isPartialRealm(realm.getConfiguration())) {
-            SyncConfiguration syncConfig = (SyncConfiguration) realm.getConfiguration();
-            if (syncConfig.shouldWaitForInitialRemoteData()) {
-                RealmResults<Subscription> pendingSubscriptions = realm.where(Subscription.class)
-                        .equalTo("status", Subscription.State.PENDING.getValue())
-                        .findAll();
-                SyncSession session = SyncManager.getSession(syncConfig);
-
-                // Continue once all subscriptions are either ACTIVE or ERROR'ed.
-                while (!pendingSubscriptions.isEmpty()) {
-                    try {
-                        session.uploadAllLocalChanges(); // Uploads subscriptions (if any)
-                        session.downloadAllServerChanges(); // Download subscriptions (if any)
-                    } catch (InterruptedException e) {
-                        throw new DownloadingRealmInterruptedException(syncConfig, e);
-                    }
-                    realm.refresh();
-                }
-
-                // If some of the subscriptions failed to become ACTIVE, report them and cancel opening
-                // the Realm. Note, this should only happen if the client is contacting an older
-                // version of the server which are lacking query support for features available
-                // in the client SDK.
-                RealmResults<Subscription> failedSubscriptions = realm.where(Subscription.class)
-                        .equalTo("status", Subscription.State.ERROR.getValue())
-                        .findAll();
-                if (!failedSubscriptions.isEmpty()) {
-                    String errorMessage = "Some initial subscriptions encountered errors:" + Arrays.toString(failedSubscriptions.toArray());
-                    throw new DownloadingRealmInterruptedException(syncConfig, errorMessage);
-                }
-            }
-        }
     }
 
     @Override
