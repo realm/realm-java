@@ -698,9 +698,9 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     }
 
     // The field has the @PrimaryKey annotation. It is only valid for
-    // String, short, int, long and must only be present one time.
-    // From Core 6 primary keys are not indexed pr default anymore as
-    // this is no longer provides a performance benefit.
+    // String, short, int and long and must only be present one time.
+    // From Core 6 String primary keys no longer needs to be indexed, and from Core 10
+    // none of the primary key types do.
     private fun categorizePrimaryKeyField(fieldElement: RealmFieldElement): Boolean {
         if (primaryKey != null) {
             Utils.error(String.format(Locale.US,
