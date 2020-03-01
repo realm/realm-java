@@ -31,7 +31,7 @@ try {
         def instrumentationTestTarget = "connectedAndroidTest"
         if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
             abiFilter = "-PbuildTargetABIs=armeabi-v7a"
-            instrumentationTestTarget = "connectedBaseDebugAndroidTest" // Run in debug more for better error reporting
+            instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug more for better error reporting
         }
 
         def buildEnv
