@@ -28,10 +28,14 @@ public class RealmAppUser {
         SERVER("server"),
         UNKNOWN("unknown");
 
-        private String key;
+        private final String key;
 
         UserType(String key) {
             this.key = key;
+        }
+
+        public String getKey() {
+            return key;
         }
     }
 

@@ -143,24 +143,24 @@ public class SyncTestUtils {
         }
     }
 
-    public static AuthenticateResponse createLoginResponse(long expires) {
-        return createLoginResponse(USER_TOKEN, "JohnDoe", expires, false);
-    }
-
-    public static AuthenticateResponse createLoginResponse(String userTokenValue, String userIdentity, long expires, boolean isAdmin) {
-        try {
-            Token userToken = new Token(userTokenValue, userIdentity, null, expires, null, isAdmin);
-            JSONObject response = new JSONObject();
-            response.put("refresh_token", userToken.toJson());
-            return AuthenticateResponse.from(response.toString());
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static AuthenticateResponse createErrorResponse(ErrorCode code) {
-        return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
-    }
+//    public static AuthenticateResponse createLoginResponse(long expires) {
+//        return createLoginResponse(USER_TOKEN, "JohnDoe", expires, false);
+//    }
+//
+//    public static AuthenticateResponse createLoginResponse(String userTokenValue, String userIdentity, long expires, boolean isAdmin) {
+//        try {
+//            Token userToken = new Token(userTokenValue, userIdentity, null, expires, null, isAdmin);
+//            JSONObject response = new JSONObject();
+//            response.put("refresh_token", userToken.toJson());
+//            return AuthenticateResponse.from(response.toString());
+//        } catch (JSONException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+//
+//    public static AuthenticateResponse createErrorResponse(ErrorCode code) {
+//        return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
+//    }
 
     public static Token getRefreshToken(SyncUser user) {
         try {

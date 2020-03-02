@@ -19,6 +19,7 @@ import android.content.Context;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -29,7 +30,7 @@ import io.realm.log.RealmLog;
 import io.realm.mongodb.RealmMongoDBService;
 
 /**
- * TODO
+ * FIXME
  */
 public class RealmApp {
 
@@ -40,7 +41,6 @@ public class RealmApp {
 
     private static RealmAppConfiguration defaultConfiguration;
     private static volatile RealmApp defaultApp;
-
     // Default session error handler handler that just output errors to LogCat
     private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
         @Override
@@ -95,9 +95,21 @@ public class RealmApp {
     }
 
     private RealmApp(RealmAppConfiguration config) {
-        // Construct realmApp
+        long nativePtr = nativeCreate(config.getAppId(),
+                config.getBaseUrl(),
+                config.getAppName(),
+                config.getAppVersion(),
+                config.getRequestTimeoutMs());
     }
 
+//    struct Config {
+//        std::string app_id;
+//        GenericNetworkTransport::NetworkTransportFactory transport_generator;
+//        realm::util::Optional<std::string> base_url;
+//        realm::util::Optional<std::string> local_app_name;
+//        realm::util::Optional<std::string> local_app_version;
+//        realm::util::Optional<uint64_t> default_request_timeout_ms;
+//    };
 
     /**
      * Returns currently logged in user
@@ -111,7 +123,7 @@ public class RealmApp {
      * Returns all currently logged in users
      * @return
      */
-    public static List<SyncUser> allUsers() {
+    public static Map<String, RealmAppUser> allUsers() {
         return null;
     }
 
@@ -124,12 +136,20 @@ public class RealmApp {
 
     }
 
-    public static SyncUser login(SyncCredentials credentials) {
+    public static RealmAppUser login(RealmAppCredentials credentials) {
         return null;
     }
-    public static RealmAsyncTask loginAsync(SyncCredentials credentials, Callback<RealmAppUser> callback) {
+    public static RealmAsyncTask loginAsync(RealmAppCredentials credentials, Callback<RealmAppUser> callback) {
         return null;
     }
+
+    public static void logout(RealmAppUser user) {
+
+    }
+    public static RealmAsyncTask logoutAsync(RealmAppUser user, Callback<Void> callback) {
+        return null;
+    }
+
     public static RealmAppUser registerWithEmail(String email, String password) {
         return null;
     }
@@ -180,7 +200,7 @@ public class RealmApp {
         if (listener == null) {
             throw new IllegalArgumentException("Non-null 'listener' required.");
         }
-        authListeners.add(listener);
+        defaultApp.authListeners.add(listener);
     }
 
 
@@ -194,7 +214,7 @@ public class RealmApp {
         if (listener == null) {
             return;
         }
-        authListeners.remove(listener);
+        defaultApp.authListeners.remove(listener);
     }
 
     // Services entry point
@@ -210,9 +230,7 @@ public class RealmApp {
         return null;
     }
 
-
-
-
+    private static native long nativeCreate(String appId, String baseUrl, String appName, String appVersion, long requestTimeoutMs);
 
 
     // Private API's for now.

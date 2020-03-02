@@ -70,6 +70,7 @@ capitalizeFirstLetter(buildTypeCap "${CMAKE_BUILD_TYPE}")
 # WARNING: The classes_PATH is not part the public API offered by the Android Gradle Plugin
 # so it might change without warning when upgrading the plugin.
 set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/javac/${REALM_FLAVOR}${buildTypeCap}/compile${realmFlavorCap}${buildTypeCap}JavaWithJavac/classes/)
+
 set(classes_LIST
     io.realm.RealmQuery
     io.realm.internal.Table io.realm.internal.CheckedRow

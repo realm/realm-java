@@ -25,14 +25,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
+import io.realm.RealmApp;
+import io.realm.RealmAppCredentials;
+import io.realm.RealmAppUser;
 import io.realm.RealmConfiguration;
-import io.realm.SyncCredentials;
-import io.realm.SyncUser;
 import io.realm.TestHelper;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.log.RealmLog;
-
-import static org.junit.Assert.fail;
 
 
 // Helper class to retrieve users with same IDs even in multi-processes.
@@ -59,43 +57,31 @@ public class UserFactory {
         this.userName = userName;
     }
 
-    public SyncUser loginWithDefaultUser(String authUrl) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, false);
-        return SyncUser.logIn(credentials, authUrl);
+    public RealmAppUser loginWithDefaultUser() {
+        RealmAppCredentials credentials = RealmAppCredentials.usernamePassword(userName, PASSWORD, false);
+        return RealmApp.login(credentials);
     }
 
-    /**
-     * Create a unique user, using the standard authentification URL used by the test server.
-     */
-    public static SyncUser createUniqueUser() {
-        return createUniqueUser(Constants.AUTH_URL);
-    }
-
-    public static SyncUser createUser(String username) {
-        return createUser(username, Constants.AUTH_URL);
-    }
-
-    public static SyncUser createUniqueUser(String authUrl) {
+    public static RealmAppUser createUniqueUser() {
         String uniqueName = UUID.randomUUID().toString();
         return createUser(uniqueName);
     }
 
-    private static SyncUser createUser(String username, String authUrl) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(username, PASSWORD, true);
-        return SyncUser.logIn(credentials, authUrl);
+    private static RealmAppUser createUser(String username) {
+        RealmAppCredentials credentials = RealmAppCredentials.usernamePassword(username, PASSWORD, true);
+        return RealmApp.login(credentials);
     }
 
-
-    public SyncUser createDefaultUser(String authUrl) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, true);
-        return SyncUser.logIn(credentials, authUrl);
+    public RealmAppUser createDefaultUser() {
+        RealmAppCredentials credentials = RealmAppCredentials.usernamePassword(userName, PASSWORD, true);
+        return RealmApp.login(credentials);
     }
 
-    public static SyncUser createAdminUser(String authUrl) {
+    public static RealmAppUser createAdminUser() {
         // `admin` required as user identifier to be granted admin rights.
         // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
-        SyncCredentials credentials = SyncCredentials.usernamePassword("realm-admin", "", false);
-        return SyncUser.logIn(credentials, authUrl);
+        RealmAppCredentials credentials = RealmAppCredentials.usernamePassword("realm-admin", "", false);
+        return RealmApp.login(credentials);
     }
 
     // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
@@ -150,9 +136,9 @@ public class UserFactory {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                Map<String, SyncUser> users = SyncUser.all();
-                for (SyncUser user : users.values()) {
-                    user.logOut();
+                Map<String, RealmAppUser> users = RealmApp.allUsers();
+                for (RealmAppUser user : users.values()) {
+                    RealmApp.logout(user);
                 }
                 TestHelper.waitForNetworkThreadExecutorToFinish();
                 allUsersLoggedOut.countDown();

@@ -3,13 +3,11 @@ package io.realm.internal.network;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
-import io.realm.internal.Util;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import okhttp3.Call;
@@ -19,7 +17,6 @@ import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 
@@ -92,7 +89,7 @@ public class OkHttpNetworkTransport extends JvmNetworkTransport {
     public Response sendRequest(String method, String url, int timeoutMs, Map<String, String> headers, String body) {
         okhttp3.Response response = null;
         try {
-            Request.Builder builder = new Request.Builder().url(url)
+            Request.Builder builder = new Request.Builder().url(url);
 
             for (Map.Entry<String, String> entry : headers.entrySet()) {
                 builder.addHeader(entry.getKey(), entry.getValue());
