@@ -126,7 +126,7 @@ class RealmTransformer(val project: Project) : Transform() {
      */
     private fun sendAnalytics(inputs: Collection<TransformInput>, outputModelClasses: Set<CtClass>) {
         try {
-            val disableAnalytics: Boolean = "true".equals(System.getenv()["REALM_DISABLE_ANALYTICS"], ignoreCase = true)
+            val disableAnalytics: Boolean = project.gradle.startParameter.isOffline || "true".equals(System.getenv()["REALM_DISABLE_ANALYTICS"], ignoreCase = true)
             if (inputs.isEmpty() || disableAnalytics) {
                 // Don't send analytics for incremental builds or if they have been explicitly disabled.
                 return
@@ -153,12 +153,9 @@ class RealmTransformer(val project: Project) : Transform() {
             val packages: Set<String> = outputModelClasses.map { it.packageName }.toSet()
             val targetSdk: String? = project.getTargetSdk()
             val minSdk: String?  = project.getMinSdk()
-
-            if (!disableAnalytics) {
-                val sync: Boolean = Utils.isSyncEnabled(project)
-                val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk)
-                analytics.execute()
-            }
+            val sync: Boolean = Utils.isSyncEnabled(project)
+            val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk)
+            analytics.execute()
         } catch (e: Exception) {
             // Analytics failing for any reason should not crash the build
             logger.debug("Could not send analytics: $e")

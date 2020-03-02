@@ -852,7 +852,7 @@ public class RealmMigrationTests {
         realm = Realm.getInstance(realmConfig);
         RealmObjectSchema schema = realm.getSchema().get("AnnotationTypes");
         assertTrue(schema.hasPrimaryKey());
-        assertTrue(schema.hasIndex("id"));
+        assertFalse(schema.hasIndex("id"));
         realm.close();
     }
 
@@ -886,7 +886,7 @@ public class RealmMigrationTests {
         Table table = realm.getTable(AnnotationTypes.class);
         assertEquals(3, table.getColumnCount());
         assertEquals("id", OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), "AnnotationTypes"));
-        assertTrue(table.hasSearchIndex(table.getColumnKey("id")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("id")));
         assertTrue(table.hasSearchIndex(table.getColumnKey("indexString")));
     }
 
@@ -1444,7 +1444,7 @@ public class RealmMigrationTests {
                 .schema(MigrationCore6PKStringIndexedByDefault.class)
                 .build());
         assertFalse(realm.isEmpty());
-        assertFalse(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
+        assertTrue(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
         MigrationCore6PKStringIndexedByDefault first = realm.where(MigrationCore6PKStringIndexedByDefault.class).findFirst();
         assertNotNull(first);
         assertEquals("Foo", first.name);

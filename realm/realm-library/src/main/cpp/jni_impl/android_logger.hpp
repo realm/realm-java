@@ -24,7 +24,7 @@ namespace realm {
 namespace jni_impl {
 
 // Default logger implementation for Android.
-class AndroidLogger : public realm::jni_util::JniLogger {
+class AndroidLogger final: public realm::jni_util::JniLogger {
 public:
     static std::shared_ptr<AndroidLogger> shared();
 

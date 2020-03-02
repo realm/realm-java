@@ -219,9 +219,6 @@ public class SyncUser {
      * Opening a synchronized Realm requires a {@link SyncConfiguration}. This method creates a
      * {@link SyncConfiguration.Builder} that can be used to create it by calling {@link SyncConfiguration.Builder#build()}.
      * <p>
-     * The default synchronization mode for this Realm is <a href="https://docs.realm.io/platform/using-synced-realms/syncing-data">query-based synchronizaton</a>,
-     * but see the {@link SyncConfiguration.Builder} class for more details on how to configure a Realm.
-     * <p>
      * A synchronized Realm is identified by an unique URI. In the URI, {@code /~/} can be used as a placeholder for
      * a user ID in case the Realm should only be available to one user e.g., {@code "realm://objectserver.realm.io/~/default"}.
      * <p>
@@ -252,7 +249,7 @@ public class SyncUser {
 
     /**
      * Returns the default configuration for this user. The default configuration points to the
-     * default query-based Realm on the server the user authenticated against.
+     * default Realm on the server the user authenticated against.
      *
      * @return the default configuration for this user.
      * @throws IllegalStateException if the user isn't valid. See {@link #isValid()}.
@@ -870,7 +867,7 @@ public class SyncUser {
      *
      * @return the user's refresh token. If this user has logged out or the login has expired {@code null} is returned.
      */
-    Token getRefreshToken() {
+    public Token getRefreshToken() {
         return refreshToken;
     }
 
@@ -898,7 +895,7 @@ public class SyncUser {
         return token != null && token.expiresMs() > System.currentTimeMillis();
     }
 
-    Token getAccessToken(SyncConfiguration configuration) {
+    public Token getAccessToken(SyncConfiguration configuration) {
         return realms.get(configuration);
     }
 

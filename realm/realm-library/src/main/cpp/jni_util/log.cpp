@@ -62,6 +62,10 @@ JniLogger::JniLogger()
 {
 }
 
+JniLogger::~JniLogger()
+{
+}
+
 JniLogger::JniLogger(bool is_java_logger)
     : m_is_java_logger(is_java_logger)
 {

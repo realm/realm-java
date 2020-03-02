@@ -18,6 +18,7 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,16 +42,17 @@ import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
+import io.realm.TestSyncConfigurationFactory;
 import io.realm.entities.AllTypes;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+@Ignore("FIXME: Most of these are currently broken. See https://jira.mongodb.org/browse/RSYNC-101")
 @RunWith(AndroidJUnit4.class)
 public class ProgressListenerTests extends StandardIntegrationTest {
 
@@ -61,9 +63,7 @@ public class ProgressListenerTests extends StandardIntegrationTest {
     @Nonnull
     private SyncConfiguration createSyncConfig() {
         SyncUser user = UserFactory.createAdminUser(Constants.AUTH_URL);
-        return configFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .fullSynchronization()
-                .build();
+        return configFactory.createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL).build();
     }
 
     private void writeSampleData(Realm realm) {
@@ -137,13 +137,11 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         final CountDownLatch allChangesDownloaded = new CountDownLatch(1);
         SyncUser userWithData = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration userWithDataConfig = configFactory.createSyncConfigurationBuilder(userWithData, Constants.USER_REALM)
-                .fullSynchronization()
                 .build();
         URI serverUrl = createRemoteData(userWithDataConfig);
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
 
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString())
-                .fullSynchronization()
                 .build();
         Realm realm = Realm.getInstance(config);
         SyncSession session = SyncManager.getSession(config);
@@ -169,7 +167,6 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         final SyncUser userWithData = UserFactory.createUniqueUser(Constants.AUTH_URL);
         final SyncConfiguration userWithDataConfig = configFactory.createSyncConfigurationBuilder(userWithData, Constants.USER_REALM)
                 .name("remote")
-                .fullSynchronization()
                 .build();
 
         URI serverUrl = createRemoteData(userWithDataConfig);
@@ -188,7 +185,6 @@ public class ProgressListenerTests extends StandardIntegrationTest {
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         final SyncConfiguration adminConfig = configFactory.createSyncConfigurationBuilder(adminUser, serverUrl.toString())
                 .name("local")
-                .fullSynchronization()
                 .build();
         Realm adminRealm = Realm.getInstance(adminConfig);
         SyncSession session = SyncManager.getSession(adminConfig);

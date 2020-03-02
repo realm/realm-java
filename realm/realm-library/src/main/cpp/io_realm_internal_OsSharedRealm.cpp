@@ -20,7 +20,6 @@
 #include "object-store/src/sync/sync_config.hpp"
 #include "object-store/src/sync/sync_session.hpp"
 #include "object-store/src/results.hpp"
-#include "object-store/src/sync/partial_sync.hpp"
 
 #include "observable_collection_wrapper.hpp"
 #endif
@@ -297,12 +296,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
         table =
             sync::create_table_with_primary_key(static_cast<Transaction&>(group), table_name, pkType, field_name, is_nullable);
 #else
-        //__CORE6__ work around until we decide if add_table_with_primary_key should throw if called with the same table name
-        if (!group.has_table(table_name)) {
-            table = group.add_table_with_primary_key(table_name, pkType, field_name, is_nullable);
-        } else {
-            throw TableNameInUse();
-        }
+        table = group.add_table_with_primary_key(table_name, pkType, field_name,
+                                                         is_nullable);
 #endif
         return reinterpret_cast<jlong>(new TableRef(table));
     }
@@ -519,11 +514,11 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetObjectPrivi
 }
 #endif
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsPartial(JNIEnv*, jclass, jlong shared_realm_ptr)
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsPartial(JNIEnv*, jclass, jlong /*shared_realm_ptr*/)
 {
     // No throws
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    return to_jbool(shared_realm->is_partial());
+    // auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    return to_jbool(false);
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsFrozen(JNIEnv* env, jclass, jlong shared_realm_ptr)
@@ -540,7 +535,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeFreeze(JNIEnv
 {
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        return reinterpret_cast<jlong>(new SharedRealm(std::move(shared_realm->freeze())));
+        return reinterpret_cast<jlong>(new SharedRealm(shared_realm->freeze()));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.internal.Table;
@@ -927,20 +928,11 @@ public class RealmObjectSchemaTests {
             ((DynamicRealm)realm).createObject(schema.getClassName(), "1");
             ((DynamicRealm)realm).createObject(schema.getClassName(), "2");
             assertTrue(schema.hasPrimaryKey());
-            if (fieldType.getType().isAssignableFrom(String.class)) {
-                assertFalse(schema.hasIndex(fieldName));
-            } else {
-                assertTrue(schema.hasIndex(fieldName));
-            }
-
+            assertFalse(schema.hasIndex(fieldName));
 
             schema.setRequired(fieldName, isRequired);
             assertTrue(schema.hasPrimaryKey());
-            if (fieldType.getType().isAssignableFrom(String.class)) {
-                assertFalse(schema.hasIndex(fieldName));
-            } else {
-                assertTrue(schema.hasIndex(fieldName));
-            }
+            assertFalse(schema.hasIndex(fieldName));
 
             RealmResults<DynamicRealmObject> results = ((DynamicRealm)realm).where(className).sort(fieldName).findAll();
             assertEquals(2, results.size());
@@ -1027,11 +1019,7 @@ public class RealmObjectSchemaTests {
             schema.addPrimaryKey(fieldName);
             assertTrue(schema.hasPrimaryKey());
             assertTrue(schema.isPrimaryKey(fieldName));
-            if (fieldType.getType().isAssignableFrom(String.class)) {
-                assertFalse(schema.hasIndex(fieldName));
-            } else {
-                assertTrue(schema.hasIndex(fieldName));
-            }
+            assertFalse(schema.hasIndex(fieldName));
             schema.removePrimaryKey();
             assertFalse(schema.hasPrimaryKey());
             assertFalse(schema.isPrimaryKey(fieldName));
@@ -1232,8 +1220,7 @@ public class RealmObjectSchemaTests {
                 obj.setInt("age", obj.getInt("age") + 1);
             }
         });
-        assertEquals(5, ((DynamicRealm)realm).where("Dog").sum("age").intValue());
-    }
+        assertEquals(5, ((DynamicRealm)realm).where("Dog").sum("age").intValue());    }
 
     @Test
     public void transformObjectReferences() {
@@ -1254,6 +1241,34 @@ public class RealmObjectSchemaTests {
         });
         //noinspection ConstantConditions
         assertEquals("John", ((DynamicRealm)realm).where("Dog").findFirst().getObject("owner").getString("name"));
+    }
+
+    @Test
+    public void transform_deleteObjects() {
+        if (type == ObjectSchemaType.IMMUTABLE) {
+            return;
+        }
+
+        RealmObjectSchema classSchema = realm.getSchema().get("CyclicType");
+
+        Runnable transform = () -> classSchema.transform(obj -> {
+            if (obj.getInt(CyclicType.FIELD_ID) % 2 == 0) {
+                obj.getObject(CyclicType.FIELD_OBJECT).deleteFromRealm();
+                obj.deleteFromRealm();
+            }
+        });
+
+        String className = classSchema.getClassName();
+        for (int i = 0; i < 10; i++) {
+            DynamicRealmObject parentObj = ((DynamicRealm)realm).createObject(className);
+            DynamicRealmObject childObj = ((DynamicRealm)realm).createObject(className);
+            parentObj.setLong(CyclicType.FIELD_ID, i);
+            parentObj.setObject(CyclicType.FIELD_OBJECT, childObj);
+            childObj.setLong(CyclicType.FIELD_ID, i + 100);
+        }
+        assertEquals(20, ((DynamicRealm) realm).where((className)).count());
+        transform.run();
+        assertEquals(10, ((DynamicRealm) realm).where((className)).count());
     }
 
     @Test

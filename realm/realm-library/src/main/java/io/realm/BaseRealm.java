@@ -340,7 +340,9 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if calling this from within a transaction or from a Looper thread.
      * @throws RealmMigrationNeededException on typed {@link Realm} if the latest version contains
      * incompatible schema changes.
+     * @deprecated this method will be removed on the next-major release.
      */
+    @Deprecated
     public boolean waitForChange() {
         checkIfValid();
         if (isInTransaction()) {
@@ -365,7 +367,9 @@ abstract class BaseRealm implements Closeable {
      * called waitForChange.
      *
      * @throws IllegalStateException if the {@link io.realm.Realm} instance has already been closed.
+     * @deprecated this method will be removed in the next-major release
      */
+    @Deprecated
     public void stopWaitForChange() {
         if (realmCache != null) {
             realmCache.invokeWithLock(new RealmCache.Callback0() {
@@ -492,17 +496,6 @@ abstract class BaseRealm implements Closeable {
     protected void checkIfInTransaction() {
         if (!sharedRealm.isInTransaction()) {
             throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
-        }
-    }
-
-    protected void checkIfPartialRealm() {
-        boolean isPartialRealm = false;
-        if (configuration.isSyncConfiguration()) {
-            isPartialRealm = ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration);
-        }
-
-        if (!isPartialRealm) {
-            throw new IllegalStateException("This method is only available on partially synchronized Realms.");
         }
     }
 
@@ -664,20 +657,13 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Deletes all objects from this Realm.
-     * <p>
-     * If the Realm is a partially synchronized Realm, all subscriptions will be cleared as well.
      *
-     * @throws IllegalStateException if the corresponding Realm is a partially synchronized Realm, is
-     * closed or called from an incorrect thread.
+     * @throws IllegalStateException if the Realm is closed or called from an incorrect thread.
      */
     public void deleteAll() {
         checkIfValid();
-        if (sharedRealm.isPartial()) {
-            throw new IllegalStateException(DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC);
-        }
-        boolean isPartialRealm = sharedRealm.isPartial();
         for (RealmObjectSchema objectSchema : getSchema().getAll()) {
-            getSchema().getTable(objectSchema.getClassName()).clear(isPartialRealm);
+            getSchema().getTable(objectSchema.getClassName()).clear();
         }
     }
 
