@@ -122,9 +122,10 @@ get_target_property(ssl_LIB OpenSSL::SSL IMPORTED_LOCATION)
 
 # build application's shared lib
 include_directories(
-    ${CMAKE_SOURCE_DIR}
-    ${jni_headers_PATH}
-    ${CMAKE_SOURCE_DIR}/object-store/src)
+        ${CMAKE_SOURCE_DIR}
+        ${jni_headers_PATH}
+        ${CMAKE_SOURCE_DIR}/object-store/src
+        ${CMAKE_SOURCE_DIR}/object-store/external/json)
 
 # Hack the memmove bug on Samsung device.
 if (ARMEABI OR ARMEABI_V7A)
