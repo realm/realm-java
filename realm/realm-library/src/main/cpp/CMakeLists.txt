@@ -88,14 +88,14 @@ set(classes_LIST
 set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
-        io.realm.ClientResetRequiredError io.realm.RealmFileUserStore
+        io.realm.RealmApp io.realm.ClientResetRequiredError io.realm.RealmFileUserStore
         io.realm.SyncManager io.realm.SyncSession io.realm.SyncUser
         io.realm.internal.objectstore.OsAsyncOpenTask
     )
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
-    CLASSPATH ${classes_PATH}
+    CLASSPATH ${classes_PATH} $ENV{ANDROID_HOME}/platforms/android-29/android.jar
     OUTPUT_DIR ${jni_headers_PATH}
     DEPENDS ${classes_PATH}
 )
