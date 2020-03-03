@@ -15,17 +15,23 @@
  */
 package io.realm;
 
-import android.content.Context;
-
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.internal.RealmNotifier;
+import io.realm.internal.android.AndroidCapabilities;
+import io.realm.internal.android.AndroidRealmNotifier;
+import io.realm.internal.async.RealmAsyncTaskImpl;
+import io.realm.internal.network.OkHttpNetworkTransport;
+import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.RealmMongoDBService;
 
@@ -39,8 +45,6 @@ public class RealmApp {
     // we might want to lift in the future. So any implementation details so ideally be made
     // with that in mind, i.e. keep static state to minimum.
 
-    private static RealmAppConfiguration defaultConfiguration;
-    private static volatile RealmApp defaultApp;
     // Default session error handler handler that just output errors to LogCat
     private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
         @Override
@@ -76,40 +80,27 @@ public class RealmApp {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(100));
 
-
+    private OsJavaNetworkTransport networkTransport;
+    private final long nativePtr;
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
 
+    public RealmApp(String appId) {
+        this(new RealmAppConfiguration.Builder(appId).build());
+    }
+
     /**
-     * Initializes the default RealmApp
-     * @param context
-     * @param appId
+     * FIXME
+     * @param config
      */
-    public static void init(Context context, String appId) {
-        init(context, new RealmAppConfiguration.Builder(context, appId).build());
-    }
-
-    public static void init(Context context, RealmAppConfiguration config) {
-        Realm.init(context);
-        defaultConfiguration = config;
-        defaultApp = new RealmApp(defaultConfiguration);
-    }
-
-    private RealmApp(RealmAppConfiguration config) {
-        long nativePtr = nativeCreate(config.getAppId(),
+    public RealmApp(RealmAppConfiguration config) {
+        networkTransport = new OkHttpNetworkTransport();
+        nativePtr = nativeCreate(
+                config.getAppId(),
                 config.getBaseUrl(),
                 config.getAppName(),
                 config.getAppVersion(),
                 config.getRequestTimeoutMs());
     }
-
-//    struct Config {
-//        std::string app_id;
-//        GenericNetworkTransport::NetworkTransportFactory transport_generator;
-//        realm::util::Optional<std::string> base_url;
-//        realm::util::Optional<std::string> local_app_name;
-//        realm::util::Optional<std::string> local_app_version;
-//        realm::util::Optional<uint64_t> default_request_timeout_ms;
-//    };
 
     /**
      * Returns currently logged in user
@@ -123,7 +114,7 @@ public class RealmApp {
      * Returns all currently logged in users
      * @return
      */
-    public static Map<String, RealmAppUser> allUsers() {
+    public static Map<String, RealmUser> allUsers() {
         return null;
     }
 
@@ -133,50 +124,72 @@ public class RealmApp {
      * @param user
      */
     public static void setCurrentUser(SyncUser user) {
+        // FIXME
+    }
+
+    /**
+     * FIXME
+     *
+     * @param credentials
+     * @return
+     * @throws ObjectServerError
+     */
+    public RealmUser login(RealmCredentials credentials) throws ObjectServerError {
+        long nativeUserPtr = nativeLogin(nativePtr, credentials.osCredentials.getNativePtr());
+        return new RealmUser(nativeUserPtr);
 
     }
 
-    public static RealmAppUser login(RealmAppCredentials credentials) {
-        return null;
+    /**
+     * FIXME
+     * @param credentials
+     * @param callback
+     * @return
+     */
+    public RealmAsyncTask loginAsync(RealmCredentials credentials, Callback<RealmUser> callback) {
+        checkLooperThread("Asynchronous login is only possible from looper threads.");
+        return new Request<RealmUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public RealmUser run() throws ObjectServerError {
+                return login(credentials);
+            }
+        }.start();
     }
-    public static RealmAsyncTask loginAsync(RealmAppCredentials credentials, Callback<RealmAppUser> callback) {
+
+    public static void logout(RealmUser user) {
+
+    }
+    public RealmAsyncTask logoutAsync(RealmUser user, Callback<Void> callback) {
         return null;
     }
 
-    public static void logout(RealmAppUser user) {
-
-    }
-    public static RealmAsyncTask logoutAsync(RealmAppUser user, Callback<Void> callback) {
+    public RealmUser registerWithEmail(String email, String password) {
         return null;
     }
-
-    public static RealmAppUser registerWithEmail(String email, String password) {
+    public RealmAsyncTask registerWithEmailAsync(String email, String password, Callback<RealmUser> callback) {
         return null;
     }
-    public static RealmAsyncTask registerWithEmailAsync(String email, String password, Callback<RealmAppUser> callback) {
+    public RealmUser confirmUser(String token, String tokenId) {
         return null;
     }
-    public static RealmAppUser confirmUser(String token, String tokenId) {
+    public RealmAsyncTask confirmUserAsync(String token, String tokenId, Callback<Void> callback) {
         return null;
     }
-    public static RealmAsyncTask confirmUserAsync(String token, String tokenId, Callback<Void> callback) {
+    public void resendConfirmationEmail(String email) {
+    }
+    public RealmAsyncTask resendConfirmationEmailAsync(String email, Callback<Void> callback) {
         return null;
     }
-    public static void resendConfirmationEmail(String email) {
-    }
-    public static RealmAsyncTask resendConfirmationEmailAsync(String email, Callback<Void> callback) {
+    public RealmUser resetPassword(String token, String tokenId, String password) {
         return null;
     }
-    public static RealmAppUser resetPassword(String token, String tokenId, String password) {
+    public RealmAsyncTask resetPasswordAsync(String token, String tokenId, String password, Callback<Void> callback) {
         return null;
     }
-    public static RealmAsyncTask resetPasswordAsync(String token, String tokenId, String password, Callback<Void> callback) {
+    public RealmUser sendResetPasswordEmail(String email) {
         return null;
     }
-    public static RealmAppUser sendResetPasswordEmail(String email) {
-        return null;
-    }
-    public static RealmAsyncTask sendResetPasswordEmailAsync(String email, Callback<Void> callback) {
+    public RealmAsyncTask sendResetPasswordEmailAsync(String email, Callback<Void> callback) {
         return null;
     }
 
@@ -195,12 +208,12 @@ public class RealmApp {
      * @param listener listener to register.
      * @throws IllegalArgumentException if {@code listener} is {@code null}.
      */
-    public static void addAuthenticationListener(AuthenticationListener listener) {
+    public void addAuthenticationListener(AuthenticationListener listener) {
         //noinspection ConstantConditions
         if (listener == null) {
             throw new IllegalArgumentException("Non-null 'listener' required.");
         }
-        defaultApp.authListeners.add(listener);
+        authListeners.add(listener);
     }
 
 
@@ -209,12 +222,12 @@ public class RealmApp {
      *
      * @param listener listener to remove.
      */
-    public static void removeAuthenticationListener(AuthenticationListener listener) {
+    public void removeAuthenticationListener(AuthenticationListener listener) {
         //noinspection ConstantConditions
         if (listener == null) {
             return;
         }
-        defaultApp.authListeners.remove(listener);
+        authListeners.remove(listener);
     }
 
     // Services entry point
@@ -230,11 +243,85 @@ public class RealmApp {
         return null;
     }
 
-    private static native long nativeCreate(String appId, String baseUrl, String appName, String appVersion, long requestTimeoutMs);
-
-
     // Private API's for now.
 
+    /**
+     * Exposed for testing.
+     *
+     * Swap the currently configured network transport with the provided one.
+     * This should only be done if no network requests are currently running.
+     */
+    void setNetworkTransport(OsJavaNetworkTransport transport) {
+        networkTransport = transport;
+    }
+
+    private static void checkLooperThread(String errorMessage) {
+        AndroidCapabilities capabilities = new AndroidCapabilities();
+        capabilities.checkCanDeliverNotification(errorMessage);
+    }
+
+    // Class wrapping requests made against the auth server. Is also responsible for calling with success/error on the
+    // correct thread.
+    private static abstract class Request<T> {
+        @Nullable
+        private final RealmApp.Callback<T> callback;
+        private final RealmNotifier handler;
+        private final ThreadPoolExecutor networkPoolExecutor;
+
+        Request(ThreadPoolExecutor networkPoolExecutor, @Nullable RealmApp.Callback<T> callback) {
+            this.callback = callback;
+            this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
+            this.networkPoolExecutor = networkPoolExecutor;
+        }
+
+        // Implements the request. Return the current sync user if the request succeeded. Otherwise throw an error.
+        public abstract T run() throws ObjectServerError;
+
+        // Start the request
+        public RealmAsyncTask start() {
+            Future<?> authenticateRequest = networkPoolExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        postSuccess(RealmApp.Request.this.run());
+                    } catch (ObjectServerError e) {
+                        postError(e);
+                    } catch (Throwable e) {
+                        postError(new ObjectServerError(ErrorCode.UNKNOWN, "Unexpected error", e));
+                    }
+                }
+            });
+            return new RealmAsyncTaskImpl(authenticateRequest, networkPoolExecutor);
+        }
+
+        private void postError(final ObjectServerError error) {
+            boolean errorHandled = false;
+            if (callback != null) {
+                Runnable action = new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onError(error);
+                    }
+                };
+                errorHandled = handler.post(action);
+            }
+
+            if (!errorHandled) {
+                RealmLog.error(error, "An error was thrown, but could not be handled.");
+            }
+        }
+
+        private void postSuccess(final T result) {
+            if (callback != null) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onSuccess(result);
+                    }
+                });
+            }
+        }
+    }
 
     /**
      * Callback for async methods available to the {@link RealmApp}.
@@ -256,4 +343,7 @@ public class RealmApp {
          */
         void onError(ObjectServerError error);
     }
+
+    private static native long nativeCreate(String appId, String baseUrl, String appName, String appVersion, long requestTimeoutMs);
+    private static native long nativeLogin(long nativeAppPtr, long nativeCredentialsPtr) throws ObjectServerError;
 }

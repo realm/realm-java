@@ -92,6 +92,9 @@ if (build_SYNC)
         io.realm.RealmApp io.realm.ClientResetRequiredError io.realm.RealmFileUserStore
         io.realm.SyncManager io.realm.SyncSession io.realm.SyncUser
         io.realm.internal.objectstore.OsAsyncOpenTask
+        io.realm.internal.objectstore.OsJavaNetworkTransport
+        io.realm.internal.objectstore.OsAppCredentials
+        io.realm.internal.objectstore.OsSyncUser
     )
 endif()
 create_javah(TARGET jni_headers
@@ -171,11 +174,15 @@ file(GLOB jni_SRC
 # Those source file are only needed for sync.
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmApp.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ClientResetRequiredError.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAppCredentials.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
     )
 endif()
 

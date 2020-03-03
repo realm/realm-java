@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import okhttp3.Call;
@@ -20,7 +21,7 @@ import okhttp3.Request;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 
-public class OkHttpNetworkTransport extends JvmNetworkTransport {
+public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
@@ -59,32 +60,6 @@ public class OkHttpNetworkTransport extends JvmNetworkTransport {
             .connectionPool(new ConnectionPool(5, 5, TimeUnit.SECONDS))
             .build();
 
-    private final long nativePointer;
-
-    public OkHttpNetworkTransport() {
-        nativePointer = nativeCreate();
-        initHeaders();
-    }
-
-    @Override
-    public void setAuthorizationHeaderName(String headerName, @Nullable String host) {
-        // TODO Send to JNI?
-    }
-
-    @Override
-    public void addHeader(String headerName, String headerValue, @Nullable String host) {
-        // TODO Send to JNI?
-    }
-
-    @Override
-    public void clearCustomHeaderSettings() {
-        // TODO Send to JNI?
-    }
-
-    private void initHeaders() {
-        // TODO Send to JNI?
-    }
-
     @Override
     public Response sendRequest(String method, String url, int timeoutMs, Map<String, String> headers, String body) {
         okhttp3.Response response = null;
@@ -119,16 +94,4 @@ public class OkHttpNetworkTransport extends JvmNetworkTransport {
         // FIXME: Parse headers
         return new HashMap<>(0);
     }
-
-    @Override
-    public long getNativePtr() {
-        return 0;
-    }
-
-    @Override
-    public long getNativeFinalizerPtr() {
-        return 0;
-    }
-
-    private native static long nativeCreate();
 }

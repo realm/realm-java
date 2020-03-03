@@ -1,17 +1,20 @@
-package io.realm.internal.network;
+package io.realm.internal.objectstore;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.Keep;
+import io.realm.internal.KeepMember;
 import io.realm.internal.NativeObject;
 
 /**
  * Java implementation of the transport layer exposed by ObjectStore when communicating with
  * the MongoDB Realm Server.
  */
-public abstract class JvmNetworkTransport implements NativeObject {
+@Keep
+public abstract class OsJavaNetworkTransport {
 
     // Custom error codes. These must not match any HTTP response error codes
     public static int ERROR_IO = 1000;
@@ -33,11 +36,6 @@ public abstract class JvmNetworkTransport implements NativeObject {
      * @return
      */
     public abstract Response sendRequest(String method, String url, int timeoutMs, Map<String, String> headers, String body);
-
-    // TODO Figure out exactly what should happen with these
-    public abstract void setAuthorizationHeaderName(String headerName, @Nullable String host);
-    public abstract void addHeader(String headerName, String headerValue, @Nullable String host);
-    public abstract void clearCustomHeaderSettings();
 
     public static class Response {
 
@@ -67,6 +65,4 @@ public abstract class JvmNetworkTransport implements NativeObject {
             this.body = body;
         }
     }
-
-
 }

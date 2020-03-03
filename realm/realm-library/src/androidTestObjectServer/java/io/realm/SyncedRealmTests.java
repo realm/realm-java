@@ -60,7 +60,7 @@ public class SyncedRealmTests {
         if (realm != null && !realm.isClosed()) {
             realm.close();
         }
-        for (RealmAppUser user : RealmApp.allUsers().values()) {
+        for (RealmUser user : RealmApp.allUsers().values()) {
             RealmApp.logout(user);
         }
     }

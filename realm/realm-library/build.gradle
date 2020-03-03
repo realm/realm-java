@@ -99,7 +99,7 @@ android {
         }
         androidTestObjectServer {
             // FIXME: Re-enable integration tests once Stitch Docker image is working
-            java.srcDirs += [/*'src/syncIntegrationTest/java', */'src/syncTestUtils/java']
+            java.srcDirs += [/*'src/syncIntegrationTest/java', */'src/syncTestUtils/java', 'src/androidTestObjectServer/kotlin']
             // assets.srcDirs += ['src/syncIntegrationTest/assets/']
         }
     }

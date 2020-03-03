@@ -152,9 +152,9 @@ public class RealmAppConfiguration {
          * @param context
          * @param appId
          */
-        public Builder(Context context, String appId) {
+        public Builder(String appId) {
             // FIXME: Null checks
-            this.context = context;
+            this.context = Realm.applicationContext;
             this.appId = appId;
         }
 
