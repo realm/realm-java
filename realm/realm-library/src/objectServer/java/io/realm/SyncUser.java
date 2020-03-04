@@ -24,6 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -82,7 +83,8 @@ public class SyncUser {
      * @throws IllegalStateException if multiple users are logged in.
      */
     public static SyncUser current() {
-        SyncUser user = SyncManager.getUserStore().getCurrent();
+        // FIXME
+        SyncUser user = null; //SyncManager.getUserStore().getCurrent();
         if (user != null && user.isValid()) {
             return user;
         }
@@ -96,8 +98,7 @@ public class SyncUser {
      * @return a map from user identifier to user. It includes all known valid users.
      */
     public static Map<String, SyncUser> all() {
-        UserStore userStore = SyncManager.getUserStore();
-        Collection<SyncUser> storedUsers = userStore.allUsers();
+        Collection<SyncUser> storedUsers = new ArrayList<>(); // FIXME
         Map<String, SyncUser> map = new HashMap<>();
         for (SyncUser user : storedUsers) {
             if (user.isValid()) {
@@ -833,7 +834,9 @@ public class SyncUser {
      * @return {@code true} if the User is logged into the Realm Object Server, {@code false} otherwise.
      */
     public boolean isValid() {
-        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis() && SyncManager.getUserStore().isActive(identity, authenticationUrl.toString());
+        // FIXME
+        /* && SyncManager.getUserStore().isActive(identity, authenticationUrl.toString()*/
+        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis();
     }
 
     /**

@@ -128,7 +128,6 @@ public class SyncManager {
     // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
     // Right now it just lives and dies together with the process.
 //    private static volatile RealmObjectServer authServer = new OkHttpRealmObjectServer();
-    private static volatile UserStore userStore;
 
     // Header configuration
     private static String globalAuthorizationHeaderName = "Authorization"; // authorization header name if no host-defined header is available
@@ -152,24 +151,8 @@ public class SyncManager {
     static volatile SyncSession.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
 
     // Initialize the SyncManager
-    static void init(String appId, UserStore userStore) {
+    static void init(String appId) {
         SyncManager.APP_ID = appId;
-        SyncManager.userStore = userStore;
-    }
-
-    /**
-     * Set the {@link UserStore} used by the Realm Object Server to save user information.
-     * If no Userstore is specified {@link SyncUser#current()} will always return {@code null}.
-     *
-     * @param userStore {@link UserStore} to use.
-     * @throws IllegalArgumentException if {@code userStore} is {@code null}.
-     */
-    public static void setUserStore(UserStore userStore) {
-        //noinspection ConstantConditions
-        if (userStore == null) {
-            throw new IllegalArgumentException("Non-null 'userStore' required.");
-        }
-        SyncManager.userStore = userStore;
     }
 
     /**
@@ -482,11 +465,6 @@ public class SyncManager {
 //    static void setAuthServerImpl(RealmObjectServer authServerImpl) {
 //        authServer = authServerImpl;
 //    }
-
-    // Return the currently configured User store.
-    public static UserStore getUserStore() {
-        return userStore;
-    }
 
     // Notify listeners that a user logged in
     static void notifyUserLoggedIn(SyncUser user) {

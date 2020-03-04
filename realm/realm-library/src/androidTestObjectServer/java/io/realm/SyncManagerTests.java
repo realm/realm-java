@@ -47,8 +47,6 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class SyncManagerTests {
 
-    private UserStore userStore;
-
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
@@ -57,58 +55,15 @@ public class SyncManagerTests {
 
     @Before
     public void setUp() {
-        userStore = new UserStore() {
-            @Override
-            public void put(SyncUser user) {}
-
-            @Override
-            public SyncUser getCurrent() {
-                return null;
-            }
-
-            @Override
-            public SyncUser get(String identity, String authenticationUrl) {
-                return null;
-            }
-
-            @Override
-            public void remove(String identity, String authenticationUrl) {
-            }
-
-            @Override
-            public Collection<SyncUser> allUsers() {
-                return Collections.emptySet();
-            }
-
-            @Override
-            public boolean isActive(String identity, String authenticationUrl) {
-                return true;
-            }
-        };
         SyncManager.reset();
     }
 
     @After
     public void tearDown() {
         UserFactory.logoutAllUsers();
-        UserStore userStore = SyncManager.getUserStore();
-        for (SyncUser syncUser : userStore.allUsers()) {
-            userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
-        }
         SyncManager.reset();
         BaseRealm.applicationContext = null; // Required for Realm.init() to work
         Realm.init(InstrumentationRegistry.getTargetContext());
-    }
-
-    @Test
-    public void set_userStore() {
-        SyncManager.setUserStore(userStore);
-        assertTrue(userStore.equals(SyncManager.getUserStore()));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void set_userStore_null() {
-        SyncManager.setUserStore(null);
     }
 
     @Test
