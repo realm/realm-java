@@ -4,10 +4,21 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
+import io.realm.ErrorCode;
+import io.realm.ObjectServerError;
+import io.realm.RealmApp;
+import io.realm.RealmAsyncTask;
+import io.realm.SyncManager;
+import io.realm.internal.RealmNotifier;
+import io.realm.internal.android.AndroidCapabilities;
+import io.realm.internal.android.AndroidRealmNotifier;
+import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
@@ -62,6 +73,17 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     @Override
     public Response sendRequest(String method, String url, int timeoutMs, Map<String, String> headers, String body) {
+//        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR) {
+//            @Override
+//            public RealmUser run() throws ObjectServerError {
+//
+//
+//
+//                return login(credentials);
+//            }
+//        }.start();
+
+
         okhttp3.Response response = null;
         try {
             Request.Builder builder = new Request.Builder().url(url);
@@ -94,4 +116,5 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         // FIXME: Parse headers
         return new HashMap<>(0);
     }
+
 }

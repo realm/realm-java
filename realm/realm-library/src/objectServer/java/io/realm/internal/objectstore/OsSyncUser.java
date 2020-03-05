@@ -1,10 +1,12 @@
 package io.realm.internal.objectstore;
 
 import io.realm.internal.NativeObject;
+import io.realm.internal.util.Pair;
 
 public class OsSyncUser implements NativeObject {
 
     private final long nativePtr;
+    private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     public OsSyncUser(long nativePtr) {
         this.nativePtr = nativePtr;
@@ -17,7 +19,7 @@ public class OsSyncUser implements NativeObject {
 
     @Override
     public long getNativeFinalizerPtr() {
-        return 0;
+        return nativeFinalizerPtr;
     }
 
     public String nativeGetName() {
@@ -56,6 +58,40 @@ public class OsSyncUser implements NativeObject {
         return nativeGetMaxAge(nativePtr);
     }
 
+    public String getServerUrl() {
+        return nativeGetServerUrl(nativePtr);
+    }
+
+    public String getIdentity() {
+        return nativeGetIdentity(nativePtr);
+    }
+
+    public String getLocalIdentity() {
+        return nativeGetLocalIdentity(nativePtr);
+    }
+
+    public String getAccessToken() {
+        return nativeGetAccessToken(nativePtr);
+    }
+
+    public String getRefreshToken() {
+        return nativeGetRefreshToken(nativePtr);
+    }
+
+    public Pair<String, String>[] getIdentities() {
+        String[] identityData = nativeGetIdentities(nativePtr);
+        @SuppressWarnings("unchecked")
+        Pair<String, String>[] identities = new Pair[identityData.length/2];
+        for (int i = 0; i < identityData.length; i = i + 2) {
+            identities[i] = new Pair<>(identityData[i], identityData[i+1]);
+        }
+        return identities;
+    }
+
+
+    private static native long nativeGetFinalizerMethodPtr();
+
+    // Profile data
     private static native String nativeGetName(long nativePtr);
     private static native String nativeGetEmail(long nativePtr);
     private static native String nativeGetPictureUrl(long nativePtr);
@@ -65,4 +101,14 @@ public class OsSyncUser implements NativeObject {
     private static native String nativeGetBirthDay(long nativePtr);
     private static native String nativeGetMinAge(long nativePtr);
     private static native String nativeGetMaxAge(long nativePtr);
+
+    private static native String nativeGetServerUrl(long nativePtr);
+    private static native String nativeGetIdentity(long nativePtr);
+    private static native String nativeGetLocalIdentity(long nativePtr);
+    private static native String nativeGetAccessToken(long nativePtr);
+    private static native String nativeGetRefreshToken(long nativePtr);
+    private static native String[] nativeGetIdentities(long nativePtr); // Returns pairs of {id, provider}
 }
+
+
+

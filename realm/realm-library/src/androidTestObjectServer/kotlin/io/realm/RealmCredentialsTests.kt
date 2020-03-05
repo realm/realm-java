@@ -93,7 +93,7 @@ class RealmCredentialsTests {
     fun facebook() {
         val creds = RealmCredentials.facebook("fb-token")
         assertEquals("oauth2-facebook", creds.identityProvider)
-        assertTrue(creds.asJson().contains("fb-token")) // Treat the JSON as a largely opaque value.
+        assertTrue(creds.asJson().contains("fb-token"))
     }
 
     @Test
@@ -108,7 +108,7 @@ class RealmCredentialsTests {
     fun google() {
         val creds = RealmCredentials.google("google-token")
         assertEquals("google", creds.identityProvider)
-        assertTrue(creds.asJson().contains("google-token")) // Treat the JSON as a largely opaque value.
+        assertTrue(creds.asJson().contains("google-token"))
     }
 
     @Test
@@ -123,7 +123,7 @@ class RealmCredentialsTests {
     fun jwt() {
         val creds = RealmCredentials.google("jwt-token")
         assertEquals("jwt", creds.identityProvider)
-        assertTrue(creds.asJson().contains("jwt-token")) // Treat the JSON as a largely opaque value.
+        assertTrue(creds.asJson().contains("jwt-token"))
     }
 
     @Test

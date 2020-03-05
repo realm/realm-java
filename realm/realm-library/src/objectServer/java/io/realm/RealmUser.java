@@ -15,10 +15,17 @@
  */
 package io.realm;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import io.realm.internal.objectstore.OsSyncUser;
+import io.realm.internal.util.Pair;
 
+/**
+ * FIXME
+ */
 public class RealmUser {
 
     private final OsSyncUser osUser;
@@ -42,80 +49,132 @@ public class RealmUser {
         }
     }
 
-//    private final UserType userType;
-//    private final List<RealmUserIdentity> identities;
-//    private final String accessToken;
-//    private Map<String, Object> customData;
-//    private RealmCredentials.IdentityProvider loggedInIdentityProvider;
-
     RealmUser(long nativePtr) {
         this.osUser = new OsSyncUser(nativePtr);
     }
 
+    /**
+     * FIXME
+     * @return
+     */
+    public String getId() {
+        return osUser.getIdentity();
+    }
+
+    /**
+     * FIXME
+     * @return
+     */
     public String getName() {
         return osUser.nativeGetName();
     }
 
+    /**
+     * FIXME
+     * @return
+     */
     @Nullable
     public String getEmail() {
         return osUser.getEmail();
     }
 
+    /**
+     * FIXME
+     * @return
+     */
     @Nullable
     public String getPictureUrl() {
         return osUser.getPictureUrl();
     }
 
+    /**
+     * FIXME
+     * @return
+     */
     @Nullable
     public String getFirstName() {
         return osUser.getFirstName();
     }
 
+    /**
+     * FIXME
+     * @return
+     */
     @Nullable
     public String getLastName() {
         return osUser.getLastName();
     }
 
+    /**
+     * FIXME
+     * @return
+     */
     @Nullable
     public String getGender() {
         return osUser.getGender();
     }
 
+    /**
+     * FIXME
+     * @return
+     */
     @Nullable
     public String getBirthday() {
         return osUser.getBirthday();
     }
 
+    /**
+     * FIXME
+     * @return
+     */
     @Nullable
     public Long getMinAge() {
         String minAge = osUser.getMinAge();
         return (minAge == null) ? null : Long.parseLong(minAge);
     }
 
+    /**
+     * FIXME
+     * @return
+     */
     @Nullable
     public Long getMaxAge() {
         String maxAge = osUser.getMaxAge();
         return (maxAge == null) ? null : Long.parseLong(maxAge);
     }
-//
-//    public UserType getUserType() {
-//        return userType;
-//    }
-//
-//    public List<RealmUserIdentity> getIdentities() {
-//        return identities;
-//    }
-//
-//    public String getAccessToken() {
-//        return accessToken;
-//    }
-//
-//    public Map<String, Object> getCustomData() {
-//        return customData;
-//    }
-//
-//    public RealmCredentials.IdentityProvider getLoggedInIdentityProvider() {
-//        return loggedInIdentityProvider;
-//    }
 
+    /**
+     * FIXME
+     * @return
+     */
+    public List<RealmUserIdentity> getIdentities() {
+        Pair<String, String>[] osIdentities = osUser.getIdentities();
+        List<RealmUserIdentity> identities = new ArrayList<>(osIdentities.length);
+        for (int i = 0; i < osIdentities.length; i++) {
+            Pair<String, String> data = osIdentities[i];
+            identities.add(new RealmUserIdentity(data.first, data.second));
+        }
+        return identities;
+    }
+
+    /**
+     * FIXME
+     * @return
+     */
+
+    public String getAccessToken() {
+        return osUser.getAccessToken();
+    }
+
+    /**
+     * FIXME
+     * @return
+     */
+    public String getRefreshToken() {
+        return osUser.getRefreshToken();
+    }
+
+//    private Map<String, Object> customData;
+//    private UserType userType;
+//    private State state;
 }

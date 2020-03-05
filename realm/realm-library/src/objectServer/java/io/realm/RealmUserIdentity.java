@@ -15,47 +15,67 @@
  */
 package io.realm;
 
+/**
+ * Each RealmUser is represented by 1 or more identities each defined by an
+ * {@link RealmCredentials.IdentityProvider}.
+ *
+ * This class represents the identity defined by a specific provider.
+ */
 public class RealmUserIdentity {
 
-    private String userId;
-//    private RealmCredentials.IdentityProvider providerType;
+    private final String userId;
+    private final String providerId;
+    private final RealmCredentials.IdentityProvider provider;
 
-    public RealmUserIdentity(String userId/*, RealmCredentials.IdentityProvider providerType*/) {
-        this.userId = userId;
-//        this.providerType = providerType;
+    RealmUserIdentity(String id, String providerId) {
+        this.userId = id;
+        this.providerId = providerId;
+        this.provider = RealmCredentials.IdentityProvider.fromId(providerId);
     }
 
-    public String getUserId() {
+    /**
+     * Returns a unique identifier for this identity.
+     *
+     * @return a unique identifier for this identifier.
+     */
+    public String getId() {
         return userId;
     }
 
-//    public RealmCredentials.IdentityProvider getProviderType() {
-//        return providerType;
-//    }
+    /**
+     * Returns the provider defining this identity.
+     *
+     * @return
+     */
+    public RealmCredentials.IdentityProvider getProvider() {
+        return provider;
+    }
 
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//
-//        RealmUserIdentity that = (RealmUserIdentity) o;
-//
-//        if (!userId.equals(that.userId)) return false;
-//        return providerType.equals(that.providerType);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        int result = userId.hashCode();
-//        result = 31 * result + providerType.hashCode();
-//        return result;
-//    }
-//
-//    @Override
-//    public String toString() {
-//        return "RealmUserIdentity{" +
-//                "userId='" + userId + '\'' +
-//                ", providerType=" + providerType +
-//                '}';
-//    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RealmUserIdentity that = (RealmUserIdentity) o;
+
+        if (!userId.equals(that.userId)) return false;
+        if (!providerId.equals(that.providerId)) return false;
+        return provider == that.provider;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = userId.hashCode();
+        result = 31 * result + providerId.hashCode();
+        result = 31 * result + provider.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "RealmUserIdentity{" +
+                "userId='" + userId + '\'' +
+                ", providerId='" + providerId + '\'' +
+                '}';
+    }
 }

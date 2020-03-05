@@ -82,7 +82,7 @@ public class RealmCredentials {
      * FIXME
      */
     public static RealmCredentials apiKey(String key) {
-        assertStringNotEmpty(key, "key");
+        assertStringNotEmpty(key, "id");
         return new RealmCredentials(OsAppCredentials.apiKey(key));
     }
 
@@ -154,12 +154,12 @@ public class RealmCredentials {
     }
 
     /**
-     * Returns the key for the provider used to authenticate with.
+     * Returns the id for the provider used to authenticate with.
      *
-     * @return the key identifying the chosen authentication provider.
+     * @return the id identifying the chosen authentication provider.
      */
-    public String getIdentityProvider() {
-        return osCredentials.getProvider();
+    public IdentityProvider getIdentityProvider() {
+        return IdentityProvider.fromId(osCredentials.getProvider());
     }
 
     /**
@@ -180,5 +180,76 @@ public class RealmCredentials {
 
     private RealmCredentials(OsAppCredentials credentials) {
         this.osCredentials = credentials;
+    }
+
+    /**
+     * FIXME
+     */
+    public enum IdentityProvider {
+        /**
+         * FIXME
+         */
+        ANONYMOUS("anon-user"),
+        /**
+         * FIXME
+         */
+        API_KEY(""), // FIXME
+        /**
+         * FIXME
+         */
+        APPLE("oauth2-apple"),
+        /**
+         * FIXME
+         */
+        CUSTOM_FUNCTION(""), // FIXME
+        /**
+         * FIXME
+         */
+        EMAIL_PASSWORD("local-userpass"),
+
+        /**
+         * FIXME
+         */
+        FACEBOOK("oauth2-facebook"),
+        /**
+         * FIXME
+         */
+        GOOGLE("oauth2-google"),
+        /**
+         * FIXME
+         */
+        JWT("jwt"),
+        /**
+         * FIXME
+         */
+        UNKNOWN("");
+
+        /**
+         * FIXME
+         *
+         * @param id the string identifier for the provider
+         * @return
+         */
+        public static IdentityProvider fromId(String id) {
+            for (IdentityProvider value : values()) {
+                if (value.getId().equals(id)) {
+                    return value;
+                }
+            }
+            return UNKNOWN;
+        }
+
+        private final String id;
+
+        IdentityProvider(String id) {
+            this.id = id;
+        }
+
+        /**
+         * FIXME
+         */
+        public String getId() {
+            return id;
+        }
     }
 }

@@ -17,15 +17,92 @@
 #ifndef REALM_JAVA_NETWORK_TRANSPORT
 #define REALM_JAVA_NETWORK_TRANSPORT
 
+#include "util.hpp"
 #include "sync/generic_network_transport.hpp"
+#include "jni_util/java_class.hpp"
+#include "jni_util/java_method.hpp"
+
+using namespace realm::app;
+using namespace realm::jni_util;
 
 namespace realm {
 
 struct JavaNetworkTransport : public app::GenericNetworkTransport {
+
+    JavaNetworkTransport(JNIEnv* env, jobject java_network_transport_impl) {
+        jint ret = env->GetJavaVM(&m_jvm);
+        if (ret != 0) {
+            throw std::runtime_error(util::format("Failed to get Java VM. Error: %d", ret));
+        }
+        m_java_network_transport_impl = env->NewGlobalRef(java_network_transport_impl);
+        jclass cls = env->GetObjectClass(m_java_network_transport_impl);
+        auto signature = "(Ljava/lang/String;Ljava/lang/String;ILjava/util/HashMap;Ljava/lang/String;)Lio/realm/internal/objectstore/OsJavaNetworkTransport$Response;";
+        m_send_request_method = env->GetMethodID(cls, "sendRequest", signature);
+    }
+
     void send_request_to_server(const app::Request request, std::function<void(const app::Response)> completionBlock)
     {
-        (void) request;
-        (void) completionBlock;
+        JNIEnv* env = get_current_env();
+
+        // Setup method
+        std::string method;
+        switch(request.method) {
+            case app::HttpMethod::get: method = "get"; break;
+            case app::HttpMethod::post: method = "post"; break;
+            case app::HttpMethod::patch: method = "patch"; break;
+            case app::HttpMethod::put: method = "put"; break;
+            case app::HttpMethod::del: method = "del"; break;
+        }
+
+        // Create headers
+        static JavaClass mapClass(env, "java/util/HashMap");
+        static JavaMethod init(env, mapClass, "<init>", "(I)V");
+        static JavaMethod put(env, mapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+        jsize map_size = request.headers.size();
+        jobject request_headers = env->NewObject(mapClass, init, map_size);
+        for (auto header : request.headers) {
+            env->CallObjectMethod(request_headers, put, to_jstring(env, header.first), to_jstring(env, header.second));
+        }
+
+        // Callback to Java for the actual network request. Result should be returned synchronously.
+        jobject result = env->CallObjectMethod(m_java_network_transport_impl,
+                                            m_send_request_method,
+                                            to_jstring(env, method),
+                                            static_cast<jint>(request.timeout_ms),
+                                            request_headers,
+                                            to_jstring(env, request.body)
+                                            );
+        (void) result;
+
+        // Cleanup and report result
+        env->DeleteLocalRef(request_headers);
+
+        if (env->ExceptionCheck()) {
+            // This should not happen. All exceptions should ideally have been caught by Java
+            // and turned into a realm::app::Response object
+            throw std::logic_error("Unexcepted exception thrown"); // FIXME better error
+        } else {
+            auto response_headers = std::map<std::string, std::string>();
+            std::string body;
+            completionBlock(Response{200, 0, response_headers, body});
+        }
+    }
+
+    ~JavaNetworkTransport() {
+        get_current_env()->DeleteGlobalRef(m_java_network_transport_impl);
+    }
+
+private:
+    JavaVM* m_jvm;
+    jobject m_java_network_transport_impl;     // Global ref of Java implementation of the network transport.
+    jmethodID m_send_request_method;
+    inline JNIEnv* get_current_env() noexcept
+    {
+        JNIEnv* env;
+        if (m_jvm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
+            m_jvm->AttachCurrentThread(&env, nullptr); // Should never fail
+        }
+        return env;
     }
 };
 

@@ -15,6 +15,7 @@
  */
 package io.realm;
 
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -22,6 +23,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
@@ -80,6 +82,7 @@ public class RealmApp {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
             10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(100));
 
+    private final RealmAppConfiguration config;
     private OsJavaNetworkTransport networkTransport;
     private final long nativePtr;
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
@@ -93,8 +96,10 @@ public class RealmApp {
      * @param config
      */
     public RealmApp(RealmAppConfiguration config) {
-        networkTransport = new OkHttpNetworkTransport();
-        nativePtr = nativeCreate(
+        this.config = config;
+        this.networkTransport = new OkHttpNetworkTransport();
+        this.nativePtr = nativeCreate(
+                networkTransport,
                 config.getAppId(),
                 config.getBaseUrl(),
                 config.getAppName(),
@@ -103,19 +108,33 @@ public class RealmApp {
     }
 
     /**
-     * Returns currently logged in user
-     * @return
+     * Returns the current user that is logged in and still valid.
+     * A user is invalidated when he/she logs out or the user's access token expires.
+     * <p>
+     * If two or more users are logged in, it is the last valid user that is returned by this method.
+     *
+     * @return current {@link RealmUser} that has logged in and is still valid. {@code null} if no user is logged in or the user has
+     * expired.
      */
-    public static SyncUser currentUser() {
-        return null;
+    @Nullable
+    public RealmUser currentUser() {
+        Long userPtr = nativeCurrentUser(nativePtr);
+        return (userPtr != null) ? new RealmUser(userPtr) : null;
     }
 
     /**
+     * FIXME
      * Returns all currently logged in users
      * @return
      */
-    public static Map<String, RealmUser> allUsers() {
-        return null;
+    public Map<String, RealmUser> allUsers() {
+        long[] nativeUsers = nativeAllUsers(nativePtr);
+        HashMap<String, RealmUser> users = new HashMap<>(nativeUsers.length);
+        for (int i = 0; i < nativeUsers.length; i++) {
+            RealmUser user = new RealmUser(nativeUsers[i]);
+            users.put(user.getId(), user);
+        }
+        return users;
     }
 
     /**
@@ -135,9 +154,32 @@ public class RealmApp {
      * @throws ObjectServerError
      */
     public RealmUser login(RealmCredentials credentials) throws ObjectServerError {
-        long nativeUserPtr = nativeLogin(nativePtr, credentials.osCredentials.getNativePtr());
-        return new RealmUser(nativeUserPtr);
+        checkNull(credentials, "credentials");
+        AtomicReference<RealmUser> user = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJavaNetworkTransport.NetworkTransportJNIResultCallback() {
+            @Override
+            public void onSuccess(Object result) {
+                Long nativePtr = (Long) result;
+                user.set(new RealmUser(nativePtr));
+            }
 
+            @Override
+            public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
+                error.set(new ObjectServerError(ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode), errorMessage));
+            }
+        });
+
+        // ObjectStore runs all code in the same thread even though it is using a callback.
+        // So results should be available here.
+        if (user.get() == null && error.get() == null) {
+            throw new IllegalStateException("Network result callback did not trigger correctly");
+        }
+        if (user.get() == null) {
+            return user.get();
+        } else {
+            throw error.get();
+        }
     }
 
     /**
@@ -232,14 +274,18 @@ public class RealmApp {
 
     // Services entry point
     public RealmFunctions getFunctions() {
+        // FIXME
         return null;
     }
 
     public RealmFCMPushNotifications getFSMPushNotifications() {
+        // FIXME
         return null;
+
     }
 
     public RealmMongoDBService getMongoDBService() {
+        // FIXME
         return null;
     }
 
@@ -260,7 +306,13 @@ public class RealmApp {
         capabilities.checkCanDeliverNotification(errorMessage);
     }
 
-    // Class wrapping requests made against the auth server. Is also responsible for calling with success/error on the
+    private void checkNull(@Nullable Object argValue, String argName) {
+        if (argValue == null) {
+            throw new IllegalArgumentException("Nonnull '" + argName + "' required.");
+        }
+    }
+
+    // Class wrapping requests made against MongoDB Realm. Is also responsible for calling with success/error on the
     // correct thread.
     private static abstract class Request<T> {
         @Nullable
@@ -283,7 +335,7 @@ public class RealmApp {
                 @Override
                 public void run() {
                     try {
-                        postSuccess(RealmApp.Request.this.run());
+                        postSuccess(Request.this.run());
                     } catch (ObjectServerError e) {
                         postError(e);
                     } catch (Throwable e) {
@@ -344,6 +396,9 @@ public class RealmApp {
         void onError(ObjectServerError error);
     }
 
-    private static native long nativeCreate(String appId, String baseUrl, String appName, String appVersion, long requestTimeoutMs);
-    private static native long nativeLogin(long nativeAppPtr, long nativeCredentialsPtr) throws ObjectServerError;
+    private static native long nativeCreate(OsJavaNetworkTransport transport, String appId, String baseUrl, String appName, String appVersion, long requestTimeoutMs);
+    private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    @Nullable
+    private static native Long nativeCurrentUser(long nativePtr);
+    private static native long[] nativeAllUsers(long nativePtr);
 }
