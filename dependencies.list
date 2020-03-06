@@ -9,7 +9,7 @@ REALM_OBJECT_SERVER_VERSION=3.23.1
 
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=3.3.2
-ANDROID_BUILD_TOOLS=28.0.3
+ANDROID_BUILD_TOOLS=29.0.2
 
 # Common classpath dependencies
 # Gradle 5 is not supported yet: https://issuetracker.google.com/issues/126433059

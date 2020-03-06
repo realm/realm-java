@@ -141,10 +141,10 @@ public class UserFactory {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                Map<String, RealmUser> users = RealmApp.allUsers();
-                for (RealmUser user : users.values()) {
-                    RealmApp.logout(user);
-                }
+//                Map<String, RealmUser> users = RealmApp.allUsers();
+//                for (RealmUser user : users.values()) {
+//                    RealmApp.logout(user);
+//                }
                 TestHelper.waitForNetworkThreadExecutorToFinish();
                 allUsersLoggedOut.countDown();
             }

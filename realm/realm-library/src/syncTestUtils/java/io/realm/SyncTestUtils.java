@@ -16,7 +16,7 @@
 
 package io.realm;
 
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -136,7 +136,7 @@ public class SyncTestUtils {
             // persist the user to the ObjectStore sync metadata, to simulate real login, otherwise SyncUser.isValid will
             // "throw IllegalArgumentException: User not authenticated or authentication expired." since
             // the call to  SyncManager.getUserStore().isActive(syncUser.getIdentity()) will return false
-            addToUserStore(syncUser);
+//            addToUserStore(syncUser);
             return syncUser;
         } catch (JSONException e) {
             throw new RuntimeException(e);
@@ -170,14 +170,14 @@ public class SyncTestUtils {
         }
     }
 
-    private static void addToUserStore(SyncUser user) {
-        try {
-            UserStore userStore = (UserStore) SYNC_MANAGER_GET_USER_STORE_METHOD.invoke(null);
-            userStore.put(user);
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new AssertionError(e);
-        }
-    }
+//    private static void addToUserStore(SyncUser user) {
+//        try {
+//            UserStore userStore = (UserStore) SYNC_MANAGER_GET_USER_STORE_METHOD.invoke(null);
+//            userStore.put(user);
+//        } catch (InvocationTargetException | IllegalAccessException e) {
+//            throw new AssertionError(e);
+//        }
+//    }
 
     // Fully synchronize a Realm with the server by making sure that all changes are uploaded
     // and downloaded again.

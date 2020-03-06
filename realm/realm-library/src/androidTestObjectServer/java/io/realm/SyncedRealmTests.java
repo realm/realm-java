@@ -15,8 +15,8 @@
  */
 package io.realm;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Ignore;
@@ -60,9 +60,9 @@ public class SyncedRealmTests {
         if (realm != null && !realm.isClosed()) {
             realm.close();
         }
-        for (RealmUser user : RealmApp.allUsers().values()) {
-            RealmApp.logout(user);
-        }
+//        for (RealmUser user : RealmApp.allUsers().values()) {
+//            RealmApp.logout(user);
+//        }
     }
 
     private Realm getNormalRealm() {

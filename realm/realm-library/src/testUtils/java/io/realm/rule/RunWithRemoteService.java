@@ -39,7 +39,7 @@ import java.util.concurrent.CountDownLatch;
 import io.realm.TestHelper;
 import io.realm.services.RemoteTestService;
 
-import static android.support.test.InstrumentationRegistry.getContext;
+import static androidx.test.platform.app.InstrumentationRegistry.getContext;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 

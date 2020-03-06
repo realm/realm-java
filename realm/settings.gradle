@@ -2,3 +2,4 @@
 include ':realm-library'
 include ':realm-annotations-processor'
 include ':kotlin-extensions'
+include ':unitest-app'

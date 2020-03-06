@@ -29,15 +29,15 @@ namespace realm {
 
 struct JavaNetworkTransport : public app::GenericNetworkTransport {
 
-    JavaNetworkTransport(JNIEnv* env, jobject java_network_transport_impl) {
-        jint ret = env->GetJavaVM(&m_jvm);
-        if (ret != 0) {
-            throw std::runtime_error(util::format("Failed to get Java VM. Error: %d", ret));
-        }
-        m_java_network_transport_impl = env->NewGlobalRef(java_network_transport_impl);
+    JavaNetworkTransport(JavaVM* vm, jobject java_network_transport_impl) {
+        m_jvm = vm;
+        m_java_network_transport_impl = java_network_transport_impl; //env->NewGlobalRef(java_network_transport_impl);
+        JNIEnv* env = get_current_env();
         jclass cls = env->GetObjectClass(m_java_network_transport_impl);
-        auto signature = "(Ljava/lang/String;Ljava/lang/String;ILjava/util/HashMap;Ljava/lang/String;)Lio/realm/internal/objectstore/OsJavaNetworkTransport$Response;";
-        m_send_request_method = env->GetMethodID(cls, "sendRequest", signature);
+        auto method_name = "sendRequest";
+        auto signature = "(Ljava/lang/String;Ljava/lang/String;JLjava/util/Map;Ljava/lang/String;)Lio/realm/internal/objectstore/OsJavaNetworkTransport$Response;";
+        m_send_request_method = env->GetMethodID(cls, method_name, signature);
+        REALM_ASSERT_RELEASE_EX(m_send_request_method != nullptr, method_name, signature);
     }
 
     void send_request_to_server(const app::Request request, std::function<void(const app::Response)> completionBlock)
@@ -57,34 +57,44 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         // Create headers
         static JavaClass mapClass(env, "java/util/HashMap");
         static JavaMethod init(env, mapClass, "<init>", "(I)V");
-        static JavaMethod put(env, mapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+        static JavaMethod put_method(env, mapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
         jsize map_size = request.headers.size();
         jobject request_headers = env->NewObject(mapClass, init, map_size);
         for (auto header : request.headers) {
-            env->CallObjectMethod(request_headers, put, to_jstring(env, header.first), to_jstring(env, header.second));
+            env->CallObjectMethod(request_headers, put_method, to_jstring(env, header.first), to_jstring(env, header.second));
         }
 
-        // Callback to Java for the actual network request. Result should be returned synchronously.
-        jobject result = env->CallObjectMethod(m_java_network_transport_impl,
+        // Execute network request on the Java side
+        jobject response = env->CallObjectMethod(m_java_network_transport_impl,
                                             m_send_request_method,
                                             to_jstring(env, method),
-                                            static_cast<jint>(request.timeout_ms),
+                                            to_jstring(env, request.url),
+                                            static_cast<jlong>(request.timeout_ms),
                                             request_headers,
                                             to_jstring(env, request.body)
                                             );
-        (void) result;
-
-        // Cleanup and report result
         env->DeleteLocalRef(request_headers);
+
+        // Read response
+        static JavaClass responseClass(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Response");
+        static JavaMethod http_code_method(env, responseClass, "getHttpResponseCode", "()I");
+        static JavaMethod custom_code_method(env, responseClass, "getCustomResponseCode", "()I");
+        static JavaMethod headers_method(env, responseClass, "getHeaders", "()Ljava/util/Map;");
+        static JavaMethod body_method(env, responseClass, "getBody", "()Ljava/lang/String;");
 
         if (env->ExceptionCheck()) {
             // This should not happen. All exceptions should ideally have been caught by Java
             // and turned into a realm::app::Response object
             throw std::logic_error("Unexcepted exception thrown"); // FIXME better error
         } else {
+            jint http_code = env->CallIntMethod(response, http_code_method);
+            jint custom_code = env->CallIntMethod(response, custom_code_method);
+            JStringAccessor java_body(env, (jstring) env->CallObjectMethod(response, body_method));
+            jobject java_headers = env->CallObjectMethod(response, headers_method);
+
             auto response_headers = std::map<std::string, std::string>();
-            std::string body;
-            completionBlock(Response{200, 0, response_headers, body});
+            std::string body = java_body;
+            completionBlock(Response{(int) http_code, (int) custom_code, response_headers, body});
         }
     }
 

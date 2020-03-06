@@ -32,7 +32,6 @@
 //#include <memory>
 
 
-
 using namespace realm;
 using namespace realm::app;
 using namespace realm::jni_util;
@@ -47,9 +46,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jclass,
                                                             jlong j_request_timeout_ms)
 {
     try {
-
-        std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [env, j_java_network_transport_impl] {
-            return std::unique_ptr<GenericNetworkTransport>(new JavaNetworkTransport(env, j_java_network_transport_impl));
+        JavaVM* jvm;
+        jint ret = env->GetJavaVM(&jvm);
+        if (ret != 0) {
+            throw std::runtime_error(util::format("Failed to get Java VM. Error: %d", ret));
+        }
+        jobject java_network_transport_impl = env->NewGlobalRef(j_java_network_transport_impl);
+        std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [jvm, java_network_transport_impl] {
+            return std::unique_ptr<GenericNetworkTransport>(new JavaNetworkTransport(jvm, java_network_transport_impl));
         };
 
         JStringAccessor app_id(env, j_app_id);
@@ -69,16 +73,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jclass,
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogin(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_credentials_ptr, jobject callback)
+JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogin(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_credentials_ptr, jobject j_callback)
 {
     try {
         // Caching callback method ID's in static fields to prevent looking them up more than once
         static JavaClass java_callback_class(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$NetworkTransportJNIResultCallback");
-        static JavaMethod java_notify_onsuccess(env, java_callback_class, "onSuccess", "(Ljava/lang/Object)V");
         static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(Ljava/lang/String;ILjava/lang/String;)V");
+        static JavaMethod java_notify_onsuccess(env, java_callback_class, "onSuccess", "(Ljava/lang/Object;)V");
 
         App* app = reinterpret_cast<App*>(j_app_ptr);
         auto credentials = reinterpret_cast<AppCredentials*>(j_credentials_ptr);
+        jobject callback = env->NewGlobalRef(j_callback);
         app->login_with_credentials(*credentials, [&](std::shared_ptr<SyncUser> user, Optional<app::AppError> error) {
             if (error) {
                 auto err = error.value();
@@ -91,6 +96,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogin(JNIEnv* env, jclass, j
             } else {
                 auto* java_user = new std::shared_ptr<SyncUser>(std::move(user));
                 env->CallVoidMethod(callback, java_notify_onsuccess, reinterpret_cast<jlong>(java_user));
+                env->DeleteGlobalRef(callback);
             }
         });
     }

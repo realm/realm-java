@@ -20,7 +20,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Looper;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Assert;
 

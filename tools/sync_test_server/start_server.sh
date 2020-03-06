@@ -17,7 +17,12 @@ adb reverse tcp:9443 tcp:9443 && \
 adb reverse tcp:9080 tcp:9080 && \
 adb reverse tcp:8888 tcp:8888 || { echo "Failed to reverse adb port." ; exit 1 ; }
 
-docker build $DOCKERFILE_DIR --build-arg ROS_VERSION=$ROS_VERSION --build-arg REALM_FEATURE_TOKEN=$REALM_FEATURE_TOKEN -t sync-test-server || { echo "Failed to build Docker image." ; exit 1 ; }
+#docker build $DOCKERFILE_DIR --build-arg ROS_VERSION=$ROS_VERSION --build-arg REALM_FEATURE_TOKEN=$REALM_FEATURE_TOKEN -t sync-test-server || { echo "Failed to build Docker image." ; exit 1 ; }
 
-echo "See log files in $TMP_DIR"
+# Start Stitch
+docker run --rm -i -t --publish 9090:9090 012067661104.dkr.ecr.eu-west-1.amazonaws.com/ci/mongodb-realm-images:test_server-latest
+
+
+#echo "See log files in $TMP_DIR"
 docker run -p 9080:9080 -p 9443:9443 -p 8888:8888 -v$TMP_DIR:/tmp --name sync-test-server sync-test-server
+

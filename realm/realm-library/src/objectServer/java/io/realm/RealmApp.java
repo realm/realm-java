@@ -163,7 +163,6 @@ public class RealmApp {
                 Long nativePtr = (Long) result;
                 user.set(new RealmUser(nativePtr));
             }
-
             @Override
             public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
                 error.set(new ObjectServerError(ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode), errorMessage));
@@ -175,7 +174,7 @@ public class RealmApp {
         if (user.get() == null && error.get() == null) {
             throw new IllegalStateException("Network result callback did not trigger correctly");
         }
-        if (user.get() == null) {
+        if (user.get() != null) {
             return user.get();
         } else {
             throw error.get();

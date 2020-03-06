@@ -14,7 +14,8 @@
 * TODO.
 
 ### Internal
-* None.
+* OKHttp was upgraded to 3.14.2 from 3.10.0.
+
 
 ## 7.0.0(YYYY-MM-DD)
 

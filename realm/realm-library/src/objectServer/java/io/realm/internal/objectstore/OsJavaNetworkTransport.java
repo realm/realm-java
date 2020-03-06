@@ -46,74 +46,43 @@ public abstract class OsJavaNetworkTransport {
      * @param body
      * @return
      */
-    protected abstract Response sendRequest(String method, String url, int timeoutMs, Map<String, String> headers, String body);
-
-//    /**
-//     * This method is called from JNI when {@code realm::app::NetworkTransport} wants to execute a network
-//     * request.
-//     *
-//     * WARNING: All threading is the responsibility of the SDK. This should therefor always be called on a
-//     * looper thread and the request itself should be moved to a worker thread.
-//     *
-//     * This method is not allowed to throw and doing so will result in undefined behavior. All errors
-//     * should be reported using {@link nativeNotifyError}
-//     *
-//     * @param method
-//     * @param url
-//     * @param timeoutMs
-//     * @param headers
-//     * @param body
-//     */
-//    @SuppressWarnings("unused")
-//    public void executeRequest(String method, String url, int timeoutMs, Map<String, String> headers, String body) {
-//        checkLooperThread("Starting async network requests can only be done from a Looper thread.");
-//        return new Request<Void>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
-//            @Override
-//            public RealmUser run() throws ObjectServerError {
-//                sendRequest(method, url, timeoutMs, headers, body);
-//
-//
-//                return login(credentials);
-//            }
-//        }.start();
-//    }
-
-
-    private static void checkLooperThread(String errorMessage) {
-        AndroidCapabilities capabilities = new AndroidCapabilities();
-        capabilities.checkCanDeliverNotification(errorMessage);
-    }
+    protected abstract Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body);
 
     public static class Response {
-
-        private final int code;
+        private final int httpResponseCode;
+        private final int customResponseCode;
         private final Map<String, String> headers;
         private final String body;
 
         public static Response unknownError(String stacktrace) {
-            return new Response(ERROR_UNKNOWN, new HashMap<>(), stacktrace);
+            return new Response(0, ERROR_UNKNOWN, new HashMap<>(), stacktrace);
         }
 
         public static Response ioError(String stackTrace) {
-            return new Response(ERROR_IO, new HashMap<>(), stackTrace);
+            return new Response(0, ERROR_IO, new HashMap<>(), stackTrace);
         }
 
         public static Response interruptedError(String stackTrace) {
-            return new Response(ERROR_INTERRUPTED, new HashMap<>(), stackTrace);
+            return new Response(0, ERROR_INTERRUPTED, new HashMap<>(), stackTrace);
         }
 
         public static Response httpResponse(int statusCode, Map<String, String> responseHeaders, String body) {
-            return new Response(statusCode, responseHeaders, body);
+            return new Response(statusCode, 0, responseHeaders, body);
         }
 
-        private Response(int code, Map<String, String> headers, String body) {
-            this.code = code;
+        private Response(int httpResponseCode, int customResponseCode, Map<String, String> headers, String body) {
+            this.httpResponseCode = httpResponseCode;
+            this.customResponseCode = customResponseCode;
             this.headers = headers;
             this.body = body;
         }
 
-        public int getCode() {
-            return code;
+        public int getHttpResponseCode() {
+            return httpResponseCode;
+        }
+
+        public int getCustomResponseCode() {
+            return customResponseCode;
         }
 
         public Map<String, String> getHeaders() {
@@ -131,9 +100,10 @@ public abstract class OsJavaNetworkTransport {
      *
      * The callback will happen on the thread running the network request, not the intended receiver thread.
      */
+    // Abstract because these methods needs to be called from JNI and we cannot look up interface methods.
     @Keep
-    public interface NetworkTransportJNIResultCallback {
-        void onSuccess(Object result);
-        void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage);
+    public static abstract class NetworkTransportJNIResultCallback {
+        public void onSuccess(Object result) {}
+        public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {}
     }
 }

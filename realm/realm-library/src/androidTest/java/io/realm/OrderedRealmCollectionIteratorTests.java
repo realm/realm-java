@@ -16,8 +16,8 @@
 
 package io.realm;
 
-import android.support.test.annotation.UiThreadTest;
-import android.support.test.rule.UiThreadTestRule;
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.rule.UiThreadTestRule;
 
 import org.junit.After;
 import org.junit.Before;
