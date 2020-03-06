@@ -101,10 +101,18 @@ task sourcesJar(type: Jar) {
 }
 
 dokka {
-    // TODO Filtering is currently not possible https://youtrack.jetbrains.com/issue/KT-21022
-    // This means we cannot filter R/BuildConfig files for the time being
     outputFormat = 'html'
-    outputDirectory = "$buildDir/dokka"
+    outputDirectory = "$buildDir/docs"
+    configuration {
+        externalDocumentationLink {
+            noJdkLink = true
+            noStdlibLink = true
+            noAndroidSdkLink = true
+            // Workaround until https://github.com/Kotlin/dokka/issues/709 is fixed
+            url = new URL("https://kotlinlang.org/api/latest/jvm/stdlib/")
+            packageListUrl = new URL("file://${rootDir}/kotlin-extensions/lib/package-list.txt")
+        }
+    }
 }
 
 task javadocJar(type: Jar, dependsOn: dokka) {

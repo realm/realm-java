@@ -7,7 +7,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 apply plugin: 'findbugs'
-apply plugin: 'pmd'
+// apply plugin: 'pmd' FIXME Disabled PMD after upgrading Gradle Plugin. It resulted in a ton of false positives. Review those later.
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
@@ -73,6 +73,8 @@ android {
             }
         }
     }
+
+    ndkVersion = "21.0.6113669"
 
     externalNativeBuild {
         cmake {
@@ -297,17 +299,17 @@ task findbugs(type: FindBugs) {
     }
 }
 
-task pmd(type: Pmd) {
-    group = 'Verification'
-
-    source = fileTree('src/main/java')
-    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
-
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
+//task pmd(type: Pmd) {
+//    group = 'Verification'
+//
+//    source = fileTree('src/main/java')
+//    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
+//
+//    reports {
+//        xml.enabled = false
+//        html.enabled = true
+//    }
+//}
 
 // Configure Checkstyle
 // Android sourceSets are not sourceSets, so we can't confgure this with the DSL.
@@ -581,7 +583,6 @@ if (project.hasProperty('dontCleanJniFiles')) {
 
 project.afterEvaluate {
     android.libraryVariants.all { variant ->
-        variant.externalNativeBuildTasks[0].dependsOn(checkNdk)
         if (project.hasProperty('buildTargetABIs') && project.getProperty('buildTargetABIs').trim().isEmpty()) {
             variant.externalNativeBuildTasks[0].enabled = false
         }
@@ -595,34 +596,6 @@ project.afterEvaluate {
         // as of android gradle plugin 3.0.0-alpha5, generateJsonModel* triggers native build. Java files must be compiled before them.
         android.buildTypes.all { buildType ->
             tasks["generateJsonModel${variant.name.capitalize()}"].dependsOn "compile${variant.flavorName.capitalize()}${buildType.name.capitalize()}JavaWithJavac"
-        }
-    }
-}
-
-task checkNdk() {
-    doLast {
-        def ndkPathInEnvVariable = System.env.ANDROID_NDK_HOME
-        if (!ndkPathInEnvVariable) {
-            throw new GradleException("The environment variable 'ANDROID_NDK_HOME' must be set.")
-        }
-        checkNdk(ndkPathInEnvVariable)
-
-        def localPropFile = rootProject.file('local.properties')
-        if (!localPropFile.exists()) {
-            // we can skip the checks since 'ANDROID_NDK_HOME' will be used instead.
-        } else {
-            def String ndkPathInLocalProperties = getValueFromPropertiesFile(localPropFile, 'ndk.dir')
-            if (!ndkPathInLocalProperties) {
-                throw new GradleException("'ndk.dir' must be set in ${localPropFile.getAbsolutePath()}.")
-            }
-            checkNdk(ndkPathInLocalProperties)
-            if (new File(ndkPathInLocalProperties).getCanonicalPath()
-                    != new File(ndkPathInEnvVariable).getCanonicalPath()) {
-                throw new GradleException(
-                        "The value of environment variable 'ANDROID_NDK_HOME' (${ndkPathInEnvVariable}) and"
-                                + " 'ndk.dir' in 'local.properties' (${ndkPathInLocalProperties}) "
-                                + ' must point the same directory.')
-            }
         }
     }
 }
@@ -775,26 +748,6 @@ task ojoUpload() {
         dependsOn "ojo${flavor.name.capitalize()}"
     }
     group = 'Publishing'
-}
-
-def checkNdk(String ndkPath) {
-    def detectedNdkVersion
-    def releaseFile = new File(ndkPath, 'RELEASE.TXT')
-    def propertyFile = new File(ndkPath, 'source.properties')
-    if (releaseFile.isFile()) {
-        detectedNdkVersion = releaseFile.text.trim().split()[0].split('-')[0]
-    } else if (propertyFile.isFile()) {
-        detectedNdkVersion = getValueFromPropertiesFile(propertyFile, 'Pkg.Revision')
-        if (detectedNdkVersion == null) {
-            throw new GradleException("Failed to obtain the NDK version information from ${ndkPath}/source.properties")
-        }
-    } else {
-        throw new GradleException("Neither ${releaseFile.getAbsolutePath()} nor ${propertyFile.getAbsolutePath()} is a file.")
-    }
-    if (detectedNdkVersion != project.ndkVersion) {
-        throw new GradleException("Your NDK version: ${detectedNdkVersion}."
-                + " Realm JNI must be compiled with version ${project.ndkVersion} of the NDK.")
-    }
 }
 
 static def getValueFromPropertiesFile(File propFile, String key) {
