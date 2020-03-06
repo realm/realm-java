@@ -1,7 +1,7 @@
 package io.realm.kotlin
 
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.objectserver.utils.Constants
 import org.junit.After
@@ -23,7 +23,7 @@ class KotlinSyncedRealmTests {
 
     @Before
     fun setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext())
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         val user = SyncTestUtils.createTestUser()
         realm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM).build())
     }
