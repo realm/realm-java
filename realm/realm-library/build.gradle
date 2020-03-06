@@ -7,7 +7,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 apply plugin: 'findbugs'
-apply plugin: 'pmd'
+// apply plugin: 'pmd' FIXME Disabled PMD after upgrading Gradle Plugin. It resulted in a ton of false positives. Review those later.
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
