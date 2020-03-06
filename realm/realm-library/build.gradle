@@ -299,17 +299,17 @@ task findbugs(type: FindBugs) {
     }
 }
 
-task pmd(type: Pmd) {
-    group = 'Verification'
-
-    source = fileTree('src/main/java')
-    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
-
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
+//task pmd(type: Pmd) {
+//    group = 'Verification'
+//
+//    source = fileTree('src/main/java')
+//    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
+//
+//    reports {
+//        xml.enabled = false
+//        html.enabled = true
+//    }
+//}
 
 // Configure Checkstyle
 // Android sourceSets are not sourceSets, so we can't confgure this with the DSL.
