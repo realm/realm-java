@@ -93,7 +93,7 @@ public class SyncedRealmTests {
         File realmDir = config.getRealmDirectory();
         File oldRealmFile = new File(realmDir, "optionalsubscriptionfields");
         assertFalse(oldRealmFile.exists());
-        configFactory.copyFileFromAssets(InstrumentationRegistry.getTargetContext().getApplicationContext(), "optionalsubscriptionfields.realm", oldRealmFile);
+        configFactory.copyFileFromAssets(InstrumentationRegistry.getInstrumentation().getTargetContext().getApplicationContext(), "optionalsubscriptionfields.realm", oldRealmFile);
         assertTrue(oldRealmFile.exists());
 
         try {

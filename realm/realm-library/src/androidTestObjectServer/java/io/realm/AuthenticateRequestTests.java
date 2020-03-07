@@ -31,7 +31,7 @@ public class AuthenticateRequestTests {
 
     @Before
     public void setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
     }
 
     // Tests based on the schemas described here: https://github.com/realm/realm-sync-services/blob/master/doc/index.apib

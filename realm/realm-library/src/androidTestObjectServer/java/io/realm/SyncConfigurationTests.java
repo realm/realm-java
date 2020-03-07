@@ -63,7 +63,7 @@ public class SyncConfigurationTests {
 
     @Before
     public void setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
     }
 
     @After
@@ -100,7 +100,7 @@ public class SyncConfigurationTests {
 
             SyncConfiguration config = user.createConfiguration(serverUrl).build();
 
-            assertEquals(new File(InstrumentationRegistry.getContext().getFilesDir(), expectedFolder), config.getRealmDirectory());
+            assertEquals(new File(InstrumentationRegistry.getInstrumentation().getContext().getFilesDir(), expectedFolder), config.getRealmDirectory());
             assertEquals(expectedFileName, config.getRealmFileName());
         }
     }

@@ -94,7 +94,7 @@ public class SyncUserTests {
     @Before
     public void setUp() {
         BaseRealm.applicationContext = null;
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
         UserStore userStore = SyncManager.getUserStore();
         for (SyncUser syncUser : userStore.allUsers()) {
             userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
@@ -488,7 +488,7 @@ public class SyncUserTests {
     public void logoutUserShouldDeleteRealmAfterRestart() throws InterruptedException {
         SyncManager.reset();
         BaseRealm.applicationContext = null; // Required for Realm.init() to work
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
 
         SyncUser user = createTestUser();
         SyncConfiguration syncConfiguration = user.createConfiguration("realm://127.0.0.1:9080/~/tests")
@@ -511,7 +511,7 @@ public class SyncUserTests {
         // simulate an app restart
         SyncManager.reset();
         BaseRealm.applicationContext = null;
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
 
         //now the file should be deleted
         assertFalse(realmPath.exists());
