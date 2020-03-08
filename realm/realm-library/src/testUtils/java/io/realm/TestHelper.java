@@ -474,7 +474,7 @@ public class TestHelper {
      */
     @Deprecated
     public static RealmConfiguration createConfiguration(File dir, String name, byte[] key) {
-        RealmConfiguration.Builder config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder(InstrumentationRegistry.getInstrumentation().getTargetContext())
                 .directory(dir)
                 .name(name);
         if (key != null) {

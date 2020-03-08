@@ -91,7 +91,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
             jint custom_code = env->CallIntMethod(response, custom_code_method);
             JStringAccessor java_body(env, (jstring) env->CallObjectMethod(response, body_method));
             jobject java_headers = env->CallObjectMethod(response, headers_method);
-
+            (void) java_headers; // FIXME
             auto response_headers = std::map<std::string, std::string>();
             std::string body = java_body;
             completionBlock(Response{(int) http_code, (int) custom_code, response_headers, body});

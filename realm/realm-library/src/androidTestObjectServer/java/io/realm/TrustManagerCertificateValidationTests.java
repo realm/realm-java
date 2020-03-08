@@ -19,7 +19,7 @@ public class TrustManagerCertificateValidationTests {
         // mainly to setup logging otherwise
         // java.lang.UnsatisfiedLinkError: No implementation found for void io.realm.log.RealmLog.nativeSetLogLevel(int) (tried Java_io_realm_log_RealmLog_nativeSetLogLevel and Java_io_realm_log_RealmLog_nativeSetLogLevel__I)
         // will be thrown
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
     }
 
     // IMPORTANT: Following test assume the root certificate is installed on the test device

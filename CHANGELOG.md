@@ -14,8 +14,12 @@
 * TODO.
 
 ### Internal
-* OKHttp was upgraded to 3.14.2 from 3.10.0.
-
+* OKHttp was upgraded to 3.12.0 from 3.10.0.
+* Updated Android Gradle Plugin to 3.6.1.
+* Updated Gradle to 5.6.4 
+* Updated Dokka to 0.10.1
+* Updated Android Build Tools to 29.0.2.
+* Updated compileSdkVersion to 29.
 
 ## 7.0.0(YYYY-MM-DD)
 

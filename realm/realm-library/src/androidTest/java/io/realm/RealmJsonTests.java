@@ -81,7 +81,7 @@ public class RealmJsonTests {
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getTargetContext();
+        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }

@@ -12,6 +12,6 @@ include 'newsreaderExample'
 include 'rxJavaExample'
 //include 'secureTokenAndroidKeyStore'
 include 'threadExample'
-include 'unitTestExample'
+// include 'unitTestExample' Disable project because fixing it requires AndroidX
 include 'objectServerExample'
 include 'multiprocessExample'

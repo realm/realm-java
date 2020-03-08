@@ -87,7 +87,7 @@ public class RealmConfigurationTests {
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getTargetContext();
+        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         defaultConfig = configFactory.createConfiguration();
     }
 

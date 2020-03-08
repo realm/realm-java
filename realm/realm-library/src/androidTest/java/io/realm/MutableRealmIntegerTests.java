@@ -397,7 +397,7 @@ public class MutableRealmIntegerTests {
 
     @Test
     public void testStream() throws IOException {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
         InputStream in = TestHelper.loadJsonFromAssets(context, "empty.json");
         realm.beginTransaction();

@@ -73,7 +73,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
     @Override
     protected void before() throws Throwable {
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
         super.before();
     }
 

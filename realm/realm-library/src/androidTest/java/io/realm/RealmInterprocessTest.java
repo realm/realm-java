@@ -234,7 +234,7 @@ public class RealmInterprocessTest {
     }
 
     private Context getContext() {
-        return InstrumentationRegistry.getTargetContext();
+        return InstrumentationRegistry.getInstrumentation().getTargetContext();
     }
 
     // Gets the remote process info if it is alive.

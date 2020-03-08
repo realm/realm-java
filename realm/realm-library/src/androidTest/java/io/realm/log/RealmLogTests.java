@@ -20,7 +20,7 @@ public class RealmLogTests {
 
     @Before
     public void setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
     }
 
     @Test

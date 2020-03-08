@@ -28,7 +28,7 @@ class KotlinRealmQueryTests {
 
     @Before
     fun setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext())
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         realm = Realm.getInstance(configFactory.createConfiguration())
     }
 
