@@ -14,7 +14,10 @@
 * TODO.
 
 ### Internal
-* None.
+* Updated Android Gradle Plugin to 3.6.1.
+* Updated Gradle to 5.6.4 
+* Updated Dokka to 0.10.1
+* Updated Android Build Tools to 29.0.2.
 
 ## 7.0.0(YYYY-MM-DD)
 

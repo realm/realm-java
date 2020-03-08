@@ -69,7 +69,7 @@ capitalizeFirstLetter(buildTypeCap "${CMAKE_BUILD_TYPE}")
 # Generate JNI header files. Each build has its own JNI header in its build_dir/jni_include.
 # WARNING: The classes_PATH is not part the public API offered by the Android Gradle Plugin
 # so it might change without warning when upgrading the plugin.
-set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/javac/${REALM_FLAVOR}${buildTypeCap}/compile${realmFlavorCap}${buildTypeCap}JavaWithJavac/classes/)
+set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/javac/${REALM_FLAVOR}${buildTypeCap}/classes/)
 set(classes_LIST
     io.realm.RealmQuery
     io.realm.internal.Table io.realm.internal.CheckedRow
@@ -122,9 +122,10 @@ get_target_property(ssl_LIB OpenSSL::SSL IMPORTED_LOCATION)
 
 # build application's shared lib
 include_directories(
-    ${CMAKE_SOURCE_DIR}
-    ${jni_headers_PATH}
-    ${CMAKE_SOURCE_DIR}/object-store/src)
+        ${CMAKE_SOURCE_DIR}
+        ${jni_headers_PATH}
+        ${CMAKE_SOURCE_DIR}/object-store/src
+        ${CMAKE_SOURCE_DIR}/object-store/external/json)
 
 # Hack the memmove bug on Samsung device.
 if (ARMEABI OR ARMEABI_V7A)

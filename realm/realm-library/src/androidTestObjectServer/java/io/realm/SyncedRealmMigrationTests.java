@@ -16,10 +16,11 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -46,6 +47,7 @@ import static org.junit.Assert.fail;
 /**
  * Testing methods around migrations for Realms using a {@link SyncConfiguration}.
  */
+@Ignore("FIXME: RealmApp refactor")
 @RunWith(AndroidJUnit4.class)
 public class SyncedRealmMigrationTests {
 

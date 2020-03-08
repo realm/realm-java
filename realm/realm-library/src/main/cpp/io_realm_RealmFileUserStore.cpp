@@ -69,12 +69,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmFileUserStore_nativeGetUser(JNIEnv*
 
 JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeUpdateOrCreateUser(JNIEnv* env, jclass,
                                                                                  jstring j_user_id,
-                                                                                 jstring j_refresh_json_token,
+                                                                                 jstring /*j_refresh_json_token*/,
                                                                                  jstring j_auth_url)
 {
     try {
-        JStringAccessor refresh_json_token(env, j_refresh_json_token); // throws
-        SyncManager::shared().get_user(create_sync_user_identifier(env, j_user_id, j_auth_url), refresh_json_token, refresh_json_token);
+// FIXME
+//        JStringAccessor refresh_json_token(env, j_refresh_json_token); // throws
+        std::string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODE1MDc3OTYsImlhdCI6MTU4MTUwNTk5NiwiaXNzIjoiNWU0M2RkY2M2MzZlZTEwNmVhYTEyYmRjIiwic3RpdGNoX2RldklkIjoiMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwic3RpdGNoX2RvbWFpbklkIjoiNWUxNDk5MTNjOTBiNGFmMGViZTkzNTI3Iiwic3ViIjoiNWU0M2RkY2M2MzZlZTEwNmVhYTEyYmRhIiwidHlwIjoiYWNjZXNzIn0.0q3y9KpFxEnbmRwahvjWU1v9y1T1s3r2eozu93vMc3s";
+        SyncManager::shared().get_user(create_sync_user_identifier(env, j_user_id, j_auth_url), token, token);
     }
     CATCH_STD()
 }

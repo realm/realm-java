@@ -331,7 +331,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             if (access_token_string) {
                 // reusing cached valid token
                 JStringAccessor access_token(env, access_token_string);
-                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url()));
+                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));
                 env->DeleteLocalRef(access_token_string);
             }
             env->DeleteLocalRef(jpath);
@@ -388,7 +388,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             std::copy_n(config.encryption_key.begin(), 64, config.sync_config->realm_encryption_key->begin());
         }
 
-        return to_jstring(env, config.sync_config->realm_url().c_str());
+        return to_jstring(env, config.sync_config->realm_url.c_str());
     }
     CATCH_STD()
     return nullptr;

@@ -25,7 +25,7 @@ android {
         versionName version
         project.archivesBaseName = "realm-kotlin-extensions"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         debug {
@@ -45,21 +45,21 @@ android {
         base {
             dimension 'api'
         }
-//        objectServer {
-//            dimension 'api'
-//        }
+        objectServer {
+            dimension 'api'
+        }
     }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         androidTest.java.srcDirs += ['src/androidTest/kotlin', '../realm-library/src/testUtils/java']
-//        objectServer.java.srcDirs += 'src/objectServer/kotlin'
-//        androidTestObjectServer.java.srcDirs += [
-//                'src/androidTestObjectServer/kotlin',
-//                '../realm-library/src/testUtils/java',
-//                '../realm-library/src/testUtils/kotlin',
-//                '../realm-library/src/syncTestUtils/java',
-//        ]
+        objectServer.java.srcDirs += 'src/objectServer/kotlin'
+        androidTestObjectServer.java.srcDirs += [
+                'src/androidTestObjectServer/kotlin',
+                '../realm-library/src/testUtils/java',
+                '../realm-library/src/testUtils/kotlin',
+                '../realm-library/src/syncTestUtils/java',
+        ]
     }
 
     // Required from Kotlin 1.1.2
@@ -73,13 +73,13 @@ dependencies {
     implementation project(':realm-library')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     androidTestImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test:rules:1.0.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-//    androidTestObjectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
-//    androidTestObjectServerImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
-//    androidTestObjectServerImplementation 'com.google.code.findbugs:jsr305:3.0.2'
+    androidTestObjectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
+    androidTestObjectServerImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
+    androidTestObjectServerImplementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
 
 repositories {
@@ -95,16 +95,24 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 
 
 task sourcesJar(type: Jar) {
-//    from android.sourceSets.objectServer.java.srcDirs
+    from android.sourceSets.objectServer.java.srcDirs
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
 
 dokka {
-    // TODO Filtering is currently not possible https://youtrack.jetbrains.com/issue/KT-21022
-    // This means we cannot filter R/BuildConfig files for the time being
     outputFormat = 'html'
-    outputDirectory = "$buildDir/dokka"
+    outputDirectory = "$buildDir/docs"
+    configuration {
+        externalDocumentationLink {
+            noJdkLink = true
+            noStdlibLink = true
+            noAndroidSdkLink = true
+            // Workaround until https://github.com/Kotlin/dokka/issues/709 is fixed
+            url = new URL("https://kotlinlang.org/api/latest/jvm/stdlib/")
+            packageListUrl = new URL("file://${rootDir}/kotlin-extensions/lib/package-list.txt")
+        }
+    }
 }
 
 task javadocJar(type: Jar, dependsOn: dokka) {
@@ -188,16 +196,16 @@ publishing {
             pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
 
-//        objectServerPublication(MavenPublication) {
-//            groupId 'io.realm'
-//            artifactId 'realm-android-kotlin-extensions-object-server'
-//            version project.version
-//            artifact file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-objectServer-release.aar")
-//            artifact sourcesJar
-//            artifact javadocJar
-//
-//            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
-//        }
+        objectServerPublication(MavenPublication) {
+            groupId 'io.realm'
+            artifactId 'realm-android-kotlin-extensions-object-server'
+            version project.version
+            artifact file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-objectServer-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
+        }
     }
     repositories {
         maven {

@@ -15,8 +15,8 @@
  */
 package io.realm;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Ignore;
@@ -41,6 +41,7 @@ import static org.junit.Assert.fail;
 /**
  * Testing sync specific methods on {@link Realm}.
  */
+@Ignore("FIXME: RealmApp refactor")
 @RunWith(AndroidJUnit4.class)
 public class SyncedRealmTests {
 
@@ -93,7 +94,7 @@ public class SyncedRealmTests {
         File realmDir = config.getRealmDirectory();
         File oldRealmFile = new File(realmDir, "optionalsubscriptionfields");
         assertFalse(oldRealmFile.exists());
-        configFactory.copyFileFromAssets(InstrumentationRegistry.getTargetContext().getApplicationContext(), "optionalsubscriptionfields.realm", oldRealmFile);
+        configFactory.copyFileFromAssets(InstrumentationRegistry.getInstrumentation().getTargetContext().getApplicationContext(), "optionalsubscriptionfields.realm", oldRealmFile);
         assertTrue(oldRealmFile.exists());
 
         try {

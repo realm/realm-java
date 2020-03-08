@@ -7,7 +7,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 apply plugin: 'findbugs'
-apply plugin: 'pmd'
+// apply plugin: 'pmd' FIXME Disabled PMD after upgrading Gradle Plugin. It resulted in a ton of false positives. Review those later.
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
@@ -46,7 +46,7 @@ android {
         targetSdkVersion rootProject.compileSdkVersion
         versionName version
         project.archivesBaseName = "realm-android-library"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
                 arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}",
@@ -74,6 +74,8 @@ android {
         }
     }
 
+    ndkVersion = "21.0.6113669"
+
     externalNativeBuild {
         cmake {
             path 'src/main/cpp/CMakeLists.txt'
@@ -97,10 +99,10 @@ android {
         androidTest {
             java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java', 'src/testUtils/kotlin']
         }
-//        androidTestObjectServer {
-//            java.srcDirs += ['src/syncIntegrationTest/java', 'src/syncTestUtils/java']
-//            assets.srcDirs += ['src/syncIntegrationTest/assets/']
-//        }
+        androidTestObjectServer {
+            java.srcDirs += [/* FIXME 'src/syncIntegrationTest/java', */'src/syncTestUtils/java']
+            assets.srcDirs += ['src/syncIntegrationTest/assets/']
+        }
     }
 
     compileOptions {
@@ -133,16 +135,16 @@ android {
             consumerProguardFiles 'proguard-rules-consumer-common.pro', 'proguard-rules-consumer-base.pro'
             proguardFiles 'proguard-rules-build-common.pro'
         }
-//        objectServer {
-//            dimension 'api'
-//            externalNativeBuild {
-//                cmake {
-//                    arguments "-DREALM_FLAVOR=objectServer"
-//                }
-//            }
-//            consumerProguardFiles 'proguard-rules-consumer-common.pro', 'proguard-rules-consumer-objectServer.pro'
-//            proguardFiles 'proguard-rules-build-common.pro', 'proguard-rules-build-objectServer.pro'
-//        }
+        objectServer {
+            dimension 'api'
+            externalNativeBuild {
+                cmake {
+                    arguments "-DREALM_FLAVOR=objectServer"
+                }
+            }
+            consumerProguardFiles 'proguard-rules-consumer-common.pro', 'proguard-rules-consumer-objectServer.pro'
+            proguardFiles 'proguard-rules-build-common.pro', 'proguard-rules-build-objectServer.pro'
+        }
     }
 
     variantFilter { variant ->
@@ -209,13 +211,13 @@ dependencies {
     }
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
-//    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
 
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
     androidTestImplementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test:rules:1.0.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
@@ -228,7 +230,7 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
-//    from android.sourceSets.objectServer.java.srcDirs
+    from android.sourceSets.objectServer.java.srcDirs
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
@@ -239,7 +241,7 @@ def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This soft
         'considered at production quality, and should be used with care.</div>'
 
 task javadoc(type: Javadoc) {
-//    source android.sourceSets.objectServer.java.srcDirs
+    source android.sourceSets.objectServer.java.srcDirs
     source android.sourceSets.main.java.srcDirs
     source "../../realm-annotations/src/main/java"
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
@@ -297,17 +299,17 @@ task findbugs(type: FindBugs) {
     }
 }
 
-task pmd(type: Pmd) {
-    group = 'Verification'
-
-    source = fileTree('src/main/java')
-    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
-
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
+//task pmd(type: Pmd) {
+//    group = 'Verification'
+//
+//    source = fileTree('src/main/java')
+//    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
+//
+//    reports {
+//        xml.enabled = false
+//        html.enabled = true
+//    }
+//}
 
 // Configure Checkstyle
 // Android sourceSets are not sourceSets, so we can't confgure this with the DSL.
@@ -409,16 +411,16 @@ publishing {
             pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
         }
 
-//        objectServerPublication(MavenPublication) {
-//            groupId 'io.realm'
-//            artifactId 'realm-android-library-object-server'
-//            version project.version
-//            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
-//            artifact sourcesJar
-//            artifact javadocJar
-//
-//            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
-//        }
+        objectServerPublication(MavenPublication) {
+            groupId 'io.realm'
+            artifactId 'realm-android-library-object-server'
+            version project.version
+            artifact file("${rootDir}/realm-library/build/outputs/aar/realm-android-library-objectServer-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
+        }
     }
     repositories {
         maven {
@@ -581,48 +583,24 @@ if (project.hasProperty('dontCleanJniFiles')) {
 
 project.afterEvaluate {
     android.libraryVariants.all { variant ->
-        variant.externalNativeBuildTasks[0].dependsOn(checkNdk)
         if (project.hasProperty('buildTargetABIs') && project.getProperty('buildTargetABIs').trim().isEmpty()) {
-            variant.externalNativeBuildTasks[0].enabled = false
+            variant.externalNativeBuildProviders[0].configure {
+                enabled = false
+            }
         }
 
         // all Java files must be compiled before native build
+        // See https://github.com/android/ndk-samples/issues/284
         android.libraryVariants.all { anotherVariant ->
             if (variant.flavorName == anotherVariant.flavorName) {
-                variant.externalNativeBuildTasks[0].dependsOn("compile${anotherVariant.name.capitalize()}JavaWithJavac")
+                variant.externalNativeBuildProviders[0].configure {
+                    dependsOn "compile${anotherVariant.name.capitalize()}JavaWithJavac"
+                }
             }
         }
         // as of android gradle plugin 3.0.0-alpha5, generateJsonModel* triggers native build. Java files must be compiled before them.
         android.buildTypes.all { buildType ->
             tasks["generateJsonModel${variant.name.capitalize()}"].dependsOn "compile${variant.flavorName.capitalize()}${buildType.name.capitalize()}JavaWithJavac"
-        }
-    }
-}
-
-task checkNdk() {
-    doLast {
-        def ndkPathInEnvVariable = System.env.ANDROID_NDK_HOME
-        if (!ndkPathInEnvVariable) {
-            throw new GradleException("The environment variable 'ANDROID_NDK_HOME' must be set.")
-        }
-        checkNdk(ndkPathInEnvVariable)
-
-        def localPropFile = rootProject.file('local.properties')
-        if (!localPropFile.exists()) {
-            // we can skip the checks since 'ANDROID_NDK_HOME' will be used instead.
-        } else {
-            def String ndkPathInLocalProperties = getValueFromPropertiesFile(localPropFile, 'ndk.dir')
-            if (!ndkPathInLocalProperties) {
-                throw new GradleException("'ndk.dir' must be set in ${localPropFile.getAbsolutePath()}.")
-            }
-            checkNdk(ndkPathInLocalProperties)
-            if (new File(ndkPathInLocalProperties).getCanonicalPath()
-                    != new File(ndkPathInEnvVariable).getCanonicalPath()) {
-                throw new GradleException(
-                        "The value of environment variable 'ANDROID_NDK_HOME' (${ndkPathInEnvVariable}) and"
-                                + " 'ndk.dir' in 'local.properties' (${ndkPathInLocalProperties}) "
-                                + ' must point the same directory.')
-            }
         }
     }
 }
@@ -775,26 +753,6 @@ task ojoUpload() {
         dependsOn "ojo${flavor.name.capitalize()}"
     }
     group = 'Publishing'
-}
-
-def checkNdk(String ndkPath) {
-    def detectedNdkVersion
-    def releaseFile = new File(ndkPath, 'RELEASE.TXT')
-    def propertyFile = new File(ndkPath, 'source.properties')
-    if (releaseFile.isFile()) {
-        detectedNdkVersion = releaseFile.text.trim().split()[0].split('-')[0]
-    } else if (propertyFile.isFile()) {
-        detectedNdkVersion = getValueFromPropertiesFile(propertyFile, 'Pkg.Revision')
-        if (detectedNdkVersion == null) {
-            throw new GradleException("Failed to obtain the NDK version information from ${ndkPath}/source.properties")
-        }
-    } else {
-        throw new GradleException("Neither ${releaseFile.getAbsolutePath()} nor ${propertyFile.getAbsolutePath()} is a file.")
-    }
-    if (detectedNdkVersion != project.ndkVersion) {
-        throw new GradleException("Your NDK version: ${detectedNdkVersion}."
-                + " Realm JNI must be compiled with version ${project.ndkVersion} of the NDK.")
-    }
 }
 
 static def getValueFromPropertiesFile(File propFile, String key) {

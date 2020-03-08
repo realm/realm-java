@@ -16,11 +16,12 @@
 
 package io.realm;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -39,11 +40,10 @@ import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.TestRealmConfigurationFactory;
 
-import static io.realm.SyncTestUtils.createTestUser;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static io.realm.SyncTestUtils.*;
+import static org.junit.Assert.*;
 
+@Ignore("FIXME: RealmApp refactor")
 @RunWith(AndroidJUnit4.class)
 public class SyncManagerTests {
 
@@ -97,7 +97,7 @@ public class SyncManagerTests {
         }
         SyncManager.reset();
         BaseRealm.applicationContext = null; // Required for Realm.init() to work
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
     }
 
     @Test
@@ -172,7 +172,7 @@ public class SyncManagerTests {
     @Test
     public void session() throws IOException {
         BaseRealm.applicationContext = null;
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
         SyncUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
         SyncConfiguration config = user.createConfiguration(url)
