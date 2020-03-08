@@ -54,6 +54,7 @@ class PluginTest {
         project.buildscript {
             repositories {
                 mavenLocal()
+                mavenCentral()
                 google()
                 jcenter()
             }
@@ -90,6 +91,7 @@ class PluginTest {
         project.buildscript {
             repositories {
                 mavenLocal()
+                mavenCentral()
                 jcenter()
             }
             dependencies {
@@ -114,6 +116,7 @@ class PluginTest {
                 maven {
                     url 'https://maven.google.com/'
                 }
+                mavenCentral()
                 jcenter()
             }
             dependencies {
@@ -139,7 +142,7 @@ class PluginTest {
 
         project.evaluate()
 
-        assertEquals(2, project.buildscript.repositories.size())
+        assertEquals(3, project.buildscript.repositories.size())
         assertEquals(4, project.repositories.size()) // The Android plugin adds 3 different local repos
         assertEquals('jcenter.bintray.com', project.repositories.last().url.host)
     }
@@ -148,6 +151,7 @@ class PluginTest {
     void pluginAddsRightRepositories_withRepositoriesSet() {
         project.buildscript {
             repositories {
+                mavenCentral()
                 jcenter()
                 maven {
                     url 'https://maven.google.com/'
@@ -180,7 +184,7 @@ class PluginTest {
 
         project.evaluate()
 
-        assertEquals(2, project.buildscript.repositories.size())
+        assertEquals(3, project.buildscript.repositories.size())
         assertEquals('maven.google.com', project.buildscript.repositories.last().url.host)
 
         assertEquals(4, project.repositories.size())
@@ -192,6 +196,7 @@ class PluginTest {
     void pluginAddsRightRepositories_withFlatDirs() {
         project.buildscript {
             repositories {
+                mavenCentral()
                 jcenter()
                 maven {
                     url 'https://maven.google.com/'
@@ -227,7 +232,7 @@ class PluginTest {
 
         project.evaluate()
 
-        assertEquals(2, project.buildscript.repositories.size())
+        assertEquals(3, project.buildscript.repositories.size())
         assertEquals('maven.google.com', project.buildscript.repositories.last().url.host)
 
         assertEquals(5, project.repositories.size())
@@ -239,6 +244,7 @@ class PluginTest {
     void pluginAddsRightRepositories_withRepositoriesSetAfterPluginIsApplied() {
         project.buildscript {
             repositories {
+                mavenCentral()
                 maven {
                     url 'https://maven.google.com/'
                 }
@@ -271,7 +277,7 @@ class PluginTest {
 
         project.evaluate()
 
-        assertEquals(2, project.buildscript.repositories.size())
+        assertEquals(3, project.buildscript.repositories.size())
         assertEquals('maven.google.com', project.buildscript.repositories.first().url.host)
 
         assertEquals(4, project.repositories.size())
