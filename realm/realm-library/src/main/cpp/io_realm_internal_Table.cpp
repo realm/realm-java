@@ -177,15 +177,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSize(JNIEnv*, jobject
     return static_cast<jlong>(table->size()); // noexcept
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClear(JNIEnv* env, jobject, jlong nativeTableRefPtr, jboolean is_partial_realm)
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClear(JNIEnv* env, jobject, jlong nativeTableRefPtr)
 {
     try {
         TableRef table = TBL_REF(nativeTableRefPtr);
-        if (is_partial_realm) {
-            table->where().find_all().clear();
-        } else {
-            table->clear();
-        }
+        table->clear();
     }
     CATCH_STD()
 }

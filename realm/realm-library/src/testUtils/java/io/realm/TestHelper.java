@@ -20,7 +20,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Looper;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Assert;
 
@@ -73,7 +73,7 @@ import static junit.framework.Assert.fail;
 public class TestHelper {
     public static final int VERY_SHORT_WAIT_SECS = 1;
     public static final int SHORT_WAIT_SECS = 10;
-    public static final int STANDARD_WAIT_SECS = 100;
+    public static final int STANDARD_WAIT_SECS = 200;
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
     private static final Random RANDOM = new Random();
@@ -474,7 +474,7 @@ public class TestHelper {
      */
     @Deprecated
     public static RealmConfiguration createConfiguration(File dir, String name, byte[] key) {
-        RealmConfiguration.Builder config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder(InstrumentationRegistry.getInstrumentation().getTargetContext())
                 .directory(dir)
                 .name(name);
         if (key != null) {

@@ -15,10 +15,11 @@
  */
 package io.realm;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -29,22 +30,18 @@ import java.io.IOException;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
-import io.realm.objectserver.model.PartialSyncObjectA;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.RunTestInLooperThread;
-import io.realm.sync.Subscription;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
  * Testing sync specific methods on {@link Realm}.
  */
+@Ignore("FIXME: RealmApp refactor")
 @RunWith(AndroidJUnit4.class)
 public class SyncedRealmTests {
 
@@ -75,16 +72,8 @@ public class SyncedRealmTests {
         return realm;
     }
 
-    private Realm getPartialRealm() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/fullsync")
-                .build();
-        realm = Realm.getInstance(config);
-        return realm;
-    }
-
     private Realm getFullySyncRealm() {
         SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/fullsync")
-                .fullSynchronization()
                 .build();
         realm = Realm.getInstance(config);
         return realm;
@@ -92,7 +81,8 @@ public class SyncedRealmTests {
 
     // Test for https://github.com/realm/realm-java/issues/6619
     @Test
-    public void testUpgragendingOptionalSubscriptionFields() throws IOException {
+    @Ignore("Going to be removed anyway")
+    public void testUpgradingOptionalSubscriptionFields() throws IOException {
         SyncUser user = SyncTestUtils.createTestUser();
 
         // Put an older Realm at the location where Realm would otherwise create a new empty one.
@@ -104,7 +94,7 @@ public class SyncedRealmTests {
         File realmDir = config.getRealmDirectory();
         File oldRealmFile = new File(realmDir, "optionalsubscriptionfields");
         assertFalse(oldRealmFile.exists());
-        configFactory.copyFileFromAssets(InstrumentationRegistry.getTargetContext().getApplicationContext(), "optionalsubscriptionfields.realm", oldRealmFile);
+        configFactory.copyFileFromAssets(InstrumentationRegistry.getInstrumentation().getTargetContext().getApplicationContext(), "optionalsubscriptionfields.realm", oldRealmFile);
         assertTrue(oldRealmFile.exists());
 
         try {
@@ -117,127 +107,6 @@ public class SyncedRealmTests {
             assertTrue(realm.getSchema().get("__ResultSets").isNullable("updated_at"));
         } catch (Exception e) {
             fail(e.toString());
-        }
-    }
-
-    @Test
-    public void unsubscribeAsync_nullOrEmptyArgumentsThrows() {
-        Realm realm = getPartialRealm();
-        Realm.UnsubscribeCallback callback = new Realm.UnsubscribeCallback() {
-            @Override
-            public void onSuccess(String subscriptionName) {
-            }
-
-            @Override
-            public void onError(String subscriptionName, Throwable error) {
-            }
-        };
-
-        try {
-            //noinspection ConstantConditions
-            realm.unsubscribeAsync(null, callback);
-            fail();
-        } catch (IllegalArgumentException ignore) {
-        }
-
-        try {
-            realm.unsubscribeAsync("", callback);
-            fail();
-        } catch (IllegalArgumentException ignore) {
-        }
-
-        try {
-            //noinspection ConstantConditions
-            realm.unsubscribeAsync("my-id", null);
-            fail();
-        } catch (IllegalArgumentException ignore) {
-        }
-    }
-
-    @Test
-    public void unsubscribeAsync_nonLooperThreadThrows() {
-        Realm realm = getPartialRealm();
-        Realm.UnsubscribeCallback callback = new Realm.UnsubscribeCallback() {
-            @Override
-            public void onSuccess(String subscriptionName) {
-            }
-
-            @Override
-            public void onError(String subscriptionName, Throwable error) {
-            }
-        };
-
-        try {
-            //noinspection ConstantConditions
-            realm.unsubscribeAsync("my-id", callback);
-            fail();
-        } catch (IllegalStateException ignore) {
-        }
-    }
-
-    @Test
-    @RunTestInLooperThread
-    public void unsubscribeAsync_nonPartialRealmThrows() {
-        Realm.UnsubscribeCallback callback = new Realm.UnsubscribeCallback() {
-            @Override
-            public void onSuccess(String subscriptionName) {
-            }
-
-            @Override
-            public void onError(String subscriptionName, Throwable error) {
-            }
-        };
-
-        Realm realm = getNormalRealm();
-        try {
-            //noinspection ConstantConditions
-            realm.unsubscribeAsync("my-id", callback);
-            fail();
-        } catch (UnsupportedOperationException ignore) {
-        } finally {
-            realm.close();
-        }
-
-        realm = getFullySyncRealm();
-        try {
-            //noinspection ConstantConditions
-            realm.unsubscribeAsync("my-id", callback);
-            fail();
-        } catch (UnsupportedOperationException ignore) {
-        } finally {
-            realm.close();
-        }
-
-        looperThread.testComplete();
-    }
-
-    @Test
-    public void delete_throws() {
-        realm = getPartialRealm();
-        realm.beginTransaction();
-            try {
-                realm.deleteAll();
-                fail();
-            } catch (IllegalStateException e) {
-            }
-
-            try {
-                realm.delete(PartialSyncObjectA.class);
-                fail();
-            } catch (IllegalStateException e) {
-            }
-        realm.cancelTransaction();
-
-        DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
-        try {
-            dynamicRealm.beginTransaction();
-            try {
-                dynamicRealm.delete(PartialSyncObjectA.class.getSimpleName());
-                fail();
-            } catch (IllegalStateException e) {
-            }
-        } finally {
-            dynamicRealm.close();
         }
     }
 
@@ -288,67 +157,4 @@ public class SyncedRealmTests {
         assertTrue(originalSize > compactedSize);
     }
 
-    @Test
-    public void getSubscriptions() {
-        realm = getPartialRealm();
-        RealmResults<Subscription> subscriptions = realm.getSubscriptions();
-        assertEquals(0, subscriptions.size());
-
-        realm.executeTransaction(r -> {
-            r.where(AllTypes.class).subscribe("sub1");
-        });
-
-        assertEquals(1, subscriptions.size());
-        assertEquals("sub1", subscriptions.first().getName());
-    }
-
-    @Test
-    public void getSubscriptions_withPattern() {
-        realm = getPartialRealm();
-        assertEquals(0, realm.getSubscriptions("sub?").size());
-
-        realm.executeTransaction(r -> {
-            r.where(AllTypes.class).subscribe("sub1");
-            r.where(AllTypes.class).subscribe("sub2");
-        });
-
-        assertEquals(0, realm.getSubscriptions("sub").size());
-        assertEquals(2, realm.getSubscriptions("sub?").size());
-        assertEquals(2, realm.getSubscriptions("s*").size());
-    }
-
-    @Test
-    public void getSubscriptions_withPattern_throwsIfNullPattern() {
-        realm = getPartialRealm();
-        try {
-            //noinspection ConstantConditions
-            realm.getSubscriptions(null);
-            fail();
-        } catch (IllegalArgumentException ignore) {
-        }
-    }
-
-    @Test
-    public void getSubscription() {
-        realm = getPartialRealm();
-        assertNull(realm.getSubscription("sub"));
-
-        realm.executeTransaction(r -> {
-            r.where(AllTypes.class).subscribe("sub");
-        });
-
-        Subscription sub = realm.getSubscription("sub");
-        assertNotNull(sub);
-        assertEquals("sub", sub.getName());
-    }
-
-    @Test
-    public void includeLinkingObjects_throwsForNonQueryBasedRealms() {
-        realm = getFullySyncRealm();
-        try {
-            realm.where(AllJavaTypes.class).includeLinkingObjects(AllJavaTypes.FIELD_STRING);
-            fail();
-        } catch (IllegalStateException ignore) {
-        }
-    }
 }

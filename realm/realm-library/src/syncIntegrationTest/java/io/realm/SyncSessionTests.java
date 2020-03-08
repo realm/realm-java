@@ -4,7 +4,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -122,7 +122,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
         SyncUser user = UserFactory.createUniqueUser(Constants.AUTH_URL);
         SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .fullSynchronization()
                 .build();
         Realm realm = Realm.getInstance(syncConfiguration);
 
@@ -142,11 +141,9 @@ public class SyncSessionTests extends StandardIntegrationTest {
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         SyncConfiguration userConfig = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .fullSynchronization()
                 .build();
         SyncConfiguration adminConfig = configFactory
                 .createSyncConfigurationBuilder(adminUser, userConfig.getServerUrl().toString())
-                .fullSynchronization()
                 .build();
 
         Realm userRealm = Realm.getInstance(userConfig);
@@ -169,11 +166,9 @@ public class SyncSessionTests extends StandardIntegrationTest {
         SyncUser adminUser = UserFactory.createAdminUser(Constants.AUTH_URL);
         final SyncConfiguration userConfig = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .fullSynchronization()
                 .build();
         final SyncConfiguration adminConfig = configFactory
                 .createSyncConfigurationBuilder(adminUser, userConfig.getServerUrl().toString())
-                .fullSynchronization()
                 .build();
 
         Thread t = new Thread(new Runnable() {
@@ -282,7 +277,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
         final SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .fullSynchronization()
                 .modules(new StringOnlyModule())
                 .waitForInitialRemoteData()
                 .build();
@@ -325,7 +319,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
                         .modules(new StringOnlyModule())
-                        .fullSynchronization()
                         .waitForInitialRemoteData()
                         .build();
                 final Realm adminRealm = Realm.getInstance(adminConfig);
@@ -376,7 +369,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
         final SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .fullSynchronization()
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED)
                 .modules(new StringOnlyModule())
                 .build();
@@ -403,7 +395,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 SyncUser admin = UserFactory.createAdminUser(Constants.AUTH_URL);
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(admin, syncConfiguration.getServerUrl().toString())
-                        .fullSynchronization()
                         .modules(new StringOnlyModule())
                         .build();
                 final Realm adminRealm = Realm.getInstance(adminConfig);
@@ -442,7 +433,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
         final SyncConfiguration syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, Constants.SYNC_SERVER_URL)
-                .fullSynchronization()
                 .modules(new StringOnlyModule())
                 .build();
         Realm realm = Realm.getInstance(syncConfiguration);
@@ -477,7 +467,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
                 SyncUser adminUser = SyncUser.logIn(credentialsAdmin, Constants.AUTH_URL);
 
                 SyncConfiguration adminConfig = configurationFactory.createSyncConfigurationBuilder(adminUser, syncConfiguration.getServerUrl().toString())
-                        .fullSynchronization()
                         .modules(new StringOnlyModule())
                         .waitForInitialRemoteData()
                         .build();
@@ -522,7 +511,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .directory(looperThread.getRoot())
-                .fullSynchronization()
                 .errorHandler(new SyncSession.ErrorHandler() {
                     @Override
                     public void onError(SyncSession session, ObjectServerError error) {
@@ -563,7 +551,6 @@ public class SyncSessionTests extends StandardIntegrationTest {
 
     @Test
     @RunTestInLooperThread
-//    @Ignore("__CORE6__ this test is flaky in Core6, listener is not triggered")
     public void registerConnectionListener() {
         getSession(session -> {
             session.addConnectionChangeListener((oldState, newState) -> {

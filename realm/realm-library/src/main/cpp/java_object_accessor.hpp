@@ -41,6 +41,8 @@ using namespace realm::_impl;
     X(Float) \
     X(Double) \
     X(Date) \
+    X(ObjectId) \
+    X(Decimal) \
     X(Binary) \
     X(Decimal128) \
     X(ObjectId) \
@@ -76,6 +78,8 @@ template <> struct JavaValueTypeRepr<JavaValueType::Boolean> { using Type = jboo
 template <> struct JavaValueTypeRepr<JavaValueType::Float>   { using Type = jfloat; };
 template <> struct JavaValueTypeRepr<JavaValueType::Double>  { using Type = jdouble; };
 template <> struct JavaValueTypeRepr<JavaValueType::Date>    { using Type = Timestamp; };
+template <> struct JavaValueTypeRepr<JavaValueType::ObjectId>{ using Type = ObjectId; };
+template <> struct JavaValueTypeRepr<JavaValueType::Decimal> { using Type = Decimal128; };
 template <> struct JavaValueTypeRepr<JavaValueType::Binary>  { using Type = OwnedBinaryData; };
 template <> struct JavaValueTypeRepr<JavaValueType::Decimal128>  { using Type = Decimal128; };
 template <> struct JavaValueTypeRepr<JavaValueType::ObjectId>  { using Type = ObjectId; };
@@ -223,6 +227,16 @@ struct JavaValue {
         return get_as<JavaValueType::Date>();
     }
 
+    auto& get_object_id() const noexcept
+    {
+        return get_as<JavaValueType::ObjectId>();
+    }
+
+    auto& get_decimal128() const noexcept
+    {
+        return get_as<JavaValueType::Decimal>();
+    }
+
     auto& get_binary() const noexcept
     {
         return get_as<JavaValueType::Binary>();
@@ -272,6 +286,10 @@ struct JavaValue {
             case JavaValueType::Date:
                 ss << get_date();
                 return std::string(ss.str());
+            case JavaValueType::ObjectId:
+                return get_object_id().to_string();
+            case JavaValueType::Decimal:
+                return get_decimal128().to_string();
             case JavaValueType::Binary:
                 ss << "Blob[";
                 ss << get_binary().size();
@@ -323,6 +341,11 @@ public:
               realm(c.realm)
             , object_schema(prop.type == PropertyType::Object ? &*realm->schema().find(prop.object_type) : c.object_schema)
     { }
+
+    bool is_embedded() const
+    {
+        return object_schema ? bool(object_schema->is_embedded) : false;
+    }
 
     // The use of util::Optional for the following two functions is not a hard
     // requirement; only that it be some type which can be evaluated in a
@@ -407,9 +430,12 @@ public:
     // using the provided value. If `update` is true then upsert semantics
     // should be used for this.
     template<typename T>
-    T unbox(JavaValue const& /*v*/, CreatePolicy = CreatePolicy::Skip, ObjKey /*current_row*/ = ObjKey()) const {
+    T unbox(JavaValue const& /*v*/, CreatePolicy = CreatePolicy::Skip, ObjKey /*current_row*/ = ObjKey()) const
+    {
         throw std::logic_error("Missing template specialization"); // All types should have specialized templates
     }
+
+    Obj unbox_embedded(JavaValue const& v, CreatePolicy policy, Obj& parent, ColKey col, size_t ndx) const;
 
     bool is_null(JavaValue const& v) const noexcept { return !v.has_value(); }
     JavaValue null_value() const noexcept { return {}; }
@@ -540,6 +566,25 @@ inline Mixed JavaContext::unbox(JavaValue const&, CreatePolicy, ObjKey) const
 {
     REALM_TERMINATE("'Mixed' not supported");
 }
+
+template <>
+inline util::Optional<ObjectId> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? util::make_optional(v.get_object_id()) : util::none;
+}
+
+template <>
+inline util::Optional<Decimal> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? util::make_optional(v.get_decimal128()) : util::none;
+}
+
+inline Obj JavaContext::unbox_embedded(JavaValue const& v, CreatePolicy policy, Obj& parent, ColKey col, size_t ndx) const
+{
+    return Object::create_embedded(const_cast<JavaContext&>(*this), realm, *object_schema, v, policy, parent, col, ndx).obj();
+}
+
+
 
 }
 

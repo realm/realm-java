@@ -16,7 +16,7 @@
 
 package io.realm;
 
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,7 +53,7 @@ public class SyncTestUtils {
     }
 
     public static void prepareEnvironmentForTest(){
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
         originalLogLevel = RealmLog.getLevel();
         RealmLog.setLevel(LogLevel.DEBUG);
     }
@@ -81,14 +81,14 @@ public class SyncTestUtils {
             BaseRealm.applicationContext = null; // Required for Realm.init() to work
         }
         deleteRosFiles();
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
     }
 
     // Cleanup filesystem to make sure nothing lives for the next test.
     // Failing to do so might lead to DIVERGENT_HISTORY errors being thrown if Realms from
     // previous tests are being accessed.
     private static void deleteRosFiles() throws IOException {
-        File rosFiles = new File(InstrumentationRegistry.getContext().getFilesDir(),"realm-object-server");
+        File rosFiles = new File(InstrumentationRegistry.getInstrumentation().getContext().getFilesDir(),"realm-object-server");
         deleteFile(rosFiles);
     }
 

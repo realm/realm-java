@@ -26,12 +26,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
-import io.realm.RealmModel;
-import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
-import io.realm.sync.permissions.RealmPrivileges;
 
 @Keep
 public final class OsSharedRealm implements Closeable, NativeObject {
@@ -462,15 +459,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     /**
-     * Returns {@code true} if this Realm is a query-based synchronized Realm.
-     */
-    public boolean isPartial() {
-        return nativeIsPartial(nativePtr);
-    }
-
-    /**
-     * Returns {@code true} if this Realm is a synchronized Realm, either query-based or fully
-     * synchronized.
+     * Returns {@code true} if this Realm is a synchronized Realm.
      */
     public boolean isSyncRealm() {
         return osRealmConfig.getResolvedRealmURI() != null;
@@ -641,8 +630,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     private static native int nativeGetClassPrivileges(long nativePtr, String className);
 
     private static native int nativeGetObjectPrivileges(long nativePtr, long rowNativePtr);
-
-    private static native boolean nativeIsPartial(long nativePtr);
 
     private static native boolean nativeIsFrozen(long nativePtr);
 

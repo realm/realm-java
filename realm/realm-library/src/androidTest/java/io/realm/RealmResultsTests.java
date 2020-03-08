@@ -16,8 +16,8 @@
 
 package io.realm;
 
-import android.support.test.annotation.UiThreadTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.json.JSONException;
 import org.junit.After;
@@ -1774,18 +1774,16 @@ public class RealmResultsTests extends CollectionTests {
                 "        \"columnDate\": \"" + now + "\",\n" +
                 "        \"columnBinary\": \"AQID\",\n" +
                 "        \"columnMutableRealmInteger\": 0,\n" +
-                "        \"columnRealmObject\": [\n" +
-                "            {\n" +
-                "                \"_key\": 100,\n" +
-                "                \"name\": \"dog1\",\n" +
-                "                \"age\": 1,\n" +
-                "                \"height\": 1.1,\n" +
-                "                \"weight\": 10.100000381469727,\n" +
-                "                \"hasTail\": true,\n" +
-                "                \"birthday\": \"" + now + "\",\n" +
-                "                \"owner\": null\n" +
-                "            }\n" +
-                "        ],\n" +
+                "        \"columnRealmObject\": {\n" +
+                "            \"_key\": 100,\n" +
+                "            \"name\": \"dog1\",\n" +
+                "            \"age\": 1,\n" +
+                "            \"height\": 1.1,\n" +
+                "            \"weight\": 10.100000381469727,\n" +
+                "            \"hasTail\": true,\n" +
+                "            \"birthday\": \"" + now + "\",\n" +
+                "            \"owner\": null\n" +
+                "        },\n" +
                 "        \"columnRealmList\": [\n" +
                 "            {\n" +
                 "                \"_key\": 101,\n" +
@@ -1805,14 +1803,12 @@ public class RealmResultsTests extends CollectionTests {
                 "                \"weight\": 30.100000381469727,\n" +
                 "                \"hasTail\": true,\n" +
                 "                \"birthday\": \"" + now + "\",\n" +
-                "                \"owner\": [\n" +
-                "                    {\n" +
-                "                        \"_key\": 0,\n" +
-                "                        \"name\": \"Dog owner 1\",\n" +
-                "                        \"dogs\": [],\n" +
-                "                        \"cat\": null\n" +
-                "                    }\n" +
-                "                ]\n" +
+                "                \"owner\": {\n" +
+                "                    \"_key\": 0,\n" +
+                "                    \"name\": \"Dog owner 1\",\n" +
+                "                    \"dogs\": [],\n" +
+                "                    \"cat\": null\n" +
+                "                }\n" +
                 "            }\n" +
                 "        ],\n" +
                 "        \"columnStringList\": [\n" +
@@ -1876,20 +1872,18 @@ public class RealmResultsTests extends CollectionTests {
                 "        \"id\": 0,\n" +
                 "        \"name\": \"One\",\n" +
                 "        \"date\": \"" + now + "\",\n" +
-                "        \"object\": [\n" +
-                "            {\n" +
-                "                \"_key\": 1,\n" +
-                "                \"id\": 0,\n" +
-                "                \"name\": \"Two\",\n" +
-                "                \"date\": \"" + now + "\",\n" +
-                "                \"object\": {\n" +
-                "                    \"table\": \"class_CyclicType\",\n" +
-                "                    \"key\": 0\n" +
-                "                },\n" +
-                "                \"otherObject\": null,\n" +
-                "                \"objects\": []\n" +
-                "            }\n" +
-                "        ],\n" +
+                "        \"object\": {\n" +
+                "            \"_key\": 1,\n" +
+                "            \"id\": 0,\n" +
+                "            \"name\": \"Two\",\n" +
+                "            \"date\": \"" + now + "\",\n" +
+                "            \"object\": {\n" +
+                "                \"table\": \"class_CyclicType\",\n" +
+                "                \"key\": 0\n" +
+                "            },\n" +
+                "            \"otherObject\": null,\n" +
+                "            \"objects\": []\n" +
+                "        },\n" +
                 "        \"otherObject\": null,\n" +
                 "        \"objects\": []\n" +
                 "    },\n" +
@@ -1898,20 +1892,18 @@ public class RealmResultsTests extends CollectionTests {
                 "        \"id\": 0,\n" +
                 "        \"name\": \"Two\",\n" +
                 "        \"date\": \"" + now + "\",\n" +
-                "        \"object\": [\n" +
-                "            {\n" +
-                "                \"_key\": 0,\n" +
-                "                \"id\": 0,\n" +
-                "                \"name\": \"One\",\n" +
-                "                \"date\": \"" + now + "\",\n" +
-                "                \"object\": {\n" +
-                "                    \"table\": \"class_CyclicType\",\n" +
-                "                    \"key\": 1\n" +
-                "                },\n" +
-                "                \"otherObject\": null,\n" +
-                "                \"objects\": []\n" +
-                "            }\n" +
-                "        ],\n" +
+                "        \"object\": {\n" +
+                "            \"_key\": 0,\n" +
+                "            \"id\": 0,\n" +
+                "            \"name\": \"One\",\n" +
+                "            \"date\": \"" + now + "\",\n" +
+                "            \"object\": {\n" +
+                "                \"table\": \"class_CyclicType\",\n" +
+                "                \"key\": 1\n" +
+                "            },\n" +
+                "            \"otherObject\": null,\n" +
+                "            \"objects\": []\n" +
+                "        },\n" +
                 "        \"otherObject\": null,\n" +
                 "        \"objects\": []\n" +
                 "    }\n" +

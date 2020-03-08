@@ -662,8 +662,8 @@ public class OsResults implements NativeObject, ObservableCollection {
         // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
         // So it is possible it deliver a non-empty change set for the first async query returns.
         OsCollectionChangeSet changeset = (nativeChangeSetPtr == 0)
-                ? new EmptyLoadChangeSet(null, sharedRealm.isPartial())
-                : new OsCollectionChangeSet(nativeChangeSetPtr, !isLoaded(), null, sharedRealm.isPartial());
+                ? new EmptyLoadChangeSet()
+                : new OsCollectionChangeSet(nativeChangeSetPtr, !isLoaded());
 
         // Happens e.g. if a synchronous query is created, a change listener is added and then
         // a transaction is started on the same thread. This will trigger all notifications

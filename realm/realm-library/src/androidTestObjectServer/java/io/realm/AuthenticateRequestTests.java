@@ -1,12 +1,13 @@
 package io.realm;
 
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -26,12 +27,13 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
+@Ignore("FIXME: RealmApp refactor")
 @RunWith(AndroidJUnit4.class)
 public class AuthenticateRequestTests {
 
     @Before
     public void setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
     }
 
     // Tests based on the schemas described here: https://github.com/realm/realm-sync-services/blob/master/doc/index.apib

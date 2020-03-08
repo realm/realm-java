@@ -16,8 +16,8 @@
 package io.realm;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -397,7 +397,7 @@ public class MutableRealmIntegerTests {
 
     @Test
     public void testStream() throws IOException {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
         InputStream in = TestHelper.loadJsonFromAssets(context, "empty.json");
         realm.beginTransaction();

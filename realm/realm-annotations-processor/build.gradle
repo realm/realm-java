@@ -12,7 +12,6 @@ dependencies {
     implementation "io.realm:realm-annotations:${version}"
     implementation "org.mongodb:bson:3.12.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-
     testImplementation files('../realm-library/build/intermediates/intermediate-jars/objectServer/release/classes.jar') // Java projects cannot depend on AAR files
     testImplementation files("${System.properties['java.home']}/../lib/tools.jar") // This is needed otherwise compile-testing won't be able to find it
     testImplementation group:'junit', name:'junit', version:'4.12'

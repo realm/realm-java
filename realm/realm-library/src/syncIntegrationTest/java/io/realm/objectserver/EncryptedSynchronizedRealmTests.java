@@ -45,7 +45,6 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         final byte[] randomKey = TestHelper.getRandomKey();
 
         SyncConfiguration configWithEncryption = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .fullSynchronization()
                 .modules(new StringOnlyModule())
                 .waitForInitialRemoteData()
                 .errorHandler(new SyncSession.ErrorHandler() {
@@ -73,7 +72,6 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         // fail
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         SyncConfiguration configWithoutEncryption = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .fullSynchronization()
                 .name("newName")
                 .modules(new StringOnlyModule())
                 .waitForInitialRemoteData()
@@ -162,7 +160,6 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         final byte[] randomKey = TestHelper.getRandomKey();
 
         SyncConfiguration configWithEncryption = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .fullSynchronization()
                 .modules(new StringOnlyModule())
                 .waitForInitialRemoteData()
                 .errorHandler(new SyncSession.ErrorHandler() {
@@ -193,7 +190,6 @@ public class EncryptedSynchronizedRealmTests extends StandardIntegrationTest {
         final byte[] adminRandomKey = TestHelper.getRandomKey();
 
         SyncConfiguration adminConfigWithEncryption = configurationFactory.createSyncConfigurationBuilder(adminUser, configWithEncryption.getServerUrl().toString())
-                .fullSynchronization()
                 .modules(new StringOnlyModule())
                 .waitForInitialRemoteData()
                 .errorHandler(new SyncSession.ErrorHandler() {

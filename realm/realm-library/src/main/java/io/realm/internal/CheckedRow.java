@@ -39,7 +39,7 @@ public class CheckedRow extends UncheckedRow {
         super(context, parent, nativePtr);
     }
 
-    private CheckedRow(UncheckedRow row) {
+    public CheckedRow(UncheckedRow row) {
         super(row);
         this.originalRow = row;
     }

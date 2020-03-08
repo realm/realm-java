@@ -231,7 +231,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            assertFalse(objectSchema.hasIndex("pkField"));
 
             realmSchema.remove(validClassName);
 
@@ -241,7 +241,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertTrue(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            assertFalse(objectSchema.hasIndex("pkField"));
         }
     }
 
@@ -267,7 +267,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            assertFalse(objectSchema.hasIndex("pkField"));
 
             realmSchema.remove(validClassName);
 
@@ -277,7 +277,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            assertFalse(objectSchema.hasIndex("pkField"));
         }
     }
 
@@ -292,7 +292,7 @@ public class RealmSchemaTests {
         assertEquals("pkField", objectSchema.getPrimaryKey());
         assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
         assertFalse(objectSchema.isNullable("pkField"));
-        assertTrue(objectSchema.hasIndex("pkField"));
+        assertFalse(objectSchema.hasIndex("pkField"));
     }
 
     @Test
@@ -306,7 +306,7 @@ public class RealmSchemaTests {
         assertEquals("pkField", objectSchema.getPrimaryKey());
         assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
         assertFalse(objectSchema.isNullable("pkField"));
-        assertTrue(objectSchema.hasIndex("pkField"));
+        assertFalse(objectSchema.hasIndex("pkField"));
     }
 
     @Test
