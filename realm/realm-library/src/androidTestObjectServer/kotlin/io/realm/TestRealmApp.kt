@@ -17,7 +17,7 @@ class TestRealmApp private constructor() {
                 .build()
 
         fun getInstance(): RealmApp {
-            Realm.init(InstrumentationRegistry.getTargetContext())
+            Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
             return RealmApp(config)
         }
     }

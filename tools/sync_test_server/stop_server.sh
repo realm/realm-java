@@ -1,4 +1,4 @@
 #!/bin/sh
 
-docker stop sync-test-server -t0
-docker rm sync-test-server
+docker stop mongodb-realm -t0
+# docker rm mongodb-realm // What does this do?

@@ -29,7 +29,7 @@ class RealmCredentialsTests {
         @BeforeClass
         @JvmStatic
         fun setUp() {
-            Realm.init(InstrumentationRegistry.getTargetContext())
+            Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         }
     }
 

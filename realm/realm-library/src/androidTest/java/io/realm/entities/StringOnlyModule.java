@@ -1,4 +1,4 @@
-package io.realm.objectserver.utils;
+package io.realm.entities;
 
 import io.realm.annotations.RealmModule;
 import io.realm.entities.StringOnly;

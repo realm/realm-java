@@ -34,7 +34,7 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.log.RealmLog;
-import io.realm.objectserver.utils.StringOnlyModule;
+import io.realm.entities.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 

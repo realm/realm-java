@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import io.realm.objectserver.utils.StringOnlyModule;
+import io.realm.entities.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.TestRealmConfigurationFactory;
 

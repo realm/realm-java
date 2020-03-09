@@ -7,6 +7,9 @@ REALM_SYNC_SHA256=02b78b8961936c61b3f09667ced0c2738de7ed84b299ddeecfbb660ceb227d
 # Use `npm view realm-object-server versions` to get a list of available versions.
 REALM_OBJECT_SERVER_VERSION=3.23.1
 
+# Version of MongoDB Realm used by integration tests
+MONGODB_REALM_SERVER_VERSION=test_server-0ed2349a36352666402d0fb2e8763ac67731768c-race
+
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=3.6.1
 ANDROID_BUILD_TOOLS=29.0.2

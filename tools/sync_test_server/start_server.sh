@@ -9,20 +9,23 @@ fi
 # Get the script dir which contains the Dockerfile
 DOCKERFILE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-ROS_VERSION=$(grep REALM_OBJECT_SERVER_VERSION $DOCKERFILE_DIR/../../dependencies.list | cut -d'=' -f2)
+MONGODB_REALM_VERSION=$(grep MONGODB_REALM_SERVER_VERSION $DOCKERFILE_DIR/../../dependencies.list | cut -d'=' -f2)
 
 TMP_DIR=$(mktemp -d /tmp/sync-test.XXXX) || { echo "Failed to mktemp $TEST_TEMP_DIR" ; exit 1 ; }
 
 adb reverse tcp:9443 tcp:9443 && \
 adb reverse tcp:9080 tcp:9080 && \
+adb reverse tcp:9090 tcp:9090 && \
 adb reverse tcp:8888 tcp:8888 || { echo "Failed to reverse adb port." ; exit 1 ; }
 
 #docker build $DOCKERFILE_DIR --build-arg ROS_VERSION=$ROS_VERSION --build-arg REALM_FEATURE_TOKEN=$REALM_FEATURE_TOKEN -t sync-test-server || { echo "Failed to build Docker image." ; exit 1 ; }
 
 # Start Stitch
-docker run --rm -i -t --publish 9090:9090 012067661104.dkr.ecr.eu-west-1.amazonaws.com/ci/mongodb-realm-images:test_server-latest
+DOCKER_LOGIN=$(aws ecr get-login --no-include-email)
+eval $DOCKER_LOGIN
+docker run --rm -i -t --publish 9090:9090 012067661104.dkr.ecr.eu-west-1.amazonaws.com/ci/mongodb-realm-images:$MONGODB_REALM_VERSION -name mongodb-realm
 
-
+docker run --rm -i -t --publish 9090:9090 --name mongodb-realm 012067661104.dkr.ecr.eu-west-1.amazonaws.com/ci/mongodb-realm-images:"$MONGODB_REALM_VERSION"
 #echo "See log files in $TMP_DIR"
-docker run -p 9080:9080 -p 9443:9443 -p 8888:8888 -v$TMP_DIR:/tmp --name sync-test-server sync-test-server
+#docker run -p 9080:9080 -p 9443:9443 -p 8888:8888 -v$TMP_DIR:/tmp --name sync-test-server sync-test-server
 
