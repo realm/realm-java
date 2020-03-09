@@ -17,7 +17,6 @@ package io.realm;
 
 import android.content.Context;
 
-import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
@@ -149,7 +148,6 @@ public class RealmAppConfiguration {
         /**
          * FIXME
          *
-         * @param context
          * @param appId
          */
         public Builder(String appId) {
@@ -254,6 +252,4 @@ public class RealmAppConfiguration {
                     requestTimeoutMs);
         }
     }
-
-
 }

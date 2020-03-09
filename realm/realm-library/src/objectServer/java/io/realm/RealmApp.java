@@ -85,7 +85,7 @@ public class RealmApp {
     private final RealmAppConfiguration config;
     private OsJavaNetworkTransport networkTransport;
     private final long nativePtr;
-    private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
+    private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
 
     public RealmApp(String appId) {
         this(new RealmAppConfiguration.Builder(appId).build());

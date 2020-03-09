@@ -89,6 +89,19 @@ public abstract class OsJavaNetworkTransport {
             return headers;
         }
 
+        // Returns the HTTP headers in a JNI friendly way where it is being serialized to a
+        // String array consisting of pairs of { key , value } pairs.
+        public String[] getJNIFriendlyHeaders() {
+            String[] jniHeaders = new String[headers.size() * 2];
+            int i = 0;
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                jniHeaders[i] = entry.getKey();
+                jniHeaders[i + 1] = entry.getValue();
+                i = i + 2;
+            }
+            return jniHeaders;
+        }
+
         public String getBody() {
             return body;
         }

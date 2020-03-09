@@ -17,6 +17,7 @@
 #ifndef REALM_JAVA_NETWORK_TRANSPORT
 #define REALM_JAVA_NETWORK_TRANSPORT
 
+#include "java_accessor.hpp"
 #include "util.hpp"
 #include "sync/generic_network_transport.hpp"
 #include "jni_util/java_class.hpp"
@@ -24,6 +25,7 @@
 
 using namespace realm::app;
 using namespace realm::jni_util;
+using namespace realm::_impl;
 
 namespace realm {
 
@@ -77,22 +79,26 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
 
         // Read response
         static JavaClass responseClass(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Response");
-        static JavaMethod http_code_method(env, responseClass, "getHttpResponseCode", "()I");
-        static JavaMethod custom_code_method(env, responseClass, "getCustomResponseCode", "()I");
-        static JavaMethod headers_method(env, responseClass, "getHeaders", "()Ljava/util/Map;");
-        static JavaMethod body_method(env, responseClass, "getBody", "()Ljava/lang/String;");
+        static JavaMethod get_http_code_method(env, responseClass, "getHttpResponseCode", "()I");
+        static JavaMethod get_custom_code_method(env, responseClass, "getCustomResponseCode", "()I");
+        static JavaMethod get_headers_method(env, responseClass, "getJNIFriendlyHeaders", "()[Ljava/lang/String;");
+        static JavaMethod get_body_method(env, responseClass, "getBody", "()Ljava/lang/String;");
 
         if (env->ExceptionCheck()) {
             // This should not happen. All exceptions should ideally have been caught by Java
             // and turned into a realm::app::Response object
             throw std::logic_error("Unexcepted exception thrown"); // FIXME better error
         } else {
-            jint http_code = env->CallIntMethod(response, http_code_method);
-            jint custom_code = env->CallIntMethod(response, custom_code_method);
-            JStringAccessor java_body(env, (jstring) env->CallObjectMethod(response, body_method));
-            jobject java_headers = env->CallObjectMethod(response, headers_method);
-            (void) java_headers; // FIXME
+            jint http_code = env->CallIntMethod(response, get_http_code_method);
+            jint custom_code = env->CallIntMethod(response, get_custom_code_method);
+            JStringAccessor java_body(env, (jstring) env->CallObjectMethod(response, get_body_method));
+            JObjectArrayAccessor<JStringAccessor, jstring> java_headers(env, static_cast<jobjectArray>(env->CallObjectMethod(response, get_headers_method)));
             auto response_headers = std::map<std::string, std::string>();
+            for (int i = 0; i < java_headers.size(); i = i + 2) {
+                JStringAccessor key = java_headers[i];
+                JStringAccessor value = java_headers[i+1];
+                response_headers.insert(std::pair<std::string,std::string>(key,value));
+            }
             std::string body = java_body;
             completionBlock(Response{(int) http_code, (int) custom_code, response_headers, body});
         }
