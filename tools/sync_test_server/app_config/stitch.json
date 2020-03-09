@@ -1,0 +1,14 @@
+{
+    "app_id": "realm-sdk-integration-test-ufybr",
+    "config_version": 20180301,
+    "name": "realm-sdk-integration-test",
+    "location": "IE",
+    "deployment_model": "GLOBAL",
+    "security": {},
+    "custom_user_data_config": {
+        "enabled": false
+    },
+    "sync": {
+        "development_mode_enabled": false
+    }
+}

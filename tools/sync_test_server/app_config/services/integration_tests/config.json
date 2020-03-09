@@ -1,0 +1,10 @@
+{
+    "id": "5e664bb131eac229eaad2ddb",
+    "name": "integration_tests",
+    "type": "mongodb",
+    "config": {},
+    "secret_config": {
+        "uri": "__integration_tests_uri"
+    },
+    "version": 1
+}
