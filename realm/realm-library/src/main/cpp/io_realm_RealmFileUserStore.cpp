@@ -22,6 +22,7 @@
 #include "java_class_global_def.hpp"
 #include "util.hpp"
 #include "jni_util/log.hpp"
+#include "object-store/src/sync/sync_user.hpp"
 
 using namespace realm;
 using namespace realm::_impl;
@@ -38,7 +39,7 @@ static jstring to_user_string_or_null(JNIEnv* env, const std::shared_ptr<SyncUse
     }
 }
 
-static SyncUserIdentifier create_sync_user_identifier(JNIEnv* env, jstring j_user_id, jstring j_auth_url)
+static SyncUserIdentity create_sync_user_identifier(JNIEnv* env, jstring j_user_id, jstring j_auth_url)
 {
     JStringAccessor user_id(env, j_user_id);   // throws
     JStringAccessor auth_url(env, j_auth_url); // throws
@@ -59,8 +60,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmFileUserStore_nativeGetUser(JNIEnv*
                                                                          jstring j_auth_url)
 {
     try {
-        auto user = SyncManager::shared().get_existing_logged_in_user(
-            create_sync_user_identifier(env, j_user_id, j_auth_url));
+        SyncUserIdentity user_identifier = create_sync_user_identifier(env, j_user_id, j_auth_url);
+        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_identifier.id);
         return to_user_string_or_null(env, user);
     }
     CATCH_STD()
@@ -73,20 +74,22 @@ JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeUpdateOrCreateUser
                                                                                  jstring j_auth_url)
 {
     try {
-// FIXME
-//        JStringAccessor refresh_json_token(env, j_refresh_json_token); // throws
+        // FIXME Replace in RealmApp refactor
+        JStringAccessor id(env, j_user_id);
+        JStringAccessor auth_url(env, j_auth_url);
         std::string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODE1MDc3OTYsImlhdCI6MTU4MTUwNTk5NiwiaXNzIjoiNWU0M2RkY2M2MzZlZTEwNmVhYTEyYmRjIiwic3RpdGNoX2RldklkIjoiMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwic3RpdGNoX2RvbWFpbklkIjoiNWUxNDk5MTNjOTBiNGFmMGViZTkzNTI3Iiwic3ViIjoiNWU0M2RkY2M2MzZlZTEwNmVhYTEyYmRhIiwidHlwIjoiYWNjZXNzIn0.0q3y9KpFxEnbmRwahvjWU1v9y1T1s3r2eozu93vMc3s";
-        SyncManager::shared().get_user(create_sync_user_identifier(env, j_user_id, j_auth_url), token, token);
+        SyncManager::shared().get_user(id, auth_url, token, token);
     }
     CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeLogoutUser(JNIEnv* env, jclass, jstring j_user_id,
-                                                                         jstring j_auth_url)
+                                                                         jstring /*j_auth_url*/)
 {
     try {
-        auto user = SyncManager::shared().get_existing_logged_in_user(
-            create_sync_user_identifier(env, j_user_id, j_auth_url));
+        // FIXME Replace in RealmApp refactor
+        JStringAccessor id(env, j_user_id);
+        auto user = SyncManager::shared().get_existing_logged_in_user(id);
         if (user) {
             user->log_out();
         }
@@ -95,11 +98,12 @@ JNIEXPORT void JNICALL Java_io_realm_RealmFileUserStore_nativeLogoutUser(JNIEnv*
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_RealmFileUserStore_nativeIsActive(JNIEnv* env, jclass, jstring j_user_id,
-                                                                           jstring j_auth_url)
+                                                                           jstring /*j_auth_url*/)
 {
     try {
-        auto user = SyncManager::shared().get_existing_logged_in_user(
-            create_sync_user_identifier(env, j_user_id, j_auth_url));
+        // FIXME Replace in RealmApp refactor
+        JStringAccessor id(env, j_user_id);
+        auto user = SyncManager::shared().get_existing_logged_in_user(id);
         if (user) {
             return to_jbool(user->state() == SyncUser::State::Active);
         }
@@ -110,7 +114,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_RealmFileUserStore_nativeIsActive(JNIEn
 
 JNIEXPORT jobjectArray JNICALL Java_io_realm_RealmFileUserStore_nativeGetAllUsers(JNIEnv* env, jclass)
 {
-    auto all_users = SyncManager::shared().all_logged_in_users();
+    auto all_users = SyncManager::shared().all_users();
     if (!all_users.empty()) {
         size_t len = all_users.size();
         jobjectArray users_token = env->NewObjectArray(len, JavaClassGlobalDef::java_lang_string(), 0);

@@ -341,13 +341,13 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // Get logged in user
         JStringAccessor user_id(env, j_user_id);
         JStringAccessor auth_url(env, j_auth_url);
-        SyncUserIdentifier sync_user_identifier = {user_id, auth_url};
-        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(sync_user_identifier);
+        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_id);
         if (!user) {
             JStringAccessor realm_auth_url(env, j_auth_url);
             JStringAccessor refresh_token(env, j_refresh_token);
             JStringAccessor access_token(env, j_access_token);
-            user = SyncManager::shared().get_user(sync_user_identifier, refresh_token, access_token);
+            // FIXME RealmApp refactor
+            user = SyncManager::shared().get_user(user_id, auth_url, refresh_token, access_token);
         }
 
         SyncSessionStopPolicy session_stop_policy = static_cast<SyncSessionStopPolicy>(j_session_stop_policy);
