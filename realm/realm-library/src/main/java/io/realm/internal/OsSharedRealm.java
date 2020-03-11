@@ -370,17 +370,19 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     @ObjectServer
     public int getPrivileges() {
-        return nativeGetRealmPrivileges(nativePtr);
+        // FIXME: Remove
+        return 0;
     }
 
     @ObjectServer
     public int getClassPrivileges(String className) {
-        return nativeGetClassPrivileges(nativePtr, className);
+        // FIXME: Remove
+        return 0;
     }
 
     @ObjectServer
     public int getObjectPrivileges(UncheckedRow row) {
-        return nativeGetObjectPrivileges(nativePtr, ((UncheckedRow) row).getNativePtr());
+        return 0;
     }
 
     public boolean isClosed() {
@@ -624,12 +626,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     private static native long nativeGetSchemaInfo(long nativePtr);
 
     private static native void nativeRegisterSchemaChangedCallback(long nativePtr, SchemaChangedCallback callback);
-
-    private static native int nativeGetRealmPrivileges(long nativePtr);
-
-    private static native int nativeGetClassPrivileges(long nativePtr, String className);
-
-    private static native int nativeGetObjectPrivileges(long nativePtr, long rowNativePtr);
 
     private static native boolean nativeIsFrozen(long nativePtr);
 
