@@ -105,18 +105,16 @@ dokka {
     outputFormat = 'html'
     outputDirectory = "$buildDir/docs"
     configuration {
-        externalDocumentationLink {
-            noJdkLink = true
-            noStdlibLink = true
-            noAndroidSdkLink = true
-            // Workaround until https://github.com/Kotlin/dokka/issues/709 is fixed
-            url = new URL("https://kotlinlang.org/api/latest/jvm/stdlib/")
-            packageListUrl = new URL("file://${rootDir}/kotlin-extensions/lib/package-list.txt")
-        }
+// FIXME:
+//        externalDocumentationLink {
+//            noJdkLink = true
+//            noStdlibLink = true
+//            noAndroidSdkLink = true
+//        }
     }
 }
 
-task javadocJar(type: Jar, dependsOn: dokka) {
+task javadocJar(type: Jar/* FIXME: , dependsOn: dokka*/) {
     classifier = 'javadoc'
     from "$buildDir/dokka"
 }

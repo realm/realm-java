@@ -395,7 +395,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeFreeze(JNIEnv*
     try {
         Obj* obj = reinterpret_cast<Obj*>(j_native_row_ptr);
         auto frozen_realm = *(reinterpret_cast<SharedRealm*>(j_frozen_realm_native_ptr));
-        auto frozen_obj = new Obj(frozen_realm->transaction().import_copy_of(*obj));
+        auto frozen_obj = new Obj(frozen_realm->import_copy_of(*obj));
         return reinterpret_cast<jlong>(frozen_obj);
     }
     CATCH_STD()
