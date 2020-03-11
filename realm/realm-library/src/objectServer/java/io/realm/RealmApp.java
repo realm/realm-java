@@ -99,7 +99,6 @@ public class RealmApp {
         this.config = config;
         this.networkTransport = new OkHttpNetworkTransport();
         this.nativePtr = nativeCreate(
-                networkTransport,
                 config.getAppId(),
                 config.getBaseUrl(),
                 config.getAppName(),
@@ -307,6 +306,10 @@ public class RealmApp {
         networkTransport = transport;
     }
 
+    OsJavaNetworkTransport getNetworkTransport() {
+        return networkTransport;
+    }
+
     private static void checkLooperThread(String errorMessage) {
         AndroidCapabilities capabilities = new AndroidCapabilities();
         capabilities.checkCanDeliverNotification(errorMessage);
@@ -402,7 +405,7 @@ public class RealmApp {
         void onError(ObjectServerError error);
     }
 
-    private static native long nativeCreate(OsJavaNetworkTransport transport, String appId, String baseUrl, String appName, String appVersion, long requestTimeoutMs);
+    private native long nativeCreate(String appId, String baseUrl, String appName, String appVersion, long requestTimeoutMs);
     private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     @Nullable
     private static native Long nativeCurrentUser(long nativePtr);

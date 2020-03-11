@@ -17,10 +17,12 @@
 #include "io_realm_internal_objectstore_OsSyncUser.h"
 
 #include "util.hpp"
+#include "jni_util/java_class.hpp"
 
 #include <sync/sync_user.hpp>
 
 using namespace realm;
+using namespace realm::jni_util;
 
 static void finalize_user(jlong ptr)
 {
@@ -31,29 +33,144 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetF
 {
     return reinterpret_cast<jlong>(&finalize_user);
 }
-//
-//private static native String nativeGetName(long nativePtr);
-//private static native String nativeGetEmail(long nativePtr);
-//private static native String nativeGetPictureUrl(long nativePtr);
-//private static native String nativeGetFirstName(long nativePtr);
-//private static native String nativeGetLastName(long nativePtr);
-//private static native String nativeGetGender(long nativePtr);
-//private static native String nativeGetBirthDay(long nativePtr);
-//private static native String nativeGetMinAge(long nativePtr);
-//private static native String nativeGetMaxAge(long nativePtr);
-//
-//private static native String nativeGetServerUrl(long nativePtr);
-//private static native String nativeGetLocalIdentity(long nativePtr);
-//private static native String nativeGetAccessToken(long nativePtr);
-//private static native String nativeGetRefreshToken(long nativePtr);
-//private static native String nativeGetRefreshToken(long nativePtr);
-//private static native String[] nativeGetIdentities(long nativePtr); // Returns pairs of {id, provider}
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetName(JNIEnv* env, jclass, jlong j_native_ptr)
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
         return to_jstring(env, user->user_profile().name);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetEmail(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        return to_jstring(env, user->user_profile().email);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetPictureUrl(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        return to_jstring(env, user->user_profile().picture_url);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetFirstName(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        return to_jstring(env, user->user_profile().first_name);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetLastName(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        return to_jstring(env, user->user_profile().last_name);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetGender(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        return to_jstring(env, user->user_profile().gender);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetBirthDay(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        return to_jstring(env, user->user_profile().birthday);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetMinAge(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        return to_jstring(env, user->user_profile().min_age);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetMaxAge(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        return to_jstring(env, user->user_profile().max_age);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetAccessToken(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        std::string token = user->access_token();
+        return to_jstring(env, token);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetRefreshToken(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        std::string token = user->refresh_token();
+        return to_jstring(env, token);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jobjectArray JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetIdentities(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        std::vector<SyncUserIdentity> ids = user->identities();
+        static JavaClass stringClass(env, "java/lang/String");
+        jobjectArray arr = env->NewObjectArray(ids.size()*2, stringClass, NULL);
+        int j = 0;
+        for(size_t i = 0; i < ids.size(); ++i) {
+            SyncUserIdentity id = ids[i];
+            env->SetObjectArrayElement( arr, j, to_jstring(env, id.id));
+            env->SetObjectArrayElement( arr, j+1, to_jstring(env, id.provider_type));
+            j = j+2;
+        }
+        return arr;
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetIdentity(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        return to_jstring(env, user->identity());
     }
     CATCH_STD();
     return nullptr;

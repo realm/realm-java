@@ -37,8 +37,7 @@ using namespace realm::app;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jclass,
-                                                            jobject j_java_network_transport_impl,
+JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jobject obj,
                                                             jstring j_app_id,
                                                             jstring j_base_url,
                                                             jstring j_app_name,
@@ -51,9 +50,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jclass,
         if (ret != 0) {
             throw std::runtime_error(util::format("Failed to get Java VM. Error: %d", ret));
         }
-        jobject java_network_transport_impl = env->NewGlobalRef(j_java_network_transport_impl); // FIXME: Leaking the transport
-        std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [jvm, java_network_transport_impl] {
-            return std::unique_ptr<GenericNetworkTransport>(new JavaNetworkTransport(jvm, java_network_transport_impl));
+        jobject java_app_obj = env->NewGlobalRef(obj); // FIXME: Leaking the app object
+        std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [jvm, java_app_obj] {
+            JNIEnv* env;
+            if (jvm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
+                jvm->AttachCurrentThread(&env, nullptr); // Should never fail
+            }
+            static JavaMethod get_network_transport_method(env, java_app_obj, "getNetworkTransport", "()Lio/realm/internal/objectstore/OsJavaNetworkTransport;");
+            jobject network_transport_impl = env->CallObjectMethod(java_app_obj, get_network_transport_method);
+            return std::unique_ptr<GenericNetworkTransport>(new JavaNetworkTransport(jvm, network_transport_impl));
         };
 
         JStringAccessor app_id(env, j_app_id);

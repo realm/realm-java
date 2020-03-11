@@ -60,8 +60,8 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         static JavaClass mapClass(env, "java/util/HashMap");
         static JavaMethod init(env, mapClass, "<init>", "(I)V");
         static JavaMethod put_method(env, mapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-        jsize map_size = request.headers.size();
-        jobject request_headers = env->NewObject(mapClass, init, map_size);
+        size_t map_size = request.headers.size();
+        jobject request_headers = env->NewObject(mapClass, init, (jsize) map_size);
         for (auto header : request.headers) {
             env->CallObjectMethod(request_headers, put_method, to_jstring(env, header.first), to_jstring(env, header.second));
         }
@@ -77,18 +77,19 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
                                             );
         env->DeleteLocalRef(request_headers);
 
-        // Read response
-        static JavaClass responseClass(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Response");
-        static JavaMethod get_http_code_method(env, responseClass, "getHttpResponseCode", "()I");
-        static JavaMethod get_custom_code_method(env, responseClass, "getCustomResponseCode", "()I");
-        static JavaMethod get_headers_method(env, responseClass, "getJNIFriendlyHeaders", "()[Ljava/lang/String;");
-        static JavaMethod get_body_method(env, responseClass, "getBody", "()Ljava/lang/String;");
-
         if (env->ExceptionCheck()) {
             // This should not happen. All exceptions should ideally have been caught by Java
-            // and turned into a realm::app::Response object
-            throw std::logic_error("Unexcepted exception thrown"); // FIXME better error
+            // and turned into a realm::app::Response object. If this happened just
+            // let the Java exception bubble up.
+            return;
         } else {
+            // Read response
+            static JavaClass responseClass(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Response");
+            static JavaMethod get_http_code_method(env, responseClass, "getHttpResponseCode", "()I");
+            static JavaMethod get_custom_code_method(env, responseClass, "getCustomResponseCode", "()I");
+            static JavaMethod get_headers_method(env, responseClass, "getJNIFriendlyHeaders", "()[Ljava/lang/String;");
+            static JavaMethod get_body_method(env, responseClass, "getBody", "()Ljava/lang/String;");
+
             jint http_code = env->CallIntMethod(response, get_http_code_method);
             jint custom_code = env->CallIntMethod(response, get_custom_code_method);
             JStringAccessor java_body(env, (jstring) env->CallObjectMethod(response, get_body_method));

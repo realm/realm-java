@@ -47,7 +47,7 @@ public class OsSyncUser implements NativeObject {
     }
 
     public String getBirthday() {
-        return nativeGetBirthDay(nativePtr);
+        return nativeGetBirthday(nativePtr);
     }
 
     public String getMinAge() {
@@ -58,16 +58,8 @@ public class OsSyncUser implements NativeObject {
         return nativeGetMaxAge(nativePtr);
     }
 
-    public String getServerUrl() {
-        return nativeGetServerUrl(nativePtr);
-    }
-
     public String getIdentity() {
         return nativeGetIdentity(nativePtr);
-    }
-
-    public String getLocalIdentity() {
-        return nativeGetLocalIdentity(nativePtr);
     }
 
     public String getAccessToken() {
@@ -98,13 +90,11 @@ public class OsSyncUser implements NativeObject {
     private static native String nativeGetFirstName(long nativePtr);
     private static native String nativeGetLastName(long nativePtr);
     private static native String nativeGetGender(long nativePtr);
-    private static native String nativeGetBirthDay(long nativePtr);
+    private static native String nativeGetBirthday(long nativePtr);
     private static native String nativeGetMinAge(long nativePtr);
     private static native String nativeGetMaxAge(long nativePtr);
 
-    private static native String nativeGetServerUrl(long nativePtr);
     private static native String nativeGetIdentity(long nativePtr);
-    private static native String nativeGetLocalIdentity(long nativePtr);
     private static native String nativeGetAccessToken(long nativePtr);
     private static native String nativeGetRefreshToken(long nativePtr);
     private static native String[] nativeGetIdentities(long nativePtr); // Returns pairs of {id, provider}
