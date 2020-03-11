@@ -113,8 +113,11 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     // Parse Headers outputtet from OKHttp to the format expected by ObjectStore
     private Map<String, String> parseHeaders(Headers headers) {
-        // FIXME: Parse headers
-        return new HashMap<>(0);
+        HashMap<String, String> osHeaders = new HashMap<>(headers.size()/2);
+        for (String key : headers.names()) {
+            osHeaders.put(key, headers.get(key));
+        }
+        return osHeaders;
     }
 
 }

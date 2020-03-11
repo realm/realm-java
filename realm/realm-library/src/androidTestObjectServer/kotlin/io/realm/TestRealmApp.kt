@@ -9,9 +9,9 @@ import io.realm.log.LogLevel
 
 class TestRealmApp private constructor() {
     companion object {
-        val config = RealmAppConfiguration.Builder("mongodb-realm-integration-tests")
+        val config = RealmAppConfiguration.Builder("realm-sdk-integration-tests-pwjzl")
                 .logLevel(LogLevel.DEBUG)
-                .baseUrl("127.0.0.1:9090")
+                .baseUrl("http://127.0.0.1:9090")
                 .appName("MongoDB Realm Integration Tests")
                 .appVersion("1.0.")
                 .build()

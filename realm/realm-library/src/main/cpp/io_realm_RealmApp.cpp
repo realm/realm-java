@@ -84,7 +84,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogin(JNIEnv* env, jclass, j
         App* app = reinterpret_cast<App*>(j_app_ptr);
         auto credentials = reinterpret_cast<AppCredentials*>(j_credentials_ptr);
         jobject callback = env->NewGlobalRef(j_callback);
-        app->login_with_credentials(*credentials, [&](std::shared_ptr<SyncUser> user, Optional<app::AppError> error) {
+        app->log_in_with_credentials(*credentials, [&](std::shared_ptr<SyncUser> user, Optional<app::AppError> error) {
             if (error) {
                 auto err = error.value();
                 std::string error_category = err.error_code.category().name();
