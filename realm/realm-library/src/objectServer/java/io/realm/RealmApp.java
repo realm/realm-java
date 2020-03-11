@@ -165,7 +165,14 @@ public class RealmApp {
             }
             @Override
             public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
-                error.set(new ObjectServerError(ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode), errorMessage));
+                ErrorCode code = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
+                if (code == ErrorCode.UNKNOWN) {
+                    // In case of UNKNOWN errors parse as much error information on as possible.
+                    String detailedErrorMessage = String.format("{%s::%s} %s", nativeErrorCategory, nativeErrorCode, errorMessage);
+                    error.set(new ObjectServerError(code, detailedErrorMessage));
+                } else {
+                    error.set(new ObjectServerError(code, errorMessage));
+                }
             }
         });
 

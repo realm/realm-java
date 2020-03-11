@@ -51,7 +51,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jclass,
         if (ret != 0) {
             throw std::runtime_error(util::format("Failed to get Java VM. Error: %d", ret));
         }
-        jobject java_network_transport_impl = env->NewGlobalRef(j_java_network_transport_impl);
+        jobject java_network_transport_impl = env->NewGlobalRef(j_java_network_transport_impl); // FIXME: Leaking the transport
         std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [jvm, java_network_transport_impl] {
             return std::unique_ptr<GenericNetworkTransport>(new JavaNetworkTransport(jvm, java_network_transport_impl));
         };
@@ -95,9 +95,10 @@ JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogin(JNIEnv* env, jclass, j
                                     to_jstring(env, err.message));
             } else {
                 auto* java_user = new std::shared_ptr<SyncUser>(std::move(user));
-                env->CallVoidMethod(callback, java_notify_onsuccess, reinterpret_cast<jlong>(java_user));
-                env->DeleteGlobalRef(callback);
+                jobject ptr_value = JavaClassGlobalDef::new_long(env, reinterpret_cast<int64_t>(java_user));
+                env->CallVoidMethod(callback, java_notify_onsuccess, ptr_value);
             }
+            env->DeleteGlobalRef(callback);
         });
     }
     CATCH_STD()

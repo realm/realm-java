@@ -29,6 +29,7 @@ import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 
@@ -46,6 +47,14 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
             okhttp3.Response response = null;
             try {
                 Request.Builder builder = new Request.Builder().url(url);
+                switch(method) {
+                    case "get": builder.get(); break;
+                    case "delete": builder.delete(RequestBody.create(JSON, body)); break;
+                    case "patch": builder.patch(RequestBody.create(JSON, body)); break;
+                    case "post": builder.post(RequestBody.create(JSON, body)); break;
+                    case "put": builder.put(RequestBody.create(JSON, body)); break;
+                    default: throw new IllegalArgumentException("Unknown method type: "+ method);
+                }
 
                 for (Map.Entry<String, String> entry : headers.entrySet()) {
                     builder.addHeader(entry.getKey(), entry.getValue());

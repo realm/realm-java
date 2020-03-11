@@ -24,7 +24,7 @@ class RealmAppTests {
 
     @Test
     fun login() {
-        val creds = RealmCredentials.anonymous()
+        val creds = RealmCredentials.emailPassword("unique_user@domain.com", "password")
         var user = app.login(creds)
         assertEquals("this is going to blow up", user.id) // Parse error is reported wrongly
     }

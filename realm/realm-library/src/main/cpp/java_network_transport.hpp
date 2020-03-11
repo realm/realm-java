@@ -33,8 +33,8 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
 
     JavaNetworkTransport(JavaVM* vm, jobject java_network_transport_impl) {
         m_jvm = vm;
-        m_java_network_transport_impl = java_network_transport_impl; //env->NewGlobalRef(java_network_transport_impl);
         JNIEnv* env = get_current_env();
+        m_java_network_transport_impl = env->NewGlobalRef(java_network_transport_impl);
         jclass cls = env->GetObjectClass(m_java_network_transport_impl);
         auto method_name = "sendRequest";
         auto signature = "(Ljava/lang/String;Ljava/lang/String;JLjava/util/Map;Ljava/lang/String;)Lio/realm/internal/objectstore/OsJavaNetworkTransport$Response;";
@@ -53,7 +53,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
             case app::HttpMethod::post: method = "post"; break;
             case app::HttpMethod::patch: method = "patch"; break;
             case app::HttpMethod::put: method = "put"; break;
-            case app::HttpMethod::del: method = "del"; break;
+            case app::HttpMethod::del: method = "delete"; break;
         }
 
         // Create headers
