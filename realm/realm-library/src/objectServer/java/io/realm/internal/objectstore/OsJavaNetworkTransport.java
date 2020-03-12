@@ -43,9 +43,9 @@ import io.realm.log.RealmLog;
 public abstract class OsJavaNetworkTransport {
 
     // Custom error codes. These must not match any HTTP response error codes
-    public static int ERROR_IO = 1000;
-    public static int ERROR_INTERRUPTED = 1001;
-    public static int ERROR_UNKNOWN = 1002;
+    public static final int ERROR_IO = 1000;
+    public static final int ERROR_INTERRUPTED = 1001;
+    public static final int ERROR_UNKNOWN = 1002;
 
     /**
      * This method is being called from JNI in order to execute the network transport itself.

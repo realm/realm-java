@@ -17,6 +17,7 @@ package io.realm;
 
 import android.content.Context;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
@@ -34,7 +35,7 @@ public class RealmAppConfiguration {
     private final String baseUrl;
     private final Context context;
     private final SyncSession.ErrorHandler defaultErrorHandler;
-    private final byte[] encryptionKey;
+    @Nullable private final byte[] encryptionKey;
     private final long logLevel;
     private final long requestTimeoutMs;
 
@@ -44,7 +45,7 @@ public class RealmAppConfiguration {
                                  String baseUrl,
                                  Context context,
                                  SyncSession.ErrorHandler defaultErrorHandler,
-                                 byte[] encryptionKey,
+                                 @Nullable byte[] encryptionKey,
                                  long logLevel,
                                  long requestTimeoutMs) {
 
@@ -54,7 +55,7 @@ public class RealmAppConfiguration {
         this.baseUrl = baseUrl;
         this.context = context;
         this.defaultErrorHandler = defaultErrorHandler;
-        this.encryptionKey = encryptionKey;
+        this.encryptionKey = (encryptionKey == null) ? null : Arrays.copyOf(encryptionKey, encryptionKey.length);
         this.logLevel = logLevel;
         this.requestTimeoutMs = requestTimeoutMs;
     }
@@ -112,7 +113,7 @@ public class RealmAppConfiguration {
      * @return
      */
     public byte[] getEncryptionKey() {
-        return encryptionKey;
+        return encryptionKey == null ? null : Arrays.copyOf(encryptionKey, encryptionKey.length);
     }
 
     /**
@@ -175,7 +176,7 @@ public class RealmAppConfiguration {
          * @return
          */
         public Builder encryptionKey(byte[] key) {
-            this.encryptionKey = key;
+            this.encryptionKey = Arrays.copyOf(key, key.length);
             return this;
         }
 

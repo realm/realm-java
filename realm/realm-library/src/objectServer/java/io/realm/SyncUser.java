@@ -84,10 +84,10 @@ public class SyncUser {
      */
     public static SyncUser current() {
         // FIXME
-        SyncUser user = null; //SyncManager.getUserStore().getCurrent();
-        if (user != null && user.isValid()) {
-            return user;
-        }
+//        SyncUser user = null; //SyncManager.getUserStore().getCurrent();
+//        if (user != null && user.isValid()) {
+//            return user;
+//        }
         return null;
     }
 
