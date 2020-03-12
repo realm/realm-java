@@ -50,7 +50,6 @@ class OkHttpNetworkTransportTests {
         transport = OkHttpNetworkTransport()
     }
 
-
     @Test
     fun requestSuccessful() {
         val url = "$baseUrl/okhttp?success=true"

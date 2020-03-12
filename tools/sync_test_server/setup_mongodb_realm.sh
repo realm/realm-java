@@ -77,5 +77,5 @@ stitch-cli import \
                   --strategy replace \
                   -y
 
-# 6. Wait for the Stitch app to come online
-# TODO
+# 7. Store the application id in the Command Server so it can be accessed by Integration Tests on the device
+curl -X PUT -d id="realm-sdk-integration-tests-$APP_ID_SUFFIX" http://mongodb-realm-command-server:8888/application-id
