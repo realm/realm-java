@@ -17,7 +17,6 @@
 package io.realm;
 
 
-import java.io.IOException;
 import java.util.Locale;
 
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
@@ -30,6 +29,7 @@ public enum ErrorCode {
 
     // See Client::Error in https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp#L1230
     // See https://github.com/realm/realm-sync/blob/develop/src/realm/sync/protocol.hpp
+    // See https://github.com/realm/realm-object-store/blob/v10/src/sync/generic_network_transport.hpp#L47
 
     // Catch-all
     // The underlying type and error code should be part of the error message
