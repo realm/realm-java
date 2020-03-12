@@ -35,10 +35,10 @@ try {
         }
 
         def buildEnv
-//        def rosEnv
         stage('Docker build') {
-          // Docker image for build
+          // Docker image for build environment
           buildEnv = docker.build 'realm-java:snapshot'
+
 //          // Docker image for testing Realm Object Server
 //          def dependProperties = readProperties file: 'dependencies.list'
 //          def rosVersion = dependProperties["REALM_OBJECT_SERVER_VERSION"]
@@ -64,90 +64,97 @@ try {
                 // able to share its cache between builds.
                 lock("${env.NODE_NAME}-android") {
 
-                  stage('Start Docker images for tests') {
-                    // FIXME Not sure if this is the best way to do this
-                    sh "tools/sync_test_server/start_server.sh"
-                  }
-
-                  stage('JVM tests') {
-                    try {
-                      withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-                        sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} ${abiFilter} --stacktrace"
-                      }
-                    } finally {
-                      storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-                      storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-                      step([$class: 'LintPublisher'])
-                    }
-                  }
-
-                  stage('Realm Transformer tests') {
-                    try {
-                      gradle('realm-transformer', 'check')
-                    } finally {
-                      storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
-                    }
-                  }
-
-                  stage('Static code analysis') {
-                    try {
-                      gradle('realm', "findbugs checkstyle ${abiFilter}") // FIXME Reenable pmd
-                    } finally {
-                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-                      step([$class: 'CheckStylePublisher',
-                    canComputeNew: false,
-                    defaultEncoding: '',
-                    healthy: '',
-                    pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-                    unHealthy: ''
-                   ])
-                    }
-                  }
-
-                  stage('Run instrumented tests') {
-                    String backgroundPid
-                    try {
-                      backgroundPid = startLogCatCollector()
-                      forwardAdbPorts()
-                      gradle('realm', "${instrumentationTestTarget}")
-                    } finally {
-                      stopLogCatCollector(backgroundPid)
-                      storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-                      storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-                    }
-                  }
-
-                  // Gradle plugin tests require that artifacts are available, so this
-                  // step needs to be after the instrumentation tests
-                  stage('Gradle plugin tests') {
-                    try {
-                      gradle('gradle-plugin', 'check --debug')
-                    } finally {
-                      storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
-                    }
-                  }
-
-                  // TODO: add support for running monkey on the example apps
-
-                  if (['master'].contains(env.BRANCH_NAME)) {
-                    stage('Collect metrics') {
-                      collectAarMetrics()
-                    }
-                  }
-
-                  if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
-                    stage('Publish to OJO') {
-                      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-                        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
-                      }
-                    }
-                  }
                 }
+
+                  stage('Start Docker images for tests') {
+                    // stitch images are auto-published internally to aws
+                    // after authenticating to aws (and ensure you are part of the realm-ecr-users permissions group) you can find the latest image by running:
+                    // `aws ecr describe-images --repository-name ci/mongodb-realm-images --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]'`
+//                    withCustomRealmCloud("test_server-0ed2349a36352666402d0fb2e8763ac67731768c-race", "tests/mongodb", "auth-integration-tests") { networkName ->
+//                      buildSteps("--network=${networkName}")
+//                    }
+                    withMongoDBRealm("test_server-0ed2349a36352666402d0fb2e8763ac67731768c-race") { networkName ->
+                      // Do nothing
+                    }
+                  }
+
+//                  stage('JVM tests') {
+//                    try {
+//                      withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
+//                        sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} ${abiFilter} --stacktrace"
+//                      }
+//                    } finally {
+//                      storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
+//                      storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+//                      step([$class: 'LintPublisher'])
+//                    }
+//                  }
+//
+//                  stage('Realm Transformer tests') {
+//                    try {
+//                      gradle('realm-transformer', 'check')
+//                    } finally {
+//                      storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
+//                    }
+//                  }
+//
+//                  stage('Static code analysis') {
+//                    try {
+//                      gradle('realm', "findbugs checkstyle ${abiFilter}") // FIXME Reenable pmd
+//                    } finally {
+//                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+//                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
+//                      step([$class: 'CheckStylePublisher',
+//                    canComputeNew: false,
+//                    defaultEncoding: '',
+//                    healthy: '',
+//                    pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
+//                    unHealthy: ''
+//                   ])
+//                    }
+//                  }
+//
+//                  stage('Run instrumented tests') {
+//                    String backgroundPid
+//                    try {
+//                      backgroundPid = startLogCatCollector()
+//                      forwardAdbPorts()
+//                      gradle('realm', "${instrumentationTestTarget}")
+//                    } finally {
+//                      stopLogCatCollector(backgroundPid)
+//                      storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+//                      storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+//                    }
+//                  }
+//
+//                  // Gradle plugin tests require that artifacts are available, so this
+//                  // step needs to be after the instrumentation tests
+//                  stage('Gradle plugin tests') {
+//                    try {
+//                      gradle('gradle-plugin', 'check --debug')
+//                    } finally {
+//                      storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
+//                    }
+//                  }
+//
+//                  // TODO: add support for running monkey on the example apps
+//
+//                  if (['master'].contains(env.BRANCH_NAME)) {
+//                    stage('Collect metrics') {
+//                      collectAarMetrics()
+//                    }
+//                  }
+//
+//                  if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
+//                    stage('Publish to OJO') {
+//                      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
+//                        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+//                      }
+//                    }
+//                  }
+//                }
               }
         } finally {
-          sh "tools/sync-test-server/stop_server.sh"
-
           // FIXME: Figure out which logs we need to safe, if any?
           // archiveRosLog(rosContainer.id)
           // sh "docker logs ${rosContainer.id}"
@@ -182,6 +189,57 @@ try {
     }
   }
 }
+
+def withMongoDBRealm(String version, block = { it }) {
+  def mdbRealmImage = docker.image("${env.DOCKER_REGISTRY}/ci/mongodb-realm-images:${version}")
+  def stitchCliImage = docker.image("${env.DOCKER_REGISTRY}/ci/stitch-cli:190")
+  docker.withRegistry("https://${env.DOCKER_REGISTRY}", "ecr:eu-west-1:aws-ci-user") {
+    mdbRealmImage.pull()
+    stitchCliImage.pull()
+  }
+  def commandEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
+  // Docker image the Integration Test Command Server
+
+
+
+  // run image, get IP
+  withDockerNetwork { network ->
+    mdbRealmImage.withRun("--name mongodb-realm --network=${network} --network-alias=mongodb-realm") {
+      commandEnv.withRun("--name mongodb-realm-command-server --network=${network}") {
+        stitchCliImage.withRun("--name mongodb-realm-cli --network=${network}") {
+          sh "docker cp tools/sync_test_server/app_config mongodb-realm-cli:/project/app_config"
+          sh "docker cp "$DOCKERFILE_DIR"/setup_mongodb_realm.sh mongodb-realm-cli:/project/"
+          sh "docker exec -it mongodb-realm-cli sh /project/setup_mongodb_realm.sh"
+        }
+      }
+//        sh '''
+//          echo "Waiting for Stitch to start"
+//          while ! curl --output /dev/null --silent --head --fail http://mongodb-realm:9090; do
+//            sleep 1 && echo -n .;
+//          done;
+//        '''
+//
+//        def access_token = sh(
+//                script: 'curl --request POST --header "Content-Type: application/json" --data \'{ "username":"unique_user@domain.com", "password":"password" }\' http://mongodb-realm:9090/api/admin/v3.0/auth/providers/local-userpass/login -s | jq ".access_token" -r',
+//                returnStdout: true
+//        ).trim()
+//
+//        def group_id = sh(
+//                script: "curl --header 'Authorization: Bearer $access_token' http://mongodb-realm:9090/api/admin/v3.0/auth/profile -s | jq '.roles[0].group_id' -r",
+//                returnStdout: true
+//        ).trim()
+//
+//        sh """
+//          pwd && ls && ls ${configPath}
+//          /usr/bin/stitch-cli login --config-path=${configPath}/stitch-config --base-url=http://mongodb-realm:9090 --auth-provider=local-userpass --username=unique_user@domain.com --password=password
+//          /usr/bin/stitch-cli import --config-path=${configPath}/stitch-config --base-url=http://mongodb-realm:9090 --app-name auth-integration-tests --path=${configPath} --project-id $group_id -y --strategy replace
+//        """
+//      }
+      block(network)
+    }
+  }
+}
+
 
 def forwardAdbPorts() {
   sh ''' adb reverse tcp:9080 tcp:9080 && adb reverse tcp:9443 tcp:9443 &&
