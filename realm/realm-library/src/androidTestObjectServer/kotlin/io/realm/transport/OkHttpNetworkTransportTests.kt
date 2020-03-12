@@ -15,5 +15,133 @@
  */
 package io.realm.transport
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.Realm
+import io.realm.internal.network.OkHttpNetworkTransport
+import io.realm.internal.objectstore.OsJavaNetworkTransport
+import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+
+/**
+ * This class is responsible for testing the OkHttp implementation of the network layer.
+ * Any behavior happening after the network request has executed are not covered by this class,
+ * but instead in [OsJavaNetworkTransportTests].
+ *
+ * This class uses a a simple custom webserver written in Node that must be running when
+ * executing these tests.
+ */
+@RunWith(AndroidJUnit4::class)
 class OkHttpNetworkTransportTests {
+
+    private lateinit var transport: OkHttpNetworkTransport
+    private val baseUrl = "http://127.0.0.1:8888" // URL to command server
+
+    enum class HTTPMethod {
+        GET, POST, PATCH, PUT, DELETE
+    }
+
+    @Before
+    fun setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+        transport = OkHttpNetworkTransport()
+    }
+
+
+    @Test
+    fun requestSuccessful() {
+        val url = "$baseUrl/okhttp?success=true"
+        for (method in HTTPMethod.values()) {
+            val body = if (method == HTTPMethod.GET) "" else "{ \"body\" : \"some content\" }"
+            val headers = mapOf(
+                    Pair("Content-Type", "application/json;charset=utf-8"),
+                    Pair("Accept", "application/json")
+            )
+
+            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.name.toLowerCase(),
+                    url,
+                    5000,
+                    headers,
+                    body)
+            assertEquals(200, response.httpResponseCode)
+            assertEquals(0, response.customResponseCode)
+            assertEquals("${method.name}-success", response.body)
+        }
+    }
+
+    @Test
+    fun requestFailedOnServer() {
+        val url = "$baseUrl/okhttp?success=false"
+        for (method in HTTPMethod.values()) {
+            val body = if (method == HTTPMethod.GET) "" else "{ \"body\" : \"some content\" }"
+            val headers = mapOf(
+                    Pair("Content-Type", "application/json;charset=utf-8"),
+                    Pair("Accept", "application/json")
+            )
+
+            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.name.toLowerCase(),
+                    url,
+                    5000,
+                    headers,
+                    body)
+            assertEquals(500, response.httpResponseCode)
+            assertEquals(0, response.customResponseCode)
+            assertEquals("${method.name}-failure", response.body)
+        }
+    }
+
+    // Make sure that the client doesn't crash if attempting to send invalid JSON
+    // This is mostly a guard against Java crashing if ObjectStore serializes the wrong
+    // way by accident.
+    @Test
+    fun requestSendsIllegalJson() {
+        val url = "$baseUrl/okhttp?success=true"
+        for (method in HTTPMethod.values()) {
+            val body = if (method == HTTPMethod.GET) "" else "Boom!"
+            val headers = mapOf(
+                    Pair("Content-Type", "application/json;charset=utf-8"),
+                    Pair("Accept", "application/json")
+            )
+
+            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.name.toLowerCase(),
+                    url,
+                    5000,
+                    headers,
+                    body)
+            assertEquals(200, response.httpResponseCode)
+            assertEquals(0, response.customResponseCode)
+            assertEquals("${method.name}-success", response.body)
+        }
+    }
+
+    @Test
+    fun requestInterrupted() {
+        val url = "$baseUrl/okhttp?success=true"
+        for (method in HTTPMethod.values()) {
+            val body = if (method == HTTPMethod.GET) "" else "{ \"body\" : \"some content\" }"
+            val headers = mapOf(
+                    Pair("Content-Type", "application/json;charset=utf-8"),
+                    Pair("Accept", "application/json")
+            )
+
+            val t = Thread(Runnable {
+                val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.name.toLowerCase(),
+                        url,
+                        5000,
+                        headers,
+                        body)
+                assertEquals(0, response.httpResponseCode)
+                assertEquals(OsJavaNetworkTransport.ERROR_IO, response.customResponseCode)
+                assertTrue(response.body.contains("interrupted"))
+            })
+            t.start()
+            // There is a very small chance that the network request already completed when getting
+            // to here, which would cause the test to fail. Ignore this possibility for now.
+            t.interrupt()
+            t.join()
+        }
+    }
 }

@@ -22,6 +22,8 @@ LATEST_CLI_VERSION="190"
 docker network create mongodb-realm-network
 docker run --rm -i -t --publish 9090:9090 -d --name mongodb-realm --network mongodb-realm-network 012067661104.dkr.ecr.eu-west-1.amazonaws.com/ci/mongodb-realm-images:"$LATEST_MONGODB_REALM_VERSION"
 docker run --rm -i -t -d --name mongodb-realm-cli --network mongodb-realm-network 012067661104.dkr.ecr.eu-west-1.amazonaws.com/ci/stitch-cli:"$LATEST_CLI_VERSION"
+docker build $DOCKERFILE_DIR -t mongodb-realm-command-server || { echo "Failed to build Docker image." ; exit 1 ; }
+docker run -p 8888:8888 -v$TMP_DIR:/tmp --name mongodb-realm-command-server mongodb-realm-command-server
 
 docker cp "$DOCKERFILE_DIR"/app_config mongodb-realm-cli:/project/app_config
 docker cp "$DOCKERFILE_DIR"/setup_mongodb_realm.sh mongodb-realm-cli:/project/
