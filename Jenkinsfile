@@ -35,19 +35,19 @@ try {
         }
 
         def buildEnv
-        def rosEnv
+//        def rosEnv
         stage('Docker build') {
           // Docker image for build
           buildEnv = docker.build 'realm-java:snapshot'
-          // Docker image for testing Realm Object Server
-          def dependProperties = readProperties file: 'dependencies.list'
-          def rosVersion = dependProperties["REALM_OBJECT_SERVER_VERSION"]
-          withCredentials([string(credentialsId: 'realm-sync-feature-token-enterprise', variable: 'realmFeatureToken')]) {
-            rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_VERSION=${rosVersion} --build-arg REALM_FEATURE_TOKEN=${realmFeatureToken} tools/sync_test_server"
-          }
+//          // Docker image for testing Realm Object Server
+//          def dependProperties = readProperties file: 'dependencies.list'
+//          def rosVersion = dependProperties["REALM_OBJECT_SERVER_VERSION"]
+//          withCredentials([string(credentialsId: 'realm-sync-feature-token-enterprise', variable: 'realmFeatureToken')]) {
+//            rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_VERSION=${rosVersion} --build-arg REALM_FEATURE_TOKEN=${realmFeatureToken} tools/sync_test_server"
+//          }
         }
 
-	    rosContainer = rosEnv.run()
+//	    rosContainer = rosEnv.run()
 
         try {
               buildEnv.inside("-e HOME=/tmp " +
@@ -63,6 +63,11 @@ try {
                 // Lock required around all usages of Gradle as it isn't
                 // able to share its cache between builds.
                 lock("${env.NODE_NAME}-android") {
+
+                  stage('Start Docker images for tests') {
+                    // FIXME Not sure if this is the best way to do this
+                    sh "tools/sync_test_server/start_server.sh"
+                  }
 
                   stage('JVM tests') {
                     try {
@@ -141,9 +146,13 @@ try {
                 }
               }
         } finally {
-              archiveRosLog(rosContainer.id)
-              sh "docker logs ${rosContainer.id}"
-              rosContainer.stop()
+          sh "tools/sync-test-server/stop_server.sh"
+
+          // FIXME: Figure out which logs we need to safe, if any?
+          // archiveRosLog(rosContainer.id)
+          // sh "docker logs ${rosContainer.id}"
+          // rosContainer.stop()
+
         }
       }
     }
@@ -155,6 +164,7 @@ try {
   buildSuccess = false
   throw e
 } finally {
+
   if (['master', 'releases', 'next-major'].contains(env.BRANCH_NAME) && !buildSuccess) {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
