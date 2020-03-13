@@ -41,7 +41,7 @@ try {
         // FIXME: Had issues moving these into a seperate Stage step. Is this needed?
         buildEnv = docker.build 'realm-java:snapshot'
         // `aws ecr describe-images --repository-name ci/mongodb-realm-images --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]'`
-        def version = "test_server-0ed2349a36352666402d0fb2e8763ac67731768c-race"
+        def version = "test_server-26e6463b98d8e3f0f4522a70e37f105d34b688a9-race"
         def mdbRealmImage = docker.image("${env.DOCKER_REGISTRY}/ci/mongodb-realm-images:${version}")
         def stitchCliImage = docker.image("${env.DOCKER_REGISTRY}/ci/stitch-cli:190")
         docker.withRegistry("https://${env.DOCKER_REGISTRY}", "ecr:eu-west-1:aws-ci-user") {

@@ -16,7 +16,7 @@
 # 8) Rerun this script
 #
 
-cd /project
+cd /tmp
 
 echo "Waiting for Stitch to start"
 while ! curl --output /dev/null --silent --head --fail http://mongodb-realm:9090; do
