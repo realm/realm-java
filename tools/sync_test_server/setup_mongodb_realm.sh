@@ -23,6 +23,8 @@ while ! curl --output /dev/null --silent --head --fail http://mongodb-realm:9090
   sleep 1 && echo -n .;
 done;
 
+echo "Test:"
+curl --request POST --header "Content-Type: application/json" --data '{ "username":"unique_user@domain.com", "password":"password" }' http://mongodb-realm:9090/api/admin/v3.0/auth/providers/local-userpass/login -s
 ACCESS_TOKEN=$(curl --request POST --header "Content-Type: application/json" --data '{ "username":"unique_user@domain.com", "password":"password" }' http://mongodb-realm:9090/api/admin/v3.0/auth/providers/local-userpass/login -s | jq ".access_token" -r)
 GROUP_ID=$(curl --header "Authorization: Bearer $ACCESS_TOKEN" http://mongodb-realm:9090/api/admin/v3.0/auth/profile -s | jq '.roles[0].group_id' -r)
 
