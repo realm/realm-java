@@ -120,6 +120,16 @@ public abstract class OsJavaNetworkTransport {
         public String getBody() {
             return body;
         }
+
+        @Override
+        public String toString() {
+            return "Response{" +
+                    "httpResponseCode=" + httpResponseCode +
+                    ", customResponseCode=" + customResponseCode +
+                    ", headers=" + headers +
+                    ", body='" + body + '\'' +
+                    '}';
+        }
     }
 
     /**

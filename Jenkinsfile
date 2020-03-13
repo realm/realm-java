@@ -87,36 +87,36 @@ try {
                     }
                   }
 
-                  stage('Realm Transformer tests') {
-                    try {
-                      gradle('realm-transformer', 'check')
-                    } finally {
-                      storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
-                    }
-                  }
-
-                  stage('Static code analysis') {
-                    try {
-                      gradle('realm', "findbugs checkstyle ${abiFilter}") // FIXME Renable pmd
-                    } finally {
-                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-                      step([$class: 'CheckStylePublisher',
-                    canComputeNew: false,
-                    defaultEncoding: '',
-                    healthy: '',
-                    pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-                    unHealthy: ''
-                   ])
-                    }
-                  }
+//                  stage('Realm Transformer tests') {
+//                    try {
+//                      gradle('realm-transformer', 'check')
+//                    } finally {
+//                      storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
+//                    }
+//                  }
+//
+//                  stage('Static code analysis') {
+//                    try {
+//                      gradle('realm', "findbugs checkstyle ${abiFilter}") // FIXME Renable pmd
+//                    } finally {
+//                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+//                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
+//                      step([$class: 'CheckStylePublisher',
+//                    canComputeNew: false,
+//                    defaultEncoding: '',
+//                    healthy: '',
+//                    pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
+//                    unHealthy: ''
+//                   ])
+//                    }
+//                  }
 
                   stage('Run instrumented tests') {
                     String backgroundPid
                     try {
                       backgroundPid = startLogCatCollector()
                       forwardAdbPorts()
-                      gradle('realm', "${instrumentationTestTarget}")
+                      gradle('realm', "${instrumentationTestTarget} --tests io.realm.RealmAppTests")
                     } finally {
                       stopLogCatCollector(backgroundPid)
                       storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
