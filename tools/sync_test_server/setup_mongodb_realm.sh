@@ -19,12 +19,12 @@
 cd /tmp
 
 echo "Waiting for Stitch to start"
-while ! curl --output /dev/null --silent --head --fail http://mongodb-realm:9090; do
+while ! curl --output /dev/null --silent --head --fail http://localhost:9090; do
   sleep 1 && echo -n .;
 done;
 
-ACCESS_TOKEN=$(curl --request POST --header "Content-Type: application/json" --data '{ "username":"unique_user@domain.com", "password":"password" }' http://mongodb-realm:9090/api/admin/v3.0/auth/providers/local-userpass/login -s | jq ".access_token" -r)
-GROUP_ID=$(curl --header "Authorization: Bearer $ACCESS_TOKEN" http://mongodb-realm:9090/api/admin/v3.0/auth/profile -s | jq '.roles[0].group_id' -r)
+ACCESS_TOKEN=$(curl --request POST --header "Content-Type: application/json" --data '{ "username":"unique_user@domain.com", "password":"password" }' http://localhost:9090/api/admin/v3.0/auth/providers/local-userpass/login -s | jq ".access_token" -r)
+GROUP_ID=$(curl --header "Authorization: Bearer $ACCESS_TOKEN" http://localhost:9090/api/admin/v3.0/auth/profile -s | jq '.roles[0].group_id' -r)
 
 # Enable for debug
 # echo "Access token: $ACCESS_TOKEN"
@@ -32,7 +32,7 @@ echo "Group Id: $GROUP_ID"
 
 # 1. Log in to enable Stitch CLI commands
 stitch-cli login --config-path=/tmp/stitch-config \
-                 --base-url=http://mongodb-realm:9090 \
+                 --base-url=http://localhost:9090 \
                  --auth-provider=local-userpass \
                  --username=unique_user@domain.com \
                  --password=password
@@ -41,7 +41,7 @@ stitch-cli login --config-path=/tmp/stitch-config \
 #    which we need to extract from the commandline output
 IMPORT_RESPONSE=$(stitch-cli import \
                   --config-path=/tmp/stitch-config \
-                  --base-url=http://mongodb-realm:9090 \
+                  --base-url=http://localhost:9090 \
                   --path=/tmp/app_config \
                   --app-name realm-sdk-integration-tests \
                   --project-id "$GROUP_ID" \
@@ -54,9 +54,9 @@ echo "App ID Suffix: $APP_ID_SUFFIX"
 #    - a) MongoDB Service: Requires an URI.
 stitch-cli secrets add \
                   --name="integration_tests_uri" \
-                  --value="mongodb://mongodb-realm:26000" \
+                  --value="mongodb://localhost:26000" \
                   --app-id="realm-sdk-integration-tests-$APP_ID_SUFFIX" \
-                  --base-url=http://mongodb-realm:9090 \
+                  --base-url=http://localhost:9090 \
                   --config-path=/tmp/stitch-config
 
 # 4. Due to how Stitch works internally, it is currently not possible to create a secret starting
@@ -69,7 +69,7 @@ sed -i 's/\"uri\": \"__integration_tests_uri\"/\"uri\": \"integration_tests_uri\
 # 5. Now we can correctly import the Stitch app
 stitch-cli import \
                   --config-path=/tmp/stitch-config \
-                  --base-url=http://mongodb-realm:9090 \
+                  --base-url=http://localhost:9090 \
                   --path=/tmp/app_config \
                   --app-name realm-sdk-integration-tests \
                   --project-id "$GROUP_ID" \
@@ -77,4 +77,4 @@ stitch-cli import \
                   -y
 
 # 7. Store the application id in the Command Server so it can be accessed by Integration Tests on the device
-curl -X PUT -d id="realm-sdk-integration-tests-$APP_ID_SUFFIX" http://mongodb-realm-command-server:8888/application-id
+curl -X PUT -d id="realm-sdk-integration-tests-$APP_ID_SUFFIX" http://localhost:8888/application-id
