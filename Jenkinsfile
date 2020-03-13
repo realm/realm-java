@@ -54,12 +54,12 @@ try {
           // Prepare Docker containers used by Instrumentation tests
           // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
           sh "docker network create mongodb-realm-network"
-          mongoDbRealmContainer = mdbRealmImage.run("--name mongodb-realm --network mongodb-realm-network")
-          mongoDbRealmCLIContainer = stitchCliImage.run("--name mongodb-realm-cli -t --network container:${mongoDbRealmContainer.id}")
-          mongoDbRealmCommandServerContainer = commandServerEnv.run("--name mongodb-realm-command-server --network container:${mongoDbRealmContainer.id}")
-          sh "docker cp tools/sync_test_server/app_config mongodb-realm-cli:/tmp/app_config"
-          sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh mongodb-realm-cli:/tmp/"
-          sh "docker exec -i mongodb-realm-cli sh /tmp/setup_mongodb_realm.sh"
+          mongoDbRealmContainer = mdbRealmImage.run("--network mongodb-realm-network")
+          mongoDbRealmCLIContainer = stitchCliImage.run("-t --network container:${mongoDbRealmContainer.id}")
+          mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
+          sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmCLIContainer.id}:/tmp/app_config"
+          sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmCLIContainer.id}:/tmp/"
+          sh "docker exec -i ${mongoDbRealmCLIContainer.id} sh /tmp/setup_mongodb_realm.sh"
 
           buildEnv.inside("-e HOME=/tmp " +
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
@@ -69,8 +69,7 @@ try {
                   "-v ${env.HOME}/.android:/tmp/.android " +
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
-                  "--network container:${mongoDbRealmContainer.id} " +
-                  "--name build-env") {
+                  "--network container:${mongoDbRealmContainer.id} ") {
 
             // Lock required around all usages of Gradle as it isn't
             // able to share its cache between builds.
