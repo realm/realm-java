@@ -42,6 +42,7 @@ class TestRealmApp private constructor() {
         }
 
         private fun fetchApplicationId(): String {
+            init()
             val transport = OkHttpNetworkTransport()
             val response = transport.sendRequest(
                     "get",
@@ -57,7 +58,6 @@ class TestRealmApp private constructor() {
         }
 
         fun getInstance(networkTransport: OsJavaNetworkTransport? = null): RealmApp {
-            init()
             val app = RealmApp(config)
             if (networkTransport != null) {
                 app.networkTransport = networkTransport

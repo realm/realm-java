@@ -21,7 +21,7 @@ LATEST_CLI_VERSION="190"
 # Run Stitch and Stitch CLI Docker images
 docker network create mongodb-realm-network
 docker build $DOCKERFILE_DIR -t mongodb-realm-command-server || { echo "Failed to build Docker image." ; exit 1 ; }
-ID=$(docker run --rm -i -t -d --network mongodb-realm-network  -p 8888:8888 --name mongodb-realm 012067661104.dkr.ecr.eu-west-1.amazonaws.com/ci/mongodb-realm-images:"$LATEST_MONGODB_REALM_VERSION")
+ID=$(docker run --rm -i -t -d --network mongodb-realm-network  -p 8888:8888 -p 9090:9090 --name mongodb-realm 012067661104.dkr.ecr.eu-west-1.amazonaws.com/ci/mongodb-realm-images:"$LATEST_MONGODB_REALM_VERSION")
 docker run --rm -i -t -d --network container:$ID -v$TMP_DIR:/tmp --name mongodb-realm-command-server mongodb-realm-command-server
 docker run --rm -i -t -d --network container:$ID --name mongodb-realm-cli 012067661104.dkr.ecr.eu-west-1.amazonaws.com/ci/stitch-cli:"$LATEST_CLI_VERSION"
 
