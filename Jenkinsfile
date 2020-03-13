@@ -6,7 +6,7 @@ def buildSuccess = false
 def mongoDbRealmContainer = null
 def mongoDbRealmCLIContainer = null
 def mongoDbRealmCommandServerContainer = null
-def dockerNetworkId = UID.randomUUID().toString()
+def dockerNetworkId = UUID.randomUUID().toString()
 try {
   node('android') {
     timeout(time: 90, unit: 'MINUTES') {
