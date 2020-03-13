@@ -32,7 +32,7 @@ try {
         def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
-          abiFilter = "-PbuildTargetABIs=armeabi-v7a"
+          abiFilter = "-PbuildTargetABIs=armeabi-v7a -Pandroid.testInstrumentationRunnerArguments.class=io.realm.RealmAppTests"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           // Run in debug more for better error reporting
         }
