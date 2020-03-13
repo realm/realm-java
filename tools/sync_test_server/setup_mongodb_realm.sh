@@ -16,6 +16,7 @@
 # 8) Rerun this script
 #
 
+set +e
 cd /project
 
 echo "Waiting for Stitch to start"

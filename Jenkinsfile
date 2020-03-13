@@ -3,7 +3,9 @@
 import groovy.json.JsonOutput
 
 def buildSuccess = false
-def rosContainer
+def mongoDbRealmContainer = null
+def mongoDbRealmCLIContainer = null
+def mongoDbRealmCommandServerContainer = null
 try {
   node('android') {
     timeout(time: 90, unit: 'MINUTES') {
@@ -11,15 +13,15 @@ try {
       ws('/tmp/realm-java') {
         stage('SCM') {
           checkout([
-                 $class: 'GitSCM',
-                branches: scm.branches,
-                gitTool: 'native git',
-                extensions: scm.extensions + [
-                  [$class: 'CleanCheckout'],
-                  [$class: 'SubmoduleOption', recursiveSubmodules: true]
-                ],
-                userRemoteConfigs: scm.userRemoteConfigs
-               ])
+                  $class           : 'GitSCM',
+                  branches         : scm.branches,
+                  gitTool          : 'native git',
+                  extensions       : scm.extensions + [
+                          [$class: 'CleanCheckout'],
+                          [$class: 'SubmoduleOption', recursiveSubmodules: true]
+                  ],
+                  userRemoteConfigs: scm.userRemoteConfigs
+          ])
         }
 
         // Toggles for PR vs. Master builds.
@@ -30,27 +32,35 @@ try {
         def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
-            abiFilter = "-PbuildTargetABIs=armeabi-v7a"
-            instrumentationTestTarget = "connectedObjectServerDebugAndroidTest" // Run in debug more for better error reporting
+          abiFilter = "-PbuildTargetABIs=armeabi-v7a"
+          instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
+          // Run in debug more for better error reporting
         }
 
-        def buildEnv
-        stage('Docker build') {
-          // Docker image for build environment
-          buildEnv = docker.build 'realm-java:snapshot'
-
-//          // Docker image for testing Realm Object Server
-//          def dependProperties = readProperties file: 'dependencies.list'
-//          def rosVersion = dependProperties["REALM_OBJECT_SERVER_VERSION"]
-//          withCredentials([string(credentialsId: 'realm-sync-feature-token-enterprise', variable: 'realmFeatureToken')]) {
-//            rosEnv = docker.build 'ros:snapshot', "--build-arg ROS_VERSION=${rosVersion} --build-arg REALM_FEATURE_TOKEN=${realmFeatureToken} tools/sync_test_server"
-//          }
+        // Prepare Docker images
+        // FIXME: Had issues moving these into a seperate Stage step. Is this needed?
+        buildEnv = docker.build 'realm-java:snapshot'
+        // `aws ecr describe-images --repository-name ci/mongodb-realm-images --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]'`
+        def version = "test_server-0ed2349a36352666402d0fb2e8763ac67731768c-race"
+        def mdbRealmImage = docker.image("${env.DOCKER_REGISTRY}/ci/mongodb-realm-images:${version}")
+        def stitchCliImage = docker.image("${env.DOCKER_REGISTRY}/ci/stitch-cli:190")
+        docker.withRegistry("https://${env.DOCKER_REGISTRY}", "ecr:eu-west-1:aws-ci-user") {
+          mdbRealmImage.pull()
+          stitchCliImage.pull()
         }
-
-//	    rosContainer = rosEnv.run()
+        def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
 
         try {
-              buildEnv.inside("-e HOME=/tmp " +
+          // Prepare Docker containers used by Instrumentation tests
+          // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
+          mongoDbRealmContainer = mdbRealmImage.run()
+          mongoDbRealmCLIContainer = mdbRealmImage.run("-t --network container:${mongoDbRealmContainer.id}")
+          mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
+          sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmCLIContainer.id}:/project/"
+          sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmCLIContainer.id}:/project/"
+          sh "docker exec -i ${mongoDbRealmCLIContainer.id} sh /project/setup_mongodb_realm.sh"
+
+          buildEnv.inside("-e HOME=/tmp " +
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
                   "--privileged " +
                   "-v /dev/bus/usb:/dev/bus/usb " +
@@ -58,25 +68,11 @@ try {
                   "-v ${env.HOME}/.android:/tmp/.android " +
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
-                  "--network container:${rosContainer.id}") {
+                  "--network container:${mongoDbRealmContainer.id}") {
 
                 // Lock required around all usages of Gradle as it isn't
                 // able to share its cache between builds.
                 lock("${env.NODE_NAME}-android") {
-
-                }
-
-                  stage('Start Docker images for tests') {
-                    // stitch images are auto-published internally to aws
-                    // after authenticating to aws (and ensure you are part of the realm-ecr-users permissions group) you can find the latest image by running:
-                    // `aws ecr describe-images --repository-name ci/mongodb-realm-images --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]'`
-//                    withCustomRealmCloud("test_server-0ed2349a36352666402d0fb2e8763ac67731768c-race", "tests/mongodb", "auth-integration-tests") { networkName ->
-//                      buildSteps("--network=${networkName}")
-//                    }
-                    withMongoDBRealm("test_server-0ed2349a36352666402d0fb2e8763ac67731768c-race") { networkName ->
-                      // Do nothing
-                    }
-                  }
 
 //                  stage('JVM tests') {
 //                    try {
@@ -100,7 +96,7 @@ try {
 //
 //                  stage('Static code analysis') {
 //                    try {
-//                      gradle('realm', "findbugs checkstyle ${abiFilter}") // FIXME Reenable pmd
+//                      gradle('realm', "findbugs pmd checkstyle ${abiFilter}")
 //                    } finally {
 //                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
 //                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
@@ -152,14 +148,16 @@ try {
 //                      }
 //                    }
 //                  }
-//                }
+                }
               }
         } finally {
           // FIXME: Figure out which logs we need to safe, if any?
           // archiveRosLog(rosContainer.id)
           // sh "docker logs ${rosContainer.id}"
           // rosContainer.stop()
-
+          mongoDbRealmContainer.stop()
+          mongoDbRealmCLIContainer.stop()
+          mongoDbRealmCommandServerContainer.stop()
         }
       }
     }
@@ -171,79 +169,27 @@ try {
   buildSuccess = false
   throw e
 } finally {
-
   if (['master', 'releases', 'next-major'].contains(env.BRANCH_NAME) && !buildSuccess) {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
-	    username: 'Mr. Jenkins',
-	    icon_emoji: ':jenkins:',
-	    attachments: [[
-	        'title': "The ${env.BRANCH_NAME} branch is broken!",
-		'text': "<${env.BUILD_URL}|Click here> to check the build.",
-		'color': "danger"
-	    ]]
-	])
+                username: 'Mr. Jenkins',
+                icon_emoji: ':jenkins:',
+                attachments: [[
+                                      'title': "The ${env.BRANCH_NAME} branch is broken!",
+                                      'text': "<${env.BUILD_URL}|Click here> to check the build.",
+                                      'color': "danger"
+                              ]]
+        ])
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
       }
     }
   }
 }
 
-def withMongoDBRealm(String version, block = { it }) {
-  def mdbRealmImage = docker.image("${env.DOCKER_REGISTRY}/ci/mongodb-realm-images:${version}")
-  def stitchCliImage = docker.image("${env.DOCKER_REGISTRY}/ci/stitch-cli:190")
-  docker.withRegistry("https://${env.DOCKER_REGISTRY}", "ecr:eu-west-1:aws-ci-user") {
-    mdbRealmImage.pull()
-    stitchCliImage.pull()
-  }
-  def commandEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
-  // Docker image the Integration Test Command Server
-
-
-
-  // run image, get IP
-  withDockerNetwork { network ->
-    mdbRealmImage.withRun("--name mongodb-realm --network=${network} --network-alias=mongodb-realm") {
-      commandEnv.withRun("--name mongodb-realm-command-server --network=${network}") {
-        stitchCliImage.withRun("--name mongodb-realm-cli --network=${network}") {
-          sh "docker cp tools/sync_test_server/app_config mongodb-realm-cli:/project/app_config"
-          sh "docker cp "$DOCKERFILE_DIR"/setup_mongodb_realm.sh mongodb-realm-cli:/project/"
-          sh "docker exec -it mongodb-realm-cli sh /project/setup_mongodb_realm.sh"
-        }
-      }
-//        sh '''
-//          echo "Waiting for Stitch to start"
-//          while ! curl --output /dev/null --silent --head --fail http://mongodb-realm:9090; do
-//            sleep 1 && echo -n .;
-//          done;
-//        '''
-//
-//        def access_token = sh(
-//                script: 'curl --request POST --header "Content-Type: application/json" --data \'{ "username":"unique_user@domain.com", "password":"password" }\' http://mongodb-realm:9090/api/admin/v3.0/auth/providers/local-userpass/login -s | jq ".access_token" -r',
-//                returnStdout: true
-//        ).trim()
-//
-//        def group_id = sh(
-//                script: "curl --header 'Authorization: Bearer $access_token' http://mongodb-realm:9090/api/admin/v3.0/auth/profile -s | jq '.roles[0].group_id' -r",
-//                returnStdout: true
-//        ).trim()
-//
-//        sh """
-//          pwd && ls && ls ${configPath}
-//          /usr/bin/stitch-cli login --config-path=${configPath}/stitch-config --base-url=http://mongodb-realm:9090 --auth-provider=local-userpass --username=unique_user@domain.com --password=password
-//          /usr/bin/stitch-cli import --config-path=${configPath}/stitch-config --base-url=http://mongodb-realm:9090 --app-name auth-integration-tests --path=${configPath} --project-id $group_id -y --strategy replace
-//        """
-//      }
-      block(network)
-    }
-  }
-}
-
-
 def forwardAdbPorts() {
   sh ''' adb reverse tcp:9080 tcp:9080 && adb reverse tcp:9443 tcp:9443 &&
-      adb reverse tcp:8888 tcp:8888
+      adb reverse tcp:8888 tcp:8888 && adb reverse tcp:9090 tcp:9090
   '''
 }
 
