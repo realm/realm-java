@@ -32,7 +32,7 @@ try {
         def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
-          abiFilter = "-PbuildTargetABIs=armeabi-v7a -Pandroid.testInstrumentationRunnerArguments.class=io.realm.RealmAppTests"
+          abiFilter = "-PbuildTargetABIs=armeabi-v7a"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           // Run in debug more for better error reporting
         }
@@ -54,7 +54,7 @@ try {
           // Prepare Docker containers used by Instrumentation tests
           // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
           sh "docker network create mongodb-realm-network"
-          mongoDbRealmContainer = mdbRealmImage.run("--name mongodb-realm")
+          mongoDbRealmContainer = mdbRealmImage.run("--name mongodb-realm --network mongodb-realm-network")
           mongoDbRealmCLIContainer = stitchCliImage.run("--name mongodb-realm-cli -t --network container:${mongoDbRealmContainer.id}")
           mongoDbRealmCommandServerContainer = commandServerEnv.run("--name mongodb-realm-command-server --network container:${mongoDbRealmContainer.id}")
           sh "docker cp tools/sync_test_server/app_config mongodb-realm-cli:/tmp/app_config"
@@ -69,7 +69,7 @@ try {
                   "-v ${env.HOME}/.android:/tmp/.android " +
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
-                  "--network --network container:${mongoDbRealmContainer.id} " +
+                  "--network container:${mongoDbRealmContainer.id} " +
                   "--name build-env") {
 
             // Lock required around all usages of Gradle as it isn't
@@ -88,36 +88,36 @@ try {
                     }
                   }
 
-//                  stage('Realm Transformer tests') {
-//                    try {
-//                      gradle('realm-transformer', 'check')
-//                    } finally {
-//                      storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
-//                    }
-//                  }
-//
-//                  stage('Static code analysis') {
-//                    try {
-//                      gradle('realm', "findbugs checkstyle ${abiFilter}") // FIXME Renable pmd
-//                    } finally {
-//                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-//                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-//                      step([$class: 'CheckStylePublisher',
-//                    canComputeNew: false,
-//                    defaultEncoding: '',
-//                    healthy: '',
-//                    pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-//                    unHealthy: ''
-//                   ])
-//                    }
-//                  }
+                  stage('Realm Transformer tests') {
+                    try {
+                      gradle('realm-transformer', 'check')
+                    } finally {
+                      storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
+                    }
+                  }
+
+                  stage('Static code analysis') {
+                    try {
+                      gradle('realm', "findbugs checkstyle ${abiFilter}") // FIXME Renable pmd
+                    } finally {
+                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
+                      step([$class: 'CheckStylePublisher',
+                    canComputeNew: false,
+                    defaultEncoding: '',
+                    healthy: '',
+                    pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
+                    unHealthy: ''
+                   ])
+                    }
+                  }
 
                   stage('Run instrumented tests') {
                     String backgroundPid
                     try {
                       backgroundPid = startLogCatCollector()
                       forwardAdbPorts()
-                      gradle('realm', "${instrumentationTestTarget} --tests io.realm.RealmAppTests")
+                      gradle('realm', "${instrumentationTestTarget}")
                     } finally {
                       stopLogCatCollector(backgroundPid)
                       storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
