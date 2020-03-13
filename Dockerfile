@@ -27,6 +27,7 @@ RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386 \
                           curl \
                           file \
                           git \
+                          jq \
                           libc6:i386 \
                           libgcc1:i386 \
                           libncurses5:i386 \
