@@ -45,7 +45,7 @@ class TestRealmApp private constructor() {
             val transport = OkHttpNetworkTransport()
             val response = transport.sendRequest(
                     "get",
-                    "http://localhost:8888/application-id",
+                    "http://127.0.0.1:8888/application-id",
                     5000,
                     mapOf(),
                     ""
