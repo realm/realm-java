@@ -75,80 +75,80 @@ try {
             // able to share its cache between builds.
             lock("${env.NODE_NAME}-android") {
 
-//                  stage('JVM tests') {
-//                    try {
-//                      withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-//                        sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} ${abiFilter} --stacktrace"
-//                      }
-//                    } finally {
-//                      storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-//                      storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-//                      step([$class: 'LintPublisher'])
-//                    }
-//                  }
-//
-//                  stage('Realm Transformer tests') {
-//                    try {
-//                      gradle('realm-transformer', 'check')
-//                    } finally {
-//                      storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
-//                    }
-//                  }
-//
-//                  stage('Static code analysis') {
-//                    try {
-//                      gradle('realm', "findbugs pmd checkstyle ${abiFilter}")
-//                    } finally {
-//                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-//                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-//                      step([$class: 'CheckStylePublisher',
-//                    canComputeNew: false,
-//                    defaultEncoding: '',
-//                    healthy: '',
-//                    pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-//                    unHealthy: ''
-//                   ])
-//                    }
-//                  }
-//
-//                  stage('Run instrumented tests') {
-//                    String backgroundPid
-//                    try {
-//                      backgroundPid = startLogCatCollector()
-//                      forwardAdbPorts()
-//                      gradle('realm', "${instrumentationTestTarget}")
-//                    } finally {
-//                      stopLogCatCollector(backgroundPid)
-//                      storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-//                      storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-//                    }
-//                  }
-//
-//                  // Gradle plugin tests require that artifacts are available, so this
-//                  // step needs to be after the instrumentation tests
-//                  stage('Gradle plugin tests') {
-//                    try {
-//                      gradle('gradle-plugin', 'check --debug')
-//                    } finally {
-//                      storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
-//                    }
-//                  }
-//
-//                  // TODO: add support for running monkey on the example apps
-//
-//                  if (['master'].contains(env.BRANCH_NAME)) {
-//                    stage('Collect metrics') {
-//                      collectAarMetrics()
-//                    }
-//                  }
-//
-//                  if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
-//                    stage('Publish to OJO') {
-//                      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-//                        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
-//                      }
-//                    }
-//                  }
+                  stage('JVM tests') {
+                    try {
+                      withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
+                        sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} ${abiFilter} --stacktrace"
+                      }
+                    } finally {
+                      storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
+                      storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+                      step([$class: 'LintPublisher'])
+                    }
+                  }
+
+                  stage('Realm Transformer tests') {
+                    try {
+                      gradle('realm-transformer', 'check')
+                    } finally {
+                      storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
+                    }
+                  }
+
+                  stage('Static code analysis') {
+                    try {
+                      gradle('realm', "findbugs pmd checkstyle ${abiFilter}")
+                    } finally {
+                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+                      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
+                      step([$class: 'CheckStylePublisher',
+                    canComputeNew: false,
+                    defaultEncoding: '',
+                    healthy: '',
+                    pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
+                    unHealthy: ''
+                   ])
+                    }
+                  }
+
+                  stage('Run instrumented tests') {
+                    String backgroundPid
+                    try {
+                      backgroundPid = startLogCatCollector()
+                      forwardAdbPorts()
+                      gradle('realm', "${instrumentationTestTarget}")
+                    } finally {
+                      stopLogCatCollector(backgroundPid)
+                      storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+                      storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+                    }
+                  }
+
+                  // Gradle plugin tests require that artifacts are available, so this
+                  // step needs to be after the instrumentation tests
+                  stage('Gradle plugin tests') {
+                    try {
+                      gradle('gradle-plugin', 'check --debug')
+                    } finally {
+                      storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
+                    }
+                  }
+
+                  // TODO: add support for running monkey on the example apps
+
+                  if (['master'].contains(env.BRANCH_NAME)) {
+                    stage('Collect metrics') {
+                      collectAarMetrics()
+                    }
+                  }
+
+                  if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
+                    stage('Publish to OJO') {
+                      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
+                        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+                      }
+                    }
+                  }
             }
           }
         } finally {
