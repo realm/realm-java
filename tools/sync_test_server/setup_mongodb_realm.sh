@@ -42,7 +42,7 @@ stitch-cli login --config-path=/tmp/stitch-config \
 IMPORT_RESPONSE=$(stitch-cli import \
                   --config-path=/tmp/stitch-config \
                   --base-url=http://mongodb-realm:9090 \
-                  --path=/project/app_config \
+                  --path=/tmp/app_config \
                   --app-name realm-sdk-integration-tests \
                   --project-id "$GROUP_ID" \
                   --strategy replace \
