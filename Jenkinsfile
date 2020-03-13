@@ -57,9 +57,9 @@ try {
           mongoDbRealmContainer = mdbRealmImage.run("--name mongodb-realm --network mongodb-realm-network")
           mongoDbRealmCLIContainer = mdbRealmImage.run("--name mongodb-realm-cli -t --network mongodb-realm-network")
           mongoDbRealmCommandServerContainer = commandServerEnv.run("--name mongodb-realm-command-server --network mongodb-realm-network")
-          sh "docker cp tools/sync_test_server/app_config mongodb-realm-cli:/project/app_config"
-          sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh mongodb-realm-cli:/project/"
-          sh "docker exec -i mongodb-realm-cli sh /project/setup_mongodb_realm.sh"
+          sh "docker cp tools/sync_test_server/app_config mongodb-realm-cli:/tmp/app_config"
+          sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh mongodb-realm-cli:/tmp/"
+          sh "docker exec -i mongodb-realm-cli sh /tmp/setup_mongodb_realm.sh"
 
           buildEnv.inside("-e HOME=/tmp " +
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
