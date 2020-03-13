@@ -55,7 +55,7 @@ try {
           // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
           sh "docker network create mongodb-realm-network"
           mongoDbRealmContainer = mdbRealmImage.run("--name mongodb-realm --network mongodb-realm-network")
-          mongoDbRealmCLIContainer = mdbRealmImage.run("--name mongodb-realm-cli -t --network mongodb-realm-network")
+          mongoDbRealmCLIContainer = stitchCliImage.run("--name mongodb-realm-cli -t --network mongodb-realm-network")
           mongoDbRealmCommandServerContainer = commandServerEnv.run("--name mongodb-realm-command-server --network mongodb-realm-network")
           sh "docker cp tools/sync_test_server/app_config mongodb-realm-cli:/tmp/app_config"
           sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh mongodb-realm-cli:/tmp/"
