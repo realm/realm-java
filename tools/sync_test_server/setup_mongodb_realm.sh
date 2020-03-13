@@ -64,13 +64,13 @@ stitch-cli secrets add \
 #    "__integration_test_url". In order to fix this, we hack the JSON output from Stitch before
 #    importing it again. Doing it this way, makes it possible to use the output from a Stitch
 #    export directly.
-sed -i 's/\"uri\": \"__integration_tests_uri\"/\"uri\": \"integration_tests_uri\"/g' /project/app_config/services/integration_tests/config.json
+sed -i 's/\"uri\": \"__integration_tests_uri\"/\"uri\": \"integration_tests_uri\"/g' /tmp/app_config/services/integration_tests/config.json
 
 # 5. Now we can correctly import the Stitch app
 stitch-cli import \
                   --config-path=/tmp/stitch-config \
                   --base-url=http://mongodb-realm:9090 \
-                  --path=/project/app_config \
+                  --path=/tmp/app_config \
                   --app-name realm-sdk-integration-tests \
                   --project-id "$GROUP_ID" \
                   --strategy replace \

@@ -25,6 +25,6 @@ docker run --rm -i -t -d --publish 8888:8888 --network mongodb-realm-network -v$
 docker run --rm -i -t -d --publish 9090:9090 --network mongodb-realm-network --name mongodb-realm 012067661104.dkr.ecr.eu-west-1.amazonaws.com/ci/mongodb-realm-images:"$LATEST_MONGODB_REALM_VERSION"
 docker run --rm -i -t -d --network mongodb-realm-network --name mongodb-realm-cli 012067661104.dkr.ecr.eu-west-1.amazonaws.com/ci/stitch-cli:"$LATEST_CLI_VERSION"
 
-docker cp "$DOCKERFILE_DIR"/app_config mongodb-realm-cli:/project/app_config
-docker cp "$DOCKERFILE_DIR"/setup_mongodb_realm.sh mongodb-realm-cli:/project/
-docker exec -it mongodb-realm-cli sh /project/setup_mongodb_realm.sh
+docker cp "$DOCKERFILE_DIR"/app_config mongodb-realm-cli:/tmp/app_config
+docker cp "$DOCKERFILE_DIR"/setup_mongodb_realm.sh mongodb-realm-cli:/tmp/
+docker exec -it mongodb-realm-cli sh /tmp/setup_mongodb_realm.sh
