@@ -174,7 +174,4 @@ public class RealmUser {
         return osUser.getRefreshToken();
     }
 
-//    private Map<String, Object> customData;
-//    private UserType userType;
-//    private State state;
 }

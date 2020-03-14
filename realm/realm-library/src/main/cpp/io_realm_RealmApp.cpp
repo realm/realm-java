@@ -21,16 +21,6 @@
 #include "jni_util/java_method.hpp"
 
 #include <sync/app.hpp>
-//#include "thread_safe_reference.hpp"
-//#include "jni_util/java_method.hpp"
-//#include "jni_util/java_class.hpp"
-//#include "jni_util/jni_utils.hpp"
-//#include "object-store/src/sync/async_open_task.hpp"
-//#include "object-store/src/sync/sync_config.hpp"
-//
-//#include <shared_realm.hpp>
-//#include <memory>
-
 
 using namespace realm;
 using namespace realm::app;

@@ -54,12 +54,12 @@ public abstract class OsJavaNetworkTransport {
      * Warning: This method is not allowed to throw. Any exception should be wrapped in a {@link Response}
      * and be returned as a result.
      *
-     * @param method
-     * @param url
-     * @param timeoutMs
-     * @param headers
-     * @param body
-     * @return
+     * @param method Which kind of HTTP method in lowercase.
+     * @param url Url to connect to.
+     * @param timeoutMs How long does the request has to complete?
+     * @param headers Which headers to send?
+     * @param body Which body to include?
+     * @return Result of the request. All exceptions should also be wrapped in this.
      */
     protected abstract Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body);
 
