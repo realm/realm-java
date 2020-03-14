@@ -555,6 +555,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         return Flowable.create(new FlowableOnSubscribe<E>() {
             @Override
             public void subscribe(final FlowableEmitter<E> emitter) {
+                RealmLog.error("Subscribe");
                 // If the Realm has been closed, just create an empty Observable because we assume it is going to be disposed shortly.
                 if (!RealmObject.isValid(object)) return;
 
@@ -565,7 +566,9 @@ public class RealmObservableFactory implements RxObservableFactory {
                 final RealmChangeListener<E> listener = new RealmChangeListener<E>() {
                     @Override
                     public void onChange(E obj) {
+                        RealmLog.error("OnChange called");
                         if (!emitter.isCancelled()) {
+                            RealmLog.error("Emit to Stream");
                             emitter.onNext(returnFrozenObjects ? RealmObject.freeze(obj) : obj);
                         }
                     }
@@ -587,8 +590,8 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
+                RealmLog.error("Emit initial object");
                 emitter.onNext(returnFrozenObjects ? RealmObject.freeze(object) : object);
-
             }
         }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
