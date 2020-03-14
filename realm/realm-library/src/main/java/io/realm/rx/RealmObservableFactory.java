@@ -558,11 +558,14 @@ public class RealmObservableFactory implements RxObservableFactory {
                 RealmLog.error("Subscribe");
                 // If the Realm has been closed, just create an empty Observable because we assume it is going to be disposed shortly.
                 if (!RealmObject.isValid(object)) return;
+                RealmLog.error("Subscribe - Object valid");
 
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final Realm observableRealm = Realm.getInstance(realmConfig);
+                RealmLog.error("Subscribe - Realm opened");
                 objectRefs.get().acquireReference(object);
+                RealmLog.error("Subscribe - Ref acquired");
                 final RealmChangeListener<E> listener = new RealmChangeListener<E>() {
                     @Override
                     public void onChange(E obj) {
@@ -574,6 +577,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 };
                 RealmObject.addChangeListener(object, listener);
+                RealmLog.error("Subscribe - Listener added");
 
                 // Cleanup when stream is disposed
                 emitter.setDisposable(Disposables.fromRunnable(new Runnable() {
