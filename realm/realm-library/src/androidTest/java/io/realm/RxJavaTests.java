@@ -99,8 +99,8 @@ public class RxJavaTests {
                 @Override
                 public void run() {
                     // Wait for Subscription to dispose of external resources
-                    RealmLog.error("Global: " + Realm.getGlobalInstanceCount(testRealm.getConfiguration()));
-                    RealmLog.error("Local: " + Realm.getGlobalInstanceCount(testRealm.getConfiguration()));
+                    RealmLog.error("CloseTest-Global: " + Realm.getGlobalInstanceCount(testRealm.getConfiguration()));
+                    RealmLog.error("CloseTest-Local: " + Realm.getLocalInstanceCount(testRealm.getConfiguration()));
                     if (Realm.getGlobalInstanceCount(testRealm.getConfiguration()) == 0) {
                         looperThread.testComplete();
                     } else {

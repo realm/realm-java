@@ -46,6 +46,7 @@ import io.realm.RealmObject;
 import io.realm.RealmObjectChangeListener;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import io.realm.log.RealmLog;
 
 /**
  * Factory class for creating Observables for RxJava (&lt;=2.0.*).
@@ -575,6 +576,8 @@ public class RealmObservableFactory implements RxObservableFactory {
                 emitter.setDisposable(Disposables.fromRunnable(new Runnable() {
                     @Override
                     public void run() {
+                        RealmLog.error("Dispose-Global: " + Realm.getGlobalInstanceCount(observableRealm.getConfiguration()));
+                        RealmLog.error("Dispose-Local: " + Realm.getLocalInstanceCount(observableRealm.getConfiguration()));
                         if (!observableRealm.isClosed()) {
                             RealmObject.removeChangeListener(object, listener);
                             observableRealm.close();
