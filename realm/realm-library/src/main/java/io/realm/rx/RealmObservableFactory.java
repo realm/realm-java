@@ -46,7 +46,6 @@ import io.realm.RealmObject;
 import io.realm.RealmObjectChangeListener;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.log.RealmLog;
 
 /**
  * Factory class for creating Observables for RxJava (&lt;=2.0.*).
@@ -555,36 +554,27 @@ public class RealmObservableFactory implements RxObservableFactory {
         return Flowable.create(new FlowableOnSubscribe<E>() {
             @Override
             public void subscribe(final FlowableEmitter<E> emitter) {
-                RealmLog.error("Subscribe");
                 // If the Realm has been closed, just create an empty Observable because we assume it is going to be disposed shortly.
-                if (!RealmObject.isValid(object)) return;
-                RealmLog.error("Subscribe - Object valid");
+                if (realm.isClosed()) return;
 
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final Realm observableRealm = Realm.getInstance(realmConfig);
-                RealmLog.error("Subscribe - Realm opened");
                 objectRefs.get().acquireReference(object);
-                RealmLog.error("Subscribe - Ref acquired");
                 final RealmChangeListener<E> listener = new RealmChangeListener<E>() {
                     @Override
                     public void onChange(E obj) {
-                        RealmLog.error("OnChange called");
                         if (!emitter.isCancelled()) {
-                            RealmLog.error("Emit to Stream");
                             emitter.onNext(returnFrozenObjects ? RealmObject.freeze(obj) : obj);
                         }
                     }
                 };
                 RealmObject.addChangeListener(object, listener);
-                RealmLog.error("Subscribe - Listener added");
 
                 // Cleanup when stream is disposed
                 emitter.setDisposable(Disposables.fromRunnable(new Runnable() {
                     @Override
                     public void run() {
-                        RealmLog.error("Dispose-Global: " + Realm.getGlobalInstanceCount(observableRealm.getConfiguration()));
-                        RealmLog.error("Dispose-Local: " + Realm.getLocalInstanceCount(observableRealm.getConfiguration()));
                         if (!observableRealm.isClosed()) {
                             RealmObject.removeChangeListener(object, listener);
                             observableRealm.close();
@@ -594,7 +584,6 @@ public class RealmObservableFactory implements RxObservableFactory {
                 }));
 
                 // Emit current value immediately
-                RealmLog.error("Emit initial object");
                 emitter.onNext(returnFrozenObjects ? RealmObject.freeze(object) : object);
             }
         }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
@@ -656,7 +645,7 @@ public class RealmObservableFactory implements RxObservableFactory {
             @Override
             public void subscribe(final FlowableEmitter<DynamicRealmObject> emitter) {
                 // If the Realm has been closed, just create an empty Observable because we assume it is going to be disposed shortly.
-                if (!RealmObject.isValid(object)) return;
+                if (realm.isClosed()) return;
 
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
