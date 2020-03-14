@@ -1,7 +1,5 @@
 ## 7.0.0(YYYY-MM-DD)
 
-Based on v6.0.2.
-
 NOTE: This version bumps the Realm file format to version 10. It is not possible to downgrade version 9 or earlier. Files created with older versions of Realm will be automatically upgraded.
 
 ### Breaking Changes
@@ -22,7 +20,7 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * Added `Realm.freeze()`, `RealmObject.freeze()`, `RealmResults.freeze()` and `RealmList.freeze()`. These methods will return a frozen version of the current Realm data. This data can be read from any thread without throwing an `IllegalStateException`, but will never change. All frozen Realms and data can be closed by calling `Realm.close()` on the frozen Realm, but fully closing all live Realms will also close the frozen ones. Frozen data can be queried as normal, but trying to mutate it in any way will throw an `IllegalStateException`. This includes all methods that attempt to refresh or add change listeners. (Issue [#6590](https://github.com/realm/realm-java/pull/6590))
 * Added `Realm.isFrozen()`, `RealmObject.isFrozen()`, `RealmObject.isFrozen(RealmModel)`, `RealmResults.isFrozen()` and `RealmList.isFrozen()`, which returns whether or not the data is frozen.
 * Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having too many versions can dramatically increase the filesize of the Realm.
-* `RealmResults.asJSON()` is no longer `@Beta`
+* `RealmResults.asJSON()` is no longer `@Beta`.
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
@@ -35,6 +33,9 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * The NDK has been upgraded from r10e to r21.
 * The compiler used for C++ code has changed from GCC to Clang.
 * OpenSSL used by Realms encryption layer has been upgraded from 1.0.2k to 1.1.1b.
+* Updated to Object Store commit: 66199adbfffbe153e696309a53d4ec03e32c44e3.
+* Updated to Realm Sync 5.0.3.
+* Updated to Realm Core 6.0.4.
 
 
 ## 6.1.0(2020-01-17)
