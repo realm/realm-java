@@ -247,7 +247,8 @@ public class RxJavaTests {
         final AllTypes asyncObj = realm.where(AllTypes.class).findFirstAsync();
         subscription = asyncObj.<AllTypes>asFlowable().subscribe(rxObject -> {
             assertTrue(rxObject.isFrozen());
-            assertEquals(42, rxObject.getColumnLong());
+            assertFalse(rxObject.isValid());
+            assertFalse(rxObject.isLoaded());
             disposeSuccessfulTest(realm);
         });
     }
