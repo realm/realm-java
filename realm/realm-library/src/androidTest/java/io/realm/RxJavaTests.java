@@ -270,7 +270,7 @@ public class RxJavaTests {
 
         subscription = realm.where(AllTypes.class).findFirstAsync().<AllTypes>asFlowable().subscribe(rxObject -> {
             assertTrue(rxObject.isFrozen());
-            if (rxObject.isLoaded()) return;
+            if (!rxObject.isLoaded()) return;
 
             if (rxObject.getColumnLong() == 1) {
                 realm.executeTransaction(r -> realm.where(AllTypes.class).findFirst().setColumnLong(42));
