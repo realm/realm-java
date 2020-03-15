@@ -251,7 +251,6 @@ public class RxJavaTests {
             // the query resolved before the subscription triggers.
             // This means it is not deterministic what state is first emitted here.
             // It can either be a fully loaded object or one that is still loading.
-            assertFalse(rxObject.isValid());
             if (rxObject.isLoaded()) {
                 assertTrue(rxObject.isValid());
                 assertEquals(42, rxObject.getColumnLong());
