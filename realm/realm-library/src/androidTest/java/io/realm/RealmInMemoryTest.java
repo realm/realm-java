@@ -44,6 +44,8 @@ public class RealmInMemoryTest {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public ExpectedException exceptionRule = ExpectedException.none();
 
     private final static String IDENTIFIER = "InMemRealmTest";
 
@@ -136,6 +138,22 @@ public class RealmInMemoryTest {
         assertTrue(Realm.deleteRealm(configuration));
     }
 
+
+    // Tests deleteRealm called on an in-memory Realm instance before close().
+    @Test
+    public void deleteBeforeClose() {
+        RealmConfiguration configuration = testRealm.getConfiguration();
+        try {
+            Realm.deleteRealm(configuration);
+            fail("Realm.deleteRealm should fail with illegal state");
+        } catch (IllegalStateException ignored) {
+        }
+
+        exceptionRule.expect(IllegalStateException.class);
+        Realm.deleteRealm(configuration);
+
+    }
+
     // Tests if an in-memory Realm can be written to disk with/without encryption.
     @Test
     public void writeCopyTo() {
@@ -180,6 +198,67 @@ public class RealmInMemoryTest {
         } catch (RealmFileException expected) {
             assertEquals(RealmFileException.Kind.ACCESS_ERROR, expected.getKind());
         }
+    }
+
+    // Tests writeCopyTo result when called in a transaction.
+    @Test
+    public void writeCopyToInTransaction() {
+        String fileName = IDENTIFIER + ".realm";
+        RealmConfiguration conf = configFactory.createConfigurationBuilder()
+                .name(fileName)
+                .build();
+
+        Realm.deleteRealm(conf);
+
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("DinoDog");
+
+        // Write copy to new realm instance.
+        // Check if the copy realm instance get affected.
+        testRealm.writeCopyTo(new File(configFactory.getRoot(), fileName));
+        Realm onDiskRealm = Realm.getInstance(conf);
+        assertEquals(1, onDiskRealm.where(Dog.class).count());
+
+        testRealm.commitTransaction();
+
+        assertEquals(1, testRealm.where(Dog.class).count());
+        onDiskRealm.close();
+
+    }
+
+
+    // Tests if an in-memory Realm can be written to disk with/without encryption.
+    @Test
+    public void writeCopyToCheck() {
+        String fileName = IDENTIFIER + ".realm";
+        RealmConfiguration conf = configFactory.createConfigurationBuilder()
+                .name(fileName)
+                .build();
+
+        Realm.deleteRealm(conf);
+
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("DinoDog");
+        testRealm.commitTransaction();
+
+        // Write copy to new realm instance.
+        testRealm.writeCopyTo(new File(configFactory.getRoot(), fileName));
+        Realm onDiskRealm = Realm.getInstance(conf);
+        assertEquals(1, onDiskRealm.where(Dog.class).count());
+
+        // Update formal Realm instance.
+        testRealm.beginTransaction();
+        Dog dog2 = testRealm.createObject(Dog.class);
+        dog.setName("DinoDog2");
+        testRealm.commitTransaction();
+        assertEquals(2, testRealm.where(Dog.class).count());
+
+        // Check if the copy realm instance get affected.
+        assertEquals(1, onDiskRealm.where(Dog.class).count());
+        onDiskRealm.close();
+
     }
 
     // Test below scenario:
@@ -233,7 +312,9 @@ public class RealmInMemoryTest {
 
         // Waits until the worker thread started.
         workerCommittedLatch.await(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS);
-        if (threadError[0] != null) { throw threadError[0]; }
+        if (threadError[0] != null) {
+            throw threadError[0];
+        }
 
         // Refreshes will be ran in the next loop, manually refreshes it here.
         testRealm.waitForChange();
@@ -254,7 +335,9 @@ public class RealmInMemoryTest {
 
         // Waits until the worker thread finished.
         workerClosedLatch.await(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS);
-        if (threadError[0] != null) { throw threadError[0]; }
+        if (threadError[0] != null) {
+            throw threadError[0];
+        }
 
         // Since all previous Realm instances has been closed before, below will create a fresh new in-mem-realm instance.
         testRealm = Realm.getInstance(inMemConf);
