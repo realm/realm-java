@@ -44,8 +44,6 @@ public class RealmInMemoryTest {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-    @Rule
-    public ExpectedException exceptionRule = ExpectedException.none();
 
     private final static String IDENTIFIER = "InMemRealmTest";
 
@@ -138,22 +136,6 @@ public class RealmInMemoryTest {
         assertTrue(Realm.deleteRealm(configuration));
     }
 
-
-    // Tests deleteRealm called on an in-memory Realm instance before close().
-    @Test
-    public void deleteBeforeClose() {
-        RealmConfiguration configuration = testRealm.getConfiguration();
-        try {
-            Realm.deleteRealm(configuration);
-            fail("Realm.deleteRealm should fail with illegal state");
-        } catch (IllegalStateException ignored) {
-        }
-
-        exceptionRule.expect(IllegalStateException.class);
-        Realm.deleteRealm(configuration);
-
-    }
-
     // Tests if an in-memory Realm can be written to disk with/without encryption.
     @Test
     public void writeCopyTo() {
@@ -214,8 +196,8 @@ public class RealmInMemoryTest {
         Dog dog = testRealm.createObject(Dog.class);
         dog.setName("DinoDog");
 
-        // Write copy to new realm instance.
-        // Check if the copy realm instance get affected.
+        // Write copy to destination file in transaction.
+        // Check if the new data would be written into the file.
         testRealm.writeCopyTo(new File(configFactory.getRoot(), fileName));
         Realm onDiskRealm = Realm.getInstance(conf);
         assertEquals(1, onDiskRealm.where(Dog.class).count());
@@ -227,39 +209,6 @@ public class RealmInMemoryTest {
 
     }
 
-
-    // Tests if an in-memory Realm can be written to disk with/without encryption.
-    @Test
-    public void writeCopyToCheck() {
-        String fileName = IDENTIFIER + ".realm";
-        RealmConfiguration conf = configFactory.createConfigurationBuilder()
-                .name(fileName)
-                .build();
-
-        Realm.deleteRealm(conf);
-
-        testRealm.beginTransaction();
-        Dog dog = testRealm.createObject(Dog.class);
-        dog.setName("DinoDog");
-        testRealm.commitTransaction();
-
-        // Write copy to new realm instance.
-        testRealm.writeCopyTo(new File(configFactory.getRoot(), fileName));
-        Realm onDiskRealm = Realm.getInstance(conf);
-        assertEquals(1, onDiskRealm.where(Dog.class).count());
-
-        // Update formal Realm instance.
-        testRealm.beginTransaction();
-        Dog dog2 = testRealm.createObject(Dog.class);
-        dog.setName("DinoDog2");
-        testRealm.commitTransaction();
-        assertEquals(2, testRealm.where(Dog.class).count());
-
-        // Check if the copy realm instance get affected.
-        assertEquals(1, onDiskRealm.where(Dog.class).count());
-        onDiskRealm.close();
-
-    }
 
     // Test below scenario:
     // 1. Creates a in-memory Realm instance in the main thread.
