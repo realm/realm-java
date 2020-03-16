@@ -1,3 +1,23 @@
+## 6.2.0(YYYY-MM-DD)
+
+### Enhancements
+* The default `toString()` for proxy objects now print the length of binary fields. (Issue [#6767](https://github.com/realm/realm-java/pull/6767))
+
+### Fixed
+* None.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* None.
+
+### Credits
+* Thanks to @joxon for better support for binary fields in proxy objects.
+
+
 ## 6.1.0(2020-01-17)
 
 ### Enhancements
