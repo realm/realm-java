@@ -206,7 +206,6 @@ public class RealmInMemoryTest {
 
         assertEquals(1, testRealm.where(Dog.class).count());
         onDiskRealm.close();
-
     }
 
 
