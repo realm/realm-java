@@ -3959,7 +3959,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldBytesNotNull:");
-        stringBuilder.append(realmGet$fieldBytesNotNull());
+        stringBuilder.append("binary(" + realmGet$fieldBytesNotNull().length + ")");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldBytesNull:");

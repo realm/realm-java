@@ -2270,7 +2270,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnBinary:");
-        stringBuilder.append(realmGet$columnBinary());
+        stringBuilder.append("binary(" + realmGet$columnBinary().length + ")");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnMutableRealmInteger:");
