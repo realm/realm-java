@@ -1766,6 +1766,18 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Finds first n objects that fulfill the query conditions.
+     *
+     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
+     * objects is returned.
+     * @see io.realm.RealmResults
+     */
+    @SuppressWarnings("unchecked")
+    public RealmResults<E> findFirst(int limit) {
+        return limit(limit).findAll();
+    }
+
+    /**
      * Finds all objects that fulfill the query conditions.
      *
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
