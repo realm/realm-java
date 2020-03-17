@@ -182,6 +182,33 @@ public class RealmInMemoryTest {
         }
     }
 
+    // Tests writeCopyTo result when called in a transaction.
+    @Test
+    public void writeCopyToInTransaction() {
+        String fileName = IDENTIFIER + ".realm";
+        RealmConfiguration conf = configFactory.createConfigurationBuilder()
+                .name(fileName)
+                .build();
+
+        Realm.deleteRealm(conf);
+
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("DinoDog");
+
+        // Write copy to destination file in transaction.
+        // Check if the new data would be written into the file.
+        testRealm.writeCopyTo(new File(configFactory.getRoot(), fileName));
+        Realm onDiskRealm = Realm.getInstance(conf);
+        assertEquals(1, onDiskRealm.where(Dog.class).count());
+
+        testRealm.commitTransaction();
+
+        assertEquals(1, testRealm.where(Dog.class).count());
+        onDiskRealm.close();
+    }
+
+
     // Test below scenario:
     // 1. Creates a in-memory Realm instance in the main thread.
     // 2. Creates a in-memory Realm with same name in another thread.
@@ -233,7 +260,9 @@ public class RealmInMemoryTest {
 
         // Waits until the worker thread started.
         workerCommittedLatch.await(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS);
-        if (threadError[0] != null) { throw threadError[0]; }
+        if (threadError[0] != null) {
+            throw threadError[0];
+        }
 
         // Refreshes will be ran in the next loop, manually refreshes it here.
         testRealm.waitForChange();
@@ -254,7 +283,9 @@ public class RealmInMemoryTest {
 
         // Waits until the worker thread finished.
         workerClosedLatch.await(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS);
-        if (threadError[0] != null) { throw threadError[0]; }
+        if (threadError[0] != null) {
+            throw threadError[0];
+        }
 
         // Since all previous Realm instances has been closed before, below will create a fresh new in-mem-realm instance.
         testRealm = Realm.getInstance(inMemConf);
