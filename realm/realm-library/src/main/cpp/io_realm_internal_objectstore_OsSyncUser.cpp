@@ -19,10 +19,12 @@
 #include "util.hpp"
 #include "jni_util/java_class.hpp"
 
+#include <realm/util/to_string.hpp>
 #include <sync/sync_user.hpp>
 
 using namespace realm;
 using namespace realm::jni_util;
+using namespace realm::util;
 
 static void finalize_user(jlong ptr)
 {
@@ -94,7 +96,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
     return nullptr;
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetBirthDay(JNIEnv* env, jclass, jlong j_native_ptr)
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetBirthday(JNIEnv* env, jclass, jlong j_native_ptr)
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
@@ -176,4 +178,39 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
     return nullptr;
 }
 
+JNIEXPORT jbyte JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetState(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        switch(user->state()) {
+            case SyncUser::State::LoggedOut: return static_cast<jbyte>(io_realm_internal_objectstore_OsSyncUser_STATE_LOGGED_OUT);
+            case SyncUser::State::Active:  return static_cast<jbyte>(io_realm_internal_objectstore_OsSyncUser_STATE_ACTIVE);
+            case SyncUser::State::Error: return static_cast<jbyte>(io_realm_internal_objectstore_OsSyncUser_STATE_ERROR);
+            default:
+                throw std::logic_error(util::format("Unknown state: %1", static_cast<size_t>(user->state())));
+        }
+    }
+    CATCH_STD();
+    return static_cast<jbyte>(-1);
+}
 
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeSetState(JNIEnv* env, jclass, jlong j_native_ptr, jbyte j_state)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        switch(j_state) {
+            case io_realm_internal_objectstore_OsSyncUser_STATE_LOGGED_OUT:
+                user->set_state(SyncUser::State::LoggedOut);
+                break;
+            case io_realm_internal_objectstore_OsSyncUser_STATE_ACTIVE:
+                user->set_state(SyncUser::State::Active);
+                break;
+            case io_realm_internal_objectstore_OsSyncUser_STATE_ERROR:
+                user->set_state(SyncUser::State::Error);
+                break;
+            default:
+                throw std::logic_error(util::format("Unknown state: %1", j_state));
+        }
+    }
+    CATCH_STD();
+}

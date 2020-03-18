@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.internal.Keep;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
@@ -118,7 +119,7 @@ public class RealmApp {
     @Nullable
     public RealmUser currentUser() {
         Long userPtr = nativeCurrentUser(nativePtr);
-        return (userPtr != null) ? new RealmUser(userPtr) : null;
+        return (userPtr != null) ? new RealmUser(userPtr, this) : null;
     }
 
     /**
@@ -130,7 +131,7 @@ public class RealmApp {
         long[] nativeUsers = nativeAllUsers(nativePtr);
         HashMap<String, RealmUser> users = new HashMap<>(nativeUsers.length);
         for (int i = 0; i < nativeUsers.length; i++) {
-            RealmUser user = new RealmUser(nativeUsers[i]);
+            RealmUser user = new RealmUser(nativeUsers[i], this);
             users.put(user.getId(), user);
         }
         return users;
@@ -154,37 +155,16 @@ public class RealmApp {
      */
     public RealmUser login(RealmCredentials credentials) throws ObjectServerError {
         checkNull(credentials, "credentials");
-        AtomicReference<RealmUser> user = new AtomicReference<>(null);
+        AtomicReference<RealmUser> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJavaNetworkTransport.NetworkTransportJNIResultCallback() {
+        nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
             @Override
-            public void onSuccess(Object result) {
+            protected void mapSuccess(Object result, AtomicReference<RealmUser> success) {
                 Long nativePtr = (Long) result;
-                user.set(new RealmUser(nativePtr));
-            }
-            @Override
-            public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
-                ErrorCode code = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
-                if (code == ErrorCode.UNKNOWN) {
-                    // In case of UNKNOWN errors parse as much error information on as possible.
-                    String detailedErrorMessage = String.format("{%s::%s} %s", nativeErrorCategory, nativeErrorCode, errorMessage);
-                    error.set(new ObjectServerError(code, detailedErrorMessage));
-                } else {
-                    error.set(new ObjectServerError(code, errorMessage));
-                }
+                success.set(new RealmUser(nativePtr, RealmApp.this));
             }
         });
-
-        // ObjectStore runs all code in the same thread even though it is using a callback.
-        // So results should be available here.
-        if (user.get() == null && error.get() == null) {
-            throw new IllegalStateException("Network result callback did not trigger correctly");
-        }
-        if (user.get() != null) {
-            return user.get();
-        } else {
-            throw error.get();
-        }
+        return handleResult(success, error);
     }
 
     /**
@@ -203,11 +183,67 @@ public class RealmApp {
         }.start();
     }
 
-    public static void logout(RealmUser user) {
+    /**
+     * Log the current user out of the Realm App, destroying their server state, unregistering them from the
+     * SDK, and removing any synced Realms associated with them from on-disk storage on next app
+     * launch.
+     * <p>
+     * This method should be called whenever the application is committed to not using a user again.
+     * Failing to call this method may result in unused files and metadata needlessly taking up space.
+     * <p>
+     * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
+     * will be notified and user credentials will be deleted from this device.
+     *
+     * @throws IllegalStateException if no current user could be found.
+     * @throws ObjectServerError if an error occurred while trying to log the user out of the Realm
+     * App.
+     */
+     public void logOut() {
+        RealmUser user = currentUser();
+        if (user == null) {
+            throw new IllegalStateException("No current user was found.");
+        }
+        logOut(user);
+     }
 
+    /**
+     * Log the current user out of the Realm App, destroying their server state, unregistering them from the
+     * SDK, and removing any synced Realms associated with them from on-disk storage on next app
+     * launch.
+     * <p>
+     * This method should be called whenever the application is committed to not using a user again.
+     * Failing to call this method may result in unused files and metadata needlessly taking up space.
+     * <p>
+     * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
+     * will be notified and user credentials will be deleted from this device.
+     *
+     * @throws IllegalStateException if not called on a looper thread or no current user could be found.
+     */
+     public RealmAsyncTask logOutAsync(Callback<RealmUser> callback) {
+         RealmUser user = currentUser();
+         if (user == null) {
+             throw new IllegalStateException("No current user was found.");
+         }
+         return logOutAsync(user, callback);
+     }
+
+    void logOut(RealmUser user) {
+        checkNull(user, "user");
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        nativeLogOut(nativePtr, user.osUser.getNativePtr(), new OsJNIVoidResultCallback(error));
+        handleResult(null, error);
     }
-    public RealmAsyncTask logoutAsync(RealmUser user, Callback<Void> callback) {
-        return null;
+
+    RealmAsyncTask logOutAsync(RealmUser user, Callback<RealmUser> callback) {
+        checkLooperThread("Asynchronous log out is only possible from looper threads.");
+        return new Request<RealmUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public RealmUser run() throws ObjectServerError {
+                RealmLog.error("Log out user");
+                logOut(user);
+                return user;
+            }
+        }.start();
     }
 
     public RealmUser registerWithEmail(String email, String password) {
@@ -321,6 +357,72 @@ public class RealmApp {
         }
     }
 
+    // Common callback for handling callbacks from the ObjectStore layer.
+    // NOTE: This class is called from JNI. If renamed, adjust callbacks in RealmApp.cpp
+    @Keep
+    private static class OsJNIVoidResultCallback extends OsJNIResultCallback {
+
+        public OsJNIVoidResultCallback(AtomicReference error) {
+            super(null, error);
+        }
+
+        @Override
+        protected void mapSuccess(Object result, AtomicReference success) {
+            // Do nothing
+        }
+    }
+
+    // Common callback for handling results from the ObjectStore layer.
+    // NOTE: This class is called from JNI. If renamed, adjust callbacks in RealmApp.cpp
+    @Keep
+    private static abstract class OsJNIResultCallback<T> extends OsJavaNetworkTransport.NetworkTransportJNIResultCallback {
+
+        private final AtomicReference<T> success;
+        private final AtomicReference<ObjectServerError> error;
+
+        public OsJNIResultCallback(@Nullable AtomicReference<T> success, AtomicReference<ObjectServerError> error) {
+            this.success = success;
+            this.error = error;
+        }
+
+        @Override
+        public void onSuccess(Object result) {
+            mapSuccess(result, success);
+        }
+
+        // Must map the underlying success Object to the appropriate type in Java
+        protected abstract void mapSuccess(Object result, @Nullable AtomicReference<T> success);
+
+        @Override
+        public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
+            ErrorCode code = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
+            if (code == ErrorCode.UNKNOWN) {
+                // In case of UNKNOWN errors parse as much error information on as possible.
+                String detailedErrorMessage = String.format("{%s::%s} %s", nativeErrorCategory, nativeErrorCode, errorMessage);
+                error.set(new ObjectServerError(code, detailedErrorMessage));
+            } else {
+                error.set(new ObjectServerError(code, errorMessage));
+            }
+        }
+    }
+
+    // Handle returning the correct result or throw an exception. Must be separated from
+    // OsJNIResultCallback due to how
+    private <T> T handleResult(@Nullable AtomicReference<T> success, AtomicReference<ObjectServerError> error) {
+        if (success != null && success.get() == null && error.get() == null) {
+            throw new IllegalStateException("Network result callback did not trigger correctly");
+        }
+        if (error.get() != null) {
+            throw error.get();
+        } else {
+            if (success != null) {
+                return success.get();
+            } else {
+                return null;
+            }
+        }
+    }
+
     // Class wrapping requests made against MongoDB Realm. Is also responsible for calling with success/error on the
     // correct thread.
     private static abstract class Request<T> {
@@ -410,4 +512,5 @@ public class RealmApp {
     @Nullable
     private static native Long nativeCurrentUser(long nativePtr);
     private static native long[] nativeAllUsers(long nativePtr);
+    private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }
