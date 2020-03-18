@@ -273,7 +273,7 @@ public class RxJavaTests {
             if (!rxObject.isLoaded()) return;
 
             if (rxObject.getColumnLong() == 1) {
-                realm.executeTransaction(r -> realm.where(AllTypes.class).findFirst().setColumnLong(42));
+                realm.executeTransactionAsync(r -> r.where(AllTypes.class).findFirst().setColumnLong(42));
             } else if (rxObject.getColumnLong() == 42) {
                 disposeSuccessfulTest(realm);
             }
