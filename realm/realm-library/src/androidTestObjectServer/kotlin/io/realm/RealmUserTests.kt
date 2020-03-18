@@ -15,14 +15,16 @@
  */
 package io.realm
 
-import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.rule.BlockingLooperThread
 import io.realm.rule.RunInLooperThread
 import io.realm.rule.RunTestInLooperThread
-import org.junit.*
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
@@ -35,14 +37,12 @@ class RealmUserTests {
 
     @Before
     fun setUp() {
-        Log.e(this::class.simpleName,"setUp");
         app = TestRealmApp()
         anonUser = app.login(RealmCredentials.anonymous())
     }
 
     @After
     fun tearDown() {
-        Log.e(this::class.simpleName,"tearDown");
         app.close()
     }
 
