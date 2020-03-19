@@ -23,6 +23,7 @@
 #include <sync/sync_user.hpp>
 
 using namespace realm;
+using namespace realm::_impl;
 using namespace realm::jni_util;
 
 static void finalize_user(jlong ptr)
