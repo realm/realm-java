@@ -18,11 +18,9 @@ package io.realm;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -32,6 +30,7 @@ import io.realm.internal.RealmNotifier;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmAsyncTaskImpl;
+import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
@@ -73,14 +72,13 @@ public class RealmApp {
     };
 
     /**
-     * Thread pool used when doing network requests against the MongoDB Realm Server.
+     * Thread pool used when doing network requests against MongoDB Realm.
      * <p>
      * This pool is only exposed for testing purposes and replacing it while the queue is not
      * empty will result in undefined behaviour.
      */
     @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
-    public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
-            10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(100));
+    public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = RealmThreadPoolExecutor.newDefaultExecutor();
 
     private final RealmAppConfiguration config;
     private OsJavaNetworkTransport networkTransport;
@@ -108,12 +106,12 @@ public class RealmApp {
 
     /**
      * Returns the current user that is logged in and still valid.
-     * A user is invalidated when he/she logs out or the user's access token expires.
+     * A user is invalidated when he/she logs out or the user's refresh token expires or is revoked.
      * <p>
      * If two or more users are logged in, it is the last valid user that is returned by this method.
      *
-     * @return current {@link RealmUser} that has logged in and is still valid. {@code null} if no user is logged in or the user has
-     * expired.
+     * @return current {@link RealmUser} that has logged in and is still valid. {@code null} if no
+     * user is logged in or the user has expired.
      */
     @Nullable
     public RealmUser currentUser() {
@@ -195,7 +193,7 @@ public class RealmApp {
      */
     public RealmAsyncTask loginAsync(RealmCredentials credentials, Callback<RealmUser> callback) {
         checkLooperThread("Asynchronous login is only possible from looper threads.");
-        return new Request<RealmUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<RealmUser>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public RealmUser run() throws ObjectServerError {
                 return login(credentials);
