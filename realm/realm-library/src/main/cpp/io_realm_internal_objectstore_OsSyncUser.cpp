@@ -16,6 +16,7 @@
 
 #include "io_realm_internal_objectstore_OsSyncUser.h"
 
+#include "java_class_global_def.hpp"
 #include "util.hpp"
 #include "jni_util/java_class.hpp"
 
@@ -152,7 +153,7 @@ JNIEXPORT jobjectArray JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nat
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
         std::vector<SyncUserIdentity> ids = user->identities();
         jobjectArray arr = env->NewObjectArray(ids.size()*2, JavaClassGlobalDef::java_lang_string(), 0);
-    if (arr == NULL) {
+        if (arr == NULL) {
             ThrowException(env, OutOfMemory, "Could not allocate memory to return identites");
             return NULL;
         }
