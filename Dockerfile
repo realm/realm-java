@@ -61,7 +61,7 @@ RUN yes | sdkmanager \
     'platform-tools' \
     'build-tools;29.0.2' \
     'extras;android;m2repository' \
-    'platforms;android-27' \
+    'platforms;android-29' \
     'cmake;3.6.4111459'
 
 # Install the NDK
