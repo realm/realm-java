@@ -36,8 +36,8 @@ public class HttpUtils {
     // "Realm could not be deleted errors".
     // FIXME re-adjust timeout after https://github.com/realm/realm-object-server-private/issues/697 is fixed
     private final static OkHttpClient client = new OkHttpClient.Builder()
-            .connectTimeout(40, TimeUnit.SECONDS)
-            .readTimeout(40, TimeUnit.SECONDS)// since ROS startup timeout is 30s
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)// since ROS startup timeout is 30s
             .build();
 
     // adb reverse tcp:8888 tcp:8888
