@@ -19,8 +19,6 @@ package io.realm;
 import java.util.Collections;
 import java.util.Map;
 
-import io.realm.internal.network.LookupUserIdResponse;
-
 /**
  * POJO representing information about a user that was retrieved from a user lookup call.
  * @see SyncUser#retrieveInfoForUser(String, String)
@@ -39,9 +37,9 @@ public class SyncUserInfo {
         this.accounts = Collections.unmodifiableMap(accounts);
     }
 
-    static SyncUserInfo fromLookupUserIdResponse(LookupUserIdResponse response) {
-        return new SyncUserInfo(response.getUserId(), response.isAdmin(), response.getMetadata(), response.getAccounts());
-    }
+//    static SyncUserInfo fromLookupUserIdResponse(LookupUserIdResponse response) {
+//        return new SyncUserInfo(response.getUserId(), response.isAdmin(), response.getMetadata(), response.getAccounts());
+//    }
 
     /**
      * @return the identity issued to this user by the Realm Object Server.

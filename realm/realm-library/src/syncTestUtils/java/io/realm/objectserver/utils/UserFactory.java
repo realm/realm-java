@@ -25,14 +25,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
+import io.realm.RealmApp;
+import io.realm.RealmCredentials;
+import io.realm.RealmUser;
 import io.realm.RealmConfiguration;
-import io.realm.SyncCredentials;
-import io.realm.SyncUser;
 import io.realm.TestHelper;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.log.RealmLog;
-
-import static org.junit.Assert.fail;
 
 
 // Helper class to retrieve users with same IDs even in multi-processes.
@@ -45,6 +43,7 @@ public class UserFactory {
     private String userName;
     private static UserFactory instance;
     private static RealmConfiguration configuration;
+    private static RealmApp app;
 
     // Run initializer here to make it possible to ensure that Realm.init has been called.
     // It is unpredictable when the static initializer is running
@@ -52,6 +51,7 @@ public class UserFactory {
         if (configuration == null || forceReset) {
             RealmConfiguration.Builder builder = new RealmConfiguration.Builder().name("user-factory.realm");
             configuration = builder.build();
+            app = new RealmApp(Constants.APP_ID);
         }
     }
 
@@ -59,43 +59,34 @@ public class UserFactory {
         this.userName = userName;
     }
 
-    public SyncUser loginWithDefaultUser(String authUrl) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, false);
-        return SyncUser.logIn(credentials, authUrl);
+    public RealmUser loginWithDefaultUser() {
+        RealmCredentials credentials = RealmCredentials.emailPassword(userName, PASSWORD);
+        return app.login(credentials);
     }
 
-    /**
-     * Create a unique user, using the standard authentification URL used by the test server.
-     */
-    public static SyncUser createUniqueUser() {
-        return createUniqueUser(Constants.AUTH_URL);
-    }
-
-    public static SyncUser createUser(String username) {
-        return createUser(username, Constants.AUTH_URL);
-    }
-
-    public static SyncUser createUniqueUser(String authUrl) {
+    public static RealmUser createUniqueUser() {
         String uniqueName = UUID.randomUUID().toString();
         return createUser(uniqueName);
     }
 
-    private static SyncUser createUser(String username, String authUrl) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(username, PASSWORD, true);
-        return SyncUser.logIn(credentials, authUrl);
+    private static RealmUser createUser(String username) {
+        return null; // FIXME
+//        RealmCredentials credentials = RealmCredentials.emailPassword(username, PASSWORD, true);
+//        return app.login(credentials);
     }
 
-
-    public SyncUser createDefaultUser(String authUrl) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, true);
-        return SyncUser.logIn(credentials, authUrl);
+    public RealmUser createDefaultUser() {
+        return null; // FIXME
+//        RealmCredentials credentials = RealmCredentials.emailPassword(userName, PASSWORD, true);
+//        return app.login(credentials);
     }
 
-    public static SyncUser createAdminUser(String authUrl) {
-        // `admin` required as user identifier to be granted admin rights.
-        // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
-        SyncCredentials credentials = SyncCredentials.usernamePassword("realm-admin", "", false);
-        return SyncUser.logIn(credentials, authUrl);
+    public static RealmUser createAdminUser() {
+        return null; //FIXME
+//        // `admin` required as user identifier to be granted admin rights.
+//        // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
+//        RealmCredentials credentials = RealmCredentials.emailPassword("realm-admin", "", false);
+//        return app.login(credentials);
     }
 
     // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
@@ -150,10 +141,10 @@ public class UserFactory {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                Map<String, SyncUser> users = SyncUser.all();
-                for (SyncUser user : users.values()) {
-                    user.logOut();
-                }
+//                Map<String, RealmUser> users = RealmApp.allUsers();
+//                for (RealmUser user : users.values()) {
+//                    RealmApp.logout(user);
+//                }
                 TestHelper.waitForNetworkThreadExecutorToFinish();
                 allUsersLoggedOut.countDown();
             }

@@ -61,9 +61,11 @@ public class SyncedRealmTests {
         if (realm != null && !realm.isClosed()) {
             realm.close();
         }
-        for (SyncUser user : SyncUser.all().values()) {
-            user.logOut();
-        }
+
+// FIXME
+//        for (RealmUser user : RealmApp.allUsers().values()) {
+//            RealmApp.logout(user);
+//        }
     }
 
     private Realm getNormalRealm() {

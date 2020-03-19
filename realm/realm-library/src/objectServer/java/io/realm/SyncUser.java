@@ -24,6 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,17 +36,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.Nullable;
 
 import io.realm.internal.RealmNotifier;
-import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmAsyncTaskImpl;
-import io.realm.internal.network.AuthenticateResponse;
-import io.realm.internal.network.ChangePasswordResponse;
-import io.realm.internal.network.ExponentialBackoffTask;
-import io.realm.internal.network.LogoutResponse;
-import io.realm.internal.network.LookupUserIdResponse;
-import io.realm.internal.network.RealmObjectServer;
-import io.realm.internal.network.UpdateAccountResponse;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.RealmLog;
 
@@ -90,10 +83,11 @@ public class SyncUser {
      * @throws IllegalStateException if multiple users are logged in.
      */
     public static SyncUser current() {
-        SyncUser user = SyncManager.getUserStore().getCurrent();
-        if (user != null && user.isValid()) {
-            return user;
-        }
+        // FIXME
+//        SyncUser user = null; //SyncManager.getUserStore().getCurrent();
+//        if (user != null && user.isValid()) {
+//            return user;
+//        }
         return null;
     }
 
@@ -104,8 +98,7 @@ public class SyncUser {
      * @return a map from user identifier to user. It includes all known valid users.
      */
     public static Map<String, SyncUser> all() {
-        UserStore userStore = SyncManager.getUserStore();
-        Collection<SyncUser> storedUsers = userStore.allUsers();
+        Collection<SyncUser> storedUsers = new ArrayList<>(); // FIXME
         Map<String, SyncUser> map = new HashMap<>();
         for (SyncUser user : storedUsers) {
             if (user.isValid()) {
@@ -144,39 +137,39 @@ public class SyncUser {
      * @throws ObjectServerError if the login failed.
      * @throws IllegalArgumentException if the URL is malformed.
      */
-    public static SyncUser logIn(final SyncCredentials credentials, final String authenticationUrl) throws ObjectServerError {
-        URL authUrl = getUrl(authenticationUrl);
-
-        ObjectServerError error;
-        try {
-            AuthenticateResponse result;
-            if (credentials.getIdentityProvider().equals(SyncCredentials.IdentityProvider.ACCESS_TOKEN)) {
-                // Credentials using ACCESS_TOKEN as IdentityProvider are optimistically assumed to be valid already.
-                // So log them in directly without contacting the authentication server. This is done by mirroring
-                // the JSON response expected from the server.
-                String userIdentifier = credentials.getUserIdentifier();
-                String token = (String) credentials.getUserInfo().get("_token");
-                boolean isAdmin = (Boolean) credentials.getUserInfo().get("_isAdmin");
-                result = AuthenticateResponse.createValidResponseWithUser(userIdentifier, token, isAdmin);
-            } else {
-                final RealmObjectServer server = SyncManager.getAuthServer();
-                result = server.loginUser(credentials, authUrl);
-            }
-            if (result.isValid()) {
-                SyncUser user = new SyncUser(result.getRefreshToken(), authUrl);
-                RealmLog.info("Succeeded authenticating user.\n%s", user);
-                SyncManager.getUserStore().put(user);
-                SyncManager.notifyUserLoggedIn(user);
-                return user;
-            } else {
-                RealmLog.info("Failed authenticating user.\n%s", result.getError());
-                error = result.getError();
-            }
-        } catch (Throwable e) {
-            throw new ObjectServerError(ErrorCode.UNKNOWN, e);
-        }
-        throw error;
-    }
+//    public static SyncUser logIn(final SyncCredentials credentials, final String authenticationUrl) throws ObjectServerError {
+//        URL authUrl = getUrl(authenticationUrl);
+//
+//        ObjectServerError error;
+//        try {
+//            AuthenticateResponse result;
+//            if (credentials.getIdentityProvider().equals(SyncCredentials.IdentityProvider.ACCESS_TOKEN)) {
+//                // Credentials using ACCESS_TOKEN as IdentityProvider are optimistically assumed to be valid already.
+//                // So log them in directly without contacting the authentication server. This is done by mirroring
+//                // the JSON response expected from the server.
+//                String userIdentifier = credentials.getUserIdentifier();
+//                String token = (String) credentials.getUserInfo().get("_token");
+//                boolean isAdmin = (Boolean) credentials.getUserInfo().get("_isAdmin");
+//                result = AuthenticateResponse.createValidResponseWithUser(userIdentifier, token, isAdmin);
+//            } else {
+//                final RealmObjectServer server = SyncManager.getAuthServer();
+//                result = server.loginUser(credentials, authUrl);
+//            }
+//            if (result.isValid()) {
+//                SyncUser user = new SyncUser(result.getRefreshToken(), authUrl);
+//                RealmLog.info("Succeeded authenticating user.\n%s", user);
+//                SyncManager.getUserStore().put(user);
+//                SyncManager.notifyUserLoggedIn(user);
+//                return user;
+//            } else {
+//                RealmLog.info("Failed authenticating user.\n%s", result.getError());
+//                error = result.getError();
+//            }
+//        } catch (Throwable e) {
+//            throw new ObjectServerError(ErrorCode.UNKNOWN, e);
+//        }
+//        throw error;
+//    }
 
     /**
      * Converts the input URL to a Realm Authentication URL
@@ -210,15 +203,15 @@ public class SyncUser {
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public static RealmAsyncTask logInAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback<SyncUser> callback) {
-        checkLooperThread("Asynchronous login is only possible from looper threads.");
-        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
-            @Override
-            public SyncUser run() throws ObjectServerError {
-                return logIn(credentials, authenticationUrl);
-            }
-        }.start();
-    }
+//    public static RealmAsyncTask logInAsync(final SyncCredentials credentials, final String authenticationUrl, final Callback<SyncUser> callback) {
+//        checkLooperThread("Asynchronous login is only possible from looper threads.");
+//        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+//            @Override
+//            public SyncUser run() throws ObjectServerError {
+//                return logIn(credentials, authenticationUrl);
+//            }
+//        }.start();
+//    }
 
     /**
      * Opening a synchronized Realm requires a {@link SyncConfiguration}. This method creates a
@@ -308,61 +301,61 @@ public class SyncUser {
 //     */
     // this is a fire and forget, end user should not worry about the state of the async query
     @SuppressWarnings("FutureReturnValueIgnored")
-    public void logOut() {
-        // Acquire lock to prevent users creating new instances
-        synchronized (Realm.class) {
-            if (!SyncManager.getUserStore().isActive(identity, authenticationUrl.toString())) {
-                return; // Already logged out status
-            }
-
-            // Mark the user as logged out in the ObjectStore
-            SyncManager.getUserStore().remove(identity, authenticationUrl.toString());
-
-            // invalidate all pending refresh_token queries
-            for (SyncConfiguration syncConfiguration : realms.keySet()) {
-                try {
-                    SyncSession session = SyncManager.getSession(syncConfiguration);
-                    session.clearScheduledAccessTokenRefresh();
-                } catch (IllegalStateException e) {
-                    if (!e.getMessage().contains("No SyncSession found")) {
-                        throw e;
-                    }// else no session, either the Realm was not opened or session was removed.
-                }
-            }
-
-            // Remove all local tokens, preventing further connections.
-            // don't remove identity as this SyncUser might be re-activated and we need
-            // to avoid throwing a mismatch SyncConfiguration in RealmCache if we have
-            // the similar SyncConfiguration using the same identity, but with different (new)
-            // refresh-token.
-            realms.clear();
-
-            // Finally revoke server token. The local user is logged out in any case.
-            final RealmObjectServer server = SyncManager.getAuthServer();
-            // don't reference directly the refreshToken inside the revoke request
-            // as it may revoke the newly acquired refresh_token
-            final Token refreshTokenToBeRevoked = refreshToken;
-
-            ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
-            networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>(3) {
-
-                @Override
-                protected LogoutResponse execute() {
-                    return server.logout(refreshTokenToBeRevoked, getAuthenticationUrl());
-                }
-
-                @Override
-                protected void onSuccess(LogoutResponse response) {
-                    SyncManager.notifyUserLoggedOut(SyncUser.this);
-                }
-
-                @Override
-                protected void onError(LogoutResponse response) {
-                    RealmLog.error("Failed to log user out.\n" + response.getError().toString());
-                }
-            });
-        }
-    }
+//    public void logOut() {
+//        // Acquire lock to prevent users creating new instances
+//        synchronized (Realm.class) {
+//            if (!SyncManager.getUserStore().isActive(identity, authenticationUrl.toString())) {
+//                return; // Already logged out status
+//            }
+//
+//            // Mark the user as logged out in the ObjectStore
+//            SyncManager.getUserStore().remove(identity, authenticationUrl.toString());
+//
+//            // invalidate all pending refresh_token queries
+//            for (SyncConfiguration syncConfiguration : realms.keySet()) {
+//                try {
+//                    SyncSession session = SyncManager.getSession(syncConfiguration);
+//                    session.clearScheduledAccessTokenRefresh();
+//                } catch (IllegalStateException e) {
+//                    if (!e.getMessage().contains("No SyncSession found")) {
+//                        throw e;
+//                    }// else no session, either the Realm was not opened or session was removed.
+//                }
+//            }
+//
+//            // Remove all local tokens, preventing further connections.
+//            // don't remove identity as this SyncUser might be re-activated and we need
+//            // to avoid throwing a mismatch SyncConfiguration in RealmCache if we have
+//            // the similar SyncConfiguration using the same identity, but with different (new)
+//            // refresh-token.
+//            realms.clear();
+//
+//            // Finally revoke server token. The local user is logged out in any case.
+//            final RealmObjectServer server = SyncManager.getAuthServer();
+//            // don't reference directly the refreshToken inside the revoke request
+//            // as it may revoke the newly acquired refresh_token
+//            final Token refreshTokenToBeRevoked = refreshToken;
+//
+//            ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
+//            networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>(3) {
+//
+//                @Override
+//                protected LogoutResponse execute() {
+//                    return server.logout(refreshTokenToBeRevoked, getAuthenticationUrl());
+//                }
+//
+//                @Override
+//                protected void onSuccess(LogoutResponse response) {
+//                    SyncManager.notifyUserLoggedOut(SyncUser.this);
+//                }
+//
+//                @Override
+//                protected void onError(LogoutResponse response) {
+//                    RealmLog.error("Failed to log user out.\n" + response.getError().toString());
+//                }
+//            });
+//        }
+//    }
 
     /**
      * Changes this user's password. This is done synchronously and involves the network, so calling this method on the
@@ -374,17 +367,17 @@ public class SyncUser {
      * @param newPassword the user's new password.
      * @throws ObjectServerError if the password could not be changed.
      */
-    public void changePassword(final String newPassword) throws ObjectServerError {
-        //noinspection ConstantConditions
-        if (newPassword == null) {
-            throw new IllegalArgumentException("Not-null 'newPassword' required.");
-        }
-        RealmObjectServer authServer = SyncManager.getAuthServer();
-        ChangePasswordResponse response = authServer.changePassword(refreshToken, newPassword, getAuthenticationUrl());
-        if (!response.isValid()) {
-            throw response.getError();
-        }
-    }
+//    public void changePassword(final String newPassword) throws ObjectServerError {
+//        //noinspection ConstantConditions
+//        if (newPassword == null) {
+//            throw new IllegalArgumentException("Not-null 'newPassword' required.");
+//        }
+//        RealmObjectServer authServer = SyncManager.getAuthServer();
+//        ChangePasswordResponse response = authServer.changePassword(refreshToken, newPassword, getAuthenticationUrl());
+//        if (!response.isValid()) {
+//            throw response.getError();
+//        }
+//    }
 
     /**
      * Changes another user's password. This is done synchronously and involves the network, so calling this method on the
@@ -399,31 +392,31 @@ public class SyncUser {
      * @param newPassword the user's new password.
      * @throws ObjectServerError if the password could not be changed.
      */
-    public void changePassword(final String userId, final String newPassword) throws ObjectServerError {
-        //noinspection ConstantConditions
-        if (newPassword == null) {
-            throw new IllegalArgumentException("Not-null 'newPassword' required.");
-        }
-
-        if (Util.isEmptyString(userId)) {
-            throw new IllegalArgumentException("None empty 'userId' required.");
-        }
-
-        if (userId.equals(getIdentity())) { // user want's to change his/her own password
-            changePassword(newPassword);
-
-        } else {
-            if (!isAdmin()) {
-                throw new IllegalStateException("User need to be admin in order to change another user's password.");
-            }
-
-            RealmObjectServer authServer = SyncManager.getAuthServer();
-            ChangePasswordResponse response = authServer.changePassword(refreshToken, userId, newPassword, getAuthenticationUrl());
-            if (!response.isValid()) {
-                throw response.getError();
-            }
-        }
-    }
+//    public void changePassword(final String userId, final String newPassword) throws ObjectServerError {
+//        //noinspection ConstantConditions
+//        if (newPassword == null) {
+//            throw new IllegalArgumentException("Not-null 'newPassword' required.");
+//        }
+//
+//        if (Util.isEmptyString(userId)) {
+//            throw new IllegalArgumentException("None empty 'userId' required.");
+//        }
+//
+//        if (userId.equals(getIdentity())) { // user want's to change his/her own password
+//            changePassword(newPassword);
+//
+//        } else {
+//            if (!isAdmin()) {
+//                throw new IllegalStateException("User need to be admin in order to change another user's password.");
+//            }
+//
+//            RealmObjectServer authServer = SyncManager.getAuthServer();
+//            ChangePasswordResponse response = authServer.changePassword(refreshToken, userId, newPassword, getAuthenticationUrl());
+//            if (!response.isValid()) {
+//                throw response.getError();
+//            }
+//        }
+//    }
 
     /**
      * Changes this user's password asynchronously.
@@ -437,20 +430,20 @@ public class SyncUser {
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public RealmAsyncTask changePasswordAsync(final String newPassword, final Callback<SyncUser> callback) {
-        checkLooperThread("Asynchronous changing password is only possible from looper threads.");
-        //noinspection ConstantConditions
-        if (callback == null) {
-            throw new IllegalArgumentException("Non-null 'callback' required.");
-        }
-        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
-            @Override
-            public SyncUser run() {
-                changePassword(newPassword);
-                return SyncUser.this;
-            }
-        }.start();
-    }
+//    public RealmAsyncTask changePasswordAsync(final String newPassword, final Callback<SyncUser> callback) {
+//        checkLooperThread("Asynchronous changing password is only possible from looper threads.");
+//        //noinspection ConstantConditions
+//        if (callback == null) {
+//            throw new IllegalArgumentException("Non-null 'callback' required.");
+//        }
+//        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+//            @Override
+//            public SyncUser run() {
+//                changePassword(newPassword);
+//                return SyncUser.this;
+//            }
+//        }.start();
+//    }
 
     /**
      * Changes another user's password asynchronously.
@@ -467,21 +460,21 @@ public class SyncUser {
      * @return representation of the async task that can be used to cancel it if needed.
      * @throws IllegalArgumentException if not on a Looper thread.
      */
-    public RealmAsyncTask changePasswordAsync(final String userId, final String newPassword, final Callback<SyncUser> callback) {
-        checkLooperThread("Asynchronous changing password is only possible from looper threads.");
-        //noinspection ConstantConditions
-        if (callback == null) {
-            throw new IllegalArgumentException("Non-null 'callback' required.");
-        }
-
-        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
-            @Override
-            public SyncUser run() {
-                changePassword(userId, newPassword);
-                return SyncUser.this;
-            }
-        }.start();
-    }
+//    public RealmAsyncTask changePasswordAsync(final String userId, final String newPassword, final Callback<SyncUser> callback) {
+//        checkLooperThread("Asynchronous changing password is only possible from looper threads.");
+//        //noinspection ConstantConditions
+//        if (callback == null) {
+//            throw new IllegalArgumentException("Non-null 'callback' required.");
+//        }
+//
+//        return new Request<SyncUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+//            @Override
+//            public SyncUser run() {
+//                changePassword(userId, newPassword);
+//                return SyncUser.this;
+//            }
+//        }.start();
+//    }
 
 
     /**
@@ -497,17 +490,17 @@ public class SyncUser {
      * @throws IllegalArgumentException if no email or authenticationUrl was provided.
      * @throws ObjectServerError if an error happened on the server.
      */
-    public static void requestPasswordReset(String email, String authenticationUrl) throws ObjectServerError {
-        if (Util.isEmptyString(email)) {
-            throw new IllegalArgumentException("Not-null 'email' required.");
-        }
-        URL authUrl = getUrl(authenticationUrl);
-        RealmObjectServer authServer = SyncManager.getAuthServer();
-        UpdateAccountResponse response = authServer.requestPasswordReset(email, authUrl);
-        if (!response.isValid()) {
-            throw response.getError();
-        }
-    }
+//    public static void requestPasswordReset(String email, String authenticationUrl) throws ObjectServerError {
+//        if (Util.isEmptyString(email)) {
+//            throw new IllegalArgumentException("Not-null 'email' required.");
+//        }
+//        URL authUrl = getUrl(authenticationUrl);
+//        RealmObjectServer authServer = SyncManager.getAuthServer();
+//        UpdateAccountResponse response = authServer.requestPasswordReset(email, authUrl);
+//        if (!response.isValid()) {
+//            throw response.getError();
+//        }
+//    }
 
     /**
      * Request a password reset email to be sent to a user's email.
@@ -524,21 +517,21 @@ public class SyncUser {
      * @throws IllegalStateException if this method is called on a non-looper thread.
      * @throws IllegalArgumentException if no email or authenticationUrl was provided.
      */
-    public static RealmAsyncTask requestPasswordResetAsync(final String email, final String authenticationUrl, final Callback<Void> callback) {
-        checkLooperThread("Asynchronous requesting a password reset is only possible from looper threads.");
-        //noinspection ConstantConditions
-        if (callback == null) {
-            throw new IllegalArgumentException("Non-null 'callback' required.");
-        }
-
-        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
-            @Override
-            public Void run() {
-                requestPasswordReset(email, authenticationUrl);
-                return null;
-            }
-        }.start();
-    }
+//    public static RealmAsyncTask requestPasswordResetAsync(final String email, final String authenticationUrl, final Callback<Void> callback) {
+//        checkLooperThread("Asynchronous requesting a password reset is only possible from looper threads.");
+//        //noinspection ConstantConditions
+//        if (callback == null) {
+//            throw new IllegalArgumentException("Non-null 'callback' required.");
+//        }
+//
+//        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+//            @Override
+//            public Void run() {
+//                requestPasswordReset(email, authenticationUrl);
+//                return null;
+//            }
+//        }.start();
+//    }
 
     /**
      * Complete the password reset flow by using the reset token sent to the user's email as a one-time authorization
@@ -559,20 +552,20 @@ public class SyncUser {
      * @throws IllegalArgumentException if no {@code token} or {@code newPassword} was provided.
      * @throws ObjectServerError if an error happened on the server.
      */
-    public static void completePasswordReset(String resetToken, String newPassword, String authenticationUrl) {
-        if (Util.isEmptyString(resetToken)) {
-            throw new IllegalArgumentException("Not-null 'token' required.");
-        }
-        if (Util.isEmptyString(newPassword)) {
-            throw new IllegalArgumentException("Not-null 'newPassword' required.");
-        }
-        URL authUrl = getUrl(authenticationUrl);
-        RealmObjectServer authServer = SyncManager.getAuthServer();
-        UpdateAccountResponse response = authServer.completePasswordReset(resetToken, newPassword, authUrl);
-        if (!response.isValid()) {
-            throw response.getError();
-        }
-    }
+//    public static void completePasswordReset(String resetToken, String newPassword, String authenticationUrl) {
+//        if (Util.isEmptyString(resetToken)) {
+//            throw new IllegalArgumentException("Not-null 'token' required.");
+//        }
+//        if (Util.isEmptyString(newPassword)) {
+//            throw new IllegalArgumentException("Not-null 'newPassword' required.");
+//        }
+//        URL authUrl = getUrl(authenticationUrl);
+//        RealmObjectServer authServer = SyncManager.getAuthServer();
+//        UpdateAccountResponse response = authServer.completePasswordReset(resetToken, newPassword, authUrl);
+//        if (!response.isValid()) {
+//            throw response.getError();
+//        }
+//    }
 
     /**
      * Complete the password reset flow by using the reset token sent to the user's email as a one-time authorization
@@ -595,24 +588,24 @@ public class SyncUser {
      * @throws IllegalStateException if this method is called on a non-looper thread.
      * @throws IllegalArgumentException if no {@code token} or {@code newPassword} was provided.
      */
-    public static RealmAsyncTask completePasswordResetAsync(final String resetToken,
-                                           final String newPassword,
-                                           final String authenticationUrl,
-                                           final Callback<Void> callback) throws ObjectServerError {
-        checkLooperThread("Asynchronously completing a password reset is only possible from looper threads.");
-        //noinspection ConstantConditions
-        if (callback == null) {
-            throw new IllegalArgumentException("Non-null 'callback' required.");
-        }
-
-        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
-            @Override
-            public Void run() {
-                completePasswordReset(resetToken, newPassword, authenticationUrl);
-                return null;
-            }
-        }.start();
-    }
+//    public static RealmAsyncTask completePasswordResetAsync(final String resetToken,
+//                                           final String newPassword,
+//                                           final String authenticationUrl,
+//                                           final Callback<Void> callback) throws ObjectServerError {
+//        checkLooperThread("Asynchronously completing a password reset is only possible from looper threads.");
+//        //noinspection ConstantConditions
+//        if (callback == null) {
+//            throw new IllegalArgumentException("Non-null 'callback' required.");
+//        }
+//
+//        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+//            @Override
+//            public Void run() {
+//                completePasswordReset(resetToken, newPassword, authenticationUrl);
+//                return null;
+//            }
+//        }.start();
+//    }
 
     /**
      * Request an email confirmation email to be sent to a user's email.
@@ -627,17 +620,17 @@ public class SyncUser {
      * @throws IllegalArgumentException if no {@code email} was provided.
      * @throws ObjectServerError if an error happened on the server.
      */
-    public static void requestEmailConfirmation(String email, String authenticationUrl) throws ObjectServerError {
-        if (Util.isEmptyString(email)) {
-            throw new IllegalArgumentException("Not-null 'email' required.");
-        }
-        URL authUrl = getUrl(authenticationUrl);
-        RealmObjectServer authServer = SyncManager.getAuthServer();
-        UpdateAccountResponse response = authServer.requestEmailConfirmation(email, authUrl);
-        if (!response.isValid()) {
-            throw response.getError();
-        }
-    }
+//    public static void requestEmailConfirmation(String email, String authenticationUrl) throws ObjectServerError {
+//        if (Util.isEmptyString(email)) {
+//            throw new IllegalArgumentException("Not-null 'email' required.");
+//        }
+//        URL authUrl = getUrl(authenticationUrl);
+//        RealmObjectServer authServer = SyncManager.getAuthServer();
+//        UpdateAccountResponse response = authServer.requestEmailConfirmation(email, authUrl);
+//        if (!response.isValid()) {
+//            throw response.getError();
+//        }
+//    }
 
     /**
      * Request an email confirmation email to be sent to a user's email.
@@ -654,21 +647,21 @@ public class SyncUser {
      * @throws IllegalStateException if this method is called on a non-looper thread.
      * @throws IllegalArgumentException if no {@code email} was provided.
      */
-    public static RealmAsyncTask requestEmailConfirmationAsync(final String email, final String authenticationUrl, final Callback<Void> callback) {
-        checkLooperThread("Asynchronously requesting an email confirmation is only possible from looper threads.");
-        //noinspection ConstantConditions
-        if (callback == null) {
-            throw new IllegalArgumentException("Non-null 'callback' required.");
-        }
-
-        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
-            @Override
-            public Void run() {
-                requestEmailConfirmation(email, authenticationUrl);
-                return null;
-            }
-        }.start();
-    }
+//    public static RealmAsyncTask requestEmailConfirmationAsync(final String email, final String authenticationUrl, final Callback<Void> callback) {
+//        checkLooperThread("Asynchronously requesting an email confirmation is only possible from looper threads.");
+//        //noinspection ConstantConditions
+//        if (callback == null) {
+//            throw new IllegalArgumentException("Non-null 'callback' required.");
+//        }
+//
+//        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+//            @Override
+//            public Void run() {
+//                requestEmailConfirmation(email, authenticationUrl);
+//                return null;
+//            }
+//        }.start();
+//    }
 
     /**
      * Complete the email confirmation flow by using the confirmation token sent to the user's email as a one-time
@@ -688,17 +681,17 @@ public class SyncUser {
      * @throws IllegalArgumentException if no {@code confirmationToken} was provided.
      * @throws ObjectServerError if an error happened on the server.
      */
-    public static void confirmEmail(String confirmationToken, String authenticationUrl) throws ObjectServerError {
-        if (Util.isEmptyString(confirmationToken)) {
-            throw new IllegalArgumentException("Not-null 'confirmationToken' required.");
-        }
-        URL authUrl = getUrl(authenticationUrl);
-        RealmObjectServer authServer = SyncManager.getAuthServer();
-        UpdateAccountResponse response = authServer.confirmEmail(confirmationToken, authUrl);
-        if (!response.isValid()) {
-            throw response.getError();
-        }
-    }
+//    public static void confirmEmail(String confirmationToken, String authenticationUrl) throws ObjectServerError {
+//        if (Util.isEmptyString(confirmationToken)) {
+//            throw new IllegalArgumentException("Not-null 'confirmationToken' required.");
+//        }
+//        URL authUrl = getUrl(authenticationUrl);
+//        RealmObjectServer authServer = SyncManager.getAuthServer();
+//        UpdateAccountResponse response = authServer.confirmEmail(confirmationToken, authUrl);
+//        if (!response.isValid()) {
+//            throw response.getError();
+//        }
+//    }
 
     /**
      * Complete the email confirmation flow by using the confirmation token sent to the user's email as a one-time
@@ -720,23 +713,23 @@ public class SyncUser {
      * @throws IllegalStateException if this method is called on a non-looper thread.
      * @throws IllegalArgumentException if no {@code confirmationToken} was provided.
      */
-    public static RealmAsyncTask confirmEmailAsync(final String confirmationToken,
-                                            final String authenticationUrl,
-                                            final Callback<Void> callback) {
-        checkLooperThread("Asynchronously confirming an email is only possible from looper threads.");
-        //noinspection ConstantConditions
-        if (callback == null) {
-            throw new IllegalArgumentException("Non-null 'callback' required.");
-        }
-
-        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
-            @Override
-            public Void run() {
-                confirmEmail(confirmationToken, authenticationUrl);
-                return null;
-            }
-        }.start();
-    }
+//    public static RealmAsyncTask confirmEmailAsync(final String confirmationToken,
+//                                            final String authenticationUrl,
+//                                            final Callback<Void> callback) {
+//        checkLooperThread("Asynchronously confirming an email is only possible from looper threads.");
+//        //noinspection ConstantConditions
+//        if (callback == null) {
+//            throw new IllegalArgumentException("Non-null 'callback' required.");
+//        }
+//
+//        return new Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+//            @Override
+//            public Void run() {
+//                confirmEmail(confirmationToken, authenticationUrl);
+//                return null;
+//            }
+//        }.start();
+//    }
 
     /**
      * Given a Realm Object Server authentication provider and a provider identifier for a user (for example, a username), look up and return user information for that user.
@@ -751,31 +744,31 @@ public class SyncUser {
      * @throws IllegalArgumentException if no {@code providerUserIdentity} or {@code provider} string was provided.
      * @throws ObjectServerError if an error happened on the server.
      */
-    public SyncUserInfo retrieveInfoForUser(final String providerUserIdentity, final String provider) throws ObjectServerError {
-        if (Util.isEmptyString(providerUserIdentity)) {
-            throw new IllegalArgumentException("'providerUserIdentity' cannot be empty.");
-        }
-
-        if (Util.isEmptyString(provider)) {
-            throw new IllegalArgumentException("'provider' cannot be empty.");
-        }
-
-        if (!isAdmin()) {
-            throw new IllegalArgumentException("SyncUser needs to be admin in order to lookup other users ID.");
-        }
-
-        RealmObjectServer authServer = SyncManager.getAuthServer();
-        LookupUserIdResponse response = authServer.retrieveUser(refreshToken, provider, providerUserIdentity, getAuthenticationUrl());
-        if (!response.isValid()) {
-            if (response.getError().getErrorCode() == ErrorCode.UNKNOWN_ACCOUNT) {
-                return null;
-            } else {
-                throw response.getError();
-            }
-        } else {
-            return SyncUserInfo.fromLookupUserIdResponse(response);
-        }
-    }
+//    public SyncUserInfo retrieveInfoForUser(final String providerUserIdentity, final String provider) throws ObjectServerError {
+//        if (Util.isEmptyString(providerUserIdentity)) {
+//            throw new IllegalArgumentException("'providerUserIdentity' cannot be empty.");
+//        }
+//
+//        if (Util.isEmptyString(provider)) {
+//            throw new IllegalArgumentException("'provider' cannot be empty.");
+//        }
+//
+//        if (!isAdmin()) {
+//            throw new IllegalArgumentException("SyncUser needs to be admin in order to lookup other users ID.");
+//        }
+//
+//        RealmObjectServer authServer = SyncManager.getAuthServer();
+//        LookupUserIdResponse response = authServer.retrieveUser(refreshToken, provider, providerUserIdentity, getAuthenticationUrl());
+//        if (!response.isValid()) {
+//            if (response.getError().getErrorCode() == ErrorCode.UNKNOWN_ACCOUNT) {
+//                return null;
+//            } else {
+//                throw response.getError();
+//            }
+//        } else {
+//            return SyncUserInfo.fromLookupUserIdResponse(response);
+//        }
+//    }
 
     /**
      * Given a Realm Object Server authentication provider and a provider identifier for a user (for example, a username), asynchronously look up and return user information for that user.
@@ -788,20 +781,20 @@ public class SyncUser {
      * as this method is called on.
      * @return representation of the async task that can be used to cancel it if needed.
      */
-    public RealmAsyncTask retrieveInfoForUserAsync(final String providerUserIdentity, final String provider, final Callback<SyncUserInfo> callback) {
-        checkLooperThread("Asynchronously retrieving user is only possible from looper threads.");
-        //noinspection ConstantConditions
-        if (callback == null) {
-            throw new IllegalArgumentException("Non-null 'callback' required.");
-        }
-
-        return new Request<SyncUserInfo>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
-            @Override
-            public SyncUserInfo run() throws ObjectServerError {
-                return retrieveInfoForUser(providerUserIdentity, provider);
-            }
-        }.start();
-    }
+//    public RealmAsyncTask retrieveInfoForUserAsync(final String providerUserIdentity, final String provider, final Callback<SyncUserInfo> callback) {
+//        checkLooperThread("Asynchronously retrieving user is only possible from looper threads.");
+//        //noinspection ConstantConditions
+//        if (callback == null) {
+//            throw new IllegalArgumentException("Non-null 'callback' required.");
+//        }
+//
+//        return new Request<SyncUserInfo>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+//            @Override
+//            public SyncUserInfo run() throws ObjectServerError {
+//                return retrieveInfoForUser(providerUserIdentity, provider);
+//            }
+//        }.start();
+//    }
 
     private static void checkLooperThread(String errorMessage) {
         AndroidCapabilities capabilities = new AndroidCapabilities();
@@ -841,7 +834,9 @@ public class SyncUser {
      * @return {@code true} if the User is logged into the Realm Object Server, {@code false} otherwise.
      */
     public boolean isValid() {
-        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis() && SyncManager.getUserStore().isActive(identity, authenticationUrl.toString());
+        // FIXME
+        /* && SyncManager.getUserStore().isActive(identity, authenticationUrl.toString()*/
+        return refreshToken != null && refreshToken.expiresMs() > System.currentTimeMillis();
     }
 
     /**

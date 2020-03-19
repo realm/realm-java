@@ -89,9 +89,6 @@ class ObjectServer {
             SyncManager.nativeInitializeSyncManager(context.getFilesDir().getPath(), userAgentBindingInfo, appDefinedUserAgent);
         }
 
-        // Configure default UserStore
-        UserStore userStore = new RealmFileUserStore();
-
-        SyncManager.init(appId, userStore);
+        SyncManager.init(appId);
     }
 }
