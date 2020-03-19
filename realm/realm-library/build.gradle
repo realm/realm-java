@@ -217,7 +217,6 @@ dependencies {
     androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
     androidTestImplementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'com.android.support.test:rules:1.0.2'
     androidTestImplementation 'androidx.test:rules:1.2.0'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'

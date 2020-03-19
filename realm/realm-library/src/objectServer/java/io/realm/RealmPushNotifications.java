@@ -15,5 +15,5 @@
  */
 package io.realm;
 
-class RealmFCMPushNotifications {
+class RealmPushNotifications {
 }
