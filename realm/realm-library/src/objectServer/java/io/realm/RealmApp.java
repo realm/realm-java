@@ -512,3 +512,4 @@ public class RealmApp {
     private static native long[] nativeAllUsers(long nativePtr);
     private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }
+

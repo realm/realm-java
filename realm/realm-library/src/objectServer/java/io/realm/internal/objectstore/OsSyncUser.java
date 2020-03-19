@@ -141,6 +141,3 @@ public class OsSyncUser implements NativeObject {
     private static native byte nativeGetState(long nativePtr);
     private static native void nativeSetState(long nativePtr, byte state);
 }
-
-
-

@@ -274,3 +274,4 @@ public class RealmUser {
         return result;
     }
 }
+

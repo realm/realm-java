@@ -219,3 +219,4 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeSetSt
     }
     CATCH_STD();
 }
+

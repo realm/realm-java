@@ -155,3 +155,4 @@ JNIEXPORT jobject JNICALL Java_io_realm_RealmApp_nativeCurrentUser(JNIEnv* env, 
     CATCH_STD()
     return NULL;
 }
+
