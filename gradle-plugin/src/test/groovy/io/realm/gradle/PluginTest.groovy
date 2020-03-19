@@ -193,7 +193,6 @@ class PluginTest {
         project.buildscript {
             repositories {
                 jcenter()
-                mavenCentral()
                 maven {
                     url 'https://maven.google.com/'
                 }
@@ -228,7 +227,7 @@ class PluginTest {
 
         project.evaluate()
 
-        assertEquals(3, project.buildscript.repositories.size())
+        assertEquals(2, project.buildscript.repositories.size())
         assertEquals('maven.google.com', project.buildscript.repositories.last().url.host)
 
         assertEquals(5, project.repositories.size())

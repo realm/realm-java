@@ -59,7 +59,7 @@ RUN yes | sdkmanager --licenses
 # Please keep all sections in descending order!
 RUN yes | sdkmanager \
     'platform-tools' \
-    'build-tools;28.0.3' \
+    'build-tools;29.0.2' \
     'extras;android;m2repository' \
     'platforms;android-27' \
     'cmake;3.6.4111459'
@@ -72,6 +72,9 @@ RUN mkdir /opt/android-ndk-tmp && \
     mv android-ndk-r21 /opt/android-ndk && \
     rm -rf /opt/android-ndk-tmp && \
     chmod -R a+rX /opt/android-ndk
+    'platforms;android-29' \
+    'cmake;3.6.4111459' \
+    'ndk;21.0.6113669'
 
 # Make the SDK universally writable
 RUN chmod -R a+rwX ${ANDROID_HOME}
