@@ -69,6 +69,7 @@ public class SyncConfigurationTests {
 
     @After
     public void tearDown() {
+// FIXME
 //        UserStore userStore = SyncManager.getUserStore();
 //        for (SyncUser syncUser : userStore.allUsers()) {
 //            userStore.remove(syncUser.getIdentity(), syncUser.getAuthenticationUrl().toString());
