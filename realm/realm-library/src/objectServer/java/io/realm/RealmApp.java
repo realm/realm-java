@@ -283,7 +283,7 @@ public class RealmApp {
         return null;
     }
 
-    public RealmFCMPushNotifications getFSMPushNotifications() {
+    public RealmPushNotifications getFSMPushNotifications() {
         // FIXME
         return null;
 
@@ -368,7 +368,7 @@ public class RealmApp {
             }
 
             if (!errorHandled) {
-                RealmLog.error(error, "An error was thrown, but could not be handled.");
+                RealmLog.error(error, "An error was thrown, but could not be posted: \n" + error.toString());
             }
         }
 

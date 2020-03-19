@@ -39,7 +39,7 @@ public class RealmAppConfiguration {
     private final long logLevel;
     private final long requestTimeoutMs;
 
-    public RealmAppConfiguration(String appId,
+    private RealmAppConfiguration(String appId,
                                  String appName,
                                  String appVersion,
                                  String baseUrl,
@@ -143,7 +143,7 @@ public class RealmAppConfiguration {
         private Context context;
         private SyncSession.ErrorHandler defaultErrorHandler;
         private byte[] encryptionKey;
-        private long logLevel = LogLevel.WARN;
+        private long logLevel = LogLevel.WARN; // FIXME: Consider what this should be set at
         private long requestTimeoutMs = 60000;
 
         /**

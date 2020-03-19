@@ -21,6 +21,8 @@ import io.realm.internal.objectstore.OsAppCredentials;
 
 
 /**
+ * FIXME: Revisit this description when all providers are implemented.
+ *
  * Credentials represent a login with a 3rd party login provider in an OAuth2 login flow, and are used by the Realm
  * Object Server to verify the user and grant access.
  * <p>

@@ -40,8 +40,8 @@ class OkHttpNetworkTransportTests {
     private lateinit var transport: OkHttpNetworkTransport
     private val baseUrl = "http://127.0.0.1:8888" // URL to command server
 
-    enum class HTTPMethod {
-        GET, POST, PATCH, PUT, DELETE
+    enum class HTTPMethod(val nativeKey: String) {
+        GET("get"), POST("post"), PATCH("patch"), PUT("put"), DELETE("delete");
     }
 
     @Before
@@ -60,7 +60,7 @@ class OkHttpNetworkTransportTests {
                     Pair("Accept", "application/json")
             )
 
-            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.name.toLowerCase(),
+            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.nativeKey,
                     url,
                     5000,
                     headers,
@@ -81,7 +81,7 @@ class OkHttpNetworkTransportTests {
                     Pair("Accept", "application/json")
             )
 
-            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.name.toLowerCase(),
+            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.nativeKey,
                     url,
                     5000,
                     headers,
@@ -105,7 +105,7 @@ class OkHttpNetworkTransportTests {
                     Pair("Accept", "application/json")
             )
 
-            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.name.toLowerCase(),
+            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.nativeKey,
                     url,
                     5000,
                     headers,
@@ -127,7 +127,7 @@ class OkHttpNetworkTransportTests {
             )
 
             val t = Thread(Runnable {
-                val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.name.toLowerCase(),
+                val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.nativeKey,
                         url,
                         5000,
                         headers,
