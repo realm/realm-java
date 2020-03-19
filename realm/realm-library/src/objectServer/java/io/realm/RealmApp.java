@@ -46,7 +46,7 @@ public class RealmApp {
     // we might want to lift in the future. So any implementation details so ideally be made
     // with that in mind, i.e. keep static state to minimum.
 
-    // Default session error handler handler that just output errors to LogCat
+    // Default session error handler that just output errors to LogCat
     private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
         @Override
         public void onError(SyncSession session, ObjectServerError error) {

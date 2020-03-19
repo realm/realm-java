@@ -151,8 +151,11 @@ JNIEXPORT jobjectArray JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nat
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
         std::vector<SyncUserIdentity> ids = user->identities();
-        static JavaClass stringClass(env, "java/lang/String");
-        jobjectArray arr = env->NewObjectArray(ids.size()*2, stringClass, NULL);
+        jobjectArray arr = env->NewObjectArray(ids.size()*2, JavaClassGlobalDef::java_lang_string(), 0);
+    if (arr == NULL) {
+            ThrowException(env, OutOfMemory, "Could not allocate memory to return identites");
+            return NULL;
+        }
         int j = 0;
         for(size_t i = 0; i < ids.size(); ++i) {
             SyncUserIdentity id = ids[i];
@@ -175,5 +178,4 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
     CATCH_STD();
     return nullptr;
 }
-
 

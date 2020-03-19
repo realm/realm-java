@@ -31,7 +31,7 @@ import org.junit.runner.RunWith
  * Any behavior happening after the network request has executed are not covered by this class,
  * but instead in [OsJavaNetworkTransportTests].
  *
- * This class uses a a simple custom webserver written in Node that must be running when
+ * This class uses a simple custom webserver written in Node that must be running when
  * executing these tests.
  */
 @RunWith(AndroidJUnit4::class)
