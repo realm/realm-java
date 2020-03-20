@@ -32,7 +32,7 @@ using namespace realm::_impl;
 template<typename T>
 std::function<void(T, Optional<app::AppError>)> create_result_callback(JNIEnv* env, jobject j_callback, const std::function<jobject (JNIEnv*, T)>& success_mapper) {
     jobject callback = env->NewGlobalRef(j_callback);
-    return [&](T result, Optional<app::AppError> error) {
+    return [callback, success_mapper](T result, Optional<app::AppError> error) {
         JNIEnv* env = JniUtils::get_env(true);
 
         static JavaClass java_callback_class(env, "io/realm/RealmApp$OsJNIResultCallback");
@@ -89,7 +89,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jobject
 {
     try {
         jobject java_app_obj = env->NewGlobalRef(obj); // FIXME: Leaking the app object
-        std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [&] {
+        std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [java_app_obj] {
             JNIEnv* env = JniUtils::get_env(true);
             static JavaMethod get_network_transport_method(env, java_app_obj, "getNetworkTransport", "()Lio/realm/internal/objectstore/OsJavaNetworkTransport;");
             jobject network_transport_impl = env->CallObjectMethod(java_app_obj, get_network_transport_method);
