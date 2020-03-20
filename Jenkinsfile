@@ -42,26 +42,22 @@ try {
         // FIXME: Had issues moving these into a seperate Stage step. Is this needed?
         buildEnv = docker.build 'realm-java:snapshot'
         // `aws ecr describe-images --repository-name ci/mongodb-realm-images --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]'`
-        def version = "test_server-26e6463b98d8e3f0f4522a70e37f105d34b688a9-race"
-        def mdbRealmImage = docker.image("${env.DOCKER_REGISTRY}/ci/mongodb-realm-images:${version}")
-        def stitchCliImage = docker.image("${env.DOCKER_REGISTRY}/ci/stitch-cli:190")
-        docker.withRegistry("https://${env.DOCKER_REGISTRY}", "ecr:eu-west-1:aws-ci-user") {
+        def version = "latest"
+        def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${version}")
+        docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
           mdbRealmImage.pull()
-          stitchCliImage.pull()
         }
         def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
 
         try {
           // Prepare Docker containers used by Instrumentation tests
           // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
-
           sh "docker network create ${dockerNetworkId}"
           mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
-          mongoDbRealmCLIContainer = stitchCliImage.run("-t --network container:${mongoDbRealmContainer.id}")
           mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
-          sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmCLIContainer.id}:/tmp/app_config"
-          sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmCLIContainer.id}:/tmp/"
-          sh "docker exec -i ${mongoDbRealmCLIContainer.id} sh /tmp/setup_mongodb_realm.sh"
+          sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
+          sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
+          sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
 
           buildEnv.inside("-e HOME=/tmp " +
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
