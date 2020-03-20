@@ -22,6 +22,7 @@
 #include "sync/generic_network_transport.hpp"
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
+#include "jni_util/jni_utils.hpp"
 
 using namespace realm::app;
 using namespace realm::jni_util;
@@ -31,9 +32,8 @@ namespace realm {
 
 struct JavaNetworkTransport : public app::GenericNetworkTransport {
 
-    JavaNetworkTransport(JavaVM* vm, jobject java_network_transport_impl) {
-        m_jvm = vm;
-        JNIEnv* env = get_current_env();
+    JavaNetworkTransport(jobject java_network_transport_impl) {
+        JNIEnv* env = JniUtils::get_env(true);
         m_java_network_transport_impl = env->NewGlobalRef(java_network_transport_impl);
         jclass cls = env->GetObjectClass(m_java_network_transport_impl);
         auto method_name = "sendRequest";
@@ -44,7 +44,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
 
     void send_request_to_server(const app::Request request, std::function<void(const app::Response)> completionBlock)
     {
-        JNIEnv* env = get_current_env();
+        JNIEnv* env = JniUtils::get_env(true);
 
         // Setup method
         std::string method;
@@ -106,23 +106,15 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
     }
 
     ~JavaNetworkTransport() {
-        get_current_env()->DeleteGlobalRef(m_java_network_transport_impl);
+        JniUtils::get_env(true)->DeleteGlobalRef(m_java_network_transport_impl);
     }
 
 private:
-    JavaVM* m_jvm;
     jobject m_java_network_transport_impl;     // Global ref of Java implementation of the network transport.
     jmethodID m_send_request_method;
-    inline JNIEnv* get_current_env() noexcept
-    {
-        JNIEnv* env;
-        if (m_jvm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
-            m_jvm->AttachCurrentThread(&env, nullptr); // Should never fail
-        }
-        return env;
-    }
 };
 
 } // realm namespace
 
 #endif
+

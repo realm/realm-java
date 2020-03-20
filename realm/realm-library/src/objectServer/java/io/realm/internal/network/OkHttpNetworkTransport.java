@@ -92,7 +92,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                         @Override
                         public okhttp3.Response intercept(Chain chain) throws IOException {
                             Request request = chain.request();
-                            if (RealmLog.getLevel() <= LogLevel.TRACE) {
+                            if (RealmLog.getLevel() <= LogLevel.DEBUG) {
                                 StringBuilder sb = new StringBuilder(request.method());
                                 sb.append(' ');
                                 sb.append(request.url());
@@ -105,7 +105,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                                     request.body().writeTo(buffer);
                                     sb.append(buffer.readString(UTF8));
                                 }
-                                RealmLog.trace("HTTP Request = \n%s", sb);
+                                RealmLog.debug("HTTP Request = \n%s", sb);
                             }
                             return chain.proceed(request);
                         }
@@ -130,3 +130,4 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     }
 
 }
+

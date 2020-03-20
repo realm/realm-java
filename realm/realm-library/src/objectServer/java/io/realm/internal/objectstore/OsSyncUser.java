@@ -23,6 +23,10 @@ public class OsSyncUser implements NativeObject {
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
+    public static final byte STATE_ACTIVE = 1;
+    public static final byte STATE_ERROR = 2;
+    public static final byte STATE_LOGGED_OUT = 3;
+
     public OsSyncUser(long nativePtr) {
         this.nativePtr = nativePtr;
     }
@@ -95,10 +99,32 @@ public class OsSyncUser implements NativeObject {
         return identities;
     }
 
+    /**
+     * @return {@link #STATE_ACTIVE}, {@link #STATE_LOGGED_OUT} or {@link #STATE_ERROR}
+     */
+    public byte getState() {
+        return nativeGetState(nativePtr);
+    }
+
+    public void invalidate() {
+        nativeSetState(nativePtr, STATE_ERROR);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        OsSyncUser that = (OsSyncUser) o;
+        return getIdentity().equals(that.getIdentity());
+    }
+
+    @Override
+    public int hashCode() {
+        return getIdentity().hashCode();
+    }
 
     private static native long nativeGetFinalizerMethodPtr();
-
-    // Profile data
     private static native String nativeGetName(long nativePtr);
     private static native String nativeGetEmail(long nativePtr);
     private static native String nativeGetPictureUrl(long nativePtr);
@@ -108,12 +134,10 @@ public class OsSyncUser implements NativeObject {
     private static native String nativeGetBirthday(long nativePtr);
     private static native String nativeGetMinAge(long nativePtr);
     private static native String nativeGetMaxAge(long nativePtr);
-
     private static native String nativeGetIdentity(long nativePtr);
     private static native String nativeGetAccessToken(long nativePtr);
     private static native String nativeGetRefreshToken(long nativePtr);
     private static native String[] nativeGetIdentities(long nativePtr); // Returns pairs of {id, provider}
+    private static native byte nativeGetState(long nativePtr);
+    private static native void nativeSetState(long nativePtr, byte state);
 }
-
-
-

@@ -39,7 +39,7 @@ class OsJavaNetworkTransportTests {
     // Test that the round trip works in case of a successful HTTP request.
     @Test
     fun requestSuccess() {
-        app = TestRealmApp.getInstance(object: OsJavaNetworkTransport() {
+        app = TestRealmApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 var result = ""
                 if (url.endsWith("/providers/${RealmCredentials.IdentityProvider.ANONYMOUS.id}/login")) {
@@ -94,7 +94,7 @@ class OsJavaNetworkTransportTests {
     // to the user as an exception.
     @Test
     fun requestFailWithServerError() {
-        app = TestRealmApp.getInstance(object: OsJavaNetworkTransport() {
+        app = TestRealmApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 val result = """
                     {
@@ -121,7 +121,7 @@ class OsJavaNetworkTransportTests {
     // to the user.
     @Test
     fun requestFailWithHttpError() {
-        app = TestRealmApp.getInstance(object: OsJavaNetworkTransport() {
+        app = TestRealmApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 return Response.httpResponse(500, mapOf(), "Boom!")
             }
@@ -140,7 +140,7 @@ class OsJavaNetworkTransportTests {
     // Test that custom error codes thrown from the Java transport are correctly reported back to the user.
     @Test
     fun requestFailWithCustomError() {
-        app = TestRealmApp.getInstance(object: OsJavaNetworkTransport() {
+        app = TestRealmApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 return Response.ioError("Boom!")
             }
@@ -161,7 +161,7 @@ class OsJavaNetworkTransportTests {
     // to the user.
     @Test
     fun requestFailWithTransportException() {
-        app = TestRealmApp.getInstance(object: OsJavaNetworkTransport() {
+        app = TestRealmApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 throw IllegalStateException("Boom!")
             }
@@ -179,7 +179,7 @@ class OsJavaNetworkTransportTests {
     // Test that if the Java transport throws a fatal error it is correctly returned to the user.
     @Test
     fun requestFailWithTransportError() {
-        app = TestRealmApp.getInstance(object: OsJavaNetworkTransport() {
+        app = TestRealmApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 throw Error("Boom!")
             }
@@ -195,3 +195,4 @@ class OsJavaNetworkTransportTests {
     }
 
 }
+

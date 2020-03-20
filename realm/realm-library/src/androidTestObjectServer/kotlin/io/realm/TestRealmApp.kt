@@ -19,7 +19,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.internal.network.OkHttpNetworkTransport
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.log.LogLevel
-import java.lang.IllegalStateException
 
 /**
  * This class wraps various methods making it easier to create an RealmApp that can be used
@@ -27,22 +26,27 @@ import java.lang.IllegalStateException
  *
  * NOTE: This class must remain in the [io.realm] package in order to work.
  */
-class TestRealmApp private constructor() {
-    companion object {
-        private val applicationId = fetchApplicationId()
-        val config = RealmAppConfiguration.Builder(applicationId)
-                .logLevel(LogLevel.DEBUG)
-                .baseUrl("http://127.0.0.1:9090")
-                .appName("MongoDB Realm Integration Tests")
-                .appVersion("1.0.")
-                .build()
+class TestRealmApp(networkTransport: OsJavaNetworkTransport? = null) : RealmApp(createConfiguration()) {
 
-        private fun init() {
-            Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+    init {
+        if (networkTransport != null) {
+            this.networkTransport = networkTransport;
+        }
+    }
+
+    companion object {
+        fun createConfiguration(): RealmAppConfiguration {
+            return RealmAppConfiguration.Builder(initializeMongoDbRealm())
+                    .logLevel(LogLevel.DEBUG)
+                    .baseUrl("http://127.0.0.1:9090")
+                    .appName("MongoDB Realm Integration Tests")
+                    .appVersion("1.0.")
+                    .build()
         }
 
-        private fun fetchApplicationId(): String {
-            init()
+        // Initializes MongoDB Realm. Clears all local state and fetches the application ID.
+        private fun initializeMongoDbRealm(): String {
+            Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
             val transport = OkHttpNetworkTransport()
             val response = transport.sendRequest(
                     "get",
@@ -56,13 +60,6 @@ class TestRealmApp private constructor() {
                 else -> throw IllegalStateException(response.toString())
             }
         }
-
-        fun getInstance(networkTransport: OsJavaNetworkTransport? = null): RealmApp {
-            val app = RealmApp(config)
-            if (networkTransport != null) {
-                app.networkTransport = networkTransport
-            }
-            return app
-        }
     }
 }
+
