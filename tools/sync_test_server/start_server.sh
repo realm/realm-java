@@ -1,8 +1,18 @@
 #!/bin/sh
 
+# How to use this script:
+#
+# 1. Logging into GitHub
+# 2. Goto "Settings > Developer Settings > Personal access tokens"
+# 3. Press "Generate new Token"
+# 4. Select "read:packages" as Scope. Give it a name and create the token.
+# 5. Store the token in a environment variable called GITHUB_DOCKER_TOKEN.
+# 6. Store the GitHub username in an environment variable called GITHUB_DOCKER_USER.
+# 7. Run this script.
+
 # Verify that Github username and tokens are available as environment vars
-if [[ -z "${GITHUB_USER}" ]]; then
-  echo "Could not find \$GITHUB_USER as an environment variabel"
+if [[ -z "${GITHUB_DOCKER_USER}" ]]; then
+  echo "Could not find \$GITHUB_DOCKER_USER as an environment variabel"
   exit 1
 fi
 
@@ -22,7 +32,7 @@ adb reverse tcp:9090 tcp:9090 && \
 adb reverse tcp:8888 tcp:8888 || { echo "Failed to reverse adb port." ; exit 1 ; }
 
 # Make sure that Docker works correctly with Github Docker Registry by logging in
-docker login docker.pkg.github.com -u $GITHUB_USER -p $GITHUB_DOCKER_TOKEN
+docker login docker.pkg.github.com -u $GITHUB_DOCKER_USER -p $GITHUB_DOCKER_TOKEN
 
 # Run Stitch and Stitch CLI Docker images
 docker network create mongodb-realm-network
