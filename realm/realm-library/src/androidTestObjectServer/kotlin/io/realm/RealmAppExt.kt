@@ -12,5 +12,4 @@ fun RealmApp.close() {
     // TODO Do we need to log out users?
     SyncManager.reset()
     BaseRealm.applicationContext = null // Required for Realm.init() to work
-    Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
 }

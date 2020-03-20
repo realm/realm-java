@@ -99,7 +99,7 @@ class BlockingLooperThread {
      * Accessed only from the main thread, here, but synchronized in case it is called from within a test.
      */
     fun keepStrongReference(obj: Any) {
-        synchronized(lock) { keepStrongReference!!.add(obj) }
+        synchronized(lock) { keepStrongReference.add(obj) }
     }
 
     /**
@@ -109,7 +109,7 @@ class BlockingLooperThread {
      * @param closeable [Closeable] to close.
      */
     fun closeAfterTest(closeable: Closeable) {
-        synchronized(lock) { closableResources!!.add(closeable) }
+        synchronized(lock) { closableResources.add(closeable) }
     }
 
     /**

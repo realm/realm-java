@@ -20,7 +20,6 @@
 #include "util.hpp"
 #include "jni_util/java_class.hpp"
 
-#include <realm/util/to_string.hpp>
 #include <sync/sync_user.hpp>
 
 using namespace realm;

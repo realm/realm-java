@@ -205,7 +205,7 @@ public class RealmApp {
      }
 
     /**
-     * Log the current user out of the Realm App, destroying their server state, unregistering them from the
+     * Log the current user out of the Realm App asynchronously, destroying their server state, unregistering them from the
      * SDK, and removing any synced Realms associated with them from on-disk storage on next app
      * launch.
      * <p>
@@ -237,7 +237,6 @@ public class RealmApp {
         return new Request<RealmUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public RealmUser run() throws ObjectServerError {
-                RealmLog.error("Log out user");
                 logOut(user);
                 return user;
             }
