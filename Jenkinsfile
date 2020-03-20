@@ -4,7 +4,6 @@ import groovy.json.JsonOutput
 
 def buildSuccess = false
 def mongoDbRealmContainer = null
-def mongoDbRealmCLIContainer = null
 def mongoDbRealmCommandServerContainer = null
 def dockerNetworkId = UUID.randomUUID().toString()
 try {
@@ -151,12 +150,8 @@ try {
             }
           }
         } finally {
-          // FIXME: Figure out which logs we need to safe, if any?
-          // archiveRosLog(rosContainer.id)
-          // sh "docker logs ${rosContainer.id}"
-          // rosContainer.stop()
+          archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
           mongoDbRealmContainer.stop()
-          mongoDbRealmCLIContainer.stop()
           mongoDbRealmCommandServerContainer.stop()
           sh "docker network rm ${dockerNetworkId}"
         }
@@ -212,14 +207,30 @@ def stopLogCatCollector(String backgroundPid) {
   sh 'rm logcat.txt'
 }
 
-def archiveRosLog(String id) {
-  sh "docker cp ${id}:/tmp/integration-test-command-server.log ./ros.log"
+def archiveServerLogs(String mongoDbRealmContainerId, String commandServerContainerId) {
+  sh "docker logs ${commandServerContainerId} > ./command-server.log"
   zip([
-          'zipFile': 'roslog.zip',
-          'archive': true,
-          'glob' : 'ros.log'
+    'zipFile': 'command-server-log.zip',
+    'archive': true,
+    'glob' : 'command-server.log'
   ])
-  sh 'rm ros.log'
+  sh 'rm command-server.log'
+
+  sh "docker cp ${mongoDbRealmContainerId}:/var/log/stitch.log ./stitch.log"
+  zip([
+    'zipFile': 'stitchlog.zip',
+    'archive': true,
+    'glob' : 'stitch.log'
+  ])
+  sh 'rm stitch.log'
+
+  sh "docker cp ${mongoDbRealmContainerId}:/var/log/mongodb.log ./mongodb.log"
+  zip([
+    'zipFile': 'mongodb.zip',
+    'archive': true,
+    'glob' : 'mongodb.log'
+  ])
+  sh 'rm mongodb.log'
 }
 
 def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {
