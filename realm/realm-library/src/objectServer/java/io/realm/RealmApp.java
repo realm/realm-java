@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -28,6 +30,7 @@ import javax.annotation.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
 import io.realm.internal.RealmNotifier;
+import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmAsyncTaskImpl;
@@ -83,7 +86,8 @@ public class RealmApp {
 
     private final RealmAppConfiguration config;
     private OsJavaNetworkTransport networkTransport;
-    private final long nativePtr;
+    final long nativePtr;
+    private final EmailPasswordAuthProvider emailAuthProvider = new EmailPasswordAuthProvider(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
 
     public RealmApp(String appId) {
@@ -152,7 +156,7 @@ public class RealmApp {
      * @throws ObjectServerError
      */
     public RealmUser login(RealmCredentials credentials) throws ObjectServerError {
-        checkNull(credentials, "credentials");
+        Util.checkNull(credentials, "credentials");
         AtomicReference<RealmUser> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
@@ -172,7 +176,7 @@ public class RealmApp {
      * @return
      */
     public RealmAsyncTask loginAsync(RealmCredentials credentials, Callback<RealmUser> callback) {
-        checkLooperThread("Asynchronous login is only possible from looper threads.");
+        Util.checkLooperThread("Asynchronous login is only possible from looper threads.");
         return new Request<RealmUser>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public RealmUser run() throws ObjectServerError {
@@ -225,15 +229,19 @@ public class RealmApp {
          return logOutAsync(user, callback);
      }
 
+     public EmailPasswordAuthProvider getEmailPasswordAuthProvider() {
+         return emailAuthProvider;
+     }
+
     void logOut(RealmUser user) {
-        checkNull(user, "user");
+        Util.checkNull(user, "user");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeLogOut(nativePtr, user.osUser.getNativePtr(), new OsJNIVoidResultCallback(error));
         handleResult(null, error);
     }
 
     RealmAsyncTask logOutAsync(RealmUser user, Callback<RealmUser> callback) {
-        checkLooperThread("Asynchronous log out is only possible from looper threads.");
+        Util.checkLooperThread("Asynchronous log out is only possible from looper threads.");
         return new Request<RealmUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public RealmUser run() throws ObjectServerError {
@@ -241,36 +249,6 @@ public class RealmApp {
                 return user;
             }
         }.start();
-    }
-
-    public RealmUser registerWithEmail(String email, String password) {
-        return null;
-    }
-    public RealmAsyncTask registerWithEmailAsync(String email, String password, Callback<RealmUser> callback) {
-        return null;
-    }
-    public RealmUser confirmUser(String token, String tokenId) {
-        return null;
-    }
-    public RealmAsyncTask confirmUserAsync(String token, String tokenId, Callback<Void> callback) {
-        return null;
-    }
-    public void resendConfirmationEmail(String email) {
-    }
-    public RealmAsyncTask resendConfirmationEmailAsync(String email, Callback<Void> callback) {
-        return null;
-    }
-    public RealmUser resetPassword(String token, String tokenId, String password) {
-        return null;
-    }
-    public RealmAsyncTask resetPasswordAsync(String token, String tokenId, String password, Callback<Void> callback) {
-        return null;
-    }
-    public RealmUser sendResetPasswordEmail(String email) {
-        return null;
-    }
-    public RealmAsyncTask sendResetPasswordEmailAsync(String email, Callback<Void> callback) {
-        return null;
     }
 
     public SyncSession getSyncSession(SyncConfiguration config) {
@@ -343,21 +321,27 @@ public class RealmApp {
         return networkTransport;
     }
 
-    private static void checkLooperThread(String errorMessage) {
-        AndroidCapabilities capabilities = new AndroidCapabilities();
-        capabilities.checkCanDeliverNotification(errorMessage);
-    }
-
-    private void checkNull(@Nullable Object argValue, String argName) {
-        if (argValue == null) {
-            throw new IllegalArgumentException("Nonnull '" + argName + "' required.");
+    // Handle returning the correct result or throw an exception. Must be separated from
+    // OsJNIResultCallback due to how the Object Store callbacks work.
+    static <T> T handleResult(@Nullable AtomicReference<T> success, AtomicReference<ObjectServerError> error) {
+        if (success != null && success.get() == null && error.get() == null) {
+            throw new IllegalStateException("Network result callback did not trigger correctly");
+        }
+        if (error.get() != null) {
+            throw error.get();
+        } else {
+            if (success != null) {
+                return success.get();
+            } else {
+                return null;
+            }
         }
     }
 
     // Common callback for handling callbacks from the ObjectStore layer.
     // NOTE: This class is called from JNI. If renamed, adjust callbacks in RealmApp.cpp
     @Keep
-    private static class OsJNIVoidResultCallback extends OsJNIResultCallback {
+    static class OsJNIVoidResultCallback extends OsJNIResultCallback {
 
         public OsJNIVoidResultCallback(AtomicReference error) {
             super(null, error);
@@ -372,7 +356,7 @@ public class RealmApp {
     // Common callback for handling results from the ObjectStore layer.
     // NOTE: This class is called from JNI. If renamed, adjust callbacks in RealmApp.cpp
     @Keep
-    private static abstract class OsJNIResultCallback<T> extends OsJavaNetworkTransport.NetworkTransportJNIResultCallback {
+    static abstract class OsJNIResultCallback<T> extends OsJavaNetworkTransport.NetworkTransportJNIResultCallback {
 
         private final AtomicReference<T> success;
         private final AtomicReference<ObjectServerError> error;
@@ -403,26 +387,9 @@ public class RealmApp {
         }
     }
 
-    // Handle returning the correct result or throw an exception. Must be separated from
-    // OsJNIResultCallback due to how
-    private <T> T handleResult(@Nullable AtomicReference<T> success, AtomicReference<ObjectServerError> error) {
-        if (success != null && success.get() == null && error.get() == null) {
-            throw new IllegalStateException("Network result callback did not trigger correctly");
-        }
-        if (error.get() != null) {
-            throw error.get();
-        } else {
-            if (success != null) {
-                return success.get();
-            } else {
-                return null;
-            }
-        }
-    }
-
     // Class wrapping requests made against MongoDB Realm. Is also responsible for calling with success/error on the
     // correct thread.
-    private static abstract class Request<T> {
+    static abstract class Request<T> {
         @Nullable
         private final RealmApp.Callback<T> callback;
         private final RealmNotifier handler;
@@ -483,17 +450,37 @@ public class RealmApp {
         }
     }
 
+    // Work-around for Kotlin not playing nice with the Void type and nullability annotations.
+    // See XXX for more context.
+    static final Void VOID_INSTANCE;
+    static {
+        Constructor<Void> constructor;
+        Void v = null;
+        try {
+            constructor = Void.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            v = constructor.newInstance();
+        } catch (Exception e) {
+            // Do nothing
+            // Something is fundamentally broken if this fails and any Kotlin API using callbacks
+            // with Void will throw a runtime exception (as Kotlin expects the value to be non-null).
+            // For now, let this happen as any API using Java will still continue to work.
+        }
+        VOID_INSTANCE = v;
+    }
+
     /**
      * Callback for async methods available to the {@link RealmApp}.
      *
      * @param <T> Type returned if the request was a success.
      */
     public interface Callback<T> {
+
         /**
          * The request was a success.
          * @param t The object representing the successful request. See each method for details.
          */
-        void onSuccess(T t);
+        void onSuccess(T t); // FIXME: Figure out exactly how we want our Callback API to look like
 
         /**
          * The request failed for some reason, either because there was a network error or the Realm

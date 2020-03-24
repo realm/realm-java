@@ -88,11 +88,15 @@ set(classes_LIST
 set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
-        io.realm.RealmApp io.realm.ClientResetRequiredError
-        io.realm.SyncManager io.realm.SyncSession io.realm.SyncUser
+        io.realm.ClientResetRequiredError
+        io.realm.EmailPasswordAuthProvider
+        io.realm.RealmApp
+        io.realm.SyncManager
+        io.realm.SyncSession
+        io.realm.SyncUser
+        io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
         io.realm.internal.objectstore.OsJavaNetworkTransport
-        io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsSyncUser
     )
 endif()
@@ -174,6 +178,7 @@ file(GLOB jni_SRC
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmApp.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuthProvider.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ClientResetRequiredError.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp

@@ -219,3 +219,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeSetSt
     CATCH_STD();
 }
 
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetProviderType(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        return to_jstring(env, user->provider_type());
+    }
+    CATCH_STD();
+    return nullptr;
+}
