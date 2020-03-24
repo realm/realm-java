@@ -1,9 +1,12 @@
 package io.realm.admin
 
+import io.realm.log.LogLevel
+import io.realm.log.RealmLog
 import okhttp3.*
+import okio.Buffer
 import org.json.JSONArray
 import org.json.JSONObject
-import java.lang.IllegalArgumentException
+import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
 /**
@@ -20,6 +23,25 @@ class StitchAdmin {
     private val client: OkHttpClient = OkHttpClient.Builder()
             .callTimeout(10, TimeUnit.SECONDS)
             .followRedirects(true)
+            .addInterceptor { chain ->
+                val request: Request = chain.request()
+                if (RealmLog.getLevel() <= LogLevel.DEBUG) {
+                    val sb = StringBuilder(request.method())
+                    sb.append(' ')
+                    sb.append(request.url())
+                    sb.append('\n')
+                    sb.append(request.headers())
+                    if (request.body() != null) {
+                        // Stripped down version of https://github.com/square/okhttp/blob/master/okhttp-logging-interceptor/src/main/java/okhttp3/logging/HttpLoggingInterceptor.java
+                        // We only expect request context to be JSON.
+                        val buffer = Buffer()
+                        request.body()?.writeTo(buffer)
+                        sb.append(buffer.readString(Charset.forName("UTF-8")))
+                    }
+                    RealmLog.debug("Admin HTTP Request = \n%s", sb)
+                }
+                chain.proceed(request)
+            }
             .connectionPool(ConnectionPool(5, 5, TimeUnit.SECONDS))
             .build()
 
@@ -33,13 +55,13 @@ class StitchAdmin {
         }
         val call = client.newCall(builder.build())
         val response = call.execute()
-        val responseBody: ResponseBody = response.body()!!
-
-        if (response.code() < 200 || response.code() > 299) {
-            throw IllegalArgumentException("HTTP error ${response.code()} : ${responseBody.string()}")
+        val body: String = response.body()?.string() ?: ""
+        val code = response.code()
+        if (code < 200 || code > 299) {
+            throw IllegalArgumentException("HTTP error $code : $body")
         }
 
-        return responseBody.string()
+        return body
     }
 
     fun logIn() {
@@ -63,33 +85,20 @@ class StitchAdmin {
     }
 
     fun setAutomaticConfirmation(enabled: Boolean) {
-        var request: Request.Builder = Request.Builder()
-                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers")
+        val providerId: String = getLocalUserPassProviderId()
+        var request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
                 .get()
-        val authProvidersListResult = JSONArray(executeRequest(request, true))
-        var providerId: String? = null
-        for (i in 0 until authProvidersListResult.length()) {
-            val o = authProvidersListResult[i] as JSONObject
-            if (o.getString("name") == "user-localpass") {
-                providerId = o.getString("_id")
-                break
-            }
+        val authProviderConfig = JSONObject(executeRequest(request, true))
+        authProviderConfig.getJSONObject("config").apply {
+            put("autoConfirm", enabled)
+            put("emailConfirmationUrl", "http://realm.io/confirm-user")
         }
-
-        if (providerId != null) {
-            // Read current config
-            request = Request.Builder()
-                    .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
-                    .get()
-            val authProviderConfig = JSONObject(executeRequest(request, true))
-            authProviderConfig.getJSONObject("config").put("autoConfirm", enabled);
-
-            // Change autoConfirm and update the provider
-            var builder: Request.Builder = Request.Builder()
-                    .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
-                    .patch(RequestBody.create(json, authProvidersListResult.toString()))
-            executeRequest(builder)
-        }
+        // Change autoConfirm and update the provider
+        request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
+                .patch(RequestBody.create(json, authProviderConfig.toString()))
+        executeRequest(request)
     }
 
     fun deletePendingUser(email: String) {
@@ -97,5 +106,59 @@ class StitchAdmin {
                 .url("$baseUrl/groups/$groupId/apps/$appId/user_registrations/by_email/$email")
                 .delete()
         executeRequest(request)
+    }
+
+    /**
+     * Deletes all currently registered users on MongoDB Realm.
+     */
+    fun deleteAllUsers() {
+        var request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/users")
+                .get()
+        val list = JSONArray(executeRequest(request))
+        for (i in 0 until list.length()) {
+            val o = list[i] as JSONObject
+            request = Request.Builder()
+                    .url("$baseUrl/groups/$groupId/apps/$appId/users/${o.getString("_id")}")
+                    .delete()
+            executeRequest(request)
+        }
+    }
+
+    /**
+     * Determines wether or not the preconfigured reset password function is used
+     */
+    fun setResetFunction(enabled: Boolean) {
+        val providerId: String = getLocalUserPassProviderId()
+
+        // Read current config
+        var request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
+                .get()
+        val authProviderConfig = JSONObject(executeRequest(request, true))
+        authProviderConfig.getJSONObject("config").apply {
+            put("runResetFunction", enabled)
+        }
+        // Change autoConfirm and update the provider
+        request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
+                .patch(RequestBody.create(json, authProviderConfig.toString()))
+        executeRequest(request)
+    }
+
+    private fun getLocalUserPassProviderId(): String {
+        var request: Request.Builder = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers")
+                .get()
+        val authProvidersListResult = JSONArray(executeRequest(request, true))
+        var providerId: String? = null
+        for (i in 0 until authProvidersListResult.length()) {
+            val o = authProvidersListResult[i] as JSONObject
+            if (o.getString("name") == "local-userpass") {
+                providerId = o.getString("_id")
+                break
+            }
+        }
+        return providerId!!
     }
 }

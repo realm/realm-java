@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import org.json.JSONArray;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
@@ -179,21 +181,24 @@ public class EmailPasswordAuthProvider {
      * {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} provider.
      *
      * @param email the email of the user.
-     * @param password the new password of the user.
+     * @param newPassword the new password of the user.
      * @param args any additional arguments provided to to the reset function. All arguments must
      * be able to be converted to JSON compatible values using {@code toString()}.
      * @throws android.os.NetworkOnMainThreadException if called from the main thread.
      * @throws ObjectServerError if the server failed to confirm the user.
      */
-    public void callResetPasswordFunction(String email, String password, Object... args /* FIXME: Type of these? */) {
+    public void callResetPasswordFunction(String email, String newPassword, Object... args) {
         Util.checkEmpty(email, "email");
-        Util.checkEmpty(email, "password");
-        // FIXME: Serialize Args
+        Util.checkEmpty(newPassword, "newPassword");
+        JSONArray array = new JSONArray();
+        for (Object arg : args) {
+            array.put((arg != null) ? arg.toString() : null);
+        }
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_CALL_RESET_PASSWORD_FUNCTION,
                 app.nativePtr,
                 new RealmApp.OsJNIVoidResultCallback(error),
-                email);
+                email, newPassword, array.toString());
         RealmApp.handleResult(null, error);
     }
 

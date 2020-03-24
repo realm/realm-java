@@ -135,7 +135,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
     // Helper method for constructing callbacks for REST calls that doesn't return any results to Java.
     static std::function<void(Optional<app::AppError>)> create_void_callback(JNIEnv* env, jobject j_callback) {
         jobject callback = env->NewGlobalRef(j_callback);
-        return [&](Optional<app::AppError> error) {
+        return [callback](Optional<app::AppError> error) {
             JNIEnv* env = JniUtils::get_env(true);
 
             static JavaClass java_callback_class(env, "io/realm/RealmApp$OsJNIVoidResultCallback");
