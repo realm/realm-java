@@ -53,9 +53,9 @@ class RealmUserTests {
 
     @Test
     fun getState_anonymousUser() {
-        assertEquals(RealmUser.State.ACTIVE, anonUser.state)
+        assertEquals(RealmUser.State.LOGGED_IN, anonUser.state)
         anonUser.logOut()
-        assertEquals(RealmUser.State.ERROR, anonUser.state)
+        assertEquals(RealmUser.State.REMOVED, anonUser.state)
     }
 
     @Ignore("Add test when registerUser works")
@@ -67,7 +67,7 @@ class RealmUserTests {
     @Test
     fun logOut() {
         anonUser.logOut()
-        assertEquals(RealmUser.State.ERROR, anonUser.state)
+        assertEquals(RealmUser.State.REMOVED, anonUser.state)
     }
 
     @Test

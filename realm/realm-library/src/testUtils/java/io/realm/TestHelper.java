@@ -1299,4 +1299,9 @@ public class TestHelper {
         }
     }
 
+    // Workaround to cheat Kotlins type system when testing interop with Java
+    @SuppressWarnings("TypeParameterUnusedInFormals")
+    public static <T> T getNull() {
+        return null;
+    }
 }

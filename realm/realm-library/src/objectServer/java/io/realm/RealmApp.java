@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
 import io.realm.internal.RealmNotifier;
+import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmAsyncTaskImpl;
@@ -121,12 +122,16 @@ public class RealmApp {
     }
 
     /**
-     * FIXME
-     * Returns all currently logged in users
-     * @return
+     * Returns all known users that are either {@link RealmUser.State#LOGGED_IN} or
+     * {@link RealmUser.State#LOGGED_OUT}.
+     * <p></p>
+     * Only users that at some point known locally to the device will be returned.
+     *
+     *
+     * @return a map of user identifiers and users known locally.
      */
     public Map<String, RealmUser> allUsers() {
-        long[] nativeUsers = nativeAllUsers(nativePtr);
+        long[] nativeUsers = nativeGetAllUsers(nativePtr);
         HashMap<String, RealmUser> users = new HashMap<>(nativeUsers.length);
         for (int i = 0; i < nativeUsers.length; i++) {
             RealmUser user = new RealmUser(nativeUsers[i], this);
@@ -136,12 +141,57 @@ public class RealmApp {
     }
 
     /**
-     * TODO: Manually set the user returned by {@link #currentUser()}
+     * Switch current user. The current user is the user returned by {@link #currentUser()}.
      *
-     * @param user
+     * @param user the new current user.
+     * @throws IllegalArgumentException if the user is is not {@link RealmUser.State#LOGGED_IN}.
      */
-    public static void setCurrentUser(SyncUser user) {
-        // FIXME
+    public RealmUser switchUser(RealmUser user) {
+        checkNull(user, "user");
+        nativeSwitchUser(nativePtr, user.osUser.getNativePtr());
+        return user;
+    }
+
+    /**
+     * Removes a users credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user user to remove.
+     * @return user that was removed.
+     * @throws ObjectServerError if called from the UI thread or if the user was logged in, but
+     * could not be logged out.
+     */
+    public RealmUser removeUser(RealmUser user) throws ObjectServerError {
+        AtomicReference<RealmUser> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        nativeRemoveUser(nativePtr, user.osUser.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
+            @Override
+            protected void mapSuccess(Object result, @Nullable AtomicReference<RealmUser> success) {
+                success.set(user);
+            }
+        });
+        return handleResult(success, error);
+    }
+
+    /**
+     * Removes a users credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user user to remove.
+     * @param callback callback when removing the user has completed or failed. The callback will always
+     * happen on the same thread as this this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    public RealmAsyncTask removeUserAsync(RealmUser user, Callback<RealmUser> callback) {
+        checkLooperThread("Asynchronous removal of users is only possible from looper threads.");
+        return new Request<RealmUser>(NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public RealmUser run() throws ObjectServerError {
+                return removeUser(user);
+            }
+        }.start();
     }
 
     /**
@@ -191,12 +241,16 @@ public class RealmApp {
      * <p>
      * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
      * will be notified and user credentials will be deleted from this device.
+     * <p>
+     * Logging out anonymous users will remove them immediately instead of marking them as
+     * {@link RealmUser.State#LOGGED_OUT}. All other users will be marked as {@link RealmUser.State#LOGGED_OUT}
+     * and will still be returned by {@link #allUsers()}.
      *
      * @throws IllegalStateException if no current user could be found.
      * @throws ObjectServerError if an error occurred while trying to log the user out of the Realm
      * App.
      */
-     public void logOut() {
+     public void logOut() throws ObjectServerError {
         RealmUser user = currentUser();
         if (user == null) {
             throw new IllegalStateException("No current user was found.");
@@ -214,7 +268,13 @@ public class RealmApp {
      * <p>
      * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
      * will be notified and user credentials will be deleted from this device.
+     * <p>
+     * Logging out anonymous users will remove them immediately instead of marking them as
+     * {@link RealmUser.State#LOGGED_OUT}. All other users will be marked as {@link RealmUser.State#LOGGED_OUT}
+     * and will still be returned by {@link #allUsers()}.
      *
+     * @param callback callback when logging out has completed or failed. The callback will always
+     * happen on the same thread as this this method is called on.
      * @throws IllegalStateException if not called on a looper thread or no current user could be found.
      */
      public RealmAsyncTask logOutAsync(Callback<RealmUser> callback) {
@@ -508,7 +568,9 @@ public class RealmApp {
     private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     @Nullable
     private static native Long nativeCurrentUser(long nativePtr);
-    private static native long[] nativeAllUsers(long nativePtr);
+    private static native long[] nativeGetAllUsers(long nativePtr);
     private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeSwitchUser(long nativeAppPtr, long nativeUserPtr);
+    private static native void nativeRemoveUser(long nativeAppPtr, long nativeUserPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }
 

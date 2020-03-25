@@ -23,8 +23,8 @@ public class OsSyncUser implements NativeObject {
     private final long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
-    public static final byte STATE_ACTIVE = 1;
-    public static final byte STATE_ERROR = 2;
+    public static final byte STATE_LOGGED_IN = 1;
+    public static final byte STATE_REMOVED = 2;
     public static final byte STATE_LOGGED_OUT = 3;
 
     public OsSyncUser(long nativePtr) {
@@ -100,14 +100,14 @@ public class OsSyncUser implements NativeObject {
     }
 
     /**
-     * @return {@link #STATE_ACTIVE}, {@link #STATE_LOGGED_OUT} or {@link #STATE_ERROR}
+     * @return {@link #STATE_LOGGED_IN}, {@link #STATE_LOGGED_OUT} or {@link #STATE_REMOVED}
      */
     public byte getState() {
         return nativeGetState(nativePtr);
     }
 
     public void invalidate() {
-        nativeSetState(nativePtr, STATE_ERROR);
+        nativeSetState(nativePtr, STATE_REMOVED);
     }
 
     @Override

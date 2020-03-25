@@ -156,3 +156,56 @@ JNIEXPORT jobject JNICALL Java_io_realm_RealmApp_nativeCurrentUser(JNIEnv* env, 
     return NULL;
 }
 
+JNIEXPORT jlongArray JNICALL Java_io_realm_RealmApp_nativeGetAllUsers(JNIEnv* env, jclass, jlong j_app_ptr)
+{
+    try {
+        App *app = reinterpret_cast<App *>(j_app_ptr);
+        std::vector<std::shared_ptr<SyncUser>> users = app->all_users();
+        auto size = users.size();
+
+        jlongArray java_users = env->NewLongArray(size);
+        if (!java_users) {
+            ThrowException(env, OutOfMemory, "Could not allocate memory to create array of users.");
+            return nullptr;
+        }
+
+        jlong* user_ptrs = new jlong[size];
+        for(size_t i = 0; i < size; ++i) {
+            auto *java_user = new std::shared_ptr<SyncUser>(std::move(users[i]));
+            user_ptrs[i] = reinterpret_cast<int64_t>(java_user);
+        }
+
+        env->SetLongArrayRegion(java_users, 0, size, user_ptrs);
+        delete[] user_ptrs;
+        return java_users;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeSwitchUser(JNIEnv* env,
+                                                               jclass,
+                                                               jlong j_app_ptr,
+                                                               jlong j_user_ptr)
+{
+    try {
+        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
+        app->switch_user(user);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeRemoveUser(JNIEnv* env,
+                                                               jclass,
+                                                               jlong j_app_ptr,
+                                                               jlong j_user_ptr,
+                                                               jobject j_callback)
+{
+    try {
+        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
+        app->remove_user(user, create_void_callback(env, j_callback));
+    }
+    CATCH_STD()
+}
