@@ -52,10 +52,9 @@ public class EmailPasswordAuthProvider {
      * @param password the password to associated with the email. The password must be between
      * 6 and 128 characters long.
      *
-     * @throws android.os.NetworkOnMainThreadException if called from the main thread.
      * @throws ObjectServerError if the server failed to register the user.
      */
-    public void registerUser(String email, String password) {
+    public void registerUser(String email, String password) throws ObjectServerError {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(password, "password");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
@@ -72,6 +71,8 @@ public class EmailPasswordAuthProvider {
      * @param email the email to register with. This will be the username used during log in.
      * @param password the password to associated with the email. The password must be between
      * 6 and 128 characters long.
+     * @param callback callback when registration has completed or failed. The callback will always
+     * happen on the same thread as this this method is called on.
      *
      * @throws IllegalStateException if called from a non-looper thread.
      * @throws ObjectServerError if the server failed to register the user.
@@ -92,10 +93,9 @@ public class EmailPasswordAuthProvider {
      *
      * @param token the confirmation token.
      * @param tokenId the id of the confirmation token.
-     * @throws android.os.NetworkOnMainThreadException if called from the main thread.
      * @throws ObjectServerError if the server failed to confirm the user.
      */
-    public void confirmUser(String token, String tokenId) {
+    public void confirmUser(String token, String tokenId) throws ObjectServerError {
         Util.checkEmpty(token, "token");
         Util.checkEmpty(tokenId, "tokenId");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
@@ -106,7 +106,15 @@ public class EmailPasswordAuthProvider {
         RealmApp.handleResult(null, error);
     }
 
-    // FIXME
+    /**
+     * Confirms a user with the given token and token id.
+     *
+     * @param token the confirmation token.
+     * @param tokenId the id of the confirmation token.
+     * @param callback callback when confirmation has completed or failed. The callback will always
+     * happen on the same thread as this this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
     public RealmAsyncTask confirmUserAsync(String token, String tokenId, RealmApp.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous confirmation of a user is only possible from looper threads.");
         return new RealmApp.Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
@@ -122,10 +130,9 @@ public class EmailPasswordAuthProvider {
      * Resend the confirmation for a user to the given email.
      *
      * @param email the email of the user.
-     * @throws android.os.NetworkOnMainThreadException if called from the main thread.
      * @throws ObjectServerError if the server failed to confirm the user.
      */
-    public void resendConfirmationEmail(String email) {
+    public void resendConfirmationEmail(String email) throws ObjectServerError {
         Util.checkEmpty(email, "email");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_RESEND_CONFIRMATION_EMAIL,
@@ -135,7 +142,14 @@ public class EmailPasswordAuthProvider {
         RealmApp.handleResult(null, error);
     }
 
-    // FIXME
+    /**
+     * Resend the confirmation for a user to the given email.
+     *
+     * @param email the email of the user.
+     * @param callback callback when resending the email has completed or failed. The callback will
+     * always happen on the same thread as this this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
     public RealmAsyncTask resendConfirmationEmailAsync(String email, RealmApp.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous resending the confirmation email is only possible from looper threads.");
         return new RealmApp.Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
@@ -151,10 +165,9 @@ public class EmailPasswordAuthProvider {
      * Sends a user a password reset email for the given email.
      *
      * @param email the email of the user.
-     * @throws android.os.NetworkOnMainThreadException if called from the main thread.
      * @throws ObjectServerError if the server failed to confirm the user.
      */
-    public void sendResetPasswordEmail(String email) {
+    public void sendResetPasswordEmail(String email) throws ObjectServerError {
         Util.checkEmpty(email, "email");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_SEND_RESET_PASSWORD_EMAIL,
@@ -164,7 +177,14 @@ public class EmailPasswordAuthProvider {
         RealmApp.handleResult(null, error);
     }
 
-    // FIXME
+    /**
+     * Sends a user a password reset email for the given email.
+     *
+     * @param email the email of the user.
+     * @param callback callback when sending the email has completed or failed. The callback will
+     * always happen on the same thread as this this method is called on.
+     * @throws ObjectServerError if the server failed to confirm the user.
+     */
     public RealmAsyncTask sendResetPasswordEmailAsync(String email, RealmApp.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous sending the reset password email is only possible from looper threads.");
         return new RealmApp.Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
@@ -184,10 +204,9 @@ public class EmailPasswordAuthProvider {
      * @param newPassword the new password of the user.
      * @param args any additional arguments provided to to the reset function. All arguments must
      * be able to be converted to JSON compatible values using {@code toString()}.
-     * @throws android.os.NetworkOnMainThreadException if called from the main thread.
      * @throws ObjectServerError if the server failed to confirm the user.
      */
-    public void callResetPasswordFunction(String email, String newPassword, Object... args) {
+    public void callResetPasswordFunction(String email, String newPassword, Object... args) throws ObjectServerError {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(newPassword, "newPassword");
         JSONArray array = new JSONArray();
@@ -202,13 +221,24 @@ public class EmailPasswordAuthProvider {
         RealmApp.handleResult(null, error);
     }
 
-    // FIXME
-    public RealmAsyncTask callResetPasswordFunctionAsync(String email, String password, Object[] args, RealmApp.Callback<Void> callback) {
+    /**
+     * Call the reset password function configured to the
+     * {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} provider.
+     *
+     * @param email the email of the user.
+     * @param newPassword the new password of the user.
+     * @param args any additional arguments provided to to the reset function. All arguments must
+     * be able to be converted to JSON compatible values using {@code toString()}.
+     * @param callback callback when the reset has completed or failed. The callback will always
+     * happen on the same thread as this this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    public RealmAsyncTask callResetPasswordFunctionAsync(String email, String newPassword, Object[] args, RealmApp.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous calling the password reset function is only possible from looper threads.");
         return new RealmApp.Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
-                callResetPasswordFunction(email, password, args);
+                callResetPasswordFunction(email, newPassword, args);
                 return RealmApp.VOID_INSTANCE;
             }
         }.start();
@@ -219,30 +249,39 @@ public class EmailPasswordAuthProvider {
      *
      * @param token the reset password token.
      * @param tokenId the id of the reset password token.
-     * @param password the new password for the user identified by the {@code token}. The password
+     * @param newPassword the new password for the user identified by the {@code token}. The password
      * must be between 6 and 128 characters long.
-     * @throws android.os.NetworkOnMainThreadException if called from the main thread.
      * @throws ObjectServerError if the server failed to confirm the user.
      */
-    public void resetPassword(String token, String tokenId, String password) {
+    public void resetPassword(String token, String tokenId, String newPassword) throws ObjectServerError {
         Util.checkEmpty(token, "token");
         Util.checkEmpty(tokenId, "tokenId");
-        Util.checkEmpty(password, "password");
+        Util.checkEmpty(newPassword, "newPassword");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_RESET_PASSWORD,
                 app.nativePtr,
                 new RealmApp.OsJNIVoidResultCallback(error),
-                token, tokenId, password);
+                token, tokenId, newPassword);
         RealmApp.handleResult(null, error);
     }
 
-    // FIXME
-    public RealmAsyncTask resetPasswordAsync(String token, String tokenId, String password, RealmApp.Callback<Void> callback) {
+    /**
+     * Resets the newPassword of a user with the given token, token id, and new password.
+     *
+     * @param token the reset password token.
+     * @param tokenId the id of the reset password token.
+     * @param newPassword the new password for the user identified by the {@code token}. The password
+     * must be between 6 and 128 characters long.
+     * @param callback callback when the reset has completed or failed. The callback will always
+     * happen on the same thread as this this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    public RealmAsyncTask resetPasswordAsync(String token, String tokenId, String newPassword, RealmApp.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous reset of a password is only possible from looper threads.");
         return new RealmApp.Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
-                resetPassword(token, tokenId, password);
+                resetPassword(token, tokenId, newPassword);
                 return RealmApp.VOID_INSTANCE;
             }
         }.start();

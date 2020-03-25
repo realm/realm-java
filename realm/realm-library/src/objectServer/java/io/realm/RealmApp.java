@@ -16,7 +16,6 @@
 package io.realm;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -451,7 +450,7 @@ public class RealmApp {
     }
 
     // Work-around for Kotlin not playing nice with the Void type and nullability annotations.
-    // See XXX for more context.
+    // See https://github.com/realm/realm-java/pull/6783/ for more context.
     static final Void VOID_INSTANCE;
     static {
         Constructor<Void> constructor;

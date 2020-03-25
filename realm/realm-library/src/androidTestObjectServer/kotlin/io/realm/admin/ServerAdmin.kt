@@ -10,9 +10,9 @@ import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
 /**
- * Wrapper around MongoDB Realm Admin functions needed for tests.
+ * Wrapper around MongoDB Realm Server Admin functions needed for tests.
  */
-class StitchAdmin {
+class ServerAdmin {
 
     private lateinit var accessToken: String
     private lateinit var groupId: String
@@ -64,7 +64,8 @@ class StitchAdmin {
         return body
     }
 
-    fun logIn() {
+    // Logs the admin user so we can call other endpoints
+    private fun logIn() {
         // Login
         val body = mapOf(Pair("username", "unique_user@domain.com"), Pair("password", "password"))
         var builder: Request.Builder = Request.Builder()
@@ -84,6 +85,9 @@ class StitchAdmin {
         appId = result.getString("_id")
     }
 
+    /**
+     * Toggle whether or not automatic confirmation of new users are enabled.
+     */
     fun setAutomaticConfirmation(enabled: Boolean) {
         val providerId: String = getLocalUserPassProviderId()
         var request = Request.Builder()
@@ -126,7 +130,8 @@ class StitchAdmin {
     }
 
     /**
-     * Determines wether or not the preconfigured reset password function is used
+     * Determines whether or not the preconfigured reset password function is used instead
+     * of sending an email.
      */
     fun setResetFunction(enabled: Boolean) {
         val providerId: String = getLocalUserPassProviderId()
@@ -147,7 +152,7 @@ class StitchAdmin {
     }
 
     private fun getLocalUserPassProviderId(): String {
-        var request: Request.Builder = Request.Builder()
+        val request: Request.Builder = Request.Builder()
                 .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers")
                 .get()
         val authProvidersListResult = JSONArray(executeRequest(request, true))

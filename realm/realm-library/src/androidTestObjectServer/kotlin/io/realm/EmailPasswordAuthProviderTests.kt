@@ -15,8 +15,9 @@
  */
 package io.realm
 
+import androidx.test.annotation.UiThreadTest
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.realm.admin.StitchAdmin
+import io.realm.admin.ServerAdmin
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.rule.BlockingLooperThread
@@ -27,14 +28,14 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.IllegalArgumentException
+import java.lang.IllegalStateException
 
 @RunWith(AndroidJUnit4::class)
 class EmailPasswordAuthProviderTests {
 
     private val looperThread = BlockingLooperThread()
     private lateinit var app: TestRealmApp
-    private lateinit var admin: StitchAdmin
+    private lateinit var admin: ServerAdmin
 
     // Callback use to verify that an Illegal Argument was thrown from async methods
     private val checkNullArgCallback
@@ -48,11 +49,22 @@ class EmailPasswordAuthProviderTests {
             looperThread.testComplete()
         }
     }
+
+    // Methods exposed by the EmailPasswordAuthProvider
+    enum class Method {
+        REGISTER_USER,
+        CONFIRM_USER,
+        RESEND_CONFIRMATION_EMAIL,
+        SEND_RESET_PASSWORD_EMAIL,
+        CALL_RESET_PASSWORD_FUNCTION,
+        RESET_PASSWORD
+    }
+
     @Before
     fun setUp() {
         app = TestRealmApp()
         RealmLog.setLevel(LogLevel.DEBUG)
-        admin = StitchAdmin()
+        admin = ServerAdmin()
     }
 
     @After
@@ -143,19 +155,13 @@ class EmailPasswordAuthProviderTests {
     @Ignore("Find a way to automate this")
     @Test
     fun confirmUser() {
-        // Manually test:
-        // 1. Start test server: ./tools/sync_test_server/start_server.sh
-        // 2. http://127.0.0.1:9090/
-        // TODO
-        TODO()
+        TODO("Figure out how to manually test this")
     }
 
     @Ignore("Find a way to automate this")
     @Test
     fun confirmUserAsync() {
-        // Manually test:
-        //
-        TODO()
+        TODO("Figure out how to manually test this")
     }
 
     @Test
@@ -462,39 +468,106 @@ class EmailPasswordAuthProviderTests {
         }
     }
 
+    @Ignore("Find a way to automate this")
     @Test
     fun resetPassword() {
-
+        TODO("How to test this manually?")
     }
 
+    @Ignore("Find a way to automate this")
     @Test
     fun resetPasswordAsync() {
-
+        TODO("How to test this manually?")
     }
 
     @Test
     fun resetPassword_invalidServerArgsThrows() {
-
+        val provider = app.emailPasswordAuthProvider
+        try {
+            provider.resetPassword("invalid-token", "invalid-token-id", "new-password")
+        } catch (error: ObjectServerError) {
+            assertEquals(ErrorCode.BAD_REQUEST, error.errorCode)
+        }
     }
 
     @Test
     fun resetPasswordASync_invalidServerArgsThrows() {
+        val provider = app.emailPasswordAuthProvider
+        looperThread.runBlocking {
+            provider.resetPasswordAsync("invalid-token", "invalid-token-id", "new-password", object: RealmApp.Callback<Void> {
+                override fun onSuccess(t: Void) {
+                    fail()
+                }
 
+                override fun onError(error: ObjectServerError) {
+                    assertEquals(ErrorCode.BAD_REQUEST, error.errorCode)
+                    looperThread.testComplete()
+                }
+            })
+        }
     }
 
     @Test
     fun resetPassword_invalidArgumentsThrows() {
-
+        val provider = app.emailPasswordAuthProvider
+        testNullArg { provider.resetPassword(TestHelper.getNullString(), "token-id", "password") }
+        testNullArg { provider.resetPassword("token", TestHelper.getNullString(), "password") }
+        testNullArg { provider.resetPassword("token", "token-id", TestHelper.getNullString()) }
+        looperThread.runBlocking {
+            provider.resetPasswordAsync(TestHelper.getNullString(), "token-id", "password", checkNullArgCallback)
+        }
+        looperThread.runBlocking {
+            provider.resetPasswordAsync("token", TestHelper.getNullString(), "password", checkNullArgCallback)
+        }
+        looperThread.runBlocking {
+            provider.resetPasswordAsync("token","token-id", TestHelper.getNullString(), checkNullArgCallback)
+        }
     }
 
     @Test
+    @UiThreadTest
     fun callMethodsOnMainThreadThrows() {
-//        TODO()
+        val provider: EmailPasswordAuthProvider = app.emailPasswordAuthProvider
+        val email: String = TestHelper.getRandomEmail()
+        for (method in Method.values()) {
+            try {
+                when(method) {
+                    Method.REGISTER_USER -> provider.registerUser(email, "123456")
+                    Method.CONFIRM_USER -> provider.confirmUser("token", "tokenId")
+                    Method.RESEND_CONFIRMATION_EMAIL -> provider.resendConfirmationEmail(email)
+                    Method.SEND_RESET_PASSWORD_EMAIL -> provider.sendResetPasswordEmail(email)
+                    Method.CALL_RESET_PASSWORD_FUNCTION -> provider.callResetPasswordFunction(email, "123456")
+                    Method.RESET_PASSWORD -> provider.resetPassword("token", "token-id", "password")
+                }
+                fail("$method should have thrown an exception")
+            } catch (error: ObjectServerError) {
+                assertEquals(ErrorCode.NETWORK_UNKNOWN, error.errorCode)
+            }
+        }
     }
 
     @Test
     fun callAsyncMethodsOnNonLooperThreadThrows() {
-//        TODO()
+        val provider: EmailPasswordAuthProvider = app.emailPasswordAuthProvider
+        val email: String = TestHelper.getRandomEmail()
+        val callback = object: RealmApp.Callback<Void> {
+            override fun onSuccess(t: Void) { fail() }
+            override fun onError(error: ObjectServerError) { fail() }
+        }
+        for (method in Method.values()) {
+            try {
+                when(method) {
+                    Method.REGISTER_USER -> provider.registerUserAsync(email, "123456", callback)
+                    Method.CONFIRM_USER -> provider.confirmUserAsync("token", "tokenId", callback)
+                    Method.RESEND_CONFIRMATION_EMAIL -> provider.resendConfirmationEmailAsync(email, callback)
+                    Method.SEND_RESET_PASSWORD_EMAIL -> provider.sendResetPasswordEmailAsync(email, callback)
+                    Method.CALL_RESET_PASSWORD_FUNCTION -> provider.callResetPasswordFunctionAsync(email, "123456", arrayOf(), callback)
+                    Method.RESET_PASSWORD -> provider.resetPasswordAsync("token", "token-id", "password", callback)
+                }
+                fail("$method should have thrown an exception")
+            } catch (ignore: IllegalStateException) {
+            }
+        }
     }
 }
 
