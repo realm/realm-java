@@ -40,9 +40,9 @@ try {
         // Prepare Docker images
         // FIXME: Had issues moving these into a seperate Stage step. Is this needed?
         buildEnv = docker.build 'realm-java:snapshot'
-        // `aws ecr describe-images --repository-name ci/mongodb-realm-images --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]'`
-        def version = "latest"
-        def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${version}")
+        def dependencies = readProperties file: 'dependencies.list'
+        echo "Version in dependencies.list: ${dependencies.MONGODB_REALM_VERSION}"
+        def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${dependencies.MONGODB_REALM_VERSION}")
         docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
           mdbRealmImage.pull()
         }

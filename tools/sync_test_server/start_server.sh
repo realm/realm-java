@@ -37,7 +37,7 @@ docker login docker.pkg.github.com -u $GITHUB_DOCKER_USER -p $GITHUB_DOCKER_TOKE
 # Run Stitch and Stitch CLI Docker images
 docker network create mongodb-realm-network
 docker build $DOCKERFILE_DIR -t mongodb-realm-command-server || { echo "Failed to build Docker image." ; exit 1 ; }
-ID=$(docker run --rm -i -t -d --network mongodb-realm-network -p 9090:9090 -p 8888:8888 --name mongodb-realm docker.pkg.github.com/realm/ci/mongodb-realm-test-server:latest)
+ID=$(docker run --rm -i -t -d --network mongodb-realm-network -p 9090:9090 -p 8888:8888 --name mongodb-realm docker.pkg.github.com/realm/ci/mongodb-realm-test-server:$MONGODB_REALM_VERSION)
 docker run --rm -i -t -d --network container:$ID -v$TMP_DIR:/tmp --name mongodb-realm-command-server mongodb-realm-command-server
 
 docker cp "$DOCKERFILE_DIR"/app_config mongodb-realm:/tmp/app_config
