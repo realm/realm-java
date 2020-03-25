@@ -167,7 +167,7 @@ public class RealmApp {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeRemoveUser(nativePtr, user.osUser.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
             @Override
-            protected void mapSuccess(Object result, @Nullable AtomicReference<RealmUser> success) {
+            protected void mapSuccess(Object result, AtomicReference<RealmUser> success) {
                 success.set(user);
             }
         });
