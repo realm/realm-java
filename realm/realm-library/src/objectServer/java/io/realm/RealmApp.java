@@ -228,6 +228,12 @@ public class RealmApp {
          return logOutAsync(user, callback);
      }
 
+    /**
+     * Returns a wrapper for interacting with functionality related to users either being created or
+     * logging in using the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     *
+     * @return wrapper for interacting with the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     */
      public EmailPasswordAuthProvider getEmailPasswordAuthProvider() {
          return emailAuthProvider;
      }
