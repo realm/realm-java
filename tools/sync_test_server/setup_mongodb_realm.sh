@@ -31,7 +31,7 @@ GROUP_ID=$(curl --header "Authorization: Bearer $ACCESS_TOKEN" http://localhost:
 echo "Group Id: $GROUP_ID"
 
 # 1. Log in to enable Stitch CLI commands
-stitch-cli login --config-path=/tmp/stitch-config \
+yes | stitch-cli login --config-path=/tmp/stitch-config \
                  --base-url=http://localhost:9090 \
                  --auth-provider=local-userpass \
                  --username=unique_user@domain.com \
