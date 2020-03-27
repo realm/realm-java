@@ -105,17 +105,32 @@ class ServerAdmin {
         executeRequest(request)
     }
 
-    fun deletePendingUser(email: String) {
-        val request = Request.Builder()
-                .url("$baseUrl/groups/$groupId/apps/$appId/user_registrations/by_email/$email")
-                .delete()
-        executeRequest(request)
-    }
-
     /**
-     * Deletes all currently registered users on MongoDB Realm.
+     * Deletes all currently registered and pending users on MongoDB Realm.
      */
     fun deleteAllUsers() {
+        deleteAllRegisteredUsers()
+        deleteAllPendingUsers()
+    }
+
+    private fun deleteAllPendingUsers() {
+        var request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/user_registrations/pending_users")
+                .get()
+        val pendingUsers = JSONArray(executeRequest(request))
+        for (i in 0 until pendingUsers.length()) {
+            val user = pendingUsers[i] as JSONObject
+            val loginTypes = user.getJSONArray("login_ids")
+            for (j in 0 until loginTypes.length()) {
+                val login = loginTypes[j] as JSONObject
+                if (login.getString("id_type") == "email") {
+                    deletePendingUser(login.getString("id"))
+                }
+            }
+        }
+    }
+
+    private fun deleteAllRegisteredUsers() {
         var request = Request.Builder()
                 .url("$baseUrl/groups/$groupId/apps/$appId/users")
                 .get()
@@ -127,6 +142,13 @@ class ServerAdmin {
                     .delete()
             executeRequest(request)
         }
+    }
+
+    private fun deletePendingUser(email: String) {
+        val request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/user_registrations/by_email/$email")
+                .delete()
+        executeRequest(request)
     }
 
     /**
