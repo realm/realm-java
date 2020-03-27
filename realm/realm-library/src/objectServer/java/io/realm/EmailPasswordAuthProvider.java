@@ -39,7 +39,7 @@ public class EmailPasswordAuthProvider {
 
     /**
      * Creates an authentication provider exposing functionality to using an email and password
-     * for logging into an Realm Application.
+     * for login into a Realm Application.
      */
     public EmailPasswordAuthProvider(RealmApp app) {
         this.app = app;
@@ -49,7 +49,7 @@ public class EmailPasswordAuthProvider {
      * Registers a new user with the given email and password.
      *
      * @param email the email to register with. This will be the username used during log in.
-     * @param password the password to associated with the email. The password must be between
+     * @param password the password to associate with the email. The password must be between
      * 6 and 128 characters long.
      *
      * @throws ObjectServerError if the server failed to register the user.
@@ -72,7 +72,7 @@ public class EmailPasswordAuthProvider {
      * @param password the password to associated with the email. The password must be between
      * 6 and 128 characters long.
      * @param callback callback when registration has completed or failed. The callback will always
-     * happen on the same thread as this this method is called on.
+     * happen on the same thread as this method is called on.
      *
      * @throws IllegalStateException if called from a non-looper thread.
      * @throws ObjectServerError if the server failed to register the user.
@@ -112,7 +112,7 @@ public class EmailPasswordAuthProvider {
      * @param token the confirmation token.
      * @param tokenId the id of the confirmation token.
      * @param callback callback when confirmation has completed or failed. The callback will always
-     * happen on the same thread as this this method is called on.
+     * happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
     public RealmAsyncTask confirmUserAsync(String token, String tokenId, RealmApp.Callback<Void> callback) {
@@ -147,7 +147,7 @@ public class EmailPasswordAuthProvider {
      *
      * @param email the email of the user.
      * @param callback callback when resending the email has completed or failed. The callback will
-     * always happen on the same thread as this this method is called on.
+     * always happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
     public RealmAsyncTask resendConfirmationEmailAsync(String email, RealmApp.Callback<Void> callback) {
@@ -182,7 +182,7 @@ public class EmailPasswordAuthProvider {
      *
      * @param email the email of the user.
      * @param callback callback when sending the email has completed or failed. The callback will
-     * always happen on the same thread as this this method is called on.
+     * always happen on the same thread as this method is called on.
      * @throws ObjectServerError if the server failed to confirm the user.
      */
     public RealmAsyncTask sendResetPasswordEmailAsync(String email, RealmApp.Callback<Void> callback) {
@@ -202,7 +202,7 @@ public class EmailPasswordAuthProvider {
      *
      * @param email the email of the user.
      * @param newPassword the new password of the user.
-     * @param args any additional arguments provided to to the reset function. All arguments must
+     * @param args any additional arguments provided to the reset function. All arguments must
      * be able to be converted to JSON compatible values using {@code toString()}.
      * @throws ObjectServerError if the server failed to confirm the user.
      */
@@ -227,7 +227,7 @@ public class EmailPasswordAuthProvider {
      *
      * @param email the email of the user.
      * @param newPassword the new password of the user.
-     * @param args any additional arguments provided to to the reset function. All arguments must
+     * @param args any additional arguments provided to the reset function. All arguments must
      * be able to be converted to JSON compatible values using {@code toString()}.
      * @param callback callback when the reset has completed or failed. The callback will always
      * happen on the same thread as this this method is called on.

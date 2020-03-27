@@ -14,7 +14,7 @@ fun RealmApp.close() {
 
 /**
  * Helper function for quickly logging in test users.
- * This only works if users in the Realm Application are configured to be automatically be confirmed.
+ * This only works if users in the Realm Application are configured to be automatically confirmed.
  */
 fun RealmApp.registerUserAndLogin(email: String, password: String): RealmUser {
     emailPasswordAuthProvider.registerUser(email, password)

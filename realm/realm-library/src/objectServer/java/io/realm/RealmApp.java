@@ -230,7 +230,7 @@ public class RealmApp {
 
     /**
      * Returns a wrapper for interacting with functionality related to users either being created or
-     * logging in using the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * login using the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
      *
      * @return wrapper for interacting with the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
      */
@@ -503,4 +503,3 @@ public class RealmApp {
     private static native long[] nativeAllUsers(long nativePtr);
     private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }
-
