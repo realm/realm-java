@@ -92,6 +92,12 @@ public class TestHelper {
         }
     }
 
+    // Used by Kotlin tests to cheat the type system
+    @SuppressWarnings("TypeParameterUnusedInFormals")
+    public static <T> T getNull() {
+        return null;
+    }
+
     public static RealmFieldType getColumnType(Object o) {
         if (o instanceof Boolean) {
             return RealmFieldType.BOOLEAN;

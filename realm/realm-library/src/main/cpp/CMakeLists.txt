@@ -69,6 +69,8 @@ capitalizeFirstLetter(buildTypeCap "${CMAKE_BUILD_TYPE}")
 # Generate JNI header files. Each build has its own JNI header in its build_dir/jni_include.
 # WARNING: The classes_PATH is not part the public API offered by the Android Gradle Plugin
 # so it might change without warning when upgrading the plugin.
+file(DOWNLOAD "https://repo1.maven.org/maven2/org/mongodb/bson/3.12.1/bson-3.12.1.jar" "${PROJECT_BINARY_DIR}/bson-3.12.1.jar")
+set(bsonlib_PATH ${PROJECT_BINARY_DIR}/bson-3.12.1.jar)
 set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/javac/${REALM_FLAVOR}${buildTypeCap}/classes/)
 set(classes_LIST
     io.realm.RealmQuery
@@ -88,17 +90,22 @@ set(classes_LIST
 set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
-        io.realm.RealmApp io.realm.ClientResetRequiredError
-        io.realm.SyncManager io.realm.SyncSession io.realm.SyncUser
+        io.realm.ClientResetRequiredError
+        io.realm.EmailPasswordAuthProvider
+        io.realm.ApiKeyAuthProvider
+        io.realm.RealmApp
+        io.realm.SyncManager
+        io.realm.SyncSession
+        io.realm.SyncUser
+        io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
         io.realm.internal.objectstore.OsJavaNetworkTransport
-        io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsSyncUser
     )
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
-    CLASSPATH ${classes_PATH} $ENV{ANDROID_HOME}/platforms/android-29/android.jar
+    CLASSPATH ${classes_PATH} $ENV{ANDROID_HOME}/platforms/android-29/android.jar ${bsonlib_PATH}
     OUTPUT_DIR ${jni_headers_PATH}
     DEPENDS ${classes_PATH}
 )
@@ -174,6 +181,9 @@ file(GLOB jni_SRC
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmApp.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuthProvider.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ApiKeyAuthProvider.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuthProvider.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ClientResetRequiredError.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
