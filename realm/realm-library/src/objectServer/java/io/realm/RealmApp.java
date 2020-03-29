@@ -455,25 +455,6 @@ public class RealmApp {
         }
     }
 
-    // Work-around for Kotlin not playing nice with the Void type and nullability annotations.
-    // See https://github.com/realm/realm-java/pull/6783/ for more context.
-    static final Void VOID_INSTANCE;
-    static {
-        Constructor<Void> constructor;
-        Void v = null;
-        try {
-            constructor = Void.class.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            v = constructor.newInstance();
-        } catch (Exception e) {
-            // Do nothing
-            // Something is fundamentally broken if this fails and any Kotlin API using callbacks
-            // with Void will throw a runtime exception (as Kotlin expects the value to be non-null).
-            // For now, let this happen as any API using Java will still continue to work.
-        }
-        VOID_INSTANCE = v;
-    }
-
     /**
      * Result class representing the result of an async request from this app towards MongoDB Realm.
      *

@@ -83,7 +83,7 @@ public class EmailPasswordAuthProvider {
             @Override
             public Void run() throws ObjectServerError {
                 registerUser(email, password);
-                return RealmApp.VOID_INSTANCE;
+                return null;
             }
         }.start();
     }
@@ -121,7 +121,7 @@ public class EmailPasswordAuthProvider {
             @Override
             public Void run() throws ObjectServerError {
                 confirmUser(token, tokenId);
-                return RealmApp.VOID_INSTANCE;
+                return null;
             }
         }.start();
     }
@@ -156,7 +156,7 @@ public class EmailPasswordAuthProvider {
             @Override
             public Void run() throws ObjectServerError {
                 resendConfirmationEmail(email);
-                return RealmApp.VOID_INSTANCE;
+                return null;
             }
         }.start();
     }
@@ -191,7 +191,7 @@ public class EmailPasswordAuthProvider {
             @Override
             public Void run() throws ObjectServerError {
                 sendResetPasswordEmail(email);
-                return RealmApp.VOID_INSTANCE;
+                return null;
             }
         }.start();
     }
@@ -239,7 +239,7 @@ public class EmailPasswordAuthProvider {
             @Override
             public Void run() throws ObjectServerError {
                 callResetPasswordFunction(email, newPassword, args);
-                return RealmApp.VOID_INSTANCE;
+                return null;
             }
         }.start();
     }
@@ -282,7 +282,7 @@ public class EmailPasswordAuthProvider {
             @Override
             public Void run() throws ObjectServerError {
                 resetPassword(token, tokenId, newPassword);
-                return RealmApp.VOID_INSTANCE;
+                return null;
             }
         }.start();
     }
