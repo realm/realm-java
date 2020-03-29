@@ -432,7 +432,7 @@ public class RealmApp {
                 Runnable action = new Runnable() {
                     @Override
                     public void run() {
-                        callback.onError(error);
+                        callback.onResult(Result.withError(error));
                     }
                 };
                 errorHandled = handler.post(action);
@@ -448,7 +448,7 @@ public class RealmApp {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onSuccess(result);
+                        callback.onResult(Result.withResult(result));
                     }
                 });
             }
@@ -475,25 +475,112 @@ public class RealmApp {
     }
 
     /**
+     * Result class representing the result of an async request from this app towards MongoDB Realm.
+     *
+     * @param <T> Type returned if the request was a success.
+     * @see Callback
+     */
+    public static class Result<T> {
+        private T result;
+        private ObjectServerError error;
+
+        private Result(@Nullable T result, @Nullable ObjectServerError exception) {
+            this.result = result;
+            this.error = exception;
+        }
+
+        /**
+         * Creates a successful request result with no return value.
+         */
+        public static <T> Result<T> success() {
+            return new Result(null, null);
+        }
+
+        /**
+         * Creates a successful request result with a return value.
+         *
+         * @param result the result value.
+         */
+        public static <T> Result<T> withResult(T result) {
+            return new Result<>(result, null);
+        }
+
+        /**
+         * Creates a failed request result. The request failed for some reason, either because there
+         * was a network error or the Realm Object Server returned an error.
+         *
+         * @param exception error that occurred.
+         */
+        public static <T> Result<T> withError(ObjectServerError exception) {
+            return new Result<>(null, exception);
+        }
+
+        /**
+         * Returns whether or not request was successful
+         *
+         * @return {@code true} if the request was a success, {@code false} if not.
+         */
+        public boolean isSuccess() {
+            return error == null;
+        }
+
+        /**
+         * Returns the response in case the request as a success.
+         *
+         * @return the response value in case of a successful request.
+         */
+        public T get() {
+            return result;
+        }
+
+        /**
+         * Returns the response if the request was a success. If it failed, the default value is
+         * returned instead.
+         *
+         * @return the response value in case of a successful request. If the request failed, the
+         * default value is returned instead.
+         */
+        public T getOrDefault(T defaultValue) {
+            return isSuccess() ? result : defaultValue;
+        }
+
+        /**
+         * If the request was successful the response is returned, otherwise the provided error
+         * is thrown.
+         *
+         * @return the response object in case the request was a success.
+         * @throws ObjectServer provided error in case the request failed.
+         */
+        public T getOrThrow() {
+            if (isSuccess()) {
+                return result;
+            } else {
+                throw error;
+            }
+        }
+
+        /**
+         * Returns the error in case of a failed request.
+         *
+         * @return the {@link ObjectServerError} in case of a failed request.
+         */
+        public ObjectServerError getError() {
+            return error;
+        }
+    }
+
+    /**
      * Callback for async methods available to the {@link RealmApp}.
      *
      * @param <T> Type returned if the request was a success.
      */
     public interface Callback<T> {
-
         /**
-         * The request was a success.
-         * @param t The object representing the successful request. See each method for details.
-         */
-        void onSuccess(T t); // FIXME: Figure out exactly how we want our Callback API to look like
-
-        /**
-         * The request failed for some reason, either because there was a network error or the Realm
-         * Object Server returned an error.
+         * Returns the result of the request when available.
          *
-         * @param error the error that was detected.
+         * @param result the request response.
          */
-        void onError(ObjectServerError error);
+        void onResult(Result<T> result);
     }
 
     private native long nativeCreate(String appId, String baseUrl, String appName, String appVersion, long requestTimeoutMs);

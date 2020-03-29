@@ -72,14 +72,11 @@ class RealmUserTests {
 
     @Test
     fun logOutAsync() = looperThread.runBlocking {
-        anonUser.logOutAsync(object: RealmApp.Callback<RealmUser> {
-            override fun onSuccess(t: RealmUser) {
-                looperThread.testComplete()
+        anonUser.logOutAsync {
+            when(it.isSuccess) {
+                true -> looperThread.testComplete()
+                false -> fail(it.error.toString())
             }
-
-            override fun onError(error: ObjectServerError) {
-                fail(error.toString())
-            }
-        })
+        }
     }
 }

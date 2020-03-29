@@ -38,13 +38,11 @@ class EmailPasswordAuthProviderTests {
     private lateinit var admin: ServerAdmin
 
     // Callback use to verify that an Illegal Argument was thrown from async methods
-    private val checkNullArgCallback = object : RealmApp.Callback<Void> {
-        override fun onSuccess(t: Void) {
+    private val checkNullArgCallback = RealmApp.Callback<Void> { result ->
+        if (result.isSuccess) {
             fail()
-        }
-
-        override fun onError(error: ObjectServerError) {
-            assertEquals(ErrorCode.UNKNOWN, error.errorCode)
+        } else {
+            assertEquals(ErrorCode.UNKNOWN, result.error.errorCode)
             looperThread.testComplete()
         }
     }
@@ -98,17 +96,15 @@ class EmailPasswordAuthProviderTests {
         val email = TestHelper.getRandomEmail()
         val password = "password1234"
         looperThread.runBlocking {
-            app.emailPasswordAuthProvider.registerUserAsync(email, password, object: RealmApp.Callback<Void> {
-                override fun onSuccess(t: Void) {
+            app.emailPasswordAuthProvider.registerUserAsync(email, password) { result ->
+                if (result.isSuccess) {
                     val user2 = app.login(RealmCredentials.emailPassword(email, password))
                     assertEquals(RealmUser.State.ACTIVE, user2.state)
                     looperThread.testComplete()
+                } else {
+                    fail(result.error.toString())
                 }
-
-                override fun onError(error: ObjectServerError) {
-                    fail(error.toString())
-                }
-            })
+            }
         }
     }
 
@@ -127,18 +123,15 @@ class EmailPasswordAuthProviderTests {
     fun registerUserAsync_invalidServerArgsThrows() {
         val provider = app.emailPasswordAuthProvider
         looperThread.runBlocking {
-            provider.registerUserAsync("invalid-email", "1234", object: RealmApp.Callback<Void> {
-                override fun onSuccess(t: Void) {
+            provider.registerUserAsync("invalid-email", "1234") { result ->
+                if (result.isSuccess) {
                     fail()
-                }
-
-                override fun onError(error: ObjectServerError) {
-                    assertEquals(ErrorCode.BAD_REQUEST, error.errorCode)
+                } else {
+                    assertEquals(ErrorCode.BAD_REQUEST, result.error.errorCode)
                     looperThread.testComplete()
                 }
-            })
+            }
         }
-
     }
 
     @Test
@@ -181,16 +174,14 @@ class EmailPasswordAuthProviderTests {
     fun confirmUserAsync_invalidServerArgsThrows() {
         val provider = app.emailPasswordAuthProvider
         looperThread.runBlocking {
-            provider.confirmUserAsync("invalid-email", "1234", object: RealmApp.Callback<Void> {
-                override fun onSuccess(t: Void) {
+            provider.confirmUserAsync("invalid-email", "1234") { result ->
+                if (result.isSuccess) {
                     fail()
-                }
-
-                override fun onError(error: ObjectServerError) {
-                    assertEquals(ErrorCode.BAD_REQUEST, error.errorCode)
+                } else {
+                    assertEquals(ErrorCode.BAD_REQUEST, result.error.errorCode)
                     looperThread.testComplete()
                 }
-            })
+            }
         }
     }
 
@@ -233,15 +224,12 @@ class EmailPasswordAuthProviderTests {
             looperThread.runBlocking {
                 val provider = app.emailPasswordAuthProvider
                 provider.registerUser(email, "123456")
-                provider.resendConfirmationEmailAsync(email, object: RealmApp.Callback<Void> {
-                    override fun onSuccess(t: Void) {
-                        looperThread.testComplete()
+                provider.resendConfirmationEmailAsync(email) { result ->
+                    when(result.isSuccess) {
+                        true -> looperThread.testComplete()
+                        false -> fail(result.error.toString())
                     }
-
-                    override fun onError(error: ObjectServerError) {
-                        fail(error.toString())
-                    }
-                })
+                }
             }
         } finally {
             admin.setAutomaticConfirmation(true)
@@ -272,16 +260,14 @@ class EmailPasswordAuthProviderTests {
         provider.registerUser(email, "123456")
         try {
             looperThread.runBlocking {
-                provider.resendConfirmationEmailAsync("foo", object: RealmApp.Callback<Void> {
-                    override fun onSuccess(t: Void) {
+                provider.resendConfirmationEmailAsync("foo") { result ->
+                    if (result.isSuccess) {
                         fail()
-                    }
-
-                    override fun onError(error: ObjectServerError) {
-                        assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
+                    } else {
+                        assertEquals(ErrorCode.USER_NOT_FOUND, result.error.errorCode)
                         looperThread.testComplete()
                     }
-                })
+                }
             }
         } finally {
             admin.setAutomaticConfirmation(true)
@@ -311,15 +297,13 @@ class EmailPasswordAuthProviderTests {
         val email: String = "test@10gen.com" // Must be a valid email, otherwise the server will fail
         provider.registerUser(email, "123456")
         looperThread.runBlocking {
-            provider.sendResetPasswordEmailAsync(email, object: RealmApp.Callback<Void> {
-                override fun onSuccess(t: Void) {
-                    looperThread.testComplete()
+            provider.sendResetPasswordEmailAsync(email) { result ->
+                when(result.isSuccess) {
+                    true -> looperThread.testComplete()
+                    false -> fail(result.error.toString())
                 }
 
-                override fun onError(error: ObjectServerError) {
-                    fail(error.toString())
-                }
-            })
+            }
         }
     }
 
@@ -338,16 +322,14 @@ class EmailPasswordAuthProviderTests {
     fun sendResetPasswordEmailAsync_invalidServerArgsThrows() {
         val provider = app.emailPasswordAuthProvider
         looperThread.runBlocking {
-            provider.sendResetPasswordEmailAsync("unknown@10gen.com", object: RealmApp.Callback<Void> {
-                override fun onSuccess(t: Void) {
+            provider.sendResetPasswordEmailAsync("unknown@10gen.com") { result ->
+                if (result.isSuccess) {
                     fail()
-                }
-
-                override fun onError(error: ObjectServerError) {
-                    assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
+                } else {
+                    assertEquals(ErrorCode.USER_NOT_FOUND, result.error.errorCode)
                     looperThread.testComplete()
                 }
-            })
+            }
         }
     }
 
@@ -385,18 +367,15 @@ class EmailPasswordAuthProviderTests {
             looperThread.runBlocking {
                 provider.callResetPasswordFunctionAsync(email,
                         "new-password",
-                        arrayOf("say-the-magic-word", 42),
-                        object: RealmApp.Callback<Void> {
-                            override fun onSuccess(t: Void) {
-                                app.login(RealmCredentials.emailPassword(email, "new-password"))
-                                app.logOut()
-                                looperThread.testComplete()
-                            }
-                            override fun onError(error: ObjectServerError) {
-                                fail(error.toString())
-                            }
-                        })
-
+                        arrayOf("say-the-magic-word", 42)) { result ->
+                    if (result.isSuccess) {
+                        app.login(RealmCredentials.emailPassword(email, "new-password"))
+                        app.logOut()
+                        looperThread.testComplete()
+                    } else {
+                        fail(result.error.toString())
+                    }
+                }
             }
         } finally {
             admin.setResetFunction(enabled = false)
@@ -429,17 +408,14 @@ class EmailPasswordAuthProviderTests {
                 provider.callResetPasswordFunctionAsync(
                         email,
                         "new-password",
-                        arrayOf("wrong-magic-word"),
-                        object: RealmApp.Callback<Void> {
-                            override fun onSuccess(t: Void) {
-                                fail()
-                            }
-
-                            override fun onError(error: ObjectServerError) {
-                                assertEquals(ErrorCode.SERVICE_UNKNOWN, error.errorCode)
-                                looperThread.testComplete()
-                            }
-                        })
+                        arrayOf("wrong-magic-word")) { result ->
+                    if (result.isSuccess) {
+                        fail()
+                    } else {
+                        assertEquals(ErrorCode.SERVICE_UNKNOWN, result.error.errorCode)
+                        looperThread.testComplete()
+                    }
+                }
             }
         } finally {
             admin.setResetFunction(enabled = false)
@@ -485,16 +461,14 @@ class EmailPasswordAuthProviderTests {
     fun resetPasswordASync_invalidServerArgsThrows() {
         val provider = app.emailPasswordAuthProvider
         looperThread.runBlocking {
-            provider.resetPasswordAsync("invalid-token", "invalid-token-id", "new-password", object: RealmApp.Callback<Void> {
-                override fun onSuccess(t: Void) {
+            provider.resetPasswordAsync("invalid-token", "invalid-token-id", "new-password") { result ->
+                if (result.isSuccess) {
                     fail()
-                }
-
-                override fun onError(error: ObjectServerError) {
-                    assertEquals(ErrorCode.BAD_REQUEST, error.errorCode)
+                } else {
+                    assertEquals(ErrorCode.BAD_REQUEST, result.error.errorCode)
                     looperThread.testComplete()
                 }
-            })
+            }
         }
     }
 
@@ -541,10 +515,7 @@ class EmailPasswordAuthProviderTests {
     fun callAsyncMethodsOnNonLooperThreadThrows() {
         val provider: EmailPasswordAuthProvider = app.emailPasswordAuthProvider
         val email: String = TestHelper.getRandomEmail()
-        val callback = object: RealmApp.Callback<Void> {
-            override fun onSuccess(t: Void) { fail() }
-            override fun onError(error: ObjectServerError) { fail() }
-        }
+        val callback = RealmApp.Callback<Void> { fail() }
         for (method in Method.values()) {
             try {
                 when(method) {
