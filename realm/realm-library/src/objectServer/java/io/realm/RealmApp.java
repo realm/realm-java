@@ -506,7 +506,7 @@ public class RealmApp {
         }
 
         /**
-         * Returns the response in case the request as a success.
+         * Returns the response in case the request was a success.
          *
          * @return the response value in case of a successful request.
          */
