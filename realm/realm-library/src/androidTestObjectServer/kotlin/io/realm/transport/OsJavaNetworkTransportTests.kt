@@ -151,7 +151,7 @@ class OsJavaNetworkTransportTests {
             app.login(creds)
             fail()
         } catch (ex: ObjectServerError) {
-            assertEquals(ErrorCode.JAVA_IO_EXCEPTION, ex.errorCode)
+            assertEquals(ErrorCode.NETWORK_IO_EXCEPTION, ex.errorCode)
             assertEquals(ErrorCode.Type.JAVA, ex.errorType)
         }
     }

@@ -110,6 +110,10 @@ public class OsSyncUser implements NativeObject {
         nativeSetState(nativePtr, STATE_ERROR);
     }
 
+    public String getProviderType() {
+        return nativeGetProviderType(nativePtr);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -140,4 +144,5 @@ public class OsSyncUser implements NativeObject {
     private static native String[] nativeGetIdentities(long nativePtr); // Returns pairs of {id, provider}
     private static native byte nativeGetState(long nativePtr);
     private static native void nativeSetState(long nativePtr, byte state);
+    private static native String nativeGetProviderType(long nativePtr);
 }

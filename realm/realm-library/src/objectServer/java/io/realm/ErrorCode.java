@@ -35,10 +35,10 @@ public enum ErrorCode {
     // The underlying type and error code should be part of the error message
     UNKNOWN(Type.UNKNOWN, -1),
 
-    // Realm Java errors
-    JAVA_IO_EXCEPTION(Type.JAVA, OsJavaNetworkTransport.ERROR_IO),
-    JAVA_INTERRUPTED(Type.JAVA, OsJavaNetworkTransport.ERROR_INTERRUPTED),
-    JAVA_UNKNOWN(Type.JAVA, OsJavaNetworkTransport.ERROR_UNKNOWN),
+    // Network Transport related errors originating from Java
+    NETWORK_IO_EXCEPTION(Type.JAVA, OsJavaNetworkTransport.ERROR_IO),
+    NETWORK_INTERRUPTED(Type.JAVA, OsJavaNetworkTransport.ERROR_INTERRUPTED),
+    NETWORK_UNKNOWN(Type.JAVA, OsJavaNetworkTransport.ERROR_UNKNOWN),
 
     // Custom Object Store errors
     CLIENT_RESET(Type.PROTOCOL, 7),                   // Client Reset required. Don't change this value without modifying io_realm_internal_OsSharedRealm.cpp

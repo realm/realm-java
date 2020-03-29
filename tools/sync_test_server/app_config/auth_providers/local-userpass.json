@@ -6,7 +6,10 @@
         "autoConfirm": true,
         "resetFunctionName": "resetFunc",
         "runConfirmationFunction": false,
-        "runResetFunction": true
+        "emailConfirmationUrl": "http://realm.io/confirm-user",
+        "runResetFunction": false,
+        "resetPasswordSubject": "Reset Password",
+        "resetPasswordUrl": "http://realm.io/reset-password"
     },
     "disabled": false
 }

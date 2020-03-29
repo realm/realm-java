@@ -41,7 +41,10 @@
     The uncommented function below is just a placeholder and will result in failure.
   */
 
-  exports = ({ token, tokenId, username, password }) => {
-    // will not reset the password
-    return { status: 'fail' };
+  exports = ({ token, tokenId, username, password }, customParam1, customParam2) => {
+    if (customParam1 != "say-the-magic-word" || customParam2 != 42) {
+      return { status: 'fail' };
+    } else {
+      return { status: 'success' };
+    }
   };
