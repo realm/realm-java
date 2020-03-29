@@ -38,23 +38,20 @@ class ApiKeyAuthProviderTests {
     private lateinit var provider: ApiKeyAuthProvider
 
     // Callback use to verify that an Illegal Argument was thrown from async methods
-    private val checkNullInVoidCallback = object : RealmApp.Callback<Void> {
-        override fun onSuccess(t: Void) {
+    private val checkNullInVoidCallback = RealmApp.Callback<Void> { result ->
+        if (result.isSuccess) {
             fail()
-        }
-
-        override fun onError(error: ObjectServerError) {
-            assertEquals(ErrorCode.UNKNOWN, error.errorCode)
+        } else {
+            assertEquals(ErrorCode.UNKNOWN, result.error.errorCode)
             looperThread.testComplete()
         }
     }
-    private val checkNullInApiKeyCallback = object : RealmApp.Callback<RealmUserApiKey> {
-        override fun onSuccess(t: RealmUserApiKey) {
-            fail()
-        }
 
-        override fun onError(error: ObjectServerError) {
-            assertEquals(ErrorCode.UNKNOWN, error.errorCode)
+    private val checkNullInApiKeyCallback = RealmApp.Callback<RealmUserApiKey> { result ->
+        if (result.isSuccess) {
+            fail()
+        } else {
+            assertEquals(ErrorCode.UNKNOWN, result.error.errorCode)
             looperThread.testComplete()
         }
     }
@@ -114,10 +111,10 @@ class ApiKeyAuthProviderTests {
 
     @Test
     fun createApiKey_invalidArgumentThrows() {
-        testNullArg { provider.createApiKey(TestHelper.getNullString()) }
+        testNullArg { provider.createApiKey(TestHelper.getNull()) }
         testNullArg { provider.createApiKey("") }
         looperThread.runBlocking {
-            provider.createApiKeyAsync(TestHelper.getNullString(), checkNullInApiKeyCallback)
+            provider.createApiKeyAsync(TestHelper.getNull(), checkNullInApiKeyCallback)
         }
         looperThread.runBlocking {
             provider.createApiKeyAsync("", checkNullInApiKeyCallback)
@@ -126,33 +123,26 @@ class ApiKeyAuthProviderTests {
 
     @Test
     fun createApiKeyAsync() = looperThread.runBlocking {
-        provider.createApiKeyAsync("my-key", object: RealmApp.Callback<RealmUserApiKey> {
-            override fun onSuccess(key: RealmUserApiKey) {
-                assertEquals("my-key", key.name)
-                assertNotNull("my-key", key.value)
-                assertNotNull("my-key", key.id)
-                assertTrue("my-key", key.isEnabled)
-                looperThread.testComplete()
-            }
-
-            override fun onError(error: ObjectServerError) {
-                fail(error.toString())
-            }
-        })
+        provider.createApiKeyAsync("my-key") { result ->
+            val key = result.orThrow
+            assertEquals("my-key", key.name)
+            assertNotNull("my-key", key.value)
+            assertNotNull("my-key", key.id)
+            assertTrue("my-key", key.isEnabled)
+            looperThread.testComplete()
+        }
     }
 
     @Test
     fun createApiKeyAsync_invalidServerArgsThrows() = looperThread.runBlocking {
-        provider.createApiKeyAsync("%s", object: RealmApp.Callback<RealmUserApiKey> {
-            override fun onSuccess(key: RealmUserApiKey) {
+        provider.createApiKeyAsync("%s") { result ->
+            if (result.isSuccess) {
                 fail()
-            }
-
-            override fun onError(e: ObjectServerError) {
-                assertEquals(ErrorCode.INVALID_PARAMETER, e.errorCode)
+            } else {
+                assertEquals(ErrorCode.INVALID_PARAMETER, result.error.errorCode)
                 looperThread.testComplete()
             }
-        })
+        }
     }
 
     @Test
@@ -188,19 +178,14 @@ class ApiKeyAuthProviderTests {
     fun fetchApiKeyAsync() {
         val key1: RealmUserApiKey = provider.createApiKey("my-key")
         looperThread.runBlocking {
-            provider.fetchApiKeyAsync(key1.id, object: RealmApp.Callback<RealmUserApiKey> {
-                override fun onSuccess(key2: RealmUserApiKey) {
-                    assertEquals(key1.id, key2.id)
-                    assertEquals(key1.name, key2.name)
-                    assertNull(key2.value)
-                    assertEquals(key1.isEnabled, key2.isEnabled)
-                    looperThread.testComplete()
-                }
-
-                override fun onError(error: ObjectServerError) {
-                    fail(error.toString())
-                }
-            })
+            provider.fetchApiKeyAsync(key1.id) { result ->
+                val key2 = result.orThrow
+                assertEquals(key1.id, key2.id)
+                assertEquals(key1.name, key2.name)
+                assertNull(key2.value)
+                assertEquals(key1.isEnabled, key2.isEnabled)
+                looperThread.testComplete()
+            }
         }
     }
 
@@ -219,18 +204,13 @@ class ApiKeyAuthProviderTests {
         val key1: RealmUserApiKey = provider.createApiKey("my-key")
         val key2: RealmUserApiKey = provider.createApiKey("other-key")
         looperThread.runBlocking {
-            provider.fetchAllApiKeys(object: RealmApp.Callback<MutableList<RealmUserApiKey>> {
-                override fun onSuccess(keys: MutableList<RealmUserApiKey>) {
-                    assertEquals(2, keys.size)
-                    assertEquals(key1.id, keys[0].id)
-                    assertEquals(key2.id, keys[1].id)
-                    looperThread.testComplete()
-                }
-
-                override fun onError(error: ObjectServerError) {
-                    fail(error.toString())
-                }
-            })
+            provider.fetchAllApiKeys() { result ->
+                val keys: List<RealmUserApiKey> = result.orThrow
+                assertEquals(2, keys.size)
+                assertEquals(key1.id, keys[0].id)
+                assertEquals(key2.id, keys[1].id)
+                looperThread.testComplete()
+            }
         }
     }
 
@@ -270,8 +250,8 @@ class ApiKeyAuthProviderTests {
         val key: RealmUserApiKey = provider.createApiKey("my-key")
         assertNotNull(provider.fetchApiKey(key.id))
         looperThread.runBlocking {
-            provider.deleteApiKeyAsync(key.id, object: RealmApp.Callback<Void> {
-                override fun onSuccess(t: Void) {
+            provider.deleteApiKeyAsync(key.id) { result ->
+                if (result.isSuccess) {
                     try {
                         provider.fetchApiKey(key.id)
                         fail()
@@ -279,28 +259,23 @@ class ApiKeyAuthProviderTests {
                         assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
                     }
                     looperThread.testComplete()
+                } else {
+                    fail(result.error.toString())
                 }
-
-                override fun onError(error: ObjectServerError) {
-                    fail(error.toString())
-                }
-
-            })
+            }
         }
     }
 
     @Test
     fun deleteApiKeyAsync_invalidServerArgsThrows() = looperThread.runBlocking {
-        provider.deleteApiKeyAsync(ObjectId(), object: RealmApp.Callback<Void> {
-            override fun onSuccess(t: Void) {
+        provider.deleteApiKeyAsync(ObjectId()) { result ->
+            if (result.isSuccess) {
                 fail()
-            }
-
-            override fun onError(error: ObjectServerError) {
-                assertEquals(ErrorCode.API_KEY_NOT_FOUND, error.errorCode)
+            } else {
+                assertEquals(ErrorCode.API_KEY_NOT_FOUND, result.error.errorCode)
                 looperThread.testComplete()
             }
-        })
+        }
     }
 
     @Test
@@ -347,32 +322,27 @@ class ApiKeyAuthProviderTests {
         provider.disableApiKey(key.id)
         assertFalse(provider.fetchApiKey(key.id).isEnabled)
         looperThread.runBlocking {
-            provider.enableApiKeyAsync(key.id, object: RealmApp.Callback<Void> {
-                override fun onSuccess(t: Void) {
+            provider.enableApiKeyAsync(key.id) { result ->
+                if (result.isSuccess) {
                     assertTrue(provider.fetchApiKey(key.id).isEnabled)
                     looperThread.testComplete()
+                } else {
+                    fail(result.error.toString())
                 }
-
-                override fun onError(error: ObjectServerError) {
-                    fail(error.toString())
-                }
-
-            })
+            }
         }
     }
 
     @Test
     fun enableApiKeyAsync_invalidServerArgsThrows() = looperThread.runBlocking {
-        provider.disableApiKeyAsync(ObjectId(), object: RealmApp.Callback<Void> {
-            override fun onSuccess(t: Void) {
+        provider.disableApiKeyAsync(ObjectId()) { result ->
+            if (result.isSuccess) {
                 fail()
-            }
-
-            override fun onError(error: ObjectServerError) {
-                assertEquals(ErrorCode.API_KEY_NOT_FOUND, error.errorCode)
+            } else {
+                assertEquals(ErrorCode.API_KEY_NOT_FOUND, result.error.errorCode)
                 looperThread.testComplete()
             }
-        })
+        }
     }
 
     @Test
@@ -414,32 +384,27 @@ class ApiKeyAuthProviderTests {
         val key: RealmUserApiKey = provider.createApiKey("my-key")
         assertTrue(key.isEnabled)
         looperThread.runBlocking {
-            provider.disableApiKeyAsync(key.id, object: RealmApp.Callback<Void> {
-                override fun onSuccess(t: Void) {
+            provider.disableApiKeyAsync(key.id) { result ->
+                if (result.isSuccess) {
                     assertFalse(provider.fetchApiKey(key.id).isEnabled)
                     looperThread.testComplete()
+                } else {
+                    fail(result.error.toString())
                 }
-
-                override fun onError(error: ObjectServerError) {
-                    fail(error.toString())
-                }
-
-            })
+            }
         }
     }
 
     @Test
     fun disableApiKeyAsync_invalidServerArgsThrows() = looperThread.runBlocking {
-        provider.disableApiKeyAsync(ObjectId(), object: RealmApp.Callback<Void> {
-            override fun onSuccess(t: Void) {
+        provider.disableApiKeyAsync(ObjectId()) { result ->
+            if (result.isSuccess) {
                 fail()
-            }
-
-            override fun onError(error: ObjectServerError) {
-                assertEquals(ErrorCode.API_KEY_NOT_FOUND, error.errorCode)
+            } else {
+                assertEquals(ErrorCode.API_KEY_NOT_FOUND, result.error.errorCode)
                 looperThread.testComplete()
             }
-        })
+        }
     }
 
     @Test
@@ -464,28 +429,15 @@ class ApiKeyAuthProviderTests {
 
     @Test
     fun callAsyncMethodsOnNonLooperThreadThrows() {
-        val callback = object: RealmApp.Callback<Void> {
-            override fun onSuccess(t: Void) { fail() }
-            override fun onError(error: ObjectServerError) { fail() }
-        }
         for (method in Method.values()) {
             try {
                 when(method) {
-                    Method.CREATE -> provider.createApiKeyAsync("key", object: RealmApp.Callback<RealmUserApiKey> {
-                        override fun onSuccess(t: RealmUserApiKey) { fail() }
-                        override fun onError(error: ObjectServerError) { fail() }
-                    })
-                    Method.FETCH_SINGLE -> provider.fetchApiKeyAsync(ObjectId(), object: RealmApp.Callback<RealmUserApiKey> {
-                        override fun onSuccess(t: RealmUserApiKey) { fail() }
-                        override fun onError(error: ObjectServerError) { fail() }
-                    })
-                    Method.FETCH_ALL -> provider.fetchAllApiKeys(object: RealmApp.Callback<List<RealmUserApiKey>> {
-                        override fun onSuccess(t: List<RealmUserApiKey>) { fail() }
-                        override fun onError(error: ObjectServerError) { fail() }
-                    })
-                    Method.DELETE -> provider.deleteApiKeyAsync(ObjectId(), callback)
-                    Method.ENABLE -> provider.enableApiKeyAsync(ObjectId(), callback)
-                    Method.DISABLE -> provider.disableApiKeyAsync(ObjectId(), callback)
+                    Method.CREATE -> provider.createApiKeyAsync("key") { fail() }
+                    Method.FETCH_SINGLE -> provider.fetchApiKeyAsync(ObjectId()) { fail() }
+                    Method.FETCH_ALL -> provider.fetchAllApiKeys { fail() }
+                    Method.DELETE -> provider.deleteApiKeyAsync(ObjectId()) { fail() }
+                    Method.ENABLE -> provider.enableApiKeyAsync(ObjectId()) { fail() }
+                    Method.DISABLE -> provider.disableApiKeyAsync(ObjectId()) { fail() }
                 }
                 fail("$method should have thrown an exception")
             } catch (ignore: IllegalStateException) {

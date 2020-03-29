@@ -208,7 +208,7 @@ public class ApiKeyAuthProvider {
             @Override
             public Void run() throws ObjectServerError {
                 deleteApiKey(id);
-                return RealmApp.VOID_INSTANCE;
+                return null;
             }
         }.start();
     }
@@ -240,7 +240,7 @@ public class ApiKeyAuthProvider {
             @Override
             public Void run() throws ObjectServerError {
                 disableApiKey(id);
-                return RealmApp.VOID_INSTANCE;
+                return null;
             }
         }.start();
     }
@@ -272,7 +272,7 @@ public class ApiKeyAuthProvider {
             @Override
             public Void run() throws ObjectServerError {
                 enableApiKey(id);
-                return RealmApp.VOID_INSTANCE;
+                return null;
             }
         }.start();
     }
