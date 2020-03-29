@@ -448,7 +448,7 @@ public class RealmApp {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onResult(Result.withResult(result));
+                        callback.onResult((result == null) ? Result.success() : Result.withResult(result));
                     }
                 });
             }
