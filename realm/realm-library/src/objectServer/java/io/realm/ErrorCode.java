@@ -320,7 +320,7 @@ public enum ErrorCode {
         public static final String DEPRECATED = "deprecated"; // Deprecated errors
         public static final String HTTP = "realm::app::HttpError"; // Errors from the HTTP layer
         public static final String JAVA = "realm::app::CustomError"; // Errors from the Java layer
-        public static final String MISC = "realm.util.misc_ext"; // Misc errors from the native Sync Client
+        public static final String MISC = "realm.util.misc_ext"; // Misc errors from the native Sync Client // TODO Did this change 'realm::util::websocket::Error:7'?
         public static final String SERVICE = "realm::app::ServiceError"; // MongoDB Realm Response errors
         public static final String JSON = "realm::app::JSONError"; // Errors when parsing JSON
         public static final String PROTOCOL = "realm::sync::ProtocolError"; // Protocol level errors from the native Sync Client

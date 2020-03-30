@@ -43,7 +43,7 @@ public class SyncTestUtils {
     static {
         try {
             SYNC_MANAGER_GET_USER_STORE_METHOD = SyncManager.class.getDeclaredMethod("getUserStore");
-            SYNC_USER_GET_ACCESS_TOKEN_METHOD = SyncUser.class.getDeclaredMethod("getRefreshToken");
+            SYNC_USER_GET_ACCESS_TOKEN_METHOD = RealmUser.class.getDeclaredMethod("getRefreshToken");
             SYNC_MANAGER_GET_USER_STORE_METHOD.setAccessible(true);
             SYNC_USER_GET_ACCESS_TOKEN_METHOD.setAccessible(true);
         } catch (NoSuchMethodException e) {
@@ -72,11 +72,11 @@ public class SyncTestUtils {
             // in order to be able fully re-initialize.
 
             // This will set the 'm_metadata_manager' in 'sync_manager.cpp' to be 'null'
-            // causing the SyncUser to remain in memory.
+            // causing the RealmUser to remain in memory.
             // They're actually not persisted into disk.
             // move this call to 'tearDown' to clean in-memory & on-disk users
             // once https://github.com/realm/realm-object-store/issues/207 is resolved
-            SyncManager.reset();
+            // SyncManager.reset(); // FIXME
             BaseRealm.applicationContext = null; // Required for Realm.init() to work
         }
         deleteRosFiles();
@@ -102,27 +102,22 @@ public class SyncTestUtils {
         }
     }
 
-    public static SyncUser createTestAdminUser() {
+
+
+
+    public static RealmUser createTestAdminUser() {
         return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, Long.MAX_VALUE, true);
     }
 
-    public static SyncUser createTestUser() {
+    public static RealmUser createTestUser() {
         return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
     }
 
-    public static SyncUser createTestUser(long expires) {
+    public static RealmUser createTestUser(long expires) {
         return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), DEFAULT_AUTH_URL, expires, false);
     }
 
-    public static SyncUser createTestUser(String authUrl) {
-        return createTestUser(USER_TOKEN, UUID.randomUUID().toString(), authUrl, Long.MAX_VALUE, false);
-    }
-
-    public static SyncUser createNamedTestUser(String userIdentifier) {
-        return createTestUser(USER_TOKEN, userIdentifier, DEFAULT_AUTH_URL, Long.MAX_VALUE, false);
-    }
-
-    public static SyncUser createTestUser(String userTokenValue, String userIdentifier, String authUrl, long expires, boolean isAdmin) {
+    public static RealmUser createTestUser(String userTokenValue, String userIdentifier, String authUrl, long expires, boolean isAdmin) {
         Token userToken = new Token(userTokenValue, userIdentifier, null, expires, null, isAdmin);
 
         JSONObject obj = new JSONObject();
@@ -132,8 +127,8 @@ public class SyncTestUtils {
 
             obj.put("authUrl", authUrl);
             obj.put("userToken", userToken.toJson());
-            SyncUser syncUser = SyncUser.fromJson(obj.toString());
-            // persist the user to the ObjectStore sync metadata, to simulate real login, otherwise SyncUser.isValid will
+            RealmUser syncUser = null; // RealmUser.fromJson(obj.toString());
+            // persist the user to the ObjectStore sync metadata, to simulate real login, otherwise RealmUser.isValid will
             // "throw IllegalArgumentException: User not authenticated or authentication expired." since
             // the call to  SyncManager.getUserStore().isActive(syncUser.getIdentity()) will return false
 //            addToUserStore(syncUser);
@@ -162,7 +157,7 @@ public class SyncTestUtils {
 //        return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
 //    }
 
-    public static Token getRefreshToken(SyncUser user) {
+    public static Token getRefreshToken(RealmUser user) {
         try {
             return (Token) SYNC_USER_GET_ACCESS_TOKEN_METHOD.invoke(user);
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -170,7 +165,7 @@ public class SyncTestUtils {
         }
     }
 
-//    private static void addToUserStore(SyncUser user) {
+//    private static void addToUserStore(RealmUser user) {
 //        try {
 //            UserStore userStore = (UserStore) SYNC_MANAGER_GET_USER_STORE_METHOD.invoke(null);
 //            userStore.put(user);

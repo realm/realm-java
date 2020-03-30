@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
+import io.realm.internal.KeepMember;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
@@ -84,7 +85,8 @@ public class RealmApp {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = RealmThreadPoolExecutor.newDefaultExecutor();
 
     private final RealmAppConfiguration config;
-    private OsJavaNetworkTransport networkTransport;
+    OsJavaNetworkTransport networkTransport;
+    final SyncManager syncManager;
     final long nativePtr;
     private final EmailPasswordAuthProvider emailAuthProvider = new EmailPasswordAuthProvider(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
@@ -100,12 +102,17 @@ public class RealmApp {
     public RealmApp(RealmAppConfiguration config) {
         this.config = config;
         this.networkTransport = new OkHttpNetworkTransport();
+        this.syncManager = new SyncManager(this);
         this.nativePtr = nativeCreate(
                 config.getAppId(),
-                config.getBaseUrl(),
+                config.getBaseUrl().toString(),
                 config.getAppName(),
                 config.getAppVersion(),
                 config.getRequestTimeoutMs());
+    }
+
+    static void init(String userAgent) {
+
     }
 
     /**
@@ -143,7 +150,7 @@ public class RealmApp {
      *
      * @param user
      */
-    public static void setCurrentUser(SyncUser user) {
+    public static void setCurrentUser(RealmUser user) {
         // FIXME
     }
 
@@ -247,7 +254,7 @@ public class RealmApp {
 
     RealmAsyncTask logOutAsync(RealmUser user, Callback<RealmUser> callback) {
         Util.checkLooperThread("Asynchronous log out is only possible from looper threads.");
-        return new Request<RealmUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<RealmUser>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public RealmUser run() throws ObjectServerError {
                 logOut(user);
@@ -310,7 +317,84 @@ public class RealmApp {
         return null;
     }
 
-    // Private API's for now.
+    /**
+     * FIXME: Figure out naming of this method and class.
+     * @return
+     */
+    public SyncManager getSyncService() {
+        return syncManager;
+    }
+
+    /**
+     * Returns the configuration object for this app.
+     *
+     * @return the configuration for this app.
+     */
+    public RealmAppConfiguration getConfiguration() {
+        return config;
+    }
+
+
+    /**
+     * Sets the name of the HTTP header used to send authorization data in when making requests to
+     * MongoDB Realm. The MongoDB server or firewall must have been configured to expect a
+     * custom authorization header.
+     * <p>
+     * The default authorization header is named "Authorization".
+     *
+     * @param headerName name of the header.
+     * @throws IllegalArgumentException if a null or empty header is provided.
+     * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
+     */
+    public void setAuthorizationHeaderName(String headerName) {
+        checkNotEmpty(headerName, "headerName");
+        networkTransport.setAuthorizationHeaderName(headerName);
+    }
+
+    /**
+     * Adds an extra HTTP header to append to every request to a Realm Object Server.
+     *
+     * @param headerName the name of the header.
+     * @param headerValue the value of header.
+     * @throws IllegalArgumentException if a non-empty {@code headerName} is provided or a null {@code headerValue}.
+     */
+    public void addCustomRequestHeader(String headerName, String headerValue) {
+        checkNotEmpty(headerName, "headerName");
+        checkNotNull(headerValue, "headerValue");
+        networkTransport.addCustomRequestHeader(headerName, headerValue);
+    }
+
+    /**
+     * Adds extra HTTP headers to append to every request to a Realm Object Server.
+     *
+     * @param headers map of (headerName, headerValue) pairs.
+     * @throws IllegalArgumentException If any of the headers provided are illegal.
+     */
+    public synchronized void addCustomRequestHeaders(@Nullable Map<String, String> headers) {
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    /**
+     * Returns the authentication header name used for http request against MongoDB Realm.
+     *
+     * @return the authorization header name used by http requests to MongoDB Realm.
+     */
+    public String getAuthorizationHeaderName() {
+        return networkTransport.getAuthorizationHeaderName();
+    }
+
+    /**
+     * Returns all the custom headers added to all HTTP requests against MongoDB Realm.
+     *
+     * @return all defined custom headers used when making HTTP requests against MongoDB Realm.
+     */
+    public Map<String, String> getCustomRequestHeaders() {
+        return networkTransport.getCustomRequestHeaders();
+    }
 
     /**
      * Exposed for testing.
@@ -322,6 +406,7 @@ public class RealmApp {
         networkTransport = transport;
     }
 
+    @KeepMember // Called from JNI
     OsJavaNetworkTransport getNetworkTransport() {
         return networkTransport;
     }
@@ -340,6 +425,18 @@ public class RealmApp {
             } else {
                 return null;
             }
+        }
+    }
+
+    private static void checkNotEmpty(String headerName, String varName) {
+        if (Util.isEmptyString(headerName)) {
+            throw new IllegalArgumentException("Non-empty '" + varName +"' required.");
+        }
+    }
+
+    private static void checkNotNull(@Nullable String val, String varName) {
+        if (val == null) {
+            throw new IllegalArgumentException("Non-null'" + varName +"' required.");
         }
     }
 

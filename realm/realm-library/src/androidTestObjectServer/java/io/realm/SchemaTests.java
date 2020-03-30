@@ -45,8 +45,8 @@ public class SchemaTests {
 
     @Before
     public void setUp() {
-        SyncUser user = SyncTestUtils.createTestUser();
-        config = configFactory.createSyncConfigurationBuilder(user, "realm://objectserver.realm.io/~/default").build();
+        RealmUser user = SyncTestUtils.createTestUser();
+        config = configFactory.createSyncConfigurationBuilder(user).build();
     }
 
     @Test

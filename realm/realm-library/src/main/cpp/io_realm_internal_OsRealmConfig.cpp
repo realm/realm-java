@@ -244,7 +244,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
     JNIEnv* env, jclass, jlong native_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
     jstring j_refresh_token, jstring j_access_token, jbyte j_session_stop_policy, jstring j_url_prefix,
-    jstring j_custom_auth_header_name, jobjectArray j_custom_headers_array, jbyte j_client_reset_mode)
+    jstring j_custom_auth_header_name, jobjectArray j_custom_headers_array, jbyte j_client_reset_mode,
+    jstring j_partion_key_value)
 {
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
     // sync_config should only be initialized once!
@@ -256,8 +257,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // https://developer.android.com/training/articles/perf-jni.html#faq_FindClass
         static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
                                                      "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)V", true);
-        static JavaMethod java_bind_session_method(env, sync_manager_class, "bindSessionWithConfig",
-                                                   "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", true);
 
         // error handler will be called form the sync client thread
         auto error_handler = [](std::shared_ptr<SyncSession> session, SyncError error) {
@@ -320,22 +319,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // the session which should be bound.
         auto bind_handler = [](const std::string& path, const SyncConfig& syncConfig,
                                std::shared_ptr<SyncSession> session) {
-            realm::jni_util::Log::d("Callback to Java requesting token for path: %1", path.c_str());
-
-            JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
-
-            jstring jpath = to_jstring(env, path.c_str());
-            jstring jrefresh_token = to_jstring(env, session->user()->refresh_token().c_str());
-            jstring access_token_string = (jstring)env->CallStaticObjectMethod(
-                sync_manager_class, java_bind_session_method, jpath, jrefresh_token);
-            if (access_token_string) {
-                // reusing cached valid token
-                JStringAccessor access_token(env, access_token_string);
-                session->refresh_access_token(access_token, realm::util::Optional<std::string>(syncConfig.realm_url));
-                env->DeleteLocalRef(access_token_string);
-            }
-            env->DeleteLocalRef(jpath);
-            env->DeleteLocalRef(jrefresh_token);
+            realm::jni_util::Log::d("Binding session for path: %1", path.c_str());
+            session->refresh_access_token(session->user()->access_token(), realm::util::Optional<std::string>(syncConfig.realm_url));
         };
 
         // Get logged in user
@@ -346,13 +331,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             JStringAccessor realm_auth_url(env, j_auth_url);
             JStringAccessor refresh_token(env, j_refresh_token);
             JStringAccessor access_token(env, j_access_token);
-            // FIXME RealmApp refactor
             user = SyncManager::shared().get_user(user_id, auth_url, refresh_token, access_token);
         }
 
         SyncSessionStopPolicy session_stop_policy = static_cast<SyncSessionStopPolicy>(j_session_stop_policy);
 
         JStringAccessor realm_url(env, j_sync_realm_url);
+        JStringAccessor partion_key_value(env, j_partion_key_value);
+        (void) partion_key_value; // TODO: Figure out how this is used
         config.sync_config = std::make_shared<SyncConfig>(SyncConfig{user, realm_url});
         config.sync_config->stop_policy = session_stop_policy;
         config.sync_config->bind_session_handler = std::move(bind_handler);

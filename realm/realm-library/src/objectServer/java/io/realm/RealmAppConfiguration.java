@@ -17,6 +17,8 @@ package io.realm;
 
 import android.content.Context;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -32,7 +34,7 @@ public class RealmAppConfiguration {
     private final String appId;
     private final String appName;
     private final String appVersion;
-    private final String baseUrl;
+    private final URL baseUrl;
     private final Context context;
     private final SyncSession.ErrorHandler defaultErrorHandler;
     @Nullable private final byte[] encryptionKey;
@@ -52,12 +54,20 @@ public class RealmAppConfiguration {
         this.appId = appId;
         this.appName = appName;
         this.appVersion = appVersion;
-        this.baseUrl = baseUrl;
+        this.baseUrl = createUrl(baseUrl);
         this.context = context;
         this.defaultErrorHandler = defaultErrorHandler;
         this.encryptionKey = (encryptionKey == null) ? null : Arrays.copyOf(encryptionKey, encryptionKey.length);
         this.logLevel = logLevel;
         this.requestTimeoutMs = requestTimeoutMs;
+    }
+
+    private URL createUrl(String baseUrl) {
+        try {
+            return new URL(baseUrl);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(baseUrl);
+        }
     }
 
     /**
@@ -88,7 +98,7 @@ public class RealmAppConfiguration {
      * FIXME
      * @return
      */
-    public String getBaseUrl() {
+    public URL getBaseUrl() {
         return baseUrl;
     }
 

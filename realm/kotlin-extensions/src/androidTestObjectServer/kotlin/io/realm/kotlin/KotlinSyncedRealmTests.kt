@@ -22,7 +22,7 @@ class KotlinSyncedRealmTests {
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         val user = SyncTestUtils.createTestUser()
-        realm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM).build())
+        realm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(user).build())
     }
 
     @After

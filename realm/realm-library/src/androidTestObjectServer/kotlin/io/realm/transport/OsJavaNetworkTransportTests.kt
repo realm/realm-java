@@ -21,6 +21,7 @@ import io.realm.internal.objectstore.OsJavaNetworkTransport
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.*
 
 /**
  * This class is responsible for testing the general network transport layer, i.e. that
@@ -192,6 +193,96 @@ class OsJavaNetworkTransportTests {
         } catch (ex: Error) {
             assertEquals("Boom!", ex.message)
         }
+    }
+
+
+    // FIXME: USE expectException wrapper from other PR
+    private fun tryCase(runnable: Runnable) {
+        try {
+            runnable.run()
+            fail()
+        } catch (ignored: IllegalArgumentException) {
+        }
+    }
+
+    @Test
+    fun setAuthorizationHeaderName_illegalArgumentsThrows() {
+        val app = TestRealmApp()
+        // tryCase(Runnable { app.setAuthorizationHeaderName(TestHelper.getNullString()) })
+        tryCase(Runnable { app.setAuthorizationHeaderName("") })
+    }
+
+    @Test
+    fun setAuthorizationHeaderName() {
+        val app = TestRealmApp()
+        assertEquals("Authorization", app.authorizationHeaderName)
+        app.authorizationHeaderName = "foo"
+        assertEquals("foo", app.authorizationHeaderName)
+    }
+
+    @Test
+    fun addCustomRequestHeader_illegalArgumentThrows() {
+        val app = TestRealmApp()
+        // tryCase(Runnable { app.addCustomRequestHeader(TestHelper.getNullString(), "val") })
+        tryCase(Runnable { app.addCustomRequestHeader("", "val") })
+        // tryCase(Runnable { app.addCustomRequestHeader("header", TestHelper.getNullString()) })
+    }
+
+    @Test
+    fun addCustomRequestHeader() {
+        val app = TestRealmApp()
+        app.addCustomRequestHeader("header1", "val1")
+        app.addCustomRequestHeader("header2", "val2")
+        val headers: Map<String, String> = app.customRequestHeaders
+        assertEquals(2, headers.size.toLong())
+        val header = headers.entries.iterator().next()
+        val expected = if (header.key == "header1") "val1" else "val2"
+        assertEquals(expected, header.value)
+    }
+
+    @Test
+    fun addCustomRequestHeaders() {
+        val app = TestRealmApp()
+        val inputHeaders: MutableMap<String, String> = LinkedHashMap()
+        inputHeaders["header1"] = "value1"
+        inputHeaders["header2"] = "value2"
+        app.addCustomRequestHeaders(null)
+        app.addCustomRequestHeaders(inputHeaders)
+        val outputHeaders: Map<String, String> = app.customRequestHeaders
+        assertEquals(2, outputHeaders.size.toLong())
+        val it = outputHeaders.entries.iterator()
+        val header1 = it.next()
+        if (header1.key == "header1") {
+            assertEquals("header1", header1.key)
+            assertEquals("value1", header1.value)
+            val header2 = it.next()
+            assertEquals("header2", header2.key)
+            assertEquals("value2", header2.value)
+        } else {
+            assertEquals("header2", header1.key)
+            assertEquals("value2", header1.value)
+            val header2 = it.next()
+            assertEquals("header1", header2.key)
+            assertEquals("value1", header2.value)
+        }
+    }
+
+    @Test
+    fun addCustomHeader_combinesSingleAndMultiple() {
+        val app = TestRealmApp()
+        val inputHeaders1: MutableMap<String, String> = LinkedHashMap()
+        inputHeaders1["header1"] = "val1"
+        app.addCustomRequestHeader("header3", "val3")
+        app.addCustomRequestHeaders(inputHeaders1)
+        val localhostHeaders: Map<String, String> = app.customRequestHeaders
+        assertEquals(2, localhostHeaders.size.toLong())
+        val it = localhostHeaders.entries.iterator()
+        var item = it.next()
+        assertEquals("header3", item.key)
+        assertEquals("val3", item.value)
+        item = it.next()
+        assertEquals("header1", item.key)
+        assertEquals("val1", item.value)
     }
 
 }

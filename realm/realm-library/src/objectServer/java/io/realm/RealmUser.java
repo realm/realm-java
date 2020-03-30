@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
 
@@ -30,6 +31,7 @@ public class RealmUser {
 
     final OsSyncUser osUser;
     private final RealmApp app;
+    private SyncConfiguration defaultConfiguration;
 
     /**
      * FIXME
@@ -218,6 +220,15 @@ public class RealmUser {
     }
 
     /**
+     * Returns true if the user is currently logged in.
+     *
+     * @return {@code true} if the user is logged in. {@code false} otherwise.
+     */
+    public boolean isLoggedIn() {
+        return getState() == State.ACTIVE;
+    }
+
+    /**
      * Log the user out of the Realm App, destroying their server state, unregistering them from the
      * SDK, and removing any synced Realms associated with them from on-disk storage on next app
      * launch.
@@ -254,6 +265,110 @@ public class RealmUser {
      */
     public RealmAsyncTask logOutAsync(RealmApp.Callback callback) {
         return app.logOutAsync(this, callback);
+    }
+
+    /**
+     * Opening a synchronized Realm requires a {@link SyncConfiguration}. This method creates a
+     * {@link SyncConfiguration.Builder} that can be used to customize the default configuration.
+     * Call {@link SyncConfiguration.Builder#build()} to create the configuration when done
+     * modifying it.
+     *
+     * @param partitionValue only classes with a partition key with this value will be synchronized.
+     * @throws IllegalStateException if the user isn't logged in. See {@link RealmUser#isLoggedIn()}.
+     */
+    public SyncConfiguration.Builder createSyncConfiguration(String partitionValue) {
+        if (getState() != State.ACTIVE) {
+            throw new IllegalStateException("User isn't logged in.");
+        }
+        Util.checkNull(partitionValue, "partitionValue");
+        return new SyncConfiguration.Builder(Realm.applicationContext,
+                this,
+                app.getConfiguration().getBaseUrl().toString(),
+                partitionValue
+        );
+    }
+
+    /**
+     * Opening a synchronized Realm requires a {@link SyncConfiguration}. This method creates a
+     * {@link SyncConfiguration.Builder} that can be used to customize the default configuration.
+     * Call {@link SyncConfiguration.Builder#build()} to create the configuration when done
+     * modifying it.
+     *
+     * @param partitionValue only classes with a partition key with this value will be synchronized.
+     * @throws IllegalStateException if the user isn't logged in. See {@link RealmUser#isLoggedIn()}.
+     */
+    public SyncConfiguration.Builder createSyncConfiguration(long partitionValue) {
+        return createSyncConfiguration(Long.toString(partitionValue));
+    }
+
+//    /**
+//     * Opening a synchronized Realm requires a {@link SyncConfiguration}. This method creates a
+//     * {@link SyncConfiguration.Builder} that can be used to customize the default configuration.
+//     * Call {@link SyncConfiguration.Builder#build()} to create the configuration when done
+//     * modifying it.
+//     *
+//     * @param partitionValue only classes with a partition key with this value will be synchronized.
+//     * @throws IllegalStateException if the user isn't logged in. See {@link RealmUser#isLoggedIn()}.
+//     */
+//    public SyncConfiguration.Builder createSyncConfiguration(ObjectId partitionValue) {
+//        Util.checkNull(partitionValue, "partitionValue");
+//        return createSyncConfiguration(partitionValue.toString());
+//    }
+
+    /**
+     * Returns the default configuration for this user. The default configuration points to the
+     * default Realm on the server the user authenticated against.
+     *
+     * @param partitionValue only classes with a partition key with this value will be synchronized.
+     * @return the default configuration for this user.
+     * @throws IllegalStateException if the user isn't logged in. See {@link #getState()}.
+     */
+    public SyncConfiguration getDefaultSyncConfiguration(String partitionValue) {
+        if (getState() != State.ACTIVE) {
+            throw new IllegalStateException("User isn't logged in.");
+        }
+        Util.checkNull(partitionValue, "partitionValue");
+        if (defaultConfiguration == null) {
+            defaultConfiguration = new SyncConfiguration.Builder(Realm.applicationContext,
+                    this,
+                    app.getConfiguration().getBaseUrl().toString(),
+                    partitionValue).build();
+        }
+        return defaultConfiguration;
+    }
+
+    /**
+     * Returns the default configuration for this user. The default configuration points to the
+     * default Realm on the server the user authenticated against.
+     *
+     * @param partitionValue only classes with a partition key with this value will be synchronized.
+     * @return the default configuration for this user.
+     * @throws IllegalStateException if the user isn't logged in. See {@link #getState()}.
+     */
+    public SyncConfiguration getDefaultSyncConfiguration(long partitionValue) {
+        return getDefaultSyncConfiguration(Long.toString(partitionValue));
+    }
+
+//    /**
+//     * Returns the default configuration for this user. The default configuration points to the
+//     * default Realm on the server the user authenticated against.
+//     *
+//     * @param partitionValue only classes with a partition key with this value will be synchronized.
+//     * @return the default configuration for this user.
+//     * @throws IllegalStateException if the user isn't logged in. See {@link #getState()}.
+//     */
+//    public SyncConfiguration getDefaultSyncConfiguration(ObjectId partitionValue) {
+//      Util.checkNull(partitionValue, "partitionValue");
+//      return getDefaultSyncConfiguration(partitionValue.toString());
+//    }
+
+    /**
+     * Returns all the valid sessions belonging to the user.
+     *
+     * @return the all valid sessions belong to the user.
+     */
+    public List<SyncSession> allSessions() {
+        return app.getSyncService().getAllSyncSessions(this);
     }
 
     @Override

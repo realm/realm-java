@@ -54,30 +54,30 @@ public class SyncManagerTests {
 
     @Before
     public void setUp() {
-        SyncManager.reset();
+        // SyncManager.reset();
     }
 
     @After
     public void tearDown() {
         UserFactory.logoutAllUsers();
-        SyncManager.reset();
+        // SyncManager.reset();
         BaseRealm.applicationContext = null; // Required for Realm.init() to work
         Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
     }
 
     @Test
     public void authListener() {
-        SyncUser user = createTestUser();
+        RealmUser user = createTestUser();
         final int[] counter = {0, 0};
 
         AuthenticationListener authenticationListener = new AuthenticationListener() {
             @Override
-            public void loggedIn(SyncUser user) {
+            public void loggedIn(RealmUser user) {
                 counter[0]++;
             }
 
             @Override
-            public void loggedOut(SyncUser user) {
+            public void loggedOut(RealmUser user) {
                 counter[1]++;
             }
         };
@@ -96,17 +96,17 @@ public class SyncManagerTests {
 
     @Test
     public void authListener_remove() {
-        SyncUser user = createTestUser();
+        RealmUser user = createTestUser();
         final int[] counter = {0, 0};
 
         AuthenticationListener authenticationListener = new AuthenticationListener() {
             @Override
-            public void loggedIn(SyncUser user) {
+            public void loggedIn(RealmUser user) {
                 counter[0]++;
             }
 
             @Override
-            public void loggedOut(SyncUser user) {
+            public void loggedOut(RealmUser user) {
                 counter[1]++;
             }
         };
@@ -127,9 +127,9 @@ public class SyncManagerTests {
     public void session() throws IOException {
         BaseRealm.applicationContext = null;
         Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
-        SyncUser user = createTestUser();
+        RealmUser user = createTestUser();
         String url = "realm://objectserver.realm.io/default";
-        SyncConfiguration config = user.createConfiguration(url)
+        SyncConfiguration config = user.createSyncConfiguration()
                 .modules(new StringOnlyModule())
                 .build();
         // This will trigger the creation of the session
@@ -138,179 +138,5 @@ public class SyncManagerTests {
         assertEquals(user, session.getUser()); // see also SessionTests
 
         realm.close();
-    }
-
-    private void tryCase(Runnable runnable) {
-        try {
-            runnable.run();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-    }
-
-    @Test
-    public void setAuthorizationHeaderName_illegalArgumentsThrows() {
-        //noinspection ConstantConditions
-        tryCase(() -> SyncManager.setAuthorizationHeaderName(null));
-        tryCase(() -> SyncManager.setAuthorizationHeaderName(""));
-        //noinspection ConstantConditions
-        tryCase(() -> SyncManager.setAuthorizationHeaderName(null, "myhost"));
-        tryCase(() -> SyncManager.setAuthorizationHeaderName("", "myhost"));
-        //noinspection ConstantConditions
-        tryCase(() -> SyncManager.setAuthorizationHeaderName("myheader", null));
-        tryCase(() -> SyncManager.setAuthorizationHeaderName("myheader", ""));
-    }
-
-    @Test
-    public void setAuthorizationHeaderName() throws URISyntaxException {
-        SyncManager.setAuthorizationHeaderName("foo");
-        assertEquals("foo", SyncManager.getAuthorizationHeaderName(new URI("http://localhost")));
-    }
-
-    @Test
-    public void setAuthorizationHeaderName_hostOverrideGlobal() throws URISyntaxException {
-        SyncManager.setAuthorizationHeaderName("foo");
-        SyncManager.setAuthorizationHeaderName("bar", "localhost");
-        assertEquals("bar", SyncManager.getAuthorizationHeaderName(new URI("http://localhost")));
-    }
-
-    @Test
-    public void getAuthorizationHeaderName_ignoreHostCasing() throws URISyntaxException {
-        SyncManager.setAuthorizationHeaderName("foo", "lOcAlHoSt");
-        assertEquals("foo", SyncManager.getAuthorizationHeaderName(new URI("http://localhost")));
-        assertEquals("foo", SyncManager.getAuthorizationHeaderName(new URI("http://LOCALHOST")));
-    }
-
-    @Test
-    public void addCustomRequestHeader_illegalArgumentThrows() {
-        //noinspection ConstantConditions
-        tryCase(() -> SyncManager.addCustomRequestHeader(null, "val"));
-        tryCase(() -> SyncManager.addCustomRequestHeader("", "val"));
-        //noinspection ConstantConditions
-        tryCase(() -> SyncManager.addCustomRequestHeader("header", null));
-
-        //noinspection ConstantConditions
-        tryCase(() -> SyncManager.addCustomRequestHeader(null, "val", "localhost"));
-        tryCase(() -> SyncManager.addCustomRequestHeader("", "val", "localhost"));
-        //noinspection ConstantConditions
-        tryCase(() -> SyncManager.addCustomRequestHeader("header", "value", null));
-        tryCase(() -> SyncManager.addCustomRequestHeader("header", "value", ""));
-    }
-
-    @Test
-    public void addCustomRequestHeaders_illegalArgumentThrows() {
-        tryCase(() -> SyncManager.addCustomRequestHeaders(Collections.emptyMap(), null));
-        tryCase(() -> SyncManager.addCustomRequestHeaders(Collections.emptyMap(), ""));
-    }
-
-    @Test
-    public void addCustomRequestHeader() throws URISyntaxException {
-        SyncManager.addCustomRequestHeader("header1", "val1");
-        SyncManager.addCustomRequestHeader("header2", "val2");
-        Map<String, String> headers = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
-        assertEquals(2, headers.size());
-        Map.Entry<String, String> header = headers.entrySet().iterator().next();
-        String expected = header.getKey().equals("header1") ? "val1" : "val2";
-        assertEquals(expected, header.getValue());
-    }
-
-    @Test
-    public void addCustomRequestHeader_hostOverrideGlobal() throws URISyntaxException {
-        SyncManager.addCustomRequestHeader("header1", "val1");
-        SyncManager.addCustomRequestHeader("header1", "val2", "localhost");
-        Map<String, String> headers = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
-        assertEquals(1, headers.size());
-        Map.Entry<String, String> header = headers.entrySet().iterator().next();
-        assertEquals("header1", header.getKey());
-        assertEquals("val2", header.getValue());
-    }
-
-    @Test
-    public void addCustomRequestHeader_ignoreCasingForHost() throws URISyntaxException {
-        SyncManager.addCustomRequestHeader("header1", "val1", "lOcAlHoSt");
-        SyncManager.addCustomRequestHeader("header2", "val2", "LOCALHOST");
-        Map<String, String> headers = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
-        assertEquals(2, headers.size());
-    }
-
-    @Test
-    public void addCustomHeaders() throws URISyntaxException {
-        Map<String, String> inputHeaders = new LinkedHashMap<>();
-        inputHeaders.put("header1", "value1");
-        inputHeaders.put("header2", "value2");
-        SyncManager.addCustomRequestHeaders(null);
-        SyncManager.addCustomRequestHeaders(inputHeaders);
-        Map<String, String> outputHeaders = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
-        assertEquals(2, outputHeaders.size());
-        Iterator<Map.Entry<String, String>> it = outputHeaders.entrySet().iterator();
-        Map.Entry<String, String> header1 = it.next();
-
-        if (header1.getKey().equals("header1")) {
-            assertEquals("header1", header1.getKey());
-            assertEquals("value1", header1.getValue());
-            Map.Entry<String, String> header2 = it.next();
-            assertEquals("header2", header2.getKey());
-            assertEquals("value2", header2.getValue());
-
-        } else {
-            assertEquals("header2", header1.getKey());
-            assertEquals("value2", header1.getValue());
-            Map.Entry<String, String> header2 = it.next();
-            assertEquals("header1", header2.getKey());
-            assertEquals("value1", header2.getValue());
-        }
-    }
-
-    @Test
-    public void addCustomHeaders_hostOverrideGlobal() throws URISyntaxException {
-        Map<String, String> inputHeaders = new LinkedHashMap<>();
-        inputHeaders.put("header1", "val1");
-        SyncManager.addCustomRequestHeaders(inputHeaders);
-        inputHeaders.put("header1", "val2");
-        SyncManager.addCustomRequestHeaders(inputHeaders, "localhost");
-        Map<String, String> outputHeaders = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
-        assertEquals(1, outputHeaders.size());
-        Map.Entry<String, String> header = outputHeaders.entrySet().iterator().next();
-        assertEquals("header1", header.getKey());
-        assertEquals("val2", header.getValue());
-    }
-
-    @Test
-    public void addCustomHeader_combinesSingleAndMultiple() throws URISyntaxException {
-        Map<String, String> inputHeaders1 = new LinkedHashMap<>();
-        inputHeaders1.put("header1", "val1");
-        Map<String, String> inputHeaders2 = new LinkedHashMap<>();
-        inputHeaders2.put("header2", "val2");
-
-        SyncManager.addCustomRequestHeader("header3", "val3");
-        SyncManager.addCustomRequestHeaders(inputHeaders1);
-        SyncManager.addCustomRequestHeader("header4", "val4", "realm.io");
-        SyncManager.addCustomRequestHeaders(inputHeaders2, "realm.io");
-
-        Map<String, String> localhostHeaders = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
-        assertEquals(2, localhostHeaders.size());
-        Iterator<Map.Entry<String, String>> it = localhostHeaders.entrySet().iterator();
-        Map.Entry<String, String> item = it.next();
-        assertEquals("header3", item.getKey());
-        assertEquals("val3", item.getValue());
-        item = it.next();
-        assertEquals("header1", item.getKey());
-        assertEquals("val1", item.getValue());
-
-        Map<String, String> realmioHeaders = SyncManager.getCustomRequestHeaders(new URI("http://realm.io"));
-        it = realmioHeaders.entrySet().iterator();
-        assertEquals(4, realmioHeaders.size());
-        item = it.next();
-        assertEquals("header3", item.getKey());
-        assertEquals("val3", item.getValue());
-        item = it.next();
-        assertEquals("header1", item.getKey());
-        assertEquals("val1", item.getValue());
-        item = it.next();
-        assertEquals("header4", item.getKey());
-        assertEquals("val4", item.getValue());
-        item = it.next();
-        assertEquals("header2", item.getKey());
-        assertEquals("val2", item.getValue());
     }
 }

@@ -23,14 +23,14 @@ public interface AuthenticationListener {
     /**
      * A user was logged into the Object Server
      *
-     * @param user {@link SyncUser} that is now logged in.
+     * @param user {@link RealmUser} that is now logged in.
      */
-    void loggedIn(SyncUser user);
+    void loggedIn(RealmUser user);
 
     /**
      * A user was successfully logged out from the Object Server.
      *
-     * @param user {@link SyncUser} that was successfully logged out.
+     * @param user {@link RealmUser} that was successfully logged out.
      */
-    void loggedOut(SyncUser user);
+    void loggedOut(RealmUser user);
 }

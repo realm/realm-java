@@ -17,6 +17,7 @@
 package io.realm;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -187,12 +188,12 @@ public class SyncSession {
     }
 
     /**
-     * Returns the {@link SyncUser} defined by the {@link SyncConfiguration} that is used to connect to the
-     * Realm Object Server.
+     * Returns the {@link RealmUser} defined by the {@link SyncConfiguration} that is used to connect to
+     * MongoDB Realm.
      *
-     * @return {@link SyncUser} used to authenticate the session on the Realm Object Server.
+     * @return {@link RealmUser} used to authenticate the session on MongoDB Realm.
      */
-    public SyncUser getUser() {
+    public RealmUser getUser() {
         return configuration.getUser();
     }
 
@@ -719,8 +720,9 @@ public class SyncSession {
         void onError(SyncSession session, ObjectServerError error);
     }
 
-//    // Return the access token for the Realm this Session is connected to.
-//    String getAccessToken(final RealmObjectServer authServer, String refreshToken) {
+    // Return the access token for the Realm this Session is connected to.
+    String getAccessToken() {
+        return getUser().getAccessToken();
 //        // check first if there's a valid access_token we can return immediately
 //        if (getUser().isRealmAuthenticated(configuration)) {
 //            Token accessToken = getUser().getAccessToken(configuration);
@@ -749,7 +751,7 @@ public class SyncSession {
 //            }
 //        }
 //        return null;
-//    }
+    }
 //
 //    // Authenticate by getting access tokens for the specific Realm
 //    private void authenticateRealm(final RealmObjectServer authServer) {

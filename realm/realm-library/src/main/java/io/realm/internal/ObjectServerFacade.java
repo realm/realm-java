@@ -20,7 +20,6 @@ import android.content.Context;
 
 import java.lang.reflect.InvocationTargetException;
 
-import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
 
@@ -66,7 +65,7 @@ public class ObjectServerFacade {
     }
 
     public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
-        return new Object[12];
+        return new Object[13];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {

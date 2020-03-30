@@ -8,7 +8,7 @@ package io.realm
  */
 fun RealmApp.close() {
     // TODO Do we need to log out users?
-    SyncManager.reset()
+//    this.syncManager.reset()
     BaseRealm.applicationContext = null // Required for Realm.init() to work
 }
 

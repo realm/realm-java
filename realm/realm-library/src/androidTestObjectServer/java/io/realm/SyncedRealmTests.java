@@ -75,7 +75,7 @@ public class SyncedRealmTests {
     }
 
     private Realm getFullySyncRealm() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/fullsync")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser())
                 .build();
         realm = Realm.getInstance(config);
         return realm;
@@ -85,14 +85,14 @@ public class SyncedRealmTests {
     @Test
     @Ignore("Going to be removed anyway")
     public void testUpgradingOptionalSubscriptionFields() throws IOException {
-        SyncUser user = SyncTestUtils.createTestUser();
+        RealmUser user = SyncTestUtils.createTestUser();
 
         // Put an older Realm at the location where Realm would otherwise create a new empty one.
         // This way, Realm will upgrade this file instead.
         // We don't need to synchronize data with the server, so any errors due to missing
         // server side files are ignored.
         // The file was created using Realm Java 5.10.0
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, "realm://127.0.0.1:9080/optionalsubscriptionfields").build();
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user).build();
         File realmDir = config.getRealmDirectory();
         File oldRealmFile = new File(realmDir, "optionalsubscriptionfields");
         assertFalse(oldRealmFile.exists());
@@ -114,7 +114,7 @@ public class SyncedRealmTests {
 
     @Test
     public void compactRealm_populatedRealm() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), Constants.DEFAULT_REALM).build();
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser()).build();
         realm = Realm.getInstance(config);
         realm.executeTransaction(r -> {
             for (int i = 0; i < 10; i++) {
@@ -129,10 +129,10 @@ public class SyncedRealmTests {
 
     @Test
     public void compactOnLaunch_shouldCompact() throws IOException {
-        SyncUser user = SyncTestUtils.createTestUser();
+        RealmUser user = SyncTestUtils.createTestUser();
 
         // Fill Realm with data and record size
-        SyncConfiguration config1 = configFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM).build();
+        SyncConfiguration config1 = configFactory.createSyncConfigurationBuilder(user).build();
         realm = Realm.getInstance(config1);
         byte[] oneMBData = new byte[1024 * 1024];
         realm.beginTransaction();
@@ -144,7 +144,7 @@ public class SyncedRealmTests {
         long originalSize = new File(realm.getPath()).length();
 
         // Open Realm with CompactOnLaunch
-        SyncConfiguration config2 = configFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM)
+        SyncConfiguration config2 = configFactory.createSyncConfigurationBuilder(user)
                 .compactOnLaunch(new CompactOnLaunchCallback() {
                     @Override
                     public boolean shouldCompact(long totalBytes, long usedBytes) {

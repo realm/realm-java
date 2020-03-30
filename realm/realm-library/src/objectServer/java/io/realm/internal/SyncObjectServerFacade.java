@@ -26,10 +26,11 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.RealmApp;
 import io.realm.RealmConfiguration;
+import io.realm.RealmUser;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
-import io.realm.SyncUser;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
@@ -48,27 +49,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
 
     @Override
     public void initialize(Context context, String userAgent) {
-        // Trying to keep things out the public API is no fun :/
-        // Just use reflection on init. It is a one-time method call so should be acceptable.
-        //noinspection TryWithIdenticalCatches
-        try {
-            // FIXME: Reflection can be avoided by moving some functions of SyncManager and ObjectServer out of public
-            Class<?> syncManager = Class.forName("io.realm.ObjectServer");
-            Method method = syncManager.getDeclaredMethod("init", Context.class, String.class);
-            method.setAccessible(true);
-            method.invoke(null, context, userAgent);
-        } catch (NoSuchMethodException e) {
-            throw new RealmException("Could not initialize the Realm Object Server", e);
-        } catch (InvocationTargetException e) {
-            throw new RealmException("Could not initialize the Realm Object Server", e);
-        } catch (IllegalAccessException e) {
-            throw new RealmException("Could not initialize the Realm Object Server", e);
-        } catch (ClassNotFoundException e) {
-            throw new RealmException("Could not initialize the Realm Object Server", e);
-        }
         if (applicationContext == null) {
             applicationContext = context;
-
             applicationContext.registerReceiver(new NetworkStateReceiver(),
                     new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
@@ -90,16 +72,17 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
-            SyncUser user = syncConfig.getUser();
+            RealmUser user = syncConfig.getUser();
+            RealmApp app = user.getApp();
             String rosServerUrl = syncConfig.getServerUrl().toString();
-            String rosUserIdentity = user.getIdentity();
-            String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
-            String syncUserRefreshToken = user.getRefreshToken().toJson().toString();
-            String syncUserAccessToken = user.getAccessToken(((SyncConfiguration) config)).toJson().toString();
+            String rosUserIdentity = user.getId();
+            String syncRealmAuthUrl = user.getApp().getConfiguration().getBaseUrl().toString();
+            String syncUserRefreshToken = user.getRefreshToken();
+            String syncUserAccessToken = user.getAccessToken();
             byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
             String urlPrefix = syncConfig.getUrlPrefix();
-            String customAuthorizationHeaderName = SyncManager.getAuthorizationHeaderName(syncConfig.getServerUrl());
-            Map<String, String> customHeaders = SyncManager.getCustomRequestHeaders(syncConfig.getServerUrl());
+            String customAuthorizationHeaderName = app.getAuthorizationHeaderName();
+            Map<String, String> customHeaders = app.getCustomRequestHeaders();
             return new Object[]{
                     rosUserIdentity,
                     rosServerUrl,
@@ -112,10 +95,11 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     urlPrefix,
                     customAuthorizationHeaderName,
                     customHeaders,
-                    syncConfig.getClientResyncMode().getNativeValue()
+                    syncConfig.getClientResyncMode().getNativeValue(),
+                    syncConfig.getPartion()
             };
         } else {
-            return new Object[12];
+            return new Object[13];
         }
     }
 
@@ -126,7 +110,9 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @Override
     public void wrapObjectStoreSessionIfRequired(OsRealmConfig config) {
         if (config.getRealmConfiguration() instanceof SyncConfiguration) {
-            SyncManager.getOrCreateSession((SyncConfiguration) config.getRealmConfiguration(), config.getResolvedRealmURI());
+            SyncConfiguration syncConfig = (SyncConfiguration) config.getRealmConfiguration();
+            RealmApp app = syncConfig.getUser().getApp();
+            app.getSyncService().getOrCreateSession(syncConfig, config.getResolvedRealmURI());
         }
     }
 
@@ -207,7 +193,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         if (configuration instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) configuration;
             OsRealmConfig config = new OsRealmConfig.Builder(syncConfig).build();
-            SyncManager.getOrCreateSession(syncConfig, config.getResolvedRealmURI());
+            RealmApp app = syncConfig.getUser().getApp();
+            app.getSyncService().getOrCreateSession(syncConfig, config.getResolvedRealmURI());
         }
     }
 }

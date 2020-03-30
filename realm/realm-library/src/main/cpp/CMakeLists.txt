@@ -93,7 +93,6 @@ if (build_SYNC)
         io.realm.RealmApp
         io.realm.SyncManager
         io.realm.SyncSession
-        io.realm.SyncUser
         io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
         io.realm.internal.objectstore.OsJavaNetworkTransport

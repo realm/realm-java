@@ -9,6 +9,6 @@
         "enabled": false
     },
     "sync": {
-        "development_mode_enabled": false
+        "development_mode_enabled": true
     }
 }

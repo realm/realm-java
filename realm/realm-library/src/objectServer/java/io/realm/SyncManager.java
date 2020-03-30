@@ -16,7 +16,11 @@
 
 package io.realm;
 
+import android.content.Context;
+import android.os.Build;
+
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -28,15 +32,11 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 import javax.net.ssl.TrustManager;
@@ -50,6 +50,17 @@ import io.realm.internal.Util;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.log.RealmLog;
 import okhttp3.internal.tls.OkHostnameVerifier;
+
+
+/**
+ * Class encapsulating Sync responsibilities for a {@link io.realm.RealmApp}
+ *
+ * Each Sync Manager is backed by an underlying SyncClient that is responsible for all communication
+ * against one specific host.
+ *
+ *
+ *
+ */
 
 /**
  * The SyncManager is the central controller for interacting with the Realm Object Server.
@@ -65,6 +76,88 @@ import okhttp3.internal.tls.OkHostnameVerifier;
 @Keep
 @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
 public class SyncManager {
+
+    private volatile static boolean CREATED = false;
+    private final RealmApp app;
+    private final String appId;
+
+    SyncManager(RealmApp app) {
+        this.app = app;
+        this.appId = app.getConfiguration().getAppId();
+
+         // TODO: Right now we only support one SyncClient or one RealmApp. This class will throw a
+        // exception if you try to create it twice. Which will happen as part of setting up a
+        // RealmApp.
+        synchronized (SyncManager.class) {
+            if (CREATED) {
+                throw new IllegalStateException("Only one RealmApp is currently supported");
+            }
+            init(app.getConfiguration());
+            CREATED = true;
+        }
+    }
+
+    /**
+     * Initializes both the Java and the underlying C++ Sync components.
+     */
+    private void init(RealmAppConfiguration appConfig) {
+        // Setup Realm part of User-Agent string
+        String userAgentBindingInfo = "Unknown"; // Fallback in case of anything going wrong
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("RealmJava/");
+            sb.append(BuildConfig.VERSION_NAME);
+            sb.append(" (");
+            sb.append(Util.isEmptyString(Build.DEVICE) ? "unknown-device" : Build.DEVICE);
+            sb.append(", ");
+            sb.append(Util.isEmptyString(Build.MODEL) ? "unknown-model" : Build.MODEL);
+            sb.append(", v");
+            sb.append(Build.VERSION.SDK_INT);
+            sb.append(")");
+            userAgentBindingInfo = sb.toString();
+        } catch (Exception e) {
+            // Failures to construct the user agent should never cause the system itself to crash.
+            RealmLog.warn("Constructing User-Agent description failed.", e);
+        }
+
+        // Create app UserAgent string
+        String appDefinedUserAgent = null;
+        String appName = appConfig.getAppName();
+        String appVersion = appConfig.getAppVersion();
+        if (!Util.isEmptyString(appName) || !Util.isEmptyString(appVersion)) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(Util.isEmptyString(appName) ? "Undefined" : appName);
+            sb.append('/');
+            sb.append(Util.isEmptyString(appName) ? "Undefined" : appVersion);
+            appDefinedUserAgent = sb.toString();
+        }
+
+        // init the "sync_manager.cpp" metadata Realm, this is also needed later, when re try
+        // to schedule a client reset. in realm-java#master this is already done, when initialising
+        // the RealmFileUserStore (not available now on releases)
+        Context context = Realm.applicationContext;
+        if (SyncManager.Debug.separatedDirForSyncManager) {
+            try {
+                // Files.createTempDirectory is not available on JDK 6.
+                File dir = File.createTempFile("remote_sync_", "_" + android.os.Process.myPid(),
+                        context.getFilesDir());
+                if (!dir.delete()) {
+                    throw new IllegalStateException(String.format(Locale.US,
+                            "Temp file '%s' cannot be deleted.", dir.getPath()));
+                }
+                if (!dir.mkdir()) {
+                    throw new IllegalStateException(String.format(Locale.US,
+                            "Directory '%s' for SyncManager cannot be created. ",
+                            dir.getPath()));
+                }
+                nativeInitializeSyncManager(dir.getPath(), userAgentBindingInfo, appDefinedUserAgent);
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
+        } else {
+            SyncManager.nativeInitializeSyncManager(context.getFilesDir().getPath(), userAgentBindingInfo, appDefinedUserAgent);
+        }
+    }
 
     /**
      * Debugging related options.
@@ -82,21 +175,6 @@ public class SyncManager {
          */
         public static boolean separatedDirForSyncManager = false;
     }
-
-    /**
-     * APP ID sent to the Realm Object Server. Is automatically initialized to the package name for the app.
-     */
-    public static String APP_ID = null;
-
-    /**
-     * Thread pool used when doing network requests against the Realm Object Server.
-     * <p>
-     * This pool is only exposed for testing purposes and replacing it while the queue is not
-     * empty will result in undefined behaviour.
-     */
-    @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
-    public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = new ThreadPoolExecutor(
-            10, 10, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(100));
 
     private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
         @Override
@@ -125,16 +203,6 @@ public class SyncManager {
     private static Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
     private static CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
 
-    // The Sync Client is lightweight, but consider creating/removing it when there is no sessions.
-    // Right now it just lives and dies together with the process.
-//    private static volatile RealmObjectServer authServer = new OkHttpRealmObjectServer();
-
-    // Header configuration
-    private static String globalAuthorizationHeaderName = "Authorization"; // authorization header name if no host-defined header is available
-    private static Map<String, String> hostRestrictedAuthorizationHeaderName = new HashMap<>(); // authorization header name for the given host
-    private static Map<String, String> globalCustomHeaders = new HashMap<>();
-    private static Map<String, Map<String, String>> hostRestrictedCustomHeaders = new HashMap<>();
-
     private static NetworkStateReceiver.ConnectionListener networkListener = new NetworkStateReceiver.ConnectionListener() {
         @Override
         public void onChange(boolean connectionAvailable) {
@@ -149,11 +217,6 @@ public class SyncManager {
     };
 
     static volatile SyncSession.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
-
-    // Initialize the SyncManager
-    static void init(String appId) {
-        SyncManager.APP_ID = appId;
-    }
 
     /**
      * Sets a global authentication listener that will be notified about User events like
@@ -215,7 +278,7 @@ public class SyncManager {
         SyncSession session = sessions.get(syncConfiguration.getPath());
         if (session == null) {
             throw new IllegalStateException("No SyncSession found using the path : " + syncConfiguration.getPath()
-            + "\nplease ensure to call this method after you've open the Realm");
+                    + "\nplease ensure to call this method after you've open the Realm");
         }
 
         return session;
@@ -232,7 +295,7 @@ public class SyncManager {
      * @return the {@link SyncSession} for the specified Realm.
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
      */
-    public static synchronized SyncSession getOrCreateSession(SyncConfiguration syncConfiguration, @Nullable URI resolvedRealmURL) {
+    public synchronized SyncSession getOrCreateSession(SyncConfiguration syncConfiguration, @Nullable URI resolvedRealmURL) {
         // This will not create a new native (Object Store) session, this will only associate a Realm's path
         // with a SyncSession. Object Store's SyncManager is responsible of the life cycle (including creation)
         // of the native session. The provided Java wrap, helps interact with the native session, when reporting error
@@ -259,7 +322,7 @@ public class SyncManager {
                 // access token, however since the Realm might not be open yet, the wrapObjectStoreSessionIfRequired
                 // will not be invoked to wrap the OS store session with the Java session, the Sync client to not resume
                 // syncing.
-//                session.getAccessToken(authServer, "");
+                session.getAccessToken(); // FIXME: Figure out what needs to happen here
             }
 
             // The underlying session will be created as part of opening the Realm, but this approach
@@ -273,153 +336,28 @@ public class SyncManager {
         return session;
     }
 
-    /**
-     * Sets the name of the HTTP header used to send authorization data in when making requests to
-     * all Realm Object Servers used by the app. These servers must have been configured to expect a
-     * custom authorization header.
-     * <p>
-     * The default authorization header is named "Authorization".
-     *
-     * @param headerName name of the header.
-     * @throws IllegalArgumentException if a null or empty header is provided.
-     * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
-     */
-    public static synchronized void setAuthorizationHeaderName(String headerName) {
-        checkNotEmpty(headerName, "headerName");
-//        authServer.setAuthorizationHeaderName(headerName, null);
-        globalAuthorizationHeaderName = headerName;
-    }
-
-    /**
-     * Sets the name of the HTTP header used to send authorization data in when making requests to
-     * the Realm Object Server running on the defined {@code host}. This server must have been
-     * configured to expect a custom authorization header.
-     * <p>
-     * The default authorization header is named "Authorization".
-     *
-     * @param headerName name of the header.
-     * @param host if this is provided, the authorization header name will only be used on this particular host.
-     *             Example of valid values: "localhost", "127.0.0.1" and "myinstance.us1.cloud.realm.io".
-     * @throws IllegalArgumentException if a {@code null} or empty header and/or host is provided.
-     * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
-     */
-
-    public static synchronized void setAuthorizationHeaderName(String headerName, String host) {
-        checkNotEmpty(headerName, "headerName");
-        checkNotEmpty(host, "host");
-        host = host.toLowerCase(Locale.US);
-//        authServer.setAuthorizationHeaderName(headerName, host);
-        hostRestrictedAuthorizationHeaderName.put(host, headerName);
-    }
-
-    /**
-     * Adds an extra HTTP header to append to every request to a Realm Object Server.
-     *
-     * @param headerName the name of the header.
-     * @param headerValue the value of header.
-     * @throws IllegalArgumentException if a non-empty {@code headerName} is provided or a null {@code headerValue}.
-     */
-    public static synchronized void addCustomRequestHeader(String headerName, String headerValue) {
-        checkNotEmpty(headerName, "headerName");
-        checkNotNull(headerValue, "headerValue");
-//        authServer.addHeader(headerName, headerValue, null);
-        globalCustomHeaders.put(headerName, headerValue);
-    }
-
-    /**
-     * Adds an extra HTTP header to append to every request to a Realm Object Server.
-     *
-     * @param headerName the name of the header.
-     * @param headerValue the value of header.
-     * @param host if this is provided, this header will only be used on this particular host.
-     *             Example of valid values: "localhost", "127.0.0.1" and "myinstance.us1.cloud.realm.io".
-     * @throws IllegalArgumentException If an non-empty {@code headerName}, {@code headerValue} or {@code host} is provided.
-     */
-    public static synchronized void addCustomRequestHeader(String headerName, String headerValue, String host) {
-        checkNotEmpty(headerName, "headerName");
-        checkNotNull(headerValue, "headerValue");
-        checkNotEmpty(host, "host");
-
-        // Headers
-        host = host.toLowerCase(Locale.US);
-//        authServer.addHeader(headerName, headerValue, host);
-        Map<String, String> headers = hostRestrictedCustomHeaders.get(host);
-        if (headers == null) {
-            headers = new LinkedHashMap<>();
-            hostRestrictedCustomHeaders.put(host, headers);
+    List<SyncSession> getAllSyncSessions(RealmUser user) {
+        //noinspection ConstantConditions
+        if (user == null) {
+            throw new IllegalArgumentException("A non-empty 'syncUser' is required.");
         }
-        headers.put(headerName, headerValue);
-    }
-
-    /**
-     * Adds extra HTTP headers to append to every request to a Realm Object Server.
-     *
-     * @param headers map of (headerName, headerValue) pairs.
-     * @throws IllegalArgumentException If any of the headers provided are illegal.
-     */
-    public static synchronized void addCustomRequestHeaders(@Nullable Map<String, String> headers) {
-        if (headers != null) {
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                addCustomRequestHeader(entry.getKey(), entry.getValue());
+        ArrayList<SyncSession> allSessions = new ArrayList<SyncSession>();
+        for (SyncSession syncSession : sessions.values()) {
+            if (syncSession.getUser().equals(user)) {
+                allSessions.add(syncSession);
             }
         }
+        return allSessions;
     }
 
-    /**
-     * Adds extra HTTP headers to append to every request to a Realm Object Server.
-     *
-     * @param headers map of (headerName, headerValue) pairs.
-     * @param host if this is provided, the this header will only be used on this particular host.
-     *             Example of valid values: "localhost", "127.0.0.1" and "myinstance.us1.cloud.realm.io".
-     * @throws IllegalArgumentException If any of the headers provided are illegal.
-     */
-    public static synchronized void addCustomRequestHeaders(@Nullable Map<String, String> headers, String host) {
-        if (Util.isEmptyString(host)) {
-            throw new IllegalArgumentException("Non-empty 'host' required");
-        }
-        host = host.toLowerCase(Locale.US);
-        if (headers != null) {
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                addCustomRequestHeader(entry.getKey(), entry.getValue(), host);
-            }
-        }
-    }
 
-    /**
-     * Returns the authentication header name used for the http request to the given url.
-     *
-     * @param objectServerUrl Url to get header for.
-     * @return the authorization header name used by http requests to this url.
-     */
-    public static synchronized String getAuthorizationHeaderName(URI objectServerUrl) {
-        String host = objectServerUrl.getHost().toLowerCase(Locale.US);
-        String hostRestrictedHeader = hostRestrictedAuthorizationHeaderName.get(host);
-        return (hostRestrictedHeader != null) ? hostRestrictedHeader : globalAuthorizationHeaderName;
-    }
-
-    /**
-     * Returns all the custom headers added to requests to the given url.
-     *
-     * @return all defined custom headers used when making http requests to the given url.
-     */
-    public static synchronized Map<String, String> getCustomRequestHeaders(URI serverSyncUrl) {
-        Map<String, String> headers = new LinkedHashMap<>(globalCustomHeaders);
-        String host = serverSyncUrl.getHost().toLowerCase(Locale.US);
-        Map<String, String> hostHeaders = hostRestrictedCustomHeaders.get(host);
-        if (hostHeaders != null) {
-            for (Map.Entry<String, String> entry : hostHeaders.entrySet()) {
-                headers.put(entry.getKey(), entry.getValue());
-            }
-        }
-        return headers;
-    }
 
     /**
      * Remove the wrapped Java session.
      * @param syncConfiguration configuration object for the synchronized Realm.
      */
     @SuppressWarnings("unused")
-    private static synchronized void removeSession(SyncConfiguration syncConfiguration) {
+    private synchronized void removeSession(SyncConfiguration syncConfiguration) {
         //noinspection ConstantConditions
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
@@ -435,46 +373,15 @@ public class SyncManager {
         }
     }
 
-    /**
-     * Returns the all valid sessions belonging to the user.
-     *
-     * @param syncUser the user to use.
-     * @return the all valid sessions belonging to the user.
-     */
-    static List<SyncSession> getAllSessions(SyncUser syncUser) {
-        //noinspection ConstantConditions
-        if (syncUser == null) {
-            throw new IllegalArgumentException("A non-empty 'syncUser' is required.");
-        }
-        ArrayList<SyncSession> allSessions = new ArrayList<SyncSession>();
-        for (SyncSession syncSession : sessions.values()) {
-            if (syncSession.getUser().equals(syncUser)) {
-                allSessions.add(syncSession);
-            }
-        }
-        return allSessions;
-    }
-
-//    static RealmObjectServer getAuthServer() {
-//        return authServer;
-//    }
-
-//    /**
-//     * Sets the auth server implementation used when validating credentials.
-//     */
-//    static void setAuthServerImpl(RealmObjectServer authServerImpl) {
-//        authServer = authServerImpl;
-//    }
-
     // Notify listeners that a user logged in
-    static void notifyUserLoggedIn(SyncUser user) {
+    static void notifyUserLoggedIn(RealmUser user) {
         for (AuthenticationListener authListener : authListeners) {
             authListener.loggedIn(user);
         }
     }
 
     // Notify listeners that a user logged out successfully
-    static void notifyUserLoggedOut(SyncUser user) {
+    static void notifyUserLoggedOut(RealmUser user) {
         for (AuthenticationListener authListener : authListeners) {
             authListener.loggedOut(user);
         }
@@ -489,12 +396,12 @@ public class SyncManager {
         if (Util.isEmptyString(path)) {
             // notify all sessions
             for (SyncSession syncSession : sessions.values()) {
-                    try {
-                        syncSession.notifySessionError(nativeErrorCategory, nativeErrorCode, errorMessage);
-                    } catch (Exception exception) {
-                        RealmLog.error(exception);
-                    }
+                try {
+                    syncSession.notifySessionError(nativeErrorCategory, nativeErrorCode, errorMessage);
+                } catch (Exception exception) {
+                    RealmLog.error(exception);
                 }
+            }
         } else {
             SyncSession syncSession = sessions.get(path);
             if (syncSession != null) {
@@ -550,32 +457,6 @@ public class SyncManager {
             }
         }
     }
-
-    /**
-     * This is called from the Object Store (through JNI) to request an {@code access_token} for
-     * the session specified by sessionPath.
-     *
-     * This will also schedule a timer to proactively refresh the {@code access_token} regularly, before
-     * the {@code access_token} expires.
-     *
-     * @throws IllegalStateException if the wrapped Java session is not found.
-     * @param sessionPath The path to the previously Java wraped session.
-     * @return a valid cached {@code access_token} if available or null.
-     */
-    @SuppressWarnings("unused")
-//    private synchronized static String bindSessionWithConfig(String sessionPath, String refreshToken) {
-//        final SyncSession syncSession = sessions.get(sessionPath);
-//        if (syncSession == null) {
-//            RealmLog.error("Matching Java SyncSession could not be found for: " + sessionPath);
-//        } else {
-//            try {
-//                return syncSession.getAccessToken(authServer, refreshToken);
-//            } catch (Exception exception) {
-//                RealmLog.error(exception);
-//            }
-//        }
-//        return null;
-//    }
 
     /**
      * Realm will automatically detect when a device gets connectivity after being offline and
@@ -703,32 +584,16 @@ public class SyncManager {
         }
     }
 
-    private static void checkNotEmpty(String headerName, String varName) {
-        if (Util.isEmptyString(headerName)) {
-            throw new IllegalArgumentException("Non-empty '" + varName +"' required.");
-        }
-    }
-
-    private static void checkNotNull(@Nullable String val, String varName) {
-        if (val == null) {
-            throw new IllegalArgumentException("Non-null'" + varName +"' required.");
-        }
-    }
-
     /**
      * Resets the SyncManger and clear all existing users.
      * This will also terminate all sessions.
      *
      * Only call this method when testing.
      */
-    static synchronized void reset() {
+    synchronized void reset() {
         nativeReset();
         sessions.clear();
-        hostRestrictedAuthorizationHeaderName.clear();
-        globalAuthorizationHeaderName = "Authorization";
-        hostRestrictedCustomHeaders.clear();
-        globalCustomHeaders.clear();
-//        authServer.clearCustomHeaderSettings();
+        app.networkTransport.resetHeaders();
     }
 
     /**
@@ -746,7 +611,7 @@ public class SyncManager {
                 true);
     }
 
-    protected static native void nativeInitializeSyncManager(String syncBaseDir, String bindingUserAgentInfo, String appUserAgentInfo);
+    private static native void nativeInitializeSyncManager(String syncBaseDir, String bindingUserAgentInfo, String appUserAgentInfo);
     private static native void nativeReset();
     private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
     private static native void nativeReconnect();
