@@ -215,10 +215,18 @@ class RealmAppTests {
 
     @Test
     fun logOut() {
-        val user: RealmUser = app.login(RealmCredentials.anonymous())
-        assertEquals(user, app.currentUser())
+        // Anonymous users are removed upon log out
+        val user1: RealmUser = app.login(RealmCredentials.anonymous())
+        assertEquals(user1, app.currentUser())
         app.logOut()
-        assertEquals(RealmUser.State.REMOVED, user.state) // Should be LOGGED_OUT in a future update of OS
+        assertEquals(RealmUser.State.REMOVED, user1.state)
+        assertNull(app.currentUser())
+
+        // Users registered with Email/Password will register as Logged Out
+        val user2: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        assertEquals(user2, app.currentUser())
+        app.logOut()
+        assertEquals(RealmUser.State.LOGGED_OUT, user2.state)
         assertNull(app.currentUser())
     }
 
