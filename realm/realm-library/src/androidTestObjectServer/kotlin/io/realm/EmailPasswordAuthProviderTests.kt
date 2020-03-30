@@ -88,7 +88,7 @@ class EmailPasswordAuthProviderTests {
         val password = "password1234"
         app.emailPasswordAuthProvider.registerUser(email, password)
         val user = app.login(RealmCredentials.emailPassword(email, password))
-        assertEquals(RealmUser.State.ACTIVE, user.state)
+        assertEquals(RealmUser.State.LOGGED_IN, user.state)
     }
 
     @Test
@@ -99,7 +99,7 @@ class EmailPasswordAuthProviderTests {
             app.emailPasswordAuthProvider.registerUserAsync(email, password) { result ->
                 if (result.isSuccess) {
                     val user2 = app.login(RealmCredentials.emailPassword(email, password))
-                    assertEquals(RealmUser.State.ACTIVE, user2.state)
+                    assertEquals(RealmUser.State.LOGGED_IN, user2.state)
                     looperThread.testComplete()
                 } else {
                     fail(result.error.toString())

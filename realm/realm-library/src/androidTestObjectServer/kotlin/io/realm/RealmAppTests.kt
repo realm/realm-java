@@ -74,13 +74,22 @@ class RealmAppTests {
         assertEquals(2, allUsers.size)
         assertTrue(allUsers.containsKey(user2.id))
 
-        // Logging out a normal user will keep them here until they properly removed
-        // TODO: Add test once registerUser has been added
+        val user3: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        allUsers = app.allUsers()
+        assertEquals(3, allUsers.size)
+        assertTrue(allUsers.containsKey(user3.id))
 
-        // Removing anonymous users should remove them completely
+        // Logging out users that registered with email/password will just put them in LOGGED_OUT state
+        user3.logOut();
+        allUsers = app.allUsers()
+        assertEquals(3, allUsers.size)
+        assertTrue(allUsers.containsKey(user3.id))
+        assertEquals(RealmUser.State.LOGGED_OUT, allUsers[user3.id]!!.state)
+
+        // Logging out anonymous users will remove them completely
         user1.logOut()
         allUsers = app.allUsers()
-        assertEquals(1, allUsers.size)
+        assertEquals(2, allUsers.size)
         assertFalse(allUsers.containsKey(user1.id))
     }
 
@@ -136,28 +145,72 @@ class RealmAppTests {
         TODO()
     }
 
-    @Ignore("Waiting for registerUser support")
     @Test
     fun removeUser() {
-        TODO()
+        // Removing logged in user
+        val user1 = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        assertEquals(user1, app.currentUser())
+        assertEquals(1, app.allUsers().size)
+        app.removeUser(user1)
+        assertEquals(RealmUser.State.REMOVED, user1.state)
+        assertNull(app.currentUser())
+        assertEquals(0, app.allUsers().size)
+
+        // Remove logged out user
+        val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        user2.logOut()
+        assertNull(app.currentUser())
+        assertEquals(1, app.allUsers().size)
+        app.removeUser(user2)
+        assertEquals(RealmUser.State.REMOVED, user2.state)
+        assertEquals(0, app.allUsers().size)
     }
 
-    @Ignore("Waiting for registerUser support")
     @Test
     fun removeUser_nullThrows() {
-        TODO()
+        try {
+            app.removeUser(TestHelper.getNull())
+            fail()
+        } catch (ignore: IllegalArgumentException) {
+        }
     }
 
-    @Ignore("Waiting for registerUser support")
     @Test
     fun removeUserAsync() {
-        TODO()
+        // Removing logged in user
+        looperThread.runBlocking {
+            val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+            assertEquals(user, app.currentUser())
+            assertEquals(1, app.allUsers().size)
+            app.removeUserAsync(user) { result ->
+                assertEquals(RealmUser.State.REMOVED, result.orThrow.state)
+                assertNull(app.currentUser())
+                assertEquals(0, app.allUsers().size)
+                looperThread.testComplete()
+            }
+        }
+
+        // Removing logged out user
+        looperThread.runBlocking {
+            val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+            user.logOut()
+            assertNull(app.currentUser())
+            assertEquals(1, app.allUsers().size)
+            app.removeUserAsync(user) { result ->
+                assertEquals(RealmUser.State.REMOVED, result.orThrow.state)
+                assertEquals(0, app.allUsers().size)
+                looperThread.testComplete()
+            }
+        }
     }
 
-    @Ignore("Waiting for registerUser support")
     @Test
     fun removeUserAsync_nonLooperThreadThrows() {
-        TODO()
+        val user: RealmUser = app.registerUserAndLogin(getRandomEmail(), "1234567")
+        try {
+            app.removeUserAsync(user) { fail() }
+        } catch (ignore: IllegalStateException) {
+        }
     }
 
     @Test

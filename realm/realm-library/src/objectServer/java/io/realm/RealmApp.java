@@ -126,9 +126,8 @@ public class RealmApp {
     /**
      * Returns all known users that are either {@link RealmUser.State#LOGGED_IN} or
      * {@link RealmUser.State#LOGGED_OUT}.
-     * <p></p>
-     * Only users that at some point known locally to the device will be returned.
-     *
+     * <p>
+     * Only users that at some point logged into this device will be returned.
      *
      * @return a map of user identifiers and users known locally.
      */
