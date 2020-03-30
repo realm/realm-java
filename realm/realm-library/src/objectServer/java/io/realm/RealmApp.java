@@ -164,6 +164,7 @@ public class RealmApp {
      * could not be logged out.
      */
     public RealmUser removeUser(RealmUser user) throws ObjectServerError {
+        Util.checkNull(user, "user");
         AtomicReference<RealmUser> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeRemoveUser(nativePtr, user.osUser.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {

@@ -206,7 +206,7 @@ class RealmAppTests {
 
     @Test
     fun removeUserAsync_nonLooperThreadThrows() {
-        val user: RealmUser = app.registerUserAndLogin(getRandomEmail(), "1234567")
+        val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "1234567")
         try {
             app.removeUserAsync(user) { fail() }
         } catch (ignore: IllegalStateException) {
