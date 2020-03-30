@@ -173,33 +173,21 @@ class RealmAppTests {
     fun logOutAsync() = looperThread.runBlocking {
         val user: RealmUser = app.login(RealmCredentials.anonymous())
         assertEquals(user, app.currentUser())
-        app.logOutAsync(object: RealmApp.Callback<RealmUser> {
-            override fun onSuccess(callbackUser: RealmUser) {
-                assertNull(app.currentUser())
-                assertEquals(user, callbackUser)
-                assertEquals(RealmUser.State.REMOVED, user.state) // Should be LOGGED_OUT in a future update of OS
-                assertEquals(RealmUser.State.REMOVED, callbackUser.state) // Should be LOGGED_OUT in a future update of OS
-                looperThread.testComplete()
-            }
-
-            override fun onError(error: ObjectServerError) {
-                fail(error.toString())
-            }
-        })
+        app.logOutAsync() { result ->
+            val callbackUser: RealmUser = result.orThrow
+            assertNull(app.currentUser())
+            assertEquals(user, callbackUser)
+            assertEquals(RealmUser.State.REMOVED, user.state)
+            assertEquals(RealmUser.State.REMOVED, callbackUser.state)
+            looperThread.testComplete()
+        }
     }
 
     @Test
     fun logOutAsync_throwsOnNonLooperThread() {
         val user: RealmUser = app.login(RealmCredentials.anonymous())
         assertEquals(user, app.currentUser())
-        val callback = object: RealmApp.Callback<RealmUser> {
-            override fun onSuccess(t: RealmUser) {
-                fail("Method should throw")
-            }
-            override fun onError(error: ObjectServerError) {
-                fail("Method should throw")
-            }
-        }
+        val callback = RealmApp.Callback<RealmUser> { fail("Method should throw") }
         try {
             app.logOutAsync(callback)
             fail()
