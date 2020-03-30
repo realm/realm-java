@@ -188,6 +188,14 @@ public:
     {
         return JavaClassGlobalDef::new_date(m_env, v);
     }
+    util::Any box(Decimal v) const
+    {
+        return JavaClassGlobalDef::new_decimal128(m_env, v);
+    }
+    util::Any box(ObjectId v) const
+    {
+        return JavaClassGlobalDef::new_object_id(m_env, v);
+    }
     util::Any box(bool v) const
     {
         return _impl::JavaClassGlobalDef::new_boolean(m_env, v);
@@ -219,6 +227,14 @@ public:
     util::Any box(util::Optional<int64_t> v) const
     {
         return v ? _impl::JavaClassGlobalDef::new_long(m_env, v.value()) : nullptr;
+    }
+    util::Any box(util::Optional<Decimal> v) const
+    {
+        return v ? _impl::JavaClassGlobalDef::new_decimal128(m_env, v.value()) : nullptr;
+    }
+    util::Any box(util::Optional<ObjectId> v) const
+    {
+        return v ? _impl::JavaClassGlobalDef::new_object_id(m_env, v.value()) : nullptr;
     }
     util::Any box(Obj) const
     {

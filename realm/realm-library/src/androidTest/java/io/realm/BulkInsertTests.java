@@ -129,6 +129,10 @@ public class BulkInsertTests {
         assertEquals(list.get(0).getFieldString(), realmTypes.getFieldList().get(0).getFieldString());
         assertEquals(list.get(0).getFieldLong(), realmTypes.getFieldList().get(0).getFieldLong());
         assertNull(realmTypes.getFieldList().get(0).getFieldIgnored());
+        assertNull(realmTypes.getFieldDecimal128());
+        assertNull(realmTypes.getFieldObjectId());
+        assertEquals(0, realmTypes.getFieldDecimal128List().size());
+        assertEquals(0, realmTypes.getFieldObjectIdList().size());
 
 
         // Makes sure Dog was not inserted twice in the recursive process.

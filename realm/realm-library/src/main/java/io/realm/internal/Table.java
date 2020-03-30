@@ -486,7 +486,7 @@ public class Table implements NativeObject {
         if (value == null) {
             nativeSetNull(nativeTableRefPtr, columnKey, rowKey, isDefault);
         } else {
-            nativeSetDecimal128(nativeTableRefPtr, columnKey, rowKey, value.getHigh(), value.getLow(), isDefault);
+            nativeSetDecimal128(nativeTableRefPtr, columnKey, rowKey, value.getLow(), value.getHigh(), isDefault);
         }
     }
 
@@ -495,7 +495,7 @@ public class Table implements NativeObject {
         if (value == null) {
             nativeSetNull(nativeTableRefPtr, columnKey, rowKey, isDefault);
         } else {
-            nativeSetObjectId(nativeTableRefPtr, columnKey, rowKey, value.toByteArray(), isDefault);
+            nativeSetObjectId(nativeTableRefPtr, columnKey, rowKey, value.toString(), isDefault);
         }
     }
 
@@ -606,7 +606,7 @@ public class Table implements NativeObject {
         if (value == null) {
             throw new IllegalArgumentException("null is not supported");
         }
-        return nativeFindFirstObjectId(nativeTableRefPtr, columnKey, value.toByteArray());
+        return nativeFindFirstObjectId(nativeTableRefPtr, columnKey, value.toString());
     }
 
     /**
@@ -771,7 +771,7 @@ public class Table implements NativeObject {
 
     private native long[] nativeGetDecimal128(long nativePtr, long columnKey, long rowKey);
 
-    private native byte[] nativeGetObjectId(long nativePtr, long columnKey, long rowKey);
+    private native String nativeGetObjectId(long nativePtr, long columnKey, long rowKey);
 
     private native boolean nativeIsNull(long nativePtr, long columnKey, long rowKey);
 
@@ -795,9 +795,9 @@ public class Table implements NativeObject {
 
     public static native void nativeSetByteArray(long nativePtr, long columnKey, long rowKey, byte[] data, boolean isDefault);
 
-    public static native void nativeSetDecimal128(long nativeTableRefPtr, long columnKey, long rowKey, long high, long low, boolean isDefault);
+    public static native void nativeSetDecimal128(long nativeTableRefPtr, long columnKey, long rowKey, long low, long high, boolean isDefault);
 
-    public static native void nativeSetObjectId(long nativeTableRefPtr, long columnKey, long rowKey, byte[] data, boolean isDefault);
+    public static native void nativeSetObjectId(long nativeTableRefPtr, long columnKey, long rowKey, String data, boolean isDefault);
 
     public static native void nativeSetLink(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
 
@@ -833,7 +833,7 @@ public class Table implements NativeObject {
 
     public static native long nativeFindFirstString(long nativeTableRefPtr, long columnKey, String value);
 
-    public static native long nativeFindFirstObjectId(long nativeTableRefPtr, long columnKey, byte[] value);
+    public static native long nativeFindFirstObjectId(long nativeTableRefPtr, long columnKey, String value);
 
     public static native long nativeFindFirstNull(long nativeTableRefPtr, long columnKey);
 

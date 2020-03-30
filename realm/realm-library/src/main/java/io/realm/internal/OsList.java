@@ -183,7 +183,7 @@ public class OsList implements NativeObject, ObservableCollection {
         if (value == null) {
             nativeAddNull(nativePtr);
         } else {
-            nativeAddDecimal128(nativePtr, value.getHigh(), value.getLow());
+            nativeAddDecimal128(nativePtr, value.getLow(), value.getHigh());
         }
     }
 
@@ -191,7 +191,7 @@ public class OsList implements NativeObject, ObservableCollection {
         if (value == null) {
             nativeInsertNull(nativePtr, pos);
         } else {
-            nativeInsertDecimal128(nativePtr, pos, value.getHigh(), value.getLow());
+            nativeInsertDecimal128(nativePtr, pos, value.getLow(), value.getHigh());
         }
     }
 
@@ -199,7 +199,7 @@ public class OsList implements NativeObject, ObservableCollection {
         if (value == null) {
             nativeSetNull(nativePtr, pos);
         } else {
-            nativeSetDecimal128(nativePtr, pos, value.getHigh(), value.getLow());
+            nativeSetDecimal128(nativePtr, pos, value.getLow(), value.getHigh());
         }
     }
 
@@ -207,7 +207,7 @@ public class OsList implements NativeObject, ObservableCollection {
         if (value == null) {
             nativeAddNull(nativePtr);
         } else {
-            nativeAddObjectId(nativePtr, value.toByteArray());
+            nativeAddObjectId(nativePtr, value.toString());
         }
     }
 
@@ -215,7 +215,7 @@ public class OsList implements NativeObject, ObservableCollection {
         if (value == null) {
             nativeInsertNull(nativePtr, pos);
         } else {
-            nativeInsertObjectId(nativePtr, pos, value.toByteArray());
+            nativeInsertObjectId(nativePtr, pos, value.toString());
         }
     }
 
@@ -223,7 +223,7 @@ public class OsList implements NativeObject, ObservableCollection {
         if (value == null) {
             nativeSetNull(nativePtr, pos);
         } else {
-            nativeSetObjectId(nativePtr, pos, value.toByteArray());
+            nativeSetObjectId(nativePtr, pos, value.toString());
         }
     }
 
@@ -399,17 +399,17 @@ public class OsList implements NativeObject, ObservableCollection {
 
     private static native void nativeSetString(long nativePtr, long pos, @Nullable String value);
 
-    private static native void nativeAddDecimal128(long nativePtr, long high, long low);
+    private static native void nativeAddDecimal128(long nativePtr, long low, long high);
 
-    private static native void nativeInsertDecimal128(long nativePtr, long pos, long high, long low);
+    private static native void nativeInsertDecimal128(long nativePtr, long pos, long low, long high);
 
-    private static native void nativeSetDecimal128(long nativePtr, long pos, long high, long low);
+    private static native void nativeSetDecimal128(long nativePtr, long pos, long low, long high);
 
-    private static native void nativeAddObjectId(long nativePtr, byte[] data);
+    private static native void nativeAddObjectId(long nativePtr, String data);
 
-    private static native void nativeInsertObjectId(long nativePtr, long pos, byte[] data);
+    private static native void nativeInsertObjectId(long nativePtr, long pos, String data);
 
-    private static native void nativeSetObjectId(long nativePtr, long pos, byte[] data);
+    private static native void nativeSetObjectId(long nativePtr, long pos, String data);
 
     private static native Object nativeGetValue(long nativePtr, long pos);
 

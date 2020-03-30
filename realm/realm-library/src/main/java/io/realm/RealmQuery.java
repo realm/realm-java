@@ -544,7 +544,7 @@ public class RealmQuery<E> {
     private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Decimal128 value) {
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
         if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
         } else {
             this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         }
@@ -552,9 +552,9 @@ public class RealmQuery<E> {
     }
 
     private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable ObjectId value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
         if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
         } else {
             this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         }

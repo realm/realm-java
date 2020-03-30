@@ -666,6 +666,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.BINARY_LIST,
                         Constants.RealmFieldType.DATE_LIST,
                         Constants.RealmFieldType.FLOAT_LIST,
+                        Constants.RealmFieldType.DECIMAL128_LIST,
+                        Constants.RealmFieldType.OBJECT_ID_LIST,
                         Constants.RealmFieldType.DOUBLE_LIST -> {
                             val requiredFlag = if (metadata.isElementNullable(field)) "!Property.REQUIRED" else "Property.REQUIRED"
                             emitStatement("builder.addPersistedValueListProperty(\"%s\", %s, %s)", fieldName, fieldType.realmType, requiredFlag)
@@ -680,6 +682,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.STRING,
                         Constants.RealmFieldType.DATE,
                         Constants.RealmFieldType.BINARY,
+                        Constants.RealmFieldType.DECIMAL128,
+                        Constants.RealmFieldType.OBJECT_ID,
                         Constants.RealmFieldType.REALM_INTEGER -> {
                             val nullableFlag = (if (metadata.isNullable(field)) "!" else "") + "Property.REQUIRED"
                             val indexedFlag = (if (metadata.isIndexed(field)) "" else "!") + "Property.INDEXED"
@@ -962,7 +966,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 "org.bson.types.ObjectId" -> {
                     emitStatement("org.bson.types.ObjectId %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                    emitStatement("Table.nativeSetObjectId(tableNativePtr, columnInfo.%sColKey, colKey, %s.toByteArray(), false)", fieldName, getter)
+                    emitStatement("Table.nativeSetObjectId(tableNativePtr, columnInfo.%sColKey, colKey, %s.toString(), false)", fieldName, getter)
                     if (isUpdate) {
                         nextControlFlow("else")
                         emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
@@ -1357,7 +1361,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         beginControlFlow("if (primaryKeyValue == null)")
                         emitStatement("colKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
                         nextControlFlow("else")
-                        emitStatement("colKey = Table.nativeFindFirstObjectId(tableNativePtr, pkColumnKey, primaryKeyValue.toByteArray())")
+                        emitStatement("colKey = Table.nativeFindFirstObjectId(tableNativePtr, pkColumnKey, primaryKeyValue.toString())")
                         endControlFlow()
                     } else {
                         emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
@@ -1375,7 +1379,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         if (Utils.isString(metadata.primaryKey)) {
                             emitStatement("colKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, (String)primaryKeyValue)")
                         } else if (Utils.isObjectId(metadata.primaryKey)) {
-                            emitStatement("colKey = Table.nativeFindFirstObjectId(tableNativePtr, pkColumnKey, ((org.bson.types.ObjectId)primaryKeyValue).toByteArray())")
+                            emitStatement("colKey = Table.nativeFindFirstObjectId(tableNativePtr, pkColumnKey, ((org.bson.types.ObjectId)primaryKeyValue).toString())")
                         } else {
                             emitStatement("colKey = Table.nativeFindFirstInt(tableNativePtr, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
                         }

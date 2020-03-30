@@ -378,9 +378,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetTimestamp(JNIEn
     update_objects(env, native_ptr, j_field_name, value);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetDecimal128(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong j_high, jlong j_low)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetDecimal128(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jstring j_decimal128_str)
 {
-    JavaValue Decimal128(j_high, j_low);
+
+    JStringAccessor decimal128_str(env, j_decimal128_str);
+    Decimal128 decimal128 = Decimal128(decimal128_str);
+    JavaValue value(decimal128);
     update_objects(env, native_ptr, j_field_name, value);
 }
 

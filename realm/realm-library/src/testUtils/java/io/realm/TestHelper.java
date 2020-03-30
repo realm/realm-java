@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Looper;
+
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Assert;
@@ -36,6 +37,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
@@ -57,8 +59,8 @@ import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
-import io.realm.internal.OsResults;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsResults;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
@@ -76,7 +78,7 @@ public class TestHelper {
     public static final int STANDARD_WAIT_SECS = 200;
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
-    private static final Random RANDOM = new Random();
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     public static class ExpectedCountCallback implements RealmCache.Callback {
 
@@ -1298,5 +1300,26 @@ public class TestHelper {
             throw new AssertionError(Util.getStackTrace(e));
         }
     }
+
+    public static String randomObjectIdHexString() {
+        char[] hex = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E' , 'F'};
+        
+        StringBuilder randomId = new StringBuilder(24);
+        for (int i = 0; i < 24; i++) {
+            randomId.append(hex[RANDOM.nextInt(16)]);
+        }
+        return randomId.toString();
+    }
+
+    public static String generateObjectIdHexString(int i) {
+        char[] hex = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E' , 'F'};
+
+        StringBuilder randomId = new StringBuilder(24);
+        for (int j = 0; j < 24; j++) {
+            randomId.append(hex[(i + j) % 16]);
+        }
+        return randomId.toString();
+    }
+
 
 }

@@ -194,11 +194,11 @@ public class CheckedRow extends UncheckedRow {
     protected native long[] nativeGetDecimal128(long nativePtr, long columnKey);
 
     @Override
-    protected native byte[] nativeGetObjectId(long nativePtr, long columnKey);
+    protected native String nativeGetObjectId(long nativePtr, long columnKey);
 
     @Override
-    protected native void nativeSetDecimal128(long nativePtr, long columnKey, long high, long low);
+    protected native void nativeSetDecimal128(long nativePtr, long columnKey, long low, long high);
 
     @Override
-    protected native void nativeSetObjectId(long nativePtr, long columnKey, byte[] value);
+    protected native void nativeSetObjectId(long nativePtr, long columnKey, String value);
 }

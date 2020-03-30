@@ -1127,6 +1127,12 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 case DATE:
                     sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : proxyState.getRow$realm().getDate(columnKey));
                     break;
+                case DECIMAL128:
+                    sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : proxyState.getRow$realm().getDecimal128(columnKey));
+                    break;
+                case OBJECT_ID:
+                    sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : proxyState.getRow$realm().getObjectId(columnKey));
+                    break;
                 case OBJECT:
                     sb.append(proxyState.getRow$realm().isNullLink(columnKey)
                             ? "null"
@@ -1156,6 +1162,12 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     break;
                 case DOUBLE_LIST:
                     sb.append(String.format(Locale.US, "RealmList<Double>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
+                    break;
+                case DECIMAL128_LIST:
+                    sb.append(String.format(Locale.US, "RealmList<Decimal128>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
+                    break;
+                case OBJECT_ID_LIST:
+                    sb.append(String.format(Locale.US, "RealmList<ObjectId>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
                     break;
                 default:
                     sb.append("?");

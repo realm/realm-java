@@ -849,188 +849,278 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JZ(J
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JJJ(JNIEnv* env, jobject,
-                                                                                jlong nativeQueryPtr,
-                                                                                jlongArray columnKeys,
-                                                                                jlongArray tablePointers,
-                                                                                jlong high,
-                                                                                jlong low)
+// Decimal128
+enum Decimal128Predicate { Decimal128Equal, Decimal128NotEqual, Decimal128Less, Decimal128LessEqual, Decimal128Greater, Decimal128GreaterEqual };
+static void TableQuery_Decimal128Predicate(JNIEnv* env, jlong nativeQueryPtr, jlongArray columnKeys,
+                                       jlongArray tablePointers, jlong low, jlong high, Decimal128Predicate predicate)
 {
-    // FIXME
-    (void) env;
-    (void) nativeQueryPtr;
-    (void) columnKeys;
-    (void) tablePointers;
-    (void) high;
-    (void) low;
+    try {
+        JLongArrayAccessor table_arr(env, tablePointers);
+        JLongArrayAccessor col_key_arr(env, columnKeys);
+        jsize arr_len = col_key_arr.size();
+        LinkChain linkChain = getTableForLinkQuery(nativeQueryPtr, table_arr, col_key_arr);
+
+        // FIXME should we check low & high != -1
+        if (!COL_NULLABLE(env, linkChain.get_base_table(), col_key_arr[arr_len - 1])) {
+            return;
+        }
+
+        Decimal128::Bid128 raw = {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
+        Decimal128 decimal128 = Decimal128(raw);
+        if (arr_len == 1) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Decimal)) {
+                return;
+            }
+            switch (predicate) {
+                case Decimal128Equal:
+                    Q(nativeQueryPtr)->equal(ColKey(col_key_arr[0]), decimal128);
+                    break;
+                case Decimal128NotEqual:
+                    Q(nativeQueryPtr)->not_equal(ColKey(col_key_arr[0]), decimal128);
+                    break;
+                case Decimal128Less:
+                    Q(nativeQueryPtr)->less(ColKey(col_key_arr[0]), decimal128);
+                    break;
+                case Decimal128LessEqual:
+                    Q(nativeQueryPtr)->less_equal(ColKey(col_key_arr[0]), decimal128);
+                    break;
+                case Decimal128Greater:
+                    Q(nativeQueryPtr)->greater(ColKey(col_key_arr[0]), decimal128);
+                    break;
+                case Decimal128GreaterEqual:
+                    Q(nativeQueryPtr)->greater_equal(ColKey(col_key_arr[0]), decimal128);
+                    break;
+
+            }
+        }
+        else {
+            switch (predicate) {
+                case Decimal128Equal:
+                    Q(nativeQueryPtr)
+                            ->and_query(linkChain.column<Decimal128>(ColKey(col_key_arr[arr_len - 1])) ==
+                                                decimal128);
+                    break;
+                case Decimal128NotEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(linkChain.column<Decimal128>(ColKey(col_key_arr[arr_len - 1])) !=
+                                                decimal128);
+                    break;
+                case Decimal128Less:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_less<Decimal128, Decimal128, Decimal128>(linkChain, col_key_arr[arr_len - 1], decimal128));
+                    break;
+                case Decimal128LessEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_lessequal<Decimal128, Decimal128, Decimal128>(linkChain, col_key_arr[arr_len - 1], decimal128));
+                    break;
+                case Decimal128Greater:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_greater<Decimal128, Decimal128, Decimal128>(linkChain, col_key_arr[arr_len - 1], decimal128));
+                    break;
+                case Decimal128GreaterEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_greaterequal<Decimal128, Decimal128, Decimal128>(linkChain, col_key_arr[arr_len - 1], decimal128));
+                    break;
+
+            }
+        }
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualDecimal128(JNIEnv* env, jobject,
+                                                                                      jlong nativeQueryPtr,
+                                                                                      jlongArray columnKeys,
+                                                                                      jlongArray tablePointers,
+                                                                                      jlong low,
+                                                                                      jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128GreaterEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterDecimal128(JNIEnv* env, jobject,
+                                                                                 jlong nativeQueryPtr,
+                                                                                 jlongArray columnKeys,
+                                                                                 jlongArray tablePointers,
+                                                                                 jlong low,
+                                                                                 jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128Greater);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualDecimal128(JNIEnv* env, jobject,
+                                                                                   jlong nativeQueryPtr,
+                                                                                   jlongArray columnKeys,
+                                                                                   jlongArray tablePointers,
+                                                                                   jlong low,
+                                                                                   jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128LessEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessDecimal128(JNIEnv* env, jobject,
+                                                                              jlong nativeQueryPtr,
+                                                                              jlongArray columnKeys,
+                                                                              jlongArray tablePointers,
+                                                                              jlong low,
+                                                                              jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128Less);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualDecimal128(JNIEnv* env, jobject,
+                                                                                  jlong nativeQueryPtr,
+                                                                                  jlongArray columnKeys,
+                                                                                  jlongArray tablePointers,
+                                                                                  jlong low,
+                                                                                  jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128NotEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualDecimal128(JNIEnv* env, jobject,
+                                                                               jlong nativeQueryPtr,
+                                                                               jlongArray columnKeys,
+                                                                               jlongArray tablePointers,
+                                                                               jlong low,
+                                                                               jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128Equal);
+}
+
+
+// ObjectID
+enum ObjectIdPredicate { ObjectIdEqual, ObjectIdNotEqual, ObjectIdLess, ObjectIdLessEqual, ObjectIdGreater, ObjectIdGreaterEqual };
+static void TableQuery_ObjectIdPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongArray columnKeys,
+                                           jlongArray tablePointers, jstring j_data, ObjectIdPredicate predicate)
+{
+    try {
+        JStringAccessor data(env, j_data);
+        JLongArrayAccessor table_arr(env, tablePointers);
+        JLongArrayAccessor col_key_arr(env, columnKeys);
+        jsize arr_len = col_key_arr.size();
+        LinkChain linkChain = getTableForLinkQuery(nativeQueryPtr, table_arr, col_key_arr);
+
+        if (!COL_NULLABLE(env, linkChain.get_base_table(), col_key_arr[arr_len - 1])) {
+            return;
+        }
+
+        ObjectId objectId = ObjectId(StringData(data).data());
+        if (arr_len == 1) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_ObjectId)) {
+                return;
+            }
+
+            switch (predicate) {
+                case ObjectIdEqual:
+                    Q(nativeQueryPtr)->equal(ColKey(col_key_arr[0]), objectId);
+                    break;
+                case ObjectIdNotEqual:
+                    Q(nativeQueryPtr)->not_equal(ColKey(col_key_arr[0]), objectId);
+                    break;
+                case ObjectIdLess:
+                    Q(nativeQueryPtr)->less(ColKey(col_key_arr[0]), objectId);
+                    break;
+                case ObjectIdLessEqual:
+                    Q(nativeQueryPtr)->less_equal(ColKey(col_key_arr[0]), objectId);
+                    break;
+                case ObjectIdGreater:
+                    Q(nativeQueryPtr)->greater(ColKey(col_key_arr[0]), objectId);
+                    break;
+                case ObjectIdGreaterEqual:
+                    Q(nativeQueryPtr)->greater_equal(ColKey(col_key_arr[0]), objectId);
+                    break;
+            }
+        }
+        else {
+            LinkChain linkChain = getTableForLinkQuery(nativeQueryPtr, table_arr, col_key_arr);
+            switch (predicate) {
+                case ObjectIdEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(linkChain.column<ObjectId>(ColKey(col_key_arr[arr_len - 1])) ==
+                                        objectId);
+                    break;
+                case ObjectIdNotEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(linkChain.column<ObjectId>(ColKey(col_key_arr[arr_len - 1])) !=
+                                        objectId);
+                    break;
+                case ObjectIdLess:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_less<ObjectId, ObjectId, ObjectId>(linkChain, col_key_arr[arr_len - 1], objectId));
+                    break;
+                case ObjectIdLessEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_lessequal<ObjectId, ObjectId, ObjectId>(linkChain, col_key_arr[arr_len - 1], objectId));
+                    break;
+                case ObjectIdGreater:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_greater<ObjectId, ObjectId, ObjectId>(linkChain, col_key_arr[arr_len - 1], objectId));
+                    break;
+                case ObjectIdGreaterEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_greaterequal<ObjectId, ObjectId, ObjectId>(linkChain, col_key_arr[arr_len - 1], objectId));
+                    break;
+            }
+        }
+    }
+    CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualObjectId(JNIEnv* env, jobject,
                                                                              jlong nativeQueryPtr,
                                                                              jlongArray columnKeys,
                                                                              jlongArray tablePointers,
-                                                                             jbyteArray data)
+                                                                             jstring j_data)
 {
-// FIXME
-(void) env;
-(void) nativeQueryPtr;
-(void) columnKeys;
-(void) tablePointers;
-(void) data;
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3J_3JJJ(JNIEnv* env, jobject,
-                                                                                jlong nativeQueryPtr,
-                                                                                jlongArray columnKeys,
-                                                                                jlongArray tablePointers,
-                                                                                jlong high,
-                                                                                jlong low)
-{
-// FIXME
-(void) env;
-(void) nativeQueryPtr;
-(void) columnKeys;
-(void) tablePointers;
-(void) high;
-(void) low;
-
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, j_data, ObjectIdEqual);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualObjectId(JNIEnv* env, jobject,
-                                                                             jlong nativeQueryPtr,
-                                                                             jlongArray columnKeys,
-                                                                             jlongArray tablePointers,
-                                                                             jbyteArray data)
+                                                                                jlong nativeQueryPtr,
+                                                                                jlongArray columnKeys,
+                                                                                jlongArray tablePointers,
+                                                                                jstring data)
 {
-// FIXME
-(void) env;
-(void) nativeQueryPtr;
-(void) columnKeys;
-(void) tablePointers;
-(void) data;
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLess__J_3J_3JJJ(JNIEnv* env, jobject,
-                                                                               jlong nativeQueryPtr,
-                                                                               jlongArray columnKeys,
-                                                                               jlongArray tablePointers,
-                                                                               jlong high,
-                                                                               jlong low)
-{
-// FIXME
-(void) env;
-(void) nativeQueryPtr;
-(void) columnKeys;
-(void) tablePointers;
-(void) high;
-(void) low;
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, data, ObjectIdNotEqual);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessObjectId(JNIEnv* env, jobject,
                                                                             jlong nativeQueryPtr,
                                                                             jlongArray columnKeys,
                                                                             jlongArray tablePointers,
-                                                                            jbyteArray data)
+                                                                            jstring data)
 {
-// FIXME
-(void) env;
-(void) nativeQueryPtr;
-(void) columnKeys;
-(void) tablePointers;
-(void) data;
-}
-
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqual__J_3J_3JJJ(JNIEnv* env, jobject,
-                                                                               jlong nativeQueryPtr,
-                                                                               jlongArray columnKeys,
-                                                                               jlongArray tablePointers,
-                                                                               jlong high,
-                                                                               jlong low)
-{
-// FIXME
-(void) env;
-(void) nativeQueryPtr;
-(void) columnKeys;
-(void) tablePointers;
-(void) high;
-(void) low;
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, data, ObjectIdLess);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualObjectId(JNIEnv* env, jobject,
-                                                                            jlong nativeQueryPtr,
-                                                                            jlongArray columnKeys,
-                                                                            jlongArray tablePointers,
-                                                                            jbyteArray data)
+                                                                                 jlong nativeQueryPtr,
+                                                                                 jlongArray columnKeys,
+                                                                                 jlongArray tablePointers,
+                                                                                 jstring data)
 {
-// FIXME
-(void) env;
-(void) nativeQueryPtr;
-(void) columnKeys;
-(void) tablePointers;
-(void) data;
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreater__J_3J_3JJJ(JNIEnv* env, jobject,
-                                                                               jlong nativeQueryPtr,
-                                                                               jlongArray columnKeys,
-                                                                               jlongArray tablePointers,
-                                                                               jlong high,
-                                                                               jlong low)
-{
-// FIXME
-(void) env;
-(void) nativeQueryPtr;
-(void) columnKeys;
-(void) tablePointers;
-(void) high;
-(void) low;
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, data, ObjectIdLessEqual);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterObjectId(JNIEnv* env, jobject,
-                                                                            jlong nativeQueryPtr,
-                                                                            jlongArray columnKeys,
-                                                                            jlongArray tablePointers,
-                                                                            jbyteArray data)
-{
-// FIXME
-(void) env;
-(void) nativeQueryPtr;
-(void) columnKeys;
-(void) tablePointers;
-(void) data;
-}
-
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqual__J_3J_3JJJ(JNIEnv* env, jobject,
                                                                                jlong nativeQueryPtr,
                                                                                jlongArray columnKeys,
                                                                                jlongArray tablePointers,
-                                                                               jlong high,
-                                                                               jlong low)
+                                                                               jstring data)
 {
-// FIXME
-(void) env;
-(void) nativeQueryPtr;
-(void) columnKeys;
-(void) tablePointers;
-(void) high;
-(void) low;
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, data, ObjectIdGreater);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualObjectId(JNIEnv* env, jobject,
-                                                                            jlong nativeQueryPtr,
-                                                                            jlongArray columnKeys,
-                                                                            jlongArray tablePointers,
-                                                                            jbyteArray data)
+                                                                                    jlong nativeQueryPtr,
+                                                                                    jlongArray columnKeys,
+                                                                                    jlongArray tablePointers,
+                                                                                    jstring data)
 {
-// FIXME
-(void) env;
-(void) nativeQueryPtr;
-(void) columnKeys;
-(void) tablePointers;
-(void) data;
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, data, ObjectIdGreaterEqual);
 }
+
 
 // String
 

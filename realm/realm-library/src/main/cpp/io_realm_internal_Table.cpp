@@ -252,7 +252,7 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv*,
     ColKey column_key (columnKey);
     TableRef table = TBL_REF(nativeTableRefPtr);
     jint column_type = table->get_column_type(column_key);
-    if (table->is_list(column_key) && column_type < type_LinkList) {
+    if (column_type != type_LinkList &&  table->is_list(column_key)) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
         column_type += 128;
     }
@@ -352,34 +352,41 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetString(JNIEnv* e
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_Table_nativeGetDecimal128(JNIEnv* env, jobject, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {
-// FIXME
-(void) nativeTableRefPtr;
-(void) columnKey;
-(void) rowKey;
-//    TableRef table = TBL_REF(nativeTableRefPtr);
-//    if (!TYPE_VALID(env, table, columnKey, type_String)) {
-//        return nullptr;
-//    }
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {
+        return nullptr;
+    }
     try {
-//        return to_jstring(env, table->get_object(ObjKey(rowKey)).get<StringData>(ColKey(columnKey)));
+        Decimal128 decimal128 = table->get_object(ObjKey(rowKey)).get<Decimal128>(ColKey(columnKey));
+        if (!decimal128.is_null()) {
+            uint64_t* raw = decimal128.raw()->w;
+            jlongArray ret_array = env->NewLongArray(2);
+            if (!ret_array) {
+                ThrowException(env, OutOfMemory, "Could not allocate memory to return decimal128 value.");
+                return nullptr;
+            }
+
+            jlong ret[2] = { jlong(raw[0])/*low*/, jlong(raw[1]) /*high*/};
+            env->SetLongArrayRegion(ret_array, 0, 2, ret);
+            return ret_array;
+
+        } else {
+            return nullptr;
+        }
     }
     CATCH_STD()
     return nullptr;
 }
 
-JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeGetObjectId(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetObjectId(JNIEnv* env, jobject, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {
-    // FIXME
-(void) nativeTableRefPtr;
-(void) columnKey;
-(void) rowKey;
-//    TableRef table = TBL_REF(nativeTableRefPtr);
-//    if (!TYPE_VALID(env, table, columnKey, type_String)) {
-//        return nullptr;
-//    }
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_ObjectId)) {
+        return nullptr;
+    }
     try {
-//        return to_jstring(env, table->get_object(ObjKey(rowKey)).get<StringData>(ColKey(columnKey)));
+        return to_jstring(env, table->get_object(ObjKey(rowKey)).get<ObjectId>(ColKey(columnKey)).to_string().data());
     }
     CATCH_STD()
     return nullptr;
@@ -576,55 +583,44 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(JNIEnv* e
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDecimal128(JNIEnv* env, jclass, jlong nativeTableRefPtr,
-                                                                    jlong columnKey, jlong rowKey, jlong high,
-                                                                    jlong low, jboolean isDefault)
+                                                                    jlong columnKey, jlong rowKey, jlong low,
+                                                                    jlong high, jboolean isDefault)
 {
-        // FIXME
-(void) nativeTableRefPtr;
-(void) columnKey;
-(void) rowKey;
-(void) high;
-(void) low;
-(void) isDefault;
-//    TableRef table = TBL_REF(nativeTableRefPtr);
-//    if (!TYPE_VALID(env, table, columnKey, type_String)) {
-//        return;
-//    }
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {
+        return;
+    }
     try {
-//        if (value == nullptr) {
-//            if (!COL_NULLABLE(env, table, columnKey)) {
-//                return;
-//            }
-//        }
-//        JStringAccessor value2(env, value); // throws
-//        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), StringData(value2), B(isDefault));
+        Decimal128::Bid128 raw {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Decimal128(raw), B(isDefault));
     }
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
-                                                                    jlong columnKey, jlong rowKey, jbyteArray value,
-                                                                    jboolean isDefault)
-{
-// FIXME
-(void) nativeTableRefPtr;
-(void) columnKey;
-(void) rowKey;
-(void) value;
-(void) isDefault;
-
+//JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDecimal128Null(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+//                                                                        jlong columnKey, jlong rowKey, jboolean isDefault)
+//{
 //    TableRef table = TBL_REF(nativeTableRefPtr);
-//    if (!TYPE_VALID(env, table, columnKey, type_String)) {
+//    if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {
 //        return;
 //    }
+//    try {
+//        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Decimal128(), B(isDefault));
+//    }
+//    CATCH_STD()
+//}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                    jlong columnKey, jlong rowKey, jstring j_value,
+                                                                    jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_ObjectId)) {
+        return;
+    }
     try {
-//        if (value == nullptr) {
-//            if (!COL_NULLABLE(env, table, columnKey)) {
-//                return;
-//            }
-//        }
-//        JStringAccessor value2(env, value); // throws
-//        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), StringData(value2), B(isDefault));
+        JStringAccessor value(env, j_value);
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), ObjectId(StringData(value).data()), B(isDefault));
     }
     CATCH_STD()
 }
@@ -886,20 +882,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(JNIEn
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
-                                                                           jlong columnKey, jbyteArray value)
+                                                                           jlong columnKey, jstring j_value)
 {
-    // FIXME
-(void) nativeTableRefPtr;
-(void) columnKey;
-(void) value;
-//    TableRef table = TBL_REF(nativeTableRefPtr);
-//    if (!TYPE_VALID(env, table, columnKey, type_String)) {
-//        return -1;
-//    }
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_ObjectId)) {
+        return -1;
+    }
 
     try {
-//        JStringAccessor value2(env, value); // throws
-//        return to_jlong_or_not_found(table->find_first_string(ColKey(columnKey), value2));
+        JStringAccessor value(env, j_value); // throws
+        ObjectId id = ObjectId(StringData(value).data());
+        return to_jlong_or_not_found(table->find_first_object_id(ColKey(columnKey), id));
     }
     CATCH_STD()
     return -1;

@@ -44,8 +44,6 @@ using namespace realm::_impl;
     X(ObjectId) \
     X(Decimal) \
     X(Binary) \
-    X(Decimal128) \
-    X(ObjectId) \
     X(Object) \
     X(List) \
     X(PropertyList) \
@@ -81,8 +79,8 @@ template <> struct JavaValueTypeRepr<JavaValueType::Date>    { using Type = Time
 template <> struct JavaValueTypeRepr<JavaValueType::ObjectId>{ using Type = ObjectId; };
 template <> struct JavaValueTypeRepr<JavaValueType::Decimal> { using Type = Decimal128; };
 template <> struct JavaValueTypeRepr<JavaValueType::Binary>  { using Type = OwnedBinaryData; };
-template <> struct JavaValueTypeRepr<JavaValueType::Decimal128>  { using Type = Decimal128; };
-template <> struct JavaValueTypeRepr<JavaValueType::ObjectId>  { using Type = ObjectId; };
+//template <> struct JavaValueTypeRepr<JavaValueType::Decimal128>  { using Type = Decimal128; };
+//template <> struct JavaValueTypeRepr<JavaValueType::ObjectId>  { using Type = ObjectId; };
 template <> struct JavaValueTypeRepr<JavaValueType::Object>  { using Type = Obj*; };
 template <> struct JavaValueTypeRepr<JavaValueType::List>    { using Type = std::vector<JavaValue>; };
 template <> struct JavaValueTypeRepr<JavaValueType::PropertyList> { using Type = std::map<ColKey, JavaValue>; };
@@ -523,6 +521,19 @@ template <>
 inline Timestamp JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? v.get_date() : Timestamp();
+}
+
+template <>
+inline Decimal128 JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? v.get_decimal128() : Decimal128();
+}
+
+
+template <>
+inline ObjectId JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? v.get_object_id() : ObjectId();
 }
 
 template <>

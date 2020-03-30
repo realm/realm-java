@@ -167,7 +167,11 @@ public class UncheckedRow implements NativeObject, Row {
     @Override
     public Decimal128 getDecimal128(long columnKey) {
         long[] data = nativeGetDecimal128(nativePtr, columnKey);
-        return Decimal128.fromIEEE754BIDEncoding(data[0], data[1]);
+        if (data != null) {
+            return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -288,7 +292,7 @@ public class UncheckedRow implements NativeObject, Row {
         if (value == null) {
             nativeSetNull(nativePtr, columnKey);
         } else {
-            nativeSetDecimal128(nativePtr, columnKey, value.getHigh(), value.getLow());
+            nativeSetDecimal128(nativePtr, columnKey, value.getLow(), value.getHigh());
         }
     }
 
@@ -298,7 +302,7 @@ public class UncheckedRow implements NativeObject, Row {
         if (value == null) {
             nativeSetNull(nativePtr, columnKey);
         } else {
-            nativeSetObjectId(nativePtr, columnKey, value.toByteArray());
+            nativeSetObjectId(nativePtr, columnKey, value.toString());
         }
     }
 
@@ -367,10 +371,10 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native byte[] nativeGetByteArray(long nativePtr, long columnKey);
 
-    // Returns [high, low] parameters for Decimal128()
+    // Returns String representation for Decimal128()
     protected native long[] nativeGetDecimal128(long nativePtr, long columnKey);
 
-    protected native byte[] nativeGetObjectId(long nativePtr, long columnKey);
+    protected native String nativeGetObjectId(long nativePtr, long columnKey);
 
     protected native void nativeSetLong(long nativeRowPtr, long columnKey, long value);
 
@@ -388,9 +392,9 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native void nativeSetByteArray(long nativePtr, long columnKey, @Nullable byte[] data);
 
-    protected native void nativeSetDecimal128(long nativePtr, long columnKey, long high, long low);
+    protected native void nativeSetDecimal128(long nativePtr, long columnKey, long low, long high);
 
-    protected native void nativeSetObjectId(long nativePtr, long columnKey, byte[] value);
+    protected native void nativeSetObjectId(long nativePtr, long columnKey, String value);
 
     protected native void nativeSetLink(long nativeRowPtr, long columnKey, long value);
 

@@ -38,7 +38,6 @@ import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
 import io.realm.entities.IndexedFields;
-import io.realm.entities.MongoDBTypes;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
@@ -49,6 +48,8 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Table;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
@@ -72,7 +73,7 @@ public class RealmQueryTests extends QueryTests {
             allTypes.setColumnFloat(1.2345f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
-            allTypes.setColumnObjectId(new ObjectId(new Date(i)));
+            allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(i)));
             allTypes.setColumnDecimal128(new Decimal128(new BigDecimal(i + ".23456789")));
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
@@ -661,13 +662,19 @@ public class RealmQueryTests extends QueryTests {
     @Test
     public void equalTo_decimal128() {
         populateTestRealm(realm, 10);
-        // FIXME
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).sort(AllTypes.FIELD_DECIMAL128, Sort.ASCENDING).findAll();
+        for (int i = 0; i < 10; i++) {
+            assertEquals(new Decimal128(new BigDecimal(i + ".23456789")), resultList.get(i).getColumnDecimal128());
+        }
     }
 
     @Test
     public void equalTo_objectId() {
         populateTestRealm(realm, 10);
-        // FIXME
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).sort(AllTypes.FIELD_OBJECT_ID, Sort.ASCENDING).findAll();
+        for (int i = 0; i < 10; i++) {
+            assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(i)), resultList.get(i).getColumnObjectId());
+        }
     }
 
     @Test
@@ -2852,6 +2859,12 @@ public class RealmQueryTests extends QueryTests {
                     case DATE:
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DATE).findAll();
                         break;
+                    case DECIMAL128:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DECIMAL128).findAll();
+                        break;
+                    case OBJECT_ID:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
+                        break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -2964,6 +2977,12 @@ public class RealmQueryTests extends QueryTests {
                         break;
                     case DATE:
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DATE).findAll();
+                        break;
+                    case DECIMAL128:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DECIMAL128).findAll();
+                        break;
+                    case OBJECT_ID:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
                         break;
                     default:
                         fail("Unknown type: " + type);

@@ -52,6 +52,8 @@ private:
         , m_java_lang_boolean(env, "java/lang/Boolean", false)
         , m_shared_realm_schema_change_callback(env, "io/realm/internal/OsSharedRealm$SchemaChangedCallback", false)
         , m_realm_notifier(env, "io/realm/internal/RealmNotifier", false)
+        , m_bson_decimal128(env, "org/bson/types/Decimal128", false)
+        , m_bson_object_id(env, "org/bson/types/ObjectId", false)
     {
     }
 
@@ -64,6 +66,8 @@ private:
 
     jni_util::JavaClass m_shared_realm_schema_change_callback;
     jni_util::JavaClass m_realm_notifier;
+    jni_util::JavaClass m_bson_decimal128;
+    jni_util::JavaClass m_bson_object_id;
 
     inline static std::unique_ptr<JavaClassGlobalDef>& instance()
     {
@@ -153,6 +157,10 @@ public:
     // byte[]
     // return nullptr if binary_data is null
     static jbyteArray new_byte_array(JNIEnv* env, const BinaryData& binary_data);
+
+    static jobject new_decimal128(JNIEnv* env, const Decimal128& decimal128);
+
+    static jobject new_object_id(JNIEnv* env, const ObjectId& objectId);
 
     // io.realm.internal.OsSharedRealm.SchemaChangedCallback
     inline static const jni_util::JavaClass& shared_realm_schema_change_callback()

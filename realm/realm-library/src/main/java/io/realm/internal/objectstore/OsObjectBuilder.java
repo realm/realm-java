@@ -163,14 +163,14 @@ public class OsObjectBuilder implements Closeable {
     private static ItemCallback<Decimal128> decimal128ItemCallback = new ItemCallback<Decimal128>() {
         @Override
         public void handleItem(long listPtr, Decimal128 item) {
-            nativeAddDecimal128ListItem(listPtr, item.getHigh(), item.getLow());
+            nativeAddDecimal128ListItem(listPtr, item.getLow(), item.getHigh());
         }
     };
 
     private static ItemCallback<ObjectId> objectIdItemCallback = new ItemCallback<ObjectId>() {
         @Override
         public void handleItem(long listPtr, ObjectId item) {
-            nativeAddObjectIdListItem(listPtr, item.toByteArray());
+            nativeAddObjectIdListItem(listPtr, item.toString());
         }
     };
 
@@ -280,7 +280,7 @@ public class OsObjectBuilder implements Closeable {
         if (val == null) {
             nativeAddNull(builderPtr, columnIndex);
         } else {
-            nativeAddDecimal128(builderPtr, columnIndex, val.getHigh(), val.getLow());
+            nativeAddDecimal128(builderPtr, columnIndex, val.getLow(), val.getHigh());
         }
     }
 
@@ -288,7 +288,7 @@ public class OsObjectBuilder implements Closeable {
         if (val == null) {
             nativeAddNull(builderPtr, columnIndex);
         } else {
-            nativeAddObjectId(builderPtr, columnIndex, val.toByteArray());
+            nativeAddObjectId(builderPtr, columnIndex, val.toString());
         }
     }
 
@@ -465,8 +465,8 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddByteArray(long builderPtr, long columnIndex, byte[] val);
     private static native void nativeAddDate(long builderPtr, long columnIndex, long val);
     private static native void nativeAddObject(long builderPtr, long columnIndex, long rowPtr);
-    private static native void nativeAddDecimal128(long builderPtr, long columnIndex, long high, long low);
-    private static native void nativeAddObjectId(long builderPtr, long columnIndex, byte[] data);
+    private static native void nativeAddDecimal128(long builderPtr, long columnIndex, long low, long high);
+    private static native void nativeAddObjectId(long builderPtr, long columnIndex, String data);
 
     // Methods for adding lists
     // Lists sent across JNI one element at a time
@@ -480,8 +480,8 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddBooleanListItem(long listPtr, boolean val);
     private static native void nativeAddByteArrayListItem(long listPtr, byte[] val);
     private static native void nativeAddDateListItem(long listPtr, long val);
-    private static native void nativeAddDecimal128ListItem(long listPtr, long high, long low);
-    private static native void nativeAddObjectIdListItem(long listPtr, byte[] data);
+    private static native void nativeAddDecimal128ListItem(long listPtr, long low, long high);
+    private static native void nativeAddObjectIdListItem(long listPtr, String data);
     private static native void nativeAddObjectListItem(long listPtr, long rowPtr);
     private static native void nativeAddObjectList(long builderPtr, long columnIndex, long[] rowPtrs);
 }
