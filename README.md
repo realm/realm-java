@@ -67,17 +67,17 @@ In case you don't want to use the precompiled version, you can build Realm yours
 ### Prerequisites
 
  * Download the [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * The latest stable version of Android Studio. Currently [3.5.2](https://developer.android.com/studio/).
- * Download & install the Android SDK **Build-Tools 27.0.2**, **Android Oreo (API 27)** (for example through Android Studio’s **Android SDK Manager**).
+ * The latest stable version of Android Studio. Currently [3.6.2](https://developer.android.com/studio/).
+ * Download & install the Android SDK **Build-Tools 28.0.3**, **Android Pie (API 28)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
 
  * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
 You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
 
- * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
+ * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/realm-library/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
     ```
-    ndk.dir=/Users/brian/Library/Android/android-ndk-r10e
+    ndk.dir=/Users/<YOUR_USER>/Library/Android/android-ndk-r10e
 
     ```
 
@@ -202,7 +202,7 @@ The repository is organized into six Gradle projects:
  * `realm-transformer`: it contains the bytecode transformer.
  * `gradle-plugin`: it contains the Gradle plugin.
  * `examples`: it contains the example projects. This project directly depends on `gradle-plugin` which adds a dependency to the artifacts produced by `realm`.
- * The root folder is another Gradle project.  All it does is orchestrate the other jobs
+ * The root folder is another Gradle project.  All it does is orchestrate the other jobs.
 
 This means that `./gradlew clean` and `./gradlew cleanExamples` will fail if `assembleExamples` has not been executed first.
 Note that IntelliJ [does not support multiple projects in the same window](https://youtrack.jetbrains.com/issue/IDEABKL-6118#)
@@ -247,7 +247,7 @@ A docker image can be built from `tools/sync_test_server/Dockerfile` to run the 
 
 To run a testing server locally:
 
-1. Install [docker](https://www.docker.com/products/overview).
+1. Install [docker](https://www.docker.com/products/overview) and run it.
 
 2. Run `tools/sync_test_server/start_server.sh`:
 
