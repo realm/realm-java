@@ -222,24 +222,5 @@ public class IOSRealmTests {
         }
         return keyData;
     }
-
-    @Test
-    public void iOSDataTypesMixValues() throws IOException {
-        for (String iosVersion : IOS_VERSIONS) {
-            configFactory.copyRealmFromAssets(context,
-                    "ios/" + iosVersion + "-alltypes-mix.realm", REALM_NAME);
-            realm = Realm.getDefaultInstance();
-
-            IOSAllTypes obj = realm.where(IOSAllTypes.class).findFirst();
-            assertEquals(null, obj.getByteCol());
-            assertEquals(null, obj.getStringCol());
-            assertFalse(obj.isBoolCol());
-            assertEquals(11125, obj.getShortCol());
-            assertEquals(15350, obj.getIntCol());
-            assertEquals(773863123, obj.getLongCol());
-            assertEquals((float) 0.8914557, obj.getFloatCol(), 0F);
-            assertEquals(0.8702290174167451, obj.getDoubleCol(), 0D);
-            assertEquals(Long.MIN_VALUE, obj.getDateCol().getTime());
-        }
-    }
+    
 }
