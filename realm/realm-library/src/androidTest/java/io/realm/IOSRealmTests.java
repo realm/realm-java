@@ -17,8 +17,9 @@
 package io.realm;
 
 import android.content.Context;
-import androidx.test.platform.app.InstrumentationRegistry;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.After;
 import org.junit.Before;
@@ -45,7 +46,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * This class test interoperability with Realms created on iOS.
  */
-@Ignore("FIXME: Disable to unblock unprogress")
+@Ignore("FIXME: See https://github.com/realm/realm-java/issues/6789")
 @RunWith(AndroidJUnit4.class)
 public class IOSRealmTests {
 
