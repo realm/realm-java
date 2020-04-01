@@ -38,7 +38,6 @@ import kotlin.collections.ArrayList
  *
  * Usage:
  * ```
- * @get:Rule
  * val lopperThread = LooperThreadTest()
  *
  * @Before
