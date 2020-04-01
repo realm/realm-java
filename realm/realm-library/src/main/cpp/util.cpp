@@ -32,6 +32,9 @@
 #include "java_exception_def.hpp"
 #include "java_object_accessor.hpp"
 #include "object.hpp"
+#if REALM_ENABLE_SYNC
+#include "sync/app.hpp"
+#endif
 
 #include "jni_util/java_exception_thrower.hpp"
 
@@ -136,6 +139,16 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch(realm::RequiredFieldValueNotProvidedException e) {
         ThrowException(env, IllegalArgument, e.what());
     }
+#if REALM_ENABLE_SYNC
+    catch (realm::app::AppError& e) {
+        // TODO Figure out exactly what kind of mapping is needed here
+        if (e.error_code.category() == realm::app::custom_error_category()) {
+            ThrowException(env, IllegalArgument, e.message);
+        } else {
+            ThrowException(env, IllegalState, e.message);
+        }
+    }
+#endif
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
     }
