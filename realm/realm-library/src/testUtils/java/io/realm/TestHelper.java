@@ -20,6 +20,8 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Looper;
+import android.util.Base64;
+
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Assert;
@@ -34,6 +36,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
@@ -64,6 +69,7 @@ import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 import io.realm.log.RealmLogger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -376,6 +382,56 @@ public class TestHelper {
             sb.append((char) (r.nextInt(26) + 'A')); // Restrict to capital letters
         }
         return sb.toString();
+    }
+
+    // Attempts to backup a Realm file, so it can be retrieve after any tests finished
+    public static void backupRealm(RealmConfiguration config) {
+        try {
+            Path source = new File(config.getPath()).toPath();
+            File backupDir = new File(BaseRealm.applicationContext.getFilesDir(), "realm-backup");
+            if (!backupDir.exists() && !backupDir.mkdir()) {
+                throw new IllegalStateException("Could not create backup folder");
+            }
+            File dest = new File(backupDir, config.getRealmFileName());
+            int i = 0;
+            while (dest.exists()) {
+                dest = new File(backupDir, config.getRealmFileName() + "_" + i);
+            }
+            Files.copy(source, dest.toPath());
+            if (config.getEncryptionKey() != null) {
+                RealmLog.error("Successfully backup of encrypted Realm: %s to %s. The encryption key is: \"%s\"",
+                        source.toAbsolutePath(), dest.getAbsolutePath(), bytesToHex(config.getEncryptionKey()));
+            } else {
+                RealmLog.error("Successfully backup up: %s to %s", source.toAbsolutePath(), dest.getAbsolutePath());
+            }
+        } catch(Exception ex) {
+            RealmLog.error("Attempted to backup file, but it failed.", ex);
+        }
+    }
+
+    //Original source: https://stackoverflow.com/a/9855338/1389357
+    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
+    public static byte[] hexToBytes(String data) {
+        char[] hex = data.toCharArray();
+        byte[] raw = new byte[hex.length / 2];
+        for (int src = 0, dst = 0; dst < raw.length; ++dst) {
+            int hi = Character.digit(hex[src++], 16);
+            int lo = Character.digit(hex[src++], 16);
+            if ((hi < 0) || (lo < 0))
+                throw new IllegalArgumentException();
+            raw[dst] = (byte) (hi << 4 | lo);
+        }
+        return raw;
     }
 
     /**

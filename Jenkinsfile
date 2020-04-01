@@ -151,6 +151,7 @@ try {
           }
         } finally {
           archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
+          archiveBackupFiles()
           mongoDbRealmContainer.stop()
           mongoDbRealmCommandServerContainer.stop()
           sh "docker network rm ${dockerNetworkId}"
@@ -231,6 +232,16 @@ def archiveServerLogs(String mongoDbRealmContainerId, String commandServerContai
     'glob' : 'mongodb.log'
   ])
   sh 'rm mongodb.log'
+}
+
+def archiveBackupFiles() {
+  sh 'adb pull /data/data/io.realm.test/files/realm-backup || true'
+  zip([
+          'zipFile': 'realm-backups.zip',
+          'archive': true,
+          'dir' : 'realm-backup'
+  ])
+  sh 'rm -r realm-backup'
 }
 
 def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {
