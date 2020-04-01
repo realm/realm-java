@@ -51,8 +51,8 @@ public class RealmUser {
     }
 
     public enum State {
-        ACTIVE(OsSyncUser.STATE_LOGGED_IN),
-        ERROR(OsSyncUser.STATE_REMOVED),
+        LOGGED_IN(OsSyncUser.STATE_LOGGED_IN),
+        REMOVED(OsSyncUser.STATE_REMOVED),
         LOGGED_OUT(OsSyncUser.STATE_LOGGED_OUT);
 
         private final byte nativeValue;
