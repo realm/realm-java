@@ -183,7 +183,6 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmApp.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuthProvider.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ApiKeyAuthProvider.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuthProvider.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ClientResetRequiredError.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp

@@ -46,12 +46,8 @@ static jobjectArray map_key(JNIEnv* env, App::UserAPIKey& key)
 }
 
 // Shared mapper function for mapping UserApiKey to Java Object[]
-static std::function<jobject(JNIEnv*, Optional<App::UserAPIKey>)> single_key_mapper = [](JNIEnv* env, Optional<App::UserAPIKey> key) {
-    if (!key) {
-        // Why is it optional?
-        throw std::logic_error("No API key found");
-    }
-    return map_key(env, key.value());
+static std::function<jobject(JNIEnv*, App::UserAPIKey)> single_key_mapper = [](JNIEnv* env, App::UserAPIKey key) {
+    return map_key(env, key);
 };
 
 // Shared mapper function for mapping Vector<UserApiKey> to Java Object[][]

@@ -1,9 +1,0 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="io.realm.test">
-
-    <!-- Enable support for automatic multidex -->
-    <uses-sdk
-        android:minSdkVersion="21"
-        tools:overrideLibrary="io.realm" />
-</manifest>

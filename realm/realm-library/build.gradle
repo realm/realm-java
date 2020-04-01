@@ -42,8 +42,7 @@ android {
     buildToolsVersion rootProject.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 21 // Enable MultiDex for integration tests
-        rootProject.minSdkVersion
+        minSdkVersion 21 // FIXME: Figure out how to enable MultiDex only for ObjectServer tests rootProject.minSdkVersion
         targetSdkVersion rootProject.compileSdkVersion
         versionName version
         project.archivesBaseName = "realm-android-library"
