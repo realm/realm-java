@@ -207,10 +207,10 @@ public class OsObject implements NativeObject {
                     nativeCreateNewObjectWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                             primaryKeyColumnKey, value, primaryKeyValue == null));
         } else if (type == RealmFieldType.OBJECT_ID) {
-            ObjectId value = (ObjectId) primaryKeyValue;
+            String objectIdValue = primaryKeyValue == null ? null : primaryKeyValue.toString();
             return new UncheckedRow(sharedRealm.context, table,
                     nativeCreateNewObjectWithObjectIdPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
-                            primaryKeyColumnKey, value.toByteArray()));
+                            primaryKeyColumnKey, objectIdValue));
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
         }
@@ -227,7 +227,7 @@ public class OsObject implements NativeObject {
      * @return a newly created {@code UncheckedRow}.
      */
     // FIXME: Proxy could just pass the pk index here which is much faster.
-    public static long createRowWithPrimaryKey(Table table, long primaryKeyColumnIndex, Object primaryKeyValue) {
+    public static long createRowWithPrimaryKey(Table table, long primaryKeyColumnIndex, @Nullable Object primaryKeyValue) {
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
         final OsSharedRealm sharedRealm = table.getSharedRealm();
 
@@ -246,8 +246,9 @@ public class OsObject implements NativeObject {
             if (primaryKeyValue != null && !(primaryKeyValue instanceof ObjectId)) {
                 throw new IllegalArgumentException("Primary key value is not an ObjectId: " + primaryKeyValue);
             }
+            String objectIdValue = primaryKeyValue == null ? null : primaryKeyValue.toString();
             return nativeCreateRowWithObjectIdPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
-                    primaryKeyColumnIndex, ((ObjectId) primaryKeyValue).toByteArray());
+                    primaryKeyColumnIndex, objectIdValue);
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
         }
@@ -290,14 +291,14 @@ public class OsObject implements NativeObject {
     // Return a index of newly created Row.
     private static native long nativeCreateRowWithStringPrimaryKey(long sharedRealmPtr,
                                                                    long tableRefPtr, long pk_column_index,
-                                                                   String primaryKeyValue);
+                                                                   @Nullable String primaryKeyValue);
 
     private static native long nativeCreateRowWithObjectIdPrimaryKey(long sharedRealmPtr,
                                                                      long tableRefPtr, long pk_column_index,
-                                                                     @Nullable byte[] primaryKeyValue);
+                                                                     @Nullable String primaryKeyValue);
 
     private static native long nativeCreateNewObjectWithObjectIdPrimaryKey(long sharedRealmPtr,
                                                                            long tableRefPtr, long pk_column_index,
-                                                                           @Nullable byte[] data);
+                                                                           @Nullable String data);
 
 }

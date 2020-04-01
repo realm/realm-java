@@ -31,8 +31,40 @@ object Constants {
             "throw new io.realm.exceptions.RealmException(\"Primary key field '%s' cannot be changed after object was created.\")"
     const val STATEMENT_EXCEPTION_ILLEGAL_JSON_LOAD
             = "throw new io.realm.exceptions.RealmException(\"\\\"%s\\\" field \\\"%s\\\" cannot be loaded from json\")"
-    val JAVA_TO_REALM_TYPES = hashMapOf<String, RealmFieldType>()
-    val LIST_ELEMENT_TYPE_TO_REALM_TYPES = hashMapOf<String, RealmFieldType>()
+    val JAVA_TO_REALM_TYPES = mapOf("byte" to RealmFieldType.INTEGER,
+            "short" to RealmFieldType.INTEGER,
+            "int" to RealmFieldType.INTEGER,
+            "long" to RealmFieldType.INTEGER,
+            "float" to RealmFieldType.FLOAT,
+            "double" to RealmFieldType.DOUBLE,
+            "boolean" to RealmFieldType.BOOLEAN,
+            "java.lang.Byte" to RealmFieldType.INTEGER,
+            "java.lang.Short" to RealmFieldType.INTEGER,
+            "java.lang.Integer" to RealmFieldType.INTEGER,
+            "java.lang.Long" to RealmFieldType.INTEGER,
+            "java.lang.Float" to RealmFieldType.FLOAT,
+            "java.lang.Double" to RealmFieldType.DOUBLE,
+            "java.lang.Boolean" to RealmFieldType.BOOLEAN,
+            "java.lang.String" to RealmFieldType.STRING,
+            "java.util.Date" to RealmFieldType.DATE,
+            "byte[]" to RealmFieldType.BINARY,
+            "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128,
+            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID)
+
+    val LIST_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
+            "java.lang.Byte" to RealmFieldType.INTEGER_LIST,
+            "java.lang.Short" to RealmFieldType.INTEGER_LIST,
+            "java.lang.Integer" to RealmFieldType.INTEGER_LIST,
+            "java.lang.Long" to RealmFieldType.INTEGER_LIST,
+            "java.lang.Float" to RealmFieldType.FLOAT_LIST,
+            "java.lang.Double" to RealmFieldType.DOUBLE_LIST,
+            "java.lang.Boolean" to RealmFieldType.BOOLEAN_LIST,
+            "java.lang.String" to RealmFieldType.STRING_LIST,
+            "java.util.Date" to RealmFieldType.DATE_LIST,
+            "byte[]" to RealmFieldType.BINARY_LIST,
+            "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_LIST,
+            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_LIST
+    )
 
     /**
      * Realm types and their corresponding Java types.
@@ -71,45 +103,5 @@ object Constants {
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.
          */
         val realmType: String = "RealmFieldType.$realmType"
-    }
-
-    init {
-        JAVA_TO_REALM_TYPES.apply {
-            this["byte"] = RealmFieldType.INTEGER
-            this["short"] = RealmFieldType.INTEGER
-            this["int"] = RealmFieldType.INTEGER
-            this["long"] = RealmFieldType.INTEGER
-            this["float"] = RealmFieldType.FLOAT
-            this["double"] = RealmFieldType.DOUBLE
-            this["boolean"] = RealmFieldType.BOOLEAN
-            this["java.lang.Byte"] = RealmFieldType.INTEGER
-            this["java.lang.Short"] = RealmFieldType.INTEGER
-            this["java.lang.Integer"] = RealmFieldType.INTEGER
-            this["java.lang.Long"] = RealmFieldType.INTEGER
-            this["java.lang.Float"] = RealmFieldType.FLOAT
-            this["java.lang.Double"] = RealmFieldType.DOUBLE
-            this["java.lang.Boolean"] = RealmFieldType.BOOLEAN
-            this["java.lang.String"] = RealmFieldType.STRING
-            this["java.util.Date"] = RealmFieldType.DATE
-            this["byte[]"] = RealmFieldType.BINARY
-            this["org.bson.types.Decimal128"] = RealmFieldType.DECIMAL128
-            this["org.bson.types.ObjectId"] = RealmFieldType.OBJECT_ID
-            // TODO: add support for char and Char
-        }
-
-        LIST_ELEMENT_TYPE_TO_REALM_TYPES.apply {
-            this["java.lang.Byte"] = RealmFieldType.INTEGER_LIST
-            this["java.lang.Short"] = RealmFieldType.INTEGER_LIST
-            this["java.lang.Integer"] = RealmFieldType.INTEGER_LIST
-            this["java.lang.Long"] = RealmFieldType.INTEGER_LIST
-            this["java.lang.Float"] = RealmFieldType.FLOAT_LIST
-            this["java.lang.Double"] = RealmFieldType.DOUBLE_LIST
-            this["java.lang.Boolean"] = RealmFieldType.BOOLEAN_LIST
-            this["java.lang.String"] = RealmFieldType.STRING_LIST
-            this["java.util.Date"] = RealmFieldType.DATE_LIST
-            this["byte[]"] = RealmFieldType.BINARY_LIST
-            this["org.bson.types.Decimal128"] = RealmFieldType.DECIMAL128_LIST
-            this["org.bson.types.ObjectId"] = RealmFieldType.OBJECT_ID_LIST
-        }
     }
 }

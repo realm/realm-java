@@ -18,7 +18,6 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
@@ -519,7 +518,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     value = JsonUtils.stringToDate(strValue);
                     break;
                 case DECIMAL128:
-                    value = new Decimal128(new BigDecimal(strValue));
+                    value = Decimal128.parse(strValue);
                     break;
                 case OBJECT_ID:
                     value = new ObjectId(strValue);

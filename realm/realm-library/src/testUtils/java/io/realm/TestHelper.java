@@ -1303,7 +1303,7 @@ public class TestHelper {
 
     public static String randomObjectIdHexString() {
         char[] hex = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E' , 'F'};
-        
+
         StringBuilder randomId = new StringBuilder(24);
         for (int i = 0; i < 24; i++) {
             randomId.append(hex[RANDOM.nextInt(16)]);

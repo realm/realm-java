@@ -213,12 +213,12 @@ public class PendingRow implements Row {
 
     @Override
     public void setDecimal128(long columnKey, Decimal128 value) {
-
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override
     public void setObjectId(long columnKey, ObjectId value) {
-
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override

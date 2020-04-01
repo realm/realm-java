@@ -99,7 +99,8 @@ public enum InvalidRow implements Row {
 
     @Override
     public Decimal128 getDecimal128(long columnKey) {
-        throw getStubException();    }
+        throw getStubException();
+    }
 
     @Override
     public ObjectId getObjectId(long columnKey) {
