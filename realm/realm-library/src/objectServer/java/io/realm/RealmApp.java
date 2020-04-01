@@ -183,7 +183,7 @@ public class RealmApp {
      *
      * @param user user to remove.
      * @param callback callback when removing the user has completed or failed. The callback will always
-     * happen on the same thread as this this method is called on.
+     * happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
     public RealmAsyncTask removeUserAsync(RealmUser user, Callback<RealmUser> callback) {
@@ -276,7 +276,7 @@ public class RealmApp {
      * and will still be returned by {@link #allUsers()}.
      *
      * @param callback callback when logging out has completed or failed. The callback will always
-     * happen on the same thread as this this method is called on.
+     * happen on the same thread as this method is called on.
      * @throws IllegalStateException if not called on a looper thread or no current user could be found.
      */
      public RealmAsyncTask logOutAsync(Callback<RealmUser> callback) {

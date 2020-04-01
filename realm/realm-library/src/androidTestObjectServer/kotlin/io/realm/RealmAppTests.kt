@@ -103,6 +103,7 @@ class RealmAppTests {
         val userCopy: RealmUser = allUsers[user1.id] ?: error("Could not find user")
         assertEquals(user1, userCopy)
         assertEquals(RealmUser.State.REMOVED, userCopy.state)
+        assertTrue(app.allUsers().isEmpty())
     }
 
     @Test
@@ -128,6 +129,17 @@ class RealmAppTests {
             fail()
         } catch (ignore: IllegalArgumentException) {
         }
+    }
+
+    @Test
+    fun currentUser_FallbackToNextValidUser() {
+        val user1: RealmUser = app.login(RealmCredentials.anonymous())
+        val user2: RealmUser = app.login(RealmCredentials.anonymous())
+        assertEquals(user2, app.currentUser())
+        user2.logOut()
+        assertEquals(user1, app.currentUser())
+        user1.logOut()
+        assertNull(app.currentUser())
     }
 
     @Test
