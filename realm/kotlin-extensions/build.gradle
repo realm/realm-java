@@ -20,7 +20,7 @@ android {
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
     defaultConfig {
-        minSdkVersion 21 // FIXME: Figure out how to enable MultiDex only for ObjectServer tests rootProject.minSdkVersion
+        minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.compileSdkVersion
         versionName version
         project.archivesBaseName = "realm-kotlin-extensions"
