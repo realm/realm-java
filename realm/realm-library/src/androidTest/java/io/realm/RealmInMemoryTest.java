@@ -166,7 +166,7 @@ public class RealmInMemoryTest {
         onDiskRealm.close();
 
         // Tests a encrypted Realm file.
-        testRealm.writeEncryptedCopyTo(new File(testDir, encFileName), key);
+        testRealm.writeEncryptedCopyTo(new File(configFactory.getRoot(), encFileName), key);
         try {
             onDiskRealm = Realm.getInstance(encConf);
         } catch (RealmFileException ex) {

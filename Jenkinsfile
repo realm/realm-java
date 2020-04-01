@@ -235,13 +235,15 @@ def archiveServerLogs(String mongoDbRealmContainerId, String commandServerContai
 }
 
 def archiveBackupFiles() {
-  sh 'adb pull /data/data/io.realm.test/files/realm-backup || true'
-  zip([
-          'zipFile': 'realm-backups.zip',
-          'archive': true,
-          'dir' : 'realm-backup'
-  ])
-  sh 'rm -r realm-backup'
+  sh 'adb pull /data/data/io.realm.test/files/realm-backup'
+  if (fileExists('realm-backup')) {
+    zip([
+            'zipFile': 'realm-backups.zip',
+            'archive': true,
+            'dir' : 'realm-backup'
+    ])
+    sh 'rm -r realm-backup'
+  }
 }
 
 def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {
