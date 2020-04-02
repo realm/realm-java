@@ -29,9 +29,12 @@ import org.junit.Assert;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -387,27 +390,28 @@ public class TestHelper {
     // Attempts to backup a Realm file, so it can be retrieve after any tests finished
     public static void backupRealm(RealmConfiguration config) {
         try {
-            Path source = new File(config.getPath()).toPath();
+            File source = new File(config.getPath());
             File backupDir = new File(BaseRealm.applicationContext.getFilesDir(), "realm-backup");
             if (!backupDir.exists() && !backupDir.mkdir()) {
                 throw new IllegalStateException("Could not create backup folder");
             }
-            File dest = new File(backupDir, config.getRealmFileName());
+            File destination = new File(backupDir, config.getRealmFileName());
             int i = 0;
-            while (dest.exists()) {
-                dest = new File(backupDir, config.getRealmFileName() + "_" + i);
+            while (destination.exists()) {
+                destination = new File(backupDir, config.getRealmFileName() + "_" + i);
             }
-            Files.copy(source, dest.toPath());
+            copy(source, destination);
             if (config.getEncryptionKey() != null) {
                 RealmLog.error("Successfully backup of encrypted Realm: %s to %s. The encryption key is: \"%s\"",
-                        source.toAbsolutePath(), dest.getAbsolutePath(), bytesToHex(config.getEncryptionKey()));
+                        source.getAbsolutePath(), destination.getAbsolutePath(), bytesToHex(config.getEncryptionKey()));
             } else {
-                RealmLog.error("Successfully backup up: %s to %s", source.toAbsolutePath(), dest.getAbsolutePath());
+                RealmLog.error("Successfully backup up: %s to %s", source.getAbsolutePath(), destination.getAbsolutePath());
             }
         } catch(Exception ex) {
             RealmLog.error("Attempted to backup file, but it failed.", ex);
         }
     }
+
 
     //Original source: https://stackoverflow.com/a/9855338/1389357
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
@@ -432,6 +436,26 @@ public class TestHelper {
             raw[dst] = (byte) (hi << 4 | lo);
         }
         return raw;
+    }
+
+    // Credit: https://stackoverflow.com/questions/9292954/how-to-make-a-copy-of-a-file-in-android
+    public static void copy(File src, File dst) throws IOException {
+        InputStream in = new FileInputStream(src);
+        try {
+            OutputStream out = new FileOutputStream(dst);
+            try {
+                // Transfer bytes from in to out
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+            } finally {
+                out.close();
+            }
+        } finally {
+            in.close();
+        }
     }
 
     /**
