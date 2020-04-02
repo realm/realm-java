@@ -412,7 +412,6 @@ public class TestHelper {
         }
     }
 
-
     //Original source: https://stackoverflow.com/a/9855338/1389357
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
     public static String bytesToHex(byte[] bytes) {
