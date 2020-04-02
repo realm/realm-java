@@ -15,6 +15,7 @@
  */
 package io.realm
 
+import io.realm.ErrorCode
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.*
@@ -148,8 +149,63 @@ class RealmCredentialsTests {
         expectException<java.lang.IllegalArgumentException> { RealmCredentials.jwt(TestHelper.getNull()) }
     }
 
+    fun expectErrorCode(app: RealmApp, expectedCode: ErrorCode, credentials: RealmCredentials) {
+        try {
+            app.login(credentials)
+            fail()
+        } catch (error: ObjectServerError) {
+            assertEquals(expectedCode, error.errorCode)
+        }
+    }
+
     @Test
     fun loginUsingCredentials() {
+        val app = TestRealmApp()
+        try {
+            RealmCredentials.IdentityProvider.values().forEach { provider ->
+                when(provider) {
+                    RealmCredentials.IdentityProvider.ANONYMOUS -> {
+                        val user = app.login(RealmCredentials.anonymous())
+                        assertNotNull(user)
+                    }
+                    RealmCredentials.IdentityProvider.API_KEY -> {
+                        // FiXME: Wait for ApiKeyAuthProvider support
+                    }
+                    RealmCredentials.IdentityProvider.CUSTOM_FUNCTION -> {
+                        // FIXME Wait for Custom Function support
+                    }
+                    RealmCredentials.IdentityProvider.EMAIL_PASSWORD -> {
+                        val email = TestHelper.getRandomEmail()
+                        val password = "123456"
+                        app.emailPasswordAuthProvider.registerUser(email, password)
+                        val user = app.login(RealmCredentials.emailPassword(email, password))
+                        assertNotNull(user)
+                    }
 
+                    // These providers are hard to test for real since they depend on a 3rd party
+                    // login service. Instead we attempt to login and verify that a proper exception
+                    // is thrown. At least that should verify that correctly formatted JSON is being
+                    // sent across the wire.
+                    RealmCredentials.IdentityProvider.FACEBOOK -> {
+                        expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.facebook("facebook-token"))
+                    }
+                    RealmCredentials.IdentityProvider.APPLE -> {
+                        expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.apple("apple-token"))
+                    }
+                    RealmCredentials.IdentityProvider.GOOGLE -> {
+                        expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.google("google-token"))
+                    }
+                    RealmCredentials.IdentityProvider.JWT ->  {
+                        // FIXME: Wait for OS Support
+                        // expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.jwt("jwt-token"))
+                    }
+                    RealmCredentials.IdentityProvider.UNKNOWN -> {
+                        // Ignore
+                    }
+                }
+            }
+        } finally {
+            app.close()
+        }
     }
 }
