@@ -60,9 +60,9 @@ public class ApiKeyAuthProvider {
     /**
      * Creates a user API key that can be used to authenticate as the user.
      * <p>
-     * The keys value must be persisted at this time as this is the only time it is visible.
+     * The value of the key must be persisted at this time as this is the only time it is visible.
      * <p>
-     * The key is enabled when created. I can be disabled by calling {@link #disableApiKey(ObjectId)}.
+     * The key is enabled when created. It can be disabled by calling {@link #disableApiKey(ObjectId)}.
      *
      * @param name the name of the key
      * @throws ObjectServer if the server failed to create the API key.
@@ -85,13 +85,13 @@ public class ApiKeyAuthProvider {
     /**
      * Asynchronously creates a user API key that can be used to authenticate as the user.
      * <p>
-     * The keys value must be persisted at this time as this is the only time it is visible.
+     * The value of the key must be persisted at this time as this is the only time it is visible.
      * <p>
-     * The key is enabled when created. I can be disabled by calling {@link #disableApiKey(ObjectId)}.
+     * The key is enabled when created. It can be disabled by calling {@link #disableApiKey(ObjectId)}.
      *
      * @param name the name of the key
      * @param callback callback when key creation has completed or failed. The callback will always
-     * happen on the same thread as this this method is called on.
+     * happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
     public RealmAsyncTask createApiKeyAsync(String name, RealmApp.Callback<RealmUserApiKey> callback) {
