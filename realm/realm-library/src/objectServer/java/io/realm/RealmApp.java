@@ -197,11 +197,20 @@ public class RealmApp {
     }
 
     /**
-     * FIXME
+     * Logs in as a user with the given credentials associated with an authentication provider.
+     * <p>
+     * The user who logs in becomes the current user. Other RealmApp functionality acts on behalf of
+     * the current user.
+     * <p>
+     * If there was already an current user, that user is still logged in and can be found in the
+     * list returned by {@link #allUsers()}.
+     * <p>
+     * It is also possible to switch between which user is considered the current user by using
+     * {@link #switchUser(RealmUser)}.
      *
-     * @param credentials
-     * @return
-     * @throws ObjectServerError
+     * @param credentials the credentials representing the type of login.
+     * @return a {@link RealmUser} representing the logged in user.
+     * @throws ObjectServerError if the user could not be logged in.
      */
     public RealmUser login(RealmCredentials credentials) throws ObjectServerError {
         Util.checkNull(credentials, "credentials");
@@ -218,13 +227,24 @@ public class RealmApp {
     }
 
     /**
-     * FIXME
-     * @param credentials
-     * @param callback
-     * @return
+     * Logs in as a user with the given credentials associated with an authentication provider.
+     * <p>
+     * The user who logs in becomes the current user. Other RealmApp functionality acts on behalf of
+     * the current user.
+     * <p>
+     * If there was already an current user, that user is still logged in and can be found in the
+     * list returned by {@link #allUsers()}.
+     * <p>
+     * It is also possible to switch between which user is considered the current user by using
+     * {@link #switchUser(RealmUser)}.
+     *
+     * @param credentials the credentials representing the type of login.
+     * @param callback callback when logging in has completed or failed. The callback will always
+     * happen on the same thread as this method is called on.
+     * @throws IllegalStateException if not called on a looper thread.
      */
-    public RealmAsyncTask loginAsync(RealmCredentials credentials, Callback<RealmUser> callback) {
-        Util.checkLooperThread("Asynchronous login is only possible from looper threads.");
+     public RealmAsyncTask loginAsync(RealmCredentials credentials, Callback<RealmUser> callback) {
+        Util.checkLooperThread("Asynchronous log in is only possible from looper threads.");
         return new Request<RealmUser>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public RealmUser run() throws ObjectServerError {

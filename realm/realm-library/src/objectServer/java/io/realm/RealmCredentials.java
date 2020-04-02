@@ -19,7 +19,6 @@ package io.realm;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsAppCredentials;
 
-
 /**
  * FIXME: Revisit this description when all providers are implemented.
  *
@@ -84,7 +83,7 @@ public class RealmCredentials {
      * FIXME
      */
     public static RealmCredentials apiKey(String key) {
-        assertStringNotEmpty(key, "id");
+        Util.checkEmpty(key, "id");
         return new RealmCredentials(OsAppCredentials.apiKey(key));
     }
 
@@ -92,7 +91,7 @@ public class RealmCredentials {
      * FIXME
      */
     public static RealmCredentials apple(String idToken) {
-        assertStringNotEmpty(idToken, "idToken");
+        Util.checkEmpty(idToken, "idToken");
         return new RealmCredentials(OsAppCredentials.apple(idToken));
     }
 
@@ -100,7 +99,7 @@ public class RealmCredentials {
      * FIXME
      */
     public static RealmCredentials customFunction(String functionName, Object... arguments) {
-//        assertStringNotEmpty(idToken, "idToken");
+        // Util.checkEmpty(idToken, "idToken");
         return new RealmCredentials(OsAppCredentials.customFunction(functionName, arguments));
     }
 
@@ -108,8 +107,8 @@ public class RealmCredentials {
      * FIXME
      */
     public static RealmCredentials emailPassword(String email, String password) {
-        assertStringNotEmpty(email, "email");
-        assertStringNotEmpty(password, "password");
+        Util.checkEmpty(email, "email");
+        Util.checkEmpty(password, "password");
         return new RealmCredentials(OsAppCredentials.emailPassword(email, password));
     }
 
@@ -123,7 +122,7 @@ public class RealmCredentials {
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static RealmCredentials facebook(String accessToken) {
-        assertStringNotEmpty(accessToken, "accessToken");
+        Util.checkEmpty(accessToken, "accessToken");
         return new RealmCredentials(OsAppCredentials.facebook(accessToken));
     }
 
@@ -137,7 +136,7 @@ public class RealmCredentials {
      * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static RealmCredentials google(String googleToken) {
-        assertStringNotEmpty(googleToken, "googleToken");
+        Util.checkEmpty(googleToken, "googleToken");
         return new RealmCredentials(OsAppCredentials.google(googleToken));
     }
 
@@ -151,7 +150,7 @@ public class RealmCredentials {
      * @throws IllegalArgumentException if the token is either {@code null} or empty.
      */
     public static RealmCredentials jwt(String jwtToken) {
-        assertStringNotEmpty(jwtToken, "jwtToken");
+        Util.checkEmpty(jwtToken, "jwtToken");
         return new RealmCredentials(OsAppCredentials.jwt(jwtToken));
     }
 
@@ -171,13 +170,6 @@ public class RealmCredentials {
      */
     public String asJson() {
         return osCredentials.asJson();
-    }
-
-    private static void assertStringNotEmpty(String string, String message) {
-        //noinspection ConstantConditions
-        if (Util.isEmptyString(string)) {
-            throw new IllegalArgumentException("Non-null '" + message + "' required.");
-        }
     }
 
     private RealmCredentials(OsAppCredentials credentials) {

@@ -23,7 +23,6 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@Ignore("FIXME: Reenable these when adding full suppport for a Credentials")
 @RunWith(AndroidJUnit4::class)
 class RealmCredentialsTests {
 
@@ -35,43 +34,58 @@ class RealmCredentialsTests {
         }
     }
 
-    @Test
-    fun anonymous() {
-        val creds = RealmCredentials.anonymous()
-        assertEquals("anon-user", creds.identityProvider)
-        assertNotNull(creds.asJson()) // Treat the JSON as an opaque value.
+    inline fun <reified T : Exception> expectException(method: () -> Unit) {
+        try {
+            method()
+            fail()
+        } catch (e: Throwable) {
+            if (e !is T) {
+                fail("Unexpected exception: $e")
+            }
+        }
     }
 
     @Test
+    fun anonymous() {
+        val creds = RealmCredentials.anonymous()
+        assertEquals("anon-user", creds.identityProvider.id)
+        assertTrue(creds.asJson().contains("anon-user")) // Treat the JSON as an opaque value.
+    }
+
+    @Ignore("FIXME: Awaiting ObjectStore support")
+    @Test
     fun apiKey() {
-        TODO()
+        val creds = RealmCredentials.apiKey("token")
+        assertEquals("anon-user", creds.identityProvider.id)
+        assertTrue(creds.asJson().contains("token")) // Treat the JSON as an opaque value.
     }
 
     @Test
     fun apiKey_invalidInput() {
-        TODO()
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.apiKey("") }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.apiKey(TestHelper.getNull()) }
     }
 
     @Test
     fun apple() {
         val creds = RealmCredentials.apple("apple-token")
-        assertEquals("oauth2-apple", creds.identityProvider)
+        assertEquals("oauth2-apple", creds.identityProvider.id)
         assertTrue(creds.asJson().contains("apple-token")) // Treat the JSON as a largely opaque value.
     }
 
     @Test
     fun apple_invalidInput() {
-        try {
-            RealmCredentials.apple("")
-        } catch (ignored: IllegalArgumentException) {
-        }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.apple("") }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.apple(TestHelper.getNull()) }
     }
 
+    @Ignore("FIXME: Awaiting ObjectStore support")
     @Test
     fun customFunction() {
         TODO()
     }
 
+    @Ignore("FIXME: Awaiting ObjectStore support")
     @Test
     fun customFunction_invalidInput() {
         TODO()
@@ -80,7 +94,7 @@ class RealmCredentialsTests {
     @Test
     fun emailPassword() {
         val creds = RealmCredentials.emailPassword("foo@bar.com", "secret")
-        assertEquals("local-userpass", creds.identityProvider)
+        assertEquals("local-userpass", creds.identityProvider.id)
         // Treat the JSON as a largely opaque value.
         assertTrue(creds.asJson().contains("foo@bar.com"))
         assertTrue(creds.asJson().contains("secret"))
@@ -88,52 +102,54 @@ class RealmCredentialsTests {
 
     @Test
     fun emailPassword_invalidInput() {
-        TODO()
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.emailPassword("", "password") }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.emailPassword("email", "") }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.emailPassword(TestHelper.getNull(), "password") }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.emailPassword("email", TestHelper.getNull()) }
     }
 
     @Test
     fun facebook() {
         val creds = RealmCredentials.facebook("fb-token")
-        assertEquals("oauth2-facebook", creds.identityProvider)
+        assertEquals("oauth2-facebook", creds.identityProvider.id)
         assertTrue(creds.asJson().contains("fb-token"))
     }
 
     @Test
     fun facebook_invalidInput() {
-        try {
-            RealmCredentials.facebook("")
-        } catch (ignored: IllegalArgumentException) {
-        }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.facebook("") }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.facebook(TestHelper.getNull()) }
     }
 
     @Test
     fun google() {
         val creds = RealmCredentials.google("google-token")
-        assertEquals("google", creds.identityProvider)
+        assertEquals("oauth2-google", creds.identityProvider.id)
         assertTrue(creds.asJson().contains("google-token"))
     }
 
     @Test
     fun google_invalidInput() {
-        try {
-            RealmCredentials.google("")
-        } catch (ignored: IllegalArgumentException) {
-        }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.google("") }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.google(TestHelper.getNull()) }
     }
 
+    @Ignore("FIXME: Awaiting ObjectStore support")
     @Test
     fun jwt() {
         val creds = RealmCredentials.google("jwt-token")
-        assertEquals("jwt", creds.identityProvider)
+        assertEquals("jwt", creds.identityProvider.id)
         assertTrue(creds.asJson().contains("jwt-token"))
     }
 
     @Test
     fun jwt_invalidInput() {
-        try {
-            RealmCredentials.google("")
-        } catch (ignored: IllegalArgumentException) {
-        }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.jwt("") }
+        expectException<java.lang.IllegalArgumentException> { RealmCredentials.jwt(TestHelper.getNull()) }
     }
 
+    @Test
+    fun loginUsingCredentials() {
+
+    }
 }

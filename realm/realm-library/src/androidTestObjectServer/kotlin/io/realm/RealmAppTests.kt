@@ -43,12 +43,57 @@ class RealmAppTests {
         app.close()
     }
 
-    // FIXME: Smoke test for the network protocol and associated classes.
     @Test
     fun login() {
         val creds = RealmCredentials.anonymous()
         var user = app.login(creds)
         assertNotNull(user)
+    }
+
+    @Test
+    fun login_invalidUserThrows() {
+        val credentials = RealmCredentials.emailPassword("foo", "bar")
+        try {
+            app.login(credentials)
+            fail()
+        } catch(ex: ObjectServerError) {
+            assertEquals(ErrorCode.AUTH_ERROR, ex.errorCode)
+        }
+    }
+
+    @Test
+    fun login_invalidArgsThrows() {
+        try {
+            app.login(TestHelper.getNull())
+            fail()
+        } catch(ignore: IllegalArgumentException) {
+        }
+    }
+
+    @Test
+    fun loginAsync() = looperThread.runBlocking {
+        app.loginAsync(RealmCredentials.anonymous()) { result ->
+            assertNotNull(result.orThrow)
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun loginAsync_invalidUserThrows() = looperThread.runBlocking {
+        app.loginAsync(RealmCredentials.emailPassword("foo", "bar")) { result ->
+            assertFalse(result.isSuccess)
+            assertEquals(ErrorCode.AUTH_ERROR, result.error.errorCode)
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun loginAsync_throwsOnNonLooperThread() {
+        try {
+            app.loginAsync(RealmCredentials.anonymous()) { fail() }
+            fail()
+        } catch (ignore: IllegalStateException) {
+        }
     }
 
     @Test
@@ -154,7 +199,7 @@ class RealmAppTests {
     @Ignore("Add this test once we have support for both EmailPassword and ApiKey Auth Providers")
     @Test
     fun switchUser_authProvidersLockUsers() {
-        TODO()
+        TODO("FIXME")
     }
 
     @Test
