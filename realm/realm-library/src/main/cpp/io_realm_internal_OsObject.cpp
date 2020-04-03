@@ -229,7 +229,7 @@ static inline Obj do_create_row_with_object_id_primary_key(JNIEnv* env, jlong sh
 
     auto objectId = (str_accessor.is_null()) ? realm::ObjectId() : ObjectId(StringData(str_accessor).data());
     if (pk_value) {
-        if (bool(table->find_first_object_id(col_key, objectId.m_value))) {
+        if (bool(table->find_first_object_id(col_key, objectId))) {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
                                  format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
         }
