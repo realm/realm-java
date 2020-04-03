@@ -38,7 +38,6 @@ import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.log.RealmLog;
-import io.realm.mongodb.RealmMongoDBService;
 
 /**
  * FIXME
@@ -391,23 +390,6 @@ public class RealmApp {
             return;
         }
         authListeners.remove(listener);
-    }
-
-    // Services entry point
-    public RealmFunctions getFunctions() {
-        // FIXME
-        return null;
-    }
-
-    public RealmPushNotifications getFSMPushNotifications() {
-        // FIXME
-        return null;
-
-    }
-
-    public RealmMongoDBService getMongoDBService() {
-        // FIXME
-        return null;
     }
 
     // Private API's for now.

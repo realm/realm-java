@@ -25,6 +25,7 @@ import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
 import io.realm.internal.Util;
+import io.realm.mongodb.RealmMongoDBService;
 
 /**
  * FIXME
@@ -273,6 +274,28 @@ public class RealmUser {
                 return user;
             }
         }.start();
+    }
+
+    /**
+     * FIXME Add support for functions. Name of Class and method still TBD.
+     */
+    public RealmFunctions getFunctions() {
+        return null;
+    }
+
+    /**
+     * FIXME Add support for push notifications. Name of Class and method still TBD.
+     */
+    public RealmPushNotifications getFSMPushNotifications() {
+        return null;
+
+    }
+
+    /**
+     * FIXME Add support for the MongoDB wrapper. Name of Class and method still TBD.
+     */
+    public RealmMongoDBService getMongoDBService() {
+        return null;
     }
 
     @Override
