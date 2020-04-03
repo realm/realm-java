@@ -28,6 +28,27 @@ using namespace realm::app;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
+JNIEXPORT void JNICALL Java_io_realm_RealmUser_nativeLinkUser(JNIEnv* env,
+                                                             jclass,
+                                                             jlong j_app_ptr,
+                                                             jlong j_user_ptr,
+                                                             jlong j_credentials_ptr,
+                                                             jobject j_callback)
+{
+    try {
+        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
+        auto credentials = reinterpret_cast<AppCredentials*>(j_credentials_ptr);
+        std::function<jobject(JNIEnv*, std::shared_ptr<SyncUser>)> mapper = [](JNIEnv* env, std::shared_ptr<SyncUser> user) {
+            auto* java_user = new std::shared_ptr<SyncUser>(std::move(user));
+            return JavaClassGlobalDef::new_long(env, reinterpret_cast<int64_t>(java_user));
+        };
+        auto callback = JavaNetworkTransport::create_result_callback(env, j_callback, mapper);
+        app->link_user(user, *credentials, callback);
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_RealmUser_nativeLogOut(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_user_ptr, jobject j_callback)
 {
     try {

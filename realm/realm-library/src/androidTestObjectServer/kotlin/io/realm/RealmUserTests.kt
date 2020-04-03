@@ -16,6 +16,7 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
 import io.realm.rule.RunInLooperThread
 import io.realm.rule.RunTestInLooperThread
@@ -25,6 +26,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.IllegalArgumentException
 
 @RunWith(AndroidJUnit4::class)
 class RealmUserTests {
@@ -33,10 +35,12 @@ class RealmUserTests {
 
     private lateinit var app: RealmApp
     private lateinit var anonUser: RealmUser
+    private lateinit var admin: ServerAdmin
 
     @Before
     fun setUp() {
         app = TestRealmApp()
+        admin = ServerAdmin()
         anonUser = app.login(RealmCredentials.anonymous())
     }
 
@@ -103,6 +107,78 @@ class RealmUserTests {
             fail()
         } catch (ignore: IllegalStateException) {
         }
+    }
+
+    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUser() {
+        admin.setAutomaticConfirmation(enabled = false)
+        val user: RealmUser = app.login(RealmCredentials.anonymous())
+        assertEquals(1, user.identities.size)
+        val email = TestHelper.getRandomEmail()
+        val password = "123456"
+        app.emailPasswordAuthProvider.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
+        val linkedUser: RealmUser = user.linkUser(RealmCredentials.emailPassword(email, password))
+        assertTrue(user === linkedUser)
+        assertEquals(2, linkedUser.identities.size)
+        assertEquals(RealmCredentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+        admin.setAutomaticConfirmation(enabled = true)
+    }
+
+    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUser_existingCredentialsThrows() {
+        val email = TestHelper.getRandomEmail()
+        val password = "123456"
+        val emailUser: RealmUser = app.registerUserAndLogin(email, password)
+        val anonymousUser: RealmUser = app.login(RealmCredentials.anonymous())
+        try {
+            anonymousUser.linkUser(RealmCredentials.emailPassword(email, password))
+            fail()
+        } catch (ex: ObjectServerError) {
+            assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
+        }
+    }
+
+    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUser_invalidArgsThrows() {
+        try {
+            anonUser.linkUser(TestHelper.getNull())
+            fail()
+        } catch (ignore: IllegalArgumentException) {
+        }
+    }
+
+    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUserAsync() {
+        admin.setAutomaticConfirmation(enabled = false)
+        val user: RealmUser = app.login(RealmCredentials.anonymous())
+        assertEquals(1, user.identities.size)
+        val email = TestHelper.getRandomEmail()
+        val password = "123456"
+        app.emailPasswordAuthProvider.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
+        looperThread.runBlocking {
+            anonUser.linkUserAsync(RealmCredentials.emailPassword(email, password)) { result ->
+                val linkedUser: RealmUser = result.orThrow
+                assertTrue(user === linkedUser)
+                assertEquals(2, linkedUser.identities.size)
+                assertEquals(RealmCredentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+                admin.setAutomaticConfirmation(enabled = true)
+            }
+        }
+    }
+
+    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUserAsync_throwsOnNonLooperThread() {
+        try {
+            anonUser.linkUserAsync(RealmCredentials.emailPassword(TestHelper.getRandomEmail(), "123456")) { fail() }
+            fail()
+        } catch (ignore: java.lang.IllegalStateException) {
+        }
+
     }
 
 }

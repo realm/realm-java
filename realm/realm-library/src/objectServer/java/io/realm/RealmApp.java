@@ -155,80 +155,6 @@ public class RealmApp {
     }
 
     /**
-     * Links the current user with a new user identity represented by the given credentials.
-     * <p>
-     * Linking a user with more credentials, mean the user can login either of these credentials.
-     * It also makes it possible to "upgrade" an anonymous user by linking it with e.g.
-     * Email/Password credentials.
-     * <pre>
-     * {@code
-     * // Example
-     * RealmApp app = new RealmApp("app-id")
-     * RealmUser user = app.login(RealmCredentials.anonymous());
-     * app.linkUser(RealmCredentials.emailPassword("email", "password"));
-     * }
-     * </pre>
-     * <p>
-     * Note: It is not possible to link two existing users of MongoDB Realm. The provided credentials
-     * must not have been used by another user.
-     *
-     * @param credentials the credentials to link with the current user.
-     * @throws IllegalStateException if no user is currently logged in.
-     * @return the {@link io.realm.RealmUser} the credentials were linked to.
-     */
-    public RealmUser linkUser(RealmCredentials credentials) {
-        Util.checkNull(credentials, "credentials");
-        final RealmUser user = currentUser();
-        if (user == null) {
-            throw new IllegalStateException("No user is logged in");
-        }
-        AtomicReference<RealmUser> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeLinkUser(nativePtr, user.osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
-            @Override
-            protected RealmUser mapSuccess(Object result) {
-                user.osUser = new OsSyncUser((long) result); // OS returns the updated user as a new one.
-                return user;
-            }
-        });
-        return handleResult(success, error);
-    }
-
-
-    /**
-     * Links the current user with a new user identity represented by the given credentials.
-     * <p>
-     * Linking a user with more credentials, mean the user can login either of these credentials.
-     * It also makes it possible to "upgrade" an anonymous user by linking it with e.g.
-     * Email/Password credentials.
-     * <pre>
-     * {@code
-     * // Example
-     * RealmApp app = new RealmApp("app-id")
-     * RealmUser user = app.login(RealmCredentials.anonymous());
-     * app.linkUser(RealmCredentials.emailPassword("email", "password"));
-     * }
-     * </pre>
-     * <p>
-     * Note: It is not possible to link two existing users of MongoDB Realm. The provided credentials
-     * must not have been used by another user.
-     *
-     * @param credentials the credentials to link with the current user.
-     * @param callback callback when user identities has been linked or it failed. The callback will
-     * always happen on the same thread as this method is called on.
-     * @throws IllegalStateException if called from a non-looper thread.
-     */
-    public RealmAsyncTask linkUserAsync(RealmCredentials credentials, Callback<RealmUser> callback) {
-        Util.checkLooperThread("Asynchronous linking identities is only possible from looper threads.");
-        return new Request<RealmUser>(NETWORK_POOL_EXECUTOR, callback) {
-            @Override
-            public RealmUser run() throws ObjectServerError {
-                return linkUser(credentials);
-            }
-        }.start();
-    }
-
-    /**
      * Removes a users credentials from this device. If the user was currently logged in, they
      * will be logged out as part of the process. This is only a local change and does not
      * affect the user state on the server.
@@ -656,5 +582,4 @@ public class RealmApp {
     private static native long[] nativeGetAllUsers(long nativePtr);
     private static native void nativeSwitchUser(long nativeAppPtr, long nativeUserPtr);
     private static native void nativeRemoveUser(long nativeAppPtr, long nativeUserPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeLinkUser(long nativeAppPtr, long nativeUserPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

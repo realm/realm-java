@@ -27,6 +27,8 @@ import io.realm.internal.util.Pair;
 import io.realm.internal.Util;
 import io.realm.mongodb.RealmMongoDBService;
 
+import static io.realm.RealmApp.handleResult;
+
 /**
  * FIXME
  */
@@ -222,6 +224,85 @@ public class RealmUser {
     }
 
     /**
+     * Returns whether or not this user is still logged into the MongoDB Realm App.
+     *
+     * @return {@code true} if still logged in, {@code false} if not.
+     */
+    public boolean isLoggedIn() {
+        return getState() == State.LOGGED_IN;
+    }
+
+    /**
+     * Links the current user with a new user identity represented by the given credentials.
+     * <p>
+     * Linking a user with more credentials, mean the user can login either of these credentials.
+     * It also makes it possible to "upgrade" an anonymous user by linking it with e.g.
+     * Email/Password credentials.
+     * <pre>
+     * {@code
+     * // Example
+     * RealmApp app = new RealmApp("app-id")
+     * RealmUser user = app.login(RealmCredentials.anonymous());
+     * app.linkUser(RealmCredentials.emailPassword("email", "password"));
+     * }
+     * </pre>
+     * <p>
+     * Note: It is not possible to link two existing users of MongoDB Realm. The provided credentials
+     * must not have been used by another user.
+     *
+     * @param credentials the credentials to link with the current user.
+     * @throws IllegalStateException if no user is currently logged in.
+     * @return the {@link io.realm.RealmUser} the credentials were linked to.
+     */
+    public RealmUser linkUser(RealmCredentials credentials) {
+        Util.checkNull(credentials, "credentials");
+        checkLoggedIn();
+        AtomicReference<RealmUser> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        nativeLinkUser(app.nativePtr, osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new RealmApp.OsJNIResultCallback<RealmUser>(success, error) {
+            @Override
+            protected RealmUser mapSuccess(Object result) {
+                osUser = new OsSyncUser((long) result); // OS returns the updated user as a new one.
+                return RealmUser.this;
+            }
+        });
+        return handleResult(success, error);
+    }
+
+    /**
+     * Links the current user with a new user identity represented by the given credentials.
+     * <p>
+     * Linking a user with more credentials, mean the user can login either of these credentials.
+     * It also makes it possible to "upgrade" an anonymous user by linking it with e.g.
+     * Email/Password credentials.
+     * <pre>
+     * {@code
+     * // Example
+     * RealmApp app = new RealmApp("app-id")
+     * RealmUser user = app.login(RealmCredentials.anonymous());
+     * app.linkUser(RealmCredentials.emailPassword("email", "password"));
+     * }
+     * </pre>
+     * <p>
+     * Note: It is not possible to link two existing users of MongoDB Realm. The provided credentials
+     * must not have been used by another user.
+     *
+     * @param credentials the credentials to link with the current user.
+     * @param callback callback when user identities has been linked or it failed. The callback will
+     * always happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    public RealmAsyncTask linkUserAsync(RealmCredentials credentials, RealmApp.Callback<RealmUser> callback) {
+        Util.checkLooperThread("Asynchronous linking identities is only possible from looper threads.");
+        return new RealmApp.Request<RealmUser>(app.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public RealmUser run() throws ObjectServerError {
+                return linkUser(credentials);
+            }
+        }.start();
+    }
+
+    /**
      * Log the current user out of the Realm App asynchronously, destroying their server state, unregistering them from the
      * SDK, and removing any synced Realms associated with them from on-disk storage on next app
      * launch.
@@ -242,7 +323,7 @@ public class RealmUser {
     public void logOut() throws ObjectServerError {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeLogOut(app.nativePtr, osUser.getNativePtr(), new RealmApp.OsJNIVoidResultCallback(error));
-        RealmApp.handleResult(null, error);
+        handleResult(null, error);
     }
 
     /**
@@ -316,6 +397,13 @@ public class RealmUser {
         return result;
     }
 
+    private void checkLoggedIn() {
+        if (!isLoggedIn()) {
+            throw new IllegalStateException("User is not logged in.");
+        }
+    }
+
+    private static native void nativeLinkUser(long nativeAppPtr, long nativeUserPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }
 
