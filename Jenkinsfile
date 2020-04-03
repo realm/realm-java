@@ -119,6 +119,7 @@ try {
                   stopLogCatCollector(backgroundPid)
                   storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
                   storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+                  archiveRealmBackupFiles()
                 }
               }
 
@@ -231,6 +232,18 @@ def archiveServerLogs(String mongoDbRealmContainerId, String commandServerContai
     'glob' : 'mongodb.log'
   ])
   sh 'rm mongodb.log'
+}
+
+def archiveRealmBackupFiles() {
+  sh 'adb pull /data/data/io.realm.test/files/realm-backup'
+  if (fileExists('realm-backup')) {
+    zip([
+            'zipFile': 'realm-backups.zip',
+            'archive': true,
+            'dir' : 'realm-backup'
+    ])
+    sh 'rm -r realm-backup'
+  }
 }
 
 def sendMetrics(String metricName, String metricValue, Map<String, String> tags) {

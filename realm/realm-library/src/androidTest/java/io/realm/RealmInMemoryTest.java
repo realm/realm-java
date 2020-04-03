@@ -40,7 +40,6 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
-@Ignore("FIXME: See https://github.com/realm/realm-java/issues/6790")
 @RunWith(AndroidJUnit4.class)
 public class RealmInMemoryTest {
 
@@ -168,7 +167,14 @@ public class RealmInMemoryTest {
 
         // Tests a encrypted Realm file.
         testRealm.writeEncryptedCopyTo(new File(configFactory.getRoot(), encFileName), key);
-        onDiskRealm = Realm.getInstance(encConf);
+        try {
+            onDiskRealm = Realm.getInstance(encConf);
+        } catch (RealmFileException ex) {
+            // Attempt to backup the file in case of a crash.
+            // See https://github.com/realm/realm-java/issues/6790
+            TestHelper.backupRealm(encConf);
+            throw ex;
+        }
         assertEquals(1, onDiskRealm.where(Dog.class).count());
         onDiskRealm.close();
         // Tests with a wrong key to see if it fails as expected.
