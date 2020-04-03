@@ -16,6 +16,9 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.realm.admin.ServerAdmin
+import io.realm.log.LogLevel
+import io.realm.log.RealmLog
 import io.realm.rule.BlockingLooperThread
 import io.realm.rule.RunInLooperThread
 import io.realm.rule.RunTestInLooperThread
@@ -32,10 +35,12 @@ class RealmAppTests {
 
     private val looperThread = BlockingLooperThread()
     private lateinit var app: TestRealmApp
+    private lateinit var admin: ServerAdmin
 
     @Before
     fun setUp() {
         app = TestRealmApp()
+        admin = ServerAdmin()
     }
 
     @After
@@ -43,12 +48,57 @@ class RealmAppTests {
         app.close()
     }
 
-    // FIXME: Smoke test for the network protocol and associated classes.
     @Test
     fun login() {
         val creds = RealmCredentials.anonymous()
         var user = app.login(creds)
         assertNotNull(user)
+    }
+
+    @Test
+    fun login_invalidUserThrows() {
+        val credentials = RealmCredentials.emailPassword("foo", "bar")
+        try {
+            app.login(credentials)
+            fail()
+        } catch(ex: ObjectServerError) {
+            assertEquals(ErrorCode.AUTH_ERROR, ex.errorCode)
+        }
+    }
+
+    @Test
+    fun login_invalidArgsThrows() {
+        try {
+            app.login(TestHelper.getNull())
+            fail()
+        } catch(ignore: IllegalArgumentException) {
+        }
+    }
+
+    @Test
+    fun loginAsync() = looperThread.runBlocking {
+        app.loginAsync(RealmCredentials.anonymous()) { result ->
+            assertNotNull(result.orThrow)
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun loginAsync_invalidUserThrows() = looperThread.runBlocking {
+        app.loginAsync(RealmCredentials.emailPassword("foo", "bar")) { result ->
+            assertFalse(result.isSuccess)
+            assertEquals(ErrorCode.AUTH_ERROR, result.error.errorCode)
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun loginAsync_throwsOnNonLooperThread() {
+        try {
+            app.loginAsync(RealmCredentials.anonymous()) { fail() }
+            fail()
+        } catch (ignore: IllegalStateException) {
+        }
     }
 
     @Test
@@ -154,7 +204,7 @@ class RealmAppTests {
     @Ignore("Add this test once we have support for both EmailPassword and ApiKey Auth Providers")
     @Test
     fun switchUser_authProvidersLockUsers() {
-        TODO()
+        TODO("FIXME")
     }
 
     @Test
@@ -267,4 +317,107 @@ class RealmAppTests {
         } catch (ignore: IllegalStateException) {
         }
     }
+
+    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUser() {
+        admin.setAutomaticConfirmation(enabled = false)
+        val user: RealmUser = app.login(RealmCredentials.anonymous())
+        assertEquals(1, user.identities.size)
+        val email = TestHelper.getRandomEmail()
+        val password = "123456"
+        app.emailPasswordAuthProvider.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
+        val linkedUser: RealmUser = app.linkUser(RealmCredentials.emailPassword(email, password))
+        assertTrue(user === linkedUser)
+        assertEquals(2, linkedUser.identities.size)
+        assertEquals(RealmCredentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+        admin.setAutomaticConfirmation(enabled = true)
+    }
+
+    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUser_existingCredentialsThrows() {
+        admin.setAutomaticConfirmation(enabled = false)
+        val email = TestHelper.getRandomEmail()
+        val password = "123456"
+        val emailUser: RealmUser = app.registerUserAndLogin(email, password)
+        val anonymousUser: RealmUser = app.login(RealmCredentials.anonymous())
+        try {
+            app.linkUser(RealmCredentials.emailPassword(email, password))
+            fail()
+        } catch (ex: ObjectServerError) {
+            assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
+        }
+    }
+
+    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUser_noCurrentUserThrows() {
+        try {
+            app.linkUser(RealmCredentials.emailPassword(TestHelper.getRandomEmail(), "123456"))
+            fail()
+        } catch (ignore: IllegalStateException) {
+        }
+    }
+
+    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUser_invalidArgsThrows() {
+        try {
+            app.linkUser(TestHelper.getNull())
+            fail()
+        } catch (ignore: IllegalArgumentException) {
+        }
+    }
+
+    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUserAsync() {
+        admin.setAutomaticConfirmation(enabled = false)
+        val user: RealmUser = app.login(RealmCredentials.anonymous())
+        assertEquals(1, user.identities.size)
+        val email = TestHelper.getRandomEmail()
+        val password = "123456"
+        app.emailPasswordAuthProvider.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
+        looperThread.runBlocking {
+            app.linkUserAsync(RealmCredentials.emailPassword(email, password)) { result ->
+                val linkedUser: RealmUser = result.orThrow
+                assertTrue(user === linkedUser)
+                assertEquals(2, linkedUser.identities.size)
+                assertEquals(RealmCredentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+                admin.setAutomaticConfirmation(enabled = true)
+            }
+        }
+    }
+
+    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUserAsync_throwsOnNonLooperThread() {
+        val user: RealmUser = app.login(RealmCredentials.anonymous())
+        try {
+            app.linkUserAsync(RealmCredentials.emailPassword(TestHelper.getRandomEmail(), "123456")) { fail() }
+            fail()
+        } catch (ignore: java.lang.IllegalStateException) {
+        }
+
+    }
+
+    @Test
+    fun getApiKeyAuthProvider() {
+        val user1: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val provider1: ApiKeyAuthProvider = app.apiKeyAuthProvider
+        val user2: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val provider2: ApiKeyAuthProvider = app.apiKeyAuthProvider
+
+        assertNotEquals(provider1, provider2)
+        user2.logOut()
+        assertEquals(provider1, app.apiKeyAuthProvider)
+        user1.logOut()
+        try {
+            app.apiKeyAuthProvider
+            fail()
+        } catch (ignore: IllegalStateException) {
+        }
+    }
+
 }

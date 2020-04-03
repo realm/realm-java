@@ -19,61 +19,47 @@ package io.realm;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsAppCredentials;
 
-
 /**
- * FIXME: Revisit this description when all providers are implemented.
- *
- * Credentials represent a login with a 3rd party login provider in an OAuth2 login flow, and are used by the Realm
- * Object Server to verify the user and grant access.
+ * Credentials represent a login with a given login provider, and are used by the MongoDB Realm to
+ * verify the user and grant access. The {@link IdentityProvider#EMAIL_PASSWORD} provider is enabled
+ * by default. All other providers must be enabled on MongoDB Realm to work.
  * <p>
- * Logging into the Realm Object Server consists of the following steps:
- * <ol>
- * <li>
- *     Log in to 3rd party provider (Facebook or Google). The result is usually an Authorization Grant that must be
- *     saved in a {@link RealmCredentials} object of the proper type e.g., {@link RealmCredentials#facebook(String)} for a
- *     Facebook login.
- * </li>
- * <li>
- *     Authenticate a {@link RealmUser} through the Object Server using these credentials. Once authenticated,
- *     an Object Server user is returned. Then this user can be attached to a {@link io.realm.SyncConfiguration}, which
- *     will make it possible to synchronize data between the local and remote Realm.
- *     <p>
- *     It is possible to persist the user object e.g., using the {@link UserStore}. That means, logging
- *     into an OAuth2 provider is only required the first time the app is used.
- * </li>
- * </ol>
- *
+ * Note that users wanting to login using Email/Password must register first using
+ * {@link io.realm.EmailPasswordAuthProvider#registerUser(String, String)}.
+ * </p>
+ * Credentials are used the following way:
  * <pre>
  * {@code
  * // Example
- *
- * Credentials credentials = Credentials.facebook(getFacebookToken());
- * User.login(credentials, "http://objectserver.realm.io/auth", new User.Callback() {
- *     \@Override
- *     public void onSuccess(User user) {
- *          // User is now authenticated and be be used to open Realms.
+ * RealmApp app = new RealmApp("app-id");
+ * RealmCredentials credentials = RealmCredentials.emailPassword("email", "password");
+ * RealmUser user = app.loginAsync(credentials, new RealmApp.Callback<RealmUser>() {
+ *   \@Override
+ *   public void onResult(Result<RealmUser> result) {
+ *     if (result.isSuccess() {
+ *       handleLogin(result.get());
+ *     } else {
+ *       handleError(result.getError());
  *     }
- *
- *     \@Override
- *     public void onError(ObjectServerError error) {
- *
- *     }
- * });
+ *   }
+ * ));
  * }
  * </pre>
+ * @see <a href="https://docs.mongodb.com/stitch/authentication/providers/">Authentication Providers</a>
  */
 public class RealmCredentials {
 
     OsAppCredentials osCredentials;
 
     /**
-     * FIXME
-     * Creates credentials anonymously.
+     * Creates credentials representing an anonymous user.
+     * <p>
+     * Logging the user out again means that data is lost with no means of recovery
+     * and it isn't possible to share the user details across devices.
+     * <p>
+     * The anonymous user must be linked to another real user to preserve data after a log out.
      *
-     *  Note: logging the user out again means that data is lost with no means of recovery
-     *  and it isn't possible to share the user details across devices.
-     *
-     * @return a set of credentials that can be used to log into the Object Server using
+     * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
      */
     public static RealmCredentials anonymous() {
@@ -81,77 +67,101 @@ public class RealmCredentials {
     }
 
     /**
-     * FIXME
+     * Creates credentials representing a login using an API key.
+     * <p>
+     * This provider must be enabled on MongoDB Realm to work.
+     *
+     * @param key the API key to use for login.
+     * @return a set of credentials that can be used to log into MongoDB Realm using
+     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
      */
     public static RealmCredentials apiKey(String key) {
-        assertStringNotEmpty(key, "id");
+        Util.checkEmpty(key, "id");
         return new RealmCredentials(OsAppCredentials.apiKey(key));
     }
 
     /**
-     * FIXME
+     * Creates credentials representing a login using an Apple ID token.
+     * <p>
+     * This provider must be enabled on MongoDB Realm to work.
+     *
+     * @param idToken the ID token generated when using your Apple login.
+     * @return a set of credentials that can be used to log into MongoDB Realm using
+     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
      */
     public static RealmCredentials apple(String idToken) {
-        assertStringNotEmpty(idToken, "idToken");
+        Util.checkEmpty(idToken, "idToken");
         return new RealmCredentials(OsAppCredentials.apple(idToken));
     }
 
     /**
      * FIXME
+     * <p>
+     * This provider must be enabled on MongoDB Realm to work.
+     *
+     * @return a set of credentials that can be used to log into MongoDB Realm using
+     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
      */
     public static RealmCredentials customFunction(String functionName, Object... arguments) {
-//        assertStringNotEmpty(idToken, "idToken");
+        // FIXME: How to check arguments?
+        Util.checkEmpty(functionName, "functionName");
         return new RealmCredentials(OsAppCredentials.customFunction(functionName, arguments));
     }
 
     /**
-     * FIXME
+     * Creates credentials representing a login using email and password.
+     *
+     * @param email email of the user logging in.
+     * @param password password of the user logging in.
+     * @return a set of credentials that can be used to log into MongoDB Realm using
+     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
      */
     public static RealmCredentials emailPassword(String email, String password) {
-        assertStringNotEmpty(email, "email");
-        assertStringNotEmpty(password, "password");
+        Util.checkEmpty(email, "email");
+        Util.checkEmpty(password, "password");
         return new RealmCredentials(OsAppCredentials.emailPassword(email, password));
     }
 
     /**
-     * FIXME
-     * Creates credentials based on a Facebook login.
+     * Creates credentials representing a login using an Facebook access token.
+     * <p>
+     * This provider must be enabled on MongoDB Realm to work.
      *
-     * @param accessToken a facebook userIdentifier acquired by logging into Facebook.
-     * @return a set of credentials that can be used to log into the Object Server using
+     * @param accessToken the access token returned when logging in to Facebook.
+     * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
-     * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static RealmCredentials facebook(String accessToken) {
-        assertStringNotEmpty(accessToken, "accessToken");
+        Util.checkEmpty(accessToken, "accessToken");
         return new RealmCredentials(OsAppCredentials.facebook(accessToken));
     }
 
     /**
-     * FIXME
-     * Creates credentials based on a Google login.
+     * Creates credentials representing a login using an Google access token.
+     * <p>
+     * This provider must be enabled on MongoDB Realm to work.
      *
-     * @param googleToken a google userIdentifier acquired by logging into Google.
-     * @return a set of credentials that can be used to log into the Object Server using
+     * @param googleToken the access token returned when logging in to Google.
+     * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
-     * @throws IllegalArgumentException if user name is either {@code null} or empty.
      */
     public static RealmCredentials google(String googleToken) {
-        assertStringNotEmpty(googleToken, "googleToken");
+        Util.checkEmpty(googleToken, "googleToken");
         return new RealmCredentials(OsAppCredentials.google(googleToken));
     }
 
     /**
-     * FIXME
-     * Creates credentials based on a JSON Web Token (JWT).
+     * Creates credentials representing a login using an JWT Token. This token is normally generated
+     * after a custom OAuth2 login flow.
+     * <p>
+     * This provider must be enabled on MongoDB Realm to work.
      *
-     * @param jwtToken a JWT token that identifies the user.
-     * @return a set of credentials that can be used to log into the Object Server using
+     * @param jwtToken the jwt token returned after a custom login to a another service.
+     * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
-     * @throws IllegalArgumentException if the token is either {@code null} or empty.
      */
     public static RealmCredentials jwt(String jwtToken) {
-        assertStringNotEmpty(jwtToken, "jwtToken");
+        Util.checkEmpty(jwtToken, "jwtToken");
         return new RealmCredentials(OsAppCredentials.jwt(jwtToken));
     }
 
@@ -173,64 +183,34 @@ public class RealmCredentials {
         return osCredentials.asJson();
     }
 
-    private static void assertStringNotEmpty(String string, String message) {
-        //noinspection ConstantConditions
-        if (Util.isEmptyString(string)) {
-            throw new IllegalArgumentException("Non-null '" + message + "' required.");
-        }
-    }
-
     private RealmCredentials(OsAppCredentials credentials) {
         this.osCredentials = credentials;
     }
 
     /**
-     * FIXME
+     * This enum contains the list of identity providers supported by MongoDB Realm.
+     * All of these except {@link #EMAIL_PASSWORD} must be enabled manually on MongoDB Realm to
+     * work.
+     *
+     * @see <a href="https://docs.mongodb.com/stitch/authentication/providers/">Authentication Providers</a>
      */
     public enum IdentityProvider {
-        /**
-         * FIXME
-         */
         ANONYMOUS("anon-user"),
-        /**
-         * FIXME
-         */
         API_KEY(""), // FIXME
-        /**
-         * FIXME
-         */
         APPLE("oauth2-apple"),
-        /**
-         * FIXME
-         */
         CUSTOM_FUNCTION(""), // FIXME
-        /**
-         * FIXME
-         */
         EMAIL_PASSWORD("local-userpass"),
-
-        /**
-         * FIXME
-         */
         FACEBOOK("oauth2-facebook"),
-        /**
-         * FIXME
-         */
         GOOGLE("oauth2-google"),
-        /**
-         * FIXME
-         */
         JWT("jwt"),
-        /**
-         * FIXME
-         */
         UNKNOWN("");
 
         /**
-         * FIXME
+         * Create the identity provider from the ID string returned by MongoDB Realm.
          *
          * @param id the string identifier for the provider
-         * @return
+         * @return the enum representing the provider or {@link #UNKNOWN} if no matching provider
+         * was found.
          */
         public static IdentityProvider fromId(String id) {
             for (IdentityProvider value : values()) {
@@ -248,7 +228,7 @@ public class RealmCredentials {
         }
 
         /**
-         * FIXME
+         * Return the string presentation of this identity provider.
          */
         public String getId() {
             return id;

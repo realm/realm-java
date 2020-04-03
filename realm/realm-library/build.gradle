@@ -65,7 +65,6 @@ android {
 
         buildTypes {
             debug {
-                defaultConfig.minSdkVersion 21 // Enables MultiDex since testing methods exceed DEX max count
                 javaCompileOptions {
                     annotationProcessorOptions {
                         arguments += [ 'realm.suppressWarnings' : 'false' ]
@@ -213,9 +212,7 @@ dependencies {
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
     objectServerImplementation 'com.squareup.okhttp3:okhttp:3.12.0' // Going above this requires minSDK 21
-    // When updating this, `libs/bson-x.jar` must also be updated.
-    implementation 'org.mongodb:bson:3.12.0' // FIXME: Optional/Sync only? Also figure out how to include maven dependency
-
+    objectServerImplementation "org.mongodb:bson:3.12.0"
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
     androidTestImplementation 'io.reactivex.rxjava2:rxandroid:2.1.1'

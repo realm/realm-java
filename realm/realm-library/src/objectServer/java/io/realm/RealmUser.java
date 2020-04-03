@@ -28,7 +28,7 @@ import io.realm.internal.util.Pair;
  */
 public class RealmUser {
 
-    final OsSyncUser osUser;
+    OsSyncUser osUser;
     private final RealmApp app;
 
     /**

@@ -57,10 +57,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAppCredentials_nati
                 creds = AppCredentials::apple(id_token);
                 break;
             }
-            case io_realm_internal_objectstore_OsAppCredentials_TYPE_API_KEY:
+            case io_realm_internal_objectstore_OsAppCredentials_TYPE_GOOGLE: {
+                JStringAccessor id_token(env, (jstring) env->GetObjectArrayElement(j_args, 0));
+                creds = AppCredentials::google(id_token);
+                break;
+            }
+            case io_realm_internal_objectstore_OsAppCredentials_TYPE_JWT: {
+                JStringAccessor token(env, (jstring) env->GetObjectArrayElement(j_args, 0));
+                creds = AppCredentials::custom(token);
+                break;
+            }
             case io_realm_internal_objectstore_OsAppCredentials_TYPE_CUSTOM_FUNCTION:
-            case io_realm_internal_objectstore_OsAppCredentials_TYPE_GOOGLE:
-            case io_realm_internal_objectstore_OsAppCredentials_TYPE_JWT:
+            case io_realm_internal_objectstore_OsAppCredentials_TYPE_API_KEY:
             default:
                 throw std::runtime_error(util::format("Unknown credentials type: %1", j_type));
         }

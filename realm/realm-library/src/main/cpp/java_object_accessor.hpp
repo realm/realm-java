@@ -332,16 +332,13 @@ public:
     // This constructor is the only one used by the object accessor code, and is
     // used when recurring into a link or array property during object creation
     // (i.e. prop.type will always be Object or Array).
-    JavaContext(JavaContext& c, Property const& prop)
-            : m_env(c.m_env),
-              realm(c.realm)
+    JavaContext(JavaContext& c, Obj parent, Property const& prop)
+            : m_env(c.m_env)
+            , realm(c.realm)
+            , m_parent(std::move(parent))
+            , m_property(&prop)
             , object_schema(prop.type == PropertyType::Object ? &*realm->schema().find(prop.object_type) : c.object_schema)
     { }
-
-    bool is_embedded() const
-    {
-        return object_schema ? bool(object_schema->is_embedded) : false;
-    }
 
     // The use of util::Optional for the following two functions is not a hard
     // requirement; only that it be some type which can be evaluated in a
@@ -455,9 +452,13 @@ public:
     // mimick this behavior so just return false here.
     bool allow_missing(JavaValue const&) const { return false; }
 
+    Obj create_embedded_object();
+
 private:
     JNIEnv* m_env;
     std::shared_ptr<Realm> realm;
+    Obj m_parent;
+    const Property* m_property = nullptr;
     const ObjectSchema* object_schema = nullptr;
 
     inline void check_value_not_null(JavaValue const& v, const char* expected_type) const
@@ -539,7 +540,7 @@ inline Obj JavaContext::unbox(JavaValue const& v, CreatePolicy policy, ObjKey cu
 {
     if (v.get_type() == JavaValueType::Object) {
         return *v.get_object();
-    } else if (policy == CreatePolicy::Skip) {
+    } else if (!policy.create) {
         return Obj();
     }
     REALM_ASSERT(object_schema);
@@ -588,12 +589,9 @@ inline util::Optional<Decimal> JavaContext::unbox(JavaValue const& v, CreatePoli
     return v.has_value() ? util::make_optional(v.get_decimal128()) : util::none;
 }
 
-inline Obj JavaContext::unbox_embedded(JavaValue const& v, CreatePolicy policy, Obj& parent, ColKey col, size_t ndx) const
-{
-    return Object::create_embedded(const_cast<JavaContext&>(*this), realm, *object_schema, v, policy, parent, col, ndx).obj();
+inline Obj JavaContext::create_embedded_object() {
+    return m_parent.create_and_set_linked_object(m_property->column_key);
 }
-
-
 
 }
 

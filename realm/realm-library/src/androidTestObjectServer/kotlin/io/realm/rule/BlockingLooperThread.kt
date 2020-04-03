@@ -209,7 +209,7 @@ class BlockingLooperThread {
 
     private fun closeResources() {
         synchronized(lock) {
-            for (cr in closableResources!!) {
+            for (cr in closableResources) {
                 cr.close()
             }
         }
@@ -231,7 +231,7 @@ class BlockingLooperThread {
             try {
                 val executorService = Executors.newSingleThreadExecutor { runnable -> Thread(runnable, threadName) }
                 val test = TestThread(test)
-                val ignored = executorService.submit(test)
+                executorService.submit(test)
                 TestHelper.exitOrThrow(executorService, signalTestCompleted, test)
             } catch (testFailure: Throwable) {
                 // These exceptions should only come from TestHelper.awaitOrFail()

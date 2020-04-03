@@ -69,7 +69,8 @@ capitalizeFirstLetter(buildTypeCap "${CMAKE_BUILD_TYPE}")
 # Generate JNI header files. Each build has its own JNI header in its build_dir/jni_include.
 # WARNING: The classes_PATH is not part the public API offered by the Android Gradle Plugin
 # so it might change without warning when upgrading the plugin.
-set(bsonlib_PATH ${CMAKE_SOURCE_DIR}/../../../cmake-libs/bson-3.12.0.jar)
+file(DOWNLOAD "https://repo1.maven.org/maven2/org/mongodb/bson/3.12.1/bson-3.12.1.jar" "${PROJECT_BINARY_DIR}/bson-3.12.1.jar")
+set(bsonlib_PATH ${PROJECT_BINARY_DIR}/bson-3.12.1.jar)
 set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/javac/${REALM_FLAVOR}${buildTypeCap}/classes/)
 set(classes_LIST
     io.realm.RealmQuery
@@ -91,6 +92,7 @@ if (build_SYNC)
     list(APPEND classes_LIST
         io.realm.ClientResetRequiredError
         io.realm.EmailPasswordAuthProvider
+        io.realm.ApiKeyAuthProvider
         io.realm.RealmApp
         io.realm.SyncManager
         io.realm.SyncSession
@@ -103,7 +105,7 @@ if (build_SYNC)
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
-    CLASSPATH ${classes_PATH} ${bsonlib_PATH} $ENV{ANDROID_HOME}/platforms/android-29/android.jar
+    CLASSPATH ${classes_PATH} $ENV{ANDROID_HOME}/platforms/android-29/android.jar ${bsonlib_PATH}
     OUTPUT_DIR ${jni_headers_PATH}
     DEPENDS ${classes_PATH}
 )
@@ -150,7 +152,8 @@ endif()
 #     -Wno-missing-field-initializers disable in object store as well.
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
-    -Wno-missing-field-initializers -Wno-unevaluated-expression -Wno-unreachable-code")
+    -Wno-missing-field-initializers -Wno-unevaluated-expression -Wno-unreachable-code \
+    -Wno-c99-extensions")
 set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections -pthread -frtti -fvisibility=hidden -fsigned-char -fno-stack-protector -std=c++17")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
@@ -180,6 +183,7 @@ if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmApp.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuthProvider.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ApiKeyAuthProvider.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ClientResetRequiredError.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
