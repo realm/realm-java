@@ -36,6 +36,7 @@ public class RealmUser {
 
     OsSyncUser osUser;
     private final RealmApp app;
+    private ApiKeyAuthProvider apiKeyAuthProvider = null;
 
     /**
      * FIXME
@@ -396,6 +397,20 @@ public class RealmUser {
                 return user;
             }
         }.start();
+    }
+
+    /**
+     * Returns a wrapper for managing API keys controlled by the current user.
+     *
+     * @return wrapper for managing API keys controlled by the current user.
+     * @throws IllegalStateException if no user is currently logged in.
+     */
+    public synchronized ApiKeyAuthProvider getApiKeyAuthProvider() {
+        checkLoggedIn();
+        if (apiKeyAuthProvider == null) {
+            apiKeyAuthProvider = new ApiKeyAuthProvider(this);
+        }
+        return apiKeyAuthProvider;
     }
 
     /**

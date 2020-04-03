@@ -87,7 +87,6 @@ public class RealmApp {
     private OsJavaNetworkTransport networkTransport;
     final long nativePtr;
     private final EmailPasswordAuthProvider emailAuthProvider = new EmailPasswordAuthProvider(this);
-    private ApiKeyAuthProvider apiKeyAuthProvider = null;
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
 
     public RealmApp(String appId) {
@@ -210,23 +209,6 @@ public class RealmApp {
             }
         }.start();
     }
-
-    /**
-     * Returns a wrapper for managing API keys controlled by the current user.
-     *
-     * @return wrapper for managing API keys controlled by the current user.
-     * @throws IllegalStateException if no user is currently logged in.
-     */
-     public synchronized ApiKeyAuthProvider getApiKeyAuthProvider() {
-         RealmUser user = currentUser();
-         if (user == null) {
-             throw new IllegalStateException("No user is currently logged in.");
-         }
-         if (apiKeyAuthProvider == null || !user.equals(apiKeyAuthProvider.getUser())) {
-             apiKeyAuthProvider = new ApiKeyAuthProvider(user);
-         }
-         return apiKeyAuthProvider;
-     }
 
     /**
      * Returns a wrapper for interacting with functionality related to users either being created or
