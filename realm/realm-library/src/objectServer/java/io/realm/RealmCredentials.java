@@ -103,7 +103,8 @@ public class RealmCredentials {
      * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
      */
     public static RealmCredentials customFunction(String functionName, Object... arguments) {
-        // Util.checkEmpty(idToken, "idToken");
+        // FIXME: How to check arguments?
+        Util.checkEmpty(functionName, "functionName");
         return new RealmCredentials(OsAppCredentials.customFunction(functionName, arguments));
     }
 

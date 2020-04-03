@@ -187,9 +187,9 @@ public class RealmApp {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeLinkUser(nativePtr, user.osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
             @Override
-            protected void mapSuccess(Object result, AtomicReference<RealmUser> success) {
+            protected RealmUser mapSuccess(Object result) {
                 user.osUser = new OsSyncUser((long) result); // OS returns the updated user as a new one.
-                success.set(user);
+                return user;
             }
         });
         return handleResult(success, error);

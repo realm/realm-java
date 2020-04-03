@@ -169,7 +169,11 @@ class RealmCredentialsTests {
                         assertNotNull(user)
                     }
                     RealmCredentials.IdentityProvider.API_KEY -> {
-                        // FiXME: Wait for ApiKeyAuthProvider support
+                        // FIXME: Wait for API Key support in OS
+//                        val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+//                        val key: RealmUserApiKey = app.apiKeyAuthProvider.createApiKey("my-key");
+//                        val apiKeyUser = app.login(RealmCredentials.apiKey(key.value!!))
+//                        assertNotNull(apiKeyUser)
                     }
                     RealmCredentials.IdentityProvider.CUSTOM_FUNCTION -> {
                         // FIXME Wait for Custom Function support
@@ -196,8 +200,7 @@ class RealmCredentialsTests {
                         expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.google("google-token"))
                     }
                     RealmCredentials.IdentityProvider.JWT ->  {
-                        // FIXME: Wait for OS Support
-                        // expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.jwt("jwt-token"))
+                        expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.jwt("jwt-token"))
                     }
                     RealmCredentials.IdentityProvider.UNKNOWN -> {
                         // Ignore

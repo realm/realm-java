@@ -395,7 +395,7 @@ class RealmAppTests {
     fun linkUserAsync_throwsOnNonLooperThread() {
         val user: RealmUser = app.login(RealmCredentials.anonymous())
         try {
-            app.linkUserAsync(RealmCredentials.emailPassword(TestHelper.getRandomEmail(), "123456"))
+            app.linkUserAsync(RealmCredentials.emailPassword(TestHelper.getRandomEmail(), "123456")) { fail() }
             fail()
         } catch (ignore: java.lang.IllegalStateException) {
         }
