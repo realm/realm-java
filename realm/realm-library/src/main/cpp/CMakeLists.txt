@@ -152,7 +152,8 @@ endif()
 #     -Wno-missing-field-initializers disable in object store as well.
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
-    -Wno-missing-field-initializers -Wno-unevaluated-expression -Wno-unreachable-code")
+    -Wno-missing-field-initializers -Wno-unevaluated-expression -Wno-unreachable-code \
+    -Wno-c99-extensions")
 set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections -pthread -frtti -fvisibility=hidden -fsigned-char -fno-stack-protector -std=c++17")
 if (build_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
