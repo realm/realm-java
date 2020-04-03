@@ -155,49 +155,6 @@ public class RealmApp {
     }
 
     /**
-     * Removes a users credentials from this device. If the user was currently logged in, they
-     * will be logged out as part of the process. This is only a local change and does not
-     * affect the user state on the server.
-     *
-     * @param user user to remove.
-     * @return user that was removed.
-     * @throws ObjectServerError if called from the UI thread or if the user was logged in, but
-     * could not be logged out.
-     */
-    public RealmUser removeUser(RealmUser user) throws ObjectServerError {
-        Util.checkNull(user, "user");
-        AtomicReference<RealmUser> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeRemoveUser(nativePtr, user.osUser.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
-            @Override
-            protected RealmUser mapSuccess(Object result) {
-                return user;
-            }
-        });
-        return handleResult(success, error);
-    }
-
-    /**
-     * Removes a users credentials from this device. If the user was currently logged in, they
-     * will be logged out as part of the process. This is only a local change and does not
-     * affect the user state on the server.
-     *
-     * @param user user to remove.
-     * @param callback callback when removing the user has completed or failed. The callback will always
-     * happen on the same thread as this method is called on.
-     * @throws IllegalStateException if called from a non-looper thread.
-     */
-    public RealmAsyncTask removeUserAsync(RealmUser user, Callback<RealmUser> callback) {
-        Util.checkLooperThread("Asynchronous removal of users is only possible from looper threads.");
-        return new Request<RealmUser>(NETWORK_POOL_EXECUTOR, callback) {
-            @Override
-            public RealmUser run() throws ObjectServerError {
-                return removeUser(user);
-            }
-        }.start();
-    }
-
-    /**
      * Logs in as a user with the given credentials associated with an authentication provider.
      * <p>
      * The user who logs in becomes the current user. Other RealmApp functionality acts on behalf of
@@ -303,7 +260,6 @@ public class RealmApp {
         }
         authListeners.add(listener);
     }
-
 
     /**
      * Removes the provided global authentication listener.
@@ -581,5 +537,4 @@ public class RealmApp {
     private static native Long nativeCurrentUser(long nativePtr);
     private static native long[] nativeGetAllUsers(long nativePtr);
     private static native void nativeSwitchUser(long nativeAppPtr, long nativeUserPtr);
-    private static native void nativeRemoveUser(long nativeAppPtr, long nativeUserPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

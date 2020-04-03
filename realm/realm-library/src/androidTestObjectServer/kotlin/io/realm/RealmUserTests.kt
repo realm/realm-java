@@ -178,7 +178,69 @@ class RealmUserTests {
             fail()
         } catch (ignore: java.lang.IllegalStateException) {
         }
+    }
 
+    @Test
+    fun removeUser() {
+        anonUser.logOut() // Remove user used by other tests
+
+        // Removing logged in user
+        val user1 = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        assertEquals(user1, app.currentUser())
+        assertEquals(1, app.allUsers().size)
+        user1.removeUser()
+        assertEquals(RealmUser.State.REMOVED, user1.state)
+        assertNull(app.currentUser())
+        assertEquals(0, app.allUsers().size)
+
+        // Remove logged out user
+        val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        user2.logOut()
+        assertNull(app.currentUser())
+        assertEquals(1, app.allUsers().size)
+        user2.removeUser()
+        assertEquals(RealmUser.State.REMOVED, user2.state)
+        assertEquals(0, app.allUsers().size)
+    }
+
+    @Test
+    fun removeUserAsync() {
+        anonUser.logOut() // Remove user used by other tests
+
+        // Removing logged in user
+        looperThread.runBlocking {
+            val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+            assertEquals(user, app.currentUser())
+            assertEquals(1, app.allUsers().size)
+            user.removeUserAsync { result ->
+                assertEquals(RealmUser.State.REMOVED, result.orThrow.state)
+                assertNull(app.currentUser())
+                assertEquals(0, app.allUsers().size)
+                looperThread.testComplete()
+            }
+        }
+
+        // Removing logged out user
+        looperThread.runBlocking {
+            val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+            user.logOut()
+            assertNull(app.currentUser())
+            assertEquals(1, app.allUsers().size)
+            user.removeUserAsync { result ->
+                assertEquals(RealmUser.State.REMOVED, result.orThrow.state)
+                assertEquals(0, app.allUsers().size)
+                looperThread.testComplete()
+            }
+        }
+    }
+
+    @Test
+    fun removeUserAsync_nonLooperThreadThrows() {
+        val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "1234567")
+        try {
+            user.removeUserAsync { fail() }
+        } catch (ignore: IllegalStateException) {
+        }
     }
 
 }

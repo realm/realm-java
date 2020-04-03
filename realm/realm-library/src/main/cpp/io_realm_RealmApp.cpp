@@ -143,17 +143,3 @@ JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeSwitchUser(JNIEnv* env,
     }
     CATCH_STD()
 }
-
-JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeRemoveUser(JNIEnv* env,
-                                                               jclass,
-                                                               jlong j_app_ptr,
-                                                               jlong j_user_ptr,
-                                                               jobject j_callback)
-{
-    try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
-        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
-        app->remove_user(user, JavaNetworkTransport::create_void_callback(env, j_callback));
-    }
-    CATCH_STD()
-}

@@ -294,10 +294,51 @@ public class RealmUser {
      */
     public RealmAsyncTask linkUserAsync(RealmCredentials credentials, RealmApp.Callback<RealmUser> callback) {
         Util.checkLooperThread("Asynchronous linking identities is only possible from looper threads.");
-        return new RealmApp.Request<RealmUser>(app.NETWORK_POOL_EXECUTOR, callback) {
+        return new RealmApp.Request<RealmUser>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public RealmUser run() throws ObjectServerError {
                 return linkUser(credentials);
+            }
+        }.start();
+    }
+
+    /**
+     * Removes a users credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @return user that was removed.
+     * @throws ObjectServerError if called from the UI thread or if the user was logged in, but
+     * could not be logged out.
+     */
+    public RealmUser removeUser() throws ObjectServerError {
+        AtomicReference<RealmUser> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        nativeRemoveUser(app.nativePtr, osUser.getNativePtr(), new RealmApp.OsJNIResultCallback<RealmUser>(success, error) {
+            @Override
+            protected RealmUser mapSuccess(Object result) {
+                return RealmUser.this;
+            }
+        });
+        return handleResult(success, error);
+    }
+
+    /**
+     * Removes a users credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user user to remove.
+     * @param callback callback when removing the user has completed or failed. The callback will always
+     * happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    public RealmAsyncTask removeUserAsync(RealmApp.Callback<RealmUser> callback) {
+        Util.checkLooperThread("Asynchronous removal of users is only possible from looper threads.");
+        return new RealmApp.Request<RealmUser>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public RealmUser run() throws ObjectServerError {
+                return removeUser();
             }
         }.start();
     }
@@ -403,7 +444,9 @@ public class RealmUser {
         }
     }
 
+    private static native void nativeRemoveUser(long nativeAppPtr, long nativeUserPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeLinkUser(long nativeAppPtr, long nativeUserPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
 }
 
