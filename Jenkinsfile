@@ -119,6 +119,7 @@ try {
                   stopLogCatCollector(backgroundPid)
                   storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
                   storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+                  archiveRealmBackupFiles()
                 }
               }
 
@@ -151,7 +152,6 @@ try {
           }
         } finally {
           archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
-          archiveBackupFiles()
           mongoDbRealmContainer.stop()
           mongoDbRealmCommandServerContainer.stop()
           sh "docker network rm ${dockerNetworkId}"
@@ -234,7 +234,7 @@ def archiveServerLogs(String mongoDbRealmContainerId, String commandServerContai
   sh 'rm mongodb.log'
 }
 
-def archiveBackupFiles() {
+def archiveRealmBackupFiles() {
   sh 'adb pull /data/data/io.realm.test/files/realm-backup'
   if (fileExists('realm-backup')) {
     zip([
