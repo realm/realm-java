@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.internal.android.AndroidCapabilities;
 import io.realm.log.RealmLog;
 
 
@@ -174,5 +175,22 @@ public class Util {
             }
             return set;
         }
+    }
+
+    public static void checkEmpty(String argValue, String argName) {
+        if (isEmptyString(argValue)) {
+            throw new IllegalArgumentException("Non-empty '" + argName + "' required.");
+        }
+    }
+
+    public static void checkNull(@Nullable Object argValue, String argName) {
+        if (argValue == null) {
+            throw new IllegalArgumentException("Nonnull '" + argName + "' required.");
+        }
+    }
+
+    public static void checkLooperThread(String errorMessage) {
+        AndroidCapabilities capabilities = new AndroidCapabilities();
+        capabilities.checkCanDeliverNotification(errorMessage);
     }
 }

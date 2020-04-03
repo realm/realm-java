@@ -89,14 +89,21 @@ set(classes_LIST
 set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
-        io.realm.ClientResetRequiredError io.realm.RealmFileUserStore
-        io.realm.SyncManager io.realm.SyncSession io.realm.SyncUser
+        io.realm.ClientResetRequiredError
+        io.realm.EmailPasswordAuthProvider
+        io.realm.RealmApp
+        io.realm.SyncManager
+        io.realm.SyncSession
+        io.realm.SyncUser
+        io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
+        io.realm.internal.objectstore.OsJavaNetworkTransport
+        io.realm.internal.objectstore.OsSyncUser
     )
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
-    CLASSPATH ${classes_PATH} ${bsonlib_PATH}
+    CLASSPATH ${classes_PATH} ${bsonlib_PATH} $ENV{ANDROID_HOME}/platforms/android-29/android.jar
     OUTPUT_DIR ${jni_headers_PATH}
     DEPENDS ${classes_PATH}
 )
@@ -171,11 +178,15 @@ file(GLOB jni_SRC
 # Those source file are only needed for sync.
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmApp.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuthProvider.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ClientResetRequiredError.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFileUserStore.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAppCredentials.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
     )
 endif()
 

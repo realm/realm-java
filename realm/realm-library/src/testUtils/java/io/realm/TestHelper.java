@@ -94,6 +94,12 @@ public class TestHelper {
         }
     }
 
+
+    // Used by Kotlin tests to cheat the type system
+    public static String getNullString() {
+        return null;
+    }
+
     public static RealmFieldType getColumnType(Object o) {
         if (o instanceof Boolean) {
             return RealmFieldType.BOOLEAN;
@@ -1299,6 +1305,12 @@ public class TestHelper {
         } catch (IllegalAccessException e) {
             throw new AssertionError(Util.getStackTrace(e));
         }
+    }
+
+    // Workaround to cheat Kotlins type system when testing interop with Java
+    @SuppressWarnings("TypeParameterUnusedInFormals")
+    public static <T> T getNull() {
+        return null;
     }
 
     public static String randomObjectIdHexString() {

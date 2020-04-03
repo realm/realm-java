@@ -101,7 +101,7 @@ android {
             java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java', 'src/testUtils/kotlin']
         }
         androidTestObjectServer {
-            java.srcDirs += [/* FIXME 'src/syncIntegrationTest/java', */'src/syncTestUtils/java']
+            java.srcDirs += [/* FIXME 'src/syncIntegrationTest/java', */ 'src/androidTestObjectServer/kotlin', 'src/syncTestUtils/java']
             assets.srcDirs += ['src/syncIntegrationTest/assets/']
         }
     }
@@ -212,7 +212,7 @@ dependencies {
     }
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
-    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.12.0' // Going above this requires minSDK 21
     // When updating this, `libs/bson-x.jar` must also be updated.
     implementation 'org.mongodb:bson:3.12.0' // FIXME: Optional/Sync only? Also figure out how to include maven dependency
 
@@ -245,34 +245,35 @@ def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This soft
         'considered at production quality, and should be used with care.</div>'
 
 task javadoc(type: Javadoc) {
-    source android.sourceSets.objectServer.java.srcDirs
-    source android.sourceSets.main.java.srcDirs
-    source "../../realm-annotations/src/main/java"
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    options {
-        title = "Realm ${project.version}"
-        memberLevel = JavadocMemberLevel.PUBLIC
-        docEncoding = 'UTF-8'
-        encoding = 'UTF-8'
-        charSet = 'UTF-8'
-        locale = 'en_US'
-        overview = 'src/overview.html'
-
-        links "https://docs.oracle.com/javase/7/docs/api/"
-        links "http://reactivex.io/RxJava/javadoc/"
-        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
-
-        tags = [betaTag]
-    }
-    exclude '**/internal/**'
-    exclude '**/BuildConfig.java'
-    exclude '**/R.java'
-    doLast {
-        copy {
-            from "src/realm-java-overview.png"
-            into "$buildDir/docs/javadoc"
-        }
-    }
+// FIXME: Disable JavaDoc until API Stabilizes a bit more
+//    source android.sourceSets.objectServer.java.srcDirs
+//    source android.sourceSets.main.java.srcDirs
+//    source "../../realm-annotations/src/main/java"
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//    options {
+//        title = "Realm ${project.version}"
+//        memberLevel = JavadocMemberLevel.PUBLIC
+//        docEncoding = 'UTF-8'
+//        encoding = 'UTF-8'
+//        charSet = 'UTF-8'
+//        locale = 'en_US'
+//        overview = 'src/overview.html'
+//
+//        links "https://docs.oracle.com/javase/7/docs/api/"
+//        links "http://reactivex.io/RxJava/javadoc/"
+//        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
+//
+//        tags = [betaTag]
+//    }
+//    exclude '**/internal/**'
+//    exclude '**/BuildConfig.java'
+//    exclude '**/R.java'
+//    doLast {
+//        copy {
+//            from "src/realm-java-overview.png"
+//            into "$buildDir/docs/javadoc"
+//        }
+//    }
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -579,6 +580,7 @@ if (project.hasProperty('dontCleanJniFiles')) {
 } else {
     task cleanExternalBuildFiles(type: Delete) {
         delete project.file('.externalNativeBuild')
+        delete project.file('.cxx')
         // Clean .so files that were created by old build script (realm/realm-jni/build.gradle).
         delete project.file('src/main/jniLibs')
     }

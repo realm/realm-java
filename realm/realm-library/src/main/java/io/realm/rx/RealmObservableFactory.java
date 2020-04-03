@@ -555,7 +555,7 @@ public class RealmObservableFactory implements RxObservableFactory {
             @Override
             public void subscribe(final FlowableEmitter<E> emitter) {
                 // If the Realm has been closed, just create an empty Observable because we assume it is going to be disposed shortly.
-                if (!RealmObject.isValid(object)) return;
+                if (realm.isClosed()) return;
 
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
@@ -585,7 +585,6 @@ public class RealmObservableFactory implements RxObservableFactory {
 
                 // Emit current value immediately
                 emitter.onNext(returnFrozenObjects ? RealmObject.freeze(object) : object);
-
             }
         }, BACK_PRESSURE_STRATEGY).subscribeOn(scheduler).unsubscribeOn(scheduler);
     }
@@ -646,7 +645,7 @@ public class RealmObservableFactory implements RxObservableFactory {
             @Override
             public void subscribe(final FlowableEmitter<DynamicRealmObject> emitter) {
                 // If the Realm has been closed, just create an empty Observable because we assume it is going to be disposed shortly.
-                if (!RealmObject.isValid(object)) return;
+                if (realm.isClosed()) return;
 
                 // Gets instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.

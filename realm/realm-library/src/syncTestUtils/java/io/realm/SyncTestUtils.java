@@ -27,7 +27,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.objectserver.Token;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
@@ -137,31 +136,31 @@ public class SyncTestUtils {
             // persist the user to the ObjectStore sync metadata, to simulate real login, otherwise SyncUser.isValid will
             // "throw IllegalArgumentException: User not authenticated or authentication expired." since
             // the call to  SyncManager.getUserStore().isActive(syncUser.getIdentity()) will return false
-            addToUserStore(syncUser);
+//            addToUserStore(syncUser);
             return syncUser;
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static AuthenticateResponse createLoginResponse(long expires) {
-        return createLoginResponse(USER_TOKEN, "JohnDoe", expires, false);
-    }
-
-    public static AuthenticateResponse createLoginResponse(String userTokenValue, String userIdentity, long expires, boolean isAdmin) {
-        try {
-            Token userToken = new Token(userTokenValue, userIdentity, null, expires, null, isAdmin);
-            JSONObject response = new JSONObject();
-            response.put("refresh_token", userToken.toJson());
-            return AuthenticateResponse.from(response.toString());
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static AuthenticateResponse createErrorResponse(ErrorCode code) {
-        return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
-    }
+//    public static AuthenticateResponse createLoginResponse(long expires) {
+//        return createLoginResponse(USER_TOKEN, "JohnDoe", expires, false);
+//    }
+//
+//    public static AuthenticateResponse createLoginResponse(String userTokenValue, String userIdentity, long expires, boolean isAdmin) {
+//        try {
+//            Token userToken = new Token(userTokenValue, userIdentity, null, expires, null, isAdmin);
+//            JSONObject response = new JSONObject();
+//            response.put("refresh_token", userToken.toJson());
+//            return AuthenticateResponse.from(response.toString());
+//        } catch (JSONException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+//
+//    public static AuthenticateResponse createErrorResponse(ErrorCode code) {
+//        return AuthenticateResponse.from(new ObjectServerError(code, "dummy"));
+//    }
 
     public static Token getRefreshToken(SyncUser user) {
         try {
@@ -171,14 +170,14 @@ public class SyncTestUtils {
         }
     }
 
-    private static void addToUserStore(SyncUser user) {
-        try {
-            UserStore userStore = (UserStore) SYNC_MANAGER_GET_USER_STORE_METHOD.invoke(null);
-            userStore.put(user);
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new AssertionError(e);
-        }
-    }
+//    private static void addToUserStore(SyncUser user) {
+//        try {
+//            UserStore userStore = (UserStore) SYNC_MANAGER_GET_USER_STORE_METHOD.invoke(null);
+//            userStore.put(user);
+//        } catch (InvocationTargetException | IllegalAccessException e) {
+//            throw new AssertionError(e);
+//        }
+//    }
 
     // Fully synchronize a Realm with the server by making sure that all changes are uploaded
     // and downloaded again.

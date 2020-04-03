@@ -247,7 +247,16 @@ public class RxJavaTests {
         final AllTypes asyncObj = realm.where(AllTypes.class).findFirstAsync();
         subscription = asyncObj.<AllTypes>asFlowable().subscribe(rxObject -> {
             assertTrue(rxObject.isFrozen());
-            assertEquals(42, rxObject.getColumnLong());
+            // Because the subscription is run asynchronously. There is a chance
+            // the query resolved before the subscription triggers.
+            // This means it is not deterministic what state is first emitted here.
+            // It can either be a fully loaded object or one that is still loading.
+            if (rxObject.isLoaded()) {
+                assertTrue(rxObject.isValid());
+                assertEquals(42, rxObject.getColumnLong());
+            } else {
+                assertFalse(rxObject.isValid());
+            }
             disposeSuccessfulTest(realm);
         });
     }
@@ -261,8 +270,10 @@ public class RxJavaTests {
 
         subscription = realm.where(AllTypes.class).findFirstAsync().<AllTypes>asFlowable().subscribe(rxObject -> {
             assertTrue(rxObject.isFrozen());
+            if (!rxObject.isLoaded()) return;
+
             if (rxObject.getColumnLong() == 1) {
-                realm.executeTransaction(r -> realm.where(AllTypes.class).findFirst().setColumnLong(42));
+                realm.executeTransactionAsync(r -> r.where(AllTypes.class).findFirst().setColumnLong(42));
             } else if (rxObject.getColumnLong() == 42) {
                 disposeSuccessfulTest(realm);
             }
