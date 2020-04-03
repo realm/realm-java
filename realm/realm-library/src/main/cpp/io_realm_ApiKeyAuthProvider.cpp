@@ -16,6 +16,7 @@
 
 #include "io_realm_ApiKeyAuthProvider.h"
 
+#include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
 #include "util.hpp"
 #include "jni_util/java_method.hpp"
@@ -32,7 +33,7 @@ using namespace realm::_impl;
 
 static jobjectArray map_key(JNIEnv* env, App::UserAPIKey& key)
 {
-    jobjectArray arr = (jobjectArray)env->NewObjectArray(4, env->FindClass("java/lang/Object"), NULL);
+    jobjectArray arr = (jobjectArray)env->NewObjectArray(4, JavaClassGlobalDef::java_lang_object(), NULL);
     if (arr == NULL) {
         ThrowException(env, OutOfMemory, "Could not allocate memory to return API key.");
         return NULL;

@@ -195,8 +195,8 @@ class ApiKeyAuthProviderTests {
         val key2: RealmUserApiKey = provider.createApiKey("other-key")
         val allKeys: List<RealmUserApiKey> = provider.fetchAllApiKeys()
         assertEquals(2, allKeys.size)
-        assertEquals(key1.id, allKeys[0].id)
-        assertEquals(key2.id, allKeys[1].id)
+        assertTrue(allKeys.any { it.id == key1.id })
+        assertTrue(allKeys.any { it.id == key2.id })
     }
 
     @Test

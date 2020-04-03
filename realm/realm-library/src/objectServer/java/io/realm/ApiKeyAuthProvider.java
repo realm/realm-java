@@ -127,7 +127,7 @@ public class ApiKeyAuthProvider {
      * Fetches a specific user API key associated with the user.
      *
      * @param id the id of the key to fetch.
-     * @param callback callback used when the the key was fetched or the call failed. The callback
+     * @param callback callback used when the key was fetched or the call failed. The callback
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
@@ -167,7 +167,7 @@ public class ApiKeyAuthProvider {
     /**
      * Fetches all API keys associated with the user.
      *
-     * @param callback callback used when the the keys were fetched or the call failed. The callback
+     * @param callback callback used when the keys were fetched or the call failed. The callback
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
@@ -198,7 +198,7 @@ public class ApiKeyAuthProvider {
      * Deletes a specific API key created by the user.
      *
      * @param id the id of the key to delete.
-     * @param callback callback used when the the key was deleted or the call failed. The callback
+     * @param callback callback used when the was deleted or the call failed. The callback
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
@@ -230,7 +230,7 @@ public class ApiKeyAuthProvider {
      * Disables a specific API key created by the user.
      *
      * @param id the id of the key to disable.
-     * @param callback callback used when the the key was disabled or the call failed. The callback
+     * @param callback callback used when the key was disabled or the call failed. The callback
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
@@ -262,7 +262,7 @@ public class ApiKeyAuthProvider {
      * Enables a specific API key created by the user.
      *
      * @param id the id of the key to enable.
-     * @param callback callback used when the the key was enabled or the call failed. The callback
+     * @param callback callback used when the key was enabled or the call failed. The callback
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */

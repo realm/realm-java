@@ -167,6 +167,12 @@ public:
     {
         return instance()->m_realm_notifier;
     }
+
+    // java.lang.Object
+    inline static const jni_util::JavaClass& java_lang_object()
+    {
+        return instance()->m_java_lang_object;
+    }
 };
 
 } // namespace realm
