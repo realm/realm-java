@@ -17,11 +17,14 @@ package io.realm;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
+import io.realm.internal.Util;
 
 /**
  * FIXME
@@ -218,42 +221,58 @@ public class RealmUser {
     }
 
     /**
-     * Log the user out of the Realm App, destroying their server state, unregistering them from the
+     * Log the current user out of the Realm App asynchronously, destroying their server state, unregistering them from the
      * SDK, and removing any synced Realms associated with them from on-disk storage on next app
      * launch.
-     * <p>
-     * If the user is already logged out, this method does nothing.
      * <p>
      * This method should be called whenever the application is committed to not using a user again.
      * Failing to call this method may result in unused files and metadata needlessly taking up space.
      * <p>
      * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
      * will be notified and user credentials will be deleted from this device.
+     * <p>
+     * Logging out anonymous users will remove them immediately instead of marking them as
+     * {@link RealmUser.State#LOGGED_OUT}. All other users will be marked as {@link RealmUser.State#LOGGED_OUT}
+     * and will still be returned by {@link #allUsers()}.
      *
      * @throws ObjectServerError if an error occurred while trying to log the user out of the Realm
      * App.
      */
-    public void logOut() {
-        app.logOut(this);
+    public void logOut() throws ObjectServerError {
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        nativeLogOut(app.nativePtr, osUser.getNativePtr(), new RealmApp.OsJNIVoidResultCallback(error));
+        RealmApp.handleResult(null, error);
     }
 
     /**
-     * Log the user out of the Realm App, destroying their server state, unregistering them from the
-     * SDK, and removing any synced Realms associated with them from on-disk storage on next app
-     * launch. If the user is already logged out or in an error state, this method does nothing.
-     * <p>
-     * If the user is already logged out, this method does nothing.
+     * Log the user out of the Realm App asynchronously, destroying their server state,
+     * unregistering them from the SDK, and removing any synced Realms associated with them from
+     * on-disk storage on next app launch.
      * <p>
      * This method should be called whenever the application is committed to not using a user again.
      * Failing to call this method may result in unused files and metadata needlessly taking up space.
      * <p>
      * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
      * will be notified and user credentials will be deleted from this device.
+     * <p>
+     * Logging out anonymous users will remove them immediately instead of marking them as
+     * {@link RealmUser.State#LOGGED_OUT}. All other users will be marked as {@link RealmUser.State#LOGGED_OUT}
+     * and will still be returned by {@link RealmApp#allUsers()}.
      *
-     * @throws IllegalStateException if not called on a looper thread.
+     * @param callback callback when logging out has completed or failed. The callback will always
+     * happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask logOutAsync(RealmApp.Callback callback) {
-        return app.logOutAsync(this, callback);
+    public RealmAsyncTask logOutAsync(RealmApp.Callback<RealmUser> callback) {
+        final RealmUser user = this;
+        Util.checkLooperThread("Asynchronous log out is only possible from looper threads.");
+        return new RealmApp.Request<RealmUser>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public RealmUser run() throws ObjectServerError {
+                logOut();
+                return user;
+            }
+        }.start();
     }
 
     @Override
@@ -273,5 +292,7 @@ public class RealmUser {
         result = 31 * result + app.hashCode();
         return result;
     }
+
+    private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }
 

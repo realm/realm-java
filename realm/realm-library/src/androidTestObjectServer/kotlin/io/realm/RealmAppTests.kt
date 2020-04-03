@@ -275,49 +275,6 @@ class RealmAppTests {
         }
     }
 
-    @Test
-    fun logOut() {
-        // Anonymous users are removed upon log out
-        val user1: RealmUser = app.login(RealmCredentials.anonymous())
-        assertEquals(user1, app.currentUser())
-        app.logOut()
-        assertEquals(RealmUser.State.REMOVED, user1.state)
-        assertNull(app.currentUser())
-
-        // Users registered with Email/Password will register as Logged Out
-        val user2: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(user2, app.currentUser())
-        app.logOut()
-        assertEquals(RealmUser.State.LOGGED_OUT, user2.state)
-        assertNull(app.currentUser())
-    }
-
-    @Test
-    fun logOutAsync() = looperThread.runBlocking {
-        val user: RealmUser = app.login(RealmCredentials.anonymous())
-        assertEquals(user, app.currentUser())
-        app.logOutAsync() { result ->
-            val callbackUser: RealmUser = result.orThrow
-            assertNull(app.currentUser())
-            assertEquals(user, callbackUser)
-            assertEquals(RealmUser.State.REMOVED, user.state)
-            assertEquals(RealmUser.State.REMOVED, callbackUser.state)
-            looperThread.testComplete()
-        }
-    }
-
-    @Test
-    fun logOutAsync_throwsOnNonLooperThread() {
-        val user: RealmUser = app.login(RealmCredentials.anonymous())
-        assertEquals(user, app.currentUser())
-        val callback = RealmApp.Callback<RealmUser> { fail("Method should throw") }
-        try {
-            app.logOutAsync(callback)
-            fail()
-        } catch (ignore: IllegalStateException) {
-        }
-    }
-
     @Ignore("FIXME: Wait for linkUser support in ObjectStore")
     @Test
     fun linkUser() {

@@ -20,8 +20,7 @@ import io.realm.rule.BlockingLooperThread
 import io.realm.rule.RunInLooperThread
 import io.realm.rule.RunTestInLooperThread
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.fail
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
@@ -66,17 +65,44 @@ class RealmUserTests {
 
     @Test
     fun logOut() {
-        anonUser.logOut()
-        assertEquals(RealmUser.State.REMOVED, anonUser.state)
+        anonUser.logOut(); // Remove user created for other tests
+
+        // Anonymous users are removed upon log out
+        val user1: RealmUser = app.login(RealmCredentials.anonymous())
+        assertEquals(user1, app.currentUser())
+        user1.logOut()
+        assertEquals(RealmUser.State.REMOVED, user1.state)
+        assertNull(app.currentUser())
+
+        // Users registered with Email/Password will register as Logged Out
+        val user2: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        assertEquals(user2, app.currentUser())
+        user2.logOut()
+        assertEquals(RealmUser.State.LOGGED_OUT, user2.state)
+        assertNull(app.currentUser())
     }
 
     @Test
     fun logOutAsync() = looperThread.runBlocking {
-        anonUser.logOutAsync {
-            when(it.isSuccess) {
-                true -> looperThread.testComplete()
-                false -> fail(it.error.toString())
-            }
+        assertEquals(anonUser, app.currentUser())
+        anonUser.logOutAsync() { result ->
+            val callbackUser: RealmUser = result.orThrow
+            assertNull(app.currentUser())
+            assertEquals(anonUser, callbackUser)
+            assertEquals(RealmUser.State.REMOVED, anonUser.state)
+            assertEquals(RealmUser.State.REMOVED, callbackUser.state)
+            looperThread.testComplete()
         }
     }
+
+    @Test
+    fun logOutAsync_throwsOnNonLooperThread() {
+        val user: RealmUser = app.login(RealmCredentials.anonymous())
+        try {
+            user.logOutAsync { fail() }
+            fail()
+        } catch (ignore: IllegalStateException) {
+        }
+    }
+
 }
