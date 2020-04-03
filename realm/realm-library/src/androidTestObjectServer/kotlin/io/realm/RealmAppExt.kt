@@ -1,5 +1,7 @@
 package io.realm
 
+import io.realm.admin.ServerAdmin
+
 /**
  * Resets the Realm Application and delete all local state.
  *
@@ -7,8 +9,8 @@ package io.realm
  * behavior.
  */
 fun RealmApp.close() {
-    // TODO Do we need to log out users?
-//    this.syncManager.reset()
+    ServerAdmin().deleteAllUsers()
+    this.syncManager.reset()
     BaseRealm.applicationContext = null // Required for Realm.init() to work
 }
 

@@ -188,8 +188,8 @@ JNIEXPORT jbyte JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetS
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
         switch(user->state()) {
             case SyncUser::State::LoggedOut: return static_cast<jbyte>(io_realm_internal_objectstore_OsSyncUser_STATE_LOGGED_OUT);
-            case SyncUser::State::Active:  return static_cast<jbyte>(io_realm_internal_objectstore_OsSyncUser_STATE_ACTIVE);
-            case SyncUser::State::Error: return static_cast<jbyte>(io_realm_internal_objectstore_OsSyncUser_STATE_ERROR);
+            case SyncUser::State::LoggedIn:  return static_cast<jbyte>(io_realm_internal_objectstore_OsSyncUser_STATE_LOGGED_IN);
+            case SyncUser::State::Removed: return static_cast<jbyte>(io_realm_internal_objectstore_OsSyncUser_STATE_REMOVED);
             default:
                 throw std::logic_error(util::format("Unknown state: %1", static_cast<size_t>(user->state())));
         }
@@ -206,11 +206,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeSetSt
             case io_realm_internal_objectstore_OsSyncUser_STATE_LOGGED_OUT:
                 user->set_state(SyncUser::State::LoggedOut);
                 break;
-            case io_realm_internal_objectstore_OsSyncUser_STATE_ACTIVE:
-                user->set_state(SyncUser::State::Active);
+            case io_realm_internal_objectstore_OsSyncUser_STATE_LOGGED_IN:
+                user->set_state(SyncUser::State::LoggedIn);
                 break;
-            case io_realm_internal_objectstore_OsSyncUser_STATE_ERROR:
-                user->set_state(SyncUser::State::Error);
+            case io_realm_internal_objectstore_OsSyncUser_STATE_REMOVED:
+                user->set_state(SyncUser::State::Removed);
                 break;
             default:
                 throw std::logic_error(util::format("Unknown state: %1", j_state));

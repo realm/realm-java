@@ -37,6 +37,7 @@ import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.RealmMongoDBService;
 
@@ -89,6 +90,7 @@ public class RealmApp {
     final SyncManager syncManager;
     final long nativePtr;
     private final EmailPasswordAuthProvider emailAuthProvider = new EmailPasswordAuthProvider(this);
+    private ApiKeyAuthProvider apiKeyAuthProvider = null;
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
 
     public RealmApp(String appId) {
@@ -131,12 +133,15 @@ public class RealmApp {
     }
 
     /**
-     * FIXME
-     * Returns all currently logged in users
-     * @return
+     * Returns all known users that are either {@link RealmUser.State#LOGGED_IN} or
+     * {@link RealmUser.State#LOGGED_OUT}.
+     * <p>
+     * Only users that at some point logged into this device will be returned.
+     *
+     * @return a map of user identifiers and users known locally.
      */
     public Map<String, RealmUser> allUsers() {
-        long[] nativeUsers = nativeAllUsers(nativePtr);
+        long[] nativeUsers = nativeGetAllUsers(nativePtr);
         HashMap<String, RealmUser> users = new HashMap<>(nativeUsers.length);
         for (int i = 0; i < nativeUsers.length; i++) {
             RealmUser user = new RealmUser(nativeUsers[i], this);
@@ -146,20 +151,149 @@ public class RealmApp {
     }
 
     /**
-     * TODO: Manually set the user returned by {@link #currentUser()}
+     * Switch current user. The current user is the user returned by {@link #currentUser()}.
      *
-     * @param user
+     * @param user the new current user.
+     * @throws IllegalArgumentException if the user is is not {@link RealmUser.State#LOGGED_IN}.
      */
-    public static void setCurrentUser(RealmUser user) {
-        // FIXME
+    public RealmUser switchUser(RealmUser user) {
+        Util.checkNull(user, "user");
+        nativeSwitchUser(nativePtr, user.osUser.getNativePtr());
+        return user;
     }
 
     /**
-     * FIXME
+     * Links the current user with a new user identity represented by the given credentials.
+     * <p>
+     * Linking a user with more credentials, mean the user can login either of these credentials.
+     * It also makes it possible to "upgrade" an anonymous user by linking it with e.g.
+     * Email/Password credentials.
+     * <pre>
+     * {@code
+     * // Example
+     * RealmApp app = new RealmApp("app-id")
+     * RealmUser user = app.login(RealmCredentials.anonymous());
+     * app.linkUser(RealmCredentials.emailPassword("email", "password"));
+     * }
+     * </pre>
+     * <p>
+     * Note: It is not possible to link two existing users of MongoDB Realm. The provided credentials
+     * must not have been used by another user.
      *
-     * @param credentials
-     * @return
-     * @throws ObjectServerError
+     * @param credentials the credentials to link with the current user.
+     * @throws IllegalStateException if no user is currently logged in.
+     * @return the {@link io.realm.RealmUser} the credentials were linked to.
+     */
+    public RealmUser linkUser(RealmCredentials credentials) {
+        Util.checkNull(credentials, "credentials");
+        final RealmUser user = currentUser();
+        if (user == null) {
+            throw new IllegalStateException("No user is logged in");
+        }
+        AtomicReference<RealmUser> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        nativeLinkUser(nativePtr, user.osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
+            @Override
+            protected RealmUser mapSuccess(Object result) {
+                user.osUser = new OsSyncUser((long) result); // OS returns the updated user as a new one.
+                return user;
+            }
+        });
+        return handleResult(success, error);
+    }
+
+
+    /**
+     * Links the current user with a new user identity represented by the given credentials.
+     * <p>
+     * Linking a user with more credentials, mean the user can login either of these credentials.
+     * It also makes it possible to "upgrade" an anonymous user by linking it with e.g.
+     * Email/Password credentials.
+     * <pre>
+     * {@code
+     * // Example
+     * RealmApp app = new RealmApp("app-id")
+     * RealmUser user = app.login(RealmCredentials.anonymous());
+     * app.linkUser(RealmCredentials.emailPassword("email", "password"));
+     * }
+     * </pre>
+     * <p>
+     * Note: It is not possible to link two existing users of MongoDB Realm. The provided credentials
+     * must not have been used by another user.
+     *
+     * @param credentials the credentials to link with the current user.
+     * @param callback callback when user identities has been linked or it failed. The callback will
+     * always happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    public RealmAsyncTask linkUserAsync(RealmCredentials credentials, Callback<RealmUser> callback) {
+        Util.checkLooperThread("Asynchronous linking identities is only possible from looper threads.");
+        return new Request<RealmUser>(NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public RealmUser run() throws ObjectServerError {
+                return linkUser(credentials);
+            }
+        }.start();
+    }
+
+    /**
+     * Removes a users credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user user to remove.
+     * @return user that was removed.
+     * @throws ObjectServerError if called from the UI thread or if the user was logged in, but
+     * could not be logged out.
+     */
+    public RealmUser removeUser(RealmUser user) throws ObjectServerError {
+        Util.checkNull(user, "user");
+        AtomicReference<RealmUser> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        nativeRemoveUser(nativePtr, user.osUser.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
+            @Override
+            protected RealmUser mapSuccess(Object result) {
+                return user;
+            }
+        });
+        return handleResult(success, error);
+    }
+
+    /**
+     * Removes a users credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user user to remove.
+     * @param callback callback when removing the user has completed or failed. The callback will always
+     * happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    public RealmAsyncTask removeUserAsync(RealmUser user, Callback<RealmUser> callback) {
+        Util.checkLooperThread("Asynchronous removal of users is only possible from looper threads.");
+        return new Request<RealmUser>(NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public RealmUser run() throws ObjectServerError {
+                return removeUser(user);
+            }
+        }.start();
+    }
+
+    /**
+     * Logs in as a user with the given credentials associated with an authentication provider.
+     * <p>
+     * The user who logs in becomes the current user. Other RealmApp functionality acts on behalf of
+     * the current user.
+     * <p>
+     * If there was already a current user, that user is still logged in and can be found in the
+     * list returned by {@link #allUsers()}.
+     * <p>
+     * It is also possible to switch between which user is considered the current user by using
+     * {@link #switchUser(RealmUser)}.
+     *
+     * @param credentials the credentials representing the type of login.
+     * @return a {@link RealmUser} representing the logged in user.
+     * @throws ObjectServerError if the user could not be logged in.
      */
     public RealmUser login(RealmCredentials credentials) throws ObjectServerError {
         Util.checkNull(credentials, "credentials");
@@ -167,22 +301,33 @@ public class RealmApp {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
             @Override
-            protected void mapSuccess(Object result, AtomicReference<RealmUser> success) {
+            protected RealmUser mapSuccess(Object result) {
                 Long nativePtr = (Long) result;
-                success.set(new RealmUser(nativePtr, RealmApp.this));
+                return new RealmUser(nativePtr, RealmApp.this);
             }
         });
         return handleResult(success, error);
     }
 
     /**
-     * FIXME
-     * @param credentials
-     * @param callback
-     * @return
+     * Logs in as a user with the given credentials associated with an authentication provider.
+     * <p>
+     * The user who logs in becomes the current user. Other RealmApp functionality acts on behalf of
+     * the current user.
+     * <p>
+     * If there was already a current user, that user is still logged in and can be found in the
+     * list returned by {@link #allUsers()}.
+     * <p>
+     * It is also possible to switch between which user is considered the current user by using
+     * {@link #switchUser(RealmUser)}.
+     *
+     * @param credentials the credentials representing the type of login.
+     * @param callback callback when logging in has completed or failed. The callback will always
+     * happen on the same thread as this method is called on.
+     * @throws IllegalStateException if not called on a looper thread.
      */
-    public RealmAsyncTask loginAsync(RealmCredentials credentials, Callback<RealmUser> callback) {
-        Util.checkLooperThread("Asynchronous login is only possible from looper threads.");
+     public RealmAsyncTask loginAsync(RealmCredentials credentials, Callback<RealmUser> callback) {
+        Util.checkLooperThread("Asynchronous log in is only possible from looper threads.");
         return new Request<RealmUser>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public RealmUser run() throws ObjectServerError {
@@ -201,12 +346,16 @@ public class RealmApp {
      * <p>
      * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
      * will be notified and user credentials will be deleted from this device.
+     * <p>
+     * Logging out anonymous users will remove them immediately instead of marking them as
+     * {@link RealmUser.State#LOGGED_OUT}. All other users will be marked as {@link RealmUser.State#LOGGED_OUT}
+     * and will still be returned by {@link #allUsers()}.
      *
      * @throws IllegalStateException if no current user could be found.
      * @throws ObjectServerError if an error occurred while trying to log the user out of the Realm
      * App.
      */
-     public void logOut() {
+     public void logOut() throws ObjectServerError {
         RealmUser user = currentUser();
         if (user == null) {
             throw new IllegalStateException("No current user was found.");
@@ -224,7 +373,13 @@ public class RealmApp {
      * <p>
      * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
      * will be notified and user credentials will be deleted from this device.
+     * <p>
+     * Logging out anonymous users will remove them immediately instead of marking them as
+     * {@link RealmUser.State#LOGGED_OUT}. All other users will be marked as {@link RealmUser.State#LOGGED_OUT}
+     * and will still be returned by {@link #allUsers()}.
      *
+     * @param callback callback when logging out has completed or failed. The callback will always
+     * happen on the same thread as this method is called on.
      * @throws IllegalStateException if not called on a looper thread or no current user could be found.
      */
      public RealmAsyncTask logOutAsync(Callback<RealmUser> callback) {
@@ -233,6 +388,23 @@ public class RealmApp {
              throw new IllegalStateException("No current user was found.");
          }
          return logOutAsync(user, callback);
+     }
+
+    /**
+     * Returns a wrapper for managing API keys controlled by the current user.
+     *
+     * @return wrapper for managing API keys controlled by the current user.
+     * @throws IllegalStateException if no user is currently logged in.
+     */
+     public synchronized ApiKeyAuthProvider getApiKeyAuthProvider() {
+         RealmUser user = currentUser();
+         if (user == null) {
+             throw new IllegalStateException("No user is currently logged in.");
+         }
+         if (apiKeyAuthProvider == null || !user.equals(apiKeyAuthProvider.getUser())) {
+             apiKeyAuthProvider = new ApiKeyAuthProvider(user);
+         }
+         return apiKeyAuthProvider;
      }
 
     /**
@@ -450,8 +622,8 @@ public class RealmApp {
         }
 
         @Override
-        protected void mapSuccess(Object result, AtomicReference success) {
-            // Do nothing
+        protected Void mapSuccess(Object result) {
+            return null;
         }
     }
 
@@ -470,11 +642,14 @@ public class RealmApp {
 
         @Override
         public void onSuccess(Object result) {
-            mapSuccess(result, success);
+            T mappedResult = mapSuccess(result);
+            if (success != null) {
+                success.set(mappedResult);
+            }
         }
 
         // Must map the underlying success Object to the appropriate type in Java
-        protected abstract void mapSuccess(Object result, @Nullable AtomicReference<T> success);
+        protected abstract T mapSuccess(Object result);
 
         @Override
         public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
@@ -665,6 +840,9 @@ public class RealmApp {
     private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     @Nullable
     private static native Long nativeCurrentUser(long nativePtr);
-    private static native long[] nativeAllUsers(long nativePtr);
+    private static native long[] nativeGetAllUsers(long nativePtr);
     private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeSwitchUser(long nativeAppPtr, long nativeUserPtr);
+    private static native void nativeRemoveUser(long nativeAppPtr, long nativeUserPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeLinkUser(long nativeAppPtr, long nativeUserPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }
