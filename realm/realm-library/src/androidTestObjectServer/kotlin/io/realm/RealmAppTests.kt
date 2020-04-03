@@ -267,4 +267,22 @@ class RealmAppTests {
         } catch (ignore: IllegalStateException) {
         }
     }
+
+    @Test
+    fun getApiKeyAuthProvider() {
+        val user1: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val provider1: ApiKeyAuthProvider = app.apiKeyAuthProvider
+        val user2: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val provider2: ApiKeyAuthProvider = app.apiKeyAuthProvider
+
+        assertNotEquals(provider1, provider2)
+        user2.logOut()
+        assertEquals(provider1, app.apiKeyAuthProvider)
+        user1.logOut()
+        try {
+            app.apiKeyAuthProvider
+            fail()
+        } catch (ignore: IllegalStateException) {
+        }
+    }
 }

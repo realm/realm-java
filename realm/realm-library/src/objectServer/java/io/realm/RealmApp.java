@@ -87,6 +87,7 @@ public class RealmApp {
     private OsJavaNetworkTransport networkTransport;
     final long nativePtr;
     private final EmailPasswordAuthProvider emailAuthProvider = new EmailPasswordAuthProvider(this);
+    private ApiKeyAuthProvider apiKeyAuthProvider = null;
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
 
     public RealmApp(String appId) {
@@ -169,8 +170,8 @@ public class RealmApp {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeRemoveUser(nativePtr, user.osUser.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
             @Override
-            protected void mapSuccess(Object result, AtomicReference<RealmUser> success) {
-                success.set(user);
+            protected RealmUser mapSuccess(Object result) {
+                return user;
             }
         });
         return handleResult(success, error);
@@ -209,9 +210,9 @@ public class RealmApp {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
             @Override
-            protected void mapSuccess(Object result, AtomicReference<RealmUser> success) {
+            protected RealmUser mapSuccess(Object result) {
                 Long nativePtr = (Long) result;
-                success.set(new RealmUser(nativePtr, RealmApp.this));
+                return new RealmUser(nativePtr, RealmApp.this);
             }
         });
         return handleResult(success, error);
@@ -285,6 +286,23 @@ public class RealmApp {
              throw new IllegalStateException("No current user was found.");
          }
          return logOutAsync(user, callback);
+     }
+
+    /**
+     * Returns a wrapper for managing API keys controlled by the current user.
+     *
+     * @return wrapper for managing API keys controlled by the current user.
+     * @throws IllegalStateException if no user is currently logged in.
+     */
+     public synchronized ApiKeyAuthProvider getApiKeyAuthProvider() {
+         RealmUser user = currentUser();
+         if (user == null) {
+             throw new IllegalStateException("No user is currently logged in.");
+         }
+         if (apiKeyAuthProvider == null || !user.equals(apiKeyAuthProvider.getUser())) {
+             apiKeyAuthProvider = new ApiKeyAuthProvider(user);
+         }
+         return apiKeyAuthProvider;
      }
 
     /**
@@ -412,8 +430,8 @@ public class RealmApp {
         }
 
         @Override
-        protected void mapSuccess(Object result, AtomicReference success) {
-            // Do nothing
+        protected Void mapSuccess(Object result) {
+            return null;
         }
     }
 
@@ -432,11 +450,14 @@ public class RealmApp {
 
         @Override
         public void onSuccess(Object result) {
-            mapSuccess(result, success);
+            T mappedResult = mapSuccess(result);
+            if (success != null) {
+                success.set(mappedResult);
+            }
         }
 
         // Must map the underlying success Object to the appropriate type in Java
-        protected abstract void mapSuccess(Object result, @Nullable AtomicReference<T> success);
+        protected abstract T mapSuccess(Object result);
 
         @Override
         public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
