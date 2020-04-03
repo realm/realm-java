@@ -278,7 +278,7 @@ public class RealmApp {
      * The user who logs in becomes the current user. Other RealmApp functionality acts on behalf of
      * the current user.
      * <p>
-     * If there was already an current user, that user is still logged in and can be found in the
+     * If there was already a current user, that user is still logged in and can be found in the
      * list returned by {@link #allUsers()}.
      * <p>
      * It is also possible to switch between which user is considered the current user by using
@@ -308,7 +308,7 @@ public class RealmApp {
      * The user who logs in becomes the current user. Other RealmApp functionality acts on behalf of
      * the current user.
      * <p>
-     * If there was already an current user, that user is still logged in and can be found in the
+     * If there was already a current user, that user is still logged in and can be found in the
      * list returned by {@link #allUsers()}.
      * <p>
      * It is also possible to switch between which user is considered the current user by using

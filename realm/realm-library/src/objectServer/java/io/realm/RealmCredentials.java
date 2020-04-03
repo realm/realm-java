@@ -140,7 +140,7 @@ public class RealmCredentials {
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
-     * @param googleToken the access token returned when logging in to Facebook.
+     * @param googleToken the access token returned when logging in to Google.
      * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
      */
@@ -188,7 +188,7 @@ public class RealmCredentials {
 
     /**
      * This enum contains the list of identity providers supported by MongoDB Realm.
-     * All of these expect {@link #EMAIL_PASSWORD} must be enabled manually on MongoDB Realm to
+     * All of these except {@link #EMAIL_PASSWORD} must be enabled manually on MongoDB Realm to
      * work.
      *
      * @see <a href="https://docs.mongodb.com/stitch/authentication/providers/">Authentication Providers</a>
