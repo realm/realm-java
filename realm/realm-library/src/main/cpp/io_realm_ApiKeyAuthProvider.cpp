@@ -53,7 +53,7 @@ static std::function<jobject(JNIEnv*, App::UserAPIKey)> single_key_mapper = [](J
 
 // Shared mapper function for mapping Vector<UserApiKey> to Java Object[][]
 static std::function<jobject(JNIEnv*, std::vector<App::UserAPIKey>)> multi_key_mapper = [](JNIEnv* env, std::vector<App::UserAPIKey> keys) {
-    jobjectArray arr = (jobjectArray)env->NewObjectArray(static_cast<jsize>(keys.size()), env->FindClass("java/lang/Object"), NULL);
+    jobjectArray arr = (jobjectArray)env->NewObjectArray(static_cast<jsize>(keys.size()), JavaClassGlobalDef::java_lang_object(), NULL);
     if (arr == NULL) {
         ThrowException(env, OutOfMemory, "Could not allocate memory to return list of API keys.");
         return arr;
