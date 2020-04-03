@@ -7,9 +7,10 @@ import io.realm.annotations.PrimaryKey
 import io.realm.annotations.Required
 import io.realm.exceptions.RealmException
 import io.realm.kotlin.createObject
+import io.realm.kotlin.where
 import org.bson.types.ObjectId
 import org.junit.After
-import org.junit.Assert.fail
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,6 +19,14 @@ open class ObjectIdPrimaryKeyRequired
  : RealmObject() {
     @field:PrimaryKey
     @field:Required
+    var id : ObjectId? = null
+    var name : String = ""
+
+}
+
+open class ObjectIdPrimaryKeyNotRequired
+    : RealmObject() {
+    @field:PrimaryKey
     var id : ObjectId? = null
     var name : String = ""
 
@@ -32,7 +41,7 @@ class ObjectIdTests {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         realmConfiguration = RealmConfiguration
                 .Builder(InstrumentationRegistry.getInstrumentation().targetContext)
-                .schema(ObjectIdPrimaryKeyRequired::class.java).build()
+                .schema(ObjectIdPrimaryKeyRequired::class.java, ObjectIdPrimaryKeyNotRequired::class.java).build()
     }
 
     @Before
@@ -61,6 +70,25 @@ class ObjectIdTests {
 
         // FIXME re-enable when Core add query support
 //        val result = realm.where<ObjectIdPrimaryKeyRequired>().equalTo("id", ObjectId(generateObjectIdHexString(42))).findFirst()
+//        assertNotNull(result)
+//        assertEquals("foo", result?.name)
+    }
+
+    @Test
+    fun nullablePK() {
+        try {
+            realm.createObject<ObjectIdPrimaryKeyNotRequired>()
+            fail()
+        } catch (ignore: RealmException) {
+        }
+
+        realm.beginTransaction()
+        val obj = realm.createObject<ObjectIdPrimaryKeyNotRequired>(null)
+        obj.name = "foo"
+        realm.commitTransaction()
+
+        // FIXME re-enable when Core add query support
+//        val result = realm.where<ObjectIdPrimaryKeyNotRequired>().equalTo("id", null as ObjectId?).findFirst()
 //        assertNotNull(result)
 //        assertEquals("foo", result?.name)
     }
