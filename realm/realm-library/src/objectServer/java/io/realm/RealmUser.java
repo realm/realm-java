@@ -345,19 +345,18 @@ public class RealmUser {
     }
 
     /**
-     * Log the current user out of the Realm App asynchronously, destroying their server state, unregistering them from the
-     * SDK, and removing any synced Realms associated with them from on-disk storage on next app
-     * launch.
-     * <p>
-     * This method should be called whenever the application is committed to not using a user again.
-     * Failing to call this method may result in unused files and metadata needlessly taking up space.
+     * Log the user out of the Realm App. This will unregister them on the device, stop any
+     * synchronization to and from the users Realms, and those Realms will be deleted next time
+     * the app restarts. Therefor logging out should not be done until all changes to Realms have
+     * been uploaded to the server.
      * <p>
      * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
      * will be notified and user credentials will be deleted from this device.
      * <p>
      * Logging out anonymous users will remove them immediately instead of marking them as
      * {@link RealmUser.State#LOGGED_OUT}. All other users will be marked as {@link RealmUser.State#LOGGED_OUT}
-     * and will still be returned by {@link #allUsers()}.
+     * and will still be returned by {@link #allUsers()}. They can be removed completely by calling
+     * {@link #removeUser()}.
      *
      * @throws ObjectServerError if an error occurred while trying to log the user out of the Realm
      * App.
@@ -369,19 +368,18 @@ public class RealmUser {
     }
 
     /**
-     * Log the user out of the Realm App asynchronously, destroying their server state,
-     * unregistering them from the SDK, and removing any synced Realms associated with them from
-     * on-disk storage on next app launch.
-     * <p>
-     * This method should be called whenever the application is committed to not using a user again.
-     * Failing to call this method may result in unused files and metadata needlessly taking up space.
+     * Log the user out of the Realm App asynchronously. This will unregister them on the device, stop any
+     * synchronization to and from the users Realms, and those Realms will be deleted next time
+     * the app restarts. Therefor logging out should not be done until all changes to Realms have
+     * been uploaded to the server.
      * <p>
      * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
      * will be notified and user credentials will be deleted from this device.
      * <p>
      * Logging out anonymous users will remove them immediately instead of marking them as
      * {@link RealmUser.State#LOGGED_OUT}. All other users will be marked as {@link RealmUser.State#LOGGED_OUT}
-     * and will still be returned by {@link RealmApp#allUsers()}.
+     * and will still be returned by {@link #allUsers()}. They can be removed completely by calling
+     * {@link #removeUser()}.
      *
      * @param callback callback when logging out has completed or failed. The callback will always
      * happen on the same thread as this method is called on.

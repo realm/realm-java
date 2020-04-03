@@ -212,7 +212,7 @@ public class RealmApp {
 
     /**
      * Returns a wrapper for interacting with functionality related to users either being created or
-     * login using the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * logged in using the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
      *
      * @return wrapper for interacting with the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
      */
