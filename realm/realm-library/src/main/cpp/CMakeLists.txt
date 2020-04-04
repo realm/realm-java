@@ -17,6 +17,18 @@
 ###########################################################################
 cmake_minimum_required(VERSION 3.6.0)
 
+# loading dependencies properties
+file(STRINGS "${CMAKE_SOURCE_DIR}/../../../../../dependencies.list" DEPENDENCIES)
+foreach(LINE IN LISTS DEPENDENCIES)
+    string(REGEX MATCHALL "([^=]+)" KEY_VALUE "${LINE}")
+    list(LENGTH KEY_VALUE matches_count)
+    if(matches_count STREQUAL 2)
+        list(GET KEY_VALUE 0 KEY)
+        list(GET KEY_VALUE 1 VALUE)
+        set(DEP_${KEY} ${VALUE})
+    endif()
+endforeach()
+
 FUNCTION(capitalizeFirstLetter var value)
     string(SUBSTRING ${value} 0 1 firstLetter)
     string(TOUPPER ${firstLetter} firstLetter)
@@ -69,8 +81,8 @@ capitalizeFirstLetter(buildTypeCap "${CMAKE_BUILD_TYPE}")
 # Generate JNI header files. Each build has its own JNI header in its build_dir/jni_include.
 # WARNING: The classes_PATH is not part the public API offered by the Android Gradle Plugin
 # so it might change without warning when upgrading the plugin.
-file(DOWNLOAD "https://repo1.maven.org/maven2/org/mongodb/bson/3.12.1/bson-3.12.1.jar" "${PROJECT_BINARY_DIR}/bson-3.12.1.jar")
-set(bsonlib_PATH ${PROJECT_BINARY_DIR}/bson-3.12.1.jar)
+file(DOWNLOAD "https://repo1.maven.org/maven2/org/mongodb/bson/${DEP_BSON_DEPENDENCY_VERSION}/bson-${DEP_BSON_DEPENDENCY_VERSION}.jar" "${PROJECT_BINARY_DIR}/bson-${DEP_BSON_DEPENDENCY_VERSION}.jar")
+set(bsonlib_PATH ${PROJECT_BINARY_DIR}/bson-${DEP_BSON_DEPENDENCY_VERSION}.jar)
 set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/javac/${REALM_FLAVOR}${buildTypeCap}/classes/)
 set(classes_LIST
     io.realm.RealmQuery

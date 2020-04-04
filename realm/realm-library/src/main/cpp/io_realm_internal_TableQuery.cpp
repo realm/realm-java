@@ -1696,6 +1696,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
                 case type_Float:
                 case type_Double:
                 case type_Timestamp:
+                case type_Decimal:
+                case type_ObjectId:
                     Q(nativeQueryPtr)->equal(ColKey(column_idx), realm::null());
                     break;
                 default:

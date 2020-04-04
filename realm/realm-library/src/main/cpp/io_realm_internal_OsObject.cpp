@@ -227,19 +227,21 @@ static inline Obj do_create_row_with_object_id_primary_key(JNIEnv* env, jlong sh
     }
 
 
-    auto objectId = (str_accessor.is_null()) ? realm::ObjectId() : ObjectId(StringData(str_accessor).data());
     if (pk_value) {
+        auto objectId = ObjectId(StringData(str_accessor).data());
         if (bool(table->find_first_object_id(col_key, objectId))) {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
                                  format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
         }
+
+        return table->create_object_with_primary_key(objectId);
     }
     else {
         if (bool(table->find_first_null(col_key))) {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
+        return table->create_object_with_primary_key(realm::util::Optional<realm::ObjectId>());
     }
-    return table->create_object_with_primary_key(objectId);
 }
 
 
