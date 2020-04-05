@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -54,8 +55,9 @@ import io.realm.rx.RxObservableFactory;
  * <pre>
  * {@code
  * RealmApp app = new RealmApp("app-id");
- * RealmUser user = app.currentUser();
- * SyncConfiguration config = user.getDefaultSyncConfiguration();
+ * RealmUser user = app.login(RealmCredentials.anonymous());
+ * SyncConfiguration config = SyncConfiguration.defaultConfiguration(user, "partition-value");
+ * Realm realm = Realm.getInstance(config);
  * }
  * </pre>
  * <p>
@@ -94,6 +96,11 @@ public class SyncConfiguration extends RealmConfiguration {
     @Nullable private final String syncUrlPrefix;
     private final ClientResyncMode clientResyncMode;
     private final Object partionKeyValue;
+
+
+    public static SyncConfiguration defaultConfiguration(RealmUser user, Object partionValue) {
+        return new SyncConfiguration.Builder(user, partionValue).build();
+    }
 
     private SyncConfiguration(File directory,
                               String filename,
@@ -183,6 +190,17 @@ public class SyncConfiguration extends RealmConfiguration {
 
         RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
         return forRecovery(canonicalPath, encryptionKey, schemaMediator);
+    }
+
+    /**
+     * FIXME
+     *
+     * @param user
+     * @param partionValue
+     * @return
+     */
+    public static SyncConfiguration defaultConfig(RealmUser user, Object partitionValue) {
+        return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
     /**
@@ -416,19 +434,19 @@ public class SyncConfiguration extends RealmConfiguration {
     /**
      * Returns what happens in case of a Client Resync.
      */
-    public ClientResyncMode getClientResyncMode() {
+    ClientResyncMode getClientResyncMode() {
         return clientResyncMode;
     }
 
     /**
-     * Returns the value this Realm is partioned on. The partion key is a property defined in
+     * Returns the value this Realm is partitioned on. The partition key is a property defined in
      * MongoDB Realm. All classes with a property with this value will be synchronized to the
      * Realm.
      *
-     * @return the value being used by MongoDB Realm to partion the server side Database into
-     * smaller Realms that can be synchronized independently.
+     * @return the value being used by MongoDB Realm to partition the server side MongoDB Database
+     * into smaller Realms that can be synchronized independently.
      */
-    public String getPartion() {
+    public String getPartition() {
         return partionKeyValue.toString();
     }
 
@@ -475,19 +493,30 @@ public class SyncConfiguration extends RealmConfiguration {
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
         private final Object partitionKeyValue;
 
-        Builder(Context context, RealmUser user, String baseUrl, Object partitionValue) {
-            //noinspection ConstantConditions
+        // FIXME: Which other constructors for partion values do we need? String, long, ObjectId?
+
+        /**
+         * Builder used to construct instances of a SyncConfiguration in a fluent manner.
+         *
+         * @param user the user opening the Realm on the server.
+         * @param partitionValue the partition value specifying which subset of data to include in the Realm.
+         * @see <a href="FIXME">Link to docs about partions</a>
+         */
+        public Builder(RealmUser user, Object partitionValue) {
+            Context context = BaseRealm.applicationContext;
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
+            Util.checkNull(user, "user");
+            Util.checkNull(partitionValue, "partitionValue");
+            validateAndSet(user);
+            validateAndSet(user.getApp().getConfiguration().getBaseUrl());
             this.partitionKeyValue = partitionValue;
             this.defaultFolder = new File(context.getFilesDir(), "mongodb-realm");
             if (Realm.getDefaultModule() != null) {
                 this.modules.add(Realm.getDefaultModule());
             }
-
-            validateAndSet(user);
-            validateAndSet(baseUrl);
+            this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
         }
 
         private void validateAndSet(RealmUser user) {
@@ -501,15 +530,11 @@ public class SyncConfiguration extends RealmConfiguration {
             this.user = user;
         }
 
-        private void validateAndSet(String uri ) {
-            if (uri == null) {
-                throw new IllegalArgumentException("Non-null 'uri' required.");
-            }
-
+        private void validateAndSet(URL baseUrl ) {
             try {
-                serverUrl = new URI(uri);
+                serverUrl = new URI(baseUrl.toString());
             } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("Invalid URI: " + uri, e);
+                throw new IllegalArgumentException("Invalid URI: " + baseUrl.toString(), e);
             }
 
             try {

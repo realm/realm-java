@@ -15,6 +15,9 @@
  */
 package io.realm;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Locale;
@@ -51,31 +54,6 @@ public class RealmApp {
     // we might want to lift in the future. So any implementation details so ideally be made
     // with that in mind, i.e. keep static state to minimum.
 
-    // Default session error handler that just output errors to LogCat
-    private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
-        @Override
-        public void onError(SyncSession session, ObjectServerError error) {
-            if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
-                RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
-                return;
-            }
-
-            String errorMsg = String.format(Locale.US, "Session Error[%s]: %s",
-                    session.getConfiguration().getServerUrl(),
-                    error.toString());
-            switch (error.getErrorCode().getCategory()) {
-                case FATAL:
-                    RealmLog.error(errorMsg);
-                    break;
-                case RECOVERABLE:
-                    RealmLog.info(errorMsg);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported error category: " + error.getErrorCode().getCategory());
-            }
-        }
-    };
-
     /**
      * Thread pool used when doing network requests against MongoDB Realm.
      * <p>
@@ -92,6 +70,7 @@ public class RealmApp {
     private final EmailPasswordAuthProvider emailAuthProvider = new EmailPasswordAuthProvider(this);
     private ApiKeyAuthProvider apiKeyAuthProvider = null;
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
+    private Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public RealmApp(String appId) {
         this(new RealmAppConfiguration.Builder(appId).build());
@@ -104,6 +83,10 @@ public class RealmApp {
     public RealmApp(RealmAppConfiguration config) {
         this.config = config;
         this.networkTransport = new OkHttpNetworkTransport();
+        networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
+        for (Map.Entry<String, String> entry : config.getCustomHeaders().entrySet()) {
+            networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
+        }
         this.syncManager = new SyncManager(this);
         this.nativePtr = nativeCreate(
                 config.getAppId(),
@@ -111,10 +94,6 @@ public class RealmApp {
                 config.getAppName(),
                 config.getAppVersion(),
                 config.getRequestTimeoutMs());
-    }
-
-    static void init(String userAgent) {
-
     }
 
     /**
@@ -248,6 +227,7 @@ public class RealmApp {
      */
     public RealmUser removeUser(RealmUser user) throws ObjectServerError {
         Util.checkNull(user, "user");
+        boolean loggedIn = user.isLoggedIn();
         AtomicReference<RealmUser> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeRemoveUser(nativePtr, user.osUser.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
@@ -257,6 +237,9 @@ public class RealmApp {
             }
         });
         return handleResult(success, error);
+        if (loggedIn) {
+            notifyUserLoggedOut(user);
+        }
     }
 
     /**
@@ -306,7 +289,31 @@ public class RealmApp {
                 return new RealmUser(nativePtr, RealmApp.this);
             }
         });
-        return handleResult(success, error);
+        RealmUser user = handleResult(success, error);
+        notifyUserLoggedIn(user);
+        return user;
+    }
+
+    private void notifyUserLoggedIn(RealmUser user) {
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                for (AuthenticationListener listener : authListeners) {
+                    listener.loggedIn(user);
+                }
+            }
+        });
+    }
+
+    private void notifyUserLoggedOut(RealmUser user) {
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                for (AuthenticationListener listener : authListeners) {
+                    listener.loggedOut(user);
+                }
+            }
+        });
     }
 
     /**
@@ -419,9 +426,13 @@ public class RealmApp {
 
     void logOut(RealmUser user) {
         Util.checkNull(user, "user");
+        boolean loggedIn = user.isLoggedIn();
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeLogOut(nativePtr, user.osUser.getNativePtr(), new OsJNIVoidResultCallback(error));
         handleResult(null, error);
+        if (loggedIn) {
+            notifyUserLoggedOut(user);
+        }
     }
 
     RealmAsyncTask logOutAsync(RealmUser user, Callback<RealmUser> callback) {
@@ -457,7 +468,6 @@ public class RealmApp {
         }
         authListeners.add(listener);
     }
-
 
     /**
      * Removes the provided global authentication listener.
@@ -506,68 +516,6 @@ public class RealmApp {
         return config;
     }
 
-
-    /**
-     * Sets the name of the HTTP header used to send authorization data in when making requests to
-     * MongoDB Realm. The MongoDB server or firewall must have been configured to expect a
-     * custom authorization header.
-     * <p>
-     * The default authorization header is named "Authorization".
-     *
-     * @param headerName name of the header.
-     * @throws IllegalArgumentException if a null or empty header is provided.
-     * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
-     */
-    public void setAuthorizationHeaderName(String headerName) {
-        checkNotEmpty(headerName, "headerName");
-        networkTransport.setAuthorizationHeaderName(headerName);
-    }
-
-    /**
-     * Adds an extra HTTP header to append to every request to a Realm Object Server.
-     *
-     * @param headerName the name of the header.
-     * @param headerValue the value of header.
-     * @throws IllegalArgumentException if a non-empty {@code headerName} is provided or a null {@code headerValue}.
-     */
-    public void addCustomRequestHeader(String headerName, String headerValue) {
-        checkNotEmpty(headerName, "headerName");
-        checkNotNull(headerValue, "headerValue");
-        networkTransport.addCustomRequestHeader(headerName, headerValue);
-    }
-
-    /**
-     * Adds extra HTTP headers to append to every request to a Realm Object Server.
-     *
-     * @param headers map of (headerName, headerValue) pairs.
-     * @throws IllegalArgumentException If any of the headers provided are illegal.
-     */
-    public synchronized void addCustomRequestHeaders(@Nullable Map<String, String> headers) {
-        if (headers != null) {
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
-            }
-        }
-    }
-
-    /**
-     * Returns the authentication header name used for http request against MongoDB Realm.
-     *
-     * @return the authorization header name used by http requests to MongoDB Realm.
-     */
-    public String getAuthorizationHeaderName() {
-        return networkTransport.getAuthorizationHeaderName();
-    }
-
-    /**
-     * Returns all the custom headers added to all HTTP requests against MongoDB Realm.
-     *
-     * @return all defined custom headers used when making HTTP requests against MongoDB Realm.
-     */
-    public Map<String, String> getCustomRequestHeaders() {
-        return networkTransport.getCustomRequestHeaders();
-    }
-
     /**
      * Exposed for testing.
      *
@@ -597,18 +545,6 @@ public class RealmApp {
             } else {
                 return null;
             }
-        }
-    }
-
-    private static void checkNotEmpty(String headerName, String varName) {
-        if (Util.isEmptyString(headerName)) {
-            throw new IllegalArgumentException("Non-empty '" + varName +"' required.");
-        }
-    }
-
-    private static void checkNotNull(@Nullable String val, String varName) {
-        if (val == null) {
-            throw new IllegalArgumentException("Non-null'" + varName +"' required.");
         }
     }
 

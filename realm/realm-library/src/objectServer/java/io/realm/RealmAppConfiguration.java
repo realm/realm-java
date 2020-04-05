@@ -20,10 +20,15 @@ import android.content.Context;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.Util;
 import io.realm.log.LogLevel;
 
 /**
@@ -35,31 +40,33 @@ public class RealmAppConfiguration {
     private final String appName;
     private final String appVersion;
     private final URL baseUrl;
-    private final Context context;
-    private final SyncSession.ErrorHandler defaultErrorHandler;
+    private final SyncSession.ErrorHandler defaultErrorHandler =
     @Nullable private final byte[] encryptionKey;
     private final long logLevel;
     private final long requestTimeoutMs;
+    private final String authorizationHeaderName = "Authorization";
+    private final Map<String, String> customHeaders;
 
     private RealmAppConfiguration(String appId,
                                  String appName,
                                  String appVersion,
                                  String baseUrl,
-                                 Context context,
                                  SyncSession.ErrorHandler defaultErrorHandler,
                                  @Nullable byte[] encryptionKey,
                                  long logLevel,
-                                 long requestTimeoutMs) {
+                                 long requestTimeoutMs,
+                                 String authorizationHeaderName,
+                                 Map<String, String> customHeaders) {
 
         this.appId = appId;
         this.appName = appName;
         this.appVersion = appVersion;
         this.baseUrl = createUrl(baseUrl);
-        this.context = context;
-        this.defaultErrorHandler = defaultErrorHandler;
         this.encryptionKey = (encryptionKey == null) ? null : Arrays.copyOf(encryptionKey, encryptionKey.length);
         this.logLevel = logLevel;
         this.requestTimeoutMs = requestTimeoutMs;
+        this.authorizationHeaderName = (!Util.isEmptyString(authorizationHeaderName)) ? authorizationHeaderName : "Authorization";
+        this.customHeaders = Collections.unmodifiableMap(customHeaders);
     }
 
     private URL createUrl(String baseUrl) {
@@ -106,22 +113,6 @@ public class RealmAppConfiguration {
      * FIXME
      * @return
      */
-    public Context getContext() {
-        return context;
-    }
-
-    /**
-     * FIXME
-     * @return
-     */
-    public SyncSession.ErrorHandler getDefaultErrorHandler() {
-        return defaultErrorHandler;
-    }
-
-    /**
-     * FIXME
-     * @return
-     */
     public byte[] getEncryptionKey() {
         return encryptionKey == null ? null : Arrays.copyOf(encryptionKey, encryptionKey.length);
     }
@@ -142,6 +133,30 @@ public class RealmAppConfiguration {
         return requestTimeoutMs;
     }
 
+
+    /**
+     * FIXME
+     *
+     * @return
+     */
+    public String getAuthorizationHeaderName() {
+        return authorizationHeaderName;
+    }
+
+    /**
+     * FIXME
+     *
+     * @return
+     */
+    public Map<String, String> getCustomHeaders() {
+        return customHeaders;
+    }
+
+    public SyncSession.ErrorHandler getDefaultErrorHandler() {
+        return de
+    }
+
+
     /**
      * FIXME
      */
@@ -150,11 +165,34 @@ public class RealmAppConfiguration {
         private String appName;
         private String appVersion;
         private String baseUrl;
-        private Context context;
-        private SyncSession.ErrorHandler defaultErrorHandler;
+        private SyncSession.ErrorHandler defaultErrorHandler = new SyncSession.ErrorHandler() {
+            @Override
+            public void onError(SyncSession session, ObjectServerError error) {
+                if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
+                    RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
+                    return;
+                }
+
+                String errorMsg = String.format(Locale.US, "Session Error[%s]: %s",
+                        session.getConfiguration().getServerUrl(),
+                        error.toString());
+                switch (error.getErrorCode().getCategory()) {
+                    case FATAL:
+                        RealmLog.error(errorMsg);
+                        break;
+                    case RECOVERABLE:
+                        RealmLog.info(errorMsg);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unsupported error category: " + error.getErrorCode().getCategory());
+                }
+            }
+        };
         private byte[] encryptionKey;
         private long logLevel = LogLevel.WARN; // FIXME: Consider what this should be set at
         private long requestTimeoutMs = 60000;
+        private String autorizationHeaderName;
+        private Map<String, String> customHeaders = new HashMap<>();
 
         /**
          * FIXME
@@ -162,8 +200,6 @@ public class RealmAppConfiguration {
          * @param appId
          */
         public Builder(String appId) {
-            // FIXME: Null checks
-            this.context = Realm.applicationContext;
             this.appId = appId;
         }
 
@@ -229,18 +265,6 @@ public class RealmAppConfiguration {
         /**
          * FIXME
          *
-         * @param errorHandler
-         * @return
-         */
-        public Builder defaultSessionErrorHandler(@Nullable SyncSession.ErrorHandler errorHandler) {
-            // FIXME checks
-            this.defaultErrorHandler = errorHandler;
-            return this;
-        }
-
-        /**
-         * FIXME
-         *
          * @param time
          * @param unit
          * @return
@@ -251,16 +275,60 @@ public class RealmAppConfiguration {
             return this;
         }
 
+        /**
+         * Sets the name of the HTTP header used to send authorization data in when making requests to
+         * MongoDB Realm. The MongoDB server or firewall must have been configured to expect a
+         * custom authorization header.
+         * <p>
+         * The default authorization header is named "Authorization".
+         *
+         * @param headerName name of the header.
+         * @throws IllegalArgumentException if a null or empty header is provided.
+         * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
+         */
+        public Builder authorizationHeaderName(String headerName) {
+            Util.checkEmpty(headerName, "headerName");
+            this.autorizationHeaderName = headerName;
+            return this;
+        }
+
+        /**
+         * Adds an extra HTTP header to append to every request to a Realm Object Server.
+         *
+         * @param headerName the name of the header.
+         * @param headerValue the value of header.
+         * @throws IllegalArgumentException if a non-empty {@code headerName} is provided or a null {@code headerValue}.
+         */
+        public Builder addCustomRequestHeader(String headerName, String headerValue) {
+            Util.checkEmpty(headerName, "headerName");
+            Util.checkNull(headerValue, "headerValue");
+            customHeaders.put(headerName, headerValue);
+            return this;
+        }
+
+        /**
+         * Adds extra HTTP headers to append to every request to a Realm Object Server.
+         *
+         * @param headers map of (headerName, headerValue) pairs.
+         * @throws IllegalArgumentException If any of the headers provided are illegal.
+         */
+        public Builder addCustomRequestHeaders(Map<String, String> headers) {
+            Util.checkNull(headers, "headers");
+            customHeaders.putAll(headers);
+            return this;
+        }
+
         public RealmAppConfiguration build() {
             return new RealmAppConfiguration(appId,
                     appName,
                     appVersion,
                     baseUrl,
-                    context,
                     defaultErrorHandler,
                     encryptionKey,
                     logLevel,
-                    requestTimeoutMs);
+                    requestTimeoutMs,
+                    autorizationHeaderName,
+                    customHeaders);
         }
     }
 }

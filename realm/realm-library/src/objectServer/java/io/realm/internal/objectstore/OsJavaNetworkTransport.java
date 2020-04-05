@@ -33,7 +33,7 @@ public abstract class OsJavaNetworkTransport {
     public static final int ERROR_UNKNOWN = 1002;
 
     // Header configuration
-    private String authorizationHeaderName = "Authorization";
+    private String authorizationHeaderName;
     private Map<String, String> customHeaders = new HashMap<>();
 
     /**

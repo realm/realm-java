@@ -268,99 +268,18 @@ public class RealmUser {
     }
 
     /**
-     * Opening a synchronized Realm requires a {@link SyncConfiguration}. This method creates a
-     * {@link SyncConfiguration.Builder} that can be used to customize the default configuration.
-     * Call {@link SyncConfiguration.Builder#build()} to create the configuration when done
-     * modifying it.
+     * FIXME
      *
-     * @param partitionValue only classes with a partition key with this value will be synchronized.
-     * @throws IllegalStateException if the user isn't logged in. See {@link RealmUser#isLoggedIn()}.
+     * @param config
+     * @return
      */
-    public SyncConfiguration.Builder createSyncConfiguration(String partitionValue) {
-        if (getState() != State.ACTIVE) {
-            throw new IllegalStateException("User isn't logged in.");
+    public SyncSession getSyncSession(SyncConfiguration config) {
+        if (!config.getUser().equals(this)) {
+            throws new IllegalArgumentException("The user specified in the configuration does not match this user: %s vs. %s",
+                    config.getUser().getId(), getId());
         }
-        Util.checkNull(partitionValue, "partitionValue");
-        return new SyncConfiguration.Builder(Realm.applicationContext,
-                this,
-                app.getConfiguration().getBaseUrl().toString(),
-                partitionValue
-        );
+        return app.syncManager.getSession(config);
     }
-
-    /**
-     * Opening a synchronized Realm requires a {@link SyncConfiguration}. This method creates a
-     * {@link SyncConfiguration.Builder} that can be used to customize the default configuration.
-     * Call {@link SyncConfiguration.Builder#build()} to create the configuration when done
-     * modifying it.
-     *
-     * @param partitionValue only classes with a partition key with this value will be synchronized.
-     * @throws IllegalStateException if the user isn't logged in. See {@link RealmUser#isLoggedIn()}.
-     */
-    public SyncConfiguration.Builder createSyncConfiguration(long partitionValue) {
-        return createSyncConfiguration(Long.toString(partitionValue));
-    }
-
-//    /**
-//     * Opening a synchronized Realm requires a {@link SyncConfiguration}. This method creates a
-//     * {@link SyncConfiguration.Builder} that can be used to customize the default configuration.
-//     * Call {@link SyncConfiguration.Builder#build()} to create the configuration when done
-//     * modifying it.
-//     *
-//     * @param partitionValue only classes with a partition key with this value will be synchronized.
-//     * @throws IllegalStateException if the user isn't logged in. See {@link RealmUser#isLoggedIn()}.
-//     */
-//    public SyncConfiguration.Builder createSyncConfiguration(ObjectId partitionValue) {
-//        Util.checkNull(partitionValue, "partitionValue");
-//        return createSyncConfiguration(partitionValue.toString());
-//    }
-
-    /**
-     * Returns the default configuration for this user. The default configuration points to the
-     * default Realm on the server the user authenticated against.
-     *
-     * @param partitionValue only classes with a partition key with this value will be synchronized.
-     * @return the default configuration for this user.
-     * @throws IllegalStateException if the user isn't logged in. See {@link #getState()}.
-     */
-    public SyncConfiguration getDefaultSyncConfiguration(String partitionValue) {
-        if (getState() != State.ACTIVE) {
-            throw new IllegalStateException("User isn't logged in.");
-        }
-        Util.checkNull(partitionValue, "partitionValue");
-        if (defaultConfiguration == null) {
-            defaultConfiguration = new SyncConfiguration.Builder(Realm.applicationContext,
-                    this,
-                    app.getConfiguration().getBaseUrl().toString(),
-                    partitionValue).build();
-        }
-        return defaultConfiguration;
-    }
-
-    /**
-     * Returns the default configuration for this user. The default configuration points to the
-     * default Realm on the server the user authenticated against.
-     *
-     * @param partitionValue only classes with a partition key with this value will be synchronized.
-     * @return the default configuration for this user.
-     * @throws IllegalStateException if the user isn't logged in. See {@link #getState()}.
-     */
-    public SyncConfiguration getDefaultSyncConfiguration(long partitionValue) {
-        return getDefaultSyncConfiguration(Long.toString(partitionValue));
-    }
-
-//    /**
-//     * Returns the default configuration for this user. The default configuration points to the
-//     * default Realm on the server the user authenticated against.
-//     *
-//     * @param partitionValue only classes with a partition key with this value will be synchronized.
-//     * @return the default configuration for this user.
-//     * @throws IllegalStateException if the user isn't logged in. See {@link #getState()}.
-//     */
-//    public SyncConfiguration getDefaultSyncConfiguration(ObjectId partitionValue) {
-//      Util.checkNull(partitionValue, "partitionValue");
-//      return getDefaultSyncConfiguration(partitionValue.toString());
-//    }
 
     /**
      * Returns all the valid sessions belonging to the user.

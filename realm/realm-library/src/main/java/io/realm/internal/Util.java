@@ -198,4 +198,11 @@ public class Util {
         AndroidCapabilities capabilities = new AndroidCapabilities();
         capabilities.checkCanDeliverNotification(errorMessage);
     }
+
+    public static void checkNotOnMainThread(String errorMessage) {
+        if (new AndroidCapabilities().isMainThread()) {
+            throw new IllegalStateException(errorMessage);
+        }
+    }
+
 }

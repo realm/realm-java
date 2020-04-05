@@ -96,7 +96,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     customAuthorizationHeaderName,
                     customHeaders,
                     syncConfig.getClientResyncMode().getNativeValue(),
-                    syncConfig.getPartion()
+                    syncConfig.getPartition()
             };
         } else {
             return new Object[13];

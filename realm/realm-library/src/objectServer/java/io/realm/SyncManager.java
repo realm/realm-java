@@ -176,29 +176,6 @@ public class SyncManager {
         public static boolean separatedDirForSyncManager = false;
     }
 
-    private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
-        @Override
-        public void onError(SyncSession session, ObjectServerError error) {
-            if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
-                RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
-                return;
-            }
-
-            String errorMsg = String.format(Locale.US, "Session Error[%s]: %s",
-                    session.getConfiguration().getServerUrl(),
-                    error.toString());
-            switch (error.getErrorCode().getCategory()) {
-                case FATAL:
-                    RealmLog.error(errorMsg);
-                    break;
-                case RECOVERABLE:
-                    RealmLog.info(errorMsg);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported error category: " + error.getErrorCode().getCategory());
-            }
-        }
-    };
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
     private static Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
     private static CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
@@ -215,49 +192,6 @@ public class SyncManager {
             }
         }
     };
-
-    static volatile SyncSession.ErrorHandler defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
-
-    /**
-     * Sets a global authentication listener that will be notified about User events like
-     * login and logout.
-     *
-     * @param listener listener to register.
-     * @throws IllegalArgumentException if {@code listener} is {@code null}.
-     */
-    public static void addAuthenticationListener(AuthenticationListener listener) {
-        //noinspection ConstantConditions
-        if (listener == null) {
-            throw new IllegalArgumentException("Non-null 'listener' required.");
-        }
-        authListeners.add(listener);
-    }
-
-    /**
-     * Removes the provided global authentication listener.
-     *
-     * @param listener listener to remove.
-     */
-    public static void removeAuthenticationListener(AuthenticationListener listener) {
-        //noinspection ConstantConditions
-        if (listener == null) {
-            return;
-        }
-        authListeners.remove(listener);
-    }
-
-    /**
-     * Sets the default error handler used by all {@link SyncConfiguration} objects when they are created.
-     *
-     * @param errorHandler the default error handler used when interacting with a Realm managed by a Realm Object Server.
-     */
-    public static void setDefaultSessionErrorHandler(@Nullable SyncSession.ErrorHandler errorHandler) {
-        if (errorHandler == null) {
-            defaultSessionErrorHandler = SESSION_NO_OP_ERROR_HANDLER;
-        } else {
-            defaultSessionErrorHandler = errorHandler;
-        }
-    }
 
     /**
      * Gets a cached {@link SyncSession} for the given {@link SyncConfiguration} or throw if no one exists yet.
