@@ -113,6 +113,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 return (E) proxyState.getRow$realm().getBinaryByteArray(columnKey);
             case DATE:
                 return (E) proxyState.getRow$realm().getDate(columnKey);
+            case DECIMAL128:
+                return (E) proxyState.getRow$realm().getDecimal128(columnKey);
+            case OBJECT_ID:
+                return (E) proxyState.getRow$realm().getObjectId(columnKey);
             case OBJECT:
                 return (E) getObject(fieldName);
             case LIST:
@@ -317,6 +321,44 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     /**
+     * Returns the {@code Decimal128} value for a given field.
+     *
+     * @param fieldName the name of the field.
+     * @return the Decimal128 value.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain Decimal128.
+     */
+    public Decimal128 getDecimal128(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        checkFieldType(fieldName, columnKey, RealmFieldType.DECIMAL128);
+        if (proxyState.getRow$realm().isNull(columnKey)) {
+            return null;
+        } else {
+            return proxyState.getRow$realm().getDecimal128(columnKey);
+        }
+    }
+
+    /**
+     * Returns the {@code ObjectId} value for a given field.
+     *
+     * @param fieldName the name of the field.
+     * @return the ObjectId value.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain ObjectId.
+     */
+    public ObjectId getObjectId(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        checkFieldType(fieldName, columnKey, RealmFieldType.OBJECT_ID);
+        if (proxyState.getRow$realm().isNull(columnKey)) {
+            return null;
+        } else {
+            return proxyState.getRow$realm().getObjectId(columnKey);
+        }
+    }
+
+    /**
      * Returns the object being linked to from this field.
      *
      * @param fieldName the name of the field.
@@ -409,6 +451,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             return RealmFieldType.FLOAT_LIST;
         } else if (primitiveType.equals(Double.class)) {
             return RealmFieldType.DOUBLE_LIST;
+        } else if (primitiveType.equals(Decimal128.class)) {
+            return RealmFieldType.DECIMAL128_LIST;
+        } else if (primitiveType.equals(ObjectId.class)) {
+            return RealmFieldType.OBJECT_ID_LIST;
         } else {
             throw new IllegalArgumentException("Unsupported element type. Only primitive types supported. Yours was: " + primitiveType);
         }
@@ -436,6 +482,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case STRING:
             case BINARY:
             case DATE:
+            case DECIMAL128:
+            case OBJECT_ID:
                 return proxyState.getRow$realm().isNull(columnKey);
             case LIST:
             case LINKING_OBJECTS:
@@ -446,6 +494,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DATE_LIST:
             case FLOAT_LIST:
             case DOUBLE_LIST:
+            case DECIMAL128_LIST:
+            case OBJECT_ID_LIST:
                 // fall through
             default:
                 return false;
@@ -566,14 +616,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         } else if (valueClass == RealmList.class) {
             RealmList<?> list = (RealmList<?>) value;
             setList(fieldName, list);
+        } else if (valueClass == Decimal128.class) {
+            setDecimal128(fieldName, (Decimal128) value);
+        } else if (valueClass == ObjectId.class) {
+            setObjectId(fieldName, (ObjectId) value);
         } else {
-            // Handle Decimal128 and ObjectId in a special way since they might not be on the
-            // classpath
-            if (valueClass == Decimal128.class) {
-                setDecimal128(fieldName, (Decimal128) value);
-            } else if (valueClass == ObjectId.class) {
-                setObjectId(fieldName, (ObjectId) value);
-            }
             throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
         }
     }
@@ -846,6 +893,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DATE_LIST:
             case FLOAT_LIST:
             case DOUBLE_LIST:
+            case DECIMAL128_LIST:
+            case OBJECT_ID_LIST:
                 setValueList(fieldName, list, columnType);
                 break;
             default:
@@ -916,6 +965,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DATE_LIST: elementClass = (Class<E>) Date.class; break;
             case FLOAT_LIST: elementClass = (Class<E>) Float.class; break;
             case DOUBLE_LIST: elementClass = (Class<E>) Double.class; break;
+            case DECIMAL128_LIST: elementClass = (Class<E>) Decimal128.class; break;
+            case OBJECT_ID_LIST: elementClass = (Class<E>) ObjectId.class; break;
             default:
                 throw new IllegalArgumentException("Unsupported type: " + primitiveType);
         }
@@ -966,6 +1017,14 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         if (valueListType == RealmFieldType.DATE_LIST) {
             //noinspection unchecked
             return (ManagedListOperator<E>) new DateListOperator(realm, osList, (Class<Date>) valueClass);
+        }
+        if (valueListType == RealmFieldType.DECIMAL128_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new Decimal128ListOperator(realm, osList, (Class<Decimal128>) valueClass);
+        }
+        if (valueListType == RealmFieldType.OBJECT_ID_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new ObjectIdListOperator(realm, osList, (Class<ObjectId>) valueClass);
         }
         throw new IllegalArgumentException("Unexpected list type: " + valueListType.name());
     }

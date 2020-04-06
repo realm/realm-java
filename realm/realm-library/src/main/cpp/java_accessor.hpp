@@ -413,6 +413,18 @@ inline Timestamp JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) 
 }
 
 template <>
+inline Decimal128 JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ?  any_cast<Decimal128&>(v) : Decimal128(realm::null());
+}
+
+template <>
+inline util::Optional<ObjectId> JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ?  util::make_optional(any_cast<ObjectId&>(v)) : util::none;
+}
+
+template <>
 inline Obj JavaAccessorContext::unbox(util::Any&, CreatePolicy, ObjKey) const
 {
     REALM_TERMINATE("not supported");

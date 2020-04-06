@@ -18,6 +18,8 @@ package io.realm;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
@@ -27,6 +29,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
@@ -93,6 +96,8 @@ public class DynamicRealmObjectTests {
         typedObj.setFieldBinary(new byte[]{1, 2, 3});
         typedObj.setFieldBoolean(true);
         typedObj.setFieldDate(new Date(1000));
+        typedObj.setFieldDecimal128(new Decimal128(BigDecimal.TEN));
+        typedObj.setFieldObjectId(new ObjectId(TestHelper.generateObjectIdHexString(7)));
         typedObj.setFieldObject(typedObj);
         typedObj.getFieldList().add(typedObj);
         typedObj.getFieldIntegerList().add(1);
@@ -121,16 +126,16 @@ public class DynamicRealmObjectTests {
 
     // Types supported by the DynamicRealmObject.
     private enum SupportedType {
-        BOOLEAN, SHORT, INT, LONG, BYTE, FLOAT, DOUBLE, STRING, BINARY, DATE, OBJECT, LIST,
-        LIST_INTEGER, LIST_STRING, LIST_BOOLEAN, LIST_FLOAT, LIST_DOUBLE, LIST_BINARY, LIST_DATE
+        BOOLEAN, SHORT, INT, LONG, BYTE, FLOAT, DOUBLE, STRING, BINARY, DATE, OBJECT, DECIMAL128, OBJECT_ID, LIST,
+        LIST_INTEGER, LIST_STRING, LIST_BOOLEAN, LIST_FLOAT, LIST_DOUBLE, LIST_BINARY, LIST_DATE, LIST_DECIMAL128, LIST_OBJECT_ID
     }
 
     private enum ThreadConfinedMethods {
         GET_BOOLEAN, GET_BYTE, GET_SHORT, GET_INT, GET_LONG, GET_FLOAT, GET_DOUBLE,
-        GET_BLOB, GET_STRING, GET_DATE, GET_OBJECT, GET_LIST, GET_PRIMITIVE_LIST, GET,
+        GET_BLOB, GET_STRING, GET_DATE, GET_DECIMAL128, GET_OBJECT_ID, GET_OBJECT, GET_LIST, GET_PRIMITIVE_LIST, GET,
 
         SET_BOOLEAN, SET_BYTE, SET_SHORT, SET_INT, SET_LONG, SET_FLOAT, SET_DOUBLE,
-        SET_BLOB, SET_STRING, SET_DATE, SET_OBJECT, SET_LIST, SET_PRIMITIVE_LIST, SET,
+        SET_BLOB, SET_STRING, SET_DATE, SET_DECIMAL128, SET_OBJECT_ID, SET_OBJECT, SET_LIST, SET_PRIMITIVE_LIST, SET,
 
         IS_NULL, SET_NULL,
 
@@ -152,6 +157,8 @@ public class DynamicRealmObjectTests {
             case GET_BLOB:              obj.getBlob(AllJavaTypes.FIELD_BINARY);                     break;
             case GET_STRING:            obj.getString(AllJavaTypes.FIELD_STRING);                   break;
             case GET_DATE:              obj.getDate(AllJavaTypes.FIELD_DATE);                       break;
+            case GET_DECIMAL128:        obj.getDate(AllJavaTypes.FIELD_DECIMAL128);                 break;
+            case GET_OBJECT_ID:         obj.getDate(AllJavaTypes.FIELD_OBJECT_ID);                  break;
             case GET_OBJECT:            obj.getObject(AllJavaTypes.FIELD_OBJECT);                   break;
             case GET_LIST:              obj.getList(AllJavaTypes.FIELD_LIST);                       break;
             case GET_PRIMITIVE_LIST:    obj.getList(AllJavaTypes.FIELD_STRING_LIST, String.class);  break;
@@ -167,6 +174,8 @@ public class DynamicRealmObjectTests {
             case SET_BLOB:              obj.setBlob(AllJavaTypes.FIELD_BINARY,     new byte[] {1, 2, 3});           break;
             case SET_STRING:            obj.setString(AllJavaTypes.FIELD_STRING,   "12345");                        break;
             case SET_DATE:              obj.setDate(AllJavaTypes.FIELD_DATE,       new Date(1L));                   break;
+            case SET_DECIMAL128:        obj.setDecimal128(AllJavaTypes.FIELD_DECIMAL128, new Decimal128(BigDecimal.ONE)); break;
+            case SET_OBJECT_ID:        obj.setObjectId(AllJavaTypes.FIELD_OBJECT_ID, new ObjectId(TestHelper.generateObjectIdHexString(5))); break;
             case SET_OBJECT:            obj.setObject(AllJavaTypes.FIELD_OBJECT,   obj);                            break;
             case SET_LIST:              obj.setList(AllJavaTypes.FIELD_LIST,       new RealmList<>(obj));           break;
             case SET_PRIMITIVE_LIST:    obj.setList(AllJavaTypes.FIELD_STRING_LIST,new RealmList<String>("foo"));   break;
@@ -335,6 +344,8 @@ public class DynamicRealmObjectTests {
                 case STRING: target.getString(fieldName); break;
                 case BINARY: target.getBlob(fieldName); break;
                 case DATE: target.getDate(fieldName); break;
+                case DECIMAL128: target.getDecimal128(fieldName); break;
+                case OBJECT_ID: target.getObjectId(fieldName); break;
                 case OBJECT: target.getObject(fieldName); break;
                 case LIST:
                 case LIST_INTEGER:
@@ -344,6 +355,8 @@ public class DynamicRealmObjectTests {
                 case LIST_DOUBLE:
                 case LIST_BINARY:
                 case LIST_DATE:
+                case LIST_DECIMAL128:
+                case LIST_OBJECT_ID:
                     target.getList(fieldName);
                     break;
                 default:
@@ -467,6 +480,8 @@ public class DynamicRealmObjectTests {
                 case STRING: target.setString(fieldName, "foo"); break;
                 case BINARY: target.setBlob(fieldName, new byte[]{}); break;
                 case DATE: target.getDate(fieldName); break;
+                case DECIMAL128: target.getDecimal128(fieldName); break;
+                case OBJECT_ID: target.getObjectId(fieldName); break;
                 case OBJECT: target.setObject(fieldName, null); target.setObject(fieldName, target); break;
                 case LIST: target.setList(fieldName, new RealmList<DynamicRealmObject>()); break;
                 case LIST_INTEGER: target.setList(fieldName, new RealmList<Integer>(1)); break;
@@ -476,6 +491,8 @@ public class DynamicRealmObjectTests {
                 case LIST_DOUBLE: target.setList(fieldName, new RealmList<Double>(1.234D)); break;
                 case LIST_BINARY: target.setList(fieldName, new RealmList<byte[]>(new byte[]{})); break;
                 case LIST_DATE: target.setList(fieldName, new RealmList<Date>(new Date())); break;
+                case LIST_DECIMAL128: target.setList(fieldName, new RealmList<>(new Decimal128(BigDecimal.ONE))); break;
+                case LIST_OBJECT_ID: target.setList(fieldName, new RealmList<>(new ObjectId(TestHelper.generateObjectIdHexString(7)))); break;
                 default:
                     fail();
             }
@@ -531,6 +548,14 @@ public class DynamicRealmObjectTests {
                         dObj.setDate(AllJavaTypes.FIELD_DATE, new Date(1000));
                         assertEquals(new Date(1000), dObj.getDate(AllJavaTypes.FIELD_DATE));
                         break;
+                    case DECIMAL128:
+                        dObj.setDecimal128(AllJavaTypes.FIELD_DECIMAL128, new Decimal128(BigDecimal.ONE));
+                        assertEquals(new Decimal128(BigDecimal.ONE), dObj.getDecimal128(AllJavaTypes.FIELD_DECIMAL128));
+                        break;
+                    case OBJECT_ID:
+                        dObj.setObjectId(AllJavaTypes.FIELD_OBJECT_ID, new ObjectId(TestHelper.generateObjectIdHexString(0)));
+                        assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(0)), dObj.getObjectId(AllJavaTypes.FIELD_OBJECT_ID));
+                        break;
                     case OBJECT:
                         dObj.setObject(AllJavaTypes.FIELD_OBJECT, dObj);
                         assertEquals(dObj, dObj.getObject(AllJavaTypes.FIELD_OBJECT));
@@ -555,6 +580,12 @@ public class DynamicRealmObjectTests {
                         break;
                     case LIST_DATE:
                         checkSetGetValueList(dObj, AllJavaTypes.FIELD_DATE_LIST, Date.class, new RealmList<>(null, new Date(1000)));
+                        break;
+                    case LIST_DECIMAL128:
+                        checkSetGetValueList(dObj, AllJavaTypes.FIELD_DECIMAL128_LIST, Decimal128.class, new RealmList<>(null, new Decimal128(BigDecimal.ONE)));
+                        break;
+                    case LIST_OBJECT_ID:
+                        checkSetGetValueList(dObj, AllJavaTypes.FIELD_OBJECT_ID_LIST, ObjectId.class, new RealmList<>(null, new ObjectId(TestHelper.generateObjectIdHexString(0))));
                         break;
                     case LIST:
                         // Ignores. See testGetList/testSetList.
@@ -646,6 +677,20 @@ public class DynamicRealmObjectTests {
                         } catch (IllegalArgumentException ignored) {
                         }
                         break;
+                    case LIST_DECIMAL128:
+                        try {
+                            dObj.setNull(NullTypes.FIELD_DECIMAL128_LIST_NULL);
+                            fail();
+                        } catch (IllegalArgumentException ignored) {
+                        }
+                        break;
+                    case LIST_OBJECT_ID:
+                        try {
+                            dObj.setNull(NullTypes.FIELD_OBJECT_ID_LIST_NULL);
+                            fail();
+                        } catch (IllegalArgumentException ignored) {
+                        }
+                        break;
                     case BOOLEAN:
                         dObj.setNull(NullTypes.FIELD_BOOLEAN_NULL);
                         assertTrue(dObj.isNull(NullTypes.FIELD_BOOLEAN_NULL));
@@ -686,6 +731,14 @@ public class DynamicRealmObjectTests {
                         dObj.setNull(NullTypes.FIELD_DATE_NULL);
                         assertTrue(dObj.isNull(NullTypes.FIELD_DATE_NULL));
                         break;
+                    case DECIMAL128:
+                        dObj.setNull(NullTypes.FIELD_DECIMAL128_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_DECIMAL128_NULL));
+                        break;
+                    case OBJECT_ID:
+                        dObj.setNull(NullTypes.FIELD_OBJECT_ID_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_OBJECT_ID_NULL));
+                        break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -711,9 +764,11 @@ public class DynamicRealmObjectTests {
                         case LIST_STRING: fieldName = NullTypes.FIELD_STRING_LIST_NULL; break;
                         case LIST_BOOLEAN: fieldName = NullTypes.FIELD_BOOLEAN_LIST_NULL; break;
                         case LIST_FLOAT: fieldName = NullTypes.FIELD_FLOAT_LIST_NULL; break;
-                        case LIST_DOUBLE: fieldName = NullTypes.FIELD_DATE_LIST_NULL; break;
+                        case LIST_DOUBLE: fieldName = NullTypes.FIELD_DOUBLE_LIST_NULL; break;
                         case LIST_BINARY: fieldName = NullTypes.FIELD_BINARY_LIST_NULL; break;
                         case LIST_DATE: fieldName = NullTypes.FIELD_DATE_LIST_NULL; break;
+                        case LIST_DECIMAL128: fieldName = NullTypes.FIELD_DECIMAL128_LIST_NULL; break;
+                        case LIST_OBJECT_ID: fieldName = NullTypes.FIELD_OBJECT_ID_LIST_NULL; break;
                         case BOOLEAN: fieldName = NullTypes.FIELD_BOOLEAN_NOT_NULL; break;
                         case BYTE: fieldName = NullTypes.FIELD_BYTE_NOT_NULL; break;
                         case SHORT: fieldName = NullTypes.FIELD_SHORT_NOT_NULL; break;
@@ -724,6 +779,8 @@ public class DynamicRealmObjectTests {
                         case STRING: fieldName = NullTypes.FIELD_STRING_NOT_NULL; break;
                         case BINARY: fieldName = NullTypes.FIELD_BYTES_NOT_NULL; break;
                         case DATE: fieldName = NullTypes.FIELD_DATE_NOT_NULL; break;
+                        case DECIMAL128: fieldName = NullTypes.FIELD_DECIMAL128_NOT_NULL; break;
+                        case OBJECT_ID: fieldName = NullTypes.FIELD_OBJECT_ID_NOT_NULL; break;
                         default:
                             fail("Unknown type: " + type);
                     }
@@ -1157,6 +1214,14 @@ public class DynamicRealmObjectTests {
                         dObj.set(AllJavaTypes.FIELD_DATE, new Date(1000));
                         assertEquals(new Date(1000), dObj.get(AllJavaTypes.FIELD_DATE));
                         break;
+                    case DECIMAL128:
+                        dObj.set(AllJavaTypes.FIELD_DECIMAL128, new Decimal128(BigDecimal.ONE));
+                        assertEquals(new Decimal128(BigDecimal.ONE), dObj.get(AllJavaTypes.FIELD_DECIMAL128));
+                        break;
+                    case OBJECT_ID:
+                        dObj.set(AllJavaTypes.FIELD_OBJECT_ID, new ObjectId(TestHelper.generateObjectIdHexString(7)));
+                        assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(7)), dObj.get(AllJavaTypes.FIELD_OBJECT_ID));
+                        break;
                     case OBJECT:
                         dObj.set(AllJavaTypes.FIELD_OBJECT, dObj);
                         assertEquals(dObj, dObj.get(AllJavaTypes.FIELD_OBJECT));
@@ -1226,6 +1291,22 @@ public class DynamicRealmObjectTests {
                         assertArrayEquals(newList.toArray(), list.toArray());
                         break;
                     }
+                    case LIST_DECIMAL128: {
+                        RealmList<Decimal128> newList = new RealmList<>(null, new Decimal128(BigDecimal.ONE));
+                        dObj.set(AllJavaTypes.FIELD_DECIMAL128_LIST, newList);
+                        RealmList<Decimal128> list = dObj.getList(AllJavaTypes.FIELD_DECIMAL128_LIST, Decimal128.class);
+                        assertEquals(2, list.size());
+                        assertArrayEquals(newList.toArray(), list.toArray());
+                        break;
+                    }
+                    case LIST_OBJECT_ID: {
+                        RealmList<ObjectId> newList = new RealmList<>(null, new ObjectId(TestHelper.generateObjectIdHexString(0)));
+                        dObj.set(AllJavaTypes.FIELD_OBJECT_ID_LIST, newList);
+                        RealmList<ObjectId> list = dObj.getList(AllJavaTypes.FIELD_OBJECT_ID_LIST, ObjectId.class);
+                        assertEquals(2, list.size());
+                        assertArrayEquals(newList.toArray(), list.toArray());
+                        break;
+                    }
                     default:
                         fail();
                 }
@@ -1271,6 +1352,14 @@ public class DynamicRealmObjectTests {
                         dObj.set(AllJavaTypes.FIELD_DATE, "1000");
                         assertEquals(new Date(1000), dObj.getDate(AllJavaTypes.FIELD_DATE));
                         break;
+                    case DECIMAL128:
+                        dObj.set(AllJavaTypes.FIELD_DECIMAL128, "1");
+                        assertEquals(new Decimal128(BigDecimal.ONE), dObj.get(AllJavaTypes.FIELD_DECIMAL128));
+                        break;
+                    case OBJECT_ID:
+                        dObj.set(AllJavaTypes.FIELD_OBJECT_ID, TestHelper.generateObjectIdHexString(7));
+                        assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(7)), dObj.get(AllJavaTypes.FIELD_OBJECT_ID));
+                        break;
                     // These types don't have a string representation that can be parsed.
                     case OBJECT:
                     case LIST:
@@ -1281,6 +1370,8 @@ public class DynamicRealmObjectTests {
                     case LIST_DOUBLE:
                     case LIST_BINARY:
                     case LIST_DATE:
+                    case LIST_DECIMAL128:
+                    case LIST_OBJECT_ID:
                     case STRING:
                     case BINARY:
                     case BYTE:
@@ -1322,7 +1413,12 @@ public class DynamicRealmObjectTests {
                         case DATE:
                             dObj.set(AllJavaTypes.FIELD_DATE, "foo");
                             break;
-
+                        case DECIMAL128:
+                            dObj.set(AllJavaTypes.FIELD_DECIMAL128, "foo");
+                            break;
+                        case OBJECT_ID:
+                            dObj.set(AllJavaTypes.FIELD_OBJECT_ID, "foo");
+                            break;
                         // These types don't have a string representation that can be parsed.
                         case BOOLEAN: // Boolean is special as it returns false for all strings != "true"
                         case BYTE:
@@ -1335,6 +1431,8 @@ public class DynamicRealmObjectTests {
                         case LIST_DOUBLE:
                         case LIST_BINARY:
                         case LIST_DATE:
+                        case LIST_DECIMAL128:
+                        case LIST_OBJECT_ID:
                         case STRING:
                         case BINARY:
                             continue;

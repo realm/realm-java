@@ -1243,7 +1243,7 @@ public class RealmQuery<E> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
-    public RealmQuery<E> greatherThanOrEqualTo(String fieldName, Decimal128 value) {
+    public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Decimal128 value) {
         realm.checkIfValid();
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
         this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);

@@ -860,11 +860,6 @@ static void TableQuery_Decimal128Predicate(JNIEnv* env, jlong nativeQueryPtr, jl
         jsize arr_len = col_key_arr.size();
         LinkChain linkChain = getTableForLinkQuery(nativeQueryPtr, table_arr, col_key_arr);
 
-        // FIXME should we check low & high != -1
-        if (!COL_NULLABLE(env, linkChain.get_base_table(), col_key_arr[arr_len - 1])) {
-            return;
-        }
-
         Decimal128::Bid128 raw = {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
         Decimal128 decimal128 = Decimal128(raw);
         if (arr_len == 1) {
@@ -1000,10 +995,6 @@ static void TableQuery_ObjectIdPredicate(JNIEnv* env, jlong nativeQueryPtr, jlon
         JLongArrayAccessor col_key_arr(env, columnKeys);
         jsize arr_len = col_key_arr.size();
         LinkChain linkChain = getTableForLinkQuery(nativeQueryPtr, table_arr, col_key_arr);
-
-        if (!COL_NULLABLE(env, linkChain.get_base_table(), col_key_arr[arr_len - 1])) {
-            return;
-        }
 
         ObjectId objectId = ObjectId(StringData(data).data());
         if (arr_len == 1) {
@@ -1778,6 +1769,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
                 case type_Float:
                 case type_Double:
                 case type_Timestamp:
+                case type_Decimal:
+                case type_ObjectId:
                     pQuery->not_equal(ColKey(column_idx), realm::null());
                     break;
                 default:

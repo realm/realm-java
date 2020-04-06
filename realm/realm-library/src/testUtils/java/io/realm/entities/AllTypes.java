@@ -16,11 +16,13 @@
 
 package io.realm.entities;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.TestHelper;
 import io.realm.annotations.Required;
 
 import org.bson.types.Decimal128;
@@ -66,9 +68,9 @@ public class AllTypes extends RealmObject {
     @Required
     private byte[] columnBinary = new byte[0];
     @Required
-    private Decimal128 columnDecimal128;
+    private Decimal128 columnDecimal128 = new Decimal128(BigDecimal.ZERO);
     @Required
-    private ObjectId columnObjectId;
+    private ObjectId columnObjectId = new ObjectId(TestHelper.randomObjectIdHexString());
 
     private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
     private Dog columnRealmObject;

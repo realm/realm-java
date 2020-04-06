@@ -109,10 +109,10 @@ public class Property implements NativeObject {
                 type = TYPE_FLOAT;
                 break;
             case DECIMAL128:
-                type = TYPE_DECIMAL128 | TYPE_NULLABLE;
+                type = TYPE_DECIMAL128;
                 break;
             case OBJECT_ID:
-                type = TYPE_OBJECT_ID | TYPE_NULLABLE;;
+                type = TYPE_OBJECT_ID;
                 break;
             case DOUBLE:
                 type = TYPE_DOUBLE;
