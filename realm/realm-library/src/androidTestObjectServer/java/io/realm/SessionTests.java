@@ -70,7 +70,7 @@ public class SessionTests {
     public void setUp() {
         app = new TestRealmApp();
         user = createTestUser();
-        configuration = user.createSyncConfiguration().build();
+        configuration = SyncConfiguration.defaultConfig(user);
     }
 
     @After

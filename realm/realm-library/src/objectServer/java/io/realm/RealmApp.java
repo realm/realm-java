@@ -84,7 +84,7 @@ public class RealmApp {
         this.config = config;
         this.networkTransport = new OkHttpNetworkTransport();
         networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
-        for (Map.Entry<String, String> entry : config.getCustomHeaders().entrySet()) {
+        for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
             networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
         }
         this.syncManager = new SyncManager(this);
@@ -225,7 +225,7 @@ public class RealmApp {
      * @throws ObjectServerError if called from the UI thread or if the user was logged in, but
      * could not be logged out.
      */
-    public RealmUser removeUser(RealmUser user) throws ObjectServerError {
+    public RealmUser removeUser(final RealmUser user) throws ObjectServerError {
         Util.checkNull(user, "user");
         boolean loggedIn = user.isLoggedIn();
         AtomicReference<RealmUser> success = new AtomicReference<>(null);
@@ -236,10 +236,11 @@ public class RealmApp {
                 return user;
             }
         });
-        return handleResult(success, error);
+        handleResult(success, error);
         if (loggedIn) {
             notifyUserLoggedOut(user);
         }
+        return user;
     }
 
     /**
@@ -457,6 +458,8 @@ public class RealmApp {
     /**
      * Sets a global authentication listener that will be notified about User events like
      * login and logout.
+     * <p>
+     * Callbacks to authentication listeners will happen the UI thread.
      *
      * @param listener listener to register.
      * @throws IllegalArgumentException if {@code listener} is {@code null}.

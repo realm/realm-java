@@ -225,7 +225,7 @@ public class RealmUser {
      * @return {@code true} if the user is logged in. {@code false} otherwise.
      */
     public boolean isLoggedIn() {
-        return getState() == State.ACTIVE;
+        return getState() == State.LOGGED_IN;
     }
 
     /**
@@ -265,29 +265,6 @@ public class RealmUser {
      */
     public RealmAsyncTask logOutAsync(RealmApp.Callback callback) {
         return app.logOutAsync(this, callback);
-    }
-
-    /**
-     * FIXME
-     *
-     * @param config
-     * @return
-     */
-    public SyncSession getSyncSession(SyncConfiguration config) {
-        if (!config.getUser().equals(this)) {
-            throws new IllegalArgumentException("The user specified in the configuration does not match this user: %s vs. %s",
-                    config.getUser().getId(), getId());
-        }
-        return app.syncManager.getSession(config);
-    }
-
-    /**
-     * Returns all the valid sessions belonging to the user.
-     *
-     * @return the all valid sessions belong to the user.
-     */
-    public List<SyncSession> allSessions() {
-        return app.getSyncService().getAllSyncSessions(this);
     }
 
     @Override

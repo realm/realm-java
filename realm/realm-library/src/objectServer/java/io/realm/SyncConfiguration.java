@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
@@ -192,6 +193,11 @@ public class SyncConfiguration extends RealmConfiguration {
         return forRecovery(canonicalPath, encryptionKey, schemaMediator);
     }
 
+    @Beta // FIXME: Should be removed with support for partition values
+    public static SyncConfiguration defaultConfig(RealmUser user) {
+        return new SyncConfiguration.Builder(user, "").build();
+    }
+
     /**
      * FIXME
      *
@@ -199,6 +205,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @param partionValue
      * @return
      */
+    @Beta
     public static SyncConfiguration defaultConfig(RealmUser user, Object partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
@@ -479,7 +486,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private boolean deleteRealmOnLogout = false;
         private URI serverUrl;
         private RealmUser user = null;
-        private SyncSession.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
+        private SyncSession.ErrorHandler errorHandler;
         private boolean syncClientValidateSsl = true;
         @Nullable
         private String serverCertificateAssetName;
@@ -564,7 +571,7 @@ public class SyncConfiguration extends RealmConfiguration {
                         serverUrl.getRawFragment());
 
             } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("Invalid URI: " + uri, e);
+                throw new IllegalArgumentException("Invalid URI: " + baseUrl, e);
             }
 
             this.defaultLocalFileName = "default.realm";

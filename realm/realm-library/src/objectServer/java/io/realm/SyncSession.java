@@ -404,9 +404,6 @@ public class SyncSession {
 
     void close() {
         isClosed = true;
-        if (networkRequest != null) {
-            networkRequest.cancel();
-        }
     }
 
     // This method will be called once all changes have been downloaded or uploaded.
@@ -471,7 +468,7 @@ public class SyncSession {
      * @return {@code true} if the data was downloaded before the timeout. {@code false} if the operation timed out or otherwise failed.
      */
     public boolean downloadAllServerChanges(long timeout, TimeUnit unit) throws InterruptedException {
-        checkIfNotOnMainThread("downloadAllServerChanges() cannot be called from the main thread.");
+        Util.checkNotOnMainThread("downloadAllServerChanges() cannot be called from the main thread.");
         checkTimeout(timeout, unit);
 
         // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
@@ -497,7 +494,7 @@ public class SyncSession {
      * @throws InterruptedException if the thread was interrupted while downloading was in progress.
      */
     public void uploadAllLocalChanges() throws InterruptedException {
-        checkIfNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
+        Util.checkNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
 
         // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
         // an async listener there and let it callback to the Java Session when done. This feels icky at best, but
@@ -524,7 +521,7 @@ public class SyncSession {
      * @return {@code true} if the data was uploaded before the timeout. {@code false} if the operation timed out or otherwise failed.
      */
     public boolean uploadAllLocalChanges(long timeout, TimeUnit unit) throws InterruptedException {
-        checkIfNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
+        Util.checkNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
         checkTimeout(timeout, unit);
 
         // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
@@ -568,10 +565,6 @@ public class SyncSession {
     public synchronized void stop() {
         close();
         nativeStop(configuration.getPath());
-    }
-
-    void setResolvedRealmURI(URI resolvedRealmURI) {
-        this.resolvedRealmURI = resolvedRealmURI;
     }
 
     /**

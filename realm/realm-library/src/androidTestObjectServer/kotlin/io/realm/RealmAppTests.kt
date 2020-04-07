@@ -15,20 +15,24 @@
  */
 package io.realm
 
+import android.os.Looper
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.realm.TestHelper
 import io.realm.admin.ServerAdmin
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.rule.BlockingLooperThread
 import io.realm.rule.RunInLooperThread
 import io.realm.rule.RunTestInLooperThread
+import io.realm.util.expectException
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.IllegalArgumentException
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 
 @RunWith(AndroidJUnit4::class)
 class RealmAppTests {
@@ -418,6 +422,50 @@ class RealmAppTests {
             fail()
         } catch (ignore: IllegalStateException) {
         }
+    }
+
+    @Test
+    fun authListener() {
+        val userRef = AtomicReference<RealmUser>(null)
+        looperThread.runBlocking {
+            val authenticationListener = object : AuthenticationListener {
+                override fun loggedIn(user: RealmUser) {
+                    userRef.set(user)
+                    user.logOutAsync { /* Ignore */ }
+                }
+
+                override fun loggedOut(user: RealmUser) {
+                    assertEquals(userRef.get(), user)
+                    looperThread.testComplete()
+                }
+            }
+            app.addAuthenticationListener(authenticationListener)
+            app.login(RealmCredentials.anonymous())
+        }
+    }
+
+    @Test
+    fun authListener_nullThrows() {
+        expectException<java.lang.IllegalArgumentException> { app.addAuthenticationListener(TestHelper.getNull()) }
+    }
+
+    @Test
+    fun authListener_remove() = looperThread.runBlocking {
+        val failListener = object : AuthenticationListener {
+            override fun loggedIn(user: RealmUser) { fail() }
+            override fun loggedOut(user: RealmUser) { fail() }
+        }
+        val successListener = object : AuthenticationListener {
+            override fun loggedOut(user: RealmUser) { fail() }
+            override fun loggedIn(user: RealmUser) { looperThread.testComplete() }
+        }
+        // This test depends on listeners being executed in order which is an
+        // implementation detail, but there isn't a sure fire way to do this
+        // without depending on implementation details or assume a specific timing.
+        app.addAuthenticationListener(failListener)
+        app.addAuthenticationListener(successListener)
+        app.removeAuthenticationListener(failListener)
+        app.login(RealmCredentials.anonymous())
     }
 
 }

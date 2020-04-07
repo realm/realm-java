@@ -77,7 +77,7 @@ import okhttp3.internal.tls.OkHostnameVerifier;
 @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
 public class SyncManager {
 
-    private volatile static boolean CREATED = false;
+    private volatile static String CREATED_APP_ID = null; //
     private final RealmApp app;
     private final String appId;
 
@@ -89,11 +89,11 @@ public class SyncManager {
         // exception if you try to create it twice. Which will happen as part of setting up a
         // RealmApp.
         synchronized (SyncManager.class) {
-            if (CREATED) {
-                throw new IllegalStateException("Only one RealmApp is currently supported");
+            if (CREATED_APP_ID != null && !appId.equals(CREATED_APP_ID)) {
+                throw new IllegalStateException("Only one RealmApp is currently supported. " + CREATED_APP_ID + " already exists.");
             }
             init(app.getConfiguration());
-            CREATED = true;
+            CREATED_APP_ID = appId;
         }
     }
 
@@ -249,16 +249,6 @@ public class SyncManager {
                 RealmLog.debug("First session created. Adding network listener.");
                 NetworkStateReceiver.addListener(networkListener);
             }
-            if (resolvedRealmURL != null) {
-                session.setResolvedRealmURI(resolvedRealmURL);
-                // Currently when the user login, the Object Store will try to revive it's inactive sessions
-                // (stored previously after a logout). this will cause the OS to call bindSession to obtain an
-                // access token, however since the Realm might not be open yet, the wrapObjectStoreSessionIfRequired
-                // will not be invoked to wrap the OS store session with the Java session, the Sync client to not resume
-                // syncing.
-                session.getAccessToken(); // FIXME: Figure out what needs to happen here
-            }
-
             // The underlying session will be created as part of opening the Realm, but this approach
             // does not work when using `Realm.getInstanceAsync()` in combination with AsyncOpen.
             //

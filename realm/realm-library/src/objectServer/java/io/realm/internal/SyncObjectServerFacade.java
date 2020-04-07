@@ -81,8 +81,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String syncUserAccessToken = user.getAccessToken();
             byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
             String urlPrefix = syncConfig.getUrlPrefix();
-            String customAuthorizationHeaderName = app.getAuthorizationHeaderName();
-            Map<String, String> customHeaders = app.getCustomRequestHeaders();
+            String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
+            Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
             return new Object[]{
                     rosUserIdentity,
                     rosServerUrl,
@@ -95,7 +95,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     urlPrefix,
                     customAuthorizationHeaderName,
                     customHeaders,
-                    syncConfig.getClientResyncMode().getNativeValue(),
+                    OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL, // Client Resync is no longer supported in v10, but might be re-added later.
                     syncConfig.getPartition()
             };
         } else {

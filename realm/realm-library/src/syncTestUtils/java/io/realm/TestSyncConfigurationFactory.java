@@ -26,7 +26,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 public class TestSyncConfigurationFactory extends TestRealmConfigurationFactory {
 
     public SyncConfiguration.Builder createSyncConfigurationBuilder(RealmUser user) {
-        return user.createSyncConfiguration()
+        return new SyncConfiguration.Builder(user, "") // FIXME
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .directory(getRoot());
     }

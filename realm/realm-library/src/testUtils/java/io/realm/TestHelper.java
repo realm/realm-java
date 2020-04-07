@@ -1259,15 +1259,15 @@ public class TestHelper {
      */
     private static final Field networkPoolExecutorField;
     static {
-        Class syncManager = null;
+        Class app = null;
         try {
-            syncManager = Class.forName("io.realm.SyncManager");
+            app = Class.forName("io.realm.RealmApp");
         } catch (ClassNotFoundException e) {
             // Ignore
         }
 
         try {
-            networkPoolExecutorField = (syncManager != null) ? syncManager.getDeclaredField("NETWORK_POOL_EXECUTOR") : null;
+            networkPoolExecutorField = (app != null) ? app.getDeclaredField("NETWORK_POOL_EXECUTOR") : null;
         } catch (NoSuchFieldException e) {
             throw new AssertionError("Could not find field: NETWORK_POOL_EXECUTOR\n" + Util.getStackTrace(e));
         }

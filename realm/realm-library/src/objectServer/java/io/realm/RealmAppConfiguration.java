@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.Util;
 import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
 
 /**
  * FIXME
@@ -40,11 +41,11 @@ public class RealmAppConfiguration {
     private final String appName;
     private final String appVersion;
     private final URL baseUrl;
-    private final SyncSession.ErrorHandler defaultErrorHandler =
+    private final SyncSession.ErrorHandler defaultErrorHandler;
     @Nullable private final byte[] encryptionKey;
     private final long logLevel;
     private final long requestTimeoutMs;
-    private final String authorizationHeaderName = "Authorization";
+    private final String authorizationHeaderName;
     private final Map<String, String> customHeaders;
 
     private RealmAppConfiguration(String appId,
@@ -62,6 +63,7 @@ public class RealmAppConfiguration {
         this.appName = appName;
         this.appVersion = appVersion;
         this.baseUrl = createUrl(baseUrl);
+        this.defaultErrorHandler = defaultErrorHandler;
         this.encryptionKey = (encryptionKey == null) ? null : Arrays.copyOf(encryptionKey, encryptionKey.length);
         this.logLevel = logLevel;
         this.requestTimeoutMs = requestTimeoutMs;
@@ -148,14 +150,18 @@ public class RealmAppConfiguration {
      *
      * @return
      */
-    public Map<String, String> getCustomHeaders() {
+    public Map<String, String> getCustomRequestHeaders() {
         return customHeaders;
     }
 
+    /**
+     * FIXME
+     *
+     * @return
+     */
     public SyncSession.ErrorHandler getDefaultErrorHandler() {
-        return de
+        return defaultErrorHandler;
     }
-
 
     /**
      * FIXME

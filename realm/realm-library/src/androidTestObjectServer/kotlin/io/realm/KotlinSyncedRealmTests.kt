@@ -34,7 +34,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     @Test
     fun syncRoundTrip() {
         val user: RealmUser = app.login(RealmCredentials.anonymous())
-        val realm: Realm = Realm.getInstance(user.defaultSyncConfiguration)
+        val realm: Realm = Realm.getInstance(SyncConfiguration.defaultConfig(user))
 
         app.syncManager.getAllSyncSessions(user)[0].downloadAllServerChanges()
 

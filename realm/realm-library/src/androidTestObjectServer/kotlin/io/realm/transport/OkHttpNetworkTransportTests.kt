@@ -23,6 +23,7 @@ import io.realm.internal.objectstore.OsJavaNetworkTransport
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -142,5 +143,17 @@ class OkHttpNetworkTransportTests {
             t.interrupt()
             t.join()
         }
+    }
+
+    @Ignore("Add test for this")
+    @Test
+    fun customAuthorizationHeader() {
+        TODO("FIXME")
+    }
+
+    @Ignore("Add test for this")
+    @Test
+    fun customHeaders() {
+
     }
 }
