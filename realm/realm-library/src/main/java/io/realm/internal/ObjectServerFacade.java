@@ -121,6 +121,6 @@ public class ObjectServerFacade {
     }
 
     public SyncSession getSession(RealmConfiguration config) {
-        throw new IllegalStateException("This Realm is not a synchronized Realm.")
+        throw new IllegalStateException("This Realm is not a synchronized Realm.");
     }
 }

@@ -178,7 +178,7 @@ public class SyncTestUtils {
     // and downloaded again.
     public static void syncRealm(Realm realm) {
         SyncConfiguration config = (SyncConfiguration) realm.getConfiguration();
-        SyncSession session = SyncManager.getSession(config);
+        SyncSession session = config.getUser().getApp().getSyncService().getSession(config);
         try {
             session.uploadAllLocalChanges();
             session.downloadAllServerChanges();

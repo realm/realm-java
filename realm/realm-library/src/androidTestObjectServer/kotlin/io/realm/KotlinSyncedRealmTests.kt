@@ -6,7 +6,7 @@ import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.rule.BlockingLooperThread
 import org.junit.After
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -48,9 +48,8 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         val user: RealmUser = app.login(RealmCredentials.anonymous())
         val realm = Realm.getInstance(SyncConfiguration.defaultConfig(user))
         assertNotNull(realm.session)
-        assertEqual(SyncSession.State.ACTIVE, realm.session.state)
-        assertEqual(user, realm.session.user)
+        assertEquals(SyncSession.State.ACTIVE, realm.session.state)
+        assertEquals(user, realm.session.user)
         realm.close()
     }
-
 }

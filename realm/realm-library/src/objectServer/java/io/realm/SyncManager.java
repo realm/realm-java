@@ -80,6 +80,12 @@ public class SyncManager {
     private volatile static String CREATED_APP_ID = null; //
     private final RealmApp app;
     private final String appId;
+    // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
+    private Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
+    // init the "sync_manager.cpp" metadata Realm, this is also needed later, when re try
+    // to schedule a client reset. in realm-java#master this is already done, when initialising
+    // the RealmFileUserStore (not available now on releases)
+    Context context = Realm.applicationContext;
 
     SyncManager(RealmApp app) {
         this.app = app;
@@ -132,10 +138,6 @@ public class SyncManager {
             appDefinedUserAgent = sb.toString();
         }
 
-        // init the "sync_manager.cpp" metadata Realm, this is also needed later, when re try
-        // to schedule a client reset. in realm-java#master this is already done, when initialising
-        // the RealmFileUserStore (not available now on releases)
-        Context context = Realm.applicationContext;
         if (SyncManager.Debug.separatedDirForSyncManager) {
             try {
                 // Files.createTempDirectory is not available on JDK 6.
@@ -176,10 +178,6 @@ public class SyncManager {
         public static boolean separatedDirForSyncManager = false;
     }
 
-    // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
-    private static Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
-    private static CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<AuthenticationListener>();
-
     private static NetworkStateReceiver.ConnectionListener networkListener = new NetworkStateReceiver.ConnectionListener() {
         @Override
         public void onChange(boolean connectionAvailable) {
@@ -203,7 +201,7 @@ public class SyncManager {
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
      * @throws IllegalStateException if the session could not be found using the provided {@code SyncConfiguration}.
      */
-    public static synchronized SyncSession getSession(SyncConfiguration syncConfiguration) throws IllegalStateException {
+    public synchronized SyncSession getSession(SyncConfiguration syncConfiguration) throws IllegalStateException {
         //noinspection ConstantConditions
         if (syncConfiguration == null) {
             throw new IllegalArgumentException("A non-empty 'syncConfiguration' is required.");
@@ -229,7 +227,7 @@ public class SyncManager {
      * @return the {@link SyncSession} for the specified Realm.
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
      */
-    public synchronized SyncSession getOrCreateSession(SyncConfiguration syncConfiguration, @Nullable URI resolvedRealmURL) {
+    public synchronized SyncSession getOrCreateSession(SyncConfiguration syncConfiguration) {
         // This will not create a new native (Object Store) session, this will only associate a Realm's path
         // with a SyncSession. Object Store's SyncManager is responsible of the life cycle (including creation)
         // of the native session. The provided Java wrap, helps interact with the native session, when reporting error
@@ -297,26 +295,12 @@ public class SyncManager {
         }
     }
 
-    // Notify listeners that a user logged in
-    static void notifyUserLoggedIn(RealmUser user) {
-        for (AuthenticationListener authListener : authListeners) {
-            authListener.loggedIn(user);
-        }
-    }
-
-    // Notify listeners that a user logged out successfully
-    static void notifyUserLoggedOut(RealmUser user) {
-        for (AuthenticationListener authListener : authListeners) {
-            authListener.loggedOut(user);
-        }
-    }
-
     /**
      * All errors from native Sync is reported to this method. From the path we can determine which
      * session to contact. If {@code path == null} all sessions are effected.
      */
     @SuppressWarnings("unused")
-    private static synchronized void notifyErrorHandler(String nativeErrorCategory, int nativeErrorCode, String errorMessage, @Nullable String path) {
+    private synchronized void notifyErrorHandler(String nativeErrorCategory, int nativeErrorCode, String errorMessage, @Nullable String path) {
         if (Util.isEmptyString(path)) {
             // notify all sessions
             for (SyncSession syncSession : sessions.values()) {
@@ -355,7 +339,7 @@ public class SyncManager {
      * can leak since we don't have control over the session lifecycle.
      */
     @SuppressWarnings("unused")
-    private static synchronized void notifyProgressListener(String localRealmPath, long listenerId, long transferedBytes, long transferableBytes) {
+    private synchronized void notifyProgressListener(String localRealmPath, long listenerId, long transferedBytes, long transferableBytes) {
         SyncSession session = sessions.get(localRealmPath);
         if (session != null) {
             try {
@@ -371,7 +355,7 @@ public class SyncManager {
      * by the native Sync Client thread. Instead log all exceptions to logcat.
      */
     @SuppressWarnings("unused")
-    private static synchronized void notifyConnectionListeners(String localRealmPath, long oldState, long newState) {
+    private synchronized void notifyConnectionListeners(String localRealmPath, long oldState, long newState) {
         SyncSession session = sessions.get(localRealmPath);
         if (session != null) {
             try {
@@ -528,7 +512,7 @@ public class SyncManager {
      *
      * @param session Session to trigger Client Reset for.
      */
-    static void simulateClientReset(SyncSession session) {
+    void simulateClientReset(SyncSession session) {
         nativeSimulateSyncError(session.getConfiguration().getPath(),
                 ErrorCode.DIVERGING_HISTORIES.intValue(),
                 "Simulate Client Reset",

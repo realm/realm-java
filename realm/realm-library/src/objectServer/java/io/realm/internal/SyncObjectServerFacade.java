@@ -113,7 +113,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         if (config.getRealmConfiguration() instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config.getRealmConfiguration();
             RealmApp app = syncConfig.getUser().getApp();
-            app.getSyncService().getOrCreateSession(syncConfig, config.getResolvedRealmURI());
+            app.getSyncService().getOrCreateSession(syncConfig);
         }
     }
 
@@ -195,15 +195,15 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             SyncConfiguration syncConfig = (SyncConfiguration) configuration;
             OsRealmConfig config = new OsRealmConfig.Builder(syncConfig).build();
             RealmApp app = syncConfig.getUser().getApp();
-            app.getSyncService().getOrCreateSession(syncConfig, config.getResolvedRealmURI());
+            app.getSyncService().getOrCreateSession(syncConfig);
         }
     }
 
     @Override
     public SyncSession getSession(RealmConfiguration config) {
-        if (configuration instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            return config.getUser().getApp().getSyncService().getSession(config.getResolvedRealmURI());
+        if (config instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) config;
+            return syncConfig.getUser().getApp().getSyncService().getSession(syncConfig);
         } else {
             throw new IllegalStateException("This Realm is not a synchronized Realm.");
         }
