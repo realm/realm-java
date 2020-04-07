@@ -31,6 +31,7 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmUser;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
+import io.realm.SyncSession;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
@@ -195,6 +196,16 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             OsRealmConfig config = new OsRealmConfig.Builder(syncConfig).build();
             RealmApp app = syncConfig.getUser().getApp();
             app.getSyncService().getOrCreateSession(syncConfig, config.getResolvedRealmURI());
+        }
+    }
+
+    @Override
+    public SyncSession getSession(RealmConfiguration config) {
+        if (configuration instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            return config.getUser().getApp().getSyncService().getSession(config.getResolvedRealmURI());
+        } else {
+            throw new IllegalStateException("This Realm is not a synchronized Realm.");
         }
     }
 }
