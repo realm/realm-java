@@ -39,7 +39,6 @@ import io.realm.entities.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
-import static io.realm.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -69,7 +68,7 @@ public class SessionTests {
     @Before
     public void setUp() {
         app = new TestRealmApp();
-        user = createTestUser();
+        user = SyncTestUtils.Companion.createTestUser(app);
         configuration = SyncConfiguration.defaultConfig(user);
     }
 
@@ -132,7 +131,7 @@ public class SessionTests {
     @Test
     @RunTestInLooperThread
     public void errorHandler_clientResetReported() {
-        RealmUser user = createTestUser();
+        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
         String url = "realm://objectserver.realm.io/default";
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
@@ -164,7 +163,7 @@ public class SessionTests {
     @Test
     @RunTestInLooperThread
     public void errorHandler_manualExecuteClientReset() {
-        RealmUser user = createTestUser();
+        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler((session, error) -> {
@@ -202,7 +201,7 @@ public class SessionTests {
     @Test
     @RunTestInLooperThread
     public void errorHandler_useBackupSyncConfigurationForClientReset() {
-        RealmUser user = createTestUser();
+        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .schema(StringOnly.class)
@@ -261,7 +260,7 @@ public class SessionTests {
     @Test
     @RunTestInLooperThread
     public void errorHandler_useBackupSyncConfigurationAfterClientReset() {
-        RealmUser user = createTestUser();
+        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler((session, error) -> {
@@ -342,7 +341,7 @@ public class SessionTests {
     @Test
     @RunTestInLooperThread
     public void errorHandler_useClientResetEncrypted() {
-        RealmUser user = createTestUser();
+        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
         final byte[] randomKey = TestHelper.getRandomKey();
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)

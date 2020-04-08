@@ -19,6 +19,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,6 +56,12 @@ public class SyncedRealmTests {
     public final ExpectedException thrown = ExpectedException.none();
 
     private Realm realm;
+    private RealmApp app;
+
+    @Before
+    public void setUp() {
+        app = new TestRealmApp();
+    }
 
     @After
     public void tearDown() {
@@ -75,7 +82,7 @@ public class SyncedRealmTests {
     }
 
     private Realm getFullySyncRealm() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser())
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app))
                 .build();
         realm = Realm.getInstance(config);
         return realm;
@@ -85,7 +92,7 @@ public class SyncedRealmTests {
     @Test
     @Ignore("Going to be removed anyway")
     public void testUpgradingOptionalSubscriptionFields() throws IOException {
-        RealmUser user = SyncTestUtils.createTestUser();
+        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
 
         // Put an older Realm at the location where Realm would otherwise create a new empty one.
         // This way, Realm will upgrade this file instead.
@@ -114,7 +121,7 @@ public class SyncedRealmTests {
 
     @Test
     public void compactRealm_populatedRealm() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser()).build();
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app)).build();
         realm = Realm.getInstance(config);
         realm.executeTransaction(r -> {
             for (int i = 0; i < 10; i++) {
@@ -129,7 +136,7 @@ public class SyncedRealmTests {
 
     @Test
     public void compactOnLaunch_shouldCompact() throws IOException {
-        RealmUser user = SyncTestUtils.createTestUser();
+        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
 
         // Fill Realm with data and record size
         SyncConfiguration config1 = configFactory.createSyncConfigurationBuilder(user).build();

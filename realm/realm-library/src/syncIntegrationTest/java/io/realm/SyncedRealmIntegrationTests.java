@@ -99,7 +99,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     @Test
     @UiThreadTest
     public void waitForInitialRemoteData_mainThreadThrows() {
-        final SyncUser user = SyncTestUtils.createTestUser(Constants.AUTH_URL);
+        final SyncUser user = SyncTestUtils.Companion.createTestUser(Constants.AUTH_URL);
         SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
                 .waitForInitialRemoteData()
                 .build();
