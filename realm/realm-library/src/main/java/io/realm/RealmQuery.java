@@ -1258,7 +1258,7 @@ public class RealmQuery<E> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
-    public RealmQuery<E> greatherThanOrEqualTo(String fieldName, ObjectId value) {
+    public RealmQuery<E> greaterThanOrEqualTo(String fieldName, ObjectId value) {
         realm.checkIfValid();
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
         this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);

@@ -38,7 +38,6 @@ open class Decimal128NotRequired
     var name : String = ""
 }
 
-
 open class Decimal128RequiredRealmList
     : RealmObject() {
     var id: Long = 0
@@ -188,6 +187,8 @@ class Decimal128Tests {
         obj.decimals.add(null)
         obj.decimals.add(Decimal128(BigDecimal.ZERO))
         realm.commitTransaction()
+
+        assertEquals(2, realm.where<Decimal128OptionalRealmList>().findFirst()?.decimals?.size)
     }
 
     @Test

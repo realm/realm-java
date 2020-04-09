@@ -17,23 +17,17 @@
 package io.realm.processor
 
 import com.squareup.javawriter.JavaWriter
-
+import io.realm.processor.ext.beginMethod
+import io.realm.processor.ext.beginType
 import java.io.BufferedWriter
 import java.io.IOException
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.Collections
-import java.util.EnumSet
-import java.util.Locale
-
+import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Modifier
 import javax.lang.model.element.VariableElement
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeMirror
-
-import io.realm.processor.ext.beginMethod
-import io.realm.processor.ext.beginType
+import javax.tools.JavaFileObject
 
 /**
  * This class is responsible for generating the Realm Proxy classes for each model class defined
@@ -64,9 +58,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     //  in the realm-library project, for an example of how to set this flag.
     private val suppressWarnings: Boolean = !"false".equals(processingEnvironment.options[OPTION_SUPPRESS_WARNINGS], ignoreCase = true)
 
+    lateinit var sourceFile: JavaFileObject
     @Throws(IOException::class, UnsupportedOperationException::class)
     fun generate() {
-        val sourceFile = processingEnvironment.filer.createSourceFile(generatedClassName.toString())
+        sourceFile = processingEnvironment.filer.createSourceFile(generatedClassName.toString())
 
         val imports = ArrayList(IMPORTS)
         if (metadata.backlinkFields.isNotEmpty()) {
@@ -1786,7 +1781,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 buildExcludeFieldsList(writer, metadata.fields)
                 emitStatement("%s obj = realm.createObjectInternal(%s.class, true, excludeFields)", qualifiedJavaClassName, qualifiedJavaClassName)
             } else {
-                val pkType = if (Utils.isString(metadata.primaryKey)) "String" else "Long"
+                var pkType = "Long"
+                var jsonAccessorMethodSuffix = "Long"
+                var findFirstCast = ""
+                if (Utils.isString(metadata.primaryKey)) {
+                    pkType = "String"
+                    jsonAccessorMethodSuffix=  "String"
+                } else if (Utils.isObjectId(metadata.primaryKey)) {
+                    pkType = "ObjectId"
+                    findFirstCast = "(org.bson.types.ObjectId)"
+                    jsonAccessorMethodSuffix = ""
+                }
                 emitStatement("%s obj = null", qualifiedJavaClassName)
                 beginControlFlow("if (update)")
                     emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
@@ -1797,11 +1802,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         beginControlFlow("if (json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
                             emitStatement("objKey = table.findFirstNull(pkColumnKey)")
                         nextControlFlow("else")
-                            emitStatement("objKey = table.findFirst%s(pkColumnKey, json.get%s(\"%s\"))", pkType, pkType, metadata.primaryKey!!.simpleName)
+                            emitStatement("objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))", pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
                         endControlFlow()
                     } else {
                         beginControlFlow("if (!json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
-                            emitStatement("objKey = table.findFirst%s(pkColumnKey, json.get%s(\"%s\"))", pkType, pkType, metadata.primaryKey!!.simpleName)
+                            emitStatement("objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))", pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
                         endControlFlow()
                     }
                     beginControlFlow("if (objKey != Table.NO_MATCH)")
@@ -1858,13 +1863,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             metadata.getInternalSetter(fieldName),
                             fieldName,
                             qualifiedFieldType,
-                            writer
-                    )
+                            writer)
                 }
             }
             emitStatement("return obj")
             endMethod()
-            emitEmptyLine()            
+            emitEmptyLine()
         }
     }
 

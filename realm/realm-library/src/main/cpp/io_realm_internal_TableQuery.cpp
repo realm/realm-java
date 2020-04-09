@@ -1725,6 +1725,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
                 case type_Timestamp:
                     pQuery->and_query(linkChain.column<Timestamp>(ColKey(column_idx)) == realm::null());
                     break;
+                case type_Decimal:
+                    pQuery->and_query(linkChain.column<Decimal128>(ColKey(column_idx)) == realm::null());
+                    break;
+                case type_ObjectId:
+                    pQuery->and_query(linkChain.column<ObjectId>(ColKey(column_idx)) == realm::null());
+                    break;
                 default:
                     REALM_UNREACHABLE();
             }
@@ -1807,6 +1813,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
                     break;
                 case type_Timestamp:
                     pQuery->and_query(linkChain.column<Timestamp>(ColKey(column_idx)) != realm::null());
+                    break;
+                case type_Decimal:
+                    pQuery->and_query(linkChain.column<Decimal128>(ColKey(column_idx)) != realm::null());
+                    break;
+                case type_ObjectId:
+                    pQuery->and_query(linkChain.column<ObjectId>(ColKey(column_idx)) != realm::null());
                     break;
                 default:
                     REALM_UNREACHABLE();
