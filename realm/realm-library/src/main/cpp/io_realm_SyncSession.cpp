@@ -35,9 +35,6 @@ using namespace realm::jni_util;
 using namespace realm::sync;
 using namespace realm::_impl;
 
-static_assert(SyncSession::PublicState::WaitingForAccessToken ==
-                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
-              "");
 static_assert(SyncSession::PublicState::Active ==
                   static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_ACTIVE),
               "");
@@ -57,29 +54,6 @@ static_assert(SyncSession::ConnectionState::Connecting ==
 static_assert(SyncSession::ConnectionState::Connected ==
               static_cast<SyncSession::ConnectionState>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTED),
               "");
-
-JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv* env, jclass,
-                                                                              jstring j_local_realm_path,
-                                                                              jstring j_access_token,
-                                                                              jstring j_sync_realm_url)
-{
-    try {
-        JStringAccessor local_realm_path(env, j_local_realm_path);
-        auto session = SyncManager::shared().get_existing_session(local_realm_path);
-        if (session) {
-            JStringAccessor access_token(env, j_access_token);
-            JStringAccessor realm_url(env, j_sync_realm_url);
-
-            session->refresh_access_token(access_token, session->config().realm_url);
-            return JNI_TRUE;
-        }
-        else {
-            Log::d("no active/inactive session found");
-        }
-    }
-    CATCH_STD()
-    return JNI_FALSE;
-}
 
 JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jclass,
                                                                             jstring j_local_realm_path,
@@ -220,8 +194,6 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jc
 
         if (session) {
             switch (session->state()) {
-                case SyncSession::PublicState::WaitingForAccessToken:
-                    return io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN;
                 case SyncSession::PublicState::Active:
                     return io_realm_SyncSession_STATE_VALUE_ACTIVE;
                 case SyncSession::PublicState::Dying:
@@ -346,19 +318,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStop(JNIEnv* env, jclass,
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
         if (session) {
             session->log_out();
-        }
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeSetUrlPrefix(JNIEnv* env, jclass, jstring j_local_realm_path, jstring j_url_prefix)
-{
-    try {
-        JStringAccessor local_realm_path(env, j_local_realm_path);
-        auto session = SyncManager::shared().get_existing_session(local_realm_path);
-        if (session) {
-            JStringAccessor url_prefix(env, j_url_prefix);
-            session->set_url_prefix(url_prefix);
         }
     }
     CATCH_STD()

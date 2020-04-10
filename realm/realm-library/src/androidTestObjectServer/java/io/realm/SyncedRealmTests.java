@@ -31,7 +31,6 @@ import java.io.IOException;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
-import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunInLooperThread;
 
 import static org.junit.Assert.assertEquals;

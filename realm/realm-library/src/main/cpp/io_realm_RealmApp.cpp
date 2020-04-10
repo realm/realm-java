@@ -48,14 +48,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jobject
         JStringAccessor base_url(env, j_base_url);
         JStringAccessor app_name(env, j_app_name);
         JStringAccessor app_version(env, j_app_version);
-        return reinterpret_cast<jlong>(new App(App::Config{
+        return reinterpret_cast<jlong>(new std::shared_ptr<App>(std::make_shared<App>(App::Config{
                 app_id,
                 transport_generator,
                 util::Optional<std::string>(base_url),
                 util::Optional<std::string>(app_name),
                 util::Optional<std::string>(app_version),
                 util::Optional<std::uint64_t>(j_request_timeout_ms)
-        }));
+        })));
     }
     CATCH_STD()
     return 0;
@@ -65,7 +65,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jobject
 JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogin(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_credentials_ptr, jobject j_callback)
 {
     try {
-        App *app = reinterpret_cast<App *>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto credentials = reinterpret_cast<AppCredentials *>(j_credentials_ptr);
         std::function<jobject(JNIEnv*, std::shared_ptr<SyncUser>)> mapper = [](JNIEnv* env, std::shared_ptr<SyncUser> user) {
             auto* java_user = new std::shared_ptr<SyncUser>(std::move(user));
@@ -80,7 +80,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogin(JNIEnv* env, jclass, j
 JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogOut(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_user_ptr, jobject j_callback)
 {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
         app->log_out(user, JavaNetworkTransport::create_void_callback(env, j_callback));
     }
@@ -90,7 +90,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogOut(JNIEnv* env, jclass, 
 JNIEXPORT jobject JNICALL Java_io_realm_RealmApp_nativeCurrentUser(JNIEnv* env, jclass, jlong j_app_ptr)
 {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         std::shared_ptr<SyncUser> user = app->current_user();
         if (user) {
             auto* java_user = new std::shared_ptr<SyncUser>(std::move(user));
@@ -107,7 +107,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_RealmApp_nativeCurrentUser(JNIEnv* env, 
 JNIEXPORT jlongArray JNICALL Java_io_realm_RealmApp_nativeGetAllUsers(JNIEnv* env, jclass, jlong j_app_ptr)
 {
     try {
-        App *app = reinterpret_cast<App *>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         std::vector<std::shared_ptr<SyncUser>> users = app->all_users();
         auto size = users.size();
 
@@ -137,7 +137,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeSwitchUser(JNIEnv* env,
                                                                jlong j_user_ptr)
 {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
         app->switch_user(user);
     }
@@ -151,7 +151,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeRemoveUser(JNIEnv* env,
                                                                jobject j_callback)
 {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
         app->remove_user(user, JavaNetworkTransport::create_void_callback(env, j_callback));
     }
@@ -166,7 +166,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLinkUser(JNIEnv* env,
                                                                jobject j_callback)
 {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
         auto credentials = reinterpret_cast<AppCredentials*>(j_credentials_ptr);
         std::function<jobject(JNIEnv*, std::shared_ptr<SyncUser>)> mapper = [](JNIEnv* env, std::shared_ptr<SyncUser> user) {

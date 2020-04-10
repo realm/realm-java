@@ -45,7 +45,6 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
-import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
 
@@ -545,18 +544,6 @@ abstract class BaseRealm implements Closeable {
      */
     public long getVersion() {
         return OsObjectStore.getSchemaVersion(sharedRealm);
-    }
-
-    /**
-     * Returns the {@link SyncSession} attached to this Realm. This is only applicable for
-     * synchronized Realms.
-     *
-     * @throws IllegalStateException if this Realm is not a synchronized Realm.
-     * @return the session responsible uploading and downloading data from MongoDB Realm.
-     */
-    @ObjectServer
-    public SyncSession getSession() {
-        return ObjectServerFacade.getSyncFacadeIfPossible().getSession(configuration);
     }
 
     /**

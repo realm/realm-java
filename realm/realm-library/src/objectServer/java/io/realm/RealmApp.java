@@ -66,7 +66,7 @@ public class RealmApp {
     private final RealmAppConfiguration config;
     OsJavaNetworkTransport networkTransport;
     final SyncManager syncManager;
-    final long nativePtr;
+    public final long nativePtr; //FIXME Find a way to make this package protected
     private final EmailPasswordAuthProvider emailAuthProvider = new EmailPasswordAuthProvider(this);
     private ApiKeyAuthProvider apiKeyAuthProvider = null;
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();

@@ -97,10 +97,12 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     customAuthorizationHeaderName,
                     customHeaders,
                     OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL, // Client Resync is no longer supported in v10, but might be re-added later.
-                    syncConfig.getPartition()
+                    syncConfig.getPartition(),
+                    app.nativePtr,
+                    app.getSyncService()
             };
         } else {
-            return new Object[13];
+            return new Object[15];
         }
     }
 
@@ -199,13 +201,4 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         }
     }
 
-    @Override
-    public SyncSession getSession(RealmConfiguration config) {
-        if (config instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) config;
-            return syncConfig.getUser().getApp().getSyncService().getSession(syncConfig);
-        } else {
-            throw new IllegalStateException("This Realm is not a synchronized Realm.");
-        }
-    }
 }

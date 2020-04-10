@@ -219,6 +219,8 @@ public class OsRealmConfig implements NativeObject {
         String customAuthorizationHeaderName = (String)(syncConfigurationOptions[9]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[11];
         String partionKeyValue = (String) syncConfigurationOptions[12];
+        long appNativePtr = (long) syncConfigurationOptions[13];
+        Object syncService = syncConfigurationOptions[14];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]
@@ -289,8 +291,11 @@ public class OsRealmConfig implements NativeObject {
                     customAuthorizationHeaderName,
                     customHeaders,
                     clientResyncMode,
-                    partionKeyValue);
+                    partionKeyValue,
+                    appNativePtr,
+                    syncService);
             try {
+                resolvedSyncRealmUrl = syncRealmAuthUrl + urlPrefix.substring(1); // FIXME
                 resolvedRealmURI = new URI(resolvedSyncRealmUrl);
             } catch (URISyntaxException e) {
                 RealmLog.error(e, "Cannot create a URI from the Realm URL address");
@@ -386,7 +391,7 @@ public class OsRealmConfig implements NativeObject {
                                                               byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
                                                               String[] customHeaders, byte clientResetMode,
-                                                              String partionKeyValue);
+                                                              String partionKeyValue, long appNativePtr, Object syncService);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);

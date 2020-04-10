@@ -21,7 +21,6 @@ import android.content.Context;
 import java.lang.reflect.InvocationTargetException;
 
 import io.realm.RealmConfiguration;
-import io.realm.SyncSession;
 import io.realm.exceptions.RealmException;
 
 
@@ -66,7 +65,7 @@ public class ObjectServerFacade {
     }
 
     public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
-        return new Object[13];
+        return new Object[15];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -120,7 +119,4 @@ public class ObjectServerFacade {
         // Do nothing
     }
 
-    public SyncSession getSession(RealmConfiguration config) {
-        throw new IllegalStateException("This Realm is not a synchronized Realm.");
-    }
 }

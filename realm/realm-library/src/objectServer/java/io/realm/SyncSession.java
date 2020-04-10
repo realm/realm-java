@@ -88,10 +88,9 @@ public class SyncSession {
     private final AtomicLong progressListenerId = new AtomicLong(-1);
 
     // represent different states as defined in SyncSession::PublicState 'sync_session.hpp'
-    private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 0;
-    private static final byte STATE_VALUE_ACTIVE = 1;
-    private static final byte STATE_VALUE_DYING = 2;
-    private static final byte STATE_VALUE_INACTIVE = 3;
+    private static final byte STATE_VALUE_ACTIVE = 0;
+    private static final byte STATE_VALUE_DYING = 1;
+    private static final byte STATE_VALUE_INACTIVE = 2;
 
     // List of Java connection change listeners
     private final CopyOnWriteArrayList<ConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
@@ -117,28 +116,16 @@ public class SyncSession {
 
         /**
          * This is the initial state. The session is closed. No data is being synchronized. The session
-         * will automatically transition to {@link #WAITING_FOR_ACCESS_TOKEN} when a Realm is opened.
+         * will automatically transition to {@link #ACTIVE} when a Realm is opened.
          */
         INACTIVE(STATE_VALUE_INACTIVE),
-
-        /**
-         * The user is attempting to synchronize data but needs a valid access token to do so. Realm
-         * will either use a cached token or automatically try to acquire one based on the current
-         * users login. This requires a network connection.
-         * <p>
-         * Data cannot be synchronized in this state.
-         * <p>
-         * Once a valid token is acquired, the session will transition to {@link #ACTIVE}.
-         */
-        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
 
         /**
          * The Realm is open and data will be synchronized between the device and the server
          * if the underlying connection is {@link ConnectionState#CONNECTED}.
          * <p>
-         * The session will remain in this state until either the current login expires or the Realm
-         * is closed. In the first case, the session will transition to {@link #WAITING_FOR_ACCESS_TOKEN},
-         * in the second case, it will become {@link #DYING}.
+         * The session will remain in this state until the Realm
+         * is closed. In which case it will become {@link #DYING}.
          */
         ACTIVE(STATE_VALUE_ACTIVE),
 
@@ -740,12 +727,10 @@ public class SyncSession {
     private static native void nativeRemoveConnectionListener(long listenerId, String localRealmPath);
     private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
-    private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
     private native boolean nativeWaitForDownloadCompletion(int callbackId, String localRealmPath);
     private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
     private static native byte nativeGetState(String localRealmPath);
     private static native byte nativeGetConnectionState(String localRealmPath);
     private static native void nativeStart(String localRealmPath);
     private static native void nativeStop(String localRealmPath);
-    private static native void nativeSetUrlPrefix(String localRealmPath, String urlPrefix);
 }

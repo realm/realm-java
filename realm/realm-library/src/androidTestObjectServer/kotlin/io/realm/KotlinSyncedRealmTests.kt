@@ -10,7 +10,6 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
 class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaining Java tests have been moved
@@ -43,13 +42,13 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         // How to verify it has been uploaded?
     }
 
-    @Test
-    fun session() {
-        val user: RealmUser = app.login(RealmCredentials.anonymous())
-        val realm = Realm.getInstance(SyncConfiguration.defaultConfig(user))
-        assertNotNull(realm.session)
-        assertEquals(SyncSession.State.ACTIVE, realm.session.state)
-        assertEquals(user, realm.session.user)
-        realm.close()
-    }
+//    @Test
+//    fun session() {
+//        val user: RealmUser = app.login(RealmCredentials.anonymous())
+//        val realm = Realm.getInstance(SyncConfiguration.defaultConfig(user))
+//        assertNotNull(realm.syncSession)
+//        assertEquals(SyncSession.State.ACTIVE, realm.syncSession.state)
+//        assertEquals(user, realm.syncSession.user)
+//        realm.close()
+//    }
 }

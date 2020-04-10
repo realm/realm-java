@@ -18,6 +18,7 @@
 
 #include <shared_realm.hpp>
 #if REALM_ENABLE_SYNC
+#include <sync/app.hpp>
 #include <sync/sync_config.hpp>
 #include <sync/sync_manager.hpp>
 #include <sync/sync_session.hpp>
@@ -37,6 +38,7 @@
 using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::_impl;
+
 
 static_assert(SchemaMode::Automatic ==
                   static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_AUTOMATIC),
@@ -245,7 +247,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
     JNIEnv* env, jclass, jlong native_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
     jstring j_refresh_token, jstring j_access_token, jbyte j_session_stop_policy, jstring j_url_prefix,
     jstring j_custom_auth_header_name, jobjectArray j_custom_headers_array, jbyte j_client_reset_mode,
-    jstring j_partion_key_value)
+    jstring j_partion_key_value, jlong j_app_ptr, jobject j_java_sync_service)
 {
     auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
     // sync_config should only be initialized once!
@@ -256,10 +258,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // Doing the methods lookup from the thread that loaded the lib, to avoid
         // https://developer.android.com/training/articles/perf-jni.html#faq_FindClass
         static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
-                                                     "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)V", true);
+                                                     "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)V");
 
         // error handler will be called form the sync client thread
-        auto error_handler = [](std::shared_ptr<SyncSession> session, SyncError error) {
+        auto sync_service_object = env->NewGlobalRef(j_java_sync_service);
+        auto error_handler = [sync_service_object](std::shared_ptr<SyncSession> session, SyncError error) {
             auto error_category = error.error_code.category().name();
             auto error_message = error.message;
             auto error_code = error.error_code.value();
@@ -307,20 +310,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             jstring jerror_category = to_jstring(env, error_category);
             jstring jerror_message = to_jstring(env, error_message);
             jstring jsession_path = to_jstring(env, session.get()->path());
-            env->CallStaticVoidMethod(sync_manager_class, java_error_callback_method, jerror_category, error_code, jerror_message,
+            env->CallVoidMethod(sync_service_object, java_error_callback_method, jerror_category, error_code, jerror_message,
                                       jsession_path);
             env->DeleteLocalRef(jerror_category);
             env->DeleteLocalRef(jerror_message);
             env->DeleteLocalRef(jsession_path);
-        };
-
-        // path on disk of the Realm file.
-        // the sync configuration object.
-        // the session which should be bound.
-        auto bind_handler = [](const std::string& path, const SyncConfig& syncConfig,
-                               std::shared_ptr<SyncSession> session) {
-            realm::jni_util::Log::d("Binding session for path: %1", path.c_str());
-            session->refresh_access_token(session->user()->access_token(), realm::util::Optional<std::string>(syncConfig.realm_url));
         };
 
         // Get logged in user
@@ -338,10 +332,9 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
         JStringAccessor realm_url(env, j_sync_realm_url);
         JStringAccessor partion_key_value(env, j_partion_key_value);
-        (void) partion_key_value; // TODO: Figure out how this is used
-        config.sync_config = std::make_shared<SyncConfig>(SyncConfig{user, realm_url});
+        std::shared_ptr<realm::app::App> app = *reinterpret_cast<std::shared_ptr<realm::app::App>*>(j_app_ptr);
+        config.sync_config = std::make_shared<SyncConfig>(SyncConfig{app, user, partion_key_value});
         config.sync_config->stop_policy = session_stop_policy;
-        config.sync_config->bind_session_handler = std::move(bind_handler);
         config.sync_config->error_handler = std::move(error_handler);
         switch (j_client_reset_mode) {
             case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_RECOVER: config.sync_config->client_resync_mode = realm::ClientResyncMode::Recover; break;
@@ -352,7 +345,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
         if (j_url_prefix) {
             JStringAccessor url_prefix(env, j_url_prefix);
-            config.sync_config->url_prefix = realm::util::Optional<std::string>(url_prefix);
+            (void) url_prefix;
+            // config.sync_config->url_prefix = realm::util::Optional<std::string>(url_prefix);
         }
 
         if (j_custom_auth_header_name) {
@@ -374,7 +368,9 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             std::copy_n(config.encryption_key.begin(), 64, config.sync_config->realm_encryption_key->begin());
         }
 
-        return to_jstring(env, config.sync_config->realm_url.c_str());
+        // return to_jstring(env, config.sync_config->realm_url.c_str());
+        // FIXME: We must return the realm url here for proxy support to work
+        return to_jstring(env, "");
     }
     CATCH_STD()
     return nullptr;

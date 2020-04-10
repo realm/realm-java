@@ -195,7 +195,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
     @Beta // FIXME: Should be removed with support for partition values
     public static SyncConfiguration defaultConfig(RealmUser user) {
-        return new SyncConfiguration.Builder(user, "").build();
+        return new SyncConfiguration.Builder(user, "/").build();
     }
 
     /**
