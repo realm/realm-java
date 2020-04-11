@@ -1,0 +1,33 @@
+{
+    "id": "5e9243db57d46bccdd585215",
+    "database": "app",
+    "collection": "Person",
+    "roles": [
+        {
+            "name": "default",
+            "apply_when": {},
+            "insert": true,
+            "delete": true,
+            "additional_fields": {}
+        }
+    ],
+    "schema": {
+        "bsonType": "object",
+        "title": "Person",
+        "required": [
+            "_id",
+            "name"
+        ],
+        "properties": {
+            "_id": {
+                "bsonType": "objectId"
+            },
+            "partition": {
+                "bsonType": "string"
+            },
+            "name": {
+                "bsonType": "string"
+            }
+        }
+    }
+}
