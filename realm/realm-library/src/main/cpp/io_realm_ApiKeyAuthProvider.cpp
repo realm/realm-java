@@ -73,7 +73,7 @@ JNIEXPORT void JNICALL Java_io_realm_ApiKeyAuthProvider_nativeCallFunction(JNIEn
                                                                            jobject j_callback)
 {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
         auto client = app->provider_client<App::UserAPIKeyProviderClient>();
         switch(j_function_type) {

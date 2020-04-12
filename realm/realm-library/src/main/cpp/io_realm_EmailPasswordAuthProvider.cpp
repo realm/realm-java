@@ -36,7 +36,7 @@ JNIEXPORT void JNICALL Java_io_realm_EmailPasswordAuthProvider_nativeCallFunctio
                                                                                   jobjectArray j_args)
 {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         JObjectArrayAccessor<JStringAccessor, jstring> args(env, j_args);
         auto client = app->provider_client<App::UsernamePasswordProviderClient>();
         switch(j_function_type) {

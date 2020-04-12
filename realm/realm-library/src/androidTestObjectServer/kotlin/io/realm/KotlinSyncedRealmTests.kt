@@ -2,6 +2,7 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.entities.SyncTest
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.rule.BlockingLooperThread
@@ -33,9 +34,16 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     // Smoke test for sync. Waiting for proper
     @Test
     fun syncRoundTrip() {
-        val user: RealmUser = app.login(RealmCredentials.anonymous())
-        val realm: Realm = Realm.getInstance(SyncConfiguration.defaultConfig(user))
+        val email = TestHelper.getRandomEmail()
+        val password = "123456"
+        app.emailPasswordAuthProvider.registerUser(email, password)
+        val user: RealmUser = app.login(RealmCredentials.emailPassword(email, password))
+        val config = SyncConfiguration.Builder(user, "default")
+                .schema(SyncTest::class.java)
+                .build()
+        val realm: Realm = Realm.getInstance(config)
 
+        app.syncManager.getAllSyncSessions(user)[0].uploadAllLocalChanges()
         app.syncManager.getAllSyncSessions(user)[0].downloadAllServerChanges()
 
         assertTrue(realm.isEmpty)
