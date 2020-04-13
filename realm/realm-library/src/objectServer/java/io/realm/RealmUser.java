@@ -423,7 +423,6 @@ public class RealmUser {
      */
     public RealmPushNotifications getFSMPushNotifications() {
         return null;
-
     }
 
     /**
