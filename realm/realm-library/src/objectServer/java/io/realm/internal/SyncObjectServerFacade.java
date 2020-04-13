@@ -154,7 +154,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     }
                 }
             }
-            removeSessionMethod.invoke(null, syncConfig);
+            removeSessionMethod.invoke(syncConfig.getUser().getApp().getSyncService(), syncConfig);
         } catch (NoSuchMethodException e) {
             throw new RealmException("Could not lookup method to remove session: " + syncConfig.toString(), e);
         } catch (InvocationTargetException e) {

@@ -324,6 +324,12 @@ public class RealmAppConfiguration {
             return this;
         }
 
+        public Builder defaultSyncErrorHandler(SyncSession.ErrorHandler errorHandler) {
+            Util.checkNull(errorHandler, "errorHandler");
+            defaultErrorHandler = errorHandler;
+            return this;
+        }
+
         public RealmAppConfiguration build() {
             return new RealmAppConfiguration(appId,
                     appName,
