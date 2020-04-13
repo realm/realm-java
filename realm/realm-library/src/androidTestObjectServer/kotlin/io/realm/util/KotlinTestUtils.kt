@@ -5,7 +5,7 @@ import io.realm.ObjectServerError
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 
-// Helper methods for improving Kotlin unit tests
+// Helper methods for improving Kotlin unit tests.
 
 /**
  * Verify that a specific exception is thrown

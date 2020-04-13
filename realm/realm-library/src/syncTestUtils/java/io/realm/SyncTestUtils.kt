@@ -40,7 +40,6 @@ class SyncTestUtils {
         /**
          * Tries to restore the environment as best as possible after a test.
          */
-        @Throws(IOException::class)
         fun restoreEnvironmentAfterTest() {
             // Block until all users are logged out
             UserFactory.logoutAllUsers()
@@ -66,13 +65,11 @@ class SyncTestUtils {
         // Cleanup filesystem to make sure nothing lives for the next test.
         // Failing to do so might lead to DIVERGENT_HISTORY errors being thrown if Realms from
         // previous tests are being accessed.
-        @Throws(IOException::class)
         private fun deleteRosFiles() {
             val rosFiles = File(InstrumentationRegistry.getInstrumentation().context.filesDir, "realm-object-server")
             deleteFile(rosFiles)
         }
 
-        @Throws(IOException::class)
         private fun deleteFile(file: File) {
             if (file.isDirectory) {
                 for (c in file.listFiles()) {

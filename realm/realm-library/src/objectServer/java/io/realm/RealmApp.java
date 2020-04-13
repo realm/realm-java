@@ -447,19 +447,11 @@ public class RealmApp {
         }.start();
     }
 
-    public SyncSession getSyncSession(SyncConfiguration config) {
-        return null;
-    }
-
-    public void refreshConnections() {
-
-    }
-
     /**
      * Sets a global authentication listener that will be notified about User events like
      * login and logout.
      * <p>
-     * Callbacks to authentication listeners will happen the UI thread.
+     * Callbacks to authentication listeners will happen on the UI thread.
      *
      * @param listener listener to register.
      * @throws IllegalArgumentException if {@code listener} is {@code null}.

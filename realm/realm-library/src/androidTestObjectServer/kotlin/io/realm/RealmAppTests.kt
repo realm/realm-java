@@ -16,13 +16,10 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.realm.TestHelper
 import io.realm.admin.ServerAdmin
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.rule.BlockingLooperThread
-import io.realm.rule.RunInLooperThread
-import io.realm.rule.RunTestInLooperThread
 import io.realm.util.expectException
 import org.junit.After
 import org.junit.Assert.*

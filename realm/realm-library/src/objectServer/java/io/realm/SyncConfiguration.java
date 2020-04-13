@@ -193,7 +193,7 @@ public class SyncConfiguration extends RealmConfiguration {
         return forRecovery(canonicalPath, encryptionKey, schemaMediator);
     }
 
-    @Beta // FIXME: Should be removed with support for partition values
+    @Beta // FIXME: Should be removed when proper support for partition values has been added. A default partition value does not exist
     public static SyncConfiguration defaultConfig(RealmUser user) {
         return new SyncConfiguration.Builder(user, "/").build();
     }
@@ -1058,7 +1058,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
-            // TODO: Determine how big a partion key can be?
+            // FIXME: Figure out how to map to on-disk path. Partition key can be up to 16MB in size.
             // Determine location on disk
             // Use the serverUrl + user to create a unique filepath.
             // It is possible for users to change the root directory or realm file name.

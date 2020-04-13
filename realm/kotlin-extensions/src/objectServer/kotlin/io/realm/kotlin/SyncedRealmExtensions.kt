@@ -32,5 +32,6 @@ val Realm.syncSession: SyncSession
             throw IllegalStateException("This method is only available on synchronized Realms")
         }
 
-        return (this.configuration as SyncConfiguration).user.app.syncService.getSession(this.configuration as SyncConfiguration)
+        val syncConfig = this.configuration as SyncConfiguration
+        return syncConfig.user.app.syncService.getSession(syncConfig)
     }

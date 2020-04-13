@@ -45,7 +45,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-//@Ignore("FIXME: RealmApp refactor")
 @RunWith(AndroidJUnit4.class)
 public class SessionTests {
 

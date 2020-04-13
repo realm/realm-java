@@ -206,6 +206,7 @@ public class RealmAppConfiguration {
          * @param appId
          */
         public Builder(String appId) {
+            Util.checkEmpty(appId, "appId");
             this.appId = appId;
         }
 
@@ -276,7 +277,10 @@ public class RealmAppConfiguration {
          * @return
          */
         public Builder requestTimeout(long time, TimeUnit unit) {
-            // FIXME checks
+            if (time < 1) {
+                throw new IllegalStateException("A timeout above 0 is required: " + time);
+            }
+            Util.checkNull(unit, "unit");
             this.requestTimeoutMs = TimeUnit.MICROSECONDS.convert(time, unit);
             return this;
         }

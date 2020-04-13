@@ -35,6 +35,10 @@ import java.lang.IllegalArgumentException
 @RunWith(AndroidJUnit4::class)
 class SyncConfigurationTests {
 
+    companion object {
+        private const val DEFAULT_PARTITION = "/"
+    }
+
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
 
@@ -44,7 +48,6 @@ class SyncConfigurationTests {
     @get:Rule
     val tempFolder = TemporaryFolder()
 
-    private val DEFAULT_PARTITION = "/"
     private lateinit var app: TestRealmApp
 
     @Before
@@ -56,16 +59,6 @@ class SyncConfigurationTests {
     @After
     fun tearDown() {
         app.close()
-    }
-
-    @Test
-    fun user_invalidUserThrows() {
-        // FIXME
-//        val user: RealmUser = createTestUser(app, 0) // Create user that has expired credentials
-//        try {
-//            user.createConfiguration("realm://ros.realm.io/default")
-//        } catch (ignore: IllegalStateException) {
-//        }
     }
 
     @Test

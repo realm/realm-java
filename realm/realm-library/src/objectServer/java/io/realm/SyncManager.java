@@ -51,33 +51,16 @@ import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.log.RealmLog;
 import okhttp3.internal.tls.OkHostnameVerifier;
 
-
 /**
- * Class encapsulating Sync responsibilities for a {@link io.realm.RealmApp}
+ * Class wrapping Sync responsibilities for a {@link io.realm.RealmApp}.
  *
- * Each Sync Manager is backed by an underlying SyncClient that is responsible for all communication
- * against one specific host.
- *
- *
- *
- */
-
-/**
- * The SyncManager is the central controller for interacting with the Realm Object Server.
- * It handles the creation of {@link SyncSession}s and it is possible to configure session defaults and the underlying
- * network client using this class.
- * <p>
- * Through the SyncManager, it is possible to add authentication listeners. An authentication listener will
- * response to events like user logging in or out.
- * <p>
- * Default error handling for any {@link SyncConfiguration} can be added using the SyncManager.
- *
+ * FIXME: Better description that makes sense for end users.
  */
 @Keep
 @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
 public class SyncManager {
 
-    private volatile static String CREATED_APP_ID = null; //
+    private volatile static String CREATED_APP_ID = null;
     private final RealmApp app;
     private final String appId;
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
@@ -91,7 +74,7 @@ public class SyncManager {
         this.app = app;
         this.appId = app.getConfiguration().getAppId();
 
-         // TODO: Right now we only support one SyncClient or one RealmApp. This class will throw a
+         // FIXME: Right now we only support one SyncClient or one RealmApp. This class will throw a
         // exception if you try to create it twice. Which will happen as part of setting up a
         // RealmApp.
         synchronized (SyncManager.class) {
