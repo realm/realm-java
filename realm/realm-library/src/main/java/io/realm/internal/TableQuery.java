@@ -312,6 +312,16 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
+    public TableQuery between(long[] columnKey, Decimal128 value1, Decimal128 value2) {
+        //noinspection ConstantConditions
+        if (value1 == null || value2 == null) {
+            throw new IllegalArgumentException("Decimal128 values in query criteria must not be null.");
+        }
+        nativeBetweenDecimal128(nativePtr, columnKey, value1.getLow(), value1.getHigh(), value2.getLow(), value2.getHigh());
+        queryValidated = false;
+        return this;
+    }
+
     // Queries for Binary values.
 
     public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, byte[] value) {
@@ -414,7 +424,7 @@ public class TableQuery implements NativeObject {
 
     // Queries for Decimal128
 
-    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, Decimal128 value) {//FIXME check nullability
+    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
         nativeEqualDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
         queryValidated = false;
         return this;
@@ -569,6 +579,24 @@ public class TableQuery implements NativeObject {
         return nativeAverageDouble(nativePtr, columnKey);
     }
 
+    public Decimal128 averageDecimal128(long columnKey) {
+        validateQuery();
+        long[] result = nativeAverageDecimal128(nativePtr, columnKey);
+        if (result != null) {
+            return Decimal128.fromIEEE754BIDEncoding(result[1]/*high*/, result[0]/*low*/);
+        }
+        return null;
+    }
+
+    public Decimal128 maximumDecimal128(long columnKey) {
+        validateQuery();
+        long[] result = nativeMaximumDecimal128(nativePtr, columnKey);
+        if (result != null) {
+            return Decimal128.fromIEEE754BIDEncoding(result[1]/*high*/, result[0]/*low*/);
+        }
+        return null;
+    }
+
     // Date aggregation
 
     public Date maximumDate(long columnKey) {
@@ -585,6 +613,15 @@ public class TableQuery implements NativeObject {
         Long result = nativeMinimumTimestamp(nativePtr, columnKey);
         if (result != null) {
             return new Date(result);
+        }
+        return null;
+    }
+
+    public Decimal128 minimumDecimal128(long columnKey) {
+        validateQuery();
+        long[] result = nativeMinimumDecimal128(nativePtr, columnKey);
+        if (result != null) {
+            return Decimal128.fromIEEE754BIDEncoding(result[1]/*high*/, result[0]/*low*/);
         }
         return null;
     }
@@ -702,6 +739,8 @@ public class TableQuery implements NativeObject {
 
     private native void nativeBetweenTimestamp(long nativeQueryPtr, long[] columnIndex, long value1, long value2);
 
+    private native void nativeBetweenDecimal128(long nativeQueryPtr, long[] columnIndex, long value1Low, long value1How, long value2Low, long value2High);
+
     private native void nativeEqual(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, byte[] value);
 
     private native void nativeNotEqual(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, byte[] value);
@@ -772,9 +811,15 @@ public class TableQuery implements NativeObject {
 
     private native Double nativeMaximumDouble(long nativeQueryPtr, long columnKey);
 
+    private native long[] nativeMaximumDecimal128(long nativeQueryPtr, long columnKey);
+
     private native Double nativeMinimumDouble(long nativeQueryPtr, long columnKey);
 
+    private native long[] nativeMinimumDecimal128(long nativeQueryPtr, long columnKey);
+
     private native double nativeAverageDouble(long nativeQueryPtr, long columnKey);
+
+    private native long[] nativeAverageDecimal128(long nativeQueryPtr, long columnKey);
 
     private native Long nativeMaximumTimestamp(long nativeQueryPtr, long columnKey);
 

@@ -159,9 +159,8 @@ public class LinkingObjectsQueryTests extends QueryTests {
         assertEquals(1, realm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_DECIMAL128_NULL).count());
         // ObjectId
-        // FIXME waiting for Core to fix the linking query issue
-//        assertEquals(1, realm.where(NullTypes.class).isNull(
-//                NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_OBJECT_ID_NULL).count());
+        assertEquals(1, realm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_OBJECT_ID_NULL).count());
     }
 
     // Tests isNull on link's nullable field.
@@ -199,6 +198,12 @@ public class LinkingObjectsQueryTests extends QueryTests {
         // 10 Date
         assertEquals(1, realm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_DATE_NULL).count());
+        // 10 Decimal128
+        assertEquals(1, realm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_DECIMAL128_NULL).count());
+        // 10 ObjectId
+        assertEquals(1, realm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_OBJECT_ID_NULL).count());
     }
 
     @Test
@@ -276,6 +281,12 @@ public class LinkingObjectsQueryTests extends QueryTests {
         // 10 Date
         assertEquals(1, realm.where(NullTypes.class).isNotNull(
                 NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_DATE_NULL).count());
+        // 11 Decimal128
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_DECIMAL128_NULL).count());
+        // 12 ObjectId
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_OBJECT_ID_NULL).count());
     }
 
     // Tests isNotNull on link's nullable field.
@@ -313,6 +324,13 @@ public class LinkingObjectsQueryTests extends QueryTests {
         // 10 Date
         assertEquals(1, realm.where(NullTypes.class).isNotNull(
                 NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_DATE_NULL).count());
+        // 11 Decimal128
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_DECIMAL128_NULL).count());
+        // 12 ObjectId
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_OBJECT_ID_NULL).count());
+
     }
 
     @Test

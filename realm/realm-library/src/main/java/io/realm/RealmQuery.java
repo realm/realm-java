@@ -1568,6 +1568,22 @@ public class RealmQuery<E> {
         return this;
     }
 
+    /**
+     * Between condition.
+     *
+     * @param fieldName the field to compare.
+     * @param from lowest value (inclusive).
+     * @param to highest value (inclusive).
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> between(String fieldName, Decimal128 from, Decimal128 to) {
+        realm.checkIfValid();
+
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        this.query.between(fd.getColumnKeys(), from, to);
+        return this;
+    }
 
     /**
      * Condition that value of field contains the specified substring.
@@ -1850,10 +1866,24 @@ public class RealmQuery<E> {
                 return query.averageFloat(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
-                        TYPE_MISMATCH, fieldName, "int, float or double"));
+                        TYPE_MISMATCH, fieldName, "int, float or double. For Decimal128 use `averageDecimal128` method."));
         }
     }
+    /**
+     * Returns the average of a given field.
+     * Does not support dotted field notation.
+     *
+     * @param fieldName the field to calculate average on. Only Decimal128 fields is supported. For other number types consider using {@link #average(String)}.
+     * @return the average for the given field amongst objects in query results. This will be of type Decimal128. If no objects exist or they all have {@code null}
+     * as the value for the given field {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
+     * @throws java.lang.IllegalArgumentException if the field is not a Decimal128 type.
+     */
+    public @Nullable Decimal128 averageDecimal128(String fieldName) {
+        realm.checkIfValid();
 
+        long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
+        return query.averageDecimal128(columnIndex);
+    }
     /**
      * Finds the minimum value of a field.
      *
@@ -1875,6 +1905,8 @@ public class RealmQuery<E> {
                 return this.query.minimumFloat(columnIndex);
             case DOUBLE:
                 return this.query.minimumDouble(columnIndex);
+            case DECIMAL128:
+                return this.query.minimumDecimal128(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
@@ -1919,6 +1951,8 @@ public class RealmQuery<E> {
                 return this.query.maximumFloat(columnIndex);
             case DOUBLE:
                 return this.query.maximumDouble(columnIndex);
+            case DECIMAL128:
+                return this.query.maximumDecimal128(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));

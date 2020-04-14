@@ -220,7 +220,7 @@ class Decimal128Tests {
     }
 
     @Test
-    fun min() {
+    fun minValue() {
         realm.beginTransaction()
         realm.createObject<Decimal128Required>(1).decimal = Decimal128(BigDecimal(Float.MIN_VALUE.toLong()))
         realm.createObject<Decimal128Required>(2).decimal = Decimal128(Float.MIN_VALUE.toLong())
@@ -232,7 +232,22 @@ class Decimal128Tests {
     }
 
     @Test
-    fun max() {
+    fun minQuery() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128Required>(1).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128Required>(2).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128Required>(3).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
+
+        val min: Number? = realm.where<Decimal128Required>().min("decimal")
+        assertNotNull(min)
+        assertTrue(min is Decimal128)
+        assertEquals(Decimal128(BigDecimal.ZERO), min)
+    }
+
+
+    @Test
+    fun maxValue() {
         realm.beginTransaction()
         realm.createObject<Decimal128Required>(1).decimal = Decimal128(BigDecimal(Float.MAX_VALUE.toLong()))
         realm.createObject<Decimal128Required>(2).decimal = Decimal128(Float.MAX_VALUE.toLong())
@@ -241,6 +256,50 @@ class Decimal128Tests {
 
         val all = realm.where<Decimal128Required>().equalTo("decimal", Decimal128(Float.MAX_VALUE.toLong())).findAll()
         assertEquals(3, all.size)
+    }
+
+    @Test
+    fun maxQuery() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128Required>(1).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128Required>(2).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128Required>(3).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
+
+        val max: Number? = realm.where<Decimal128Required>().max("decimal")
+        assertNotNull(max)
+        assertTrue(max is Decimal128)
+        assertEquals(Decimal128(BigDecimal.TEN), max)
+    }
+
+    @Test
+    fun betweenQuery() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128Required>(1).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128Required>(2).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128Required>(3).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
+
+        val between = realm.where<Decimal128Required>().between("decimal", Decimal128(-1L), Decimal128(11L)).findAll()
+        assertEquals(3, between.size)
+        assertEquals(Decimal128(BigDecimal.TEN), between[0]!!.decimal)
+        assertEquals(Decimal128(BigDecimal.ONE), between[1]!!.decimal)
+        assertEquals(Decimal128(BigDecimal.ZERO), between[2]!!.decimal)
+    }
+
+    @Test
+    fun averageQuery() {
+        var average = realm.where<Decimal128Required>().averageDecimal128("decimal")
+        assertEquals(Decimal128(0), average)
+
+        realm.beginTransaction()
+        realm.createObject<Decimal128Required>(1).decimal = Decimal128(3)
+        realm.createObject<Decimal128Required>(2).decimal = Decimal128(7)
+        realm.createObject<Decimal128Required>(3).decimal = Decimal128(5)
+        realm.commitTransaction()
+
+        average = realm.where<Decimal128Required>().averageDecimal128("decimal")
+        assertEquals(Decimal128(5), average)
     }
 
     @Test

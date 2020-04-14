@@ -814,8 +814,37 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenTimestamp(
                 return;
             }
             Q(nativeQueryPtr)
-                ->greater_equal(ColKey(col_key_arr[0]), from_milliseconds(value1))
-                .less_equal(ColKey(col_key_arr[0]), from_milliseconds(value2));
+                    ->greater_equal(ColKey(col_key_arr[0]), from_milliseconds(value1))
+                    .less_equal(ColKey(col_key_arr[0]), from_milliseconds(value2));
+        }
+        else {
+            ThrowException(env, IllegalArgument, "between() does not support queries using child object fields.");
+        }
+    }
+    CATCH_STD()
+}
+
+
+// Decimal128
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDecimal128(JNIEnv* env, jobject,
+                                                                                 jlong nativeQueryPtr,
+                                                                                 jlongArray columnKeys,
+                                                                                 jlong value1Low, jlong value1High,
+                                                                                 jlong value2Low, jlong value2High)
+{
+    Decimal128::Bid128 raw1 = {static_cast<uint64_t>(value1Low), static_cast<uint64_t>(value1High)};
+    Decimal128::Bid128 raw2 = {static_cast<uint64_t>(value2Low), static_cast<uint64_t>(value2High)};
+    Decimal128 value1 = Decimal128(raw1);
+    Decimal128 value2 = Decimal128(raw2);
+
+    JLongArrayAccessor col_key_arr(env, columnKeys);
+    jsize arr_len = col_key_arr.size();
+    try {
+        if (arr_len == 1) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Decimal)) {
+                return;
+            }
+            Q(nativeQueryPtr)->between(ColKey(col_key_arr[0]), value1, value2);
         }
         else {
             ThrowException(env, IllegalArgument, "between() does not support queries using child object fields.");
@@ -1548,6 +1577,37 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
     return nullptr;
 }
 
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDecimal128(JNIEnv* env, jobject,
+                                                                                jlong nativeQueryPtr,
+                                                                                jlong columnKey)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+        return nullptr;
+    }
+    try {
+        Decimal128 decimal128 = pQuery->maximum_decimal128(ColKey(columnKey));
+        if (!decimal128.is_null()) {
+            uint64_t* raw = decimal128.raw()->w;
+
+            jlongArray ret_array = env->NewLongArray(2);
+            if (!ret_array) {
+                ThrowException(env, OutOfMemory, "Could not allocate memory to return decimal128 value.");
+                return nullptr;
+            }
+
+            jlong ret[2] = { jlong(raw[0])/*low*/, jlong(raw[1]) /*high*/};
+            env->SetLongArrayRegion(ret_array, 0, 2, ret);
+            return ret_array;
+        } else {
+            return nullptr;
+        }
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
 JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(JNIEnv* env, jobject,
                                                                                 jlong nativeQueryPtr,
                                                                                 jlong columnKey)
@@ -1562,6 +1622,37 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
         double result = pQuery->minimum_double(ColKey(columnKey), &return_ndx);
         if (bool(return_ndx)) {
             return JavaClassGlobalDef::new_double(env, result);
+        }
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDecimal128(JNIEnv* env, jobject,
+                                                                                jlong nativeQueryPtr,
+                                                                                jlong columnKey)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+        return nullptr;
+    }
+    try {
+        Decimal128 decimal128 = pQuery->minimum_decimal128(ColKey(columnKey));
+        if (!decimal128.is_null()) {
+            uint64_t* raw = decimal128.raw()->w;
+
+            jlongArray ret_array = env->NewLongArray(2);
+            if (!ret_array) {
+                ThrowException(env, OutOfMemory, "Could not allocate memory to return decimal128 value.");
+                return nullptr;
+            }
+
+            jlong ret[2] = { jlong(raw[0])/*low*/, jlong(raw[1]) /*high*/};
+            env->SetLongArrayRegion(ret_array, 0, 2, ret);
+            return ret_array;
+        } else {
+            return nullptr;
         }
     }
     CATCH_STD()
@@ -1584,6 +1675,36 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
     return 0;
 }
 
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageDecimal128(JNIEnv* env, jobject,
+                                                                                jlong nativeQueryPtr,
+                                                                                jlong columnKey)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+        return nullptr;
+    }
+    try {
+        Decimal128 decimal128 = pQuery->average_decimal128(ColKey(columnKey));
+        if (!decimal128.is_null()) {
+            uint64_t* raw = decimal128.raw()->w;
+
+            jlongArray ret_array = env->NewLongArray(2);
+            if (!ret_array) {
+                ThrowException(env, OutOfMemory, "Could not allocate memory to return decimal128 value.");
+                return nullptr;
+            }
+
+            jlong ret[2] = { jlong(raw[0])/*low*/, jlong(raw[1]) /*high*/};
+            env->SetLongArrayRegion(ret_array, 0, 2, ret);
+            return ret_array;
+        } else {
+            return nullptr;
+        }
+    }
+    CATCH_STD()
+    return nullptr;
+}
 
 // date aggregates
 // FIXME: This is a rough workaround while waiting for https://github.com/realm/realm-core/issues/1745 to be solved
