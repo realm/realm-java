@@ -14,6 +14,9 @@ apply plugin: 'org.jetbrains.dokka'
 //apply plugin: 'com.github.kt3k.coveralls'
 //apply plugin: 'net.ltgt.errorprone'
 
+def properties = new Properties()
+properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
+
 android.registerTransform(new io.realm.transformer.RealmTransformer(project))
 
 android {
@@ -76,6 +79,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test:rules:1.2.0'
     kaptAndroidTest project(':realm-annotations-processor')
+    androidTestObjectServerImplementation "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY_VERSION')}"
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     androidTestObjectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
     androidTestObjectServerImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
