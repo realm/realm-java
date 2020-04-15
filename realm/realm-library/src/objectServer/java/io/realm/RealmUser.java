@@ -325,7 +325,7 @@ public class RealmUser {
     }
 
     /**
-     * Removes a users credentials from this device. If the user was currently logged in, they
+     * Removes a user's credentials from this device. If the user was currently logged in, they
      * will be logged out as part of the process. This is only a local change and does not
      * affect the user state on the server.
      *
@@ -346,7 +346,7 @@ public class RealmUser {
 
     /**
      * Log the user out of the Realm App. This will unregister them on the device, stop any
-     * synchronization to and from the users Realms, and those Realms will be deleted next time
+     * synchronization to and from the users' Realms, and those Realms will be deleted next time
      * the app restarts. Therefor logging out should not be done until all changes to Realms have
      * been uploaded to the server.
      * <p>
@@ -369,7 +369,7 @@ public class RealmUser {
 
     /**
      * Log the user out of the Realm App asynchronously. This will unregister them on the device, stop any
-     * synchronization to and from the users Realms, and those Realms will be deleted next time
+     * synchronization to and from the users' Realms, and those Realms will be deleted next time
      * the app restarts. Therefor logging out should not be done until all changes to Realms have
      * been uploaded to the server.
      * <p>
@@ -461,4 +461,3 @@ public class RealmUser {
     private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 
 }
-
