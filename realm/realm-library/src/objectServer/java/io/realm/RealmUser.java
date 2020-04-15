@@ -244,7 +244,7 @@ public class RealmUser {
      * // Example
      * RealmApp app = new RealmApp("app-id")
      * RealmUser user = app.login(RealmCredentials.anonymous());
-     * app.linkUser(RealmCredentials.emailPassword("email", "password"));
+     * user.linkUser(RealmCredentials.emailPassword("email", "password"));
      * }
      * </pre>
      * <p>
@@ -281,7 +281,7 @@ public class RealmUser {
      * // Example
      * RealmApp app = new RealmApp("app-id")
      * RealmUser user = app.login(RealmCredentials.anonymous());
-     * app.linkUser(RealmCredentials.emailPassword("email", "password"));
+     * userg.linkUser(RealmCredentials.emailPassword("email", "password"));
      * }
      * </pre>
      * <p>
@@ -421,7 +421,7 @@ public class RealmUser {
     /**
      * FIXME Add support for push notifications. Name of Class and method still TBD.
      */
-    public RealmPushNotifications getFSMPushNotifications() {
+    public RealmPushNotifications getPushNotifications() {
         return null;
     }
 

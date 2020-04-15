@@ -61,10 +61,14 @@ class RealmUserTests {
         assertEquals(RealmUser.State.REMOVED, anonUser.state)
     }
 
-    @Ignore("Add test when registerUser works")
     @Test
     fun getState_emailUser() {
-        TODO("Implement when we implement registerUser")
+        val emailUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        assertEquals(RealmUser.State.LOGGED_IN, emailUser.state)
+        emailUser.logOut()
+        assertEquals(RealmUser.State.LOGGED_OUT, emailUser.state)
+        emailUser.removeUser()
+        assertEquals(RealmUser.State.REMOVED, emailUser.state)
     }
 
     @Test
@@ -113,15 +117,25 @@ class RealmUserTests {
     @Test
     fun linkUser() {
         admin.setAutomaticConfirmation(enabled = false)
-        val user: RealmUser = app.login(RealmCredentials.anonymous())
-        assertEquals(1, user.identities.size)
+        val anonUser: RealmUser = app.login(RealmCredentials.anonymous())
+        assertEquals(1, anonUser.identities.size)
+
         val email = TestHelper.getRandomEmail()
         val password = "123456"
         app.emailPasswordAuthProvider.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
-        val linkedUser: RealmUser = user.linkUser(RealmCredentials.emailPassword(email, password))
-        assertTrue(user === linkedUser)
+        var linkedUser: RealmUser = anonUser.linkUser(RealmCredentials.emailPassword(email, password))
+        assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
         assertEquals(RealmCredentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+        admin.setAutomaticConfirmation(enabled = true)
+
+        val otherEmail = TestHelper.getRandomEmail()
+        val otherPassword = "123456"
+        app.emailPasswordAuthProvider.registerUser(otherEmail, otherPassword)
+        linkedUser = anonUser.linkUser(RealmCredentials.emailPassword(email, password))
+        assertTrue(anonUser === linkedUser)
+        assertEquals(3, linkedUser.identities.size)
+        assertEquals(RealmCredentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[2].provider)
         admin.setAutomaticConfirmation(enabled = true)
     }
 
