@@ -142,9 +142,13 @@ void ConvertException(JNIEnv* env, const char* file, int line)
 #if REALM_ENABLE_SYNC
     catch (realm::app::AppError& e) {
         // TODO Figure out exactly what kind of mapping is needed here
-        if (e.error_code.category() == realm::app::custom_error_category()) {
+        if (e.is_custom_error()) {
             ThrowException(env, IllegalArgument, e.message);
-        } else {
+        }
+        else if (e.error_code.value() == static_cast<int>(realm::app::ClientErrorCode::user_not_logged_in)) {
+            ThrowException(env, IllegalArgument, e.message);
+        }
+        else {
             ThrowException(env, IllegalState, e.message);
         }
     }
