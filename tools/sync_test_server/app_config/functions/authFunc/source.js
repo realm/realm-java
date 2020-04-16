@@ -13,5 +13,5 @@
   */
 
   exports = (loginPayload) => {
-    return;
+    return loginPayload["realmCustomAuthFuncUserId"];
   };

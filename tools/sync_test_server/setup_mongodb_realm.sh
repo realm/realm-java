@@ -53,7 +53,7 @@ echo "App ID Suffix: $APP_ID_SUFFIX"
 # 3. Create the secret(s) needed to start the Stitch app:
 #    - a) MongoDB Service: Requires an URI.
 stitch-cli secrets add \
-                  --name="integration_tests_uri" \
+                  --name="BackingDB_uri" \
                   --value="mongodb://localhost:26000" \
                   --app-id="realm-sdk-integration-tests-$APP_ID_SUFFIX" \
                   --base-url=http://localhost:9090 \

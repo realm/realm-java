@@ -1,7 +1,7 @@
 {
-    "id": "5e9243db57d46bccdd585215",
-    "database": "app",
-    "collection": "Person",
+    "id": "5e9578c1a06f8d660afdaa2c",
+    "database": "test_data",
+    "collection": "Dog",
     "roles": [
         {
             "name": "default",
@@ -12,22 +12,23 @@
         }
     ],
     "schema": {
-        "bsonType": "object",
-        "title": "Person",
-        "required": [
-            "_id",
-            "name"
-        ],
         "properties": {
             "_id": {
                 "bsonType": "objectId"
             },
-            "partition": {
+            "breed": {
                 "bsonType": "string"
             },
             "name": {
                 "bsonType": "string"
+            },
+            "realm_id": {
+                "bsonType": "string"
             }
-        }
+        },
+        "required": [
+            "name"
+        ],
+        "title": "Dog"
     }
 }

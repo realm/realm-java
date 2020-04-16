@@ -1,7 +1,7 @@
 {
-    "app_id": "realm-sdk-integration-tests-nntuz",
+    "app_id": "my-app-ibecp",
     "config_version": 20180301,
-    "name": "realm-sdk-integration-tests",
+    "name": "my-app",
     "location": "US-VA",
     "deployment_model": "GLOBAL",
     "security": {},
