@@ -39,7 +39,6 @@ open class ObjectIdAndString
     : RealmObject() {
     var id : ObjectId? = null
     var name : String = ""
-
 }
 
 open class ObjectIdRequiredRealmList
