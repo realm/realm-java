@@ -17,6 +17,7 @@ package io.realm;
 
 import android.content.Context;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
@@ -47,6 +48,7 @@ public class RealmAppConfiguration {
     private final long requestTimeoutMs;
     private final String authorizationHeaderName;
     private final Map<String, String> customHeaders;
+    private final File syncRootDir; // Root directory for storing Sync related files
 
     private RealmAppConfiguration(String appId,
                                  String appName,
@@ -57,7 +59,8 @@ public class RealmAppConfiguration {
                                  long logLevel,
                                  long requestTimeoutMs,
                                  String authorizationHeaderName,
-                                 Map<String, String> customHeaders) {
+                                 Map<String, String> customHeaders,
+                                 File syncRootdir) {
 
         this.appId = appId;
         this.appName = appName;
@@ -69,6 +72,7 @@ public class RealmAppConfiguration {
         this.requestTimeoutMs = requestTimeoutMs;
         this.authorizationHeaderName = (!Util.isEmptyString(authorizationHeaderName)) ? authorizationHeaderName : "Authorization";
         this.customHeaders = Collections.unmodifiableMap(customHeaders);
+        this.syncRootDir = syncRootdir;
     }
 
     private URL createUrl(String baseUrl) {
@@ -164,6 +168,14 @@ public class RealmAppConfiguration {
     }
 
     /**
+     * Returns the root folder containing all files and Realms used when when synchronizing data
+     * between the device and MongoDB Realm.
+     */
+    public File getSyncRootDirectory() {
+        return syncRootDir;
+    }
+
+    /**
      * FIXME
      */
     public static class Builder {
@@ -199,6 +211,7 @@ public class RealmAppConfiguration {
         private long requestTimeoutMs = 60000;
         private String autorizationHeaderName;
         private Map<String, String> customHeaders = new HashMap<>();
+        private File syncRootDir;
 
         /**
          * FIXME
@@ -208,6 +221,15 @@ public class RealmAppConfiguration {
         public Builder(String appId) {
             Util.checkEmpty(appId, "appId");
             this.appId = appId;
+            Context context = BaseRealm.applicationContext;
+            if (context == null) {
+                throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
+            }
+            File rootDir = new File(context.getFilesDir(), "mongodb-realm");
+            if (!rootDir.exists() && !rootDir.mkdir()) {
+                throw new IllegalStateException("Could not create Sync root dir: " + rootDir.getAbsolutePath());
+            }
+            syncRootDir = rootDir;
         }
 
         /**
@@ -328,9 +350,40 @@ public class RealmAppConfiguration {
             return this;
         }
 
+        /**
+         *
+         * @param errorHandler
+         * @return
+         */
         public Builder defaultSyncErrorHandler(SyncSession.ErrorHandler errorHandler) {
             Util.checkNull(errorHandler, "errorHandler");
             defaultErrorHandler = errorHandler;
+            return this;
+        }
+
+        /**
+         * Configures the root folder containing all files and Realms used when when synchronizing data
+         * between the device and MongoDB Realm.
+         * <p>
+         * The default root dir is {@code Context.getFilesDir()/mongodb-realm}.
+         * </p>
+         * @param rootDir where to store sync related files.
+         */
+        public Builder syncRootDirectory(File rootDir) {
+            Util.checkNull(rootDir, "rootDir");
+            if (rootDir.isFile()) {
+                throw new IllegalArgumentException("'rootDir' is a file, not a directory: " +
+                        rootDir.getAbsolutePath() + ".");
+            }
+            if (!rootDir.exists() && !rootDir.mkdirs()) {
+                throw new IllegalArgumentException("Could not create the specified directory: " +
+                        rootDir.getAbsolutePath() + ".");
+            }
+            if (!rootDir.canWrite()) {
+                throw new IllegalArgumentException("Realm directory is not writable: " +
+                        rootDir.getAbsolutePath() + ".");
+            }
+            syncRootDir = rootDir;
             return this;
         }
 
@@ -344,7 +397,8 @@ public class RealmAppConfiguration {
                     logLevel,
                     requestTimeoutMs,
                     autorizationHeaderName,
-                    customHeaders);
+                    customHeaders,
+                    syncRootDir);
         }
     }
 }

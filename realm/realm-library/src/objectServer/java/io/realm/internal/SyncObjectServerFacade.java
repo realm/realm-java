@@ -31,7 +31,6 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmUser;
 import io.realm.SyncConfiguration;
 import io.realm.SyncManager;
-import io.realm.SyncSession;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
@@ -97,7 +96,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     customAuthorizationHeaderName,
                     customHeaders,
                     OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL, // Client Resync is no longer supported in v10, but might be re-added later.
-                    syncConfig.getPartition(),
+                    syncConfig.getPartitionValue(),
                     app.nativePtr,
                     app.getSyncService()
             };

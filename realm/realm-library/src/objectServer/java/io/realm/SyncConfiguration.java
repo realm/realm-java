@@ -18,6 +18,13 @@ package io.realm;
 
 import android.content.Context;
 
+import org.bson.BsonInt32;
+import org.bson.BsonInt64;
+import org.bson.BsonObjectId;
+import org.bson.BsonString;
+import org.bson.BsonValue;
+import org.bson.types.ObjectId;
+
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -96,7 +103,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
     @Nullable private final String syncUrlPrefix;
     private final ClientResyncMode clientResyncMode;
-    private final Object partionKeyValue;
+    private final BsonValue partitionValue;
 
 
     public static SyncConfiguration defaultConfiguration(RealmUser user, Object partionValue) {
@@ -130,7 +137,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               CompactOnLaunchCallback compactOnLaunch,
                               @Nullable String syncUrlPrefix,
                               ClientResyncMode clientResyncMode,
-                              Object partionKeyValue) {
+                              BsonValue partitionValue) {
         super(directory,
                 filename,
                 canonicalPath,
@@ -161,7 +168,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.sessionStopPolicy = sessionStopPolicy;
         this.syncUrlPrefix = syncUrlPrefix;
         this.clientResyncMode = clientResyncMode;
-        this.partionKeyValue = partionKeyValue;
+        this.partitionValue = partitionValue;
     }
 
     /**
@@ -193,22 +200,54 @@ public class SyncConfiguration extends RealmConfiguration {
         return forRecovery(canonicalPath, encryptionKey, schemaMediator);
     }
 
-    @Beta // FIXME: Should be removed when proper support for partition values has been added. A default partition value does not exist
-    public static SyncConfiguration defaultConfig(RealmUser user) {
-        return new SyncConfiguration.Builder(user, "/").build();
+    /**
+     * FIXME
+     *
+     * @param user
+     * @param partitionValue
+     * @return
+     */
+    @Beta
+    public static SyncConfiguration defaultConfig(RealmUser user, String partitionValue) {
+        return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
     /**
      * FIXME
      *
      * @param user
-     * @param partionValue
+     * @param partitionValue
      * @return
      */
     @Beta
-    public static SyncConfiguration defaultConfig(RealmUser user, Object partitionValue) {
+    public static SyncConfiguration defaultConfig(RealmUser user, long partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
+
+    /**
+     * FIXME
+     *
+     * @param user
+     * @param partitionValue
+     * @return
+     */
+    @Beta
+    public static SyncConfiguration defaultConfig(RealmUser user, int partitionValue) {
+        return new SyncConfiguration.Builder(user, partitionValue).build();
+    }
+
+    /**
+     * FIXME
+     *
+     * @param user
+     * @param partitionValue
+     * @return
+     */
+    @Beta
+    public static SyncConfiguration defaultConfig(RealmUser user, ObjectId partitionValue) {
+        return new SyncConfiguration.Builder(user, partitionValue).build();
+    }
+
 
     /**
      * Returns a {@link RealmConfiguration} appropriate to open a read-only, non-synced Realm to recover any pending changes.
@@ -453,8 +492,8 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the value being used by MongoDB Realm to partition the server side MongoDB Database
      * into smaller Realms that can be synchronized independently.
      */
-    public String getPartition() {
-        return partionKeyValue.toString();
+    public BsonValue getPartitionValue() {
+        return partitionValue;
     }
 
     /**
@@ -462,10 +501,6 @@ public class SyncConfiguration extends RealmConfiguration {
      */
     public static final class Builder  {
 
-        private File directory;
-        private boolean overrideDefaultFolder = false;
-        private String fileName;
-        private boolean overrideDefaultLocalFileName = false;
         @Nullable
         private byte[] key;
         private long schemaVersion = 0;
@@ -498,9 +533,47 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
         private ClientResyncMode clientResyncMode = null;
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
-        private final Object partitionKeyValue;
+        private final BsonValue partitionKeyValue;
 
-        // FIXME: Which other constructors for partion values do we need? String, long, ObjectId?
+        /**
+         * FIXME
+         *
+         * @param user
+         * @param partitionValue
+         */
+        public Builder(RealmUser user, String partitionValue) {
+            this(user, new BsonString(partitionValue));
+        }
+
+        /**
+         * FIXME
+         *
+         * @param user
+         * @param partitionValue
+         */
+        public Builder(RealmUser user, ObjectId partitionValue) {
+            this(user, new BsonObjectId(partitionValue));
+        }
+
+        /**
+         * FIXME
+         *
+         * @param user
+         * @param partitionValue
+         */
+        public Builder(RealmUser user, int partitionValue) {
+            this(user, new BsonInt32(partitionValue));
+        }
+
+        /**
+         * FIXME
+         *
+         * @param user
+         * @param partitionValue
+         */
+        public Builder(RealmUser user, long partitionValue) {
+            this(user, new BsonInt64(partitionValue));
+        }
 
         /**
          * Builder used to construct instances of a SyncConfiguration in a fluent manner.
@@ -509,7 +582,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param partitionValue the partition value specifying which subset of data to include in the Realm.
          * @see <a href="FIXME">Link to docs about partions</a>
          */
-        public Builder(RealmUser user, Object partitionValue) {
+        private Builder(RealmUser user, BsonValue partitionValue) {
             Context context = BaseRealm.applicationContext;
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
@@ -519,7 +592,7 @@ public class SyncConfiguration extends RealmConfiguration {
             validateAndSet(user);
             validateAndSet(user.getApp().getConfiguration().getBaseUrl());
             this.partitionKeyValue = partitionValue;
-            this.defaultFolder = new File(context.getFilesDir(), "mongodb-realm");
+            this.defaultFolder = user.getApp().getConfiguration().getSyncRootDirectory();
             if (Realm.getDefaultModule() != null) {
                 this.modules.add(Realm.getDefaultModule());
             }
@@ -575,38 +648,6 @@ public class SyncConfiguration extends RealmConfiguration {
             }
 
             this.defaultLocalFileName = "default.realm";
-        }
-        /**
-         * Sets the local root directory where synchronized Realm files can be saved.
-         * <p>
-         * Synchronized Realms will not be saved directly in the provided directory, but instead in a
-         * subfolder that matches the path defined by MongoDB Realm URL.
-         * <p>
-         * The default location is {@code context.getFilesDir()}.
-         *
-         * @param directory directory on disk where the Realm file can be saved.
-         * @throws IllegalArgumentException if the directory is not valid.
-         */
-        public Builder directory(File directory) {
-            //noinspection ConstantConditions
-            if (directory == null) {
-                throw new IllegalArgumentException("Non-null 'directory' required.");
-            }
-            if (directory.isFile()) {
-                throw new IllegalArgumentException("'directory' is a file, not a directory: " +
-                        directory.getAbsolutePath() + ".");
-            }
-            if (!directory.exists() && !directory.mkdirs()) {
-                throw new IllegalArgumentException("Could not create the specified directory: " +
-                        directory.getAbsolutePath() + ".");
-            }
-            if (!directory.canWrite()) {
-                throw new IllegalArgumentException("Realm directory is not writable: " +
-                        directory.getAbsolutePath() + ".");
-            }
-            this.directory = directory;
-            overrideDefaultFolder = true;
-            return this;
         }
 
         /**
@@ -1067,10 +1108,9 @@ public class SyncConfiguration extends RealmConfiguration {
             // <rootDir>/<userIdentifier>/<hashedPartionKey>/default.realm
             URI resolvedServerUrl = serverUrl; // resolveServerUrl(serverUrl, user);
             syncUrlPrefix = String.format("/api/client/v2.0/app/%s/realm-sync", user.getApp().getConfiguration().getAppId());
-            File rootDir = overrideDefaultFolder ? directory : defaultFolder;
             String realmPathFromRootDir = user.getId() + "/" + getServerPath(user, resolvedServerUrl);
-            File realmFileDirectory = new File(rootDir, realmPathFromRootDir);
-            String realmFileName = overrideDefaultLocalFileName ? fileName : defaultLocalFileName;
+            File realmFileDirectory = new File(defaultFolder, realmPathFromRootDir);
+            String realmFileName = defaultLocalFileName;
             String fullPathName = realmFileDirectory.getAbsolutePath() + File.pathSeparator + realmFileName;
 
             // full path must not exceed 256 characters (on FAT)
