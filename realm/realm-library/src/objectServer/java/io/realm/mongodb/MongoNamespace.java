@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm.mongodb;
 
 import org.bson.codecs.pojo.annotations.BsonCreator;
@@ -7,20 +23,14 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.concurrent.Immutable;
-
 import static java.util.Arrays.asList;
 import static org.bson.assertions.Assertions.isTrueArgument;
 import static org.bson.assertions.Assertions.notNull;
 
 /**
  * A MongoDB namespace, which includes a database name and collection name.
- *
- * @since 3.0
  */
 
-// TODO: Stitch uses its own with retention policy RUNTIME instead of CLASS, which one should we use?
-@Immutable
 public final class MongoNamespace {
     public static final String COMMAND_COLLECTION_NAME = "$cmd";
 
@@ -38,8 +48,6 @@ public final class MongoNamespace {
      *
      * @param databaseName the database name
      * @throws IllegalArgumentException if the database name is invalid
-     * @mongodb.driver.manual reference/limits/#naming-restrictions Naming Restrictions
-     * @since 3.4
      */
     public static void checkDatabaseNameValidity(final String databaseName) {
         notNull("databaseName", databaseName);
@@ -56,8 +64,6 @@ public final class MongoNamespace {
      *
      * @param collectionName the collection name
      * @throws IllegalArgumentException if the collection name is invalid
-     * @mongodb.driver.manual reference/limits/#naming-restrictions Naming Restrictions
-     * @since 3.4
      */
     public static void checkCollectionNameValidity(final String collectionName) {
         notNull("collectionName", collectionName);
