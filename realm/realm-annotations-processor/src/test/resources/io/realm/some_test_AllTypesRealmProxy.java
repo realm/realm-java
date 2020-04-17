@@ -1144,8 +1144,14 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     objProxy.realmSet$columnDecimal128((org.bson.types.Decimal128) decimal);
                 } else if (decimal instanceof String) {
                     objProxy.realmSet$columnDecimal128(org.bson.types.Decimal128.parse((String)decimal));
+                } else if (decimal instanceof Integer) {
+                    objProxy.realmSet$columnDecimal128(new org.bson.types.Decimal128((Integer)(decimal)));
+                } else if (decimal instanceof Long) {
+                    objProxy.realmSet$columnDecimal128(new org.bson.types.Decimal128((Long)(decimal)));
+                } else if (decimal instanceof Double) {
+                    objProxy.realmSet$columnDecimal128(new org.bson.types.Decimal128(new java.math.BigDecimal((Double)(decimal))));
                 } else {
-                    objProxy.realmSet$columnDecimal128(new org.bson.types.Decimal128(json.getLong("columnDecimal128")));
+                    throw new UnsupportedOperationException(decimal.getClass() + " is not supported as a Decimal128 value");
                 }
             }
         }
@@ -1269,8 +1275,6 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
                     objProxy.realmSet$columnDecimal128(null);
-                } else if (reader.peek() == JsonToken.NUMBER) {
-                    objProxy.realmSet$columnDecimal128(new org.bson.types.Decimal128(reader.nextLong()));
                 } else {
                     objProxy.realmSet$columnDecimal128(org.bson.types.Decimal128.parse(reader.nextString()));
                 }
@@ -1516,7 +1520,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         Table.nativeSetBoolean(tableNativePtr, columnInfo.columnBooleanColKey, objKey, ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBoolean(), false);
         org.bson.types.Decimal128 realmGet$columnDecimal128 = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDecimal128();
         if (realmGet$columnDecimal128 != null) {
-            Table.nativeSetDecimal128(tableNativePtr, columnInfo.columnDecimal128ColKey, objKey, realmGet$columnDecimal128.getHigh(), realmGet$columnDecimal128.getLow(), false);
+            Table.nativeSetDecimal128(tableNativePtr, columnInfo.columnDecimal128ColKey, objKey, realmGet$columnDecimal128.getLow(), realmGet$columnDecimal128.getHigh(), false);
         }
         org.bson.types.ObjectId realmGet$columnObjectId = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnObjectId();
         if (realmGet$columnObjectId != null) {
@@ -1736,7 +1740,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             Table.nativeSetBoolean(tableNativePtr, columnInfo.columnBooleanColKey, objKey, ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBoolean(), false);
             org.bson.types.Decimal128 realmGet$columnDecimal128 = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDecimal128();
             if (realmGet$columnDecimal128 != null) {
-                Table.nativeSetDecimal128(tableNativePtr, columnInfo.columnDecimal128ColKey, objKey, realmGet$columnDecimal128.getHigh(), realmGet$columnDecimal128.getLow(), false);
+                Table.nativeSetDecimal128(tableNativePtr, columnInfo.columnDecimal128ColKey, objKey, realmGet$columnDecimal128.getLow(), realmGet$columnDecimal128.getHigh(), false);
             }
             org.bson.types.ObjectId realmGet$columnObjectId = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnObjectId();
             if (realmGet$columnObjectId != null) {
@@ -1947,7 +1951,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         Table.nativeSetBoolean(tableNativePtr, columnInfo.columnBooleanColKey, objKey, ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBoolean(), false);
         org.bson.types.Decimal128 realmGet$columnDecimal128 = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDecimal128();
         if (realmGet$columnDecimal128 != null) {
-            Table.nativeSetDecimal128(tableNativePtr, columnInfo.columnDecimal128ColKey, objKey, realmGet$columnDecimal128.getHigh(), realmGet$columnDecimal128.getLow(), false);
+            Table.nativeSetDecimal128(tableNativePtr, columnInfo.columnDecimal128ColKey, objKey, realmGet$columnDecimal128.getLow(), realmGet$columnDecimal128.getHigh(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.columnDecimal128ColKey, objKey, false);
         }
@@ -2216,7 +2220,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             Table.nativeSetBoolean(tableNativePtr, columnInfo.columnBooleanColKey, objKey, ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBoolean(), false);
             org.bson.types.Decimal128 realmGet$columnDecimal128 = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDecimal128();
             if (realmGet$columnDecimal128 != null) {
-                Table.nativeSetDecimal128(tableNativePtr, columnInfo.columnDecimal128ColKey, objKey, realmGet$columnDecimal128.getHigh(), realmGet$columnDecimal128.getLow(), false);
+                Table.nativeSetDecimal128(tableNativePtr, columnInfo.columnDecimal128ColKey, objKey, realmGet$columnDecimal128.getLow(), realmGet$columnDecimal128.getHigh(), false);
             } else {
                 Table.nativeSetNull(tableNativePtr, columnInfo.columnDecimal128ColKey, objKey, false);
             }
