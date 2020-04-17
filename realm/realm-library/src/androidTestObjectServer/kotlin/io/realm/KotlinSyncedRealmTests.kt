@@ -55,7 +55,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         val password = "123456"
         app.emailPasswordAuthProvider.registerUser(email, password)
         val user: RealmUser = app.login(RealmCredentials.emailPassword(email, password))
-        val config = SyncConfiguration.Builder(user, "\"foobar\"")
+        val config = SyncConfiguration.Builder(user, "foobar")
                 .schema(SyncTest::class.java)
                 .build()
         realm = Realm.getInstance(config)

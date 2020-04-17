@@ -16,12 +16,18 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.util.expectException
+import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
+import java.io.File
 import java.lang.IllegalArgumentException
+import kotlin.math.exp
 
 @RunWith(AndroidJUnit4::class)
 class RealmAppConfigurationTests {
@@ -34,6 +40,9 @@ class RealmAppConfigurationTests {
     //    builder.encryptionKey()
     //    builder.logLevel()
     //    builder.requestTimeout()
+
+    @get:Rule
+    val tempFolder = TemporaryFolder()
 
     @Test
     fun authorizationHeaderName_illegalArgumentsThrows() {
@@ -100,5 +109,43 @@ class RealmAppConfigurationTests {
         assertEquals(2, headers.size)
         assertTrue(headers.any { it.key == "header3" && it.value == "val3" })
         assertTrue(headers.any { it.key == "header1" && it.value == "val1" })
+    }
+
+    @Test
+    fun syncRootDirectory_default() {
+        val config = RealmAppConfiguration.Builder("app-id").build()
+        val expectedDefaultRoot = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "mongodb-realm")
+        assertEquals(expectedDefaultRoot, config.syncRootDirectory)
+    }
+
+    @Test
+    fun syncRootDirectory() {
+        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        val expectedRoot = tempFolder.newFolder()
+        val config = builder
+                .syncRootDirectory(expectedRoot)
+                .build()
+        assertEquals(expectedRoot, config.syncRootDirectory)
+    }
+
+    @Test
+    fun syncRootDirectory_null() {
+        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        expectException<IllegalArgumentException> { builder.syncRootDirectory(TestHelper.getNull()) }
+    }
+
+    @Test
+    fun syncRootDirectory_writeProtectedDir() {
+        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        val dir = File("/")
+        expectException<IllegalArgumentException> { builder.syncRootDirectory(dir) }
+    }
+
+    @Test
+    fun syncRootDirectory_dirIsAFile() {
+        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        val file = File(tempFolder.newFolder(), "dummyfile")
+        assertTrue(file.createNewFile())
+        expectException<IllegalArgumentException> { builder.syncRootDirectory(file) }
     }
 }

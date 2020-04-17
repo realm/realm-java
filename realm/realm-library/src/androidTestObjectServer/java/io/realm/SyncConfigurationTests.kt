@@ -160,32 +160,6 @@ class SyncConfigurationTests {
     }
 
     @Test
-    fun directory_null() {
-        val user: RealmUser = createTestUser(app)
-        val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        expectException<IllegalArgumentException> { builder.directory(TestHelper.getNull()) }
-    }
-
-    @Test
-    fun directory_writeProtectedDir() {
-        val user: RealmUser = createTestUser(app)
-        val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        val dir = File("/")
-        expectException<IllegalArgumentException> { builder.directory(dir) }
-    }
-
-    @Test
-    fun directory_dirIsAFile() {
-        val user: RealmUser = createTestUser(app)
-        val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        val dir = configFactory.root
-        val file = File(dir, "dummyfile")
-        Assert.assertTrue(file.createNewFile())
-        expectException<IllegalArgumentException> { builder.directory(file) }
-        file.delete() // clean up
-    }
-
-    @Test
     fun initialData() {
         val user: RealmUser = createTestUser(app)
         val config = configFactory.createSyncConfigurationBuilder(user)

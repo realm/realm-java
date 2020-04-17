@@ -26,6 +26,6 @@ open class SyncTest: RealmObject() {
     @PrimaryKey
     var _id: ObjectId = ObjectId.get()
     @RealmField(name = "realm_id")
-    var realmId: String = "\"foobar\""
+    var realmId: String = "foobar"
     var color: String = Color.RED.toString()
 }

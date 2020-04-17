@@ -182,7 +182,7 @@ public class RealmAppConfiguration {
         private String appId;
         private String appName;
         private String appVersion;
-        private String baseUrl;
+        private String baseUrl = "https://stitch.mongodb.com"; // FIXME Find the correct base url for release
         private SyncSession.ErrorHandler defaultErrorHandler = new SyncSession.ErrorHandler() {
             @Override
             public void onError(SyncSession session, ObjectServerError error) {
@@ -344,9 +344,10 @@ public class RealmAppConfiguration {
          * @param headers map of (headerName, headerValue) pairs.
          * @throws IllegalArgumentException If any of the headers provided are illegal.
          */
-        public Builder addCustomRequestHeaders(Map<String, String> headers) {
-            Util.checkNull(headers, "headers");
-            customHeaders.putAll(headers);
+        public Builder addCustomRequestHeaders(@Nullable Map<String, String> headers) {
+            if (headers != null) {
+                customHeaders.putAll(headers);
+            }
             return this;
         }
 

@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 
+import org.bson.BsonValue;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -83,6 +85,21 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String urlPrefix = syncConfig.getUrlPrefix();
             String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
             Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
+
+            // Temporary work-around for serializing supported bson values
+            BsonValue val = syncConfig.getPartitionValue();
+            String partitionValue = null;
+            if (val.isString()) {
+                partitionValue = "\"" + val.asString() + "\"";
+            } else if (val.isInt32()) {
+                partitionValue = "{ \"$bsonInt\" : " + val.asInt32().intValue() + " }";
+            } else if (val.isInt64()) {
+                partitionValue = "{ \"$bsonLong\" : " + val.asInt64().longValue() + " }";
+            } else if (val.isObjectId()) {
+                partitionValue = "{ \"$oid\" : " + val.asObjectId().toString() + " }";
+            } else {
+                throw new IllegalArgumentException("Unsupported type: " + val);
+            }
             return new Object[]{
                     rosUserIdentity,
                     rosServerUrl,
@@ -96,7 +113,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     customAuthorizationHeaderName,
                     customHeaders,
                     OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL, // Client Resync is no longer supported in v10, but might be re-added later.
-                    syncConfig.getPartitionValue(),
+                    partitionValue,
                     app.nativePtr,
                     app.getSyncService()
             };
