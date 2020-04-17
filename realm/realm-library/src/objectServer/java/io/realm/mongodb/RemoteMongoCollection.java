@@ -24,8 +24,10 @@ import org.bson.conversions.Bson;
 import java.util.List;
 
 import io.realm.mongodb.remote.RemoteCountOptions;
+import io.realm.mongodb.remote.RemoteFindOneAndModifyOptions;
 import io.realm.mongodb.remote.RemoteUpdateOptions;
 import io.realm.mongodb.remote.internal.RemoteDeleteResult;
+import io.realm.mongodb.remote.RemoteFindOptions;
 import io.realm.mongodb.remote.internal.RemoteInsertManyResult;
 import io.realm.mongodb.remote.internal.RemoteInsertOneResult;
 import io.realm.mongodb.remote.internal.RemoteUpdateResult;
@@ -33,15 +35,30 @@ import io.realm.mongodb.remote.internal.aggregate.RemoteAggregateIterable;
 import io.realm.mongodb.remote.internal.find.RemoteFindIterable;
 
 /**
- * The RemoteMongoCollection interface.
+ * The RemoteMongoCollection interface provides read and write access to documents.
+ * <p>
+ * Use {@link RemoteMongoDatabase#getCollection} to get a collection instance.
+ * </p><p>
+ * Before any access is possible, there must be an active, logged-in user.
+ * </p><p>
+ * Create, read, update and delete (CRUD) functionality is available depending
+ * on the privileges of the active logged-in user. You can set up
+ * <a href="https://docs.mongodb.com/stitch/mongodb/define-roles-and-permissions/" target=".">Roles</a>
+ * in the Stitch console. Stitch checks any given request against the Roles for the
+ * active user and determines whether the request is permitted for each requested
+ * document.
+ * </p>
  *
  * @param <DocumentT> The type that this collection will encode documents from and decode documents
  *                    to.
+ * @see RemoteMongoDatabase
+ * @see <a href="https://docs.mongodb.com/stitch/mongodb/" target=".">
+ * MongoDB Atlas Overview with Stitch</a>
  */
-public final class RemoteMongoCollection<DocumentT> {
+public class RemoteMongoCollection<DocumentT> {
 
     /**
-     * Gets the namespace of this collection.
+     * Gets the namespace of this collection, i.e. the database and collection names together.
      *
      * @return the namespace
      */
@@ -51,6 +68,11 @@ public final class RemoteMongoCollection<DocumentT> {
 
     /**
      * Get the class of documents stored in this collection.
+     * <p>
+     * If you used the simple {@link RemoteMongoDatabase#getCollection(String)} to get
+     * this collection,
+     * this is {@link org.bson.Document}.
+     * </p>
      *
      * @return the class
      */
@@ -76,7 +98,8 @@ public final class RemoteMongoCollection<DocumentT> {
      *                       documents to.
      * @return a new RemoteMongoCollection instance with the different default class
      */
-    <NewDocumentT> RemoteMongoCollection<NewDocumentT> withDocumentClass(final Class<NewDocumentT> clazz) {
+    <NewDocumentT> RemoteMongoCollection<NewDocumentT> withDocumentClass(
+            final Class<NewDocumentT> clazz) {
         throw new RuntimeException("Not Implemented");
     }
 
@@ -122,6 +145,75 @@ public final class RemoteMongoCollection<DocumentT> {
     }
 
     /**
+     * Finds a document in the collection.
+     *
+     * @return a task containing the result of the find one operation
+     */
+    Task<DocumentT> findOne() {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection.
+     *
+     * @param resultClass the class to decode each document into
+     * @param <ResultT>   the target document type
+     * @return a task containing the result of the find one operation
+     */
+    <ResultT> Task<ResultT> findOne(final Class<ResultT> resultClass) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection.
+     *
+     * @param filter the query filter
+     * @return a task containing the result of the find one operation
+     */
+    Task<DocumentT> findOne(final Bson filter) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection.
+     *
+     * @param filter      the query filter
+     * @param resultClass the class to decode each document into
+     * @param <ResultT>   the target document type of the iterable.
+     * @return a task containing the result of the find one operation
+     */
+    <ResultT> Task<ResultT> findOne(final Bson filter, final Class<ResultT> resultClass) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection.
+     *
+     * @param filter  the query filter
+     * @param options A RemoteFindOptions struct
+     * @return a task containing the result of the find one operation
+     */
+    Task<DocumentT> findOne(final Bson filter, final RemoteFindOptions options) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection.
+     *
+     * @param filter      the query filter
+     * @param options     A RemoteFindOptions struct
+     * @param resultClass the class to decode each document into
+     * @param <ResultT>   the target document type of the iterable.
+     * @return a task containing the result of the find one operation
+     */
+    <ResultT> Task<ResultT> findOne(
+            final Bson filter,
+            final RemoteFindOptions options,
+            final Class<ResultT> resultClass) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
      * Finds all documents in the collection.
      *
      * @return the find iterable interface
@@ -142,7 +234,7 @@ public final class RemoteMongoCollection<DocumentT> {
     }
 
     /**
-     * Finds all documents in the collection.
+     * Finds all documents in the collection that match the given filter.
      *
      * @param filter the query filter
      * @return the find iterable interface
@@ -152,7 +244,7 @@ public final class RemoteMongoCollection<DocumentT> {
     }
 
     /**
-     * Finds all documents in the collection.
+     * Finds all documents in the collection that match the given filter.
      *
      * @param filter      the query filter
      * @param resultClass the class to decode each document into
@@ -288,25 +380,252 @@ public final class RemoteMongoCollection<DocumentT> {
         throw new RuntimeException("Not Implemented");
     }
 
-    // TODO: what about these two?
+    /**
+     * Finds a document in the collection and performs the given update.
+     *
+     * @param filter the query filter
+     * @param update the update document
+     * @return a task containing the resulting document
+     */
+    Task<DocumentT> findOneAndUpdate(final Bson filter, final Bson update) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection and performs the given update.
+     *
+     * @param filter      the query filter
+     * @param update      the update document
+     * @param resultClass the class to decode each document into
+     * @param <ResultT>   the target document type of the iterable.
+     * @return a task containing the resulting document
+     */
+    <ResultT> Task<ResultT> findOneAndUpdate(final Bson filter,
+                                             final Bson update,
+                                             final Class<ResultT> resultClass) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection and performs the given update.
+     *
+     * @param filter  the query filter
+     * @param update  the update document
+     * @param options A RemoteFindOneAndModifyOptions struct
+     * @return a task containing the resulting document
+     */
+    Task<DocumentT> findOneAndUpdate(final Bson filter,
+                                     final Bson update,
+                                     final RemoteFindOneAndModifyOptions options) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection and performs the given update.
+     *
+     * @param filter      the query filter
+     * @param update      the update document
+     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @param resultClass the class to decode each document into
+     * @param <ResultT>   the target document type of the iterable.
+     * @return a task containing the resulting document
+     */
+    <ResultT> Task<ResultT> findOneAndUpdate(
+            final Bson filter,
+            final Bson update,
+            final RemoteFindOneAndModifyOptions options,
+            final Class<ResultT> resultClass) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection and replaces it with the given document.
+     *
+     * @param filter      the query filter
+     * @param replacement the document to replace the matched document with
+     * @return a task containing the resulting document
+     */
+    Task<DocumentT> findOneAndReplace(final Bson filter, final Bson replacement) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection and replaces it with the given document.
+     *
+     * @param filter      the query filter
+     * @param replacement the document to replace the matched document with
+     * @param resultClass the class to decode each document into
+     * @param <ResultT>   the target document type of the iterable.
+     * @return a task containing the resulting document
+     */
+    <ResultT> Task<ResultT> findOneAndReplace(final Bson filter,
+                                              final Bson replacement,
+                                              final Class<ResultT> resultClass) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection and replaces it with the given document.
+     *
+     * @param filter      the query filter
+     * @param replacement the document to replace the matched document with
+     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @return a task containing the resulting document
+     */
+    Task<DocumentT> findOneAndReplace(final Bson filter,
+                                      final Bson replacement,
+                                      final RemoteFindOneAndModifyOptions options) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection and replaces it with the given document.
+     *
+     * @param filter      the query filter
+     * @param replacement the document to replace the matched document with
+     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @param resultClass the class to decode each document into
+     * @param <ResultT>   the target document type of the iterable.
+     * @return a task containing the resulting document
+     */
+    <ResultT> Task<ResultT> findOneAndReplace(
+            final Bson filter,
+            final Bson replacement,
+            final RemoteFindOneAndModifyOptions options,
+            final Class<ResultT> resultClass) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection and delete it.
+     *
+     * @param filter the query filter
+     * @return a task containing the resulting document
+     */
+    Task<DocumentT> findOneAndDelete(final Bson filter) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection and delete it.
+     *
+     * @param filter      the query filter
+     * @param resultClass the class to decode each document into
+     * @param <ResultT>   the target document type of the iterable.
+     * @return a task containing the resulting document
+     */
+    <ResultT> Task<ResultT> findOneAndDelete(final Bson filter,
+                                             final Class<ResultT> resultClass) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection and delete it.
+     *
+     * @param filter  the query filter
+     * @param options A RemoteFindOneAndModifyOptions struct
+     * @return a task containing the resulting document
+     */
+    Task<DocumentT> findOneAndDelete(final Bson filter,
+                                     final RemoteFindOneAndModifyOptions options) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    /**
+     * Finds a document in the collection and delete it.
+     *
+     * @param filter      the query filter
+     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @param resultClass the class to decode each document into
+     * @param <ResultT>   the target document type of the iterable.
+     * @return a task containing the resulting document
+     */
+    <ResultT> Task<ResultT> findOneAndDelete(
+            final Bson filter,
+            final RemoteFindOneAndModifyOptions options,
+            final Class<ResultT> resultClass) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+    // TODO: what about these?
+//    /**
+//     * Watches a collection. The resulting stream will be notified of all events on this collection
+//     * that the active user is authorized to see based on the configured MongoDB rules.
+//     *
+//     * @return the stream of change events.
+//     */
+//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watch();
+//
 //    /**
 //     * Watches specified IDs in a collection.  This convenience overload supports the use case
 //     * of non-{@link BsonValue} instances of {@link ObjectId}.
+//     *
 //     * @param ids unique object identifiers of the IDs to watch.
 //     * @return the stream of change events.
 //     */
-//    Task<ChangeStream<Task<ChangeEvent<DocumentT>>, DocumentT>> watch(final ObjectId... ids) {
-//        throw new RuntimeException("Not Implemented");
-//    }
+//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watch(final ObjectId... ids);
 //
 //    /**
 //     * Watches specified IDs in a collection.
+//     *
 //     * @param ids the ids to watch.
 //     * @return the stream of change events.
 //     */
-//    Task<ChangeStream<Task<ChangeEvent<DocumentT>>, DocumentT>> watch(final BsonValue... ids) {
-//        throw new RuntimeException("Not Implemented");
-//    }
+//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watch(final BsonValue... ids);
+//
+//    /**
+//     * Watches a collection. The provided BSON document will be used as a match expression filter on
+//     * the change events coming from the stream.
+//     * See https://docs.mongodb.com/manual/reference/operator/aggregation/match/ for documentation
+//     * around how to define a match filter. Defining the match expression to filter ChangeEvents is
+//     * similar to defining the match expression for triggers:
+//     * https://docs.mongodb.com/stitch/triggers/database-triggers/
+//     *
+//     * @param matchFilter the $match filter to apply to incoming change events
+//     * @return the stream of change events.
+//     */
+//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watchWithFilter(
+//            final BsonDocument matchFilter);
+//
+//    /**
+//     * Watches a collection. The provided BSON document will be used as a match expression filter on
+//     * the change events coming from the stream.
+//     * See https://docs.mongodb.com/manual/reference/operator/aggregation/match/ for documentation
+//     * around how to define a match filter. Defining the match expression to filter ChangeEvents is
+//     * similar to defining the match expression for triggers:
+//     * https://docs.mongodb.com/stitch/triggers/database-triggers/
+//     *
+//     * @param matchFilter the $match filter to apply to incoming change events
+//     * @return the stream of change events.
+//     */
+//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watchWithFilter(
+//            final Document matchFilter);
+//
+//    /**
+//     * Watches specified IDs in a collection.  This convenience overload supports the use case
+//     * of non-{@link BsonValue} instances of {@link ObjectId}. This convenience overload supports the
+//     * use case of non-{@link BsonValue} instances of {@link ObjectId}. Requests a stream where the
+//     * full document of update events, and several other unnecessary fields are omitted from the
+//     * change event objects returned by the server. This can save on network usage when watching
+//     * large documents.
+//     *
+//     * @param ids unique object identifiers of the IDs to watch.
+//     * @return the stream of change events.
+//     */
+//    Task<AsyncChangeStream<DocumentT, CompactChangeEvent<DocumentT>>> watchCompact(
+//            final ObjectId... ids);
+//
+//    /**
+//     * Watches specified IDs in a collection. This convenience overload supports the use case of
+//     * non-{@link BsonValue} instances of {@link ObjectId}. Requests a stream where the full document
+//     * of update events, and several other unnecessary fields are omitted from the change event
+//     * objects returned by the server. This can save on network usage when watching large documents.
+//     *
+//     * @param ids the ids to watch.
+//     * @return the stream of change events.
+//     */
+//    Task<AsyncChangeStream<DocumentT, CompactChangeEvent<DocumentT>>> watchCompact(
+//            final BsonValue... ids);
 
     // TODO: what about this one?
 //    /**
@@ -318,7 +637,5 @@ public final class RemoteMongoCollection<DocumentT> {
 //     * </p>
 //     * @return set of sync operations for this collection
 //     */
-//    Sync<DocumentT> sync() {
-//        throw new RuntimeException("Not Implemented");
-//    }
+//    Sync<DocumentT> sync();
 }
