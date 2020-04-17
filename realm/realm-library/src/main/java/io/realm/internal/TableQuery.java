@@ -564,9 +564,14 @@ public class TableQuery implements NativeObject {
         return nativeSumDouble(nativePtr, columnKey);
     }
 
-    public double sumDecimal128(long columnKey) {
+    public Decimal128 sumDecimal128(long columnKey) {
         validateQuery();
-        return nativeSumDecimal128(nativePtr, columnKey);
+        long[] data = nativeSumDecimal128(nativePtr, columnKey);
+        if (data != null) {
+            return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
+        } else {
+            return null;
+        }
     }
 
     public Double maximumDouble(long columnKey) {
@@ -814,7 +819,7 @@ public class TableQuery implements NativeObject {
 
     private native double nativeSumDouble(long nativeQueryPtr, long columnKey);
 
-    private native double nativeSumDecimal128(long nativeQueryPtr, long columnKey);
+    private native long[] nativeSumDecimal128(long nativeQueryPtr, long columnKey);
 
     private native Double nativeMaximumDouble(long nativeQueryPtr, long columnKey);
 
