@@ -30,7 +30,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class ApiKeyAuthProviderTests {
-
     private val looperThread = BlockingLooperThread()
     private lateinit var app: TestRealmApp
     private lateinit var admin: ServerAdmin

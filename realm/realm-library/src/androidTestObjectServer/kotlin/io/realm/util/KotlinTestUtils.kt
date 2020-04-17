@@ -32,5 +32,3 @@ inline fun expectErrorCode(expectedCode: ErrorCode, method: () -> Unit) {
         assertEquals(expectedCode, e.errorCode)
     }
 }
-
-

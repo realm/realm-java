@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,9 @@ import java.lang.IllegalArgumentException
 class SyncConfigurationTests {
 
     companion object {
-        private const val DEFAULT_PARTITION = "/"
+        // FIXME Partition key must be Extended Json formatted. We need to fix the public API's
+        // to automatically format these
+        private const val DEFAULT_PARTITION = "\"default\""
     }
 
     @get:Rule
