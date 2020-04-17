@@ -6,6 +6,7 @@ def buildSuccess = false
 def mongoDbRealmContainer = null
 def mongoDbRealmCommandServerContainer = null
 def dockerNetworkId = UUID.randomUUID().toString()
+def releaseBranches = ['master', 'next-major', 'v10'] // Branches from which we release SNAPSHOT's
 try {
   node('android') {
     timeout(time: 90, unit: 'MINUTES') {
@@ -31,7 +32,7 @@ try {
         // on PR's for even more throughput.
         def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
-        if (!['master', 'next-major', 'v10'].contains(env.BRANCH_NAME)) {
+        if (!releaseBranches.contains(env.BRANCH_NAME)) {
           abiFilter = "-PbuildTargetABIs=armeabi-v7a"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           // Run in debug more for better error reporting
@@ -140,7 +141,7 @@ try {
                 }
               }
 
-              if (['master', 'next-major', 'v10'].contains(env.BRANCH_NAME)) {
+              if (releaseBranches.contains(env.BRANCH_NAME)) {
                 stage('Publish to OJO') {
                   withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
                     sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
