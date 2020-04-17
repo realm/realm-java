@@ -226,7 +226,6 @@ static inline Obj do_create_row_with_object_id_primary_key(JNIEnv* env, jlong sh
         return Obj();
     }
 
-
     if (pk_value) {
         auto objectId = ObjectId(StringData(str_accessor).data());
         if (bool(table->find_first_object_id(col_key, objectId))) {
