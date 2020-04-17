@@ -459,7 +459,7 @@ public class OsResults implements NativeObject, ObservableCollection {
         if (value == null) {
             nativeSetNull(nativePtr, fieldName);
         } else {
-            nativeSetDecimal128(nativePtr, fieldName, value.getHigh(), value.getLow());
+            nativeSetDecimal128(nativePtr, fieldName, value.getLow(), value.getHigh());
         }
     }
 
@@ -467,7 +467,7 @@ public class OsResults implements NativeObject, ObservableCollection {
         if (value == null) {
             nativeSetNull(nativePtr, fieldName);
         } else {
-            nativeSetObjectId(nativePtr, fieldName, value.toByteArray());
+            nativeSetObjectId(nativePtr, fieldName, value.toString());
         }
     }
 
@@ -750,9 +750,9 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native void nativeSetTimestamp(long nativePtr, String fieldName, long value);
 
-    private static native void nativeSetDecimal128(long nativePtr, String fieldName, long high, long low);
+    private static native void nativeSetDecimal128(long nativePtr, String fieldName, long low, long high);
 
-    private static native void nativeSetObjectId(long nativePtr, String fieldName, byte[] data);
+    private static native void nativeSetObjectId(long nativePtr, String fieldName, String data);
 
     private static native void nativeSetObject(long nativePtr, String fieldName, long rowNativePtr);
 

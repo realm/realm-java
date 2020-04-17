@@ -378,21 +378,20 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetTimestamp(JNIEn
     update_objects(env, native_ptr, j_field_name, value);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetDecimal128(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jstring j_decimal128_str)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetDecimal128(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong low, jlong high)
 {
 
-    JStringAccessor decimal128_str(env, j_decimal128_str);
-    Decimal128 decimal128 = Decimal128(decimal128_str);
+    Decimal128::Bid128 raw = {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
+    Decimal128 decimal128 = Decimal128(raw);
     JavaValue value(decimal128);
     update_objects(env, native_ptr, j_field_name, value);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObjectId(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jbyteArray j_value)
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObjectId(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jstring j_value)
 {
-    int len = env->GetArrayLength (j_value);
-    unsigned char* buf = new unsigned char[len];
-    env->GetByteArrayRegion (j_value, 0, len, reinterpret_cast<jbyte*>(buf));
-    JavaValue value(ObjectId((char*)buf));
+    JStringAccessor data(env, j_value);
+    ObjectId objectId = ObjectId(StringData(data).data());
+    JavaValue value(objectId);
     update_objects(env, native_ptr, j_field_name, value);
 }
 

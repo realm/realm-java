@@ -424,21 +424,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetDecima
 
     try {
         Decimal128 decimal128 = OBJ(nativeRowPtr)->get<Decimal128>(ColKey(columnKey));
-        if (!decimal128.is_null()) {
-            uint64_t* raw = decimal128.raw()->w;
-
-            jlongArray ret_array = env->NewLongArray(2);
-            if (!ret_array) {
-                ThrowException(env, OutOfMemory, "Could not allocate memory to return decimal128 value.");
-                return nullptr;
-            }
-
-            jlong ret[2] = { jlong(raw[0])/*low*/, jlong(raw[1]) /*high*/};
-            env->SetLongArrayRegion(ret_array, 0, 2, ret);
-            return ret_array;
-        } else {
-            return nullptr;
-        }
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
     }
     CATCH_STD()
     return nullptr;

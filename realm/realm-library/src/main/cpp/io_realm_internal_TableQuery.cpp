@@ -1588,24 +1588,28 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDeci
     }
     try {
         Decimal128 decimal128 = pQuery->maximum_decimal128(ColKey(columnKey));
-        if (!decimal128.is_null()) {
-            uint64_t* raw = decimal128.raw()->w;
-
-            jlongArray ret_array = env->NewLongArray(2);
-            if (!ret_array) {
-                ThrowException(env, OutOfMemory, "Could not allocate memory to return decimal128 value.");
-                return nullptr;
-            }
-
-            jlong ret[2] = { jlong(raw[0])/*low*/, jlong(raw[1]) /*high*/};
-            env->SetLongArrayRegion(ret_array, 0, 2, ret);
-            return ret_array;
-        } else {
-            return nullptr;
-        }
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
     }
     CATCH_STD()
     return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumDecimal128(JNIEnv* env, jobject,
+                                                                            jlong nativeQueryPtr, jlong columnKey)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+        return 0;
+    }
+    try {
+
+//        Decimal128 decimal128 = pQuery->sum_decimal128(ColKey(columnKey)); //FIXME waiting for Core to add sum_decimal into query.hpp
+        Decimal128 decimal128 = pQuery->get_table()->sum_decimal(ColKey(columnKey));
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+    }
+    CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(JNIEnv* env, jobject,
@@ -1639,21 +1643,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDeci
     }
     try {
         Decimal128 decimal128 = pQuery->minimum_decimal128(ColKey(columnKey));
-        if (!decimal128.is_null()) {
-            uint64_t* raw = decimal128.raw()->w;
-
-            jlongArray ret_array = env->NewLongArray(2);
-            if (!ret_array) {
-                ThrowException(env, OutOfMemory, "Could not allocate memory to return decimal128 value.");
-                return nullptr;
-            }
-
-            jlong ret[2] = { jlong(raw[0])/*low*/, jlong(raw[1]) /*high*/};
-            env->SetLongArrayRegion(ret_array, 0, 2, ret);
-            return ret_array;
-        } else {
-            return nullptr;
-        }
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
     }
     CATCH_STD()
     return nullptr;
@@ -1686,21 +1676,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageDeci
     }
     try {
         Decimal128 decimal128 = pQuery->average_decimal128(ColKey(columnKey));
-        if (!decimal128.is_null()) {
-            uint64_t* raw = decimal128.raw()->w;
-
-            jlongArray ret_array = env->NewLongArray(2);
-            if (!ret_array) {
-                ThrowException(env, OutOfMemory, "Could not allocate memory to return decimal128 value.");
-                return nullptr;
-            }
-
-            jlong ret[2] = { jlong(raw[0])/*low*/, jlong(raw[1]) /*high*/};
-            env->SetLongArrayRegion(ret_array, 0, 2, ret);
-            return ret_array;
-        } else {
-            return nullptr;
-        }
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
     }
     CATCH_STD()
     return nullptr;

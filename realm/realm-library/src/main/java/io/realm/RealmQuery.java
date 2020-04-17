@@ -1837,6 +1837,8 @@ public class RealmQuery<E> {
                 return query.sumFloat(columnKey);
             case DOUBLE:
                 return query.sumDouble(columnKey);
+            case DECIMAL128:
+                return query.sumDecimal128(columnKey);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));

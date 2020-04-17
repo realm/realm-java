@@ -34,6 +34,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -71,6 +72,9 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
+
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 
 public class TestHelper {
     public static final int VERY_SHORT_WAIT_SECS = 1;
@@ -675,6 +679,9 @@ public class TestHelper {
         Date[] dates = {new Date(0), null, new Date(10000)};
         NullTypes[] nullTypesArray = new NullTypes[3];
 
+        Decimal128[] decimals = {new Decimal128(BigDecimal.TEN), null, new Decimal128(BigDecimal.ONE)};
+        ObjectId[] ids = {new ObjectId(TestHelper.generateObjectIdHexString(10)), null, new ObjectId(TestHelper.generateObjectIdHexString(1))};
+
         testRealm.beginTransaction();
         for (int i = 0; i < 3; i++) {
             NullTypes nullTypes = new NullTypes();
@@ -720,6 +727,10 @@ public class TestHelper {
             if (dates[i] != null) {
                 nullTypes.setFieldDateNotNull(dates[i]);
             }
+
+            nullTypes.setFieldDecimal128Null(decimals[i]);
+
+            nullTypes.setFieldObjectIdNull(ids[i]);
 
             nullTypesArray[i] = testRealm.copyToRealm(nullTypes);
         }

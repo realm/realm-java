@@ -48,8 +48,6 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
-import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.Table;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
@@ -662,10 +660,9 @@ public class RealmQueryTests extends QueryTests {
     @Test
     public void equalTo_decimal128() {
         populateTestRealm(realm, 10);
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).sort(AllTypes.FIELD_DECIMAL128, Sort.ASCENDING).findAll();
-        for (int i = 0; i < 10; i++) {
-            assertEquals(new Decimal128(new BigDecimal(i + ".23456789")), resultList.get(i).getColumnDecimal128());
-        }
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_DECIMAL128, new Decimal128(new BigDecimal( "7.23456789"))).findAll();
+        assertEquals(1, resultList.size());
+        assertEquals(new Decimal128(new BigDecimal( "7.23456789")), resultList.get(0).getColumnDecimal128());
     }
 
     @Test
@@ -675,65 +672,6 @@ public class RealmQueryTests extends QueryTests {
         for (int i = 0; i < 10; i++) {
             assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(i)), resultList.get(i).getColumnObjectId());
         }
-    }
-
-    @Test
-    public void notEqualTo_decimal128() {
-        populateTestRealm(realm, 10);
-        // FIXME
-    }
-
-    @Test
-    public void notEqualTo_objectId() {
-        populateTestRealm(realm, 10);
-        // FIXME
-    }
-
-    @Test
-    public void lessThan_decimal128() {
-        populateTestRealm(realm, 10);
-        // FIXME
-    }
-
-    @Test
-    public void lessThan_objectId() {
-        populateTestRealm(realm, 10);
-        // FIXME
-    }
-
-    @Test
-    public void lessThanOrEqualTo_decimal128() {
-        populateTestRealm(realm, 10);
-        // FIXME
-    }
-
-    @Test
-    public void lessThanOrEqualTo_objectId() {
-        populateTestRealm(realm, 10);
-        // FIXME
-    }
-
-    @Test
-    public void greaterThan_decimal128() {
-        populateTestRealm(realm, 10);
-        // FIXME
-    }
-
-    @Test
-    public void greaterThan_objectId() {
-        populateTestRealm(realm, 10);
-        // FIXME
-    }
-
-    @Test
-    public void greaterThanOrEqual_decimal128() {
-        populateTestRealm(realm, 10);
-        // FIXME
-    }
-
-    @Test
-    public void greaterThanOrEqual_objectId() {
-        // FIXME
     }
 
     @Test
@@ -2585,6 +2523,12 @@ public class RealmQueryTests extends QueryTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
+
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DECIMAL128_NULL).count());
+
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_ID_NULL).count());
     }
 
     // Tests isNotNull on link's not-nullable field. Should throw.
@@ -2663,6 +2607,22 @@ public class RealmQueryTests extends QueryTests {
         } catch (IllegalArgumentException ignored) {
         }
         // 11 Object skipped, RealmObject is always nullable.
+
+        // 10 Decimal128
+        try {
+            realm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DECIMAL128_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // 10 ObjectId
+        try {
+            realm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_ID_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     // Calling isNull on fields with the RealmList type will trigger an exception.

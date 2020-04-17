@@ -24,6 +24,7 @@ open class ObjectIdPrimaryKeyRequired
     @field:Required
     var id : ObjectId? = null
     var name : String = ""
+    var anotherId: ObjectId? = null
 
 }
 
@@ -114,6 +115,41 @@ class ObjectIdTests {
         val copy = realm.copyFromRealm(obj)
         assertEquals(ObjectId(objectIdHex2), copy.id)
         assertEquals("Bar", copy.name)
+    }
+
+    @Test
+    fun insert() {
+        val value = ObjectIdPrimaryKeyRequired()
+        val objectIdHex1 = generateObjectIdHexString(0)
+        val objectIdHex2 = generateObjectIdHexString(7)
+        value.id = ObjectId(objectIdHex1)
+        value.name = "Foo"
+        value.anotherId = ObjectId(generateObjectIdHexString(7))
+
+        // insert
+        realm.beginTransaction()
+        realm.insert(value)
+        realm.commitTransaction()
+
+        var obj = realm.where<ObjectIdPrimaryKeyRequired>().findFirst()
+        assertNotNull(obj)
+        assertEquals(ObjectId(objectIdHex1), obj!!.id)
+        assertEquals(ObjectId(objectIdHex2), obj.anotherId)
+        assertEquals("Foo", obj.name)
+
+        // insertOrUpdate
+        realm.beginTransaction()
+        val objectIdHex3 = generateObjectIdHexString(1)
+        obj.anotherId = ObjectId(objectIdHex3)
+        obj.name = "Bar"
+        realm.insertOrUpdate(obj)
+        realm.commitTransaction()
+
+        val all = realm.where<ObjectIdPrimaryKeyRequired>().findAll()
+        assertEquals(1, all.size)
+        assertEquals(ObjectId(objectIdHex1), all[0]!!.id)
+        assertEquals(ObjectId(objectIdHex3), all[0]!!.anotherId)
+        assertEquals("Bar", all[0]!!.name)
     }
 
     @Test

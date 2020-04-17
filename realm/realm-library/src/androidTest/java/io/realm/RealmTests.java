@@ -151,15 +151,15 @@ public class RealmTests {
     private Context context;
     private Realm realm;
     private List<String> columnData = new ArrayList<String>() {{
-        add(0, AllTypes.FIELD_BOOLEAN);
-        add(1, AllTypes.FIELD_DATE);
-        add(2, AllTypes.FIELD_DOUBLE);
-        add(3, AllTypes.FIELD_FLOAT);
-        add(4, AllTypes.FIELD_STRING);
-        add(5, AllTypes.FIELD_LONG);
-        add(6, AllTypes.FIELD_BINARY);
-        add(7, AllTypes.FIELD_DECIMAL128);
-        add(8, AllTypes.FIELD_OBJECT_ID);
+        add(AllTypes.FIELD_BOOLEAN);
+        add(AllTypes.FIELD_DATE);
+        add(AllTypes.FIELD_DOUBLE);
+        add(AllTypes.FIELD_FLOAT);
+        add(AllTypes.FIELD_STRING);
+        add(AllTypes.FIELD_LONG);
+        add(AllTypes.FIELD_BINARY);
+        add(AllTypes.FIELD_DECIMAL128);
+        add(AllTypes.FIELD_OBJECT_ID);
     }};
     private RealmConfiguration realmConfig;
 

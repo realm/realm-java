@@ -201,6 +201,12 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                 case DATE:
                     value = JsonUtils.stringToDate(strValue);
                     break;
+                case DECIMAL128:
+                    value = Decimal128.parse(strValue);
+                    break;
+                case OBJECT_ID:
+                    value = new ObjectId(strValue);
+                    break;
                 default:
                     throw new IllegalArgumentException(String.format(Locale.US,
                             "Field %s is not a String field, " +
@@ -230,6 +236,10 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             setString(fieldName, (String) value);
         } else if (value instanceof Date) {
             setDate(fieldName, (Date) value);
+        } else if (value instanceof Decimal128) {
+            setDecimal128(fieldName, (Decimal128) value);
+        } else if (value instanceof ObjectId) {
+            setObjectId(fieldName, (ObjectId) value);
         } else if (value instanceof byte[]) {
             setBlob(fieldName, (byte[]) value);
         } else if (value instanceof RealmModel) {
@@ -395,7 +405,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
-     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a date field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a {@code Date} field.
      */
     public void setDate(String fieldName, @Nullable Date value) {
         checkNonEmptyFieldName(fieldName);
@@ -422,10 +432,11 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     /**
-     * FIXME
+     * Sets the {@code Decimal128} value of the given field in all of the objects in the collection.
      *
-     * @param fieldName
-     * @param value
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a {@code Decimal128} field.
      */
     public void setDecimal128(String fieldName, @Nullable Decimal128 value) {
         checkNonEmptyFieldName(fieldName);
@@ -436,16 +447,17 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     /**
-     * FIXME
+     * Sets the {@code ObjectId} value of the given field in all of the objects in the collection.
      *
-     * @param fieldName
-     * @param value
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a {@code ObjectId field.
      */
     public void setObjectId(String fieldName, @Nullable ObjectId value) {
         checkNonEmptyFieldName(fieldName);
         realm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
-        checkType(fieldName, RealmFieldType.DECIMAL128);
+        checkType(fieldName, RealmFieldType.OBJECT_ID);
         osResults.setObjectId(fieldName, value);
     }
 
@@ -539,6 +551,14 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                 checkTypeOfListElements(list, Date.class);
                 osResults.setDateList(fieldName, (RealmList<Date>) list);
                 break;
+            case DECIMAL128_LIST:
+                checkTypeOfListElements(list, Decimal128.class);
+                osResults.setDecimal128List(fieldName, (RealmList<Decimal128>) list);
+                break;
+            case OBJECT_ID_LIST:
+                checkTypeOfListElements(list, ObjectId.class);
+                osResults.setObjectIdList(fieldName, (RealmList<ObjectId>) list);
+                break;
             case FLOAT_LIST:
                 checkTypeOfListElements(list, Float.class);
                 osResults.setFloatList(fieldName, (RealmList<Float>) list);
@@ -548,15 +568,15 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                 osResults.setDoubleList(fieldName, (RealmList<Double>) list);
                 break;
             default: {
-                // Handle Decimal128 and ObjectId in a special way since they might not be on the
-                // classpath
-                if (columnType == RealmFieldType.DECIMAL128_LIST) {
-                    checkTypeOfListElements(list, Decimal128.class);
-                    osResults.setDecimal128List(fieldName, (RealmList<Decimal128>) list);
-                } else if (columnType == RealmFieldType.OBJECT_ID_LIST) {
-                    checkTypeOfListElements(list, ObjectId.class);
-                    osResults.setObjectIdList(fieldName, (RealmList<ObjectId>) list);
-                }
+//                // Handle Decimal128 and ObjectId in a special way since they might not be on the
+//                // classpath
+//                if (columnType == RealmFieldType.DECIMAL128_LIST) {
+//                    checkTypeOfListElements(list, Decimal128.class);
+//                    osResults.setDecimal128List(fieldName, (RealmList<Decimal128>) list);
+//                } else if (columnType == RealmFieldType.OBJECT_ID_LIST) {
+//                    checkTypeOfListElements(list, ObjectId.class);
+//                    osResults.setObjectIdList(fieldName, (RealmList<ObjectId>) list);
+//                }
                 throw new IllegalArgumentException(String.format("Field '%s' is not a list but a %s", fieldName, columnType));
             }
         }

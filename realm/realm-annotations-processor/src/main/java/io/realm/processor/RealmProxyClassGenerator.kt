@@ -958,7 +958,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 "org.bson.types.Decimal128" -> {
                     emitStatement("org.bson.types.Decimal128 %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                    emitStatement("Table.nativeSetDecimal128(tableNativePtr, columnInfo.%1\$sColKey, objKey, %2\$s.getHigh(), %2\$s.getLow(), false)", fieldName, getter)
+                    emitStatement("Table.nativeSetDecimal128(tableNativePtr, columnInfo.%1\$sColKey, objKey, %2\$s.getLow(), %2\$s.getHigh(), false)", fieldName, getter)
                     if (isUpdate) {
                         nextControlFlow("else")
                         emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)

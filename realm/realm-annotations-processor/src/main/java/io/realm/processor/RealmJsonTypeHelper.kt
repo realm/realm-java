@@ -322,18 +322,24 @@ object RealmJsonTypeHelper {
         override fun emitTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter) {
             writer.apply {
                 beginControlFlow("if (json.has(\"%s\"))", fieldName)
-                beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                emitStatement("%s.%s(null)", varName, accessor)
-                nextControlFlow("else")
-                emitStatement("Object decimal = json.get(\"%s\")", fieldName)
-                beginControlFlow("if (decimal instanceof org.bson.types.Decimal128)")
-                emitStatement("%s.%s((org.bson.types.Decimal128) decimal)", varName, accessor)
-                nextControlFlow("else if (decimal instanceof String)")
-                emitStatement("%s.%s(org.bson.types.Decimal128.parse((String)decimal))", varName, accessor)
-                nextControlFlow("else")
-                emitStatement("%s.%s(new org.bson.types.Decimal128(json.getLong(\"%s\")))", varName, accessor, fieldName)
-                endControlFlow()
-                endControlFlow()
+                    beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                        emitStatement("%s.%s(null)", varName, accessor)
+                    nextControlFlow("else")
+                            emitStatement("Object decimal = json.get(\"%s\")", fieldName)
+                            beginControlFlow("if (decimal instanceof org.bson.types.Decimal128)")
+                                emitStatement("%s.%s((org.bson.types.Decimal128) decimal)", varName, accessor)
+                            nextControlFlow("else if (decimal instanceof String)")
+                                emitStatement("%s.%s(org.bson.types.Decimal128.parse((String)decimal))", varName, accessor)
+                            nextControlFlow("else if (decimal instanceof Integer)")
+                            emitStatement("%s.%s(new org.bson.types.Decimal128((Integer)(decimal)))", varName, accessor, fieldName)
+                            nextControlFlow("else if (decimal instanceof Long)")
+                                emitStatement("%s.%s(new org.bson.types.Decimal128((Long)(decimal)))", varName, accessor, fieldName)
+                            nextControlFlow("else if (decimal instanceof Double)")
+                                emitStatement("%s.%s(new org.bson.types.Decimal128(new java.math.BigDecimal((Double)(decimal))))", varName, accessor, fieldName)
+                            nextControlFlow("else")
+                                emitStatement("throw new UnsupportedOperationException(decimal.getClass() + \" is not supported as a Decimal128 value\")")
+                            endControlFlow()
+                    endControlFlow()
                 endControlFlow()
             }
         }
@@ -342,12 +348,10 @@ object RealmJsonTypeHelper {
         override fun emitStreamTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter, isPrimaryKey: Boolean) {
             writer.apply {
                 beginControlFlow("if (reader.peek() == JsonToken.NULL)")
-                emitStatement("reader.skipValue()")
-                emitStatement("%s.%s(null)", varName, accessor)
-                nextControlFlow("else if (reader.peek() == JsonToken.NUMBER)")
-                emitStatement("%s.%s(new org.bson.types.Decimal128(reader.nextLong()))", varName, accessor)
+                    emitStatement("reader.skipValue()")
+                    emitStatement("%s.%s(null)", varName, accessor)
                 nextControlFlow("else")
-                emitStatement("%s.%s(org.bson.types.Decimal128.parse(reader.nextString()))", varName, accessor)
+                    emitStatement("%s.%s(org.bson.types.Decimal128.parse(reader.nextString()))", varName, accessor)
                 endControlFlow()
             }
         }

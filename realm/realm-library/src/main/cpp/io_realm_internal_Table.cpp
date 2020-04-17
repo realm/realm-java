@@ -358,21 +358,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_Table_nativeGetDecimal128(JN
     }
     try {
         Decimal128 decimal128 = table->get_object(ObjKey(rowKey)).get<Decimal128>(ColKey(columnKey));
-        if (!decimal128.is_null()) {
-            uint64_t* raw = decimal128.raw()->w;
-            jlongArray ret_array = env->NewLongArray(2);
-            if (!ret_array) {
-                ThrowException(env, OutOfMemory, "Could not allocate memory to return decimal128 value.");
-                return nullptr;
-            }
-
-            jlong ret[2] = { jlong(raw[0])/*low*/, jlong(raw[1]) /*high*/};
-            env->SetLongArrayRegion(ret_array, 0, 2, ret);
-            return ret_array;
-
-        } else {
-            return nullptr;
-        }
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
     }
     CATCH_STD()
     return nullptr;
@@ -596,19 +582,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDecimal128(JNIEnv* 
     }
     CATCH_STD()
 }
-
-//JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDecimal128Null(JNIEnv* env, jclass, jlong nativeTableRefPtr,
-//                                                                        jlong columnKey, jlong rowKey, jboolean isDefault)
-//{
-//    TableRef table = TBL_REF(nativeTableRefPtr);
-//    if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {
-//        return;
-//    }
-//    try {
-//        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Decimal128(), B(isDefault));
-//    }
-//    CATCH_STD()
-//}
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                     jlong columnKey, jlong rowKey, jstring j_value,

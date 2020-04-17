@@ -564,6 +564,11 @@ public class TableQuery implements NativeObject {
         return nativeSumDouble(nativePtr, columnKey);
     }
 
+    public double sumDecimal128(long columnKey) {
+        validateQuery();
+        return nativeSumDecimal128(nativePtr, columnKey);
+    }
+
     public Double maximumDouble(long columnKey) {
         validateQuery();
         return nativeMaximumDouble(nativePtr, columnKey);
@@ -808,6 +813,8 @@ public class TableQuery implements NativeObject {
     private native double nativeAverageFloat(long nativeQueryPtr, long columnKey);
 
     private native double nativeSumDouble(long nativeQueryPtr, long columnKey);
+
+    private native double nativeSumDecimal128(long nativeQueryPtr, long columnKey);
 
     private native Double nativeMaximumDouble(long nativeQueryPtr, long columnKey);
 

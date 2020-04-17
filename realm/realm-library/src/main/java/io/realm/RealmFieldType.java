@@ -147,8 +147,10 @@ public enum RealmFieldType {
                 return (obj instanceof Double);
             case CORE_TYPE_VALUE_DECIMAL128:
                 return (obj instanceof Decimal128);
+            case CORE_TYPE_VALUE_OBJECTID:
+                return (obj instanceof ObjectId);
             case CORE_TYPE_VALUE_OBJECT:
-                return(obj instanceof ObjectId);
+                return false;
             case CORE_TYPE_VALUE_LIST:
             case CORE_TYPE_VALUE_LINKING_OBJECTS:
             case CORE_TYPE_VALUE_INTEGER + LIST_OFFSET:

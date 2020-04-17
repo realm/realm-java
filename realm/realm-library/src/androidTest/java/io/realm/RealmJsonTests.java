@@ -278,6 +278,19 @@ public class RealmJsonTests {
     }
 
     @Test
+    public void createObjectFromJson_decimal128AsInt() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("columnDecimal128", -42);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new Decimal128(-42), obj.getColumnDecimal128());
+    }
+
+    @Test
     public void createObjectFromJson_decimal128AsLong() throws JSONException {
         JSONObject json = new JSONObject();
         json.put("columnDecimal128", -32361122672259149L);
@@ -288,6 +301,19 @@ public class RealmJsonTests {
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new Decimal128(-32361122672259149L), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createObjectFromJson_decimal128AsDouble() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("columnDecimal128", 0.30000001192092896D);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new Decimal128(new BigDecimal(0.30000001192092896D)), obj.getColumnDecimal128());
     }
 
     @Test
@@ -844,6 +870,20 @@ public class RealmJsonTests {
     }
 
     @Test
+    public void createObjectFromJson_streamDecimal128AsInt() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = TestHelper.loadJsonFromAssets(context, "decimal128_as_int.json");
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new Decimal128(-42), obj.getColumnDecimal128());
+    }
+
+    @Test
     public void createObjectFromJson_streamDecimal128AsLong() throws IOException {
         assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
 
@@ -855,6 +895,20 @@ public class RealmJsonTests {
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new Decimal128(-32361122672259149L), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createObjectFromJson_streamDecimal128AsDouble() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = TestHelper.loadJsonFromAssets(context, "decimal128_as_double.json");
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Decimal128.parse("0.30000001192092896"), obj.getColumnDecimal128());
     }
 
     @Test
