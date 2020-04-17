@@ -105,11 +105,6 @@ public class SyncConfiguration extends RealmConfiguration {
     private final ClientResyncMode clientResyncMode;
     private final BsonValue partitionValue;
 
-
-    public static SyncConfiguration defaultConfiguration(RealmUser user, Object partionValue) {
-        return new SyncConfiguration.Builder(user, partionValue).build();
-    }
-
     private SyncConfiguration(File directory,
                               String filename,
                               String canonicalPath,

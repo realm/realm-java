@@ -20,7 +20,6 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
 
