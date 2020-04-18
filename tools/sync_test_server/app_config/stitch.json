@@ -1,7 +1,7 @@
 {
-    "app_id": "my-app-ibecp",
+    "app_id": "realm-sdk-integration-tests-ibecp",
     "config_version": 20180301,
-    "name": "my-app",
+    "name": "realm-sdk-integration-tests",
     "location": "US-VA",
     "deployment_model": "GLOBAL",
     "security": {},

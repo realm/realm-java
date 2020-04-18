@@ -59,14 +59,7 @@ stitch-cli secrets add \
                   --base-url=http://localhost:9090 \
                   --config-path=/tmp/stitch-config
 
-# 4. Due to how Stitch works internally, it is currently not possible to create a secret starting
-#    with '__'. This is a problem as the Stitch UI has a builtin requirement on a secret named
-#    "__integration_test_url". In order to fix this, we hack the JSON output from Stitch before
-#    importing it again. Doing it this way, makes it possible to use the output from a Stitch
-#    export directly.
-sed -i 's/\"uri\": \"__integration_tests_uri\"/\"uri\": \"integration_tests_uri\"/g' /tmp/app_config/services/integration_tests/config.json
-
-# 5. Now we can correctly import the Stitch app
+# 4. Now we can correctly import the Stitch app
 stitch-cli import \
                   --config-path=/tmp/stitch-config \
                   --base-url=http://localhost:9090 \
@@ -76,5 +69,5 @@ stitch-cli import \
                   --strategy replace \
                   -y
 
-# 7. Store the application id in the Command Server so it can be accessed by Integration Tests on the device
+# 5. Store the application id in the Command Server so it can be accessed by Integration Tests on the device
 curl -X PUT -d id="realm-sdk-integration-tests-$APP_ID_SUFFIX" http://localhost:8888/application-id

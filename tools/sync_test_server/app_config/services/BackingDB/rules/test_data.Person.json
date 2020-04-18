@@ -38,7 +38,8 @@
         "required": [
             "firstName",
             "lastName",
-            "age"
+            "age",
+            "dogs"
         ],
         "title": "Person"
     }

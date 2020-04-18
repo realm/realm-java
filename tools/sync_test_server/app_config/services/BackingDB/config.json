@@ -4,7 +4,7 @@
     "type": "mongodb",
     "config": {
         "sync": {
-            "enabled": true,
+            "state": "enabled",
             "database_name": "test_data",
             "partition": {
                 "key": "realm_id",
