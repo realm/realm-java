@@ -8,6 +8,9 @@ def mongoDbRealmCommandServerContainer = null
 def dockerNetworkId = UUID.randomUUID().toString()
 def releaseBranches = ['master', 'next-major', 'v10'] // Branches from which we release SNAPSHOT's
 def currentBranch = env.CHANGE_BRANCH
+script {
+  echo "Building: ${currentBranch}"
+}
 try {
   node('android') {
     timeout(time: 90, unit: 'MINUTES') {
