@@ -72,7 +72,7 @@ class ApiKeyAuthProviderTests {
         RealmLog.setLevel(LogLevel.DEBUG)
         admin = ServerAdmin()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        provider = app.apiKeyAuthProvider
+        provider = user.apiKeyAuthProvider
     }
 
     @After

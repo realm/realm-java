@@ -94,6 +94,7 @@ if (build_SYNC)
         io.realm.EmailPasswordAuthProvider
         io.realm.ApiKeyAuthProvider
         io.realm.RealmApp
+        io.realm.RealmUser
         io.realm.SyncManager
         io.realm.SyncSession
         io.realm.SyncUser
@@ -182,6 +183,7 @@ file(GLOB jni_SRC
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmApp.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmUser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuthProvider.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ApiKeyAuthProvider.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp

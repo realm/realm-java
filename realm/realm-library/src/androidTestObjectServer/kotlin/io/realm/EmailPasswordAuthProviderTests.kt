@@ -350,8 +350,8 @@ class EmailPasswordAuthProviderTests {
         provider.registerUser(email, "123456")
         try {
             provider.callResetPasswordFunction(email, "new-password", "say-the-magic-word", 42)
-            app.login(RealmCredentials.emailPassword(email, "new-password"))
-            app.logOut()
+            val user = app.login(RealmCredentials.emailPassword(email, "new-password"))
+            user.logOut()
         } finally {
             admin.setResetFunction(enabled = false)
         }
@@ -369,8 +369,8 @@ class EmailPasswordAuthProviderTests {
                         "new-password",
                         arrayOf("say-the-magic-word", 42)) { result ->
                     if (result.isSuccess) {
-                        app.login(RealmCredentials.emailPassword(email, "new-password"))
-                        app.logOut()
+                        val user = app.login(RealmCredentials.emailPassword(email, "new-password"))
+                        user.logOut()
                         looperThread.testComplete()
                     } else {
                         fail(result.error.toString())
