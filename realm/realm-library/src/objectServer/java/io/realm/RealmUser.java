@@ -281,7 +281,7 @@ public class RealmUser {
      * // Example
      * RealmApp app = new RealmApp("app-id")
      * RealmUser user = app.login(RealmCredentials.anonymous());
-     * userg.linkUser(RealmCredentials.emailPassword("email", "password"));
+     * user.linkUser(RealmCredentials.emailPassword("email", "password"));
      * }
      * </pre>
      * <p>
