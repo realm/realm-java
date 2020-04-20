@@ -92,27 +92,34 @@ class ObjectIdTests {
 
     @Test
     fun copyToAndFromRealm() {
-        val value = ObjectIdAndString()
-        val objectIdHex = generateObjectIdHexString(0)
-        value.id = ObjectId(objectIdHex)
+        val objectIdHex1 = generateObjectIdHexString(1)
+        val objectIdHex2 = generateObjectIdHexString(2)
+        val objectIdHex3 = generateObjectIdHexString(3)
+
+        val value = ObjectIdPrimaryKeyRequired()
+        value.id = ObjectId(objectIdHex1)
+        value.anotherId = ObjectId(objectIdHex2)
         value.name = "Foo"
 
         // copyToRealm
         realm.beginTransaction()
         val obj = realm.copyToRealm(value)
         realm.commitTransaction()
-        assertEquals(ObjectId(objectIdHex), obj.id)
+        assertEquals(ObjectId(objectIdHex1), obj.id)
+        assertEquals(ObjectId(objectIdHex2), obj.anotherId)
         assertEquals("Foo", obj.name)
 
-        // copyFromRealm
+        // copyToRealmOrUpdate
+        value.name = "Bar"
+        value.anotherId = ObjectId(objectIdHex3)
         realm.beginTransaction()
-        val objectIdHex2 = generateObjectIdHexString(1)
-        obj.id = ObjectId(objectIdHex2)
-        obj.name = "Bar"
+        realm.copyToRealmOrUpdate(value)
         realm.commitTransaction()
 
+        // copyFromRealm
         val copy = realm.copyFromRealm(obj)
-        assertEquals(ObjectId(objectIdHex2), copy.id)
+        assertEquals(ObjectId(objectIdHex1), copy.id)
+        assertEquals(ObjectId(objectIdHex3), copy.anotherId)
         assertEquals("Bar", copy.name)
     }
 
@@ -130,7 +137,7 @@ class ObjectIdTests {
         realm.insert(value)
         realm.commitTransaction()
 
-        var obj = realm.where<ObjectIdPrimaryKeyRequired>().findFirst()
+        val obj = realm.where<ObjectIdPrimaryKeyRequired>().findFirst()
         assertNotNull(obj)
         assertEquals(ObjectId(objectIdHex1), obj!!.id)
         assertEquals(ObjectId(objectIdHex2), obj.anotherId)

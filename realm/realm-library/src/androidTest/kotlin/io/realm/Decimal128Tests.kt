@@ -90,16 +90,51 @@ class Decimal128Tests {
         assertEquals(42L, obj.id)
         assertEquals("Foo", obj.name)
 
-        // copyFromRealm
+        // copyToRealmOrUpdate
+        value.id = 42
+        value.decimal = Decimal128(BigDecimal.ONE)
+        value.name = "Bar"
         realm.beginTransaction()
-        obj.decimal = Decimal128(BigDecimal.ONE)
-        obj.name = "Bar"
+        realm.copyToRealmOrUpdate(value)
         realm.commitTransaction()
 
+        // copyFromRealm
         val copy = realm.copyFromRealm(obj)
         assertEquals(Decimal128(BigDecimal.ONE), copy.decimal)
         assertEquals(42L, copy.id)
         assertEquals("Bar", copy.name)
+    }
+
+    @Test
+    fun insert() {
+        val value = Decimal128Required()
+        value.id = 7
+        value.name = "Foo"
+        value.decimal = Decimal128(10)
+
+        // insert
+        realm.beginTransaction()
+        realm.insert(value)
+        realm.commitTransaction()
+
+        val obj = realm.where<Decimal128Required>().findFirst()
+        assertNotNull(obj)
+        assertEquals(7, obj!!.id)
+        assertEquals(Decimal128(10), obj.decimal)
+        assertEquals("Foo", obj.name)
+
+        // insertOrUpdate
+        realm.beginTransaction()
+        obj.decimal = Decimal128(20)
+        obj.name = "Bar"
+        realm.insertOrUpdate(obj)
+        realm.commitTransaction()
+
+        val all = realm.where<Decimal128Required>().findAll()
+        assertEquals(1, all.size)
+        assertEquals(7, all[0]!!.id)
+        assertEquals(Decimal128(20), all[0]!!.decimal)
+        assertEquals("Bar", all[0]!!.name)
     }
 
     @Test

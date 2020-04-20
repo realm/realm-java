@@ -1740,6 +1740,26 @@ public class RealmJsonTests {
             fail("Unexpected exception: " + e);
         }
 
+        // 11 Decimal128
+        try {
+            realm.createObjectFromJson(NullTypes.class, array.getJSONObject(10));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DECIMAL128_NOT_NULL));
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
+        }
+
+        // 12 ObjectId
+        try {
+            realm.createObjectFromJson(NullTypes.class, array.getJSONObject(11));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_OBJECT_ID_NOT_NULL));
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
+        }
+
         realm.cancelTransaction();
     }
 
@@ -1851,6 +1871,26 @@ public class RealmJsonTests {
             fail();
         } catch (IllegalArgumentException ignored) {
             assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DATE_NOT_NULL));
+        } finally {
+            realm.cancelTransaction();
+        }
+        // 11 Decimal128
+        try {
+            realm.beginTransaction();
+            realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(10)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DECIMAL128_NOT_NULL));
+        } finally {
+            realm.cancelTransaction();
+        }
+        // 12 ObjectId
+        try {
+            realm.beginTransaction();
+            realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(11)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_OBJECT_ID_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }
