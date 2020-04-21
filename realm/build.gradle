@@ -34,7 +34,7 @@ allprojects {
     projectDependencies.each { key, val ->
         project.ext.set(key, val)
     }
-    project.ext.minSdkVersion = 21 // FIXME: Should be 16. Figure out how to enable MultiDex for ObjectServer tests
+    project.ext.minSdkVersion = 16
     project.ext.compileSdkVersion = 29
     project.ext.buildToolsVersion = projectDependencies.get("ANDROID_BUILD_TOOLS")
     group = 'io.realm'
