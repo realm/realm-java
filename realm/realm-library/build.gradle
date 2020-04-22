@@ -97,6 +97,9 @@ android {
     }
 
     sourceSets {
+        testObjectServer {
+            java.srcDirs += ['src/testObjectServer/kotlin']
+        }
         androidTest {
             java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java', 'src/testUtils/kotlin']
         }
@@ -210,6 +213,10 @@ dependencies {
     implementation('io.reactivex.rxjava2:rxandroid:2.1.1') {
         exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
     }
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 
     // TODO: investigate why we can't use the latest multidex version
     // check baseDebugAndroidTestRuntimeClasspath and objectServerDebugAndroidTestRuntimeClasspath

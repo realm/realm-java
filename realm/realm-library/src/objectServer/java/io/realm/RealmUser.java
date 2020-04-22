@@ -37,6 +37,7 @@ public class RealmUser {
     OsSyncUser osUser;
     private final RealmApp app;
     private ApiKeyAuthProvider apiKeyAuthProvider = null;
+    private RealmFunctions functions = null;
 
     /**
      * FIXME
@@ -412,10 +413,16 @@ public class RealmUser {
     }
 
     /**
-     * FIXME Add support for functions. Name of Class and method still TBD.
+     * Returns a <i>Realm Functions</i> manager need for invoking MongoDB Stitch Functions.
+     *
+     * FIXME Name of Class and method still TBD.
      */
-    public RealmFunctions getFunctions() {
-        return null;
+    public synchronized RealmFunctions getFunctions() {
+        checkLoggedIn();
+        if (functions == null) {
+            functions = new RealmFunctions();
+        }
+        return functions;
     }
 
     /**
