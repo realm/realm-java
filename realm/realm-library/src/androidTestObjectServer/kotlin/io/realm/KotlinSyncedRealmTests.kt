@@ -15,7 +15,6 @@
  */
 package io.realm
 
-import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.*
@@ -23,10 +22,11 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.rule.BlockingLooperThread
+import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
@@ -34,7 +34,6 @@ import java.util.*
 @RunWith(AndroidJUnit4::class)
 class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaining Java tests have been moved
 
-    private val looperThread = BlockingLooperThread()
     private lateinit var app: TestRealmApp
     private lateinit var realm: Realm
     private lateinit var partitionValue: String
@@ -68,6 +67,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     }
 
     // Smoke test for Sync
+    @Ignore("Dev Mode doesn't work fully yet on the server")
     @Test
     fun roundTripObjectsNotInServerSchemaObject() {
         // User 1 creates an object an uploads it to MongoDB Realm
@@ -92,51 +92,95 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     }
 
     // Smoke test for sync
+    // Insert different types with no links between them
     @Test
-    fun roundTripObjectsInServerSchemaObject() {
+    fun roundTripSimpleObjectsInServerSchema() {
+        @Test
+        fun roundTripLinkedObjectsInServerSchemaObject() {
+            // User 1 creates an object an uploads it to MongoDB Realm
+            val user1: RealmUser = createNewUser()
+            val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+            realm = Realm.getInstance(config1)
+            realm.executeTransaction {
+                val person = SyncPerson()
+                person.realmId = partitionValue
+                person.firstName = "Jane"
+                person.lastName = "Doe"
+                person.age = 42
+                realm.insert(person);
+                for (i in 0..9) {
+                    val dog = SyncDog()
+                    dog.name = "Fido $i"
+                    dog.realmId = partitionValue
+                    it.insert(dog)
+                }
+            }
+            realm.syncSession.uploadAllLocalChanges()
+            assertEquals(10, realm.where<SyncDog>().count())
+            assertEquals(1, realm.where<SyncPerson>().count())
+            realm.close()
+
+            // User 2 logs and using the same partition key should see the object
+            val user2: RealmUser = createNewUser()
+            val config2 = createDefaultConfig(user2, partitionValue)
+            realm = Realm.getInstance(config2)
+            realm.syncSession.downloadAllServerChanges()
+            assertEquals(10, realm.where<SyncDog>().count())
+            assertEquals(1, realm.where<SyncPerson>().count())
+        }
+    }
+
+
+    // Smoke test for sync
+    // Insert objects with links between them
+    @Ignore("Crashes server currently")
+    @Test
+    fun roundTripObjectsWithLists() {
         // User 1 creates an object an uploads it to MongoDB Realm
         val user1: RealmUser = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
         realm = Realm.getInstance(config1)
         realm.executeTransaction {
+            val person = SyncPerson()
+            person.realmId = partitionValue
+            person.firstName = "Jane"
+            person.lastName = "Doe"
+            person.age = 42
             for (i in 0..9) {
                 val dog = SyncDog()
                 dog.name = "Fido $i"
+                dog.realmId = partitionValue
                 it.insert(dog)
+                person.dogs.add(dog.id)
             }
+            realm.insert(person)
         }
-        looperThread.runBlocking {
-            realm.syncSession.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES) {
-                RealmLog.error(it.toString())
-                assertEquals(10, realm.where<SyncDog>().count())
-                realm.close()
-                realm = Realm.getInstance(config1)
-                realm.syncSession.downloadAllServerChanges()
-                assertEquals(10, realm.where<SyncDog>().count())
-                looperThread.testComplete()
-            }
-        }
+        realm.syncSession.uploadAllLocalChanges()
+        assertEquals(10, realm.where<SyncDog>().count())
+        assertEquals(1, realm.where<SyncPerson>().count())
+        realm.close()
 
-
-
-//        // User 2 logs and using the same partition key should see the object
-//        val user2: RealmUser = createNewUser()
-//        val config2 = createDefaultConfig(user2, partitionValue)
-//        realm = Realm.getInstance(config2)
-//        app.syncService.getSession(config2).downloadAllServerChanges()
-//        assertEquals(10, realm.where<SyncDog>().count())
-
-//        val dynRealm = DynamicRealm.getInstance(config2)
-//        app.syncService.getSession(config2).downloadAllServerChanges()
-//        assertEquals(10, dynRealm.where("SyncDog").count())
-//        dynRealm.close()
+        // User 2 logs and using the same partition key should see the object
+        val user2: RealmUser = createNewUser()
+        val config2 = createDefaultConfig(user2, partitionValue)
+        realm = Realm.getInstance(config2)
+        realm.syncSession.downloadAllServerChanges()
+        assertEquals(10, realm.where<SyncDog>().count())
+        assertEquals(1, realm.where<SyncPerson>().count())
     }
 
+    @Test
+    fun session() {
+        val user: RealmUser = app.login(RealmCredentials.anonymous())
+        realm = Realm.getInstance(createDefaultConfig(user))
+        assertNotNull(realm.syncSession)
+        assertEquals(SyncSession.State.ACTIVE, realm.syncSession.state)
+        assertEquals(user, realm.syncSession.user)
+    }
 
     private fun createDefaultConfig(user: RealmUser, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
                 .modules(DefaultSyncSchema())
-//                .schema(SyncColor::class.java)
                 .build()
     }
 
@@ -146,14 +190,4 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         app.emailPasswordAuthProvider.registerUser(email, password)
         return app.login(RealmCredentials.emailPassword(email, password))
     }
-
-//    @Test
-//    fun session() {
-//        val user: RealmUser = app.login(RealmCredentials.anonymous())
-//        val realm = Realm.getInstance(SyncConfiguration.defaultConfig(user))
-//        assertNotNull(realm.syncSession)
-//        assertEquals(SyncSession.State.ACTIVE, realm.syncSession.state)
-//        assertEquals(user, realm.syncSession.user)
-//        realm.close()
-//    }
 }

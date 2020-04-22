@@ -17,18 +17,21 @@ package io.realm.entities
 
 import io.realm.RealmList
 import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmClass
 import io.realm.annotations.RealmField
+import io.realm.annotations.Required
 import org.bson.types.ObjectId
 
-
 @RealmClass(name = "Person")
-open class SyncPerson: RealmObject() {
-    var _id: ObjectId? = ObjectId()
-    @RealmField("realm_id")
-    var realmId: String? = defaultPartitionValue
-    var age: Int = 0
-    var firstName: String = ""
-    var lastName: String = ""
-    var dogs: RealmList<SyncDog> = RealmList()
-}
+open class SyncPerson(
+        @PrimaryKey
+        @RealmField(name = "_id")
+        var id: ObjectId? = ObjectId(),
+        var age: Long = 0,
+        var dogs: RealmList<ObjectId> = RealmList(),
+        var firstName: String = "",
+        var lastName: String = "",
+        @RealmField(name = "realm_id")
+        var realmId: String? = null
+): RealmObject()

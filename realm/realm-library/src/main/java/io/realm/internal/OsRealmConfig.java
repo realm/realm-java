@@ -219,8 +219,7 @@ public class OsRealmConfig implements NativeObject {
         String customAuthorizationHeaderName = (String)(syncConfigurationOptions[9]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[11];
         String partionKeyValue = (String) syncConfigurationOptions[12];
-        long appNativePtr = (long) syncConfigurationOptions[13];
-        Object syncService = syncConfigurationOptions[14];
+        Object syncService = syncConfigurationOptions[13];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]
@@ -292,7 +291,6 @@ public class OsRealmConfig implements NativeObject {
                     customHeaders,
                     clientResyncMode,
                     partionKeyValue,
-                    appNativePtr,
                     syncService);
             try {
                 resolvedSyncRealmUrl = syncRealmAuthUrl + urlPrefix.substring(1); // FIXME
@@ -391,7 +389,7 @@ public class OsRealmConfig implements NativeObject {
                                                               byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
                                                               String[] customHeaders, byte clientResetMode,
-                                                              String partionKeyValue, long appNativePtr, Object syncService);
+                                                              String partionKeyValue, Object syncService);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);

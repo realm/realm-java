@@ -16,13 +16,16 @@
 package io.realm.entities
 
 import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmClass
 import io.realm.annotations.RealmField
 import org.bson.types.ObjectId
 
 @RealmClass(name = "Dog")
 open class SyncDog: RealmObject() {
-    var _id: ObjectId? = ObjectId()
+    @PrimaryKey
+    @RealmField(name = "_id")
+    var id: ObjectId? = ObjectId()
     @RealmField("realm_id")
     var realmId: String? = "default"
     var breed: String? = null
