@@ -48,8 +48,6 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class SessionTests {
 
-    private static String REALM_URI = "realm://objectserver.realm.io/~/default";
-
     private SyncConfiguration configuration;
     private TestRealmApp app;
     private RealmUser user;
@@ -67,7 +65,7 @@ public class SessionTests {
     public void setUp() {
         app = new TestRealmApp();
         user = SyncTestUtils.Companion.createTestUser(app);
-        configuration = SyncConfiguration.defaultConfig(user);
+        configuration = SyncConfiguration.defaultConfig(user, "default");
     }
 
     @After

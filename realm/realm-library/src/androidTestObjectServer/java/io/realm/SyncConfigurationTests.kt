@@ -76,7 +76,7 @@ class SyncConfigurationTests {
     @Test
     fun errorHandler_fromSyncManager() {
         val user: RealmUser = createTestUser(app)
-        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user)
+        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         Assert.assertEquals(app.configuration.defaultErrorHandler, config.errorHandler)
     }
 
@@ -114,7 +114,7 @@ class SyncConfigurationTests {
     @Test
     fun hashCode_equal() {
         val user: RealmUser = createTestUser(app)
-        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user)
+        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         Assert.assertEquals(config.hashCode(), config.hashCode())
     }
 
@@ -122,8 +122,8 @@ class SyncConfigurationTests {
     fun hashCode_notEquals() {
         val user1: RealmUser = createTestUser(app)
         val user2: RealmUser = createTestUser(app)
-        val config1: SyncConfiguration = SyncConfiguration.defaultConfig(user1)
-        val config2: SyncConfiguration = SyncConfiguration.defaultConfig(user2)
+        val config1: SyncConfiguration = SyncConfiguration.defaultConfig(user1, DEFAULT_PARTITION)
+        val config2: SyncConfiguration = SyncConfiguration.defaultConfig(user2, DEFAULT_PARTITION)
         Assert.assertNotEquals(config1.hashCode(), config2.hashCode())
     }
 
@@ -189,14 +189,14 @@ class SyncConfigurationTests {
     @Test
     fun defaultRxFactory() {
         val user: RealmUser = createTestUser(app)
-        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user)
+        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         Assert.assertNotNull(config.rxFactory)
     }
 
     @Test
     fun toString_nonEmpty() {
         val user: RealmUser = createTestUser(app)
-        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user)
+        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         val configStr = config.toString()
         assertTrue(configStr.isNotEmpty())
     }

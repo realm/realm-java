@@ -60,88 +60,12 @@ import okhttp3.internal.tls.OkHostnameVerifier;
 @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
 public class SyncManager {
 
-    private volatile static String CREATED_APP_ID = null;
     private final RealmApp app;
-    private final String appId;
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
     private Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
-    // init the "sync_manager.cpp" metadata Realm, this is also needed later, when re try
-    // to schedule a client reset. in realm-java#master this is already done, when initialising
-    // the RealmFileUserStore (not available now on releases)
-    Context context = Realm.applicationContext;
 
     SyncManager(RealmApp app) {
         this.app = app;
-        this.appId = app.getConfiguration().getAppId();
-
-         // FIXME: Right now we only support one SyncClient or one RealmApp. This class will throw a
-        // exception if you try to create it twice. Which will happen as part of setting up a
-        // RealmApp.
-        synchronized (SyncManager.class) {
-            if (CREATED_APP_ID != null && !appId.equals(CREATED_APP_ID)) {
-                throw new IllegalStateException("Only one RealmApp is currently supported. " + CREATED_APP_ID + " already exists.");
-            }
-            init(app.getConfiguration());
-            CREATED_APP_ID = appId;
-        }
-    }
-
-    /**
-     * Initializes both the Java and the underlying C++ Sync components.
-     */
-    private void init(RealmAppConfiguration appConfig) {
-        // Setup Realm part of User-Agent string
-        String userAgentBindingInfo = "Unknown"; // Fallback in case of anything going wrong
-        try {
-            StringBuilder sb = new StringBuilder();
-            sb.append("RealmJava/");
-            sb.append(BuildConfig.VERSION_NAME);
-            sb.append(" (");
-            sb.append(Util.isEmptyString(Build.DEVICE) ? "unknown-device" : Build.DEVICE);
-            sb.append(", ");
-            sb.append(Util.isEmptyString(Build.MODEL) ? "unknown-model" : Build.MODEL);
-            sb.append(", v");
-            sb.append(Build.VERSION.SDK_INT);
-            sb.append(")");
-            userAgentBindingInfo = sb.toString();
-        } catch (Exception e) {
-            // Failures to construct the user agent should never cause the system itself to crash.
-            RealmLog.warn("Constructing User-Agent description failed.", e);
-        }
-
-        // Create app UserAgent string
-        String appDefinedUserAgent = null;
-        String appName = appConfig.getAppName();
-        String appVersion = appConfig.getAppVersion();
-        if (!Util.isEmptyString(appName) || !Util.isEmptyString(appVersion)) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(Util.isEmptyString(appName) ? "Undefined" : appName);
-            sb.append('/');
-            sb.append(Util.isEmptyString(appName) ? "Undefined" : appVersion);
-            appDefinedUserAgent = sb.toString();
-        }
-
-        if (SyncManager.Debug.separatedDirForSyncManager) {
-            try {
-                // Files.createTempDirectory is not available on JDK 6.
-                File dir = File.createTempFile("remote_sync_", "_" + android.os.Process.myPid(),
-                        context.getFilesDir());
-                if (!dir.delete()) {
-                    throw new IllegalStateException(String.format(Locale.US,
-                            "Temp file '%s' cannot be deleted.", dir.getPath()));
-                }
-                if (!dir.mkdir()) {
-                    throw new IllegalStateException(String.format(Locale.US,
-                            "Directory '%s' for SyncManager cannot be created. ",
-                            dir.getPath()));
-                }
-                nativeInitializeSyncManager(dir.getPath(), userAgentBindingInfo, appDefinedUserAgent);
-            } catch (IOException e) {
-                throw new IllegalStateException(e);
-            }
-        } else {
-            SyncManager.nativeInitializeSyncManager(context.getFilesDir().getPath(), userAgentBindingInfo, appDefinedUserAgent);
-        }
     }
 
     /**
@@ -206,7 +130,6 @@ public class SyncManager {
      * Note: This is mainly for internal usage, consider using {@link #getSession(SyncConfiguration)} instead.
      *
      * @param syncConfiguration configuration object for the synchronized Realm.
-     * @param resolvedRealmURL resolved Realm URL with the user specific part if not a global Realm.
      * @return the {@link SyncSession} for the specified Realm.
      * @throws IllegalArgumentException if syncConfiguration is {@code null}.
      */
@@ -502,7 +425,6 @@ public class SyncManager {
                 true);
     }
 
-    private static native void nativeInitializeSyncManager(String syncBaseDir, String bindingUserAgentInfo, String appUserAgentInfo);
     private static native void nativeReset();
     private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
     private static native void nativeReconnect();

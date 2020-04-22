@@ -55,7 +55,7 @@ static_assert(SyncSession::ConnectionState::Connected ==
               static_cast<SyncSession::ConnectionState>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTED),
               "");
 
-JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jclass,
+JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jobject j_session_object,
                                                                             jstring j_local_realm_path,
                                                                             jlong listener_id, jint direction,
                                                                             jboolean is_streaming)
@@ -72,20 +72,21 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             return 0;
         }
 
-        SyncSession::NotifierType type =
-            (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
+        SyncSession::NotifierType type = (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
 
-        static JavaClass java_syncmanager_class(env, "io/realm/SyncManager");
-        static JavaMethod java_notify_progress_listener(env, java_syncmanager_class, "notifyProgressListener", "(Ljava/lang/String;JJJ)V", true);
+        static JavaClass java_syncsession_class(env, "io/realm/SyncSession");
+        static JavaMethod java_notify_progress_listener(env, java_syncsession_class, "notifyProgressListener", "(JJJ)V");
 
-        std::function<SyncProgressNotifierCallback> callback = [local_realm_path, listener_id](
-            uint64_t transferred, uint64_t transferrable) {
+        auto session_ref = env->NewGlobalRef(j_session_object); // This leaks. FIXME
+        std::function<SyncProgressNotifierCallback> callback = [session_ref, local_realm_path, listener_id](uint64_t transferred, uint64_t transferrable) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
             JavaLocalRef<jstring> path(local_env, to_jstring(local_env, local_realm_path));
-            local_env->CallStaticVoidMethod(java_syncmanager_class, java_notify_progress_listener, path.get(),
-                                            listener_id, static_cast<jlong>(transferred),
-                                            static_cast<jlong>(transferrable));
+            local_env->CallVoidMethod(session_ref,
+                    java_notify_progress_listener,
+                    listener_id,
+                    static_cast<jlong>(transferred),
+                    static_cast<jlong>(transferrable));
 
             // All exceptions will be caught on the Java side of handlers, but Errors will still end
             // up here, so we need to do something sensible with them.

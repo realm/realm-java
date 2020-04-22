@@ -725,7 +725,7 @@ public class SyncSession {
 
     private static native long nativeAddConnectionListener(String localRealmPath);
     private static native void nativeRemoveConnectionListener(long listenerId, String localRealmPath);
-    private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
+    private native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
     private native boolean nativeWaitForDownloadCompletion(int callbackId, String localRealmPath);
     private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);

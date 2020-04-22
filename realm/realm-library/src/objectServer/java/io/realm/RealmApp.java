@@ -15,9 +15,13 @@
  */
 package io.realm;
 
+import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Locale;
@@ -53,6 +57,8 @@ public class RealmApp {
     // we might want to lift in the future. So any implementation details so ideally be made
     // with that in mind, i.e. keep static state to minimum.
 
+    private volatile static String CREATED_APP_ID = null;
+
     /**
      * Thread pool used when doing network requests against MongoDB Realm.
      * <p>
@@ -79,6 +85,17 @@ public class RealmApp {
      * @param config
      */
     public RealmApp(RealmAppConfiguration config) {
+        // FIXME: Right now we only support one RealmApp. This class will throw a
+        // exception if you try to create it twice. This is a really hacky way to do this
+        // Figure out a better API that is always forward compatible
+        synchronized (SyncManager.class) {
+            String appId = config.getAppId();
+            if (CREATED_APP_ID != null && !appId.equals(CREATED_APP_ID)) {
+                throw new IllegalStateException("Only one RealmApp is currently supported. " + CREATED_APP_ID + " already exists.");
+            }
+            CREATED_APP_ID = appId;
+        }
+
         this.config = config;
         this.networkTransport = new OkHttpNetworkTransport();
         networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
@@ -86,12 +103,77 @@ public class RealmApp {
             networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
         }
         this.syncManager = new SyncManager(this);
-        this.nativePtr = nativeCreate(
+        this.nativePtr = init(config);
+    }
+
+    private long init(RealmAppConfiguration config) {
+        // Setup Realm part of User-Agent string
+        String userAgentBindingInfo = "Unknown"; // Fallback in case of anything going wrong
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("RealmJava/");
+            sb.append(BuildConfig.VERSION_NAME);
+            sb.append(" (");
+            sb.append(Util.isEmptyString(Build.DEVICE) ? "unknown-device" : Build.DEVICE);
+            sb.append(", ");
+            sb.append(Util.isEmptyString(Build.MODEL) ? "unknown-model" : Build.MODEL);
+            sb.append(", v");
+            sb.append(Build.VERSION.SDK_INT);
+            sb.append(")");
+            userAgentBindingInfo = sb.toString();
+        } catch (Exception e) {
+            // Failures to construct the user agent should never cause the system itself to crash.
+            RealmLog.warn("Constructing User-Agent description failed.", e);
+        }
+
+        // Create app UserAgent string
+        String appDefinedUserAgent = null;
+        String appName = config.getAppName();
+        String appVersion = config.getAppVersion();
+        if (!Util.isEmptyString(appName) || !Util.isEmptyString(appVersion)) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(Util.isEmptyString(appName) ? "Undefined" : appName);
+            sb.append('/');
+            sb.append(Util.isEmptyString(appName) ? "Undefined" : appVersion);
+            appDefinedUserAgent = sb.toString();
+        }
+
+        if (BaseRealm.applicationContext == null) {
+            throw new IllegalStateException("Call Realm.init() first.");
+        }
+        Context context = BaseRealm.applicationContext;
+
+        String syncDir = null;
+        if (SyncManager.Debug.separatedDirForSyncManager) {
+            try {
+                // Files.createTempDirectory is not available on JDK 6.
+                File dir = File.createTempFile("remote_sync_", "_" + android.os.Process.myPid(), context.getFilesDir());
+                if (!dir.delete()) {
+                    throw new IllegalStateException(String.format(Locale.US,
+                            "Temp file '%s' cannot be deleted.", dir.getPath()));
+                }
+                if (!dir.mkdir()) {
+                    throw new IllegalStateException(String.format(Locale.US,
+                            "Directory '%s' for SyncManager cannot be created. ",
+                            dir.getPath()));
+                }
+                syncDir = dir.getPath();
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
+        } else {
+            syncDir = context.getFilesDir().getPath();
+        }
+
+        return nativeCreate(
                 config.getAppId(),
                 config.getBaseUrl().toString(),
                 config.getAppName(),
                 config.getAppVersion(),
-                config.getRequestTimeoutMs());
+                config.getRequestTimeoutMs(),
+                syncDir,
+                userAgentBindingInfo,
+                appDefinedUserAgent);
     }
 
     /**
@@ -533,7 +615,14 @@ public class RealmApp {
         void onResult(Result<T> result);
     }
 
-    private native long nativeCreate(String appId, String baseUrl, String appName, String appVersion, long requestTimeoutMs);
+    private native long nativeCreate(String appId,
+                                     String baseUrl,
+                                     String appName,
+                                     String appVersion,
+                                     long requestTimeoutMs,
+                                     String syncDirPath,
+                                     String bindingUserInfo,
+                                     String appUserInfo);
     private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     @Nullable
     private static native Long nativeCurrentUser(long nativePtr);

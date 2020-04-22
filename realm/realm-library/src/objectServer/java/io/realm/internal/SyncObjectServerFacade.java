@@ -90,7 +90,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             BsonValue val = syncConfig.getPartitionValue();
             String partitionValue = null;
             if (val.isString()) {
-                partitionValue = "\"" + val.asString() + "\"";
+                partitionValue = "\"" + val.asString().getValue() + "\"";
             } else if (val.isInt32()) {
                 partitionValue = "{ \"$bsonInt\" : " + val.asInt32().intValue() + " }";
             } else if (val.isInt64()) {
@@ -114,7 +114,6 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     customHeaders,
                     OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL, // Client Resync is no longer supported in v10, but might be re-added later.
                     partitionValue,
-                    app.nativePtr,
                     app.getSyncService()
             };
         } else {

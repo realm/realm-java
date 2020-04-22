@@ -21,6 +21,7 @@ import io.realm.util.expectException
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -40,9 +41,15 @@ class RealmAppConfigurationTests {
     //    builder.encryptionKey()
     //    builder.logLevel()
     //    builder.requestTimeout()
+    //    builder.syncRootDir()
 
     @get:Rule
     val tempFolder = TemporaryFolder()
+
+    @Before
+    fun setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+    }
 
     @Test
     fun authorizationHeaderName_illegalArgumentsThrows() {
@@ -66,7 +73,6 @@ class RealmAppConfigurationTests {
     fun addCustomRequestHeader_illegalArgumentThrows() {
         val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
         expectException<IllegalArgumentException> { builder.addCustomRequestHeader("", "val") }
-        expectException<IllegalArgumentException> { builder.addCustomRequestHeader("header", "") }
         expectException<IllegalArgumentException> { builder.addCustomRequestHeader(TestHelper.getNull(), "val") }
         expectException<IllegalArgumentException> { builder.addCustomRequestHeader("header", TestHelper.getNull()) }
     }

@@ -13,7 +13,7 @@ import org.junit.Assert.fail
 inline fun <reified T : Exception> expectException(method: () -> Unit) {
     try {
         method()
-        fail()
+        fail("No exception was thrown")
     } catch (e: Throwable) {
         if (e !is T) {
             fail("Unexpected exception: $e. Should have been ${T::class.java}")
