@@ -36,9 +36,7 @@ import java.lang.IllegalArgumentException
 class SyncConfigurationTests {
 
     companion object {
-        // FIXME Partition key must be Extended Json formatted. We need to fix the public API's
-        // to automatically format these
-        private const val DEFAULT_PARTITION = "\"default\""
+        private const val DEFAULT_PARTITION = "default"
     }
 
     @get:Rule
