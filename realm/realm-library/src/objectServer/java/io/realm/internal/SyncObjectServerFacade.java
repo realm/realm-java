@@ -210,7 +210,6 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public void createNativeSyncSession(RealmConfiguration configuration) {
         if (configuration instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            OsRealmConfig config = new OsRealmConfig.Builder(syncConfig).build();
             RealmApp app = syncConfig.getUser().getApp();
             app.getSyncService().getOrCreateSession(syncConfig);
         }

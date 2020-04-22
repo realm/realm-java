@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
@@ -441,6 +442,7 @@ public class RealmUser {
         return null;
     }
 
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     @Override
     public boolean equals(@Nullable Object o) {
         if (this == o) return true;

@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
@@ -286,6 +287,7 @@ public class SyncConfiguration extends RealmConfiguration {
         return user.getApp().getConfiguration().getAppId() + "/" + user.getId(); // TODO Check that it doesn't contain invalid filesystem chars
     }
 
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     @Override
     public boolean equals(@Nullable Object o) {
         if (this == o) return true;
