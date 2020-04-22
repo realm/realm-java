@@ -55,6 +55,21 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved);
         ConvertException(env, __FILE__, __LINE__);                                                                   \
     }
 
+// Return a Decimal128 value as a jlongArray two value (low, high) or nullptrif the Decimal128 is null
+#define RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)                                          \
+    if (!decimal128.is_null()) {                                                                       \
+        uint64_t* raw = decimal128.raw()->w;                                                           \
+        jlongArray ret_array = env->NewLongArray(2);                                                   \
+        if (!ret_array) {                                                                              \
+            ThrowException(env, OutOfMemory, "Could not allocate memory to return decimal128 value."); \
+            return nullptr;                                                                            \
+        }                                                                                              \
+        jlong ret[2] = { jlong(raw[0])/*low*/, jlong(raw[1]) /*high*/};                                \
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);                                                 \
+        return ret_array;                                                                              \
+    } else {                                                                                           \
+        return nullptr;                                                                                \
+    }
 
 #define MAX_JINT 0x7FFFFFFFL
 #define MAX_JSIZE MAX_JINT

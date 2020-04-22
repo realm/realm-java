@@ -1,7 +1,7 @@
 # Realm Sync release used by Realm Java (This includes Realm Core)
 # https://github.com/realm/realm-sync/releases
-REALM_SYNC_VERSION=10.0.0-alpha.5
-REALM_SYNC_SHA256=aa490300e06dca385622bc83430f9d8e3141fcccfd7bf6ae2f68af8a29af5dc1
+REALM_SYNC_VERSION=10.0.0-alpha.7
+REALM_SYNC_SHA256=f6350407097c9f95eba579420ba387b41d9def6095d2c54e1032597c83403e50
 
 # Object Server Release used by Integration tests. Installed using NPM.
 # Use `npm view realm-object-server versions` to get a list of available versions.
@@ -21,3 +21,7 @@ gradleVersion=5.6.4
 ndkVersion=21.0.6113669
 BUILD_INFO_EXTRACTOR_GRADLE=4.7.5
 GRADLE_BINTRAY_PLUGIN=1.8.4
+
+# Bson dependency version
+BSON_DEPENDENCY_VERSION=3.12.1
+

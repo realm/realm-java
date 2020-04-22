@@ -207,6 +207,7 @@ dependencies {
     api "io.realm:realm-annotations:${version}"
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'com.getkeepsafe.relinker:relinker:1.4.0'
+    implementation "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY_VERSION')}"
     implementation('io.reactivex.rxjava2:rxandroid:2.1.1') {
         exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
     }
@@ -218,7 +219,6 @@ dependencies {
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
     objectServerImplementation 'com.squareup.okhttp3:okhttp:3.12.0' // Going above this requires minSDK 21
-    objectServerImplementation "org.mongodb:bson:3.12.0"
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
     androidTestImplementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
@@ -230,6 +230,7 @@ dependencies {
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     androidTestImplementation "org.skyscreamer:jsonassert:1.5.0"
+    androidTestImplementation project(':kotlin-extensions')
 
     // specify error prone version to prevent sudden failure
     errorprone 'com.google.errorprone:error_prone_core:2.1.2'

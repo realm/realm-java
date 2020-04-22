@@ -111,7 +111,6 @@ public class RealmObjectTests {
         }
     }
 
-    // FIXME remove?
     @Test
     public void row_isValid() {
         realm.beginTransaction();
@@ -120,7 +119,7 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals(17, row.getColumnCount());
+        assertEquals(21, row.getColumnCount());
     }
 
     @Test

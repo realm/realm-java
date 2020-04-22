@@ -18,11 +18,14 @@ package io.realm;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
@@ -68,6 +71,8 @@ public class RealmQueryTests extends QueryTests {
             allTypes.setColumnFloat(1.2345f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
+            allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(i)));
+            allTypes.setColumnDecimal128(new Decimal128(new BigDecimal(i + ".23456789")));
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
             nonLatinFieldNames.setΔέλτα(i);
@@ -650,6 +655,23 @@ public class RealmQueryTests extends QueryTests {
         resultList = realm.where(AllTypes.class).greaterThan(AllTypes.FIELD_FLOAT, 11.0f)
                 .equalTo(AllTypes.FIELD_LONG, 1).findAll();
         assertEquals(0, resultList.size());
+    }
+
+    @Test
+    public void equalTo_decimal128() {
+        populateTestRealm(realm, 10);
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_DECIMAL128, new Decimal128(new BigDecimal( "7.23456789"))).findAll();
+        assertEquals(1, resultList.size());
+        assertEquals(new Decimal128(new BigDecimal( "7.23456789")), resultList.get(0).getColumnDecimal128());
+    }
+
+    @Test
+    public void equalTo_objectId() {
+        populateTestRealm(realm, 10);
+        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).sort(AllTypes.FIELD_OBJECT_ID, Sort.ASCENDING).findAll();
+        for (int i = 0; i < 10; i++) {
+            assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(i)), resultList.get(i).getColumnObjectId());
+        }
     }
 
     @Test
@@ -2501,6 +2523,12 @@ public class RealmQueryTests extends QueryTests {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
+
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DECIMAL128_NULL).count());
+
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_ID_NULL).count());
     }
 
     // Tests isNotNull on link's not-nullable field. Should throw.
@@ -2579,6 +2607,22 @@ public class RealmQueryTests extends QueryTests {
         } catch (IllegalArgumentException ignored) {
         }
         // 11 Object skipped, RealmObject is always nullable.
+
+        // 10 Decimal128
+        try {
+            realm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DECIMAL128_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // 10 ObjectId
+        try {
+            realm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_ID_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     // Calling isNull on fields with the RealmList type will trigger an exception.
@@ -2775,6 +2819,12 @@ public class RealmQueryTests extends QueryTests {
                     case DATE:
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DATE).findAll();
                         break;
+                    case DECIMAL128:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DECIMAL128).findAll();
+                        break;
+                    case OBJECT_ID:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
+                        break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -2887,6 +2937,12 @@ public class RealmQueryTests extends QueryTests {
                         break;
                     case DATE:
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DATE).findAll();
+                        break;
+                    case DECIMAL128:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DECIMAL128).findAll();
+                        break;
+                    case OBJECT_ID:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
                         break;
                     default:
                         fail("Unknown type: " + type);
