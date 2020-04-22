@@ -16,6 +16,9 @@
 
 package io.realm.internal;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import javax.annotation.Nullable;
@@ -162,6 +165,21 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
+    public Decimal128 getDecimal128(long columnKey) {
+        long[] data = nativeGetDecimal128(nativePtr, columnKey);
+        if (data != null) {
+            return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public ObjectId getObjectId(long columnKey) {
+        return new ObjectId(nativeGetObjectId(nativePtr, columnKey));
+    }
+
+    @Override
     public long getLink(long columnKey) {
         return nativeGetLink(nativePtr, columnKey);
     }
@@ -268,6 +286,26 @@ public class UncheckedRow implements NativeObject, Row {
         nativeSetNull(nativePtr, columnKey);
     }
 
+    @Override
+    public void setDecimal128(long columnKey, @Nullable Decimal128 value) {
+        parent.checkImmutable();
+        if (value == null) {
+            nativeSetNull(nativePtr, columnKey);
+        } else {
+            nativeSetDecimal128(nativePtr, columnKey, value.getLow(), value.getHigh());
+        }
+    }
+
+    @Override
+    public void setObjectId(long columnKey, @Nullable ObjectId value) {
+        parent.checkImmutable();
+        if (value == null) {
+            nativeSetNull(nativePtr, columnKey);
+        } else {
+            nativeSetObjectId(nativePtr, columnKey, value.toString());
+        }
+    }
+
     /**
      * Converts the unchecked Row to a checked variant.
      *
@@ -333,6 +371,11 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native byte[] nativeGetByteArray(long nativePtr, long columnKey);
 
+    // Returns String representation for Decimal128()
+    protected native long[] nativeGetDecimal128(long nativePtr, long columnKey);
+
+    protected native String nativeGetObjectId(long nativePtr, long columnKey);
+
     protected native void nativeSetLong(long nativeRowPtr, long columnKey, long value);
 
     protected native void nativeSetBoolean(long nativeRowPtr, long columnKey, boolean value);
@@ -348,6 +391,10 @@ public class UncheckedRow implements NativeObject, Row {
     protected native void nativeSetString(long nativeRowPtr, long columnKey, String value);
 
     protected native void nativeSetByteArray(long nativePtr, long columnKey, @Nullable byte[] data);
+
+    protected native void nativeSetDecimal128(long nativePtr, long columnKey, long low, long high);
+
+    protected native void nativeSetObjectId(long nativePtr, long columnKey, String value);
 
     protected native void nativeSetLink(long nativeRowPtr, long columnKey, long value);
 

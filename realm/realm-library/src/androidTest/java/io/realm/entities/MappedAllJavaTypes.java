@@ -16,6 +16,9 @@
 
 package io.realm.entities;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import io.realm.RealmList;
@@ -49,6 +52,8 @@ public class MappedAllJavaTypes extends RealmObject {
     public boolean fieldBoolean;
     public Date fieldDate;
     public byte[] fieldBinary;
+    public Decimal128 fieldDecimal128;
+    public ObjectId fieldObjectId;
     public MappedAllJavaTypes fieldObject;
     public RealmList<MappedAllJavaTypes> fieldList;
 
@@ -62,6 +67,8 @@ public class MappedAllJavaTypes extends RealmObject {
     public RealmList<Double> fieldDoubleList;
     public RealmList<Float> fieldFloatList;
     public RealmList<Date> fieldDateList;
+    public RealmList<Decimal128> fieldDecimalList; // FIXME using fieldDecimal128List causes issues investigate
+    public RealmList<ObjectId> fieldObjectIdList;
 
     public MappedAllJavaTypes() {
     }

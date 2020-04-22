@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1328,6 +1331,14 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             //noinspection unchecked
             return (ManagedListOperator<E>) new DateListOperator(realm, osList, (Class<Date>) clazz);
         }
+        if (clazz == Decimal128.class) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new Decimal128ListOperator(realm, osList, (Class<Decimal128>) clazz);
+        }
+        if (clazz == ObjectId.class) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new ObjectIdListOperator(realm, osList, (Class<ObjectId>) clazz);
+        }
         throw new IllegalArgumentException("Unexpected value class: " + clazz.getName());
     }
 }
@@ -1953,5 +1964,105 @@ final class DateListOperator extends ManagedListOperator<Date> {
     @Override
     protected void setValue(int index, Object value) {
         osList.setDate(index, (Date) value);
+    }
+}
+
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@link Decimal128} list field.
+ */
+final class Decimal128ListOperator extends ManagedListOperator<Decimal128> {
+
+    Decimal128ListOperator(BaseRealm realm, OsList osList, Class<Decimal128> clazz) {
+        super(realm, osList, clazz);
+    }
+
+    @Override
+    public boolean forRealmModel() {
+        return false;
+    }
+
+    @Nullable
+    @Override
+    public Decimal128 get(int index) {
+        return (Decimal128) osList.getValue(index);
+    }
+
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
+        if (value == null) {
+            // null is always valid (but schema may reject null on insertion).
+            return;
+        }
+        if (!(value instanceof Decimal128)) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
+                            "org.bson.types.Decimal128",
+                            value.getClass().getName()));
+        }
+    }
+
+    @Override
+    public void appendValue(Object value) {
+        osList.addDecimal128((Decimal128)value);
+    }
+
+    @Override
+    public void insertValue(int index, Object value) {
+        osList.insertDecimal128(index, (Decimal128) value);
+    }
+
+    @Override
+    protected void setValue(int index, Object value) {
+        osList.setDecimal128(index, (Decimal128) value);
+    }
+}
+
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@link ObjectId} list field.
+ */
+final class ObjectIdListOperator extends ManagedListOperator<ObjectId> {
+
+    ObjectIdListOperator(BaseRealm realm, OsList osList, Class<ObjectId> clazz) {
+        super(realm, osList, clazz);
+    }
+
+    @Override
+    public boolean forRealmModel() {
+        return false;
+    }
+
+    @Nullable
+    @Override
+    public ObjectId get(int index) {
+        return (ObjectId) osList.getValue(index);
+    }
+
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
+        if (value == null) {
+            // null is always valid (but schema may reject null on insertion).
+            return;
+        }
+        if (!(value instanceof ObjectId)) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
+                            "org.bson.types.ObjectId",
+                            value.getClass().getName()));
+        }
+    }
+
+    @Override
+    public void appendValue(Object value) {
+        osList.addObjectId((ObjectId)value);
+    }
+
+    @Override
+    public void insertValue(int index, Object value) {
+        osList.insertObjectId(index, (ObjectId) value);
+    }
+
+    @Override
+    protected void setValue(int index, Object value) {
+        osList.setObjectId(index, (ObjectId) value);
     }
 }

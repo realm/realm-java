@@ -16,14 +16,19 @@
 
 package io.realm.entities;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
+import io.realm.TestHelper;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
+
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 
 // Always follow below order and put comments like below to make NullTypes Related cases
 // 1 String
@@ -61,6 +66,10 @@ public class NullTypes extends RealmObject {
     public static final String FIELD_DOUBLE_NULL = "fieldDoubleNull";
     public static final String FIELD_DATE_NOT_NULL = "fieldDateNotNull";
     public static final String FIELD_DATE_NULL = "fieldDateNull";
+    public static final String FIELD_DECIMAL128_NULL = "fieldDecimal128Null";
+    public static final String FIELD_DECIMAL128_NOT_NULL = "fieldDecimal128NotNull";
+    public static final String FIELD_OBJECT_ID_NULL = "fieldObjectIdNull";
+    public static final String FIELD_OBJECT_ID_NOT_NULL = "fieldObjectIdNotNull";
     public static final String FIELD_OBJECT_NULL = "fieldObjectNull";
     public static final String FIELD_LIST_NULL = "fieldListNull";
     public static final String FIELD_LO_OBJECT = "objectParents";
@@ -86,6 +95,10 @@ public class NullTypes extends RealmObject {
     public static final String FIELD_FLOAT_LIST_NULL = "fieldFloatListNull";
     public static final String FIELD_DATE_LIST_NOT_NULL = "fieldDateListNotNull";
     public static final String FIELD_DATE_LIST_NULL = "fieldDateListNull";
+    public static final String FIELD_DECIMAL128_LIST_NULL = "fieldDecimal128ListNull";
+    public static final String FIELD_DECIMAL128_LIST_NOT_NULL = "fieldDecimal128ListNotNull";
+    public static final String FIELD_OBJECT_ID_LIST_NULL = "fieldObjectIdListNull";
+    public static final String FIELD_OBJECT_ID_LIST_NOT_NULL = "fieldObjectIdListNotNull";
 
     @PrimaryKey
     private int id;
@@ -129,6 +142,14 @@ public class NullTypes extends RealmObject {
     @Required
     private Date fieldDateNotNull = new Date(0);
     private Date fieldDateNull;
+
+    @Required
+    private Decimal128 fieldDecimal128NotNull = new Decimal128(BigDecimal.ZERO);
+    private Decimal128 fieldDecimal128Null;
+
+    @Required
+    private ObjectId fieldObjectIdNotNull = new ObjectId(TestHelper.generateObjectIdHexString(0));
+    private ObjectId fieldObjectIdNull;
 
     private NullTypes fieldObjectNull;
 
@@ -174,6 +195,14 @@ public class NullTypes extends RealmObject {
     @Required
     private RealmList<Date> fieldDateListNotNull;
     private RealmList<Date> fieldDateListNull;
+
+    @Required
+    private RealmList<Decimal128> fieldDecimal128ListNotNull;
+    private RealmList<Decimal128> fieldDecimal128ListNull;
+
+    @Required
+    private RealmList<ObjectId> fieldObjectIdListNotNull;
+    private RealmList<ObjectId> fieldObjectIdListNull;
 
     // never nullable
     @LinkingObjects(FIELD_OBJECT_NULL)
@@ -533,5 +562,69 @@ public class NullTypes extends RealmObject {
 
     public void setFieldDateListNull(RealmList<Date> fieldDateListNull) {
         this.fieldDateListNull = fieldDateListNull;
+    }
+
+    public Decimal128 getFieldDecimal128NotNull() {
+        return fieldDecimal128NotNull;
+    }
+
+    public void setFieldDecimal128NotNull(Decimal128 fieldDecimal128NotNull) {
+        this.fieldDecimal128NotNull = fieldDecimal128NotNull;
+    }
+
+    public Decimal128 getFieldDecimal128Null() {
+        return fieldDecimal128Null;
+    }
+
+    public void setFieldDecimal128Null(Decimal128 fieldDecimal128Null) {
+        this.fieldDecimal128Null = fieldDecimal128Null;
+    }
+
+    public ObjectId getFieldObjectIdNotNull() {
+        return fieldObjectIdNotNull;
+    }
+
+    public void setFieldObjectIdNotNull(ObjectId fieldObjectIdNotNull) {
+        this.fieldObjectIdNotNull = fieldObjectIdNotNull;
+    }
+
+    public ObjectId getFieldObjectIdNull() {
+        return fieldObjectIdNull;
+    }
+
+    public void setFieldObjectIdNull(ObjectId fieldObjectIdNull) {
+        this.fieldObjectIdNull = fieldObjectIdNull;
+    }
+
+    public RealmList<Decimal128> getFieldDecimal128ListNotNull() {
+        return fieldDecimal128ListNotNull;
+    }
+
+    public void setFieldDecimal128ListNotNull(RealmList<Decimal128> fieldDecimal128ListNotNull) {
+        this.fieldDecimal128ListNotNull = fieldDecimal128ListNotNull;
+    }
+
+    public RealmList<Decimal128> getFieldDecimal128ListNull() {
+        return fieldDecimal128ListNull;
+    }
+
+    public void setFieldDecimal128ListNull(RealmList<Decimal128> fieldDecimal128ListNull) {
+        this.fieldDecimal128ListNull = fieldDecimal128ListNull;
+    }
+
+    public RealmList<ObjectId> getFieldObjectIdListNotNull() {
+        return fieldObjectIdListNotNull;
+    }
+
+    public void setFieldObjectIdListNotNull(RealmList<ObjectId> fieldObjectIdListNotNull) {
+        this.fieldObjectIdListNotNull = fieldObjectIdListNotNull;
+    }
+
+    public RealmList<ObjectId> getFieldObjectIdListNull() {
+        return fieldObjectIdListNull;
+    }
+
+    public void setFieldObjectIdListNull(RealmList<ObjectId> fieldObjectIdListNull) {
+        this.fieldObjectIdListNull = fieldObjectIdListNull;
     }
 }

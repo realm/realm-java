@@ -16,6 +16,9 @@
 
 package io.realm.internal;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
@@ -452,6 +455,22 @@ public class OsResults implements NativeObject, ObservableCollection {
         }
     }
 
+    public void setDecimal128(String fieldName, @Nullable Decimal128 value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, fieldName);
+        } else {
+            nativeSetDecimal128(nativePtr, fieldName, value.getLow(), value.getHigh());
+        }
+    }
+
+    public void setObjectId(String fieldName, @Nullable ObjectId value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, fieldName);
+        } else {
+            nativeSetObjectId(nativePtr, fieldName, value.toString());
+        }
+    }
+
     public void setObject(String fieldName, @Nullable Row row) {
         if (row == null) {
             setNull(fieldName);
@@ -587,6 +606,24 @@ public class OsResults implements NativeObject, ObservableCollection {
         });
     }
 
+    public void setDecimal128List(String fieldName, RealmList<Decimal128> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Decimal128>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Decimal128> list) {
+                builder.addDecimal128List(0, list);
+            }
+        });
+    }
+
+    public void setObjectIdList(String fieldName, RealmList<ObjectId> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<ObjectId>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<ObjectId> list) {
+                builder.addObjectIdList(0, list);
+            }
+        });
+    }
+
     public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
         if (observerPairs.isEmpty()) {
             nativeStartListening(nativePtr);
@@ -712,6 +749,10 @@ public class OsResults implements NativeObject, ObservableCollection {
     private static native void nativeSetBinary(long nativePtr, String fieldName, @Nullable byte[] value);
 
     private static native void nativeSetTimestamp(long nativePtr, String fieldName, long value);
+
+    private static native void nativeSetDecimal128(long nativePtr, String fieldName, long low, long high);
+
+    private static native void nativeSetObjectId(long nativePtr, String fieldName, String data);
 
     private static native void nativeSetObject(long nativePtr, String fieldName, long rowNativePtr);
 

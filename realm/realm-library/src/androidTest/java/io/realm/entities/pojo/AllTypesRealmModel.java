@@ -16,6 +16,9 @@
 
 package io.realm.entities.pojo;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import io.realm.RealmList;
@@ -47,6 +50,9 @@ public class AllTypesRealmModel implements RealmModel {
     public byte[] columnBinary;
     public Dog columnRealmObject;
     public RealmList<Dog> columnRealmList;
+    public Decimal128 columnDecimal128;
+    public ObjectId columnObjectId;
+
 
     @Override
     public int hashCode() {
