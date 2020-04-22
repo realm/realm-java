@@ -41,6 +41,6 @@
             "age",
             "dogs"
         ],
-        "title": "Person"
+        "title": "SyncPerson"
     }
 }

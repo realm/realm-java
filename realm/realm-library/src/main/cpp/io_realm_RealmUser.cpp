@@ -36,7 +36,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmUser_nativeLinkUser(JNIEnv* env,
                                                              jobject j_callback)
 {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
         auto credentials = reinterpret_cast<AppCredentials*>(j_credentials_ptr);
         std::function<jobject(JNIEnv*, std::shared_ptr<SyncUser>)> mapper = [](JNIEnv* env, std::shared_ptr<SyncUser> user) {
@@ -56,7 +56,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmUser_nativeRemoveUser(JNIEnv* env,
                                                                jobject j_callback)
 {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
         app->remove_user(user, JavaNetworkTransport::create_void_callback(env, j_callback));
     }
@@ -66,7 +66,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmUser_nativeRemoveUser(JNIEnv* env,
 JNIEXPORT void JNICALL Java_io_realm_RealmUser_nativeLogOut(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_user_ptr, jobject j_callback)
 {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
         app->log_out(user, JavaNetworkTransport::create_void_callback(env, j_callback));
     }

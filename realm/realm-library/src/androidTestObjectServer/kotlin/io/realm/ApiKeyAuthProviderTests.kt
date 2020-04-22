@@ -206,8 +206,8 @@ class ApiKeyAuthProviderTests {
             provider.fetchAllApiKeys() { result ->
                 val keys: List<RealmUserApiKey> = result.orThrow
                 assertEquals(2, keys.size)
-                assertEquals(key1.id, keys[0].id)
-                assertEquals(key2.id, keys[1].id)
+                assertTrue(keys.any { it.id == key1.id })
+                assertTrue(keys.any { it.id == key2.id })
                 looperThread.testComplete()
             }
         }

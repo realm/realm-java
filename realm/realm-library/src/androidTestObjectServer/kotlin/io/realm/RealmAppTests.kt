@@ -61,7 +61,7 @@ class RealmAppTests {
             app.login(credentials)
             fail()
         } catch(ex: ObjectServerError) {
-            assertEquals(ErrorCode.AUTH_ERROR, ex.errorCode)
+            assertEquals(ErrorCode.SERVICE_UNKNOWN, ex.errorCode)
         }
     }
 
@@ -86,7 +86,7 @@ class RealmAppTests {
     fun loginAsync_invalidUserThrows() = looperThread.runBlocking {
         app.loginAsync(RealmCredentials.emailPassword("foo", "bar")) { result ->
             assertFalse(result.isSuccess)
-            assertEquals(ErrorCode.AUTH_ERROR, result.error.errorCode)
+            assertEquals(ErrorCode.SERVICE_UNKNOWN, result.error.errorCode)
             looperThread.testComplete()
         }
     }

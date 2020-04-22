@@ -21,7 +21,6 @@ import io.realm.annotations.RealmClass
 import io.realm.annotations.RealmField
 import org.bson.types.ObjectId
 
-@RealmClass(name = "Dog")
 open class SyncDog: RealmObject() {
     @PrimaryKey
     @RealmField(name = "_id")

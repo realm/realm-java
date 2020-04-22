@@ -23,7 +23,6 @@ import io.realm.annotations.RealmField
 import io.realm.annotations.Required
 import org.bson.types.ObjectId
 
-@RealmClass(name = "Person")
 open class SyncPerson(
         @PrimaryKey
         @RealmField(name = "_id")

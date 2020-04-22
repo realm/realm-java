@@ -29,6 +29,6 @@
     "required": [
       "name"
     ],
-    "title": "Dog"
+    "title": "SyncDog"
   }
 }
