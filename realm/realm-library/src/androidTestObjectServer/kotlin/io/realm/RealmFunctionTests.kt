@@ -20,6 +20,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
 import org.bson.BsonInt32
+import org.bson.BsonInt64
+import org.bson.BsonString
 import org.bson.BsonValue
 import org.junit.After
 import org.junit.Before
@@ -47,18 +49,33 @@ class RealmFunctionTests {
         app.close() 
     }
 
+    /**
+     * Basic test of Functions invocation.
+     *
+     * The arguments types combinations are not exhausted at this point as the actual conversions
+     * are unit tested in [BsonTest].
+     */
     @Test
-    fun test_basic() = looperThread.runBlocking {
+    fun callFunction() = looperThread.runBlocking {
         val functions = anonUser.functions
-        val result1a: BsonValue = functions.callFunction("sum", BsonInt32(32))
-        val result1b: BsonInt32? = functions.callFunctionTyped("sum", BsonInt32::class.java, 32)
-        val result1d: Integer = functions.callFunctionNativeTyped("sum", Integer::class.java, 32)
-        val result1e: Int = functions.callFunctionNativeTyped("sum", Integer::class.java, 32).toInt()
-        val result1f: String = functions.callFunctionNativeTyped("sum", String::class.java, "Realm")
-        // Does not compile as intended
-        // val result1g: BsonString = functions.callFunctionBson("sum", BsonInt32::class.java, BsonInt32(32))
+        
+        val i32 = 32
+        val i64 = 32L
+        val s = "Realm"
 
-        val result2: RealmAsyncTask = functions.callFunctionAsync(
+        val result1a: BsonValue = functions.callFunction("sum", listOf(BsonInt32(i32)))
+        val result1b: BsonInt32 = functions.callFunction("sum", listOf(i32), BsonInt32::class.java)
+        val result1d: Integer = functions.callFunction("sum", listOf(i32), Integer::class.java)
+        val result1e: BsonInt64 = functions.callFunction("sum", listOf(i64), BsonInt64::class.java)
+        val result1f: String? = functions.callFunction("sum", listOf(s), BsonString::class.java).value
+
+        // Does not compile as intended
+        // val result1g: BsonString = functions.callFunctionTyped("sum", BsonInt32::class.java, BsonInt32(32))
+
+        val result2: RealmAsyncTask = functions.callFunctionAsync( "sum", listOf(BsonInt32(i32))) { result ->
+            println("function: " + result.get().asInt32())
+            looperThread.testComplete()
+        }
                 "sum",
                 RealmApp.Callback<BsonValue> {result ->
                     println("function: "  + result.get())

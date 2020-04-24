@@ -16,11 +16,13 @@
 
 package io.realm.internal.util;
 
+import org.bson.BsonBoolean;
 import org.bson.BsonInt32;
 import org.bson.BsonInt64;
 import org.bson.BsonString;
 import org.bson.BsonType;
 import org.bson.BsonValue;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,16 +35,22 @@ public class BsonConverter {
     /**
      * Converts value object to BSON value based on type.
      *
+     * Converts primitive boxed types to the equivalent BSON equivalent value object.
+     *
+     * {@link BsonValue} objects are left as is.
+     *
      * @param value The object to convert.
      * @return BSON value representation of the origin value object.
      *
-     * @throws UnsupportedOperationException If the object could not be mapped to a BSON type.
+     * @throws IllegalArgumentException If the object could not be mapped to a BSON type.
      */
-    // FIXME Review supported types
+    // FIXME Review supported types...any obvious types missing?
     public static BsonValue to(Object value) {
         // Just leave BsonValues as is
         if (value instanceof BsonValue) {
             return (BsonValue) value;
+        } else if (value instanceof Boolean) {
+            return new BsonBoolean((Boolean) value);
         } else if (value instanceof Integer) {
             return new BsonInt32((Integer) value);
         } else if (value instanceof Long) {
@@ -50,16 +58,16 @@ public class BsonConverter {
         } else if (value instanceof String){
             return new BsonString((String) value);
         }
-        throw new UnsupportedOperationException("Conversion to BSON value not supported for " + value.getClass().getSimpleName() );
+        throw new IllegalArgumentException("Conversion to BSON value not supported for " + value.getClass().getName());
     }
 
     /**
      * Converts a list of objects to BSON values.
      *
      * @param value List of value objects to convert.
-     * @return The
+     * @return A list of BSON values of the converted input arguments.
      *
-     * @throws UnsupportedOperationException If any of the value objects could not be converted to a
+     * @throws IllegalArgumentException If any of the value objects could not be converted to a
      * BSON type.
      *
      * @see #to(Object)
@@ -73,20 +81,49 @@ public class BsonConverter {
     }
 
     /**
-     * Converts a BSON value to a plan Java type.
+     *
+     *
+     * @param clz
+     * @param value
+     * @param <T>
+     * @return
+     *
+     */
+    // FIXME Would we rather return null? Would maybe make it cleaner to use with
+    //  functions.callFunctionTyped("sum", BsonString::class.java, "Realm")?.value
+    //  but would also silently hide if expectations of type is wrong
+    private static <T extends BsonValue> T fromToBson(Class<T> clz, BsonValue value) {
+        if (clz.isInstance(value)) {
+            return (T) value;
+        } else {
+            throw new IllegalArgumentException("Cannot convert " + value + " to " + clz.getName());
+        }
+    }
+
+    /**
+     * Unwrap BSON values for types that has to plain Java type .
      *
      * @param value The BSON value to convert.
-     * @param <T> The request result type of the conversion.
+     * @param <T> The requested result type of the conversion.
      * @return The converted value object corresponding to the given {@code value}.
      *
-     * @throws UnsupportedOperationException if the value is a BsonValue type not handled by Realm.
+     * @throws IllegalArgumentException if not able to convert the value to the requested type.
      * @throws ClassCastException if the BsonValue cannot be converted to the requested type
      *  parameters.
      */
-    // FIXME Review supported types
+    // FIXME Do we want this at all. Or at least review supported types...should we allow
+    //  unwrapping of all BsonValues as in:
+    //    BsonConverter.from(ObjectId::class.java, bsonObjectId)
     public static <T> T from(Class<T> clz, BsonValue value) {
         Object result = null;
 
+        if (BsonValue.class.isAssignableFrom(clz)) {
+            if (clz.isInstance(value)) {
+                return (T) value;
+            } else {
+                throw new ClassCastException("Cannot convert " + value + " to " + clz.getName());
+            }
+        }
         BsonType bsonType = value.getBsonType();
         switch (bsonType) {
 //            case END_OF_DOCUMENT:
@@ -105,14 +142,18 @@ public class BsonConverter {
 //                break;
 //            case UNDEFINED:
 //                break;
-            case OBJECT_ID:
-                break;
+//            case OBJECT_ID:
+//                 FIXME Do we need this...is so, I guess it should be consistently unwrapping all
+//                  other BsonValue's too
+//                result = value.asObjectId().getValue();
+//                break;
             case BOOLEAN:
+                result = value.asBoolean().getValue();
                 break;
-            case DATE_TIME:
-                break;
-            case NULL:
-                break;
+//            case DATE_TIME:
+//                break;
+//            case NULL:
+//                break;
 //            case REGULAR_EXPRESSION:
 //                break;
 //            case DB_POINTER:
@@ -126,38 +167,27 @@ public class BsonConverter {
             case INT32:
                 result = value.asInt32().getValue();
                 break;
-            case TIMESTAMP:
-                break;
+//            case TIMESTAMP:
+//                break;
             case INT64:
                 result = value.asInt64().getValue();
                 break;
-            case DECIMAL128:
-                result = value.asDecimal128().getValue();
-                break;
+//            case DECIMAL128:
+//                result = value.asDecimal128().getValue();
+//                break;
 //            case MIN_KEY:
 //                break;
 //            case MAX_KEY:
 //                break;
             default:
                 // FIXME
-                throw new UnsupportedOperationException("Unsupported BSON type");
+                throw new IllegalArgumentException("Not able to convert " + value + " to " + clz.getName());
         }
         if (clz.isInstance(result)) {
             return (T) result;
         } else  {
-            throw new UnsupportedOperationException("Not able to convert " + value + " to " + clz.getSimpleName());
+            throw new IllegalArgumentException("Not able to convert " + value + " to " + clz.getName());
         }
-    }
-
-    // FIXME Review supported types
-    // FIXME Optimize to static map o.a.?
-    public static <T> Class<? extends BsonValue> bsontype(Class<T> clz) {
-        if (clz == Integer.class) {
-            return BsonInt32.class;
-        } else if (clz == String.class) {
-            return BsonString.class;
-        }
-        return null;
     }
 
 }

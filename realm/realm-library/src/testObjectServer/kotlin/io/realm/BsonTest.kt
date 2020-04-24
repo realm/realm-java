@@ -19,6 +19,7 @@ import io.realm.internal.util.BsonConverter
 import org.bson.*
 import org.bson.types.ObjectId
 import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertFailsWith
 
@@ -27,8 +28,9 @@ class BsonTest {
     /**
      * Simple test to verify semantics of org.bson JSON encoding and decoding.
      */
+    @Ignore("Only for Bson API evaluation, not testing Realm functionality")
     @Test
-    fun test_bson_roundtrip() {
+    fun bsonRoundtrip() {
         val valueInt32   = 42
         val valueInt64   = 42L
         val valueString  = "Realm"
@@ -63,24 +65,46 @@ class BsonTest {
      * Simple test of type conversion between native Java object types and BSON types.
      */
     @Test
-    fun test_bson_conversion() {
-        val values = BsonConverter.to(32, 43L, "Realm")
-        assertEquals(listOf(BsonInt32(32), BsonInt64(43), BsonString("Realm")), values)
+    fun bsonConversion() {
+        val b = true
+        val i32 = 32
+        val i64 = 32L
+        val s = "Realm"
+        val oid = ObjectId()
 
-        assertEquals(32, BsonConverter.from(Integer::class.java, BsonInt32(32)))
+        val bi32 = BsonInt32(15)
+        val bOid = BsonObjectId(oid)
+        val bDoc = BsonDocument()
 
-        // FIXME Do we need to add Kotlin extensions to work around having to reference java types explicitly
+        val values = BsonConverter.to(b, i32, i64, s, bi32, bOid, bDoc)
+        assertEquals(listOf(BsonBoolean(b), BsonInt32(i32), BsonInt64(i64), BsonString(s), bi32, bOid, bDoc), values)
 
-        assertEquals(32L, BsonConverter.from(java.lang.Long::class.java, BsonInt64(32)))
-        assertEquals("Realm", BsonConverter.from(java.lang.String::class.java, BsonString("Realm")))
-        assertFailsWith<java.lang.UnsupportedOperationException> {
-            BsonConverter.from(Long::class.java, BsonInt32(32))
+        // BsonValue types are just passed as is
+        assertEquals(BsonInt32(i32), BsonConverter.from(BsonInt32::class.java, BsonInt32(i32)))
+        assertEquals(BsonInt64(i64), BsonConverter.from(BsonInt64::class.java, BsonInt64(i64)))
+        assertEquals(BsonString(s),  BsonConverter.from(BsonString::class.java, BsonString(s)))
+
+        // Native types are converted directly from BsonValue to equivalent type
+        // FIXME Howto auto box/wrap as Kotlin's primitive types are not assignable
+        //  (isAssignablefrom) Java's auto boxed types
+        assertEquals(b, BsonConverter.from(java.lang.Boolean::class.java, BsonBoolean(b)))
+        // assertEquals(i32, BsonConverter.from(Int::class.java, BsonInt32(i32)))
+        assertEquals(i32, BsonConverter.from(Integer::class.java, BsonInt32(i32)))
+        // assertEquals(i64, BsonConverter.from(Long::class.java, BsonInt64(i64)))
+        assertEquals(i64, BsonConverter.from(java.lang.Long::class.java, BsonInt64(i64)))
+        // ...not trying to fit wider types event though possible
+        // FIXME Would we like to support this
+        assertFailsWith<IllegalArgumentException> {
+            BsonConverter.from(java.lang.Long::class.java, BsonInt32(i32))
         }
-        assertFailsWith<java.lang.UnsupportedOperationException> {
-            BsonConverter.from(Long::class.java, BsonInt32(32))
+        assertFailsWith<IllegalArgumentException> {
+            BsonConverter.from(Int::class.java, BsonInt64(i64))
         }
+        assertEquals(s, BsonConverter.from(String::class.java, BsonString(s)))
 
-        // FIXME Add tests for BsonConverter.bsontype
+        // FIXME Do we actually want to unwrap all of the BsonValues?
+        //assertEquals(oid, BsonConverter.from(ObjectId::class.java, bOid))
+
     }
 
 }
