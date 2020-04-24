@@ -77,7 +77,7 @@ public class RealmFunctions {
      * @throws ObjectServerError if the request failed in some way.
      * // FIXME Any other errors that we should expect
      */
-    <T> T callFunction(String name, List<?> args, Class<T> clz) {
+    public <T> T callFunction(String name, List<?> args, Class<T> clz) {
         BsonValue value = callFunction(name, args);
         return BsonConverter.from(clz, value);
     }
@@ -104,7 +104,7 @@ public class RealmFunctions {
     //  use a RealmAsyncTask
     //  https://docs.mongodb.com/stitch-sdks/java/4/com/mongodb/stitch/android/core/services/StitchServiceClient.html
     //  <ResultT> Task<ResultT> callFunction​(String name, List<?> args, Long requestTimeout, Class<ResultT> resultClass, CodecRegistry codecRegistry);
-    RealmAsyncTask callFunctionAsync(String name, List<?> args, RealmApp.Callback<BsonValue> callback) {
+    public RealmAsyncTask callFunctionAsync(String name, List<?> args, RealmApp.Callback<BsonValue> callback) {
         Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
         return new RealmApp.Request<BsonValue>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
             @Override
@@ -115,7 +115,7 @@ public class RealmFunctions {
     }
 
     // FIXME Evaluate how type conversion exceptions in async call are acting
-    <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> clz, RealmApp.Callback<T> callback) {
+    public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> clz, RealmApp.Callback<T> callback) {
         return callFunctionAsync(
                 name,
                 args,
