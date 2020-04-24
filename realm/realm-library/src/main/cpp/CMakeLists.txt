@@ -101,6 +101,8 @@ if (build_SYNC)
         io.realm.internal.objectstore.OsAsyncOpenTask
         io.realm.internal.objectstore.OsJavaNetworkTransport
         io.realm.internal.objectstore.OsSyncUser
+        io.realm.internal.objectstore.OsRemoteMongoClient
+        io.realm.internal.objectstore.OsRemoteMongoDatabase
     )
 endif()
 create_javah(TARGET jni_headers
@@ -191,6 +193,8 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAppCredentials.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoClient.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoDatabase.cpp
     )
 endif()
 
@@ -209,7 +213,8 @@ if (build_SYNC)
         "object-store/src/results.cpp"
         "object-store/src/impl/results_notifier.cpp"
         "object-store/src/sync/*.cpp"
-        "object-store/src/sync/impl/*.cpp")
+        "object-store/src/sync/impl/*.cpp"
+        "object-store/src/util/bson/*.cpp")
 endif()
 
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})

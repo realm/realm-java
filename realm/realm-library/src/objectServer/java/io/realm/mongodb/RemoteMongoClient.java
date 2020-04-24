@@ -16,15 +16,20 @@
 
 package io.realm.mongodb;
 
+import io.realm.RealmApp;
+import io.realm.internal.Util;
+import io.realm.internal.objectstore.OsRemoteMongoClient;
+
 /**
  * The remote MongoClient used for working with data in MongoDB remotely via Stitch.
  */
 public class RemoteMongoClient {
 
-    private RemoteMongoDatabase remoteMongoDatabase = new RemoteMongoDatabase();
+    private OsRemoteMongoClient osRemoteMongoClient;
 
-    public RemoteMongoClient() {
-        // TODO
+    public RemoteMongoClient(RealmApp realmApp, String serviceName) {
+        Util.checkEmpty(serviceName, "serviceName");
+        osRemoteMongoClient = new OsRemoteMongoClient(realmApp, serviceName);
     }
 
     /**
@@ -34,6 +39,7 @@ public class RemoteMongoClient {
      * @return a {@code RemoteMongoDatabase} representing the specified database
      */
     public RemoteMongoDatabase getDatabase(final String databaseName) {
-        return new RemoteMongoDatabase();
+        Util.checkEmpty(databaseName, "databaseName");
+        return new RemoteMongoDatabase(osRemoteMongoClient.getRemoteDatabase(databaseName), databaseName);
     }
 }

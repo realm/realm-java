@@ -18,13 +18,23 @@ package io.realm.mongodb;
 
 import org.bson.Document;
 
+import io.realm.internal.Util;
+import io.realm.internal.objectstore.OsRemoteMongoDatabase;
+
 /**
  * The RemoteMongoDatabase interface.
  */
 public class RemoteMongoDatabase {
 
-    public RemoteMongoDatabase() {
-        // TODO
+    private String databaseName;
+    private OsRemoteMongoDatabase osRemoteMongoDatabase;
+
+    RemoteMongoDatabase(OsRemoteMongoDatabase osRemoteMongoDatabase, String databaseName) {
+        // we deliver the database name because we don't want to modify the C++ code right now,
+        // although ideally it should be done there, i.e. remote_mongo_database.hpp should
+        // include the public (Java) API's methods that aren't there yet.
+        this.databaseName = databaseName;
+        this.osRemoteMongoDatabase = osRemoteMongoDatabase;
     }
 
     /**
@@ -32,9 +42,8 @@ public class RemoteMongoDatabase {
      *
      * @return the database name
      */
-    public String getName() {
-        // TODO
-        return null;
+    String getName() {
+        return databaseName;
     }
 
     /**
@@ -43,9 +52,9 @@ public class RemoteMongoDatabase {
      * @param collectionName the name of the collection to return
      * @return the collection
      */
-    public RemoteMongoCollection<Document> getCollection(final String collectionName) {
-        // TODO
-        return null;
+    RemoteMongoCollection<Document> getCollection(final String collectionName) {
+        Util.checkEmpty(collectionName, "collectionName");
+        return osRemoteMongoDatabase.getCollection(collectionName);
     }
 
     /**
@@ -56,11 +65,12 @@ public class RemoteMongoDatabase {
      * @param <DocumentT>    the type of the class to use instead of {@code Document}.
      * @return the collection
      */
-    public <DocumentT> RemoteMongoCollection<DocumentT> getCollection(
+    <DocumentT> RemoteMongoCollection<DocumentT> getCollection(
             final String collectionName,
             final Class<DocumentT> documentClass
     ) {
-        // TODO
-        return null;
+        Util.checkEmpty(collectionName, "collectionName");
+        Util.checkNull(documentClass, "documentClass");
+        return osRemoteMongoDatabase.getCollection(collectionName, documentClass);
     }
 }

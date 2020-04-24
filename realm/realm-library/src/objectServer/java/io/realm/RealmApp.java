@@ -15,7 +15,6 @@
  */
 package io.realm;
 
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -38,7 +37,7 @@ import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.log.RealmLog;
-import io.realm.mongodb.RealmMongoDBService;
+import io.realm.mongodb.RemoteMongoClient;
 
 /**
  * FIXME
@@ -86,7 +85,7 @@ public class RealmApp {
 
     private final RealmAppConfiguration config;
     private OsJavaNetworkTransport networkTransport;
-    final long nativePtr;
+    public final long nativePtr;
     private final EmailPasswordAuthProvider emailAuthProvider = new EmailPasswordAuthProvider(this);
     private ApiKeyAuthProvider apiKeyAuthProvider = null;
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
@@ -477,9 +476,9 @@ public class RealmApp {
 
     }
 
-    public RealmMongoDBService getMongoDBService() {
+    public RemoteMongoClient getRemoteMongoClient(String serviceName) {
         // FIXME
-        return null;
+        return new RemoteMongoClient(this, serviceName);
     }
 
     // Private API's for now.
