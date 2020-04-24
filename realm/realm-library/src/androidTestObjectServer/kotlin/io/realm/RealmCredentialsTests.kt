@@ -22,6 +22,7 @@ import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class RealmCredentialsTests {
@@ -31,17 +32,6 @@ class RealmCredentialsTests {
         @JvmStatic
         fun setUp() {
             Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        }
-    }
-
-    inline fun <reified T : Exception> expectException(method: () -> Unit) {
-        try {
-            method()
-            fail()
-        } catch (e: Throwable) {
-            if (e !is T) {
-                fail("Unexpected exception: $e")
-            }
         }
     }
 
@@ -62,8 +52,8 @@ class RealmCredentialsTests {
 
     @Test
     fun apiKey_invalidInput() {
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.apiKey("") }
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.apiKey(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.apiKey("") }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.apiKey(TestHelper.getNull()) }
     }
 
     @Test
@@ -75,8 +65,8 @@ class RealmCredentialsTests {
 
     @Test
     fun apple_invalidInput() {
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.apple("") }
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.apple(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.apple("") }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.apple(TestHelper.getNull()) }
     }
 
     @Ignore("FIXME: Awaiting ObjectStore support")
@@ -102,10 +92,10 @@ class RealmCredentialsTests {
 
     @Test
     fun emailPassword_invalidInput() {
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.emailPassword("", "password") }
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.emailPassword("email", "") }
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.emailPassword(TestHelper.getNull(), "password") }
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.emailPassword("email", TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.emailPassword("", "password") }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.emailPassword("email", "") }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.emailPassword(TestHelper.getNull(), "password") }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.emailPassword("email", TestHelper.getNull()) }
     }
 
     @Test
@@ -117,8 +107,8 @@ class RealmCredentialsTests {
 
     @Test
     fun facebook_invalidInput() {
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.facebook("") }
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.facebook(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.facebook("") }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.facebook(TestHelper.getNull()) }
     }
 
     @Test
@@ -130,8 +120,8 @@ class RealmCredentialsTests {
 
     @Test
     fun google_invalidInput() {
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.google("") }
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.google(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.google("") }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.google(TestHelper.getNull()) }
     }
 
     @Ignore("FIXME: Awaiting ObjectStore support")
@@ -144,8 +134,8 @@ class RealmCredentialsTests {
 
     @Test
     fun jwt_invalidInput() {
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.jwt("") }
-        expectException<java.lang.IllegalArgumentException> { RealmCredentials.jwt(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.jwt("") }
+        assertFailsWith<IllegalArgumentException> { RealmCredentials.jwt(TestHelper.getNull()) }
     }
 
     fun expectErrorCode(app: RealmApp, expectedCode: ErrorCode, credentials: RealmCredentials) {

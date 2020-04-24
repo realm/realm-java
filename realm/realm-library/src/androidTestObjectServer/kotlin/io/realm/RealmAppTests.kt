@@ -17,10 +17,7 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.admin.ServerAdmin
-import io.realm.log.LogLevel
-import io.realm.log.RealmLog
 import io.realm.rule.BlockingLooperThread
-import io.realm.util.expectException
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -28,6 +25,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class RealmAppTests {
@@ -228,7 +226,7 @@ class RealmAppTests {
 
     @Test
     fun authListener_nullThrows() {
-        expectException<java.lang.IllegalArgumentException> { app.addAuthenticationListener(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { app.addAuthenticationListener(TestHelper.getNull()) }
     }
 
     @Test

@@ -218,7 +218,7 @@ public class OsRealmConfig implements NativeObject {
         String urlPrefix = (String)(syncConfigurationOptions[8]);
         String customAuthorizationHeaderName = (String)(syncConfigurationOptions[9]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[11];
-        String partionKeyValue = (String) syncConfigurationOptions[12];
+        String partitionValue = (String) syncConfigurationOptions[12];
         Object syncService = syncConfigurationOptions[13];
 
         // Convert the headers into a String array to make it easier to send through JNI
@@ -290,7 +290,7 @@ public class OsRealmConfig implements NativeObject {
                     customAuthorizationHeaderName,
                     customHeaders,
                     clientResyncMode,
-                    partionKeyValue,
+                    partitionValue,
                     syncService);
             try {
                 resolvedSyncRealmUrl = syncRealmAuthUrl + urlPrefix.substring(1); // FIXME

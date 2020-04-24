@@ -57,7 +57,10 @@ public class RealmApp {
     // we might want to lift in the future. So any implementation details so ideally be made
     // with that in mind, i.e. keep static state to minimum.
 
-    private volatile static String CREATED_APP_ID = null;
+    // Currently we only allow one instance of RealmApp (due to restrictions in ObjectStore that
+    // only allows one underlying SyncClient).
+    // FIXME: Lift this restriction so it is possible to create multiple app instances.
+    private volatile static boolean CREATED = false;
 
     /**
      * Thread pool used when doing network requests against MongoDB Realm.
@@ -89,11 +92,12 @@ public class RealmApp {
         // exception if you try to create it twice. This is a really hacky way to do this
         // Figure out a better API that is always forward compatible
         synchronized (SyncManager.class) {
-            String appId = config.getAppId();
-            if (CREATED_APP_ID != null && !appId.equals(CREATED_APP_ID)) {
-                throw new IllegalStateException("Only one RealmApp is currently supported. " + CREATED_APP_ID + " already exists.");
+            if (CREATED) {
+                throw new IllegalStateException("Only one RealmApp is currently supported. " +
+                        "This restriction will be lifted soon. Instead, store the RealmApp" +
+                        "instance in a shared global variable.");
             }
-            CREATED_APP_ID = appId;
+            CREATED = true;
         }
 
         this.config = config;
@@ -107,43 +111,26 @@ public class RealmApp {
     }
 
     private long init(RealmAppConfiguration config) {
-        // Setup Realm part of User-Agent string
-        String userAgentBindingInfo = "Unknown"; // Fallback in case of anything going wrong
-        try {
-            StringBuilder sb = new StringBuilder();
-            sb.append("RealmJava/");
-            sb.append(BuildConfig.VERSION_NAME);
-            sb.append(" (");
-            sb.append(Util.isEmptyString(Build.DEVICE) ? "unknown-device" : Build.DEVICE);
-            sb.append(", ");
-            sb.append(Util.isEmptyString(Build.MODEL) ? "unknown-model" : Build.MODEL);
-            sb.append(", v");
-            sb.append(Build.VERSION.SDK_INT);
-            sb.append(")");
-            userAgentBindingInfo = sb.toString();
-        } catch (Exception e) {
-            // Failures to construct the user agent should never cause the system itself to crash.
-            RealmLog.warn("Constructing User-Agent description failed.", e);
-        }
+        String userAgentBindingInfo = getBindingInfo();
+        String appDefinedUserAgent = getAppInfo(config);
+        String syncDir = getSyncBaseDirectory();
+        return nativeCreate(
+                config.getAppId(),
+                config.getBaseUrl().toString(),
+                config.getAppName(),
+                config.getAppVersion(),
+                config.getRequestTimeoutMs(),
+                syncDir,
+                userAgentBindingInfo,
+                appDefinedUserAgent);
+    }
 
-        // Create app UserAgent string
-        String appDefinedUserAgent = null;
-        String appName = config.getAppName();
-        String appVersion = config.getAppVersion();
-        if (!Util.isEmptyString(appName) || !Util.isEmptyString(appVersion)) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(Util.isEmptyString(appName) ? "Undefined" : appName);
-            sb.append('/');
-            sb.append(Util.isEmptyString(appName) ? "Undefined" : appVersion);
-            appDefinedUserAgent = sb.toString();
-        }
-
+    private String getSyncBaseDirectory() {
         if (BaseRealm.applicationContext == null) {
             throw new IllegalStateException("Call Realm.init() first.");
         }
         Context context = BaseRealm.applicationContext;
-
-        String syncDir = null;
+        String syncDir;
         if (SyncManager.Debug.separatedDirForSyncManager) {
             try {
                 // Files.createTempDirectory is not available on JDK 6.
@@ -164,16 +151,49 @@ public class RealmApp {
         } else {
             syncDir = context.getFilesDir().getPath();
         }
+        return syncDir;
+    }
 
-        return nativeCreate(
-                config.getAppId(),
-                config.getBaseUrl().toString(),
-                config.getAppName(),
-                config.getAppVersion(),
-                config.getRequestTimeoutMs(),
-                syncDir,
-                userAgentBindingInfo,
-                appDefinedUserAgent);
+    private String getAppInfo(RealmAppConfiguration config) {
+        // Create app UserAgent string
+        String appDefinedUserAgent = "Unknown";
+        try {
+            String appName = config.getAppName();
+            String appVersion = config.getAppVersion();
+            if (!Util.isEmptyString(appName) || !Util.isEmptyString(appVersion)) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(Util.isEmptyString(appName) ? "Undefined" : appName);
+                sb.append('/');
+                sb.append(Util.isEmptyString(appName) ? "Undefined" : appVersion);
+                appDefinedUserAgent = sb.toString();
+            }
+        } catch (Exception e) {
+            // Failures to construct the user agent should never cause the system itself to crash.
+            RealmLog.warn("Constructing Binding User-Agent description failed.", e);
+        }
+        return appDefinedUserAgent;
+    }
+
+    private String getBindingInfo() {
+        // Setup Realm part of User-Agent string
+        String userAgentBindingInfo = "Unknown"; // Fallback in case of anything going wrong
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("RealmJava/");
+            sb.append(BuildConfig.VERSION_NAME);
+            sb.append(" (");
+            sb.append(Util.isEmptyString(Build.DEVICE) ? "unknown-device" : Build.DEVICE);
+            sb.append(", ");
+            sb.append(Util.isEmptyString(Build.MODEL) ? "unknown-model" : Build.MODEL);
+            sb.append(", v");
+            sb.append(Build.VERSION.SDK_INT);
+            sb.append(")");
+            userAgentBindingInfo = sb.toString();
+        } catch (Exception e) {
+            // Failures to construct the user agent should never cause the system itself to crash.
+            RealmLog.warn("Constructing User-Agent description failed.", e);
+        }
+        return userAgentBindingInfo;
     }
 
     /**

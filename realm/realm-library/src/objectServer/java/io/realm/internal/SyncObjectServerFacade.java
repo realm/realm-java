@@ -100,24 +100,24 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             } else {
                 throw new IllegalArgumentException("Unsupported type: " + val);
             }
-            return new Object[]{
-                    rosUserIdentity,
-                    rosServerUrl,
-                    syncRealmAuthUrl,
-                    syncUserRefreshToken,
-                    syncUserAccessToken,
-                    syncConfig.syncClientValidateSsl(),
-                    syncConfig.getServerCertificateFilePath(),
-                    sessionStopPolicy,
-                    urlPrefix,
-                    customAuthorizationHeaderName,
-                    customHeaders,
-                    OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL, // Client Resync is no longer supported in v10, but might be re-added later.
-                    partitionValue,
-                    app.getSyncService()
-            };
+            Object[] configObj = new Object[SYNC_CONFIG_OPTIONS];
+            configObj[0] = rosUserIdentity;
+            configObj[1] = rosServerUrl;
+            configObj[2] = syncRealmAuthUrl;
+            configObj[3] = syncUserRefreshToken;
+            configObj[4] = syncUserAccessToken;
+            configObj[5] = syncConfig.syncClientValidateSsl();
+            configObj[6] = syncConfig.getServerCertificateFilePath();
+            configObj[7] = sessionStopPolicy;
+            configObj[8] = urlPrefix;
+            configObj[9] = customAuthorizationHeaderName;
+            configObj[10] = customHeaders;
+            configObj[11] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
+            configObj[12] = partitionValue;
+            configObj[13] = app.getSyncService();
+            return configObj;
         } else {
-            return new Object[15];
+            return new Object[SYNC_CONFIG_OPTIONS];
         }
     }
 

@@ -17,8 +17,6 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.util.expectException
-import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -28,7 +26,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.io.File
 import java.lang.IllegalArgumentException
-import kotlin.math.exp
+import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class RealmAppConfigurationTests {
@@ -54,8 +52,8 @@ class RealmAppConfigurationTests {
     @Test
     fun authorizationHeaderName_illegalArgumentsThrows() {
         val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
-        expectException<IllegalArgumentException> { builder.authorizationHeaderName(TestHelper.getNull()) }
-        expectException<IllegalArgumentException> { builder.authorizationHeaderName("") }
+        assertFailsWith<IllegalArgumentException> { builder.authorizationHeaderName(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { builder.authorizationHeaderName("") }
     }
 
     @Test
@@ -72,9 +70,10 @@ class RealmAppConfigurationTests {
     @Test
     fun addCustomRequestHeader_illegalArgumentThrows() {
         val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
-        expectException<IllegalArgumentException> { builder.addCustomRequestHeader("", "val") }
-        expectException<IllegalArgumentException> { builder.addCustomRequestHeader(TestHelper.getNull(), "val") }
-        expectException<IllegalArgumentException> { builder.addCustomRequestHeader("header", TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader("", "val") }
+        assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader(TestHelper.getNull(), "val") }
+        assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader("header", TestHelper.getNull()) }
+        // FIXME: Add tests for illegally formatted headers. Figure out what legal headers look like.
     }
 
     @Test
@@ -137,14 +136,14 @@ class RealmAppConfigurationTests {
     @Test
     fun syncRootDirectory_null() {
         val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
-        expectException<IllegalArgumentException> { builder.syncRootDirectory(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { builder.syncRootDirectory(TestHelper.getNull()) }
     }
 
     @Test
     fun syncRootDirectory_writeProtectedDir() {
         val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
         val dir = File("/")
-        expectException<IllegalArgumentException> { builder.syncRootDirectory(dir) }
+        assertFailsWith<IllegalArgumentException> { builder.syncRootDirectory(dir) }
     }
 
     @Test
@@ -152,6 +151,6 @@ class RealmAppConfigurationTests {
         val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
         val file = File(tempFolder.newFolder(), "dummyfile")
         assertTrue(file.createNewFile())
-        expectException<IllegalArgumentException> { builder.syncRootDirectory(file) }
+        assertFailsWith<IllegalArgumentException> { builder.syncRootDirectory(file) }
     }
 }

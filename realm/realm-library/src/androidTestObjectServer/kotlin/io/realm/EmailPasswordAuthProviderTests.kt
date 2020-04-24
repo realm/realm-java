@@ -29,6 +29,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.lang.IllegalStateException
+import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class EmailPasswordAuthProviderTests {
@@ -69,17 +70,6 @@ class EmailPasswordAuthProviderTests {
         app.close()
         admin.deleteAllUsers()
         RealmLog.setLevel(LogLevel.WARN)
-    }
-
-    inline fun <reified T : Exception> expectException(method: () -> Unit) {
-        try {
-            method()
-            fail()
-        } catch (e: Throwable) {
-            if (e !is T) {
-                fail("Unexpected exception: $e")
-            }
-        }
     }
 
     @Test
@@ -137,8 +127,8 @@ class EmailPasswordAuthProviderTests {
     @Test
     fun registerUser_invalidArgumentsThrows() {
         val provider: EmailPasswordAuthProvider = app.emailPasswordAuthProvider
-        expectException<IllegalArgumentException> { provider.registerUser(TestHelper.getNull(), "123456") }
-        expectException<IllegalArgumentException> { provider.registerUser("foo@bar.baz", TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { provider.registerUser(TestHelper.getNull(), "123456") }
+        assertFailsWith<IllegalArgumentException> { provider.registerUser("foo@bar.baz", TestHelper.getNull()) }
         looperThread.runBlocking {
             provider.registerUserAsync(TestHelper.getNull(), "123456", checkNullArgCallback)
         }
@@ -188,8 +178,8 @@ class EmailPasswordAuthProviderTests {
     @Test
     fun confirmUser_invalidArgumentsThrows() {
         val provider: EmailPasswordAuthProvider = app.emailPasswordAuthProvider
-        expectException<IllegalArgumentException> { provider.confirmUser(TestHelper.getNull(), "token-id") }
-        expectException<IllegalArgumentException> { provider.confirmUser("token", TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { provider.confirmUser(TestHelper.getNull(), "token-id") }
+        assertFailsWith<IllegalArgumentException> { provider.confirmUser("token", TestHelper.getNull()) }
         looperThread.runBlocking {
             provider.confirmUserAsync(TestHelper.getNull(), "token-id", checkNullArgCallback)
         }
@@ -277,7 +267,7 @@ class EmailPasswordAuthProviderTests {
     @Test
     fun resendConfirmationEmail_invalidArgumentsThrows() {
         val provider: EmailPasswordAuthProvider = app.emailPasswordAuthProvider
-        expectException<IllegalArgumentException> { provider.resendConfirmationEmail(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { provider.resendConfirmationEmail(TestHelper.getNull()) }
         looperThread.runBlocking {
             provider.resendConfirmationEmailAsync(TestHelper.getNull(), checkNullArgCallback)
         }
@@ -336,7 +326,7 @@ class EmailPasswordAuthProviderTests {
     @Test
     fun sendResetPasswordEmail_invalidArgumentsThrows() {
         val provider = app.emailPasswordAuthProvider
-        expectException<IllegalArgumentException> { provider.sendResetPasswordEmail(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { provider.sendResetPasswordEmail(TestHelper.getNull()) }
         looperThread.runBlocking {
             provider.sendResetPasswordEmailAsync(TestHelper.getNull(), checkNullArgCallback)
         }
@@ -425,8 +415,8 @@ class EmailPasswordAuthProviderTests {
     @Test
     fun callResetPasswordFunction_invalidArgumentsThrows() {
         val provider = app.emailPasswordAuthProvider
-        expectException<IllegalArgumentException> { provider.callResetPasswordFunction(TestHelper.getNull(), "password") }
-        expectException<IllegalArgumentException> { provider.callResetPasswordFunction("foo@bar.baz", TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { provider.callResetPasswordFunction(TestHelper.getNull(), "password") }
+        assertFailsWith<IllegalArgumentException> { provider.callResetPasswordFunction("foo@bar.baz", TestHelper.getNull()) }
         looperThread.runBlocking {
             provider.callResetPasswordFunctionAsync(TestHelper.getNull(), "new-password", arrayOf(), checkNullArgCallback)
         }
@@ -475,9 +465,9 @@ class EmailPasswordAuthProviderTests {
     @Test
     fun resetPassword_invalidArgumentsThrows() {
         val provider = app.emailPasswordAuthProvider
-        expectException<IllegalArgumentException> { provider.resetPassword(TestHelper.getNull(), "token-id", "password") }
-        expectException<IllegalArgumentException> { provider.resetPassword("token", TestHelper.getNull(), "password") }
-        expectException<IllegalArgumentException> { provider.resetPassword("token", "token-id", TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { provider.resetPassword(TestHelper.getNull(), "token-id", "password") }
+        assertFailsWith<IllegalArgumentException> { provider.resetPassword("token", TestHelper.getNull(), "password") }
+        assertFailsWith<IllegalArgumentException> { provider.resetPassword("token", "token-id", TestHelper.getNull()) }
         looperThread.runBlocking {
             provider.resetPasswordAsync(TestHelper.getNull(), "token-id", "password", checkNullArgCallback)
         }

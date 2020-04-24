@@ -23,14 +23,13 @@ import io.realm.entities.StringOnlyModule
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.rule.RunInLooperThread
-import io.realm.util.expectException
 import org.junit.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
-import java.io.File
 import java.lang.IllegalArgumentException
+import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class SyncConfigurationTests {
@@ -82,7 +81,7 @@ class SyncConfigurationTests {
     fun errorHandler_nullThrows() {
         val user: RealmUser = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        expectException<java.lang.IllegalArgumentException> { builder.errorHandler(TestHelper.getNull())  }
+        assertFailsWith<IllegalArgumentException> { builder.errorHandler(TestHelper.getNull())  }
     }
 
     @Test
@@ -148,13 +147,13 @@ class SyncConfigurationTests {
     fun encryption_invalid_null() {
         val user: RealmUser = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        expectException<IllegalArgumentException> { builder.encryptionKey(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { builder.encryptionKey(TestHelper.getNull()) }
     }
 
     fun encryption_invalid_wrong_length() {
         val user: RealmUser = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        expectException<IllegalArgumentException> { builder.encryptionKey(byteArrayOf(1, 2, 3)) }
+        assertFailsWith<IllegalArgumentException> { builder.encryptionKey(byteArrayOf(1, 2, 3)) }
     }
 
     @Test
@@ -232,7 +231,7 @@ class SyncConfigurationTests {
     fun defaultConfiguration_throwsIfNotLoggedIn() {
         val user: RealmUser = createTestUser(app)
         user.osUser.invalidate()
-        expectException<IllegalArgumentException> { SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION) }
+        assertFailsWith<IllegalArgumentException> { SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION) }
     }
 
     @Test
