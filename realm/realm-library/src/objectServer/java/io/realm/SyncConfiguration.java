@@ -263,22 +263,6 @@ public class SyncConfiguration extends RealmConfiguration {
         return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE);
     }
 
-    static URI resolveServerUrl(URI baseUrl, RealmUser user) {
-        // Configure the full path to the Realm
-        String path = String.format("/api/client/v2.0/app/%s/realm-sync", user.getApp().getConfiguration().getAppId());
-        try {
-            return new URI(baseUrl.getScheme(),
-                    baseUrl.getUserInfo(),
-                    baseUrl.getHost(),
-                    baseUrl.getPort(),
-                    path,
-                    null,
-                    null);
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Could not create a valid Sync URL ", e);
-        }
-    }
-
     // Extract the full server path, minus the file name
     private static String getServerPath(RealmUser user, URI serverUrl) {
         // FIXME Add support for partion key
@@ -487,7 +471,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * Realm.
      *
      * @return the value being used by MongoDB Realm to partition the server side MongoDB Database
-     * into smaller Realms that can be synchronized independently.
+     * into Realms that can be synchronized independently.
      */
     public BsonValue getPartitionValue() {
         return partitionValue;
@@ -530,7 +514,7 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
         private ClientResyncMode clientResyncMode = null;
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
-        private final BsonValue partitionKeyValue;
+        private final BsonValue partitionValue;
 
         /**
          * FIXME
@@ -576,7 +560,9 @@ public class SyncConfiguration extends RealmConfiguration {
          * Builder used to construct instances of a SyncConfiguration in a fluent manner.
          *
          * @param user the user opening the Realm on the server.
-         * @param partitionValue the partition value specifying which subset of data to include in the Realm.
+         * @param partitionValue te value this Realm is partitioned on. The partition key is a
+         * property defined in MongoDB Realm. All classes with a property with this value will be
+         * synchronized to the Realm.
          * @see <a href="FIXME">Link to docs about partions</a>
          */
         private Builder(RealmUser user, BsonValue partitionValue) {
@@ -588,7 +574,7 @@ public class SyncConfiguration extends RealmConfiguration {
             Util.checkNull(partitionValue, "partitionValue");
             validateAndSet(user);
             validateAndSet(user.getApp().getConfiguration().getBaseUrl());
-            this.partitionKeyValue = partitionValue;
+            this.partitionValue = partitionValue;
             this.defaultFolder = user.getApp().getConfiguration().getSyncRootDirectory();
             if (Realm.getDefaultModule() != null) {
                 this.modules.add(Realm.getDefaultModule());
@@ -832,7 +818,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Sets the error handler used by this configuration. This will override any handler set by calling
-         * {@link SyncManager#setDefaultSessionErrorHandler(SyncSession.ErrorHandler)}.
+         * {@link RealmSync#setDefaultSessionErrorHandler(SyncSession.ErrorHandler)}.
          * <p>
          * Only errors not handled by the defined {@code SyncPolicy} will be reported to this error handler.
          *
@@ -1088,6 +1074,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
             // Set the default Client Resync Mode based on the current type of Realm.
             // Eventually RECOVER_LOCAL_REALM should be the default for all types.
+            // FIXME: We should add support back for this.
             if (clientResyncMode == null) {
                 clientResyncMode = ClientResyncMode.MANUAL;
             }
@@ -1099,7 +1086,6 @@ public class SyncConfiguration extends RealmConfiguration {
             // FIXME: Figure out how to map to on-disk path. Partition key can be up to 16MB in size.
             // Determine location on disk
             // Use the serverUrl + user to create a unique filepath.
-            // It is possible for users to change the root directory or realm file name.
             // The following types of paths can be generated
             // <rootDir>/<userIdentifier>/default.realm
             // <rootDir>/<userIdentifier>/<hashedPartionKey>/default.realm
@@ -1176,7 +1162,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     compactOnLaunch,
                     syncUrlPrefix,
                     clientResyncMode,
-                    partitionKeyValue
+                    partitionValue
             );
         }
 

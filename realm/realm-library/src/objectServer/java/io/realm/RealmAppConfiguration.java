@@ -168,7 +168,7 @@ public class RealmAppConfiguration {
     }
 
     /**
-     * Returns the root folder containing all files and Realms used when when synchronizing data
+     * Returns the root folder containing all files and Realms used when synchronizing data
      * between the device and MongoDB Realm.
      */
     public File getSyncRootDirectory() {
@@ -363,7 +363,7 @@ public class RealmAppConfiguration {
         }
 
         /**
-         * Configures the root folder containing all files and Realms used when when synchronizing data
+         * Configures the root folder containing all files and Realms used when synchronizing data
          * between the device and MongoDB Realm.
          * <p>
          * The default root dir is {@code Context.getFilesDir()/mongodb-realm}.

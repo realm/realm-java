@@ -30,7 +30,7 @@ using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::util;
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass)
+JNIEXPORT void JNICALL Java_io_realm_RealmSync_nativeReset(JNIEnv* env, jclass)
 {
     try {
         SyncManager::shared().reset_for_testing();
@@ -38,9 +38,9 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv* env, jclass, jstring local_realm_path,
-                                                                         jint err_code, jstring err_message,
-                                                                         jboolean is_fatal)
+JNIEXPORT void JNICALL Java_io_realm_RealmSync_nativeSimulateSyncError(JNIEnv* env, jclass, jstring local_realm_path,
+                                                                       jint err_code, jstring err_message,
+                                                                       jboolean is_fatal)
 {
     try {
         JStringAccessor path(env, local_realm_path);
@@ -57,7 +57,7 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv*
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReconnect(JNIEnv* env, jclass)
+JNIEXPORT void JNICALL Java_io_realm_RealmSync_nativeReconnect(JNIEnv* env, jclass)
 {
     try {
         SyncManager::shared().reconnect();
@@ -65,7 +65,7 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReconnect(JNIEnv* env, jc
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeCreateSession(JNIEnv* env, jclass, jlong j_native_config_ptr)
+JNIEXPORT void JNICALL Java_io_realm_RealmSync_nativeCreateSession(JNIEnv* env, jclass, jlong j_native_config_ptr)
 {
     try {
         auto& config = *reinterpret_cast<Realm::Config*>(j_native_config_ptr);

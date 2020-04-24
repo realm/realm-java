@@ -261,7 +261,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                                                      "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)V");
 
         // error handler will be called form the sync client thread
-        auto sync_service_object = env->NewGlobalRef(j_java_sync_service);
+        auto sync_service_object = env->NewGlobalRef(j_java_sync_service); // FIXME: This object is leaking
         auto error_handler = [sync_service_object](std::shared_ptr<SyncSession> session, SyncError error) {
             auto error_category = error.error_code.category().name();
             auto error_message = error.message;

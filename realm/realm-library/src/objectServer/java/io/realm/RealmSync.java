@@ -58,13 +58,13 @@ import okhttp3.internal.tls.OkHostnameVerifier;
  */
 @Keep
 @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
-public class SyncManager {
+public class RealmSync {
 
     private final RealmApp app;
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
     private Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
 
-    SyncManager(RealmApp app) {
+    RealmSync(RealmApp app) {
         this.app = app;
     }
 

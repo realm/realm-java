@@ -79,7 +79,7 @@ public class SyncedRealmMigrationTests {
 
     @Test
     public void migrateRealm_syncConfigurationThrows() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app)).build();
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app)).build();
         try {
             Realm.migrateRealm(config);
             fail();
@@ -93,7 +93,7 @@ public class SyncedRealmMigrationTests {
     // automatically.
     @Test
     public void addField_worksWithMigrationError() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app))
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(StringOnly.class)
                 .build();
 
@@ -120,7 +120,7 @@ public class SyncedRealmMigrationTests {
     // The underlying field should not be deleted, just hidden.
     @Test
     public void missingFields_hiddenSilently() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app))
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(StringOnly.class)
                 .build();
 
@@ -153,7 +153,7 @@ public class SyncedRealmMigrationTests {
     // Check that a Realm cannot be opened if it contain breaking schema changes, like changing a primary key
     @Test
     public void breakingSchemaChange_throws() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app))
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(PrimaryKeyAsString.class)
                 .build();
 
@@ -178,7 +178,7 @@ public class SyncedRealmMigrationTests {
     @Test
     public void sameSchemaVersion_doNotRebuildIndexes() {
 
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app))
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(IndexedFields.class)
                 .schemaVersion(42)
                 .build();
@@ -210,7 +210,7 @@ public class SyncedRealmMigrationTests {
     @Test
     public void differentSchemaVersions_rebuildIndexes() {
 
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app))
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(IndexedFields.class)
                 .schemaVersion(42)
                 .build();
@@ -242,7 +242,7 @@ public class SyncedRealmMigrationTests {
     @Test
     public void addingFields_rebuildIndexes() {
 
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app))
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(IndexedFields.class)
                 .schemaVersion(42)
                 .build();
@@ -271,7 +271,7 @@ public class SyncedRealmMigrationTests {
 
     @Test
     public void schemaVersionUpgradedWhenMigrating() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app))
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schemaVersion(42)
                 .build();
 
@@ -298,7 +298,7 @@ public class SyncedRealmMigrationTests {
     @Test
     public void moreFieldsThanExpectedIsAllowed() {
         SyncConfiguration config = configFactory
-                .createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app))
+                .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(StringOnly.class)
                 .build();
 

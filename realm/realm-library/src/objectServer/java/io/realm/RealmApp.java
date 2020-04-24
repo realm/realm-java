@@ -22,7 +22,6 @@ import android.os.Looper;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -44,7 +43,6 @@ import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
-import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.log.RealmLog;
 
 /**
@@ -73,7 +71,7 @@ public class RealmApp {
 
     private final RealmAppConfiguration config;
     OsJavaNetworkTransport networkTransport;
-    final SyncManager syncManager;
+    final RealmSync syncManager;
     public final long nativePtr; //FIXME Find a way to make this package protected
     private final EmailPasswordAuthProvider emailAuthProvider = new EmailPasswordAuthProvider(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
@@ -91,7 +89,7 @@ public class RealmApp {
         // FIXME: Right now we only support one RealmApp. This class will throw a
         // exception if you try to create it twice. This is a really hacky way to do this
         // Figure out a better API that is always forward compatible
-        synchronized (SyncManager.class) {
+        synchronized (RealmSync.class) {
             if (CREATED) {
                 throw new IllegalStateException("Only one RealmApp is currently supported. " +
                         "This restriction will be lifted soon. Instead, store the RealmApp" +
@@ -106,7 +104,7 @@ public class RealmApp {
         for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
             networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
         }
-        this.syncManager = new SyncManager(this);
+        this.syncManager = new RealmSync(this);
         this.nativePtr = init(config);
     }
 
@@ -131,7 +129,7 @@ public class RealmApp {
         }
         Context context = BaseRealm.applicationContext;
         String syncDir;
-        if (SyncManager.Debug.separatedDirForSyncManager) {
+        if (RealmSync.Debug.separatedDirForSyncManager) {
             try {
                 // Files.createTempDirectory is not available on JDK 6.
                 File dir = File.createTempFile("remote_sync_", "_" + android.os.Process.myPid(), context.getFilesDir());
@@ -366,7 +364,7 @@ public class RealmApp {
      * FIXME: Figure out naming of this method and class.
      * @return
      */
-    public SyncManager getSyncService() {
+    public RealmSync getSyncService() {
         return syncManager;
     }
 

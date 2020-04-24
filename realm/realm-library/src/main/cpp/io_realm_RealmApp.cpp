@@ -67,8 +67,9 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
     }
 
 private:
-    // For some reasons, FindClass() doesn't work in the native thread even when the JVM is attached before. Get the
-    // RealmError class on a normal JVM thread and throw it later on the sync client thread.
+    // FindClass() doesn't work in the native thread even when the JVM is attached before, due to it
+    // using another ClassLoader. So we get the RealmError class on a normal JVM thread and throw it
+    // later on the sync client thread.
     JavaClass m_realm_exception_class;
 };
 

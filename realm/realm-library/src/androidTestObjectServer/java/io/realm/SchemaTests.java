@@ -48,7 +48,7 @@ public class SchemaTests {
     @Before
     public void setUp() {
         app = new TestRealmApp();
-        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
+        RealmUser user = SyncTestUtils.createTestUser(app);
         config = configFactory.createSyncConfigurationBuilder(user).build();
     }
 

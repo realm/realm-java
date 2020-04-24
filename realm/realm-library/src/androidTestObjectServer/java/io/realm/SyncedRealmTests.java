@@ -77,7 +77,7 @@ public class SyncedRealmTests {
     }
 
     private Realm getFullySyncRealm() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app))
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .build();
         realm = Realm.getInstance(config);
         return realm;
@@ -87,7 +87,7 @@ public class SyncedRealmTests {
     @Test
     @Ignore("Going to be removed anyway")
     public void testUpgradingOptionalSubscriptionFields() throws IOException {
-        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
+        RealmUser user = SyncTestUtils.createTestUser(app);
 
         // Put an older Realm at the location where Realm would otherwise create a new empty one.
         // This way, Realm will upgrade this file instead.
@@ -116,7 +116,7 @@ public class SyncedRealmTests {
 
     @Test
     public void compactRealm_populatedRealm() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.Companion.createTestUser(app)).build();
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app)).build();
         realm = Realm.getInstance(config);
         realm.executeTransaction(r -> {
             for (int i = 0; i < 10; i++) {
@@ -131,7 +131,7 @@ public class SyncedRealmTests {
 
     @Test
     public void compactOnLaunch_shouldCompact() throws IOException {
-        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
+        RealmUser user = SyncTestUtils.createTestUser(app);
 
         // Fill Realm with data and record size
         SyncConfiguration config1 = configFactory.createSyncConfigurationBuilder(user).build();

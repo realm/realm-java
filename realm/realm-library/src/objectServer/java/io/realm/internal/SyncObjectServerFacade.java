@@ -32,7 +32,7 @@ import io.realm.RealmApp;
 import io.realm.RealmConfiguration;
 import io.realm.RealmUser;
 import io.realm.SyncConfiguration;
-import io.realm.SyncManager;
+import io.realm.RealmSync;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
@@ -163,7 +163,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             if (removeSessionMethod == null) {
                 synchronized (SyncObjectServerFacade.class) {
                     if (removeSessionMethod == null) {
-                        Method removeSession = SyncManager.class.getDeclaredMethod("removeSession", SyncConfiguration.class);
+                        Method removeSession = RealmSync.class.getDeclaredMethod("removeSession", SyncConfiguration.class);
                         removeSession.setAccessible(true);
                         removeSessionMethod = removeSession;
                     }

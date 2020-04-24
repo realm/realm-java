@@ -48,7 +48,7 @@ class SyncTestUtils {
             RealmLog.setLevel(originalLogLevel)
             if (BaseRealm.applicationContext != null) {
                 // Realm was already initialized. Reset all internal state
-                // in order to be able fully re-initialize.
+                // in order to be able to fully re-initialize.
 
                 // This will set the 'm_metadata_manager' in 'sync_manager.cpp' to be 'null'
                 // causing the RealmUser to remain in memory.
@@ -79,6 +79,7 @@ class SyncTestUtils {
             check(file.delete()) { "Failed to delete file or directory: " + file.absolutePath }
         }
 
+        @JvmStatic
         @JvmOverloads
         fun createTestUser(app: RealmApp, userIdentifier: String = UUID.randomUUID().toString()): RealmUser {
             val transportBackup = app.networkTransport

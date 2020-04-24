@@ -17,7 +17,6 @@
 package io.realm;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -25,18 +24,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.Nullable;
-
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
-import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 
@@ -622,7 +616,7 @@ public class SyncSession {
     /**
      * Interface used to report any session errors.
      *
-     * @see SyncManager#setDefaultSessionErrorHandler(ErrorHandler)
+     * @see RealmSync#setDefaultSessionErrorHandler(ErrorHandler)
      * @see SyncConfiguration.Builder#errorHandler(ErrorHandler)
      */
     public interface ErrorHandler {

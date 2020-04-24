@@ -95,39 +95,36 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     // Insert different types with no links between them
     @Test
     fun roundTripSimpleObjectsInServerSchema() {
-        @Test
-        fun roundTripLinkedObjectsInServerSchemaObject() {
-            // User 1 creates an object an uploads it to MongoDB Realm
-            val user1: RealmUser = createNewUser()
-            val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
-            realm = Realm.getInstance(config1)
-            realm.executeTransaction {
-                val person = SyncPerson()
-                person.realmId = partitionValue
-                person.firstName = "Jane"
-                person.lastName = "Doe"
-                person.age = 42
-                realm.insert(person);
-                for (i in 0..9) {
-                    val dog = SyncDog()
-                    dog.name = "Fido $i"
-                    dog.realmId = partitionValue
-                    it.insert(dog)
-                }
+        // User 1 creates an object an uploads it to MongoDB Realm
+        val user1: RealmUser = createNewUser()
+        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+        realm = Realm.getInstance(config1)
+        realm.executeTransaction {
+            val person = SyncPerson()
+            person.realmId = partitionValue
+            person.firstName = "Jane"
+            person.lastName = "Doe"
+            person.age = 42
+            realm.insert(person);
+            for (i in 0..9) {
+                val dog = SyncDog()
+                dog.name = "Fido $i"
+                dog.realmId = partitionValue
+                it.insert(dog)
             }
-            realm.syncSession.uploadAllLocalChanges()
-            assertEquals(10, realm.where<SyncDog>().count())
-            assertEquals(1, realm.where<SyncPerson>().count())
-            realm.close()
-
-            // User 2 logs and using the same partition key should see the object
-            val user2: RealmUser = createNewUser()
-            val config2 = createDefaultConfig(user2, partitionValue)
-            realm = Realm.getInstance(config2)
-            realm.syncSession.downloadAllServerChanges()
-            assertEquals(10, realm.where<SyncDog>().count())
-            assertEquals(1, realm.where<SyncPerson>().count())
         }
+        realm.syncSession.uploadAllLocalChanges()
+        assertEquals(10, realm.where<SyncDog>().count())
+        assertEquals(1, realm.where<SyncPerson>().count())
+        realm.close()
+
+        // User 2 logs and using the same partition key should see the object
+        val user2: RealmUser = createNewUser()
+        val config2 = createDefaultConfig(user2, partitionValue)
+        realm = Realm.getInstance(config2)
+        realm.syncSession.downloadAllServerChanges()
+        assertEquals(10, realm.where<SyncDog>().count())
+        assertEquals(1, realm.where<SyncPerson>().count())
     }
 
 

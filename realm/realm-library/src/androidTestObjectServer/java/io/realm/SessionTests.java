@@ -17,7 +17,6 @@
 package io.realm;
 
 import androidx.test.annotation.UiThreadTest;
-import androidx.test.rule.UiThreadTestRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.hamcrest.CoreMatchers;
@@ -62,7 +61,7 @@ public class SessionTests {
     @Before
     public void setUp() {
         app = new TestRealmApp();
-        user = SyncTestUtils.Companion.createTestUser(app);
+        user = SyncTestUtils.createTestUser(app);
         configuration = SyncConfiguration.defaultConfig(user, "default");
     }
 
@@ -128,7 +127,7 @@ public class SessionTests {
     @RunTestInLooperThread
     @Ignore("FIXME: Figure out how to fix this")
     public void errorHandler_clientResetReported() {
-        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
+        RealmUser user = SyncTestUtils.createTestUser(app);
         String url = "realm://objectserver.realm.io/default";
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
@@ -153,7 +152,7 @@ public class SessionTests {
         looperThread.addTestRealm(realm);
 
         // Trigger error
-        SyncManager syncService = user.getApp().getSyncService();
+        RealmSync syncService = user.getApp().getSyncService();
         syncService.simulateClientReset(syncService.getSession((config)));
     }
 
@@ -162,7 +161,7 @@ public class SessionTests {
     @RunTestInLooperThread
     @Ignore("FIXME: Figure out how to fix this")
     public void errorHandler_manualExecuteClientReset() {
-        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
+        RealmUser user = SyncTestUtils.createTestUser(app);
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler((session, error) -> {
@@ -201,7 +200,7 @@ public class SessionTests {
     @RunTestInLooperThread
     @Ignore("FIXME: Figure out how to fix this")
     public void errorHandler_useBackupSyncConfigurationForClientReset() {
-        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
+        RealmUser user = SyncTestUtils.createTestUser(app);
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .schema(StringOnly.class)
@@ -261,7 +260,7 @@ public class SessionTests {
     @RunTestInLooperThread
     @Ignore("FIXME: Figure out how to fix this")
     public void errorHandler_useBackupSyncConfigurationAfterClientReset() {
-        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
+        RealmUser user = SyncTestUtils.createTestUser(app);
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler((session, error) -> {
@@ -343,7 +342,7 @@ public class SessionTests {
     @RunTestInLooperThread
     @Ignore("FIXME: Figure out how to fix this")
     public void errorHandler_useClientResetEncrypted() {
-        RealmUser user = SyncTestUtils.Companion.createTestUser(app);
+        RealmUser user = SyncTestUtils.createTestUser(app);
         final byte[] randomKey = TestHelper.getRandomKey();
         final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
