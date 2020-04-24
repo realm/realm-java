@@ -103,11 +103,11 @@ set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
         io.realm.ClientResetRequiredError
-        io.realm.EmailPasswordAuthProvider
-        io.realm.ApiKeyAuthProvider
+        io.realm.EmailPasswordAuth
+        io.realm.ApiKeyAuth
         io.realm.RealmApp
         io.realm.RealmUser
-        io.realm.SyncManager
+        io.realm.RealmSync
         io.realm.SyncSession
         io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
@@ -195,11 +195,11 @@ if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmApp.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmUser.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuthProvider.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ApiKeyAuthProvider.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuth.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ApiKeyAuth.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ClientResetRequiredError.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmSync.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAppCredentials.cpp

@@ -58,7 +58,7 @@ public class RealmApp {
     // Currently we only allow one instance of RealmApp (due to restrictions in ObjectStore that
     // only allows one underlying SyncClient).
     // FIXME: Lift this restriction so it is possible to create multiple app instances.
-    private volatile static boolean CREATED = false;
+    volatile static boolean CREATED = false;
 
     /**
      * Thread pool used when doing network requests against MongoDB Realm.
@@ -73,7 +73,7 @@ public class RealmApp {
     OsJavaNetworkTransport networkTransport;
     final RealmSync syncManager;
     public final long nativePtr; //FIXME Find a way to make this package protected
-    private final EmailPasswordAuthProvider emailAuthProvider = new EmailPasswordAuthProvider(this);
+    private final EmailPasswordAuth emailAuthProvider = new EmailPasswordAuth(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
     private Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -326,7 +326,7 @@ public class RealmApp {
      *
      * @return wrapper for interacting with the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
      */
-    public EmailPasswordAuthProvider getEmailPasswordAuthProvider() {
+    public EmailPasswordAuth getEmailPasswordAuth() {
          return emailAuthProvider;
      }
 
@@ -364,7 +364,7 @@ public class RealmApp {
      * FIXME: Figure out naming of this method and class.
      * @return
      */
-    public RealmSync getSyncService() {
+    public RealmSync getSync() {
         return syncManager;
     }
 

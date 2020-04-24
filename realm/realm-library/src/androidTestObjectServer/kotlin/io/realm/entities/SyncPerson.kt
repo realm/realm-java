@@ -30,7 +30,11 @@ open class SyncPerson(
         var age: Long = 0,
         var dogs: RealmList<ObjectId> = RealmList(),
         var firstName: String = "",
-        var lastName: String = "",
-        @RealmField(name = "realm_id")
-        var realmId: String? = null
+        var lastName: String = ""
+        // This field is not required by clients
+        // But if added, it must always have the
+        // same value as the partition value
+        // used to open the Realm
+        // @RealmField(name = "realm_id")
+        // var realmId: String? = null
 ): RealmObject()

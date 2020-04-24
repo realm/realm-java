@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_SyncManager.h"
+#include "io_realm_RealmSync.h"
 
 #include <object-store/src/impl/realm_coordinator.hpp>
 #include <sync/sync_manager.hpp>

@@ -252,7 +252,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddConnectionListener(JN
             return 0;
         }
 
-        static JavaClass java_syncmanager_class(env, "io/realm/SyncManager");
+        static JavaClass java_syncmanager_class(env, "io/realm/RealmSync");
         static JavaMethod java_notify_connection_listener(env, java_syncmanager_class, "notifyConnectionListeners", "(Ljava/lang/String;JJ)V", true);
 
         std::function<SyncSession::ConnectionStateCallback > callback = [local_realm_path](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {

@@ -170,7 +170,7 @@ class RealmCredentialsTests {
                     RealmCredentials.IdentityProvider.EMAIL_PASSWORD -> {
                         val email = TestHelper.getRandomEmail()
                         val password = "123456"
-                        app.emailPasswordAuthProvider.registerUser(email, password)
+                        app.emailPasswordAuth.registerUser(email, password)
                         val user = app.login(RealmCredentials.emailPassword(email, password))
                         assertNotNull(user)
                     }

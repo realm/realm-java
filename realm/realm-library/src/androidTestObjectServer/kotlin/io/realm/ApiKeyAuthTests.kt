@@ -29,12 +29,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class ApiKeyAuthProviderTests {
+class ApiKeyAuthTests {
     private val looperThread = BlockingLooperThread()
     private lateinit var app: TestRealmApp
     private lateinit var admin: ServerAdmin
     private lateinit var user: RealmUser
-    private lateinit var provider: ApiKeyAuthProvider
+    private lateinit var provider: ApiKeyAuth
 
     // Callback use to verify that an Illegal Argument was thrown from async methods
     private val checkNullInVoidCallback = RealmApp.Callback<Void> { result ->
@@ -71,7 +71,7 @@ class ApiKeyAuthProviderTests {
         RealmLog.setLevel(LogLevel.DEBUG)
         admin = ServerAdmin()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        provider = user.apiKeyAuthProvider
+        provider = user.apiKeyAuth
     }
 
     @After

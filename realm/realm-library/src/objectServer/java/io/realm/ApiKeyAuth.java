@@ -31,7 +31,7 @@ import static io.realm.RealmApp.NETWORK_POOL_EXECUTOR;
 /**
  * This class exposes functionality for a user to manage API keys under their control.
  */
-public class ApiKeyAuthProvider {
+public class ApiKeyAuth {
 
     private static final int TYPE_CREATE = 1;
     private static final int TYPE_FETCH_SINGLE = 2;
@@ -47,7 +47,7 @@ public class ApiKeyAuthProvider {
      *
      * @param user user that is controlling the API keys.
      */
-    public ApiKeyAuthProvider(RealmUser user) {
+    public ApiKeyAuth(RealmUser user) {
         this.user = user;
     }
 
@@ -291,7 +291,7 @@ public class ApiKeyAuthProvider {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ApiKeyAuthProvider that = (ApiKeyAuthProvider) o;
+        ApiKeyAuth that = (ApiKeyAuth) o;
 
         return user.equals(that.user);
     }

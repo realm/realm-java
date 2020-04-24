@@ -25,8 +25,12 @@ open class SyncDog: RealmObject() {
     @PrimaryKey
     @RealmField(name = "_id")
     var id: ObjectId? = ObjectId()
-    @RealmField("realm_id")
-    var realmId: String? = "default"
+    // This field is not required by clients
+    // But if added, it must always have the
+    // same value as the partition value
+    // used to open the Realm
+    // @RealmField(name = "realm_id")
+    // var realmId: String? = null
     var breed: String? = null
     var name: String = ""
 }

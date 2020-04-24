@@ -22,7 +22,6 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -101,7 +100,6 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         realm = Realm.getInstance(config1)
         realm.executeTransaction {
             val person = SyncPerson()
-            person.realmId = partitionValue
             person.firstName = "Jane"
             person.lastName = "Doe"
             person.age = 42
@@ -109,7 +107,6 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
             for (i in 0..9) {
                 val dog = SyncDog()
                 dog.name = "Fido $i"
-                dog.realmId = partitionValue
                 it.insert(dog)
             }
         }
@@ -139,14 +136,12 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         realm = Realm.getInstance(config1)
         realm.executeTransaction {
             val person = SyncPerson()
-            person.realmId = partitionValue
             person.firstName = "Jane"
             person.lastName = "Doe"
             person.age = 42
             for (i in 0..9) {
                 val dog = SyncDog()
                 dog.name = "Fido $i"
-                dog.realmId = partitionValue
                 it.insert(dog)
                 person.dogs.add(dog.id)
             }
@@ -177,6 +172,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
 
     private fun createDefaultConfig(user: RealmUser, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
+                .waitForInitialRemoteData() // FIXME: This should not be required
                 .modules(DefaultSyncSchema())
                 .build()
     }
@@ -184,7 +180,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     private fun createNewUser(): RealmUser {
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuthProvider.registerUser(email, password)
+        app.emailPasswordAuth.registerUser(email, password)
         return app.login(RealmCredentials.emailPassword(email, password))
     }
 }

@@ -26,6 +26,7 @@ import io.realm.admin.ServerAdmin
 fun RealmApp.close() {
     ServerAdmin().deleteAllUsers()
     this.syncManager.reset()
+    RealmApp.CREATED = false
     BaseRealm.applicationContext = null // Required for Realm.init() to work
 }
 
@@ -34,6 +35,6 @@ fun RealmApp.close() {
  * This only works if users in the Realm Application are configured to be automatically confirmed.
  */
 fun RealmApp.registerUserAndLogin(email: String, password: String): RealmUser {
-    emailPasswordAuthProvider.registerUser(email, password)
+    emailPasswordAuth.registerUser(email, password)
     return login(RealmCredentials.emailPassword(email, password))
 }

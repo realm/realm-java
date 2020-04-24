@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_EmailPasswordAuthProvider.h"
+#include "io_realm_EmailPasswordAuth.h"
 
 #include "java_network_transport.hpp"
 #include "util.hpp"
@@ -28,34 +28,34 @@ using namespace realm::app;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-JNIEXPORT void JNICALL Java_io_realm_EmailPasswordAuthProvider_nativeCallFunction(JNIEnv* env,
-                                                                                  jclass,
-                                                                                  jint j_function_type,
-                                                                                  jlong j_app_ptr,
-                                                                                  jobject j_callback,
-                                                                                  jobjectArray j_args)
+JNIEXPORT void JNICALL Java_io_realm_EmailPasswordAuth_nativeCallFunction(JNIEnv* env,
+                                                                          jclass,
+                                                                          jint j_function_type,
+                                                                          jlong j_app_ptr,
+                                                                          jobject j_callback,
+                                                                          jobjectArray j_args)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         JObjectArrayAccessor<JStringAccessor, jstring> args(env, j_args);
         auto client = app->provider_client<App::UsernamePasswordProviderClient>();
         switch(j_function_type) {
-            case io_realm_EmailPasswordAuthProvider_TYPE_REGISTER_USER:
+            case io_realm_EmailPasswordAuth_TYPE_REGISTER_USER:
                 client.register_email(args[0], args[1], JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
-            case io_realm_EmailPasswordAuthProvider_TYPE_CONFIRM_USER:
+            case io_realm_EmailPasswordAuth_TYPE_CONFIRM_USER:
                 client.confirm_user(args[0], args[1], JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
-            case io_realm_EmailPasswordAuthProvider_TYPE_RESEND_CONFIRMATION_EMAIL:
+            case io_realm_EmailPasswordAuth_TYPE_RESEND_CONFIRMATION_EMAIL:
                 client.resend_confirmation_email(args[0], JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
-            case io_realm_EmailPasswordAuthProvider_TYPE_SEND_RESET_PASSWORD_EMAIL:
+            case io_realm_EmailPasswordAuth_TYPE_SEND_RESET_PASSWORD_EMAIL:
                 client.send_reset_password_email(args[0], JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
-            case io_realm_EmailPasswordAuthProvider_TYPE_CALL_RESET_PASSWORD_FUNCTION:
+            case io_realm_EmailPasswordAuth_TYPE_CALL_RESET_PASSWORD_FUNCTION:
                 client.call_reset_password_function(args[0], args[1], args[2], JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
-            case io_realm_EmailPasswordAuthProvider_TYPE_RESET_PASSWORD:
+            case io_realm_EmailPasswordAuth_TYPE_RESET_PASSWORD:
                 client.reset_password(args[0], args[1], args[2], JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
             default:

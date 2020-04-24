@@ -33,7 +33,7 @@ class KotlinSyncedRealmTests {
     @Ignore("FIXME")
     @Test
     fun syncSession() {
-        assertEquals(app.syncService.getSession(realm.configuration as SyncConfiguration), realm.syncSession)
+        assertEquals(app.sync.getSession(realm.configuration as SyncConfiguration), realm.syncSession)
     }
 
     @Ignore("FIXME")

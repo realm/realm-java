@@ -1,7 +1,7 @@
 {
     "id": "5e9578c1a06f8d660afdaa2d",
     "database": "test_data",
-    "collection": "Person",
+    "collection": "SyncPerson",
     "roles": [
         {
             "name": "default",

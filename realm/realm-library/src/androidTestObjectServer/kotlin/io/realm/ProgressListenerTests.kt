@@ -302,7 +302,6 @@ class ProgressListenerTests {
         realm.beginTransaction()
         for (i in 0 until TEST_SIZE) {
             val obj = SyncDog()
-            obj.realmId = partitionValue
             obj.name = "Object $i"
             realm.insert(obj)
         }

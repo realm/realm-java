@@ -9,7 +9,7 @@ REALM_OBJECT_SERVER_VERSION=3.28.2
 
 # Version of MongoDB Realm used by integration tests
 # See https://github.com/realm/ci/packages/147854 for available versions
-MONGODB_REALM_SERVER_VERSION=2020-04-22
+MONGODB_REALM_SERVER_VERSION=2020-04-24T
 
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=3.6.1

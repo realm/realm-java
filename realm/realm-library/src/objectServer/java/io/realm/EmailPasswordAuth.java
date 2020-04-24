@@ -28,7 +28,7 @@ import static io.realm.RealmApp.NETWORK_POOL_EXECUTOR;
  * Class encapsulating functionality provided when {@link RealmUser}'s are logged in through the
  * {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} provider.
  */
-public class EmailPasswordAuthProvider {
+public class EmailPasswordAuth {
 
     private static final int TYPE_REGISTER_USER = 1;
     private static final int TYPE_CONFIRM_USER = 2;
@@ -43,7 +43,7 @@ public class EmailPasswordAuthProvider {
      * Creates an authentication provider exposing functionality to using an email and password
      * for login into a Realm Application.
      */
-    public EmailPasswordAuthProvider(RealmApp app) {
+    public EmailPasswordAuth(RealmApp app) {
         this.app = app;
     }
 

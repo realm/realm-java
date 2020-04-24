@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_ApiKeyAuthProvider.h"
+#include "io_realm_ApiKeyAuth.h"
 
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
@@ -64,49 +64,49 @@ static std::function<jobject(JNIEnv*, std::vector<App::UserAPIKey>)> multi_key_m
     return arr;
 };
 
-JNIEXPORT void JNICALL Java_io_realm_ApiKeyAuthProvider_nativeCallFunction(JNIEnv* env,
-                                                                           jclass,
-                                                                           jint j_function_type,
-                                                                           jlong j_app_ptr,
-                                                                           jlong j_user_ptr,
-                                                                           jstring j_arg,
-                                                                           jobject j_callback)
+JNIEXPORT void JNICALL Java_io_realm_ApiKeyAuth_nativeCallFunction(JNIEnv* env,
+                                                                   jclass,
+                                                                   jint j_function_type,
+                                                                   jlong j_app_ptr,
+                                                                   jlong j_user_ptr,
+                                                                   jstring j_arg,
+                                                                   jobject j_callback)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
         auto client = app->provider_client<App::UserAPIKeyProviderClient>();
         switch(j_function_type) {
-            case io_realm_ApiKeyAuthProvider_TYPE_CREATE: {
+            case io_realm_ApiKeyAuth_TYPE_CREATE: {
                 JStringAccessor name(env, j_arg);
                 auto callback = JavaNetworkTransport::create_result_callback(env, j_callback, single_key_mapper);
                 client.create_api_key(name, user, callback);
                 break;
             }
-            case io_realm_ApiKeyAuthProvider_TYPE_FETCH_SINGLE: {
+            case io_realm_ApiKeyAuth_TYPE_FETCH_SINGLE: {
                 auto callback = JavaNetworkTransport::create_result_callback(env, j_callback, single_key_mapper);
                 std::string str_id = JStringAccessor(env, static_cast<jstring>(j_arg));
                 client.fetch_api_key(ObjectId(str_id.c_str()), user, callback);
                 break;
             }
-            case io_realm_ApiKeyAuthProvider_TYPE_FETCH_ALL: {
+            case io_realm_ApiKeyAuth_TYPE_FETCH_ALL: {
                 auto callback = JavaNetworkTransport::create_result_callback(env, j_callback, multi_key_mapper);
                 client.fetch_api_keys(user, callback);
                 break;
             }
-            case io_realm_ApiKeyAuthProvider_TYPE_DELETE: {
+            case io_realm_ApiKeyAuth_TYPE_DELETE: {
                 auto callback = JavaNetworkTransport::create_void_callback(env, j_callback);
                 std::string str_id = JStringAccessor(env, static_cast<jstring>(j_arg));
                 client.delete_api_key(ObjectId(str_id.c_str()), user, callback);
                 break;
             }
-            case io_realm_ApiKeyAuthProvider_TYPE_ENABLE: {
+            case io_realm_ApiKeyAuth_TYPE_ENABLE: {
                 auto callback = JavaNetworkTransport::create_void_callback(env, j_callback);
                 std::string str_id = JStringAccessor(env, static_cast<jstring>(j_arg));
                 client.enable_api_key(ObjectId(str_id.c_str()), user, callback);
                 break;
             }
-            case io_realm_ApiKeyAuthProvider_TYPE_DISABLE: {
+            case io_realm_ApiKeyAuth_TYPE_DISABLE: {
                 auto callback = JavaNetworkTransport::create_void_callback(env, j_callback);
                 std::string str_id = JStringAccessor(env, static_cast<jstring>(j_arg));
                 client.disable_api_key(ObjectId(str_id.c_str()), user, callback);

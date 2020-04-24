@@ -18,8 +18,6 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
-import io.realm.rule.RunInLooperThread
-import io.realm.rule.RunTestInLooperThread
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -67,7 +65,7 @@ class RealmUserTests {
         assertEquals(RealmUser.State.LOGGED_IN, emailUser.state)
         emailUser.logOut()
         assertEquals(RealmUser.State.LOGGED_OUT, emailUser.state)
-        emailUser.removeUser()
+        emailUser.remove()
         assertEquals(RealmUser.State.REMOVED, emailUser.state)
     }
 
@@ -122,8 +120,8 @@ class RealmUserTests {
 
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuthProvider.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
-        var linkedUser: RealmUser = anonUser.linkUser(RealmCredentials.emailPassword(email, password))
+        app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
+        var linkedUser: RealmUser = anonUser.linkCredentials(RealmCredentials.emailPassword(email, password))
         assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
         assertEquals(RealmCredentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
@@ -131,8 +129,8 @@ class RealmUserTests {
 
         val otherEmail = TestHelper.getRandomEmail()
         val otherPassword = "123456"
-        app.emailPasswordAuthProvider.registerUser(otherEmail, otherPassword)
-        linkedUser = anonUser.linkUser(RealmCredentials.emailPassword(email, password))
+        app.emailPasswordAuth.registerUser(otherEmail, otherPassword)
+        linkedUser = anonUser.linkCredentials(RealmCredentials.emailPassword(email, password))
         assertTrue(anonUser === linkedUser)
         assertEquals(3, linkedUser.identities.size)
         assertEquals(RealmCredentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[2].provider)
@@ -147,7 +145,7 @@ class RealmUserTests {
         val emailUser: RealmUser = app.registerUserAndLogin(email, password)
         val anonymousUser: RealmUser = app.login(RealmCredentials.anonymous())
         try {
-            anonymousUser.linkUser(RealmCredentials.emailPassword(email, password))
+            anonymousUser.linkCredentials(RealmCredentials.emailPassword(email, password))
             fail()
         } catch (ex: ObjectServerError) {
             assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
@@ -158,7 +156,7 @@ class RealmUserTests {
     @Test
     fun linkUser_invalidArgsThrows() {
         try {
-            anonUser.linkUser(TestHelper.getNull())
+            anonUser.linkCredentials(TestHelper.getNull())
             fail()
         } catch (ignore: IllegalArgumentException) {
         }
@@ -172,9 +170,9 @@ class RealmUserTests {
         assertEquals(1, user.identities.size)
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuthProvider.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
+        app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
         looperThread.runBlocking {
-            anonUser.linkUserAsync(RealmCredentials.emailPassword(email, password)) { result ->
+            anonUser.linkCredentialsAsync(RealmCredentials.emailPassword(email, password)) { result ->
                 val linkedUser: RealmUser = result.orThrow
                 assertTrue(user === linkedUser)
                 assertEquals(2, linkedUser.identities.size)
@@ -188,7 +186,7 @@ class RealmUserTests {
     @Test
     fun linkUserAsync_throwsOnNonLooperThread() {
         try {
-            anonUser.linkUserAsync(RealmCredentials.emailPassword(TestHelper.getRandomEmail(), "123456")) { fail() }
+            anonUser.linkCredentialsAsync(RealmCredentials.emailPassword(TestHelper.getRandomEmail(), "123456")) { fail() }
             fail()
         } catch (ignore: java.lang.IllegalStateException) {
         }
@@ -202,7 +200,7 @@ class RealmUserTests {
         val user1 = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         assertEquals(user1, app.currentUser())
         assertEquals(1, app.allUsers().size)
-        user1.removeUser()
+        user1.remove()
         assertEquals(RealmUser.State.REMOVED, user1.state)
         assertNull(app.currentUser())
         assertEquals(0, app.allUsers().size)
@@ -212,7 +210,7 @@ class RealmUserTests {
         user2.logOut()
         assertNull(app.currentUser())
         assertEquals(1, app.allUsers().size)
-        user2.removeUser()
+        user2.remove()
         assertEquals(RealmUser.State.REMOVED, user2.state)
         assertEquals(0, app.allUsers().size)
     }
@@ -226,7 +224,7 @@ class RealmUserTests {
             val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
             assertEquals(user, app.currentUser())
             assertEquals(1, app.allUsers().size)
-            user.removeUserAsync { result ->
+            user.removeAsync { result ->
                 assertEquals(RealmUser.State.REMOVED, result.orThrow.state)
                 assertNull(app.currentUser())
                 assertEquals(0, app.allUsers().size)
@@ -240,7 +238,7 @@ class RealmUserTests {
             user.logOut()
             assertNull(app.currentUser())
             assertEquals(1, app.allUsers().size)
-            user.removeUserAsync { result ->
+            user.removeAsync { result ->
                 assertEquals(RealmUser.State.REMOVED, result.orThrow.state)
                 assertEquals(0, app.allUsers().size)
                 looperThread.testComplete()
@@ -252,7 +250,7 @@ class RealmUserTests {
     fun removeUserAsync_nonLooperThreadThrows() {
         val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "1234567")
         try {
-            user.removeUserAsync { fail() }
+            user.removeAsync { fail() }
         } catch (ignore: IllegalStateException) {
         }
     }
@@ -260,13 +258,13 @@ class RealmUserTests {
     @Test
     fun getApiKeyAuthProvider() {
         val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        val provider1: ApiKeyAuthProvider = user.apiKeyAuthProvider
+        val provider1: ApiKeyAuth = user.apiKeyAuth
         assertEquals(user, provider1.user)
 
         user.logOut()
 
         try {
-            user.apiKeyAuthProvider
+            user.apiKeyAuth
             fail()
         } catch (ex: IllegalStateException) {
         }

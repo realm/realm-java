@@ -114,7 +114,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             configObj[10] = customHeaders;
             configObj[11] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
             configObj[12] = partitionValue;
-            configObj[13] = app.getSyncService();
+            configObj[13] = app.getSync();
             return configObj;
         } else {
             return new Object[SYNC_CONFIG_OPTIONS];
@@ -130,7 +130,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         if (config.getRealmConfiguration() instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config.getRealmConfiguration();
             RealmApp app = syncConfig.getUser().getApp();
-            app.getSyncService().getOrCreateSession(syncConfig);
+            app.getSync().getOrCreateSession(syncConfig);
         }
     }
 
@@ -169,7 +169,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     }
                 }
             }
-            removeSessionMethod.invoke(syncConfig.getUser().getApp().getSyncService(), syncConfig);
+            removeSessionMethod.invoke(syncConfig.getUser().getApp().getSync(), syncConfig);
         } catch (NoSuchMethodException e) {
             throw new RealmException("Could not lookup method to remove session: " + syncConfig.toString(), e);
         } catch (InvocationTargetException e) {
@@ -211,7 +211,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         if (configuration instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) configuration;
             RealmApp app = syncConfig.getUser().getApp();
-            app.getSyncService().getOrCreateSession(syncConfig);
+            app.getSync().getOrCreateSession(syncConfig);
         }
     }
 

@@ -16,15 +16,11 @@
 package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.BaseRealm
-import io.realm.Realm
-import io.realm.internal.objectserver.Token
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.objectserver.utils.UserFactory
 import java.io.File
-import java.io.IOException
 import java.lang.IllegalStateException
 import java.util.*
 
@@ -136,7 +132,7 @@ class SyncTestUtils {
         // and downloaded again.
         fun syncRealm(realm: Realm) {
             val config = realm.getConfiguration() as SyncConfiguration
-            val session = config.user.app.syncService.getSession(config)
+            val session = config.user.app.sync.getSession(config)
             try {
                 session.uploadAllLocalChanges()
                 session.downloadAllServerChanges()

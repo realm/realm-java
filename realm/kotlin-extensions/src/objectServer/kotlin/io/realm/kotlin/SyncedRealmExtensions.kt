@@ -33,5 +33,5 @@ val Realm.syncSession: SyncSession
         }
 
         val syncConfig = this.configuration as SyncConfiguration
-        return syncConfig.user.app.syncService.getSession(syncConfig)
+        return syncConfig.user.app.sync.getSession(syncConfig)
     }

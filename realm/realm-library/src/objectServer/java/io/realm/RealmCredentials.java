@@ -25,7 +25,7 @@ import io.realm.internal.objectstore.OsAppCredentials;
  * by default. All other providers must be enabled on MongoDB Realm to work.
  * <p>
  * Note that users wanting to login using Email/Password must register first using
- * {@link io.realm.EmailPasswordAuthProvider#registerUser(String, String)}.
+ * {@link EmailPasswordAuth#registerUser(String, String)}.
  * </p>
  * Credentials are used the following way:
  * <pre>
