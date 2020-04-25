@@ -63,6 +63,7 @@ class EmailPasswordAuthTests {
         app = TestRealmApp()
         RealmLog.setLevel(LogLevel.DEBUG)
         admin = ServerAdmin()
+        admin.deleteAllUsers()
     }
 
     @After
