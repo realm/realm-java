@@ -67,7 +67,9 @@ public class SyncedRealmTests {
         if (realm != null && !realm.isClosed()) {
             realm.close();
         }
-        RealmAppExtKt.close(app);
+        if (app != null) {
+            RealmAppExtKt.close(app);
+        }
     }
 
     private Realm getNormalRealm() {

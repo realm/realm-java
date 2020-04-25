@@ -15,6 +15,6 @@ inline fun expectErrorCode(expectedCode: ErrorCode, method: () -> Unit) {
         method()
         fail()
     } catch (e: ObjectServerError) {
-        assertEquals(expectedCode, e.errorCode)
+        assertEquals("Unexpected error code", expectedCode, e.errorCode)
     }
 }

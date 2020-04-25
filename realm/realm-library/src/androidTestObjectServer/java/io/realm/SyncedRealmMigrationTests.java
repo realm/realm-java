@@ -74,7 +74,9 @@ public class SyncedRealmMigrationTests {
 
     @After
     public void tearDown() {
-        RealmAppExtKt.close(app);
+        if (app != null) {
+            RealmAppExtKt.close(app);
+        }
     }
 
     @Test

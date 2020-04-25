@@ -17,6 +17,7 @@ package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Ignore
@@ -27,6 +28,9 @@ import kotlin.test.assertFailsWith
 @RunWith(AndroidJUnit4::class)
 class RealmCredentialsTests {
 
+    private lateinit var app: RealmApp
+
+
     companion object {
         @BeforeClass
         @JvmStatic
@@ -34,6 +38,14 @@ class RealmCredentialsTests {
             Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         }
     }
+
+    @After
+    fun tearDown() {
+        if (this::app.isInitialized) {
+            app.close()
+        }
+    }
+
 
     @Test
     fun anonymous() {
@@ -150,54 +162,50 @@ class RealmCredentialsTests {
     @Test
     fun loginUsingCredentials() {
         val app = TestRealmApp()
-        try {
-            RealmCredentials.IdentityProvider.values().forEach { provider ->
-                when(provider) {
-                    RealmCredentials.IdentityProvider.ANONYMOUS -> {
-                        val user = app.login(RealmCredentials.anonymous())
-                        assertNotNull(user)
-                    }
-                    RealmCredentials.IdentityProvider.API_KEY -> {
-                        // FIXME: Wait for API Key support in OS
+        RealmCredentials.IdentityProvider.values().forEach { provider ->
+            when(provider) {
+                RealmCredentials.IdentityProvider.ANONYMOUS -> {
+                    val user = app.login(RealmCredentials.anonymous())
+                    assertNotNull(user)
+                }
+                RealmCredentials.IdentityProvider.API_KEY -> {
+                    // FIXME: Wait for API Key support in OS
 //                        val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
 //                        val key: RealmUserApiKey = app.apiKeyAuthProvider.createApiKey("my-key");
 //                        val apiKeyUser = app.login(RealmCredentials.apiKey(key.value!!))
 //                        assertNotNull(apiKeyUser)
-                    }
-                    RealmCredentials.IdentityProvider.CUSTOM_FUNCTION -> {
-                        // FIXME Wait for Custom Function support
-                    }
-                    RealmCredentials.IdentityProvider.EMAIL_PASSWORD -> {
-                        val email = TestHelper.getRandomEmail()
-                        val password = "123456"
-                        app.emailPasswordAuth.registerUser(email, password)
-                        val user = app.login(RealmCredentials.emailPassword(email, password))
-                        assertNotNull(user)
-                    }
+                }
+                RealmCredentials.IdentityProvider.CUSTOM_FUNCTION -> {
+                    // FIXME Wait for Custom Function support
+                }
+                RealmCredentials.IdentityProvider.EMAIL_PASSWORD -> {
+                    val email = TestHelper.getRandomEmail()
+                    val password = "123456"
+                    app.emailPasswordAuth.registerUser(email, password)
+                    val user = app.login(RealmCredentials.emailPassword(email, password))
+                    assertNotNull(user)
+                }
 
-                    // These providers are hard to test for real since they depend on a 3rd party
-                    // login service. Instead we attempt to login and verify that a proper exception
-                    // is thrown. At least that should verify that correctly formatted JSON is being
-                    // sent across the wire.
-                    RealmCredentials.IdentityProvider.FACEBOOK -> {
-                        expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.facebook("facebook-token"))
-                    }
-                    RealmCredentials.IdentityProvider.APPLE -> {
-                        expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.apple("apple-token"))
-                    }
-                    RealmCredentials.IdentityProvider.GOOGLE -> {
-                        expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.google("google-token"))
-                    }
-                    RealmCredentials.IdentityProvider.JWT ->  {
-                        expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.jwt("jwt-token"))
-                    }
-                    RealmCredentials.IdentityProvider.UNKNOWN -> {
-                        // Ignore
-                    }
+                // These providers are hard to test for real since they depend on a 3rd party
+                // login service. Instead we attempt to login and verify that a proper exception
+                // is thrown. At least that should verify that correctly formatted JSON is being
+                // sent across the wire.
+                RealmCredentials.IdentityProvider.FACEBOOK -> {
+                    expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.facebook("facebook-token"))
+                }
+                RealmCredentials.IdentityProvider.APPLE -> {
+                    expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.apple("apple-token"))
+                }
+                RealmCredentials.IdentityProvider.GOOGLE -> {
+                    expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.google("google-token"))
+                }
+                RealmCredentials.IdentityProvider.JWT ->  {
+                    expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.jwt("jwt-token"))
+                }
+                RealmCredentials.IdentityProvider.UNKNOWN -> {
+                    // Ignore
                 }
             }
-        } finally {
-            app.close()
         }
     }
 }

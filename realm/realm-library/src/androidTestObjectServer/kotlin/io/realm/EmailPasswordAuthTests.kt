@@ -67,7 +67,9 @@ class EmailPasswordAuthTests {
 
     @After
     fun tearDown() {
-        app.close()
+        if (this::app.isInitialized) {
+            app.close()
+        }
         admin.deleteAllUsers()
         RealmLog.setLevel(LogLevel.WARN)
     }

@@ -86,6 +86,15 @@ public class RealmApp {
      * @param config
      */
     public RealmApp(RealmAppConfiguration config) {
+        this.config = config;
+        this.networkTransport = new OkHttpNetworkTransport();
+        networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
+        for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
+            networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
+        }
+        this.syncManager = new RealmSync(this);
+        this.nativePtr = init(config);
+
         // FIXME: Right now we only support one RealmApp. This class will throw a
         // exception if you try to create it twice. This is a really hacky way to do this
         // Figure out a better API that is always forward compatible
@@ -97,15 +106,6 @@ public class RealmApp {
             }
             CREATED = true;
         }
-
-        this.config = config;
-        this.networkTransport = new OkHttpNetworkTransport();
-        networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
-        for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
-            networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
-        }
-        this.syncManager = new RealmSync(this);
-        this.nativePtr = init(config);
     }
 
     private long init(RealmAppConfiguration config) {

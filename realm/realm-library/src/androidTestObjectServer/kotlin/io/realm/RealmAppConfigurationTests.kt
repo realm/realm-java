@@ -105,7 +105,6 @@ class RealmAppConfigurationTests {
 
     @Test
     fun addCustomHeader_combinesSingleAndMultiple() {
-        val app = TestRealmApp()
         val config = RealmAppConfiguration.Builder("app-id")
                 .addCustomRequestHeader("header3", "val3")
                 .addCustomRequestHeaders(mapOf(Pair("header1", "val1")))

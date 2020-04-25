@@ -42,7 +42,9 @@ class RealmAppTests {
 
     @After
     fun tearDown() {
-        app.close()
+        if (this::app.isInitialized) {
+            app.close()
+        }
     }
 
     @Test
@@ -65,11 +67,7 @@ class RealmAppTests {
 
     @Test
     fun login_invalidArgsThrows() {
-        try {
-            app.login(TestHelper.getNull())
-            fail()
-        } catch(ignore: IllegalArgumentException) {
-        }
+        assertFailsWith<IllegalArgumentException> { app.login(TestHelper.getNull()) }
     }
 
     @Test

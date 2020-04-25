@@ -49,6 +49,8 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     fun tearDown() {
         if (this::realm.isInitialized) {
             realm.close()
+        }
+        if (this::app.isInitialized) {
             app.close()
         }
         RealmLog.setLevel(LogLevel.WARN)
