@@ -58,7 +58,7 @@ public class RealmApp {
     // Currently we only allow one instance of RealmApp (due to restrictions in ObjectStore that
     // only allows one underlying SyncClient).
     // FIXME: Lift this restriction so it is possible to create multiple app instances.
-    volatile static boolean CREATED = false;
+    public volatile static boolean CREATED = false;
 
     /**
      * Thread pool used when doing network requests against MongoDB Realm.

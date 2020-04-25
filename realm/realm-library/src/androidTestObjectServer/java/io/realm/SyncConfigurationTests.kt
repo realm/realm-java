@@ -57,7 +57,9 @@ class SyncConfigurationTests {
 
     @After
     fun tearDown() {
-        app.close()
+        if (this::app.isInitialized) {
+            app.close()
+        }
     }
 
     @Test

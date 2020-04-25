@@ -67,18 +67,18 @@ class ApiKeyAuthTests {
 
     @Before
     fun setUp() {
-        app = TestRealmApp()
-        RealmLog.setLevel(LogLevel.DEBUG)
         admin = ServerAdmin()
+        app = TestRealmApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         provider = user.apiKeyAuth
     }
 
     @After
     fun tearDown() {
-        app.close()
+        if (this::app.isInitialized) {
+            app.close()
+        }
         admin.deleteAllUsers()
-        RealmLog.setLevel(LogLevel.WARN)
     }
 
     inline fun testNullArg(method: () -> Unit) {

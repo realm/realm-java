@@ -161,7 +161,7 @@ class RealmCredentialsTests {
 
     @Test
     fun loginUsingCredentials() {
-        val app = TestRealmApp()
+        app = TestRealmApp()
         RealmCredentials.IdentityProvider.values().forEach { provider ->
             when(provider) {
                 RealmCredentials.IdentityProvider.ANONYMOUS -> {

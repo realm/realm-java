@@ -54,7 +54,9 @@ public class SchemaTests {
 
     @After
     public void tearDown() {
-        RealmAppExtKt.close(app);
+        if (app != null) {
+            RealmAppExtKt.close(app);
+        }
     }
 
     @Test
