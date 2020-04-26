@@ -19,6 +19,8 @@ package io.realm;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.hamcrest.CoreMatchers;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -55,6 +57,7 @@ public class SyncedRealmMigrationTests {
     public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+    private TestRealmApp app;
 
     @BeforeClass
     public static void beforeClass () {
@@ -64,9 +67,21 @@ public class SyncedRealmMigrationTests {
         BaseRealm.applicationContext = null;
     }
 
+    @Before
+    public void setUp() {
+        app = new TestRealmApp();
+    }
+
+    @After
+    public void tearDown() {
+        if (app != null) {
+            RealmAppExtKt.close(app);
+        }
+    }
+
     @Test
     public void migrateRealm_syncConfigurationThrows() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth").build();
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app)).build();
         try {
             Realm.migrateRealm(config);
             fail();
@@ -80,7 +95,7 @@ public class SyncedRealmMigrationTests {
     // automatically.
     @Test
     public void addField_worksWithMigrationError() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(StringOnly.class)
                 .build();
 
@@ -107,7 +122,7 @@ public class SyncedRealmMigrationTests {
     // The underlying field should not be deleted, just hidden.
     @Test
     public void missingFields_hiddenSilently() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(StringOnly.class)
                 .build();
 
@@ -140,7 +155,7 @@ public class SyncedRealmMigrationTests {
     // Check that a Realm cannot be opened if it contain breaking schema changes, like changing a primary key
     @Test
     public void breakingSchemaChange_throws() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(PrimaryKeyAsString.class)
                 .build();
 
@@ -165,7 +180,7 @@ public class SyncedRealmMigrationTests {
     @Test
     public void sameSchemaVersion_doNotRebuildIndexes() {
 
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(IndexedFields.class)
                 .schemaVersion(42)
                 .build();
@@ -197,7 +212,7 @@ public class SyncedRealmMigrationTests {
     @Test
     public void differentSchemaVersions_rebuildIndexes() {
 
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(IndexedFields.class)
                 .schemaVersion(42)
                 .build();
@@ -229,7 +244,7 @@ public class SyncedRealmMigrationTests {
     @Test
     public void addingFields_rebuildIndexes() {
 
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(IndexedFields.class)
                 .schemaVersion(42)
                 .build();
@@ -258,7 +273,7 @@ public class SyncedRealmMigrationTests {
 
     @Test
     public void schemaVersionUpgradedWhenMigrating() {
-        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+        SyncConfiguration config = configFactory.createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schemaVersion(42)
                 .build();
 
@@ -285,7 +300,7 @@ public class SyncedRealmMigrationTests {
     @Test
     public void moreFieldsThanExpectedIsAllowed() {
         SyncConfiguration config = configFactory
-                .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(), "http://foo.com/auth")
+                .createSyncConfigurationBuilder(SyncTestUtils.createTestUser(app))
                 .schema(StringOnly.class)
                 .build();
 

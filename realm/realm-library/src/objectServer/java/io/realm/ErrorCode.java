@@ -315,6 +315,7 @@ public enum ErrorCode {
     }
 
     public static class Type {
+        // FIXME Figure out where errors like 'realm::util::websocket::Error:7' are coming from
         public static final String AUTH = "auth"; // Errors from the Realm Object Server
         public static final String CONNECTION = "realm.basic_system"; // Connection/System errors from the native Sync Client
         public static final String DEPRECATED = "deprecated"; // Deprecated errors

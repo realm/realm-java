@@ -1,15 +1,15 @@
 {
-    "id": "5e689d78535956d2ec405220",
+    "id": "5e9578c1a06f8d660afdaa37",
     "name": "local-userpass",
     "type": "local-userpass",
     "config": {
         "autoConfirm": true,
-        "resetFunctionName": "resetFunc",
-        "runConfirmationFunction": false,
         "emailConfirmationUrl": "http://realm.io/confirm-user",
-        "runResetFunction": false,
+        "resetFunctionName": "resetFunc",
         "resetPasswordSubject": "Reset Password",
-        "resetPasswordUrl": "http://realm.io/reset-password"
+        "resetPasswordUrl": "http://realm.io/reset-password",
+        "runConfirmationFunction": false,
+        "runResetFunction": false
     },
     "disabled": false
 }

@@ -106,8 +106,8 @@ public class TrustManagerCertificateValidationTests {
 
         String serverAddress = "127.0.0.1";
 
-        assertTrue(SyncManager.sslVerifyCallback(serverAddress, pem_depth1, 1));
-        assertTrue(SyncManager.sslVerifyCallback(serverAddress, pem_depth0, 0));
+        assertTrue(RealmSync.sslVerifyCallback(serverAddress, pem_depth1, 1));
+        assertTrue(RealmSync.sslVerifyCallback(serverAddress, pem_depth0, 0));
     }
 
     @Test
@@ -238,10 +238,10 @@ public class TrustManagerCertificateValidationTests {
 
         String serverAddress = "nabil-test.ie1.realmlab.net";
 
-        assertTrue(SyncManager.sslVerifyCallback(serverAddress, pem_depth3, 3));
-        assertTrue(SyncManager.sslVerifyCallback(serverAddress, pem_depth2, 2));
-        assertTrue(SyncManager.sslVerifyCallback(serverAddress, pem_depth1, 1));
-        assertFalse(SyncManager.sslVerifyCallback(serverAddress, pem_depth0, 0));
+        assertTrue(RealmSync.sslVerifyCallback(serverAddress, pem_depth3, 3));
+        assertTrue(RealmSync.sslVerifyCallback(serverAddress, pem_depth2, 2));
+        assertTrue(RealmSync.sslVerifyCallback(serverAddress, pem_depth1, 1));
+        assertFalse(RealmSync.sslVerifyCallback(serverAddress, pem_depth0, 0));
     }
 
     @Ignore("FIXME: Certificate expired")
@@ -368,19 +368,19 @@ public class TrustManagerCertificateValidationTests {
 
         String serverAddress = "foo.us1a.cloud.realm.io";
 
-        assertTrue(SyncManager.sslVerifyCallback(serverAddress, pem_depth3, 3));
-        assertTrue(SyncManager.sslVerifyCallback(serverAddress, pem_depth2, 2));
-        assertTrue(SyncManager.sslVerifyCallback(serverAddress, pem_depth1, 1));
-        assertTrue(SyncManager.sslVerifyCallback(serverAddress, pem_depth0, 0));
+        assertTrue(RealmSync.sslVerifyCallback(serverAddress, pem_depth3, 3));
+        assertTrue(RealmSync.sslVerifyCallback(serverAddress, pem_depth2, 2));
+        assertTrue(RealmSync.sslVerifyCallback(serverAddress, pem_depth1, 1));
+        assertTrue(RealmSync.sslVerifyCallback(serverAddress, pem_depth0, 0));
 
         // reaching depth0 will validate (or not) the entire chain, then removing the PEMs from memory
         // make sure the hostname verify works
 
         String wrongServerAddress = "hax0r-us1a.cloud2.realm.io";
-        assertTrue(SyncManager.sslVerifyCallback(wrongServerAddress, pem_depth3, 3));
-        assertTrue(SyncManager.sslVerifyCallback(wrongServerAddress, pem_depth2, 2));
-        assertTrue(SyncManager.sslVerifyCallback(wrongServerAddress, pem_depth1, 1));
+        assertTrue(RealmSync.sslVerifyCallback(wrongServerAddress, pem_depth3, 3));
+        assertTrue(RealmSync.sslVerifyCallback(wrongServerAddress, pem_depth2, 2));
+        assertTrue(RealmSync.sslVerifyCallback(wrongServerAddress, pem_depth1, 1));
         // the method fails because of the hostname verification
-        assertFalse(SyncManager.sslVerifyCallback(wrongServerAddress, pem_depth0, 0));
+        assertFalse(RealmSync.sslVerifyCallback(wrongServerAddress, pem_depth0, 0));
     }
 }

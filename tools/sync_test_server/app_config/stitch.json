@@ -1,5 +1,5 @@
 {
-    "app_id": "realm-sdk-integration-tests-pwjzl",
+    "app_id": "realm-sdk-integration-tests-ibecp",
     "config_version": 20180301,
     "name": "realm-sdk-integration-tests",
     "location": "US-VA",
@@ -9,6 +9,6 @@
         "enabled": false
     },
     "sync": {
-        "development_mode_enabled": false
+        "development_mode_enabled": true
     }
 }

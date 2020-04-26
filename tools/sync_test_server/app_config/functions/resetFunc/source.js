@@ -41,10 +41,10 @@
     The uncommented function below is just a placeholder and will result in failure.
   */
 
-  exports = ({ token, tokenId, username, password }, customParam1, customParam2) => {
+exports = ({ token, tokenId, username, password }, customParam1, customParam2) => {
     if (customParam1 != "say-the-magic-word" || customParam2 != 42) {
-      return { status: 'fail' };
+        return { status: 'fail' };
     } else {
-      return { status: 'success' };
+        return { status: 'success' };
     }
-  };
+}
