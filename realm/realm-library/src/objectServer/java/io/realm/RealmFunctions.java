@@ -20,8 +20,10 @@ import org.bson.BsonDocument;
 import org.bson.BsonValue;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
+import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.util.BsonConverter;
 
 // CR: Async execution model. Google Play Task??
@@ -123,14 +125,23 @@ public class RealmFunctions {
         );
     }
 
-    // FIXME Basically just wrapping to allow mocking it through mockito
     private String invoke(String name, String args) {
         // Native calling scheme is actually synchronous
         // CR: Authentication? Guess we are in a user scope here!?
-        // FIXME For now just return args directly until actual native call is in place
-        return args;
+        Util.checkEmpty(name, "name");
+        Util.checkEmpty(args, "args");
+        AtomicReference<String> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        RealmApp.OsJNIResultCallback<String> callback = new RealmApp.OsJNIResultCallback<String>(success, error) {
+            @Override
+            protected String mapSuccess(Object result) {
+                return args;
+            }
+        };
+        nativeCallFunction(name, args, callback);
+        return RealmApp.handleResult(success, error);
    }
 
-//    private static native String nativeCallFunction(String name, @Nullable String argsJson, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+   private static native void nativeCallFunction(String name, String args_json, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 
 }
