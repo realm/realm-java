@@ -76,16 +76,6 @@ class RealmFunctionTests {
             println("function: " + result.get().asInt32())
             looperThread.testComplete()
         }
-                "sum",
-                RealmApp.Callback<BsonValue> {result ->
-                    println("function: "  + result.get())
-                    looperThread.testComplete()
-                },
-                BsonInt32(32)
-        )
     }
 
-
-    
 }
-
