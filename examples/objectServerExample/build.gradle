@@ -33,13 +33,15 @@ android {
     }
 
     buildTypes {
-        // Go to https://cloud.realm.io and copy the URL to your instance. Insert it below.
-        // It will look something like "https://test.us1.cloud.realm.io"
         //
-        // If you're running a self-hosted version, use the hostname/IP address of the Realm Object
-        // Server, e.g "http://127.0.0.1:9090".
-        def mongodbRealmUrl = "http://localhost:9090"
-        def appId = "realm-sdk-integration-tests-dsnyj"
+        // Configure server and App Id.
+        // The default server is https://realm-dev.mongodb.com/ . Go to that and copy the Stitch
+        // App Id.
+        //
+        // If you are running a local version of Stitch, modify endpoint accordingly. Most likely
+        // it is "http://localhost:9090"
+        def mongodbRealmUrl = "https://realm-dev.mongodb.com"
+        def appId = "realm-demo-gqlrw"
         debug {
             buildConfigField "String", "MONGODB_REALM_URL", "\"${mongodbRealmUrl}\""
             buildConfigField "String", "MONGODB_REALM_APP_ID", "\"${appId}\""
