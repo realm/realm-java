@@ -15,7 +15,13 @@
  */
 package io.realm;
 
-import java.lang.reflect.Constructor;
+import android.content.Context;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -28,6 +34,7 @@ import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.Keep;
+import io.realm.internal.KeepMember;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
@@ -36,7 +43,6 @@ import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
-import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.log.RealmLog;
 
 /**
@@ -49,30 +55,10 @@ public class RealmApp {
     // we might want to lift in the future. So any implementation details so ideally be made
     // with that in mind, i.e. keep static state to minimum.
 
-    // Default session error handler that just output errors to LogCat
-    private static final SyncSession.ErrorHandler SESSION_NO_OP_ERROR_HANDLER = new SyncSession.ErrorHandler() {
-        @Override
-        public void onError(SyncSession session, ObjectServerError error) {
-            if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
-                RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
-                return;
-            }
-
-            String errorMsg = String.format(Locale.US, "Session Error[%s]: %s",
-                    session.getConfiguration().getServerUrl(),
-                    error.toString());
-            switch (error.getErrorCode().getCategory()) {
-                case FATAL:
-                    RealmLog.error(errorMsg);
-                    break;
-                case RECOVERABLE:
-                    RealmLog.info(errorMsg);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported error category: " + error.getErrorCode().getCategory());
-            }
-        }
-    };
+    // Currently we only allow one instance of RealmApp (due to restrictions in ObjectStore that
+    // only allows one underlying SyncClient).
+    // FIXME: Lift this restriction so it is possible to create multiple app instances.
+    public volatile static boolean CREATED = false;
 
     /**
      * Thread pool used when doing network requests against MongoDB Realm.
@@ -84,10 +70,12 @@ public class RealmApp {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = RealmThreadPoolExecutor.newDefaultExecutor();
 
     private final RealmAppConfiguration config;
-    private OsJavaNetworkTransport networkTransport;
-    final long nativePtr;
-    private final EmailPasswordAuthProvider emailAuthProvider = new EmailPasswordAuthProvider(this);
+    OsJavaNetworkTransport networkTransport;
+    final RealmSync syncManager;
+    public final long nativePtr; //FIXME Find a way to make this package protected
+    private final EmailPasswordAuth emailAuthProvider = new EmailPasswordAuth(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
+    private Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public RealmApp(String appId) {
         this(new RealmAppConfiguration.Builder(appId).build());
@@ -100,12 +88,110 @@ public class RealmApp {
     public RealmApp(RealmAppConfiguration config) {
         this.config = config;
         this.networkTransport = new OkHttpNetworkTransport();
-        this.nativePtr = nativeCreate(
+        networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
+        for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
+            networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
+        }
+        this.syncManager = new RealmSync(this);
+        this.nativePtr = init(config);
+
+        // FIXME: Right now we only support one RealmApp. This class will throw a
+        // exception if you try to create it twice. This is a really hacky way to do this
+        // Figure out a better API that is always forward compatible
+        synchronized (RealmSync.class) {
+            if (CREATED) {
+                throw new IllegalStateException("Only one RealmApp is currently supported. " +
+                        "This restriction will be lifted soon. Instead, store the RealmApp" +
+                        "instance in a shared global variable.");
+            }
+            CREATED = true;
+        }
+    }
+
+    private long init(RealmAppConfiguration config) {
+        String userAgentBindingInfo = getBindingInfo();
+        String appDefinedUserAgent = getAppInfo(config);
+        String syncDir = getSyncBaseDirectory();
+        return nativeCreate(
                 config.getAppId(),
-                config.getBaseUrl(),
+                config.getBaseUrl().toString(),
                 config.getAppName(),
                 config.getAppVersion(),
-                config.getRequestTimeoutMs());
+                config.getRequestTimeoutMs(),
+                syncDir,
+                userAgentBindingInfo,
+                appDefinedUserAgent);
+    }
+
+    private String getSyncBaseDirectory() {
+        if (BaseRealm.applicationContext == null) {
+            throw new IllegalStateException("Call Realm.init() first.");
+        }
+        Context context = BaseRealm.applicationContext;
+        String syncDir;
+        if (RealmSync.Debug.separatedDirForSyncManager) {
+            try {
+                // Files.createTempDirectory is not available on JDK 6.
+                File dir = File.createTempFile("remote_sync_", "_" + android.os.Process.myPid(), context.getFilesDir());
+                if (!dir.delete()) {
+                    throw new IllegalStateException(String.format(Locale.US,
+                            "Temp file '%s' cannot be deleted.", dir.getPath()));
+                }
+                if (!dir.mkdir()) {
+                    throw new IllegalStateException(String.format(Locale.US,
+                            "Directory '%s' for SyncManager cannot be created. ",
+                            dir.getPath()));
+                }
+                syncDir = dir.getPath();
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
+        } else {
+            syncDir = context.getFilesDir().getPath();
+        }
+        return syncDir;
+    }
+
+    private String getAppInfo(RealmAppConfiguration config) {
+        // Create app UserAgent string
+        String appDefinedUserAgent = "Unknown";
+        try {
+            String appName = config.getAppName();
+            String appVersion = config.getAppVersion();
+            if (!Util.isEmptyString(appName) || !Util.isEmptyString(appVersion)) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(Util.isEmptyString(appName) ? "Undefined" : appName);
+                sb.append('/');
+                sb.append(Util.isEmptyString(appName) ? "Undefined" : appVersion);
+                appDefinedUserAgent = sb.toString();
+            }
+        } catch (Exception e) {
+            // Failures to construct the user agent should never cause the system itself to crash.
+            RealmLog.warn("Constructing Binding User-Agent description failed.", e);
+        }
+        return appDefinedUserAgent;
+    }
+
+    private String getBindingInfo() {
+        // Setup Realm part of User-Agent string
+        String userAgentBindingInfo = "Unknown"; // Fallback in case of anything going wrong
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("RealmJava/");
+            sb.append(BuildConfig.VERSION_NAME);
+            sb.append(" (");
+            sb.append(Util.isEmptyString(Build.DEVICE) ? "unknown-device" : Build.DEVICE);
+            sb.append(", ");
+            sb.append(Util.isEmptyString(Build.MODEL) ? "unknown-model" : Build.MODEL);
+            sb.append(", v");
+            sb.append(Build.VERSION.SDK_INT);
+            sb.append(")");
+            userAgentBindingInfo = sb.toString();
+        } catch (Exception e) {
+            // Failures to construct the user agent should never cause the system itself to crash.
+            RealmLog.warn("Constructing User-Agent description failed.", e);
+        }
+        return userAgentBindingInfo;
     }
 
     /**
@@ -180,7 +266,31 @@ public class RealmApp {
                 return new RealmUser(nativePtr, RealmApp.this);
             }
         });
-        return handleResult(success, error);
+        RealmUser user = handleResult(success, error);
+        notifyUserLoggedIn(user);
+        return user;
+    }
+
+    private void notifyUserLoggedIn(RealmUser user) {
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                for (AuthenticationListener listener : authListeners) {
+                    listener.loggedIn(user);
+                }
+            }
+        });
+    }
+
+    void notifyUserLoggedOut(RealmUser user) {
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                for (AuthenticationListener listener : authListeners) {
+                    listener.loggedOut(user);
+                }
+            }
+        });
     }
 
     /**
@@ -216,21 +326,15 @@ public class RealmApp {
      *
      * @return wrapper for interacting with the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
      */
-    public EmailPasswordAuthProvider getEmailPasswordAuthProvider() {
+    public EmailPasswordAuth getEmailPasswordAuth() {
          return emailAuthProvider;
      }
-
-    public SyncSession getSyncSession(SyncConfiguration config) {
-        return null;
-    }
-
-    public void refreshConnections() {
-
-    }
 
     /**
      * Sets a global authentication listener that will be notified about User events like
      * login and logout.
+     * <p>
+     * Callbacks to authentication listeners will happen on the UI thread.
      *
      * @param listener listener to register.
      * @throws IllegalArgumentException if {@code listener} is {@code null}.
@@ -256,7 +360,22 @@ public class RealmApp {
         authListeners.remove(listener);
     }
 
-    // Private API's for now.
+    /**
+     * FIXME: Figure out naming of this method and class.
+     * @return
+     */
+    public RealmSync getSync() {
+        return syncManager;
+    }
+
+    /**
+     * Returns the configuration object for this app.
+     *
+     * @return the configuration for this app.
+     */
+    public RealmAppConfiguration getConfiguration() {
+        return config;
+    }
 
     /**
      * Exposed for testing.
@@ -268,6 +387,7 @@ public class RealmApp {
         networkTransport = transport;
     }
 
+    @KeepMember // Called from JNI
     OsJavaNetworkTransport getNetworkTransport() {
         return networkTransport;
     }
@@ -513,7 +633,14 @@ public class RealmApp {
         void onResult(Result<T> result);
     }
 
-    private native long nativeCreate(String appId, String baseUrl, String appName, String appVersion, long requestTimeoutMs);
+    private native long nativeCreate(String appId,
+                                     String baseUrl,
+                                     String appName,
+                                     String appVersion,
+                                     long requestTimeoutMs,
+                                     String syncDirPath,
+                                     String bindingUserInfo,
+                                     String appUserInfo);
     private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     @Nullable
     private static native Long nativeCurrentUser(long nativePtr);

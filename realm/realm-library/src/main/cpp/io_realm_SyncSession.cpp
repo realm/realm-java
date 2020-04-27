@@ -35,9 +35,6 @@ using namespace realm::jni_util;
 using namespace realm::sync;
 using namespace realm::_impl;
 
-static_assert(SyncSession::PublicState::WaitingForAccessToken ==
-                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
-              "");
 static_assert(SyncSession::PublicState::Active ==
                   static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_ACTIVE),
               "");
@@ -58,30 +55,7 @@ static_assert(SyncSession::ConnectionState::Connected ==
               static_cast<SyncSession::ConnectionState>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTED),
               "");
 
-JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JNIEnv* env, jclass,
-                                                                              jstring j_local_realm_path,
-                                                                              jstring j_access_token,
-                                                                              jstring j_sync_realm_url)
-{
-    try {
-        JStringAccessor local_realm_path(env, j_local_realm_path);
-        auto session = SyncManager::shared().get_existing_session(local_realm_path);
-        if (session) {
-            JStringAccessor access_token(env, j_access_token);
-            JStringAccessor realm_url(env, j_sync_realm_url);
-
-            session->refresh_access_token(access_token, session->config().realm_url);
-            return JNI_TRUE;
-        }
-        else {
-            Log::d("no active/inactive session found");
-        }
-    }
-    CATCH_STD()
-    return JNI_FALSE;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jclass,
+JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jobject j_session_object,
                                                                             jstring j_local_realm_path,
                                                                             jlong listener_id, jint direction,
                                                                             jboolean is_streaming)
@@ -98,20 +72,21 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
             return 0;
         }
 
-        SyncSession::NotifierType type =
-            (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
+        SyncSession::NotifierType type = (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
 
-        static JavaClass java_syncmanager_class(env, "io/realm/SyncManager");
-        static JavaMethod java_notify_progress_listener(env, java_syncmanager_class, "notifyProgressListener", "(Ljava/lang/String;JJJ)V", true);
+        static JavaClass java_syncsession_class(env, "io/realm/SyncSession");
+        static JavaMethod java_notify_progress_listener(env, java_syncsession_class, "notifyProgressListener", "(JJJ)V");
 
-        std::function<SyncProgressNotifierCallback> callback = [local_realm_path, listener_id](
-            uint64_t transferred, uint64_t transferrable) {
+        auto session_ref = env->NewGlobalRef(j_session_object); // This leaks. FIXME
+        std::function<SyncProgressNotifierCallback> callback = [session_ref, local_realm_path, listener_id](uint64_t transferred, uint64_t transferrable) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
             JavaLocalRef<jstring> path(local_env, to_jstring(local_env, local_realm_path));
-            local_env->CallStaticVoidMethod(java_syncmanager_class, java_notify_progress_listener, path.get(),
-                                            listener_id, static_cast<jlong>(transferred),
-                                            static_cast<jlong>(transferrable));
+            local_env->CallVoidMethod(session_ref,
+                    java_notify_progress_listener,
+                    listener_id,
+                    static_cast<jlong>(transferred),
+                    static_cast<jlong>(transferrable));
 
             // All exceptions will be caught on the Java side of handlers, but Errors will still end
             // up here, so we need to do something sensible with them.
@@ -220,8 +195,6 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jc
 
         if (session) {
             switch (session->state()) {
-                case SyncSession::PublicState::WaitingForAccessToken:
-                    return io_realm_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN;
                 case SyncSession::PublicState::Active:
                     return io_realm_SyncSession_STATE_VALUE_ACTIVE;
                 case SyncSession::PublicState::Dying:
@@ -279,7 +252,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddConnectionListener(JN
             return 0;
         }
 
-        static JavaClass java_syncmanager_class(env, "io/realm/SyncManager");
+        static JavaClass java_syncmanager_class(env, "io/realm/RealmSync");
         static JavaMethod java_notify_connection_listener(env, java_syncmanager_class, "notifyConnectionListeners", "(Ljava/lang/String;JJ)V", true);
 
         std::function<SyncSession::ConnectionStateCallback > callback = [local_realm_path](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {
@@ -346,19 +319,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStop(JNIEnv* env, jclass,
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
         if (session) {
             session->log_out();
-        }
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeSetUrlPrefix(JNIEnv* env, jclass, jstring j_local_realm_path, jstring j_url_prefix)
-{
-    try {
-        JStringAccessor local_realm_path(env, j_local_realm_path);
-        auto session = SyncManager::shared().get_existing_session(local_realm_path);
-        if (session) {
-            JStringAccessor url_prefix(env, j_url_prefix);
-            session->set_url_prefix(url_prefix);
         }
     }
     CATCH_STD()

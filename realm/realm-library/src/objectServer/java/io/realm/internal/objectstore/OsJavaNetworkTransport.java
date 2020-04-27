@@ -17,23 +17,8 @@ package io.realm.internal.objectstore;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 
-import javax.annotation.Nullable;
-
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
-import io.realm.RealmApp;
-import io.realm.RealmAsyncTask;
 import io.realm.internal.Keep;
-import io.realm.internal.KeepMember;
-import io.realm.internal.NativeObject;
-import io.realm.internal.RealmNotifier;
-import io.realm.internal.android.AndroidCapabilities;
-import io.realm.internal.android.AndroidRealmNotifier;
-import io.realm.internal.async.RealmAsyncTaskImpl;
-import io.realm.log.RealmLog;
 
 /**
  * Java implementation of the transport layer exposed by ObjectStore when communicating with
@@ -46,6 +31,10 @@ public abstract class OsJavaNetworkTransport {
     public static final int ERROR_IO = 1000;
     public static final int ERROR_INTERRUPTED = 1001;
     public static final int ERROR_UNKNOWN = 1002;
+
+    // Header configuration
+    private String authorizationHeaderName;
+    private Map<String, String> customHeaders = new HashMap<>();
 
     /**
      * This method is being called from JNI in order to execute the network transport itself.
@@ -62,6 +51,31 @@ public abstract class OsJavaNetworkTransport {
      * @return Result of the request. All exceptions should also be wrapped in this.
      */
     protected abstract Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body);
+
+    public void setAuthorizationHeaderName(String headerName) {
+        authorizationHeaderName = headerName;
+    }
+
+    public void addCustomRequestHeader(String headerName, String headerValue) {
+        customHeaders.put(headerName, headerValue);
+    }
+
+    public String getAuthorizationHeaderName() {
+        return authorizationHeaderName;
+    }
+
+    public Map<String, String> getCustomRequestHeaders() {
+        return customHeaders;
+    }
+
+    /**
+     * Reset all configured headers to their default.
+     * Used for testing.
+     */
+    public void resetHeaders() {
+        authorizationHeaderName = "Authorization";
+        customHeaders.clear();
+    }
 
     public static class Response {
         private final int httpResponseCode;

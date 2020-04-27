@@ -16,6 +16,9 @@
 
 package io.realm.entities;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import io.realm.RealmList;
@@ -43,6 +46,8 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_BOOLEAN = "fieldBoolean";
     public static final String FIELD_DATE = "fieldDate";
     public static final String FIELD_BINARY = "fieldBinary";
+    public static final String FIELD_DECIMAL128 = "fieldDecimal128";
+    public static final String FIELD_OBJECT_ID = "fieldObjectId";
     public static final String FIELD_OBJECT = "fieldObject";
     public static final String FIELD_LIST = "fieldList";
 
@@ -56,6 +61,8 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_DOUBLE_LIST = "fieldDoubleList";
     public static final String FIELD_FLOAT_LIST = "fieldFloatList";
     public static final String FIELD_DATE_LIST = "fieldDateList";
+    public static final String FIELD_DECIMAL128_LIST = "fieldDecimal128List";
+    public static final String FIELD_OBJECT_ID_LIST = "fieldObjectIdList";
 
     public static final String FIELD_LO_OBJECT = "objectParents";
     public static final String FIELD_LO_LIST = "listParents";
@@ -86,6 +93,8 @@ public class AllJavaTypes extends RealmObject {
     private boolean fieldBoolean;
     private Date fieldDate;
     private byte[] fieldBinary;
+    private Decimal128 fieldDecimal128;
+    private ObjectId fieldObjectId;
     private AllJavaTypes fieldObject;
     private RealmList<AllJavaTypes> fieldList;
 
@@ -99,6 +108,8 @@ public class AllJavaTypes extends RealmObject {
     private RealmList<Double> fieldDoubleList;
     private RealmList<Float> fieldFloatList;
     private RealmList<Date> fieldDateList;
+    private RealmList<Decimal128> fieldDecimal128List;
+    private RealmList<ObjectId> fieldObjectIdList;
 
     @LinkingObjects(FIELD_OBJECT)
     private final RealmResults<AllJavaTypes> objectParents = null;
@@ -304,6 +315,38 @@ public class AllJavaTypes extends RealmObject {
 
     public void setFieldDateList(RealmList<Date> fieldDateList) {
         this.fieldDateList = fieldDateList;
+    }
+
+    public Decimal128 getFieldDecimal128() {
+        return fieldDecimal128;
+    }
+
+    public void setFieldDecimal128(Decimal128 fieldDecimal128) {
+        this.fieldDecimal128 = fieldDecimal128;
+    }
+
+    public ObjectId getFieldObjectId() {
+        return fieldObjectId;
+    }
+
+    public void setFieldObjectId(ObjectId fieldObjectId) {
+        this.fieldObjectId = fieldObjectId;
+    }
+
+    public RealmList<Decimal128> getFieldDecimal128List() {
+        return fieldDecimal128List;
+    }
+
+    public void setFieldDecimal128List(RealmList<Decimal128> fieldDecimal128List) {
+        this.fieldDecimal128List = fieldDecimal128List;
+    }
+
+    public RealmList<ObjectId> getFieldObjectIdList() {
+        return fieldObjectIdList;
+    }
+
+    public void setFieldObjectIdList(RealmList<ObjectId> fieldObjectIdList) {
+        this.fieldObjectIdList = fieldObjectIdList;
     }
 
     public RealmResults<AllJavaTypes> getObjectParents() {

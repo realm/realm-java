@@ -20,7 +20,6 @@ import android.content.Context;
 
 import java.lang.reflect.InvocationTargetException;
 
-import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
 
@@ -30,6 +29,8 @@ import io.realm.exceptions.RealmException;
  * This breaks the cyclic dependency between ObjectServer and Realm code.
  */
 public class ObjectServerFacade {
+
+    public final static int SYNC_CONFIG_OPTIONS = 14;
 
     private final static ObjectServerFacade nonSyncFacade = new ObjectServerFacade();
     private static ObjectServerFacade syncFacade = null;
@@ -66,7 +67,7 @@ public class ObjectServerFacade {
     }
 
     public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
-        return new Object[12];
+        return new Object[SYNC_CONFIG_OPTIONS];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -119,4 +120,5 @@ public class ObjectServerFacade {
     public void createNativeSyncSession(RealmConfiguration configuration) {
         // Do nothing
     }
+
 }

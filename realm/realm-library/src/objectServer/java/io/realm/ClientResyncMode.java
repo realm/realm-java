@@ -27,7 +27,7 @@ import io.realm.internal.OsRealmConfig;
  * <p>
  * <b>IMPORTANT:</b> Just having the device offline will not trigger a Client Resync.
  */
-public enum ClientResyncMode {
+enum ClientResyncMode {
 
     /**
      * Realm will compare the local Realm with the Realm on the server and automatically transfer

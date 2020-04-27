@@ -17,7 +17,6 @@ package io.realm.kotlin
 
 import io.realm.Realm
 import io.realm.SyncConfiguration
-import io.realm.SyncManager
 import io.realm.SyncSession
 
 
@@ -32,5 +31,7 @@ val Realm.syncSession: SyncSession
         if (!(this.configuration is SyncConfiguration)) {
             throw IllegalStateException("This method is only available on synchronized Realms")
         }
-        return SyncManager.getSession(this.configuration as SyncConfiguration)
+
+        val syncConfig = this.configuration as SyncConfiguration
+        return syncConfig.user.app.sync.getSession(syncConfig)
     }

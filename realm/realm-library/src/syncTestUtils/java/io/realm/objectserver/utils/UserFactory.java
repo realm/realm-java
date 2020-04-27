@@ -43,7 +43,6 @@ public class UserFactory {
     private String userName;
     private static UserFactory instance;
     private static RealmConfiguration configuration;
-    private static RealmApp app;
 
     // Run initializer here to make it possible to ensure that Realm.init has been called.
     // It is unpredictable when the static initializer is running
@@ -51,58 +50,11 @@ public class UserFactory {
         if (configuration == null || forceReset) {
             RealmConfiguration.Builder builder = new RealmConfiguration.Builder().name("user-factory.realm");
             configuration = builder.build();
-            app = new RealmApp(Constants.APP_ID);
         }
     }
 
     private UserFactory(String userName) {
         this.userName = userName;
-    }
-
-    public RealmUser loginWithDefaultUser() {
-        RealmCredentials credentials = RealmCredentials.emailPassword(userName, PASSWORD);
-        return app.login(credentials);
-    }
-
-    public static RealmUser createUniqueUser() {
-        String uniqueName = UUID.randomUUID().toString();
-        return createUser(uniqueName);
-    }
-
-    private static RealmUser createUser(String username) {
-        return null; // FIXME
-//        RealmCredentials credentials = RealmCredentials.emailPassword(username, PASSWORD, true);
-//        return app.login(credentials);
-    }
-
-    public RealmUser createDefaultUser() {
-        return null; // FIXME
-//        RealmCredentials credentials = RealmCredentials.emailPassword(userName, PASSWORD, true);
-//        return app.login(credentials);
-    }
-
-    public static RealmUser createAdminUser() {
-        return null; //FIXME
-//        // `admin` required as user identifier to be granted admin rights.
-//        // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
-//        RealmCredentials credentials = RealmCredentials.emailPassword("realm-admin", "", false);
-//        return app.login(credentials);
-    }
-
-    // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
-    // test case.
-    public static void resetInstance() {
-        initFactory(true);
-        Realm realm = Realm.getInstance(configuration);
-        UserFactoryStore store = realm.where(UserFactoryStore.class).findFirst();
-        realm.beginTransaction();
-        if (store == null) {
-            store = realm.createObject(UserFactoryStore.class);
-        }
-        store.setUserName(UUID.randomUUID().toString());
-        realm.commitTransaction();
-        realm.close();
-        instance = null;
     }
 
     // The @Before method will be called before the looper tests finished. We need to find a better place to call this.

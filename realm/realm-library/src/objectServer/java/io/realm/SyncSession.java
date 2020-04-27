@@ -24,17 +24,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.Nullable;
-
 import io.realm.internal.Keep;
-import io.realm.internal.android.AndroidCapabilities;
+import io.realm.internal.Util;
 import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
 
@@ -59,17 +55,11 @@ import io.realm.log.RealmLog;
  */
 @Keep
 public class SyncSession {
-    private final static ScheduledThreadPoolExecutor REFRESH_TOKENS_EXECUTOR = new ScheduledThreadPoolExecutor(1);
-    private final static long REFRESH_MARGIN_DELAY = TimeUnit.SECONDS.toMillis(10);
     private final static int DIRECTION_DOWNLOAD = 1;
     private final static int DIRECTION_UPLOAD = 2;
 
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
-    private RealmAsyncTask networkRequest;
-    private RealmAsyncTask refreshTokenTask;
-    private RealmAsyncTask refreshTokenNetworkRequest;
-    private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
     private volatile boolean isClosed = false;
     private final AtomicReference<WaitForSessionWrapper> waitingForServerChanges = new AtomicReference<>(null);
 
@@ -92,10 +82,9 @@ public class SyncSession {
     private final AtomicLong progressListenerId = new AtomicLong(-1);
 
     // represent different states as defined in SyncSession::PublicState 'sync_session.hpp'
-    private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 0;
-    private static final byte STATE_VALUE_ACTIVE = 1;
-    private static final byte STATE_VALUE_DYING = 2;
-    private static final byte STATE_VALUE_INACTIVE = 3;
+    private static final byte STATE_VALUE_ACTIVE = 0;
+    private static final byte STATE_VALUE_DYING = 1;
+    private static final byte STATE_VALUE_INACTIVE = 2;
 
     // List of Java connection change listeners
     private final CopyOnWriteArrayList<ConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
@@ -110,8 +99,6 @@ public class SyncSession {
     static final byte CONNECTION_VALUE_CONNECTING = 1;
     static final byte CONNECTION_VALUE_CONNECTED = 2;
 
-    private URI resolvedRealmURI;
-
     /**
      * Enum describing the states a SyncSession can be in. The initial state is
      * {@link State#INACTIVE}.
@@ -123,28 +110,16 @@ public class SyncSession {
 
         /**
          * This is the initial state. The session is closed. No data is being synchronized. The session
-         * will automatically transition to {@link #WAITING_FOR_ACCESS_TOKEN} when a Realm is opened.
+         * will automatically transition to {@link #ACTIVE} when a Realm is opened.
          */
         INACTIVE(STATE_VALUE_INACTIVE),
-
-        /**
-         * The user is attempting to synchronize data but needs a valid access token to do so. Realm
-         * will either use a cached token or automatically try to acquire one based on the current
-         * users login. This requires a network connection.
-         * <p>
-         * Data cannot be synchronized in this state.
-         * <p>
-         * Once a valid token is acquired, the session will transition to {@link #ACTIVE}.
-         */
-        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
 
         /**
          * The Realm is open and data will be synchronized between the device and the server
          * if the underlying connection is {@link ConnectionState#CONNECTED}.
          * <p>
-         * The session will remain in this state until either the current login expires or the Realm
-         * is closed. In the first case, the session will transition to {@link #WAITING_FOR_ACCESS_TOKEN},
-         * in the second case, it will become {@link #DYING}.
+         * The session will remain in this state until the Realm
+         * is closed. In which case it will become {@link #DYING}.
          */
         ACTIVE(STATE_VALUE_ACTIVE),
 
@@ -187,12 +162,12 @@ public class SyncSession {
     }
 
     /**
-     * Returns the {@link SyncUser} defined by the {@link SyncConfiguration} that is used to connect to the
-     * Realm Object Server.
+     * Returns the {@link RealmUser} defined by the {@link SyncConfiguration} that is used to connect to
+     * MongoDB Realm.
      *
-     * @return {@link SyncUser} used to authenticate the session on the Realm Object Server.
+     * @return {@link RealmUser} used to authenticate the session on MongoDB Realm.
      */
-    public SyncUser getUser() {
+    public RealmUser getUser() {
         return configuration.getUser();
     }
 
@@ -374,14 +349,8 @@ public class SyncSession {
     }
 
     private void checkProgressListenerArguments(ProgressMode mode, ProgressListener listener) {
-        //noinspection ConstantConditions
-        if (listener == null) {
-            throw new IllegalArgumentException("Non-null 'listener' required.");
-        }
-        //noinspection ConstantConditions
-        if (mode == null) {
-            throw new IllegalArgumentException("Non-null 'mode' required.");
-        }
+        Util.checkNull(listener, "listener");
+        Util.checkNull(mode, "mode");
     }
 
     /**
@@ -393,7 +362,7 @@ public class SyncSession {
      * @see ConnectionState
      */
     public synchronized void addConnectionChangeListener(ConnectionListener listener) {
-        checkNonNullListener(listener);
+        Util.checkNull(listener, "listener");
         if (connectionListeners.isEmpty()) {
             nativeConnectionListenerToken = nativeAddConnectionListener(configuration.getPath());
         }
@@ -407,7 +376,7 @@ public class SyncSession {
      * @throws IllegalArgumentException if the listener is {@code null}.
      */
     public synchronized void removeConnectionChangeListener(ConnectionListener listener) {
-        checkNonNullListener(listener);
+        Util.checkNull(listener, "listener");
         connectionListeners.remove(listener);
         if (connectionListeners.isEmpty()) {
             nativeRemoveConnectionListener(nativeConnectionListenerToken, configuration.getPath());
@@ -416,10 +385,6 @@ public class SyncSession {
 
     void close() {
         isClosed = true;
-        if (networkRequest != null) {
-            networkRequest.cancel();
-        }
-        clearScheduledAccessTokenRefresh();
     }
 
     // This method will be called once all changes have been downloaded or uploaded.
@@ -457,7 +422,7 @@ public class SyncSession {
      * @throws InterruptedException if the thread was interrupted while downloading was in progress.
      */
     public void downloadAllServerChanges() throws InterruptedException {
-        checkIfNotOnMainThread("downloadAllServerChanges() cannot be called from the main thread.");
+        Util.checkNotOnMainThread("downloadAllServerChanges() cannot be called from the main thread.");
 
         // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
         // an async listener there and let it callback to the Java Session when done. This feels icky at best, but
@@ -484,7 +449,7 @@ public class SyncSession {
      * @return {@code true} if the data was downloaded before the timeout. {@code false} if the operation timed out or otherwise failed.
      */
     public boolean downloadAllServerChanges(long timeout, TimeUnit unit) throws InterruptedException {
-        checkIfNotOnMainThread("downloadAllServerChanges() cannot be called from the main thread.");
+        Util.checkNotOnMainThread("downloadAllServerChanges() cannot be called from the main thread.");
         checkTimeout(timeout, unit);
 
         // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
@@ -510,7 +475,7 @@ public class SyncSession {
      * @throws InterruptedException if the thread was interrupted while downloading was in progress.
      */
     public void uploadAllLocalChanges() throws InterruptedException {
-        checkIfNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
+        Util.checkNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
 
         // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
         // an async listener there and let it callback to the Java Session when done. This feels icky at best, but
@@ -537,7 +502,7 @@ public class SyncSession {
      * @return {@code true} if the data was uploaded before the timeout. {@code false} if the operation timed out or otherwise failed.
      */
     public boolean uploadAllLocalChanges(long timeout, TimeUnit unit) throws InterruptedException {
-        checkIfNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
+        Util.checkNotOnMainThread("uploadAllLocalChanges() cannot be called from the main thread.");
         checkTimeout(timeout, unit);
 
         // Blocking only happens at the Java layer. To prevent deadlocking the underlying SyncSession we register
@@ -581,10 +546,6 @@ public class SyncSession {
     public synchronized void stop() {
         close();
         nativeStop(configuration.getPath());
-    }
-
-    void setResolvedRealmURI(URI resolvedRealmURI) {
-        this.resolvedRealmURI = resolvedRealmURI;
     }
 
     /**
@@ -642,12 +603,6 @@ public class SyncSession {
         return result;
     }
 
-    private void checkIfNotOnMainThread(String errorMessage) {
-        if (new AndroidCapabilities().isMainThread()) {
-            throw new IllegalStateException(errorMessage);
-        }
-    }
-
     private void checkTimeout(long timeout, TimeUnit unit) {
         if (timeout <= 0) {
             throw new IllegalArgumentException("'timeout' must be > 0. It was: " + timeout);
@@ -658,16 +613,10 @@ public class SyncSession {
         }
     }
 
-    private void checkNonNullListener(@Nullable Object listener) {
-        if (listener == null) {
-            throw new IllegalArgumentException("Non-null 'listener' required.");
-        }
-    }
-
     /**
      * Interface used to report any session errors.
      *
-     * @see SyncManager#setDefaultSessionErrorHandler(ErrorHandler)
+     * @see RealmSync#setDefaultSessionErrorHandler(ErrorHandler)
      * @see SyncConfiguration.Builder#errorHandler(ErrorHandler)
      */
     public interface ErrorHandler {
@@ -717,184 +666,6 @@ public class SyncSession {
          * @param error type of error.
          */
         void onError(SyncSession session, ObjectServerError error);
-    }
-
-//    // Return the access token for the Realm this Session is connected to.
-//    String getAccessToken(final RealmObjectServer authServer, String refreshToken) {
-//        // check first if there's a valid access_token we can return immediately
-//        if (getUser().isRealmAuthenticated(configuration)) {
-//            Token accessToken = getUser().getAccessToken(configuration);
-//            // start refreshing this token if a refresh is not going on
-//            if (!onGoingAccessTokenQuery.getAndSet(true)) {
-//                scheduleRefreshAccessToken(authServer, accessToken.expiresMs());
-//            }
-//            return accessToken.value();
-//
-//        } else {
-//            // check and update if we received a new refresh_token
-//            if (!Util.isEmptyString(refreshToken)) {
-//                try {
-//                    JSONObject refreshTokenJSON = new JSONObject(refreshToken);
-//                    Token newRefreshToken = Token.from(refreshTokenJSON.getJSONObject("userToken"));
-//                    if (newRefreshToken.hashCode() != getUser().getRefreshToken().hashCode()) {
-//                        RealmLog.debug("Session[%s]: Access token updated", configuration.getPath());
-//                        getUser().setRefreshToken(newRefreshToken);
-//                    }
-//                } catch (JSONException e) {
-//                    RealmLog.error(e, "Session[%s]: Can not parse the refresh_token into a valid JSONObject: ", configuration.getPath());
-//                }
-//            }
-//            if (!onGoingAccessTokenQuery.get() && NetworkStateReceiver.isOnline(SyncObjectServerFacade.getApplicationContext())) {
-//                authenticateRealm(authServer);
-//            }
-//        }
-//        return null;
-//    }
-//
-//    // Authenticate by getting access tokens for the specific Realm
-//    private void authenticateRealm(final RealmObjectServer authServer) {
-//        if (networkRequest != null) {
-//            networkRequest.cancel();
-//        }
-//        clearScheduledAccessTokenRefresh();
-//
-//        onGoingAccessTokenQuery.set(true);
-//        // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
-//        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
-//            @Override
-//            protected AuthenticateResponse execute() {
-//                if (!isClosed && !Thread.currentThread().isInterrupted()) {
-//                    return authServer.loginToRealm(
-//                            getUser().getRefreshToken(), //refresh token in fact
-//                            resolvedRealmURI,
-//                            getUser().getAuthenticationUrl()
-//                    );
-//                }
-//                return null;
-//            }
-//
-//            @Override
-//            protected void onSuccess(AuthenticateResponse response) {
-//                RealmLog.debug("Session[%s]: Access token acquired", configuration.getPath());
-//                if (!isClosed && !Thread.currentThread().isInterrupted()) {
-//                    URI realmUrl = configuration.getServerUrl();
-//                    getUser().addRealm(configuration, response.getAccessToken());
-//                    if (nativeRefreshAccessToken(configuration.getPath(), response.getAccessToken().value(), realmUrl.toString())) {
-//                        scheduleRefreshAccessToken(authServer, response.getAccessToken().expiresMs());
-//
-//                    } else {
-//                        // token not applied, no refresh will be scheduled
-//                        onGoingAccessTokenQuery.set(false);
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            protected void onError(AuthenticateResponse response) {
-//                onGoingAccessTokenQuery.set(false);
-//                RealmLog.debug("Session[%s]: Failed to get access token (%s)", configuration.getPath(),
-//                        response.getError().getErrorCode());
-//                if (!isClosed
-//                        && !Thread.currentThread().isInterrupted()
-//                        // We might be interrupted while negotiating an access token with the Realm Object Server
-//                        // This will result in a InterruptedIOException from OkHttp. We should ignore this as
-//                        // well.
-//                        && !(response.getError().getException() instanceof InterruptedIOException)) {
-//                    errorHandler.onError(SyncSession.this, response.getError());
-//                }
-//            }
-//        });
-//        networkRequest = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
-//    }
-//
-//    private void scheduleRefreshAccessToken(final RealmObjectServer authServer, long expireDateInMs) {
-//        onGoingAccessTokenQuery.set(true);
-//        // calculate the delay time before which we should refresh the access_token,
-//        // we adjust to 10 second to proactively refresh the access_token before the session
-//        // hit the expire date on the token
-//        long refreshAfter =  expireDateInMs - System.currentTimeMillis() - REFRESH_MARGIN_DELAY;
-//        if (refreshAfter < 0) {
-//            // Token already expired
-//            RealmLog.debug("Expires time already reached for the access token, refresh as soon as possible");
-//            // we avoid refreshing directly to avoid an edge case where the client clock is ahead
-//            // of the server, causing all access_token received from the server to be always
-//            // expired, we will flood the server with refresh token requests then, so adding
-//            // a bit of delay is the best effort in this case.
-//            refreshAfter = REFRESH_MARGIN_DELAY;
-//        }
-//
-//        RealmLog.debug("Scheduling an access_token refresh in " + (refreshAfter) + " milliseconds");
-//
-//        if (refreshTokenTask != null) {
-//            refreshTokenTask.cancel();
-//        }
-//
-//        ScheduledFuture<?> task = REFRESH_TOKENS_EXECUTOR.schedule(new Runnable() {
-//            @Override
-//            public void run() {
-//                if (!isClosed && !Thread.currentThread().isInterrupted() && !refreshTokenTask.isCancelled()) {
-//                    refreshAccessToken(authServer);
-//                }
-//            }
-//        }, refreshAfter, TimeUnit.MILLISECONDS);
-//        refreshTokenTask = new RealmAsyncTaskImpl(task, REFRESH_TOKENS_EXECUTOR);
-//    }
-//
-//    // Authenticate by getting access tokens for the specific Realm
-//    private void refreshAccessToken(final RealmObjectServer authServer) {
-//        // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
-//        clearScheduledAccessTokenRefresh();
-//
-//        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
-//            @Override
-//            protected AuthenticateResponse execute() {
-//                if (!isClosed && !Thread.currentThread().isInterrupted()) {
-//                    return authServer.refreshUser(getUser().getRefreshToken(), resolvedRealmURI, getUser().getAuthenticationUrl());
-//                }
-//                return null;
-//            }
-//
-//            @Override
-//            protected void onSuccess(AuthenticateResponse response) {
-//                synchronized (SyncSession.this) {
-//                    if (!isClosed && !Thread.currentThread().isInterrupted() && !refreshTokenNetworkRequest.isCancelled()) {
-//                        RealmLog.debug("Access Token refreshed successfully, Sync URL: " + configuration.getServerUrl());
-//
-//                        SyncWorker syncWorker = response.getSyncWorker();
-//                        if (syncWorker != null) {
-//                            nativeSetUrlPrefix(configuration.getPath(), syncWorker.path());
-//                        }
-//
-//                        URI realmUrl = configuration.getServerUrl();
-//                        if (nativeRefreshAccessToken(configuration.getPath(), response.getAccessToken().value(), realmUrl.toString())) {
-//                            // replace the user old access_token
-//                            getUser().addRealm(configuration, response.getAccessToken());
-//                            // schedule the next refresh
-//                            scheduleRefreshAccessToken(authServer, response.getAccessToken().expiresMs());
-//                        }
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            protected void onError(AuthenticateResponse response) {
-//                if (!isClosed && !Thread.currentThread().isInterrupted()) {
-//                    onGoingAccessTokenQuery.set(false);
-//                    RealmLog.error("Unrecoverable error, while refreshing the access Token (" + response.getError().toString() + ") reschedule will not happen");
-//                }
-//            }
-//        });
-//        refreshTokenNetworkRequest = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
-//    }
-
-    void clearScheduledAccessTokenRefresh() {
-        if (refreshTokenTask != null) {
-            refreshTokenTask.cancel();
-        }
-        if (refreshTokenNetworkRequest != null) {
-            refreshTokenNetworkRequest.cancel();
-        }
-        onGoingAccessTokenQuery.set(false);
     }
 
     // Wrapper class for handling the async operations of the underlying SyncSession calling
@@ -948,14 +719,12 @@ public class SyncSession {
 
     private static native long nativeAddConnectionListener(String localRealmPath);
     private static native void nativeRemoveConnectionListener(long listenerId, String localRealmPath);
-    private static native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
+    private native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
-    private static native boolean nativeRefreshAccessToken(String localRealmPath, String accessToken, String realmUrl);
     private native boolean nativeWaitForDownloadCompletion(int callbackId, String localRealmPath);
     private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
     private static native byte nativeGetState(String localRealmPath);
     private static native byte nativeGetConnectionState(String localRealmPath);
     private static native void nativeStart(String localRealmPath);
     private static native void nativeStop(String localRealmPath);
-    private static native void nativeSetUrlPrefix(String localRealmPath, String urlPrefix);
 }

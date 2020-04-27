@@ -4,21 +4,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.Nullable;
-
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
-import io.realm.RealmApp;
-import io.realm.RealmAsyncTask;
-import io.realm.SyncManager;
-import io.realm.internal.RealmNotifier;
-import io.realm.internal.android.AndroidCapabilities;
-import io.realm.internal.android.AndroidRealmNotifier;
-import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;

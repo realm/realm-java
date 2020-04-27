@@ -31,39 +31,48 @@ object OsObjectBuilderTypeHelper {
     init {
         // Map of qualified types to their OsObjectBuilder Type
         val fieldTypes = HashMap<QualifiedClassName, String>()
-        fieldTypes[QualifiedClassName("byte")] = "Integer"
-        fieldTypes[QualifiedClassName("short")] = "Integer"
-        fieldTypes[QualifiedClassName("int")] = "Integer"
-        fieldTypes[QualifiedClassName("long")] = "Integer"
-        fieldTypes[QualifiedClassName("float")] = "Float"
-        fieldTypes[QualifiedClassName("double")] = "Double"
-        fieldTypes[QualifiedClassName("boolean")] = "Boolean"
-        fieldTypes[QualifiedClassName("byte[]")] = "ByteArray"
-        fieldTypes[QualifiedClassName("java.lang.Byte")] = "Integer"
-        fieldTypes[QualifiedClassName("java.lang.Short")] = "Integer"
-        fieldTypes[QualifiedClassName("java.lang.Integer")] = "Integer"
-        fieldTypes[QualifiedClassName("java.lang.Long")] = "Integer"
-        fieldTypes[QualifiedClassName("java.lang.Float")] = "Float"
-        fieldTypes[QualifiedClassName("java.lang.Double")] = "Double"
-        fieldTypes[QualifiedClassName("java.lang.Boolean")] = "Boolean"
-        fieldTypes[QualifiedClassName("java.lang.String")] = "String"
-        fieldTypes[QualifiedClassName("java.util.Date")] = "Date"
-        fieldTypes[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmInteger"
+        fieldTypes.apply { 
+            this[QualifiedClassName("byte")] = "Integer"
+            this[QualifiedClassName("byte")] = "Integer"
+            this[QualifiedClassName("short")] = "Integer"
+            this[QualifiedClassName("int")] = "Integer"
+            this[QualifiedClassName("long")] = "Integer"
+            this[QualifiedClassName("float")] = "Float"
+            this[QualifiedClassName("double")] = "Double"
+            this[QualifiedClassName("boolean")] = "Boolean"
+            this[QualifiedClassName("byte[]")] = "ByteArray"
+            this[QualifiedClassName("java.lang.Byte")] = "Integer"
+            this[QualifiedClassName("java.lang.Short")] = "Integer"
+            this[QualifiedClassName("java.lang.Integer")] = "Integer"
+            this[QualifiedClassName("java.lang.Long")] = "Integer"
+            this[QualifiedClassName("java.lang.Float")] = "Float"
+            this[QualifiedClassName("java.lang.Double")] = "Double"
+            this[QualifiedClassName("java.lang.Boolean")] = "Boolean"
+            this[QualifiedClassName("java.lang.String")] = "String"
+            this[QualifiedClassName("java.util.Date")] = "Date"
+            this[QualifiedClassName("org.bson.types.Decimal128")] = "Decimal128"
+            this[QualifiedClassName("org.bson.types.ObjectId")] = "ObjectId"
+            this[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmInteger"
+        }
         QUALIFIED_TYPE_TO_BUILDER = Collections.unmodifiableMap(fieldTypes)
 
         // Map of qualified types to their OsObjectBuilder Type
         val listTypes = HashMap<QualifiedClassName, String>()
-        listTypes[QualifiedClassName("byte[]")] = "ByteArrayList"
-        listTypes[QualifiedClassName("java.lang.Byte")] = "ByteList"
-        listTypes[QualifiedClassName("java.lang.Short")] = "ShortList"
-        listTypes[QualifiedClassName("java.lang.Integer")] = "IntegerList"
-        listTypes[QualifiedClassName("java.lang.Long")] = "LongList"
-        listTypes[QualifiedClassName("java.lang.Float")] = "FloatList"
-        listTypes[QualifiedClassName("java.lang.Double")] = "DoubleList"
-        listTypes[QualifiedClassName("java.lang.Boolean")] = "BooleanList"
-        listTypes[QualifiedClassName("java.lang.String")] = "StringList"
-        listTypes[QualifiedClassName("java.util.Date")] = "DateList"
-        listTypes[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmIntegerList"
+        listTypes.apply {
+            this[QualifiedClassName("byte[]")] = "ByteArrayList"
+            this[QualifiedClassName("java.lang.Byte")] = "ByteList"
+            this[QualifiedClassName("java.lang.Short")] = "ShortList"
+            this[QualifiedClassName("java.lang.Integer")] = "IntegerList"
+            this[QualifiedClassName("java.lang.Long")] = "LongList"
+            this[QualifiedClassName("java.lang.Float")] = "FloatList"
+            this[QualifiedClassName("java.lang.Double")] = "DoubleList"
+            this[QualifiedClassName("java.lang.Boolean")] = "BooleanList"
+            this[QualifiedClassName("java.lang.String")] = "StringList"
+            this[QualifiedClassName("java.util.Date")] = "DateList"
+            this[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmIntegerList"
+            this[QualifiedClassName("org.bson.types.Decimal128")] = "Decimal128List"
+            this[QualifiedClassName("org.bson.types.ObjectId")] = "ObjectIdList"
+        }
         QUALIFIED_LIST_TYPE_TO_BUILDER = Collections.unmodifiableMap(listTypes)
     }
 

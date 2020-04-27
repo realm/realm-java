@@ -41,3 +41,20 @@ jbyteArray JavaClassGlobalDef::new_byte_array(JNIEnv* env, const BinaryData& bin
     env->SetByteArrayRegion(ret, 0, size, reinterpret_cast<const jbyte*>(binary_data.data()));
     return ret;
 }
+
+
+jobject JavaClassGlobalDef::new_decimal128(JNIEnv* env, const Decimal128& decimal128)
+{
+    if (decimal128.is_null()) {
+        return nullptr;
+    }
+    static jni_util::JavaMethod fromIEEE754BIDEncoding(env, instance()->m_bson_decimal128, "fromIEEE754BIDEncoding", "(JJ)Lorg/bson/types/Decimal128;", true);
+    const Decimal128::Bid128* raw = decimal128.raw();
+    return env->CallStaticObjectMethod(instance()->m_bson_decimal128, fromIEEE754BIDEncoding, static_cast<jlong>(raw->w[1]), static_cast<jlong>(raw->w[0]));
+}
+
+jobject JavaClassGlobalDef::new_object_id(JNIEnv* env, const ObjectId& objectId)
+{
+    static jni_util::JavaMethod init(env, instance()->m_bson_object_id, "<init>", "(Ljava/lang/String;)V");
+    return env->NewObject(instance()->m_bson_object_id, init, to_jstring(env, objectId.to_string().data()));
+}

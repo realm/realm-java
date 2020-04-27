@@ -28,6 +28,8 @@
 #include "object_accessor.hpp"
 #include "object-store/src/property.hpp"
 
+#include <realm/decimal128.hpp>
+#include <realm/object_id.hpp>
 #include <realm/util/any.hpp>
 
 using namespace realm::_impl;
@@ -518,6 +520,19 @@ template <>
 inline Timestamp JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? v.get_date() : Timestamp();
+}
+
+template <>
+inline Decimal128 JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? v.get_decimal128() : Decimal128();
+}
+
+
+template <>
+inline ObjectId JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? v.get_object_id() : ObjectId();
 }
 
 template <>
