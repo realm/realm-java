@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import io.realm.internal.Util;
+import io.realm.internal.jni.OsJNIResultCallback;
+import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 
 /**
@@ -72,7 +74,7 @@ public class ApiKeyAuthProvider {
         Util.checkEmpty(name, "name");
         AtomicReference<RealmUserApiKey> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        RealmApp.OsJNIResultCallback<RealmUserApiKey> callback = new RealmApp.OsJNIResultCallback<RealmUserApiKey>(success, error) {
+        OsJNIResultCallback<RealmUserApiKey> callback = new OsJNIResultCallback<RealmUserApiKey>(success, error) {
             @Override
             protected RealmUserApiKey mapSuccess(Object result) {
                 return createKeyFromNative((Object[]) result);
@@ -114,7 +116,7 @@ public class ApiKeyAuthProvider {
         Util.checkNull(id, "id");
         AtomicReference<RealmUserApiKey> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_FETCH_SINGLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new RealmApp.OsJNIResultCallback<RealmUserApiKey>(success, error) {
+        nativeCallFunction(TYPE_FETCH_SINGLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIResultCallback<RealmUserApiKey>(success, error) {
             @Override
             protected RealmUserApiKey mapSuccess(Object result) {
                 return createKeyFromNative((Object[]) result);
@@ -149,7 +151,7 @@ public class ApiKeyAuthProvider {
     public List<RealmUserApiKey> fetchAllApiKeys() throws ObjectServerError {
         AtomicReference<List<RealmUserApiKey>> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_FETCH_ALL, user.getApp().nativePtr, user.osUser.getNativePtr(), null, new RealmApp.OsJNIResultCallback<List<RealmUserApiKey>>(success, error) {
+        nativeCallFunction(TYPE_FETCH_ALL, user.getApp().nativePtr, user.osUser.getNativePtr(), null, new OsJNIResultCallback<List<RealmUserApiKey>>(success, error) {
             @Override
             protected List<RealmUserApiKey> mapSuccess(Object result) {
                 Object[] keyData = (Object[]) result;
@@ -190,7 +192,7 @@ public class ApiKeyAuthProvider {
     public void deleteApiKey(ObjectId id) throws ObjectServerError {
         Util.checkNull(id, "id");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_DELETE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new RealmApp.OsJNIVoidResultCallback(error));
+        nativeCallFunction(TYPE_DELETE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIVoidResultCallback(error));
         RealmApp.handleResult(null, error);
     }
 
@@ -222,7 +224,7 @@ public class ApiKeyAuthProvider {
     public void disableApiKey(ObjectId id) throws ObjectServerError {
         Util.checkNull(id, "id");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_DISABLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new RealmApp.OsJNIVoidResultCallback(error));
+        nativeCallFunction(TYPE_DISABLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIVoidResultCallback(error));
         RealmApp.handleResult(null, error);
     }
 
@@ -254,7 +256,7 @@ public class ApiKeyAuthProvider {
     public void enableApiKey(ObjectId id) throws ObjectServerError {
         Util.checkNull(id, "id");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_ENABLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new RealmApp.OsJNIVoidResultCallback(error));
+        nativeCallFunction(TYPE_ENABLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIVoidResultCallback(error));
         RealmApp.handleResult(null, error);
     }
 

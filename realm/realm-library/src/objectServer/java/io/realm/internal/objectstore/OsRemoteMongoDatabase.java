@@ -16,32 +16,44 @@
 
 package io.realm.internal.objectstore;
 
-import org.bson.Document;
-
-import io.realm.mongodb.RemoteMongoCollection;
+import io.realm.internal.NativeObject;
 
 /**
  * TODO
  */
-public class OsRemoteMongoDatabase {
+public class OsRemoteMongoDatabase implements NativeObject {
 
-    private final long nativeDatabasePtr;
+    private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
+
+    private final long nativePtr;
 
     public OsRemoteMongoDatabase(long nativeDatabasePtr) {
-        this.nativeDatabasePtr = nativeDatabasePtr;
+        this.nativePtr = nativeDatabasePtr;
     }
 
-    public RemoteMongoCollection<Document> getCollection(String collectionName) {
-        throw new RuntimeException("Not implemented");
+    public OsRemoteMongoCollection getCollection(String collectionName) {
+        long nativeCollectionPtr = nativeGetCollection(nativePtr, collectionName);
+        return new OsRemoteMongoCollection(nativeCollectionPtr);
     }
 
-    public <DocumentT> RemoteMongoCollection<DocumentT> getCollection(
-            final String collectionName,
-            final Class<DocumentT> documentClass
-    ) {
-        throw new RuntimeException("Not implemented");
+    // TODO: what about this one?
+//    public <DocumentT> RemoteMongoCollection<DocumentT> getCollection(
+//            final String collectionName,
+//            final Class<DocumentT> documentClass
+//    ) {
+//        throw new RuntimeException("Not implemented");
+//    }
+
+    @Override
+    public long getNativePtr() {
+        return nativePtr;
     }
 
-    private static native long nativeGetCollection(long nativeDatabasePtr);
+    @Override
+    public long getNativeFinalizerPtr() {
+        return nativeFinalizerPtr;
+    }
+
+    private static native long nativeGetCollection(long nativeDatabasePtr, String collectionName);
     private static native long nativeGetFinalizerMethodPtr();
 }

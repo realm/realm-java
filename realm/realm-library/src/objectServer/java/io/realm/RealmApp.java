@@ -26,13 +26,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.internal.Keep;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.async.RealmThreadPoolExecutor;
+import io.realm.internal.jni.OsJNIResultCallback;
+import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
@@ -514,57 +515,57 @@ public class RealmApp {
         }
     }
 
-    // Common callback for handling callbacks from the ObjectStore layer.
-    // NOTE: This class is called from JNI. If renamed, adjust callbacks in RealmApp.cpp
-    @Keep
-    static class OsJNIVoidResultCallback extends OsJNIResultCallback {
+//    // Common callback for handling callbacks from the ObjectStore layer.
+//    // NOTE: This class is called from JNI. If renamed, adjust callbacks in RealmApp.cpp
+//    @Keep
+//    static class OsJNIVoidResultCallback extends OsJNIResultCallback {
+//
+//        public OsJNIVoidResultCallback(AtomicReference error) {
+//            super(null, error);
+//        }
+//
+//        @Override
+//        protected Void mapSuccess(Object result) {
+//            return null;
+//        }
+//    }
 
-        public OsJNIVoidResultCallback(AtomicReference error) {
-            super(null, error);
-        }
-
-        @Override
-        protected Void mapSuccess(Object result) {
-            return null;
-        }
-    }
-
-    // Common callback for handling results from the ObjectStore layer.
-    // NOTE: This class is called from JNI. If renamed, adjust callbacks in RealmApp.cpp
-    @Keep
-    static abstract class OsJNIResultCallback<T> extends OsJavaNetworkTransport.NetworkTransportJNIResultCallback {
-
-        private final AtomicReference<T> success;
-        private final AtomicReference<ObjectServerError> error;
-
-        public OsJNIResultCallback(@Nullable AtomicReference<T> success, AtomicReference<ObjectServerError> error) {
-            this.success = success;
-            this.error = error;
-        }
-
-        @Override
-        public void onSuccess(Object result) {
-            T mappedResult = mapSuccess(result);
-            if (success != null) {
-                success.set(mappedResult);
-            }
-        }
-
-        // Must map the underlying success Object to the appropriate type in Java
-        protected abstract T mapSuccess(Object result);
-
-        @Override
-        public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
-            ErrorCode code = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
-            if (code == ErrorCode.UNKNOWN) {
-                // In case of UNKNOWN errors parse as much error information on as possible.
-                String detailedErrorMessage = String.format("{%s::%s} %s", nativeErrorCategory, nativeErrorCode, errorMessage);
-                error.set(new ObjectServerError(code, detailedErrorMessage));
-            } else {
-                error.set(new ObjectServerError(code, errorMessage));
-            }
-        }
-    }
+//    // Common callback for handling results from the ObjectStore layer.
+//    // NOTE: This class is called from JNI. If renamed, adjust callbacks in RealmApp.cpp
+//    @Keep
+//    static abstract class OsJNIResultCallback<T> extends OsJavaNetworkTransport.NetworkTransportJNIResultCallback {
+//
+//        private final AtomicReference<T> success;
+//        private final AtomicReference<ObjectServerError> error;
+//
+//        public OsJNIResultCallback(@Nullable AtomicReference<T> success, AtomicReference<ObjectServerError> error) {
+//            this.success = success;
+//            this.error = error;
+//        }
+//
+//        @Override
+//        public void onSuccess(Object result) {
+//            T mappedResult = mapSuccess(result);
+//            if (success != null) {
+//                success.set(mappedResult);
+//            }
+//        }
+//
+//        // Must map the underlying success Object to the appropriate type in Java
+//        protected abstract T mapSuccess(Object result);
+//
+//        @Override
+//        public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
+//            ErrorCode code = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
+//            if (code == ErrorCode.UNKNOWN) {
+//                // In case of UNKNOWN errors parse as much error information on as possible.
+//                String detailedErrorMessage = String.format("{%s::%s} %s", nativeErrorCategory, nativeErrorCode, errorMessage);
+//                error.set(new ObjectServerError(code, detailedErrorMessage));
+//            } else {
+//                error.set(new ObjectServerError(code, errorMessage));
+//            }
+//        }
+//    }
 
     // Class wrapping requests made against MongoDB Realm. Is also responsible for calling with success/error on the
     // correct thread.

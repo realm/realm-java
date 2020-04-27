@@ -18,11 +18,13 @@ package io.realm.mongodb;
 
 import com.google.android.gms.tasks.Task;
 
+import org.bson.BsonDocument;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 
 import java.util.List;
 
+import io.realm.internal.objectstore.OsRemoteMongoCollection;
 import io.realm.mongodb.remote.RemoteCountOptions;
 import io.realm.mongodb.remote.RemoteFindOneAndModifyOptions;
 import io.realm.mongodb.remote.RemoteUpdateOptions;
@@ -56,6 +58,12 @@ import io.realm.mongodb.remote.internal.find.RemoteFindIterable;
  * MongoDB Atlas Overview with Stitch</a>
  */
 public class RemoteMongoCollection<DocumentT> {
+
+    private OsRemoteMongoCollection osRemoteMongoCollection;
+
+    public RemoteMongoCollection(OsRemoteMongoCollection osRemoteMongoCollection) {
+        this.osRemoteMongoCollection = osRemoteMongoCollection;
+    }
 
     /**
      * Gets the namespace of this collection, i.e. the database and collection names together.
@@ -130,6 +138,8 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the number of documents in the collection
      */
     Task<Long> count(final Bson filter) {
+        BsonDocument bsonDocument = filter.toBsonDocument(null, null);
+        osRemoteMongoCollection.count(bsonDocument.toJson());
         throw new RuntimeException("Not Implemented");
     }
 

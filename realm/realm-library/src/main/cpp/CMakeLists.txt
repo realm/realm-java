@@ -103,6 +103,7 @@ if (build_SYNC)
         io.realm.internal.objectstore.OsSyncUser
         io.realm.internal.objectstore.OsRemoteMongoClient
         io.realm.internal.objectstore.OsRemoteMongoDatabase
+        io.realm.internal.objectstore.OsRemoteMongoCollection
     )
 endif()
 create_javah(TARGET jni_headers
@@ -195,6 +196,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoClient.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoDatabase.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoCollection.cpp
     )
 endif()
 
