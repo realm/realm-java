@@ -55,7 +55,6 @@ public class OsRemoteMongoCollection implements NativeObject {
 //                filter);
     }
 
-    private static native long nativeCreate();
     private static native long nativeGetFinalizerMethodPtr();
     private static native void nativeCount(long remoteMongoCollectionPtr,
                                            OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback,
