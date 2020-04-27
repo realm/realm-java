@@ -68,13 +68,16 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     }
 
     // Smoke test for Sync
-    @Ignore("Dev Mode doesn't work fully yet on the server")
     @Test
     fun roundTripObjectsNotInServerSchemaObject() {
         // User 1 creates an object an uploads it to MongoDB Realm
         val user1: RealmUser = createNewUser()
-        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+        val config1: SyncConfiguration = createCustomConfig(user1, partitionValue)
         realm = Realm.getInstance(config1)
+
+        // FIXME: Work-around for https://jira.mongodb.org/browse/REALMC-5423
+        realm.syncSession.uploadAllLocalChanges()
+
         realm.executeTransaction {
             for (i in 1..10) {
                 it.insert(SyncColor())
@@ -86,9 +89,10 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
 
         // User 2 logs and using the same partition key should see the object
         val user2: RealmUser = createNewUser()
-        val config2 = createDefaultConfig(user2, partitionValue)
+        val config2 = createCustomConfig(user2, partitionValue)
         realm = Realm.getInstance(config2)
-        app.syncManager.getSession(config2).downloadAllServerChanges()
+        realm.syncSession.downloadAllServerChanges()
+        realm.refresh()
         assertEquals(10, realm.where<SyncColor>().count())
     }
 
@@ -122,6 +126,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         val config2 = createDefaultConfig(user2, partitionValue)
         realm = Realm.getInstance(config2)
         realm.syncSession.downloadAllServerChanges()
+        realm.refresh()
         assertEquals(10, realm.where<SyncDog>().count())
         assertEquals(1, realm.where<SyncPerson>().count())
     }
@@ -159,6 +164,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         val config2 = createDefaultConfig(user2, partitionValue)
         realm = Realm.getInstance(config2)
         realm.syncSession.downloadAllServerChanges()
+        realm.refresh()
         assertEquals(10, realm.where<SyncDog>().count())
         assertEquals(1, realm.where<SyncPerson>().count())
     }
@@ -174,8 +180,13 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
 
     private fun createDefaultConfig(user: RealmUser, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
-                .waitForInitialRemoteData() // FIXME: This should not be required
                 .modules(DefaultSyncSchema())
+                .build()
+    }
+
+    private fun createCustomConfig(user: RealmUser, partitionValue: String = defaultPartitionValue): SyncConfiguration {
+        return SyncConfiguration.Builder(user, partitionValue)
+                .schema(SyncColor::class.java)
                 .build()
     }
 

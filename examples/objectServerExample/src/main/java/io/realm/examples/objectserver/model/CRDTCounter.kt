@@ -18,15 +18,20 @@ package io.realm.examples.objectserver.model
 import io.realm.MutableRealmInteger
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
-import io.realm.annotations.Required
+import io.realm.annotations.RealmField
+import org.bson.types.ObjectId
 
-open class CRDTCounter : RealmObject() {
+open class CRDTCounter(userId: String) : RealmObject() {
+
+    // Required by Realm
+    constructor() : this("unknown")
 
     @PrimaryKey
-    var name: String = ""
-
-    @Required
-    private val counter = MutableRealmInteger.valueOf(0L)
+    @RealmField("_id")
+    var id: ObjectId = ObjectId.get()
+    @RealmField(name = "realm_id")
+    private var realmId: String = userId
+    private val counter: MutableRealmInteger = MutableRealmInteger.valueOf(0L)
 
     val count: Long
         get() = this.counter.get()!!.toLong()

@@ -37,18 +37,16 @@ android {
         // It will look something like "https://test.us1.cloud.realm.io"
         //
         // If you're running a self-hosted version, use the hostname/IP address of the Realm Object
-        // Server, e.g "http://127.0.0.1:9080".
-        def rosUrl = "<INSERT_REALM_OBJECT_SERVER_URL>"
-        def realmAuthUrl = "\"${rosUrl}/auth\""
-        def realmUrl = "\"${rosUrl.replace("http", "realm")}/default\""
-
+        // Server, e.g "http://127.0.0.1:9090".
+        def mongodbRealmUrl = "http://localhost:9090"
+        def appId = "realm-sdk-integration-tests-dsnyj"
         debug {
-            buildConfigField "String", "REALM_AUTH_URL", "${realmAuthUrl}"
-            buildConfigField "String", "REALM_URL", "${realmUrl}"
+            buildConfigField "String", "MONGODB_REALM_URL", "\"${mongodbRealmUrl}\""
+            buildConfigField "String", "MONGODB_REALM_APP_ID", "\"${appId}\""
         }
         release {
-            buildConfigField "String", "REALM_AUTH_URL", "${realmAuthUrl}"
-            buildConfigField "String", "REALM_URL", "${realmUrl}"
+            buildConfigField "String", "MONGODB_REALM_URL", "\"${mongodbRealmUrl}\""
+            buildConfigField "String", "MONGODB_REALM_APP_ID", "\"${appId}\""
             minifyEnabled true
             signingConfig signingConfigs.debug
         }

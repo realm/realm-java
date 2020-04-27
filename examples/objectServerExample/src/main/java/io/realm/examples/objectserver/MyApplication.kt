@@ -20,17 +20,27 @@ import android.app.Application
 import android.util.Log
 
 import io.realm.Realm
+import io.realm.RealmApp
+import io.realm.RealmAppConfiguration
+import io.realm.log.LogLevel
 import io.realm.log.RealmLog
+
+lateinit var APP: RealmApp
 
 class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        Realm.init(this, "ObjectServerExample/" + BuildConfig.VERSION_NAME)
+        Realm.init(this)
+        APP = RealmApp(RealmAppConfiguration.Builder(BuildConfig.MONGODB_REALM_APP_ID)
+                .baseUrl(BuildConfig.MONGODB_REALM_URL)
+                .appName(BuildConfig.VERSION_NAME)
+                .appVersion(BuildConfig.VERSION_CODE.toString())
+                .build())
 
-        // Enable more
+        // Enable more logging in debug mode
         if (BuildConfig.DEBUG) {
-            RealmLog.setLevel(Log.DEBUG)
+            RealmLog.setLevel(LogLevel.ALL)
         }
     }
 }

@@ -13,5 +13,5 @@ include 'rxJavaExample'
 // FIXME include 'secureTokenAndroidKeyStore'
 include 'threadExample'
 // FIXME include 'unitTestExample' Disable project because fixing it requires AndroidX
-// FIXME include 'objectServerExample'
+include 'objectServerExample'
 include 'multiprocessExample'
