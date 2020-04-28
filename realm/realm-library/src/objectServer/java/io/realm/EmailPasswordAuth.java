@@ -19,6 +19,7 @@ import org.json.JSONArray;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.internal.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
@@ -65,7 +66,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 email, password);
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -106,7 +107,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 token, tokenId);
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -142,7 +143,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 email);
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -177,7 +178,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 email);
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -221,7 +222,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 email, newPassword, array.toString());
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -265,7 +266,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 token, tokenId, newPassword);
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**

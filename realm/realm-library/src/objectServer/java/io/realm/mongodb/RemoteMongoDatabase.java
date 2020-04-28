@@ -42,7 +42,7 @@ public class RemoteMongoDatabase {
      *
      * @return the database name
      */
-    String getName() {
+    public String getName() {
         return databaseName;
     }
 
@@ -52,7 +52,7 @@ public class RemoteMongoDatabase {
      * @param collectionName the name of the collection to return
      * @return the collection
      */
-    RemoteMongoCollection<Document> getCollection(final String collectionName) {
+    public RemoteMongoCollection<Document> getCollection(final String collectionName) {
         Util.checkEmpty(collectionName, "collectionName");
         return new RemoteMongoCollection<>(osRemoteMongoDatabase.getCollection(collectionName));
     }

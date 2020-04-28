@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
@@ -83,7 +84,7 @@ public class ApiKeyAuth {
             }
         };
         nativeCallFunction(TYPE_CREATE, user.getApp().nativePtr, user.osUser.getNativePtr(), name, callback);
-        return RealmApp.handleResult(success, error);
+        return ResultHandler.handleResult(success, error);
     }
 
     /**
@@ -124,7 +125,7 @@ public class ApiKeyAuth {
                 return createKeyFromNative((Object[]) result);
             }
         });
-        return RealmApp.handleResult(success, error);
+        return ResultHandler.handleResult(success, error);
     }
 
     /**
@@ -164,7 +165,7 @@ public class ApiKeyAuth {
                 return list;
             }
         });
-        return RealmApp.handleResult(success, error);
+        return ResultHandler.handleResult(success, error);
     }
 
 
@@ -195,7 +196,7 @@ public class ApiKeyAuth {
         Util.checkNull(id, "id");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_DELETE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIVoidResultCallback(error));
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -227,7 +228,7 @@ public class ApiKeyAuth {
         Util.checkNull(id, "id");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_DISABLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIVoidResultCallback(error));
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -259,7 +260,7 @@ public class ApiKeyAuth {
         Util.checkNull(id, "id");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_ENABLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIVoidResultCallback(error));
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**

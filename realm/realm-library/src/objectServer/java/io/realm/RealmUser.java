@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.internal.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
@@ -29,8 +30,6 @@ import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
 import io.realm.mongodb.RemoteMongoClient;
-
-import static io.realm.RealmApp.handleResult;
 
 /**
  * FIXME
@@ -272,7 +271,7 @@ public class RealmUser {
                 return RealmUser.this;
             }
         });
-        return handleResult(success, error);
+        return ResultHandler.handleResult(success, error);
     }
 
     /**
@@ -327,7 +326,7 @@ public class RealmUser {
                 return RealmUser.this;
             }
         });
-        handleResult(success, error);
+        ResultHandler.handleResult(success, error);
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
         }
@@ -374,7 +373,7 @@ public class RealmUser {
         boolean loggedIn = isLoggedIn();
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeLogOut(app.nativePtr, osUser.getNativePtr(), new OsJNIVoidResultCallback(error));
-        handleResult(null, error);
+        ResultHandler.handleResult(null, error);
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
         }

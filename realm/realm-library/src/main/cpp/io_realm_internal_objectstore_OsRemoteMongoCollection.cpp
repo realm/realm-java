@@ -38,17 +38,19 @@ JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv *env,
                                                                        jclass,
                                                                        jlong j_collection_ptr,
-                                                                       jobject j_callback,
-                                                                       jstring j_filter) {
+                                                                       jstring j_filter,
+                                                                       jlong j_limit,
+                                                                       jobject j_callback) {
     try {
         RemoteMongoCollection *collection = reinterpret_cast<RemoteMongoCollection *>(j_collection_ptr);
         JStringAccessor name(env, j_filter);
+        uint64_t limit = std::uint64_t(j_limit);
 
         std::function<jobject(JNIEnv*, uint64_t)> mapper = [](JNIEnv* env, uint64_t result) {
             return JavaClassGlobalDef::new_long(env, result);
         };
 
-        collection->count(name, JavaNetworkTransport::create_result_callback(env, j_callback, mapper));
+        collection->count(name, limit, JavaNetworkTransport::create_result_callback(env, j_callback, mapper));
     }
     CATCH_STD()
 }
