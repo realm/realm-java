@@ -28,10 +28,12 @@ import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 
+import static io.realm.RealmApp.NETWORK_POOL_EXECUTOR;
+
 /**
  * This class exposes functionality for a user to manage API keys under their control.
  */
-public class ApiKeyAuthProvider {
+public class ApiKeyAuth {
 
     private static final int TYPE_CREATE = 1;
     private static final int TYPE_FETCH_SINGLE = 2;
@@ -47,7 +49,7 @@ public class ApiKeyAuthProvider {
      *
      * @param user user that is controlling the API keys.
      */
-    public ApiKeyAuthProvider(RealmUser user) {
+    public ApiKeyAuth(RealmUser user) {
         this.user = user;
     }
 
@@ -98,7 +100,7 @@ public class ApiKeyAuthProvider {
      */
     public RealmAsyncTask createApiKeyAsync(String name, RealmApp.Callback<RealmUserApiKey> callback) {
         Util.checkLooperThread("Asynchronous creation of api keys are only possible from looper threads.");
-        return new RealmApp.Request<RealmUserApiKey>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new RealmApp.Request<RealmUserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public RealmUserApiKey run() throws ObjectServerError {
                 return createApiKey(name);
@@ -135,7 +137,7 @@ public class ApiKeyAuthProvider {
      */
     public RealmAsyncTask fetchApiKeyAsync(ObjectId id, RealmApp.Callback<RealmUserApiKey> callback) {
         Util.checkLooperThread("Asynchronous fetching an api key is only possible from looper threads.");
-        return new RealmApp.Request<RealmUserApiKey>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new RealmApp.Request<RealmUserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public RealmUserApiKey run() throws ObjectServerError {
                 return fetchApiKey(id);
@@ -175,7 +177,7 @@ public class ApiKeyAuthProvider {
      */
     public RealmAsyncTask fetchAllApiKeys(RealmApp.Callback<List<RealmUserApiKey>> callback) {
         Util.checkLooperThread("Asynchronous fetching an api key is only possible from looper threads.");
-        return new RealmApp.Request<List<RealmUserApiKey>>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new RealmApp.Request<List<RealmUserApiKey>>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public List<RealmUserApiKey> run() throws ObjectServerError {
                 return fetchAllApiKeys();
@@ -206,7 +208,7 @@ public class ApiKeyAuthProvider {
      */
     public RealmAsyncTask deleteApiKeyAsync(ObjectId id, RealmApp.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous deleting an api key is only possible from looper threads.");
-        return new RealmApp.Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 deleteApiKey(id);
@@ -238,7 +240,7 @@ public class ApiKeyAuthProvider {
      */
     public RealmAsyncTask disableApiKeyAsync(ObjectId id, RealmApp.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous disabling an api key is only possible from looper threads.");
-        return new RealmApp.Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 disableApiKey(id);
@@ -270,7 +272,7 @@ public class ApiKeyAuthProvider {
      */
     public RealmAsyncTask enableApiKeyAsync(ObjectId id, RealmApp.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous enabling an api key is only possible from looper threads.");
-        return new RealmApp.Request<Void>(SyncManager.NETWORK_POOL_EXECUTOR, callback) {
+        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 enableApiKey(id);
@@ -291,7 +293,7 @@ public class ApiKeyAuthProvider {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ApiKeyAuthProvider that = (ApiKeyAuthProvider) o;
+        ApiKeyAuth that = (ApiKeyAuth) o;
 
         return user.equals(that.user);
     }

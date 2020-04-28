@@ -580,6 +580,10 @@ public class RealmSchemaTests {
         fieldNameToType.put(NullTypes.FIELD_BOOLEAN_LIST_NOT_NULL, RealmFieldType.BOOLEAN_LIST);
         fieldNameToType.put(NullTypes.FIELD_DATE_LIST_NULL, RealmFieldType.DATE_LIST);
         fieldNameToType.put(NullTypes.FIELD_DATE_LIST_NOT_NULL, RealmFieldType.DATE_LIST);
+        fieldNameToType.put(NullTypes.FIELD_DECIMAL128_LIST_NULL, RealmFieldType.DECIMAL128_LIST);
+        fieldNameToType.put(NullTypes.FIELD_DECIMAL128_LIST_NOT_NULL, RealmFieldType.DECIMAL128_LIST);
+        fieldNameToType.put(NullTypes.FIELD_OBJECT_ID_LIST_NULL, RealmFieldType.OBJECT_ID_LIST);
+        fieldNameToType.put(NullTypes.FIELD_OBJECT_ID_LIST_NOT_NULL, RealmFieldType.OBJECT_ID_LIST);
         fieldNameToType.put(NullTypes.FIELD_DOUBLE_LIST_NULL, RealmFieldType.DOUBLE_LIST);
         fieldNameToType.put(NullTypes.FIELD_DOUBLE_LIST_NOT_NULL, RealmFieldType.DOUBLE_LIST);
         fieldNameToType.put(NullTypes.FIELD_FLOAT_LIST_NULL, RealmFieldType.FLOAT_LIST);

@@ -19,6 +19,7 @@ package io.realm;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -42,11 +43,20 @@ public class SchemaTests {
     public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
 
     private SyncConfiguration config;
+    private TestRealmApp app;
 
     @Before
     public void setUp() {
-        SyncUser user = SyncTestUtils.createTestUser();
-        config = configFactory.createSyncConfigurationBuilder(user, "realm://objectserver.realm.io/~/default").build();
+        app = new TestRealmApp();
+        RealmUser user = SyncTestUtils.createTestUser(app);
+        config = configFactory.createSyncConfigurationBuilder(user).build();
+    }
+
+    @After
+    public void tearDown() {
+        if (app != null) {
+            RealmAppExtKt.close(app);
+        }
     }
 
     @Test

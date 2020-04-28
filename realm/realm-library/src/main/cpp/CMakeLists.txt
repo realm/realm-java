@@ -17,6 +17,18 @@
 ###########################################################################
 cmake_minimum_required(VERSION 3.6.0)
 
+# loading dependencies properties
+file(STRINGS "${CMAKE_SOURCE_DIR}/../../../../../dependencies.list" DEPENDENCIES)
+foreach(LINE IN LISTS DEPENDENCIES)
+    string(REGEX MATCHALL "([^=]+)" KEY_VALUE "${LINE}")
+    list(LENGTH KEY_VALUE matches_count)
+    if(matches_count STREQUAL 2)
+        list(GET KEY_VALUE 0 KEY)
+        list(GET KEY_VALUE 1 VALUE)
+        set(DEP_${KEY} ${VALUE})
+    endif()
+endforeach()
+
 FUNCTION(capitalizeFirstLetter var value)
     string(SUBSTRING ${value} 0 1 firstLetter)
     string(TOUPPER ${firstLetter} firstLetter)
@@ -69,8 +81,8 @@ capitalizeFirstLetter(buildTypeCap "${CMAKE_BUILD_TYPE}")
 # Generate JNI header files. Each build has its own JNI header in its build_dir/jni_include.
 # WARNING: The classes_PATH is not part the public API offered by the Android Gradle Plugin
 # so it might change without warning when upgrading the plugin.
-file(DOWNLOAD "https://repo1.maven.org/maven2/org/mongodb/bson/3.12.1/bson-3.12.1.jar" "${PROJECT_BINARY_DIR}/bson-3.12.1.jar")
-set(bsonlib_PATH ${PROJECT_BINARY_DIR}/bson-3.12.1.jar)
+file(DOWNLOAD "https://repo1.maven.org/maven2/org/mongodb/bson/${DEP_BSON_DEPENDENCY_VERSION}/bson-${DEP_BSON_DEPENDENCY_VERSION}.jar" "${PROJECT_BINARY_DIR}/bson-${DEP_BSON_DEPENDENCY_VERSION}.jar")
+set(bsonlib_PATH ${PROJECT_BINARY_DIR}/bson-${DEP_BSON_DEPENDENCY_VERSION}.jar)
 set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/javac/${REALM_FLAVOR}${buildTypeCap}/classes/)
 set(classes_LIST
     io.realm.RealmQuery
@@ -91,12 +103,12 @@ set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
         io.realm.ClientResetRequiredError
-        io.realm.EmailPasswordAuthProvider
-        io.realm.ApiKeyAuthProvider
+        io.realm.EmailPasswordAuth
+        io.realm.ApiKeyAuth
         io.realm.RealmApp
-        io.realm.SyncManager
+        io.realm.RealmUser
+        io.realm.RealmSync
         io.realm.SyncSession
-        io.realm.SyncUser
         io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
         io.realm.internal.objectstore.OsJavaNetworkTransport
@@ -185,11 +197,12 @@ file(GLOB jni_SRC
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmApp.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuthProvider.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ApiKeyAuthProvider.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmUser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuth.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ApiKeyAuth.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ClientResetRequiredError.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmSync.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAppCredentials.cpp

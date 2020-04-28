@@ -6,6 +6,8 @@ def buildSuccess = false
 def mongoDbRealmContainer = null
 def mongoDbRealmCommandServerContainer = null
 def dockerNetworkId = UUID.randomUUID().toString()
+def releaseBranches = ['master', 'next-major', 'v10'] // Branches from which we release SNAPSHOT's
+def currentBranch = env.CHANGE_BRANCH
 try {
   node('android') {
     timeout(time: 90, unit: 'MINUTES') {
@@ -31,7 +33,7 @@ try {
         // on PR's for even more throughput.
         def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
-        if (!['master', 'next-major'].contains(env.BRANCH_NAME)) {
+        if (!releaseBranches.contains(currentBranch)) {
           abiFilter = "-PbuildTargetABIs=armeabi-v7a"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           // Run in debug more for better error reporting
@@ -134,13 +136,13 @@ try {
 
               // TODO: add support for running monkey on the example apps
 
-              if (['master'].contains(env.BRANCH_NAME)) {
+              if (['master'].contains(currentBranch)) {
                 stage('Collect metrics') {
                   collectAarMetrics()
                 }
               }
 
-              if (['master', 'next-major'].contains(env.BRANCH_NAME)) {
+              if (releaseBranches.contains(currentBranch)) {
                 stage('Publish to OJO') {
                   withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
                     sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
@@ -165,14 +167,14 @@ try {
   buildSuccess = false
   throw e
 } finally {
-  if (['master', 'releases', 'next-major'].contains(env.BRANCH_NAME) && !buildSuccess) {
+  if (['master', 'releases', 'next-major'].contains(currentBranch) && !buildSuccess) {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
                 username: 'Mr. Jenkins',
                 icon_emoji: ':jenkins:',
                 attachments: [[
-                                      'title': "The ${env.BRANCH_NAME} branch is broken!",
+                                      'title': "The ${currentBranch} branch is broken!",
                                       'text': "<${env.BUILD_URL}|Click here> to check the build.",
                                       'color': "danger"
                               ]]

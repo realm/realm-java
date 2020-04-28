@@ -16,6 +16,8 @@
 @file:JvmName("TypeMirrors")
 package io.realm.processor
 
+import org.bson.types.Decimal128
+import org.bson.types.ObjectId
 import java.util.Date
 
 import javax.annotation.processing.ProcessingEnvironment
@@ -42,6 +44,8 @@ class TypeMirrors(env: ProcessingEnvironment) {
     @JvmField val DOUBLE_MIRROR: TypeMirror
     @JvmField val FLOAT_MIRROR: TypeMirror
     @JvmField val DATE_MIRROR: TypeMirror
+    @JvmField val DECIMAL128_MIRROR: TypeMirror
+    @JvmField val OBJECT_ID_MIRROR: TypeMirror
 
     @JvmField val PRIMITIVE_LONG_MIRROR: TypeMirror
     @JvmField val PRIMITIVE_INT_MIRROR: TypeMirror
@@ -62,6 +66,8 @@ class TypeMirrors(env: ProcessingEnvironment) {
         DOUBLE_MIRROR = elementUtils.getTypeElement(Double::class.javaObjectType.name).asType()
         FLOAT_MIRROR = elementUtils.getTypeElement(Float::class.javaObjectType.name).asType()
         DATE_MIRROR = elementUtils.getTypeElement(Date::class.javaObjectType.name).asType()
+        DECIMAL128_MIRROR = elementUtils.getTypeElement(Decimal128::class.javaObjectType.name).asType()
+        OBJECT_ID_MIRROR = elementUtils.getTypeElement(ObjectId::class.javaObjectType.name).asType()
 
         PRIMITIVE_LONG_MIRROR = typeUtils.getPrimitiveType(TypeKind.LONG)
         PRIMITIVE_INT_MIRROR = typeUtils.getPrimitiveType(TypeKind.INT)
@@ -79,7 +85,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
                 return null
             }
             val typeArguments = (field.asType() as DeclaredType).typeArguments
-            return if (!typeArguments.isEmpty()) typeArguments[0] else null
+            return if (typeArguments.isNotEmpty()) typeArguments[0] else null
         }
     }
 }

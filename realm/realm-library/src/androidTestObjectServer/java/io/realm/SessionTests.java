@@ -17,10 +17,10 @@
 package io.realm;
 
 import androidx.test.annotation.UiThreadTest;
-import androidx.test.rule.UiThreadTestRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.hamcrest.CoreMatchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -38,7 +38,6 @@ import io.realm.entities.StringOnlyModule;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 
-import static io.realm.SyncTestUtils.createTestUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -46,14 +45,12 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@Ignore("FIXME: RealmApp refactor")
 @RunWith(AndroidJUnit4.class)
 public class SessionTests {
 
-    private static String REALM_URI = "realm://objectserver.realm.io/~/default";
-
     private SyncConfiguration configuration;
-    private SyncUser user;
+    private TestRealmApp app;
+    private RealmUser user;
 
     @Rule
     public final TestSyncConfigurationFactory configFactory = new TestSyncConfigurationFactory();
@@ -61,26 +58,31 @@ public class SessionTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
-    @Rule
-    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
-
     @Before
     public void setUp() {
-        user = createTestUser();
-        configuration = user.createConfiguration(REALM_URI).build();
+        app = new TestRealmApp();
+        user = SyncTestUtils.createTestUser(app);
+        configuration = SyncConfiguration.defaultConfig(user, "default");
+    }
+
+    @After
+    public void tearDown() {
+        if (app != null) {
+            RealmAppExtKt.close(app);
+        }
     }
 
     @Test
     public void get_syncValues() {
         SyncSession session = new SyncSession(configuration);
-        assertEquals("realm://objectserver.realm.io/" + user.getIdentity() + "/default", session.getServerUrl().toString());
+        assertEquals("ws://127.0.0.1:9090/", session.getServerUrl().toString());
         assertEquals(user, session.getUser());
         assertEquals(configuration, session.getConfiguration());
     }
 
     @Test
     public void addDownloadProgressListener_nullThrows() {
-        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        SyncSession session = app.getSync().getOrCreateSession(configuration);
         try {
             session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, null);
             fail();
@@ -90,7 +92,7 @@ public class SessionTests {
 
     @Test
     public void addUploadProgressListener_nullThrows() {
-        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        SyncSession session = app.getSync().getOrCreateSession(configuration);
         try {
             session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, null);
             fail();
@@ -101,7 +103,7 @@ public class SessionTests {
     @Test
     public void removeProgressListener() {
         Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        SyncSession session = app.getSync().getOrCreateSession(configuration);
         ProgressListener[] listeners = new ProgressListener[] {
                 null,
                 progress -> {
@@ -123,10 +125,11 @@ public class SessionTests {
     // Check that a Client Reset is correctly reported.
     @Test
     @RunTestInLooperThread
+    @Ignore("FIXME: Figure out how to fix this")
     public void errorHandler_clientResetReported() {
-        SyncUser user = createTestUser();
+        RealmUser user = SyncTestUtils.createTestUser(app);
         String url = "realm://objectserver.realm.io/default";
-        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler((session, error) -> {
                     if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
@@ -149,16 +152,17 @@ public class SessionTests {
         looperThread.addTestRealm(realm);
 
         // Trigger error
-        SyncManager.simulateClientReset(SyncManager.getOrCreateSession(config, null));
+        RealmSync syncService = user.getApp().getSync();
+        syncService.simulateClientReset(syncService.getSession((config)));
     }
 
     // Check that we can manually execute the Client Reset.
     @Test
     @RunTestInLooperThread
+    @Ignore("FIXME: Figure out how to fix this")
     public void errorHandler_manualExecuteClientReset() {
-        SyncUser user = createTestUser();
-        String url = "realm://objectserver.realm.io/default";
-        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+        RealmUser user = SyncTestUtils.createTestUser(app);
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler((session, error) -> {
                     if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
@@ -188,16 +192,16 @@ public class SessionTests {
         looperThread.addTestRealm(realm);
 
         // Trigger error
-        SyncManager.simulateClientReset(SyncManager.getOrCreateSession(config, null));
+        user.getApp().getSync().simulateClientReset(app.getSync().getSession(configuration));
     }
 
     // Check that we can use the backup SyncConfiguration to open the Realm.
     @Test
     @RunTestInLooperThread
+    @Ignore("FIXME: Figure out how to fix this")
     public void errorHandler_useBackupSyncConfigurationForClientReset() {
-        SyncUser user = createTestUser();
-        String url = "realm://objectserver.realm.io/default";
-        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+        RealmUser user = SyncTestUtils.createTestUser(app);
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .schema(StringOnly.class)
                 .errorHandler((session, error) -> {
@@ -246,7 +250,7 @@ public class SessionTests {
         looperThread.addTestRealm(realm);
 
         // Trigger error
-        SyncManager.simulateClientReset(SyncManager.getOrCreateSession(config, null));
+        user.getApp().getSync().simulateClientReset(app.getSync().getSession(configuration));
     }
 
     // Check that we can open the backup file without using the provided SyncConfiguration,
@@ -254,10 +258,10 @@ public class SessionTests {
     // persisted the location of the file)
     @Test
     @RunTestInLooperThread
+    @Ignore("FIXME: Figure out how to fix this")
     public void errorHandler_useBackupSyncConfigurationAfterClientReset() {
-        SyncUser user = createTestUser();
-        String url = "realm://objectserver.realm.io/default";
-        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+        RealmUser user = SyncTestUtils.createTestUser(app);
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler((session, error) -> {
                     if (error.getErrorCode() != ErrorCode.CLIENT_RESET) {
@@ -330,17 +334,17 @@ public class SessionTests {
         looperThread.addTestRealm(realm);
 
         // Trigger error
-        SyncManager.simulateClientReset(SyncManager.getOrCreateSession(config, null));
+        user.getApp().getSync().simulateClientReset(app.getSync().getSession(configuration));
     }
 
     // make sure the backup file Realm is encrypted with the same key as the original synced Realm.
     @Test
     @RunTestInLooperThread
+    @Ignore("FIXME: Figure out how to fix this")
     public void errorHandler_useClientResetEncrypted() {
-        SyncUser user = createTestUser();
-        String url = "realm://objectserver.realm.io/default";
+        RealmUser user = SyncTestUtils.createTestUser(app);
         final byte[] randomKey = TestHelper.getRandomKey();
-        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user, url)
+        final SyncConfiguration config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .encryptionKey(randomKey)
                 .modules(new StringOnlyModule())
@@ -392,7 +396,7 @@ public class SessionTests {
         looperThread.addTestRealm(realm);
 
         // Trigger error
-        SyncManager.simulateClientReset(SyncManager.getOrCreateSession(config, null));
+        user.getApp().getSync().simulateClientReset(app.getSync().getSession(configuration));
     }
 
     @Test
@@ -400,7 +404,7 @@ public class SessionTests {
     public void uploadAllLocalChanges_throwsOnUiThread() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
         try {
-            SyncManager.getOrCreateSession(configuration, null).uploadAllLocalChanges();
+            app.getSync().getOrCreateSession(configuration).uploadAllLocalChanges();
             fail("Should throw an IllegalStateException on Ui Thread");
         } catch (IllegalStateException ignored) {
         } finally {
@@ -413,7 +417,7 @@ public class SessionTests {
     public void uploadAllLocalChanges_withTimeout_throwsOnUiThread() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
         try {
-            SyncManager.getOrCreateSession(configuration, null).uploadAllLocalChanges(30, TimeUnit.SECONDS);
+            app.getSync().getOrCreateSession(configuration).uploadAllLocalChanges(30, TimeUnit.SECONDS);
             fail("Should throw an IllegalStateException on Ui Thread");
         } catch (IllegalStateException ignored) {
         } finally {
@@ -424,7 +428,7 @@ public class SessionTests {
     @Test
     public void uploadAllLocalChanges_withTimeout_invalidParametersThrows() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        SyncSession session = app.getSync().getOrCreateSession(configuration);
         try {
             try {
                 session.uploadAllLocalChanges(-1, TimeUnit.SECONDS);
@@ -446,7 +450,7 @@ public class SessionTests {
     @Test
     public void uploadAllLocalChanges_returnFalseWhenTimedOut() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        SyncSession session = app.getSync().getSession(configuration);
         try {
             assertFalse(session.uploadAllLocalChanges(100, TimeUnit.MILLISECONDS));
         } finally {
@@ -459,7 +463,7 @@ public class SessionTests {
     public void downloadAllServerChanges_throwsOnUiThread() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
         try {
-            SyncManager.getOrCreateSession(configuration, null).downloadAllServerChanges();
+            app.getSync().getSession(configuration).downloadAllServerChanges();
             fail("Should throw an IllegalStateException on Ui Thread");
         } catch (IllegalStateException ignored) {
         } finally {
@@ -472,7 +476,7 @@ public class SessionTests {
     public void downloadAllServerChanges_withTimeout_throwsOnUiThread() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
         try {
-            SyncManager.getOrCreateSession(configuration, null).downloadAllServerChanges(30, TimeUnit.SECONDS);
+            app.getSync().getSession(configuration).downloadAllServerChanges(30, TimeUnit.SECONDS);
             fail("Should throw an IllegalStateException on Ui Thread");
         } catch (IllegalStateException ignored) {
         } finally {
@@ -484,7 +488,7 @@ public class SessionTests {
     @Test
     public void downloadAllServerChanges_withTimeout_invalidParametersThrows() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        SyncSession session = app.getSync().getSession(configuration);
         try {
             try {
                 session.downloadAllServerChanges(-1, TimeUnit.SECONDS);
@@ -506,7 +510,7 @@ public class SessionTests {
     @Test
     public void downloadAllServerChanges_returnFalseWhenTimedOut() throws InterruptedException {
         Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        SyncSession session = app.getSync().getSession(configuration);
         try {
             assertFalse(session.downloadAllServerChanges(100, TimeUnit.MILLISECONDS));
         } finally {
@@ -518,7 +522,7 @@ public class SessionTests {
     @UiThreadTest
     public void unrecognizedErrorCode_errorHandler() {
         AtomicBoolean errorHandlerCalled = new AtomicBoolean(false);
-        configuration = configFactory.createSyncConfigurationBuilder(user, REALM_URI)
+        configuration = configFactory.createSyncConfigurationBuilder(user)
                 .errorHandler((session, error) -> {
                     errorHandlerCalled.set(true);
                     assertEquals(ErrorCode.UNKNOWN, error.getErrorCode());
@@ -527,7 +531,7 @@ public class SessionTests {
                 })
                 .build();
         Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getOrCreateSession(configuration, null);
+        SyncSession session = app.getSync().getSession(configuration);
 
         TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
         RealmLog.add(testLogger);
@@ -544,13 +548,13 @@ public class SessionTests {
     @Test
     public void getSessionThrowsOnNonExistingSession() {
         Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getSession(configuration);
+        SyncSession session = app.getSync().getSession(configuration);
         assertEquals(configuration, session.getConfiguration());
 
         // Closing the Realm should remove the session
         realm.close();
         try {
-            SyncManager.getSession(configuration);
+            app.getSync().getSession(configuration);
             fail("getSession should throw an ISE");
         } catch (IllegalStateException expected) {
             assertThat(expected.getMessage(), CoreMatchers.containsString(
@@ -561,7 +565,7 @@ public class SessionTests {
     @Test
     public void isConnected_falseForInvalidUser() {
         Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getSession(configuration);
+        SyncSession session = app.getSync().getSession(configuration);
         try {
             assertFalse(session.isConnected());
         } finally {
@@ -572,7 +576,7 @@ public class SessionTests {
     @Test
     public void stop_doesNotThrowIfCalledWhenRealmIsClosed() {
         Realm realm = Realm.getInstance(configuration);
-        SyncSession session = SyncManager.getSession(configuration);
+        SyncSession session = app.getSync().getSession(configuration);
         realm.close();
         session.stop();
     }

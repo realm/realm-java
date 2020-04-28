@@ -26,7 +26,7 @@ import io.realm.log.LogLevel
  *
  * NOTE: This class must remain in the [io.realm] package in order to work.
  */
-class TestRealmApp(networkTransport: OsJavaNetworkTransport? = null) : RealmApp(createConfiguration()) {
+class TestRealmApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig: (RealmAppConfiguration.Builder) -> Unit = {}) : RealmApp(createConfiguration()) {
 
     init {
         if (networkTransport != null) {

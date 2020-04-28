@@ -267,6 +267,8 @@ public class QueryDescriptorTests {
                     case DATE_LIST:
                     case FLOAT_LIST:
                     case DOUBLE_LIST:
+                    case DECIMAL128_LIST:
+                    case OBJECT_ID_LIST:
                         break;
                     case LIST:
                     case OBJECT:

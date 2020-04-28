@@ -3,7 +3,6 @@ package io.realm.kotlin
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.objectserver.utils.Constants
 import org.junit.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
@@ -15,25 +14,33 @@ class KotlinSyncedRealmTests {
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
 
-
+    private lateinit var app: RealmApp
     private lateinit var realm: Realm
 
     @Before
     fun setUp() {
-        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        val user = SyncTestUtils.createTestUser()
-        realm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM).build())
+        // FIXME
+//        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+//        app = RealmApp("foo")
+//        val user = SyncTestUtils.createTestUser(app)
+//        realm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(user).build())
     }
 
     @After
     fun tearDown() {
-        realm.close()
+        // FIXME
+//        if (this::realm.isInitialized) {
+//            realm.close()
+//        }
+//        if (this::app.isInitialized) {
+//            RealmApp.CREATED = false
+//        }
     }
 
     @Ignore("FIXME")
     @Test
     fun syncSession() {
-        assertEquals(SyncManager.getSession(realm.configuration as SyncConfiguration), realm.syncSession)
+        assertEquals(app.sync.getSession(realm.configuration as SyncConfiguration), realm.syncSession)
     }
 
     @Ignore("FIXME")

@@ -29,13 +29,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class ApiKeyAuthProviderTests {
-
+class ApiKeyAuthTests {
     private val looperThread = BlockingLooperThread()
     private lateinit var app: TestRealmApp
     private lateinit var admin: ServerAdmin
     private lateinit var user: RealmUser
-    private lateinit var provider: ApiKeyAuthProvider
+    private lateinit var provider: ApiKeyAuth
 
     // Callback use to verify that an Illegal Argument was thrown from async methods
     private val checkNullInVoidCallback = RealmApp.Callback<Void> { result ->
@@ -68,18 +67,18 @@ class ApiKeyAuthProviderTests {
 
     @Before
     fun setUp() {
-        app = TestRealmApp()
-        RealmLog.setLevel(LogLevel.DEBUG)
         admin = ServerAdmin()
+        app = TestRealmApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        provider = app.apiKeyAuthProvider
+        provider = user.apiKeyAuth
     }
 
     @After
     fun tearDown() {
-        app.close()
+        if (this::app.isInitialized) {
+            app.close()
+        }
         admin.deleteAllUsers()
-        RealmLog.setLevel(LogLevel.WARN)
     }
 
     inline fun testNullArg(method: () -> Unit) {
@@ -207,8 +206,8 @@ class ApiKeyAuthProviderTests {
             provider.fetchAllApiKeys() { result ->
                 val keys: List<RealmUserApiKey> = result.orThrow
                 assertEquals(2, keys.size)
-                assertEquals(key1.id, keys[0].id)
-                assertEquals(key2.id, keys[1].id)
+                assertTrue(keys.any { it.id == key1.id })
+                assertTrue(keys.any { it.id == key2.id })
                 looperThread.testComplete()
             }
         }

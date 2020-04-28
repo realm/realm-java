@@ -1,3 +1,18 @@
+/*
+ * Copyright 2020 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.realm
 
 import io.realm.admin.ServerAdmin
@@ -10,7 +25,8 @@ import io.realm.admin.ServerAdmin
  */
 fun RealmApp.close() {
     ServerAdmin().deleteAllUsers()
-    SyncManager.reset()
+    this.syncManager.reset()
+    RealmApp.CREATED = false
     BaseRealm.applicationContext = null // Required for Realm.init() to work
 }
 
@@ -19,6 +35,6 @@ fun RealmApp.close() {
  * This only works if users in the Realm Application are configured to be automatically confirmed.
  */
 fun RealmApp.registerUserAndLogin(email: String, password: String): RealmUser {
-    emailPasswordAuthProvider.registerUser(email, password)
+    emailPasswordAuth.registerUser(email, password)
     return login(RealmCredentials.emailPassword(email, password))
 }

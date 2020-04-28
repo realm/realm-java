@@ -189,4 +189,16 @@ public class CheckedRow extends UncheckedRow {
 
     @Override
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
+
+    @Override
+    protected native long[] nativeGetDecimal128(long nativePtr, long columnKey);
+
+    @Override
+    protected native String nativeGetObjectId(long nativePtr, long columnKey);
+
+    @Override
+    protected native void nativeSetDecimal128(long nativePtr, long columnKey, long low, long high);
+
+    @Override
+    protected native void nativeSetObjectId(long nativePtr, long columnKey, String value);
 }
