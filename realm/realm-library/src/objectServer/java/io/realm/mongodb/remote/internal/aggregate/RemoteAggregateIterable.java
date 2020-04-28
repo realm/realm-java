@@ -21,6 +21,7 @@ package io.realm.mongodb.remote.internal.aggregate;
  *
  * @param <ResultT> The type of the result.
  */
+// TODO: figure out whether or not we need the parent interface
 //public interface RemoteAggregateIterable<ResultT> extends RemoteMongoIterable<ResultT> {
 public interface RemoteAggregateIterable<ResultT> {
 

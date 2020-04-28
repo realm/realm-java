@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
  *
  * @param <ResultT> The type of the result.
  */
+// TODO: figure out whether or not we need the parent interface
 //public interface RemoteFindIterable<ResultT> extends RemoteMongoIterable<ResultT> {
 public class RemoteFindIterable<ResultT> {
 

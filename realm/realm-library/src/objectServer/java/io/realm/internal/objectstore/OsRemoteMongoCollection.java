@@ -18,6 +18,9 @@ package io.realm.internal.objectstore;
 
 import io.realm.internal.NativeObject;
 
+/**
+ *
+ */
 public class OsRemoteMongoCollection implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
@@ -39,20 +42,7 @@ public class OsRemoteMongoCollection implements NativeObject {
     }
 
     public void count(String filter) {
-        // TODO: move callbacks outside RealmApp
-//        nativeCount(nativePtr,
-//                new OsJavaNetworkTransport.NetworkTransportJNIResultCallback() {
-//                    @Override
-//                    public void onSuccess(Object result) {
-//                        super.onSuccess(result);
-//                    }
-//
-//                    @Override
-//                    public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
-//                        super.onError(nativeErrorCategory, nativeErrorCode, errorMessage);
-//                    }
-//                },
-//                filter);
+        // TODO
     }
 
     private static native long nativeGetFinalizerMethodPtr();

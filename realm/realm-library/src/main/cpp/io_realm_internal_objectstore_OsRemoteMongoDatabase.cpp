@@ -37,23 +37,6 @@ static void finalize_collection(jlong ptr) {
     delete reinterpret_cast<std::shared_ptr<RemoteMongoCollection> *>(ptr);
 }
 
-//JNIEXPORT jlong JNICALL
-//Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeCreate(JNIEnv *env,
-//                                                                    jclass,
-//                                                                    jlong j_app_ptr,
-//                                                                    jstring j_service_name) {
-//    try {
-//        App *app = reinterpret_cast<App *>(j_app_ptr);
-////        auto user = *reinterpret_cast<std::shared_ptr<SyncUser> *>(j_user_ptr);   // TODO
-////        auto client = app->provider_client<App::UserAPIKeyProviderClient>();      // TODO
-//        JStringAccessor name(env, j_service_name);
-//        RemoteMongoClient client = app->remote_mongo_client(name);
-//        return reinterpret_cast<jlong>(new RemoteMongoClient(std::move(client)));
-//    }
-//    CATCH_STD()
-//    return reinterpret_cast<jlong>(nullptr);
-//}
-
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_objectstore_OsRemoteMongoDatabase_nativeGetCollection(JNIEnv *env,
                                                                     jclass,
