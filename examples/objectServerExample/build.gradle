@@ -40,8 +40,9 @@ android {
         //
         // If you are running a local version of Stitch, modify endpoint accordingly. Most likely
         // it is "http://localhost:9090"
-        def mongodbRealmUrl = "https://realm-dev.mongodb.com"
-        def appId = "realm-demo-gqlrw"
+        // FIXME Replace with some better default values
+        def mongodbRealmUrl = "http://localhost:9090"
+        def appId = "realm-sdk-integration-tests-gfsfv"
         debug {
             buildConfigField "String", "MONGODB_REALM_URL", "\"${mongodbRealmUrl}\""
             buildConfigField "String", "MONGODB_REALM_APP_ID", "\"${appId}\""
