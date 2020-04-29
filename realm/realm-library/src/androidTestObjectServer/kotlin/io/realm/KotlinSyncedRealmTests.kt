@@ -67,6 +67,21 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         assertTrue(realm.isEmpty)
     }
 
+    @Test
+    fun connectCloudDev() {
+        val app = RealmApp(RealmAppConfiguration.Builder("realm-demo-gqlrw")
+                .baseUrl("https://realm-dev.mongodb.com")
+                .build())
+        val user = app.login(RealmCredentials.anonymous())
+        val realm = Realm.getInstance(SyncConfiguration.Builder(user, user.id).build())
+        realm.syncSession.downloadAllServerChanges()
+        try {
+            assertTrue(realm.isEmpty)
+        } finally {
+            realm.close()
+        }
+    }
+
     // Smoke test for Sync
     @Test
     fun roundTripObjectsNotInServerSchemaObject() {
