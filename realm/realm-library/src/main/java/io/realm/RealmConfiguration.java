@@ -468,6 +468,8 @@ public class RealmConfiguration {
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
     public static class Builder {
+        private static long DEFAULT_SCHEMA_VERSION = 0;
+
         // IMPORTANT: When adding any new methods to this class also add them to SyncConfiguration.
         private File directory;
         private String fileName;
@@ -510,7 +512,7 @@ public class RealmConfiguration {
             this.directory = context.getFilesDir();
             this.fileName = Realm.DEFAULT_REALM_NAME;
             this.key = null;
-            this.schemaVersion = 0;
+            this.schemaVersion = DEFAULT_SCHEMA_VERSION;
             this.migration = null;
             this.deleteRealmIfMigrationNeeded = false;
             this.durability = OsRealmConfig.Durability.FULL;
@@ -578,14 +580,28 @@ public class RealmConfiguration {
         }
 
         /**
-         * Sets the schema version of the Realm. This must be equal to or higher than the schema version of the existing
-         * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
+         * Sets the schema version of the Realm.
          * <p>
-         * If no migration code is provided, Realm will throw a
+         * This must be equal to or higher than the schema version of the existing Realm file, if any.
+         * <p>
+         * If the schema version is higher than the already existing Realm it will be updated given
+         * that any actual schema changes are handled properly by the {@link RealmMigration} supplied
+         * through {@link #migration(RealmMigration)}. If the schema has not changed, the version
+         * is still updated and {@link RealmMigration#migrate(DynamicRealm, long, long)} is notified
+         * if set through {@link #migration(RealmMigration)}.
+         * <p>
+         * If the schema has changed without increasing the version or failing to resolve schema
+         * migration through the supplied {@link RealmMigration}, Realm will throw a
          * {@link io.realm.exceptions.RealmMigrationNeededException}.
          *
+         * @throws IllegalArgumentException If {@code schemaVersion} is negative.
+         *
+         * @see #schemaVersion(long, RealmMigration)
          * @see #migration(RealmMigration)
+         *
+         * @deprecated Use {@link #schemaVersion(long, RealmMigration)} instead.
          */
+        @Deprecated
         public Builder schemaVersion(long schemaVersion) {
             if (schemaVersion < 0) {
                 throw new IllegalArgumentException("Realm schema version numbers must be 0 (zero) or higher. Yours was: " + schemaVersion);
@@ -595,10 +611,45 @@ public class RealmConfiguration {
         }
 
         /**
+         * Update the schema version of the Realm and apply the provided migration.
+         * <p>
+         * The schema version must be equal to or higher than the schema version of the existing
+         * Realm file, if any, and the supplied {@link RealmMigration} must handled any schema changes.
+         * For <i>version only</i> updates the supplied
+         * {@link RealmMigration#migrate(DynamicRealm, long, long)} can be a <i>no operation</i>.
+         * <p>
+         * If the schema has changed without increasing the version or failing to resolve schema
+         * migration through the supplied {@link RealmMigration},, Realm will throw a
+         * {@link io.realm.exceptions.RealmMigrationNeededException}.
+         *
+         * @throws IllegalArgumentException If {@code schemaVersion} is negative or {@code migration} is null.
+         *
+         * @see #schemaVersion(long)
+         * @see #migration(RealmMigration)
+         */
+        public Builder schemaVersion(long schemaVersion, RealmMigration migration) {
+            if (schemaVersion < 0) {
+                throw new IllegalArgumentException("Realm schema version numbers must be 0 (zero) or higher. Yours was: " + schemaVersion);
+            }
+            if (migration == null) {
+                throw new IllegalArgumentException("Migration cannot be null");
+            }
+            this.schemaVersion = schemaVersion;
+            this.migration = migration;
+            return this;
+        }
+
+        /**
          * Sets the {@link io.realm.RealmMigration} to be run if a migration is needed. If this migration fails to
          * upgrade the on-disc schema to the runtime schema, a {@link io.realm.exceptions.RealmMigrationNeededException}
          * will be thrown.
+         * <p>
+         * FIXME Also triggered on version update even though no schema change
+         * FIXME Not triggered if no version number is specified.
+         *
+         * @deprecated Use {@link #schemaVersion(long, RealmMigration)} instead.
          */
+        @Deprecated
         public Builder migration(RealmMigration migration) {
             //noinspection ConstantConditions
             if (migration == null) {
@@ -832,6 +883,11 @@ public class RealmConfiguration {
          * @return the created {@link RealmConfiguration}.
          */
         public RealmConfiguration build() {
+            // FIXME Do we require that a migration is present when updating version...which would
+            //  be a breaking change
+            //if (schemaVersion != DEFAULT_SCHEMA_VERSION && migration == null) {
+            //    throw new IllegalStateException("Providing a scheme version also requires a migration");
+            //}
             // Check that readOnly() was applied to legal configuration. Right now it should only be allowed if
             // an assetFile is configured
             if (readOnly) {
