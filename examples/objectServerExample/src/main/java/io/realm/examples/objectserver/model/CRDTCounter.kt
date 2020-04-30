@@ -17,7 +17,6 @@ package io.realm.examples.objectserver.model
 
 import io.realm.MutableRealmInteger
 import io.realm.RealmObject
-import io.realm.annotations.Ignore
 import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmField
 import io.realm.annotations.Required
