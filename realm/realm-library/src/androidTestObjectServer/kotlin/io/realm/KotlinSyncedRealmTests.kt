@@ -41,7 +41,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.TRACE)
-//        app = TestRealmApp()
+        app = TestRealmApp()
         partitionValue = UUID.randomUUID().toString()
     }
 
@@ -74,10 +74,6 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         val user1: RealmUser = createNewUser()
         val config1: SyncConfiguration = createCustomConfig(user1, partitionValue)
         realm = Realm.getInstance(config1)
-
-        // FIXME: Work-around for https://jira.mongodb.org/browse/REALMC-5423
-        realm.syncSession.uploadAllLocalChanges()
-
         realm.executeTransaction {
             for (i in 1..10) {
                 it.insert(SyncColor())
