@@ -23,10 +23,7 @@ import io.realm.annotations.RealmField
 import io.realm.annotations.Required
 import org.bson.types.ObjectId
 
-open class CRDTCounter(userId: String) : RealmObject() {
-
-    // Required by Realm
-    constructor() : this("unknown")
+open class CRDTCounter : RealmObject() {
 
     @PrimaryKey
     @RealmField("_id")

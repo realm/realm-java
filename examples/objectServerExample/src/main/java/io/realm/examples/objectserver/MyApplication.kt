@@ -40,7 +40,7 @@ class MyApplication : Application() {
 
         // Enable more logging in debug mode
         if (BuildConfig.DEBUG) {
-            RealmLog.setLevel(LogLevel.ALL)
+            RealmLog.setLevel(LogLevel.DEBUG)
         }
     }
 }

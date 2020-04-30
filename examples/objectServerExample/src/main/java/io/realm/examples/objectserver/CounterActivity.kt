@@ -95,21 +95,23 @@ class CounterActivity : AppCompatActivity() {
         if (user != null) {
             // Create a RealmConfiguration for our user
             // Use user id as partition value, so each user gets an unique view.
-            val config = SyncConfiguration.Builder(user, user.id).build()
+            // FIXME Right now we are using waitForInitialRemoteData and a more advanced
+            // initialData block due to Sync only supporting ObjectId keys. This should
+            // be changed once natural keys are supported.
+            val config = SyncConfiguration.Builder(user, user.id)
+                    .initialData {
+                        if (it.isEmpty) {
+                            it.insert(CRDTCounter())
+                        }
+                    }
+                    .waitForInitialRemoteData()
+                    .build()
 
             // This will automatically sync all changes in the background for as long as the Realm is open
             Realm.getInstanceAsync(config, object: Realm.Callback() {
                 override fun onSuccess(realm: Realm) {
                     this@CounterActivity.realm = realm
 
-                    // FIXME: Don't do this. https://jira.mongodb.org/browse/REALMC-5423
-                    // But use `initialData` instead.
-                    realm.executeTransaction {
-                        if (realm.isEmpty) {
-                            val counter = CRDTCounter(user.id)
-                            realm.insert(counter)
-                        }
-                    }
                     counter = realm.where<CRDTCounter>().findFirstAsync()
                     counter.addChangeListener<CRDTCounter> { obj, _ ->
                         if (obj.isValid) {
