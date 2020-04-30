@@ -41,7 +41,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.TRACE)
-        app = TestRealmApp()
+//        app = TestRealmApp()
         partitionValue = UUID.randomUUID().toString()
     }
 
@@ -65,21 +65,6 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         app.syncManager.getSession(config).uploadAllLocalChanges()
         app.syncManager.getSession(config).downloadAllServerChanges()
         assertTrue(realm.isEmpty)
-    }
-
-    @Test
-    fun connectCloudDev() {
-        val app = RealmApp(RealmAppConfiguration.Builder("realm-demo-gqlrw")
-                .baseUrl("https://realm-dev.mongodb.com")
-                .build())
-        val user = app.login(RealmCredentials.anonymous())
-        val realm = Realm.getInstance(SyncConfiguration.Builder(user, user.id).build())
-        realm.syncSession.downloadAllServerChanges()
-        try {
-            assertTrue(realm.isEmpty)
-        } finally {
-            realm.close()
-        }
     }
 
     // Smoke test for Sync
