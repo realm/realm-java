@@ -280,7 +280,7 @@ public class RealmConfigurationTests {
     @Test
     public void migration_nullThrows() {
         try {
-            configFactory.createConfigurationBuilder().migration(null).build();
+            configFactory.createConfigurationBuilder().schemaVersion(1, null).build();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -332,8 +332,7 @@ public class RealmConfigurationTests {
                 .directory(configFactory.getRoot())
                 .name("foo.realm")
                 .encryptionKey(TestHelper.getRandomKey())
-                .schemaVersion(42)
-                .migration(new RealmMigration() {
+                .schemaVersion(42, new RealmMigration() {
                     @Override
                     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                         // no-op
@@ -1028,8 +1027,8 @@ public class RealmConfigurationTests {
 
     @Test
     public void detectMissingEqualsInCustomMigration() {
-        RealmConfiguration config1 = configFactory.createConfigurationBuilder().migration(new MigrationWithNoEquals()).build();
-        RealmConfiguration config2 = configFactory.createConfigurationBuilder().migration(new MigrationWithNoEquals()).build();
+        RealmConfiguration config1 = configFactory.createConfigurationBuilder().schemaVersion(1,new MigrationWithNoEquals()).build();
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder().schemaVersion(1,new MigrationWithNoEquals()).build();
 
         Realm realm = Realm.getInstance(config1);
         try {

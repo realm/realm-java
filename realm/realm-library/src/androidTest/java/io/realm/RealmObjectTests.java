@@ -1354,33 +1354,34 @@ public class RealmObjectTests {
 
         final RealmConfiguration columnSwappedRealmConfigForV0 = configFactory.createConfigurationBuilder()
                 .name("columnSwapped.realm")
-                .migration(new RealmMigration() {
-                    @Override
-                    public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                        final Table table = realm.getSchema().getTable(StringAndInt.class);
-                        final long strColKey = table.getColumnKey("str");
-                        final long numberColKey = table.getColumnKey("number");
-
-                        for (String columnName :table.getColumnNames()) {
-                            table.removeColumn(table.getColumnKey(columnName));
-                        }
-                        final long newStrIndex;
-                        // Swaps column indices.
-                        if (strColKey < numberColKey) {
-                            table.addColumn(RealmFieldType.INTEGER, "number");
-                            newStrIndex = table.addColumn(RealmFieldType.STRING, "str");
-                        } else {
-                            newStrIndex = table.addColumn(RealmFieldType.STRING, "str");
-                            table.addColumn(RealmFieldType.INTEGER, "number");
-                        }
-                        table.convertColumnToNullable(newStrIndex);
-                    }
-                })
+                // FIXME Does not really have any effect as migrations are not execute when version is not bumped. Remove?
+//                .schemaVersion(0, new RealmMigration() {
+//                    @Override
+//                    public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+//                        final Table table = realm.getSchema().getTable(StringAndInt.class);
+//                        final long strColKey = table.getColumnKey("str");
+//                        final long numberColKey = table.getColumnKey("number");
+//
+//                        for (String columnName :table.getColumnNames()) {
+//                            table.removeColumn(table.getColumnKey(columnName));
+//                        }
+//                        final long newStrIndex;
+//                        // Swaps column indices.
+//                        if (strColKey < numberColKey) {
+//                            table.addColumn(RealmFieldType.INTEGER, "number");
+//                            newStrIndex = table.addColumn(RealmFieldType.STRING, "str");
+//                        } else {
+//                            newStrIndex = table.addColumn(RealmFieldType.STRING, "str");
+//                            table.addColumn(RealmFieldType.INTEGER, "number");
+//                        }
+//                        table.convertColumnToNullable(newStrIndex);
+//                    }
+//                })
                 .build();
 
         final RealmConfiguration columnSwappedRealmConfigForV1 = configFactory.createConfigurationBuilder()
                 .name("columnSwapped.realm")
-                .migration(new RealmMigration() {
+                .schemaVersion(1L, new RealmMigration() {
                     @Override
                     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                         // Does nothing.
@@ -1391,7 +1392,8 @@ public class RealmObjectTests {
 
         Realm.deleteRealm(columnSwappedRealmConfigForV0);
         Realm.getInstance(columnSwappedRealmConfigForV0).close();
-        Realm.migrateRealm(columnSwappedRealmConfigForV0);
+        // FIXME Does not really have any effect as migrations are not execute when version is not bumped. Remove?
+//        Realm.migrateRealm(columnSwappedRealmConfigForV0);
         return columnSwappedRealmConfigForV1;
     }
 

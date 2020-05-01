@@ -23,29 +23,21 @@ import io.realm.exceptions.RealmMigrationNeededException
 import io.realm.rule.TestRealmConfigurationFactory
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertFalse
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.IllegalArgumentException
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
+// TODO Migrate Java test cases from RealmMigrationTests and remove Kotlin suffix when done.
 class RealmMigrationTestsKotlin {
 
     @get:Rule
     val configFactory = TestRealmConfigurationFactory()
 
-    @Before
-    fun setup() {
-    }
-
-    @After
-    fun tearDown() {
-    }
-
-    private open class TestRealmMigration : RealmMigration {
+    private open class NoOpMigration : RealmMigration {
         var triggered: Boolean = false
         var oldVersion: Long = 0
         var newVersion: Long = 0
@@ -56,72 +48,45 @@ class RealmMigrationTestsKotlin {
         }
     }
 
-    // Test that
-    // - supplying updated version and migration for schema change we actually trigger migration
-    //   with out errors
     @Test
-    fun standardMigration() {
-        val configV1: RealmConfiguration = configFactory.createConfigurationBuilder()
-                .schema(StringAndInt::class.java)
-                .schemaVersion(1).build()
-        Realm.getInstance(configV1).close()
-
-        val migration = object : TestRealmMigration() {
-            override fun migrate(realm: DynamicRealm, oldVersion: Long, newVersion: Long) {
-                super.migrate(realm, oldVersion, newVersion)
-                realm.schema.create("StringOnly")
-                        .addField("chars", String::class.java);
-            }
-        }
-        val configV2: RealmConfiguration = configFactory.createConfigurationBuilder()
-                .schemaVersion(2)
-                .schema(StringAndInt::class.java, StringOnly::class.java)
-                .migration(migration)
+    fun migrationNotTriggeredForInitialCreation() {
+        val migration = NoOpMigration()
+        val configV5: RealmConfiguration = configFactory.createConfigurationBuilder()
+                .schemaVersion(5, migration)
                 .build()
-        Realm.getInstance(configV2).close()
-
-        assertTrue(migration.triggered)
+        Realm.getInstance(configV5).close()
+        assertFalse(migration.triggered)
     }
 
-    // Test that
-    // - we never reach migration f version is not specified, not even when triggering
-    //   RealmMigrationNeededException by scheme updates
     @Test
-    fun noMigrationWithoutVersion() {
-        val migration = TestRealmMigration()
-
-        val configDefault: RealmConfiguration = configFactory.createConfigurationBuilder()
-                .schema(StringAndInt::class.java)
-                .migration(migration)
-                .build()
-        // No migration on initial default realm
-        Realm.getInstance(configDefault).close()
-        assertFalse(migration.triggered)
-
+    fun explicitMigrationWithoutMigrationThrows() {
         val configV0: RealmConfiguration = configFactory.createConfigurationBuilder()
-                .migration(migration)
+                .build()
+        Realm.getInstance(configV0).close()
+        assertFailsWith<RealmMigrationNeededException> {
+            Realm.migrateRealm(configV0)
+        }
+    }
+
+    @Test
+    fun migrationNotTriggeredIfVersionIsNotUpdated() {
+        val configV0: RealmConfiguration = configFactory.createConfigurationBuilder()
+                .schema(StringAndInt::class.java)
+                .build()
+        Realm.getInstance(configV0).close()
+
+        val migration = NoOpMigration()
+        val configV0Updated: RealmConfiguration = configFactory.createConfigurationBuilder()
+                .schemaVersion(0, migration)
                 .schema(StringAndInt::class.java, StringOnly::class.java)
                 .build()
-        // No migration on actual scheme changes if we did not specify version
+        // Neither through implicit migration
         assertFailsWith<RealmMigrationNeededException> {
-            Realm.getInstance(configV0).close()
+            Realm.getInstance(configV0Updated).close()
         }
-        assertFalse(migration.triggered)
-
-        // Bump version silently
-        val realmConfigV1: RealmConfiguration = configFactory.createConfigurationBuilder()
-                .schema(StringAndInt::class.java)
-                .schemaVersion(1)
-                .build()
-        Realm.getInstance(realmConfigV1).close()
-
-        val updatingDefaultConfig: RealmConfiguration = configFactory.createConfigurationBuilder()
-            .migration(migration)
-            .schema(StringAndInt::class.java, StringOnly::class.java)
-            .build()
-        // No migration if not specifying version on previously non-default version realm
-        assertFailsWith<IllegalArgumentException> {
-            Realm.getInstance(updatingDefaultConfig).close()
+        // nor through explicit migration
+        assertFailsWith<RealmMigrationNeededException> {
+            Realm.migrateRealm(configV0Updated, migration)
         }
         assertFalse(migration.triggered)
     }
@@ -149,10 +114,9 @@ class RealmMigrationTestsKotlin {
         val realmConfigV0: RealmConfiguration = configFactory.createConfigurationBuilder().build()
         Realm.getInstance(realmConfigV0).close()
         val newVersion = 2L
-        val migration = TestRealmMigration()
+        val migration = NoOpMigration()
         val realmConfigV1: RealmConfiguration = configFactory.createConfigurationBuilder()
-                .schemaVersion(newVersion)
-                .migration(migration)
+                .schemaVersion(newVersion, migration)
                 .build()
         Realm.getInstance(realmConfigV1).use {
             assertEquals(newVersion, it.version)

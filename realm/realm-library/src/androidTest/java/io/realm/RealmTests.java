@@ -4573,13 +4573,12 @@ public class RealmTests {
         RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name("readonly.realm")
                 .schema(StringOnlyReadOnly.class, AllJavaTypes.class)
-                .schemaVersion(2)
-                .assetFile("readonly.realm")
-                .migration(new RealmMigration() {
+                .schemaVersion(2, new RealmMigration() {
                     @Override
                     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                     }
                 })
+                .assetFile("readonly.realm")
                 .build();
 
         try {
