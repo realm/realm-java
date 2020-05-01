@@ -22,7 +22,7 @@ import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsRemoteMongoDatabase;
 
 /**
- * The RemoteMongoDatabase interface.
+ * The RemoteMongoDatabase provides access to its {@link Document} {@link RemoteMongoCollection}s.
  */
 public class RemoteMongoDatabase {
 

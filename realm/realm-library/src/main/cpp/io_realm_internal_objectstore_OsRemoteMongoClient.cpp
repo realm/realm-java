@@ -38,6 +38,11 @@ static void finalize_client(jlong ptr) {
 }
 
 JNIEXPORT jlong JNICALL
+Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeGetFinalizerMethodPtr(JNIEnv *, jclass) {
+    return reinterpret_cast<jlong>(&finalize_client);
+}
+
+JNIEXPORT jlong JNICALL
 Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeCreate(JNIEnv *env,
                                                                     jclass,
                                                                     jlong j_app_ptr,
@@ -45,7 +50,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeCreate(JNIEnv *env,
     try {
         App *app = reinterpret_cast<App *>(j_app_ptr);
         JStringAccessor name(env, j_service_name);
-        RemoteMongoClient client = app->remote_mongo_client(name);
+        RemoteMongoClient client(app->remote_mongo_client(name));
         return reinterpret_cast<jlong>(new RemoteMongoClient(std::move(client)));
     }
     CATCH_STD()
@@ -60,14 +65,9 @@ Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeCreateDatabase(JNIE
     try {
         RemoteMongoClient *client = reinterpret_cast<RemoteMongoClient *>(j_client_ptr);
         JStringAccessor name(env, j_database_name);
-        RemoteMongoDatabase database = client->db(name);
+        RemoteMongoDatabase database(client->db(name));
         return reinterpret_cast<jlong>(new RemoteMongoDatabase(std::move(database)));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
-}
-
-JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeGetFinalizerMethodPtr(JNIEnv *, jclass) {
-    return reinterpret_cast<jlong>(&finalize_client);
 }

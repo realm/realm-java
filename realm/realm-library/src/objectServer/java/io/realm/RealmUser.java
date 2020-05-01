@@ -40,6 +40,7 @@ public class RealmUser {
     OsSyncUser osUser;
     private final RealmApp app;
     private ApiKeyAuth apiKeyAuthProvider = null;
+    private RemoteMongoClient remoteMongoClient = null;
 
     /**
      * FIXME
@@ -441,7 +442,11 @@ public class RealmUser {
      * FIXME Add support for the MongoDB wrapper. Name of Class and method still TBD.
      */
     public RemoteMongoClient getRemoteMongoClient() {
-        return null;
+        if (remoteMongoClient == null) {
+            // FIXME: serviceName?
+            remoteMongoClient = new RemoteMongoClient(this, "serviceName");
+        }
+        return remoteMongoClient;
     }
 
     @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")

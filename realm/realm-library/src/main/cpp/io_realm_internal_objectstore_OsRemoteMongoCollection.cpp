@@ -42,6 +42,11 @@ static void finalize_collection(jlong ptr) {
     delete reinterpret_cast<RemoteMongoCollection*>(ptr);
 }
 
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeGetFinalizerMethodPtr(JNIEnv *, jclass) {
+    return reinterpret_cast<jlong>(&finalize_collection);
+}
+
 JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv *env,
                                                                        jclass,
@@ -51,14 +56,9 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv *e
                                                                        jobject j_callback) {
     try {
         RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-        JStringAccessor name(env, j_filter);
+        JStringAccessor filter(env, j_filter);
         uint64_t limit = std::uint64_t(j_limit);
-        collection->count(name, limit, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper));
+        collection->count(filter, limit, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper));
     }
     CATCH_STD()
-}
-
-JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeGetFinalizerMethodPtr(JNIEnv *, jclass) {
-    return reinterpret_cast<jlong>(&finalize_collection);
 }

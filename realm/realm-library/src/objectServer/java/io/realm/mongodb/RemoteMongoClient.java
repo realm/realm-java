@@ -16,7 +16,7 @@
 
 package io.realm.mongodb;
 
-import io.realm.RealmApp;
+import io.realm.RealmUser;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsRemoteMongoClient;
 
@@ -27,9 +27,9 @@ public class RemoteMongoClient {
 
     private OsRemoteMongoClient osRemoteMongoClient;
 
-    public RemoteMongoClient(RealmApp realmApp, String serviceName) {
+    public RemoteMongoClient(RealmUser realmUser, String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
-        osRemoteMongoClient = new OsRemoteMongoClient(realmApp, serviceName);
+        osRemoteMongoClient = new OsRemoteMongoClient(realmUser, serviceName);
     }
 
     /**

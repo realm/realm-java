@@ -18,9 +18,6 @@ package io.realm.internal.objectstore;
 
 import io.realm.internal.NativeObject;
 
-/**
- * TODO
- */
 public class OsRemoteMongoDatabase implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
