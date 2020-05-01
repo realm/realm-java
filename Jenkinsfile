@@ -73,7 +73,7 @@ try {
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
                   "--privileged " +
                   "-v /dev/bus/usb:/dev/bus/usb " +
-                  "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
+                  //"-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
                   "-v ${env.HOME}/.android:/tmp/.android " +
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
