@@ -9,9 +9,11 @@ def emulatorContainer = null
 def dockerNetworkId = UUID.randomUUID().toString()
 def releaseBranches = ['master', 'next-major', 'v10'] // Branches from which we release SNAPSHOT's
 def currentBranch = env.CHANGE_BRANCH
-// 'android' nodes have android devices attached. 'brix' are physical machines, so we avoid running
-// emulators on already emulated hosts like `docker` which runs in AWS.
-def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'brix' // Only release branches run on actual hardware
+
+// Only release branches need to run on actual hardware.
+// 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen, so
+// we avoid running emulators on already emulated hosts like 'docker' which runs in AWS.
+def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'brix'
 try {
   node(nodeName) {
     timeout(time: 90, unit: 'MINUTES') {
@@ -75,16 +77,14 @@ try {
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
                   "--privileged " +
                   "-v /dev/bus/usb:/dev/bus/usb " +
-                  //"-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
-                  //"-v ${env.HOME}/.android:/tmp/.android " +
+                  "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
+                  "-v ${env.HOME}/.android:/tmp/.android " +
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
                   "--network container:${mongoDbRealmContainer.id} ") {
 
             // Lock required around all usages of Gradle as it isn't
             // able to share its cache between builds.
-
-            echo "Getting lock on '${env.NODE_NAME}-android'"
             lock("${env.NODE_NAME}-android") {
 
               stage('JVM tests') {
