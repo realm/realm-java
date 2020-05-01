@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.internal.common
+package io.realm.util
 
 import com.google.android.gms.tasks.Task
 import java.util.concurrent.CountDownLatch

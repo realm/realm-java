@@ -17,16 +17,14 @@ package io.realm.mongodb
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.google.android.gms.tasks.Task
 import io.realm.*
 import io.realm.admin.ServerAdmin
-import io.realm.internal.common.blockingGetResult
+import io.realm.util.blockingGetResult
 import org.bson.Document
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.CountDownLatch
 import kotlin.test.assertEquals
 
 @RunWith(AndroidJUnit4::class)
