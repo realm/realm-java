@@ -68,14 +68,14 @@ try {
           // Prepare Docker containers used by Instrumentation tests
           // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
           sh "docker network create ${dockerNetworkId}"
-          if (emulatorImage) {
-            emulatorContainer = emulatorImage.run("--network ${dockerNetworkId}")
-          }
           mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
           mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
           sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
           sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
           sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
+          if (emulatorImage) {
+            emulatorContainer = emulatorImage.run("--network container:${mongoDbRealmContainer.id}")
+          }
 
           buildEnv.inside("-e HOME=/tmp " +
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
