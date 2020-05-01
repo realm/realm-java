@@ -7,10 +7,12 @@ def mongoDbRealmContainer = null
 def mongoDbRealmCommandServerContainer = null
 def emulatorContainer = null
 def dockerNetworkId = UUID.randomUUID().toString()
-def releaseBranches = ['master', 'next-major', 'v10'] // Branches from which we release SNAPSHOT's
-def currentBranch = env.CHANGE_BRANCH
-
+// Branches from which we release SNAPSHOT's.
 // Only release branches need to run on actual hardware.
+def releaseBranches = ['master', 'next-major', 'v10']
+// Branches that are "important", so if the do not compile they will generate a Slack notification
+def slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
+def currentBranch = env.CHANGE_BRANCH
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen, so
 // we avoid running emulators on already emulated hosts like 'docker' which runs in AWS.
 def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'brix'
@@ -114,17 +116,17 @@ try {
   buildSuccess = false
   throw e
 } finally {
-  if (['master', 'releases', 'next-major'].contains(currentBranch) && !buildSuccess) {
+  if (slackNotificationBranches.contains(currentBranch) && !buildSuccess) {
     node {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
         def payload = JsonOutput.toJson([
                 username: 'Mr. Jenkins',
                 icon_emoji: ':jenkins:',
                 attachments: [[
-                                      'title': "The ${currentBranch} branch is broken!",
-                                      'text': "<${env.BUILD_URL}|Click here> to check the build.",
-                                      'color': "danger"
-                              ]]
+                  'title': "The ${currentBranch} branch is broken!",
+                  'text': "<${env.BUILD_URL}|Click here> to check the build.",
+                  'color': "danger"
+                ]]
         ])
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
       }
@@ -220,12 +222,16 @@ def forwardAdbPorts() {
 }
 
 String startLogCatCollector() {
-  sh 'adb devices'
-  sh '''adb logcat -c
-  adb logcat -v time > "logcat.txt" &
-  echo $! > pid
-  '''
-  return readFile("pid").trim()
+  // Cancel build quickly if no device is available. The lock acquired already should
+  // ensure we have access to a device. If not, it is most likely a bug.
+  timeout(time: 1, unit: 'MINUTES') {
+    sh 'adb devices'
+    sh '''adb logcat -c
+      adb logcat -v time > "logcat.txt" &
+      echo $! > pid
+    '''
+    return readFile("pid").trim()
+  }
 }
 
 def stopLogCatCollector(String backgroundPid) {
