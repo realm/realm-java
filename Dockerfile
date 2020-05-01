@@ -19,6 +19,8 @@ ENV PATH ${PATH}:${NDK_HOME}
 ENV NDK_CCACHE /usr/bin/ccache
 
 # Keep the packages in alphabetical order to make it easy to avoid duplication
+# tzdata needs to be installed first. See https://askubuntu.com/questions/909277/avoiding-user-interaction-with-tzdata-when-installing-certbot-in-a-docker-contai
+# `file` is need by the Android Emulator
 RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get update -qq \
     && apt-get install -y tzdata \
@@ -66,7 +68,7 @@ RUN yes | sdkmanager \
     'platforms;android-29' \
     'cmake;3.6.4111459' \
     'ndk;21.0.6113669' \
-    'system-images;android-29;default;x86_64'
+    'system-images;android-29;default;x86'
 
 # Make the SDK universally writable
 RUN chmod -R a+rwX ${ANDROID_HOME}
