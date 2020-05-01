@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 # Locales
 RUN apt-get clean && apt-get -y update && apt-get install -y locales && locale-gen en_US.UTF-8
@@ -37,7 +37,9 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           unzip \
                           wget \
                           zip \
-    && apt-get clean
+    && apt-get clean \
+    && ln -fs /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime \
+    && dpkg-reconfigure --frontend noninteractive tzdata
 
 # Install the Android SDK
 RUN cd /opt && \
