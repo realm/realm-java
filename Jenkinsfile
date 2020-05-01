@@ -86,10 +86,10 @@ try {
             // Lock required around all usages of Gradle as it isn't
             // able to share its cache between builds.
             if (useEmulator) {
-              runBuild()
+              runBuild(abiFilter, instrumentationTestTarget)
             } else {
               lock("${env.NODE_NAME}-android") {
-                runBuild()
+                runBuild(abiFilter, instrumentationTestTarget)
               }
             }
           }
@@ -131,7 +131,7 @@ try {
 }
 
 // Describe all build stages
-def runBuild() {
+def runBuild(abiFilter, instrumentationTestTarget) {
   stage('JVM tests') {
     try {
       withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
@@ -151,8 +151,7 @@ def runBuild() {
       storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
     }
   }
-
-
+  
   stage('Static code analysis') {
     try {
       gradle('realm', "findbugs ${abiFilter}") // FIXME Renable pmd and checkstyle
