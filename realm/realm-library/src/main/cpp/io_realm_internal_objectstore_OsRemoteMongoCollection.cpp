@@ -43,12 +43,12 @@ static void finalize_collection(jlong ptr) {
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeGetFinalizerMethodPtr(JNIEnv *, jclass) {
+Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
     return reinterpret_cast<jlong>(&finalize_collection);
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv *env,
+Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv* env,
                                                                        jclass,
                                                                        jlong j_collection_ptr,
                                                                        jstring j_filter,
