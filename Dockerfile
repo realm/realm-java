@@ -5,6 +5,8 @@ RUN apt-get clean && apt-get -y update && apt-get install -y locales && locale-g
 ENV LANG "en_US.UTF-8"
 ENV LANGUAGE "en_US.UTF-8"
 ENV LC_ALL "en_US.UTF-8"
+ENV TZ=Europe/Copenhagen
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Set the environment variables
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
@@ -37,9 +39,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           unzip \
                           wget \
                           zip \
-    && apt-get clean \
-    && ln -fs /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime \
-    && dpkg-reconfigure --frontend noninteractive tzdata
+    && apt-get clean
 
 # Install the Android SDK
 RUN cd /opt && \
