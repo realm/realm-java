@@ -17,6 +17,7 @@ package io.realm
 
 import androidx.test.annotation.UiThreadTest
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
@@ -60,6 +61,7 @@ class EmailPasswordAuthTests {
 
     @Before
     fun setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestRealmApp()
         RealmLog.setLevel(LogLevel.DEBUG)
         admin = ServerAdmin()

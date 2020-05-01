@@ -44,20 +44,10 @@ import io.realm.mongodb.remote.internal.find.RemoteFindIterable;
  * Use {@link RemoteMongoDatabase#getCollection} to get a collection instance.
  * </p><p>
  * Before any access is possible, there must be an active, logged-in user.
- * </p><p>
- * Create, read, update and delete (CRUD) functionality is available depending
- * on the privileges of the active logged-in user. You can set up
- * <a href="https://docs.mongodb.com/stitch/mongodb/define-roles-and-permissions/" target=".">Roles</a>
- * in the Stitch console. Stitch checks any given request against the Roles for the
- * active user and determines whether the request is permitted for each requested
- * document.
- * </p>
  *
- * @param <DocumentT> The type that this collection will encode documents from and decode documents
+ *  @param <DocumentT> The type that this collection will encode documents from and decode documents
  *                    to.
  * @see RemoteMongoDatabase
- * @see <a href="https://docs.mongodb.com/stitch/mongodb/" target=".">
- * MongoDB Atlas Overview with Stitch</a>
  */
 public class RemoteMongoCollection<DocumentT> {
 
@@ -146,7 +136,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<Long> count(final Bson filter) {
         String stringFilter = filter
-                .toBsonDocument(null, null)     // FIXME: what about these parameters?
+                .toBsonDocument(null, null)     // TODO: is this even remotely correct?
                 .toJson();
 
         return dispatcher.dispatchTask(() ->
@@ -162,7 +152,13 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the number of documents in the collection
      */
     public Task<Long> count(final Bson filter, final RemoteCountOptions options) {
-        throw new RuntimeException("Not Implemented");
+        String stringFilter = filter
+                .toBsonDocument(null, null)     // TODO: is this even remotely correct?
+                .toJson();
+
+        return dispatcher.dispatchTask(() ->
+                osRemoteMongoCollection.count(stringFilter, options)
+        );
     }
 
     /**

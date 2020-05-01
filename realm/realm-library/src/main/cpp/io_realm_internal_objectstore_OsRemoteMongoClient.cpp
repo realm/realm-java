@@ -34,7 +34,7 @@ using namespace realm::jni_util;
 using namespace realm::_impl;
 
 static void finalize_client(jlong ptr) {
-    delete reinterpret_cast<std::shared_ptr<RemoteMongoClient> *>(ptr);
+    delete reinterpret_cast<RemoteMongoClient*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL
@@ -44,8 +44,6 @@ Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeCreate(JNIEnv *env,
                                                                     jstring j_service_name) {
     try {
         App *app = reinterpret_cast<App *>(j_app_ptr);
-//        auto user = *reinterpret_cast<std::shared_ptr<SyncUser> *>(j_user_ptr);   // FIXME
-//        auto client = app->provider_client<App::UserAPIKeyProviderClient>();      // FIXME
         JStringAccessor name(env, j_service_name);
         RemoteMongoClient client = app->remote_mongo_client(name);
         return reinterpret_cast<jlong>(new RemoteMongoClient(std::move(client)));
@@ -56,13 +54,12 @@ Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeCreate(JNIEnv *env,
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeCreateDatabase(JNIEnv *env,
-                                                                    jclass,
-                                                                    jlong j_client_ptr,
-                                                                    jstring j_database_name) {
+                                                                            jclass,
+                                                                            jlong j_client_ptr,
+                                                                            jstring j_database_name) {
     try {
         RemoteMongoClient *client = reinterpret_cast<RemoteMongoClient *>(j_client_ptr);
         JStringAccessor name(env, j_database_name);
-
         RemoteMongoDatabase database = client->db(name);
         return reinterpret_cast<jlong>(new RemoteMongoDatabase(std::move(database)));
     }

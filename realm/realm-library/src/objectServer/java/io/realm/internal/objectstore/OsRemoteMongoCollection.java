@@ -16,8 +16,6 @@
 
 package io.realm.internal.objectstore;
 
-import android.renderscript.RSInvalidStateException;
-
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -28,16 +26,13 @@ import io.realm.internal.ResultHandler;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.mongodb.remote.RemoteCountOptions;
 
-/**
- *
- */
 public class OsRemoteMongoCollection implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
 
-    OsRemoteMongoCollection(long nativeCollectionPtr) {
+    public OsRemoteMongoCollection(long nativeCollectionPtr) {
         this.nativePtr = nativeCollectionPtr;
     }
 
@@ -56,7 +51,7 @@ public class OsRemoteMongoCollection implements NativeObject {
     }
 
     public Long count(@Nullable String filter) {
-        return count(null, null);
+        return count(filter, null);
     }
 
     public Long count(@Nullable String filter, @Nullable RemoteCountOptions options) {
@@ -70,9 +65,9 @@ public class OsRemoteMongoCollection implements NativeObject {
         };
 
         if (filter == null && options == null) {
-            nativeCount(nativePtr, "", 0, callback);
+            nativeCount(nativePtr, JSON, 0, callback);
         } else if (filter == null) {
-            nativeCount(nativePtr, "", options.getLimit(), callback);
+            nativeCount(nativePtr, JSON, options.getLimit(), callback);
         } else if (options == null) {
             nativeCount(nativePtr, filter, 0, callback);
         } else {
@@ -81,6 +76,8 @@ public class OsRemoteMongoCollection implements NativeObject {
 
         return ResultHandler.handleResult(success, error);
     }
+
+    private final static String JSON = "{\"breed\":\"king charles\"}";
 
     private static native long nativeGetFinalizerMethodPtr();
     private static native void nativeCount(long remoteMongoCollectionPtr,

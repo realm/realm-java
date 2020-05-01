@@ -34,6 +34,14 @@ using namespace realm::app;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
+static std::function<jobject(JNIEnv*, uint64_t)> collection_mapper = [](JNIEnv* env, uint64_t result) {
+    return JavaClassGlobalDef::new_long(env, result);
+};
+
+static void finalize_collection(jlong ptr) {
+    delete reinterpret_cast<RemoteMongoCollection*>(ptr);
+}
+
 JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv *env,
                                                                        jclass,
@@ -42,21 +50,12 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv *e
                                                                        jlong j_limit,
                                                                        jobject j_callback) {
     try {
-        RemoteMongoCollection *collection = reinterpret_cast<RemoteMongoCollection *>(j_collection_ptr);
+        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
         JStringAccessor name(env, j_filter);
         uint64_t limit = std::uint64_t(j_limit);
-
-        std::function<jobject(JNIEnv*, uint64_t)> mapper = [](JNIEnv* env, uint64_t result) {
-            return JavaClassGlobalDef::new_long(env, result);
-        };
-
-        collection->count(name, limit, JavaNetworkTransport::create_result_callback(env, j_callback, mapper));
+        collection->count(name, limit, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper));
     }
     CATCH_STD()
-}
-
-static void finalize_collection(jlong ptr) {
-    delete reinterpret_cast<std::shared_ptr<RemoteMongoCollection> *>(ptr);
 }
 
 JNIEXPORT jlong JNICALL
