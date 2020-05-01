@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.mongodb;
 
-public class RealmMongoDBDatabase {
+package io.realm.mongodb.remote;
+
+/**
+ * The result of a delete operation.
+ */
+public class RemoteDeleteResult {
+
+    private final long deletedCount;
+
+    /**
+     * Constructs a result.
+     *
+     * @param deletedCount the number of documents deleted.
+     */
+    public RemoteDeleteResult(final long deletedCount) {
+        this.deletedCount = deletedCount;
+    }
+
+    /**
+     * Gets the number of documents deleted.
+     *
+     * @return the number of documents deleted
+     */
+    public long getDeletedCount() {
+        return deletedCount;
+    }
 }

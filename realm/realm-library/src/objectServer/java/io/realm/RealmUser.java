@@ -22,11 +22,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.internal.Util;
+import io.realm.internal.jni.OsJNIResultCallback;
+import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
-import io.realm.internal.Util;
-import io.realm.mongodb.RealmMongoDBService;
+import io.realm.mongodb.RemoteMongoClient;
 
 import static io.realm.RealmApp.handleResult;
 
@@ -38,6 +40,7 @@ public class RealmUser {
     OsSyncUser osUser;
     private final RealmApp app;
     private ApiKeyAuth apiKeyAuthProvider = null;
+    private RemoteMongoClient remoteMongoClient = null;
     private RealmFunctions functions = null;
 
     /**
@@ -264,7 +267,7 @@ public class RealmUser {
         checkLoggedIn();
         AtomicReference<RealmUser> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeLinkUser(app.nativePtr, osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new RealmApp.OsJNIResultCallback<RealmUser>(success, error) {
+        nativeLinkUser(app.nativePtr, osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
             @Override
             protected RealmUser mapSuccess(Object result) {
                 osUser = new OsSyncUser((long) result); // OS returns the updated user as a new one.
@@ -320,7 +323,7 @@ public class RealmUser {
         boolean loggedIn = isLoggedIn();
         AtomicReference<RealmUser> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeRemoveUser(app.nativePtr, osUser.getNativePtr(), new RealmApp.OsJNIResultCallback<RealmUser>(success, error) {
+        nativeRemoveUser(app.nativePtr, osUser.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
             @Override
             protected RealmUser mapSuccess(Object result) {
                 return RealmUser.this;
@@ -372,7 +375,7 @@ public class RealmUser {
     public void logOut() throws ObjectServerError {
         boolean loggedIn = isLoggedIn();
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeLogOut(app.nativePtr, osUser.getNativePtr(), new RealmApp.OsJNIVoidResultCallback(error));
+        nativeLogOut(app.nativePtr, osUser.getNativePtr(), new OsJNIVoidResultCallback(error));
         handleResult(null, error);
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
@@ -445,8 +448,12 @@ public class RealmUser {
     /**
      * FIXME Add support for the MongoDB wrapper. Name of Class and method still TBD.
      */
-    public RealmMongoDBService getMongoDBService() {
-        return null;
+    public RemoteMongoClient getRemoteMongoClient() {
+        if (remoteMongoClient == null) {
+            // FIXME: serviceName?
+            remoteMongoClient = new RemoteMongoClient(this, "serviceName");
+        }
+        return remoteMongoClient;
     }
 
     @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
