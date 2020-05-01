@@ -164,7 +164,9 @@ try {
           archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
           mongoDbRealmContainer.stop()
           mongoDbRealmCommandServerContainer.stop()
-          emulatorContainer.stop()
+          if (emulatorContainer != null) {
+            emulatorContainer.stop()
+          }
           sh "docker network rm ${dockerNetworkId}"
         }
       }
