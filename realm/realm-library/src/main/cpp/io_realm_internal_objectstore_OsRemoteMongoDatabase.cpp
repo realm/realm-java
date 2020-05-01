@@ -33,19 +33,18 @@ using namespace realm::app;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-static void finalize_collection(jlong ptr) {
-    delete reinterpret_cast<std::shared_ptr<RemoteMongoCollection> *>(ptr);
+static void finalize_database(jlong ptr) {
+    delete reinterpret_cast<RemoteMongoDatabase*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoDatabase_nativeGetCollection(JNIEnv *env,
-                                                                    jclass,
-                                                                    jlong j_database_ptr,
-                                                                    jstring j_collection_name) {
+Java_io_realm_internal_objectstore_OsRemoteMongoDatabase_nativeGetCollection(JNIEnv* env,
+                                                                             jclass,
+                                                                             jlong j_database_ptr,
+                                                                             jstring j_collection_name) {
     try {
-        RemoteMongoDatabase *database = reinterpret_cast<RemoteMongoDatabase *>(j_database_ptr);
+        RemoteMongoDatabase* database = reinterpret_cast<RemoteMongoDatabase*>(j_database_ptr);
         JStringAccessor name(env, j_collection_name);
-
         RemoteMongoCollection collection = database->collection(name);
         return reinterpret_cast<jlong>(new RemoteMongoCollection(std::move(collection)));
     }
@@ -54,6 +53,6 @@ Java_io_realm_internal_objectstore_OsRemoteMongoDatabase_nativeGetCollection(JNI
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoDatabase_nativeGetFinalizerMethodPtr(JNIEnv *, jclass) {
-    return reinterpret_cast<jlong>(&finalize_collection);
+Java_io_realm_internal_objectstore_OsRemoteMongoDatabase_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
+    return reinterpret_cast<jlong>(&finalize_database);
 }
