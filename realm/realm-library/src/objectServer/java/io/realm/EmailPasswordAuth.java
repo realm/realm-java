@@ -20,6 +20,7 @@ import org.json.JSONArray;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
+import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 
 import static io.realm.RealmApp.NETWORK_POOL_EXECUTOR;
@@ -62,7 +63,7 @@ public class EmailPasswordAuth {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_REGISTER_USER,
                 app.nativePtr,
-                new RealmApp.OsJNIVoidResultCallback(error),
+                new OsJNIVoidResultCallback(error),
                 email, password);
         RealmApp.handleResult(null, error);
     }
@@ -103,7 +104,7 @@ public class EmailPasswordAuth {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_CONFIRM_USER,
                 app.nativePtr,
-                new RealmApp.OsJNIVoidResultCallback(error),
+                new OsJNIVoidResultCallback(error),
                 token, tokenId);
         RealmApp.handleResult(null, error);
     }
@@ -139,7 +140,7 @@ public class EmailPasswordAuth {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_RESEND_CONFIRMATION_EMAIL,
                 app.nativePtr,
-                new RealmApp.OsJNIVoidResultCallback(error),
+                new OsJNIVoidResultCallback(error),
                 email);
         RealmApp.handleResult(null, error);
     }
@@ -174,7 +175,7 @@ public class EmailPasswordAuth {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_SEND_RESET_PASSWORD_EMAIL,
                 app.nativePtr,
-                new RealmApp.OsJNIVoidResultCallback(error),
+                new OsJNIVoidResultCallback(error),
                 email);
         RealmApp.handleResult(null, error);
     }
@@ -218,7 +219,7 @@ public class EmailPasswordAuth {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_CALL_RESET_PASSWORD_FUNCTION,
                 app.nativePtr,
-                new RealmApp.OsJNIVoidResultCallback(error),
+                new OsJNIVoidResultCallback(error),
                 email, newPassword, array.toString());
         RealmApp.handleResult(null, error);
     }
@@ -262,7 +263,7 @@ public class EmailPasswordAuth {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_RESET_PASSWORD,
                 app.nativePtr,
-                new RealmApp.OsJNIVoidResultCallback(error),
+                new OsJNIVoidResultCallback(error),
                 token, tokenId, newPassword);
         RealmApp.handleResult(null, error);
     }
