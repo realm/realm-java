@@ -33,4 +33,3 @@ fun <T> Task<T>.blockingGetResult(): T {
     countDownLatch.await()
     return result!!
 }
-
