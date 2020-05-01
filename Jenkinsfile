@@ -93,7 +93,7 @@ try {
               // TODO: We should wait until the emulator is online. For now assume it starts fast enough
               // before the tests will run.
               sh '''yes "\n" | avdmanager create avd -n CIEmulator -k "system-images;android-29;default;x86" --force'''
-              sh "emulator -force-32bit -avd CIEmulator &"
+              sh "emulator -avd @CIEmulator -force-32bit -no-window -gpu off &"
               sh 'adb devices'
               try {
                 runBuild(abiFilter, instrumentationTestTarget)
