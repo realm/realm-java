@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.remote.internal;
+package io.realm.mongodb.remote;
 
 import org.bson.BsonValue;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.remote.internal;
+package io.realm.mongodb.remote;
 
 /**
  * The result of a delete operation.

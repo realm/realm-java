@@ -18,25 +18,23 @@ package io.realm.mongodb;
 
 import com.google.android.gms.tasks.Task;
 
-import org.bson.BsonDocument;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsRemoteMongoCollection;
 import io.realm.mongodb.remote.RemoteCountOptions;
 import io.realm.mongodb.remote.RemoteFindOneAndModifyOptions;
 import io.realm.mongodb.remote.RemoteUpdateOptions;
-import io.realm.mongodb.remote.internal.RemoteDeleteResult;
+import io.realm.mongodb.remote.RemoteDeleteResult;
 import io.realm.mongodb.remote.RemoteFindOptions;
-import io.realm.mongodb.remote.internal.RemoteInsertManyResult;
-import io.realm.mongodb.remote.internal.RemoteInsertOneResult;
-import io.realm.mongodb.remote.internal.RemoteUpdateResult;
-import io.realm.mongodb.remote.internal.aggregate.RemoteAggregateIterable;
-import io.realm.mongodb.remote.internal.find.RemoteFindIterable;
+import io.realm.mongodb.remote.RemoteInsertManyResult;
+import io.realm.mongodb.remote.RemoteInsertOneResult;
+import io.realm.mongodb.remote.RemoteUpdateResult;
+import io.realm.mongodb.remote.aggregate.RemoteAggregateIterable;
+import io.realm.mongodb.remote.find.RemoteFindIterable;
 
 /**
  * The RemoteMongoCollection interface provides read and write access to documents.

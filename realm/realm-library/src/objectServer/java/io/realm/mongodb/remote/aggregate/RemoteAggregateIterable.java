@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.remote.internal.aggregate;
+package io.realm.mongodb.remote.aggregate;
 
 /**
  * Iterable for aggregate.
