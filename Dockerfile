@@ -35,10 +35,13 @@ RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386 \
                           libz1:i386 \
                           openjdk-8-jdk-headless \
                           s3cmd \
+                          tzdata \
                           unzip \
                           wget \
                           zip \
     && apt-get clean
+    && ln -fs /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
+    && dpkg-reconfigure --frontend noninteractive tzdata
 
 # Install the Android SDK
 RUN cd /opt && \
