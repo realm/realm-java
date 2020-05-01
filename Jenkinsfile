@@ -57,6 +57,8 @@ try {
         def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
         def emulatorImage = null
         if (useEmulator) {
+          // TODO We should maintain our own images so we are sure we control them
+          // if our requirements change
           emulatorImage = docker.image("budtmo/docker-android-x86-8.1")
         }
 
@@ -130,13 +132,16 @@ try {
   }
 }
 
-// Describe all build stages
+// Runs all build steps
 def runBuild(abiFilter, instrumentationTestTarget) {
+
+  stage('Build') {
+    sh "chmod +x gradlew && ./gradlew assemble javadoc ${abiFilter} --stacktrace"
+  }
+
   stage('JVM tests') {
     try {
-      withCredentials([[$class: 'FileBinding', credentialsId: 'c0cc8f9e-c3f1-4e22-b22f-6568392e26ae', variable: 'S3CFG']]) {
-        sh "chmod +x gradlew && ./gradlew assemble check javadoc -Ps3cfg=${env.S3CFG} ${abiFilter} --stacktrace"
-      }
+        sh "chmod +x gradlew && ./gradlew check ${abiFilter} --stacktrace"
     } finally {
       storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
       storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
@@ -151,7 +156,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
       storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
     }
   }
-  
+
   stage('Static code analysis') {
     try {
       gradle('realm', "findbugs ${abiFilter}") // FIXME Renable pmd and checkstyle
@@ -214,7 +219,8 @@ def forwardAdbPorts() {
   '''
 }
 
-def String startLogCatCollector() {
+String startLogCatCollector() {
+  sh 'adb devices'
   sh '''adb logcat -c
   adb logcat -v time > "logcat.txt" &
   echo $! > pid
