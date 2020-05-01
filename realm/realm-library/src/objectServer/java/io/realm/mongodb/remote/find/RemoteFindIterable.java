@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.remote.internal.find;
+package io.realm.mongodb.remote.find;
 
 import org.bson.conversions.Bson;
 
