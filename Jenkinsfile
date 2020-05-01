@@ -57,12 +57,12 @@ try {
           mdbRealmImage.pull()
         }
         def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
-        def emulatorImage = null
-        if (useEmulator) {
-          // TODO We should maintain our own images so we are sure we control them
-          // if our requirements change
-          emulatorImage = docker.image("budtmo/docker-android-x86-8.1")
-        }
+//        def emulatorImage = null
+//        if (useEmulator) {
+//          // TODO We should maintain our own images so we are sure we control them
+//          // if our requirements change
+//          emulatorImage = docker.image("budtmo/docker-android-x86-8.1")
+//        }
 
         try {
           // Prepare Docker containers used by Instrumentation tests
@@ -73,9 +73,9 @@ try {
           sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
           sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
           sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
-          if (emulatorImage) {
-            emulatorContainer = emulatorImage.run("--network container:${mongoDbRealmContainer.id}")
-          }
+//          if (emulatorImage) {
+//            emulatorContainer = emulatorImage.run("--network container:${mongoDbRealmContainer.id}")
+//          }
 
           buildEnv.inside("-e HOME=/tmp " +
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
@@ -90,7 +90,17 @@ try {
             // Lock required around all usages of Gradle as it isn't
             // able to share its cache between builds.
             if (useEmulator) {
-              runBuild(abiFilter, instrumentationTestTarget)
+              // TODO: We should wait until the emulator is online. For now assume it starts fast enough
+              // before the tests will run.
+              sh '''
+                echo -e "\\n" | avdmanager create avd -n CIEmulator -k "system-images;android-29;default;x86_64" --force
+                emulator -avd @CIEmulator
+              '''
+              try {
+                runBuild(abiFilter, instrumentationTestTarget)
+              } finally {
+                sh 'adb -s emulator-5554 emu kill'
+              }
             } else {
               lock("${env.NODE_NAME}-android") {
                 runBuild(abiFilter, instrumentationTestTarget)
