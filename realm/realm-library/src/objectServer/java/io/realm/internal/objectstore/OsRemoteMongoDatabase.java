@@ -18,9 +18,6 @@ package io.realm.internal.objectstore;
 
 import io.realm.internal.NativeObject;
 
-/**
- * TODO
- */
 public class OsRemoteMongoDatabase implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
@@ -36,7 +33,7 @@ public class OsRemoteMongoDatabase implements NativeObject {
         return new OsRemoteMongoCollection(nativeCollectionPtr);
     }
 
-    // TODO: what about this one?
+    // FIXME: what about this one?
 //    public <DocumentT> RemoteMongoCollection<DocumentT> getCollection(
 //            final String collectionName,
 //            final Class<DocumentT> documentClass

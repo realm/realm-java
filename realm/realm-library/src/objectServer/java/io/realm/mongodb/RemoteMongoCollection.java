@@ -557,7 +557,7 @@ public class RemoteMongoCollection<DocumentT> {
         throw new RuntimeException("Not Implemented");
     }
 
-    // TODO: what about these?
+    // FIXME: what about these?
 //    /**
 //     * Watches a collection. The resulting stream will be notified of all events on this collection
 //     * that the active user is authorized to see based on the configured MongoDB rules.
@@ -637,7 +637,7 @@ public class RemoteMongoCollection<DocumentT> {
 //    Task<AsyncChangeStream<DocumentT, CompactChangeEvent<DocumentT>>> watchCompact(
 //            final BsonValue... ids);
 
-    // TODO: what about this one?
+    // FIXME: what about this one?
 //    /**
 //     * A set of synchronization related operations on this collection.
 //     *

@@ -18,9 +18,6 @@ package io.realm.internal.objectstore;
 
 import io.realm.internal.NativeObject;
 
-/**
- *
- */
 public class OsRemoteMongoCollection implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
@@ -42,7 +39,7 @@ public class OsRemoteMongoCollection implements NativeObject {
     }
 
     public void count(String filter) {
-        // TODO
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     private static native long nativeGetFinalizerMethodPtr();

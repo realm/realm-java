@@ -30,7 +30,6 @@ import static org.bson.assertions.Assertions.notNull;
 /**
  * A MongoDB namespace, which includes a database name and collection name.
  */
-
 public final class MongoNamespace {
     public static final String COMMAND_COLLECTION_NAME = "$cmd";
 
@@ -109,7 +108,6 @@ public final class MongoNamespace {
      *
      * @return the database name
      */
-    @BsonProperty("db")
     public String getDatabaseName() {
         return databaseName;
     }
@@ -119,7 +117,6 @@ public final class MongoNamespace {
      *
      * @return the collection name
      */
-    @BsonProperty("coll")
     public String getCollectionName() {
         return collectionName;
     }

@@ -16,20 +16,17 @@
 
 package io.realm.internal.objectstore;
 
-import io.realm.RealmApp;
+import io.realm.RealmUser;
 import io.realm.internal.NativeObject;
 
-/**
- * TODO
- */
 public class OsRemoteMongoClient implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
 
-    public OsRemoteMongoClient(RealmApp realmApp, String serviceName) {
-        this.nativePtr = nativeCreate(realmApp.nativePtr, serviceName);
+    public OsRemoteMongoClient(RealmUser realmUser, String serviceName) {
+        this.nativePtr = nativeCreate(realmUser.getApp().nativePtr, serviceName);
     }
 
     public OsRemoteMongoDatabase getRemoteDatabase(String databaseName) {
