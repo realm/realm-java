@@ -94,7 +94,7 @@ try {
               // before the tests will run.
               sh '''
                 echo -e "\\n" | avdmanager create avd -n CIEmulator -k "system-images;android-29;default;x86_64" --force
-                emulator -avd @CIEmulator
+                emulator -avd @CIEmulator &
               '''
               try {
                 runBuild(abiFilter, instrumentationTestTarget)
