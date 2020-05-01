@@ -39,8 +39,8 @@ RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386 \
                           unzip \
                           wget \
                           zip \
-    && apt-get clean
-    && ln -fs /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
+    && apt-get clean \
+    && ln -fs /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime \
     && dpkg-reconfigure --frontend noninteractive tzdata
 
 # Install the Android SDK
