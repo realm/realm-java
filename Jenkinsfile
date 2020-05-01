@@ -93,7 +93,7 @@ try {
               // TODO: We should wait until the emulator is online. For now assume it starts fast enough
               // before the tests will run.
               sh '''
-                yes '\n' | avdmanager create avd -n CIEmulator -k "system-images;android-29;default;x86" --force
+                yes '\n' | avdmanager create avd -n CIEmulator -k "system-images;android-29;default;x86_64" --force
                 emulator -avd @CIEmulator &
               '''
               try {
