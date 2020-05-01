@@ -5,11 +5,13 @@ import groovy.json.JsonOutput
 def buildSuccess = false
 def mongoDbRealmContainer = null
 def mongoDbRealmCommandServerContainer = null
+def emulatorContainer = null
 def dockerNetworkId = UUID.randomUUID().toString()
 def releaseBranches = ['master', 'next-major', 'v10'] // Branches from which we release SNAPSHOT's
 def currentBranch = env.CHANGE_BRANCH
+def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker' // Only release branches run on actual hardware
 try {
-  node('android') {
+  node(nodeName) {
     timeout(time: 90, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
@@ -27,20 +29,20 @@ try {
         }
 
         // Toggles for PR vs. Master builds.
-        // For PR's, we just build for arm-v7a and run unit tests for the ObjectServer variant
-        // A full build is done on `master`.
-        // TODO Once Android emulators are available on all nodes, we can switch to x86 builds
-        // on PR's for even more throughput.
+        // - For PR's, we favor speed > absolute correctness. So we just build for x86, use an
+        //   emulator and run unit tests for the ObjectServer variant.
+        // - For branches from which we make releases, we build all architectures and run tests
+        //   on an actual device.
         def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
+        def useEmulator = false
         if (!releaseBranches.contains(currentBranch)) {
-          abiFilter = "-PbuildTargetABIs=armeabi-v7a"
+          abiFilter = "-PbuildTargetABIs=x86"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
-          // Run in debug more for better error reporting
+          useEmulator = true
         }
 
         // Prepare Docker images
-        // FIXME: Had issues moving these into a seperate Stage step. Is this needed?
         buildEnv = docker.build 'realm-java:snapshot'
         def props = readProperties file: 'dependencies.list'
         echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
@@ -49,11 +51,18 @@ try {
           mdbRealmImage.pull()
         }
         def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
+        def emulatorImage = null
+        if (useEmulator) {
+          emulatorImage = docker.image("budtmo/docker-android-x86-8.1")
+        }
 
         try {
           // Prepare Docker containers used by Instrumentation tests
           // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
           sh "docker network create ${dockerNetworkId}"
+          if (emulatorImage) {
+            emulatorContainer = emulatorImage.run("--network ${dockerNetworkId}")
+          }
           mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
           mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
           sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
@@ -155,6 +164,7 @@ try {
           archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
           mongoDbRealmContainer.stop()
           mongoDbRealmCommandServerContainer.stop()
+          emulatorContainer.stop()
           sh "docker network rm ${dockerNetworkId}"
         }
       }
