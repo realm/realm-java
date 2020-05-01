@@ -57,7 +57,7 @@ public class RemoteMongoDatabase {
         return new RemoteMongoCollection<>(osRemoteMongoDatabase.getCollection(collectionName));
     }
 
-    // TODO: what about this one?
+    // FIXME: what about this one?
 //    /**
 //     * Gets a collection, with a specific default document class.
 //     *

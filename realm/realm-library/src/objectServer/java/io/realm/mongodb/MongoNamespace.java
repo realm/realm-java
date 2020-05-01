@@ -30,7 +30,6 @@ import static org.bson.assertions.Assertions.notNull;
 /**
  * A MongoDB namespace, which includes a database name and collection name.
  */
-
 public final class MongoNamespace {
     public static final String COMMAND_COLLECTION_NAME = "$cmd";
 

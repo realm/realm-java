@@ -21,7 +21,7 @@ import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsRemoteMongoClient;
 
 /**
- * The remote MongoClient used for working with data in MongoDB remotely via Stitch.
+ * The remote MongoClient used for working with data in MongoDB remotely via Realm.
  */
 public class RemoteMongoClient {
 
