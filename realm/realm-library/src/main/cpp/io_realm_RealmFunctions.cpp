@@ -18,28 +18,54 @@
 
 #include "util.hpp"
 #include "java_network_transport.hpp"
-//#include "object-store/src/sync/app_service_client.hpp"
+#include "object-store/src/sync/app.hpp"
 
 using namespace realm;
+using namespace realm::app;
 
-static std::function<jobject(JNIEnv*, std::string )> mapper = [](JNIEnv* env, std::string response) {
-    return to_jstring(env, response);
+static const std::string VALUE("value");
+
+static bson::BsonArray arg_mapper(JNIEnv* env, jstring arg) {
+    // FIXME Relies heavily on experimental convention; guard appropriately
+    // FIXME How do we propagate errors from here
+    JStringAccessor args_json(env, arg);
+    bson::BsonDocument document(bson::parse(args_json));
+    return static_cast<bson::BsonArray >(document[VALUE]);
+}
+
+static std::function<jobject(JNIEnv*, Optional<bson::Bson> )> response_mapper = [](JNIEnv* env, Optional<bson::Bson> response) {
+    if (response) {
+        // FIXME JNI type conversion
+        bson::BsonDocument document  {{ VALUE, *response }};
+        std::stringstream buffer;
+        buffer << document;
+        std::string r = buffer.str();
+        return to_jstring(env, r);
+    } else {
+        // FIXME How to raise errors here
+        return to_jstring(env, "{}");
+    }
 };
 
 JNIEXPORT void JNICALL
-Java_io_realm_RealmFunctions_nativeCallFunction(JNIEnv *env, jclass , jstring,
+Java_io_realm_RealmFunctions_nativeCallFunction(JNIEnv* env, jclass , jlong j_app_ptr, jlong j_user_ptr, jstring j_name,
                                                 jstring j_args_json , jobject j_callback) {
     try {
-        // FIXME Mapper?
-        std::function<void(std::string, Optional<app::AppError>)> callback;
-        callback = JavaNetworkTransport::create_result_callback(env, j_callback, mapper);
-        JStringAccessor args_json(env, j_args_json);
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
 
-        // FIXME Does not look like AppServiceClient is ready yet
-        //  auto client = app->provider_client<App::AppServiceClient>();
-        //  client.call_function(j_name, j_args_json, Optional<std::string>(), callback)
-        //  So for now just return args
-        callback(args_json, {});
+        std::function<void(Optional<bson::Bson>, Optional<app::AppError>)> callback;
+        callback = JavaNetworkTransport::create_result_callback(env, j_callback, response_mapper);
+
+        // FIXME Seems like we need to swap the arguments!??! Maybe align conventions
+        auto handler = [callback](Optional<app::AppError> error, Optional<bson::Bson> response) {
+            callback(response, error);
+        };
+
+        JStringAccessor name(env, j_name);
+        bson::BsonArray args = arg_mapper(env, j_args_json);
+
+        app->call_function(user, name, args, handler);
     }
     CATCH_STD()
 }

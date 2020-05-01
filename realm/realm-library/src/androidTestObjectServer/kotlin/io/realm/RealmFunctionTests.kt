@@ -27,6 +27,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.test.assertEquals
 
 @RunWith(AndroidJUnit4::class)
 class RealmFunctionTests {
@@ -64,16 +65,18 @@ class RealmFunctionTests {
         val s = "Realm"
 
         val result1a: BsonValue = functions.callFunction("sum", listOf(BsonInt32(i32)))
-        val result1b: BsonInt32 = functions.callFunction("sum", listOf(i32), BsonInt32::class.java)
-        val result1d: Integer = functions.callFunction("sum", listOf(i32), Integer::class.java)
+        assertEquals(6L, result1a.asInt64().value)
+//        val result1b: BsonInt32 = functions.callFunction("sum", listOf(i32), BsonInt32::class.java)
+//        val result1d: Integer = functions.callFunction("sum", listOf(i32), Integer::class.java)
+        val result1d: Any = functions.callFunction("sum", listOf(i32), java.lang.Long::class.java)
         val result1e: BsonInt64 = functions.callFunction("sum", listOf(i64), BsonInt64::class.java)
-        val result1f: String? = functions.callFunction("sum", listOf(s), BsonString::class.java).value
+//        val result1f: String? = functions.callFunction("sum", listOf(s), BsonString::class.java).value
 
         // Does not compile as intended
         // val result1g: BsonString = functions.callFunctionTyped("sum", BsonInt32::class.java, BsonInt32(32))
 
         val result2: RealmAsyncTask = functions.callFunctionAsync( "sum", listOf(BsonInt32(i32))) { result ->
-            println("function: " + result.get().asInt32())
+            assertEquals(6L, result.get().asInt64().value)
             looperThread.testComplete()
         }
     }

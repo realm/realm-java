@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
+import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.util.BsonConverter;
 
@@ -33,6 +34,14 @@ import io.realm.internal.util.BsonConverter;
  */
 // TODO Timeout is currently handled uniformly through OkHttpNetworkTransport configured through RealmAppConfig
 public class RealmFunctions {
+
+    // FIXME Review memory allocation
+    private final RealmUser user;
+
+    // FIXME Doc
+    public RealmFunctions(RealmUser user) {
+        this.user = user;
+    }
 
     /**
      * Call a MongoDB Realm function synchronously.
@@ -49,18 +58,14 @@ public class RealmFunctions {
      * @throws ObjectServerError if the request failed in some way.
      * // FIXME Any other errors that we should expect
      */
+    // FIXME Service?
+    // FIXME Application wide invocation
     public BsonValue callFunction(String name, List<?> args) {
-        List<BsonValue> bsonArgs = BsonConverter.to(args.toArray());
-        BsonDocument document = new BsonDocument();
-        // FIXME Ensure that this is the right contract with ObjectServer
-        document.append("arguments", new BsonArray(bsonArgs));
-        String resultString = invoke(name, document.toJson());
-
-        BsonDocument resultDocument = BsonDocument.parse(resultString);
-        // FIXME How to retrieve result and guard if no values, etc. ...needs final convention to
-        //  lower  layers
-        BsonValue result = resultDocument.values().iterator().next().asArray().get(0);
-        return result;
+        BsonValue bsonArgs = BsonConverter.to(args.toArray());
+        String encodedArgs = encode(bsonArgs);
+        String encodedResponse = invoke(name, encodedArgs);
+        BsonValue response = decode(encodedResponse);
+        return response;
     }
 
     /**
@@ -99,9 +104,6 @@ public class RealmFunctions {
      *
      * @see #callFunction(String, List)
      */
-    // FIXME Eliminating varargs in favor. Seems more convenient to have same methods name for
-    //  typed/untyped variant and allowing trailing SAM callback lambda for Kotlin which more or
-    //  less resembled the Task.addCompleteListener from old Stitch API.
     // FIXME Evaluate original asynchronous Stitch API relying on Google Play Tasks. For now just
     //  use a RealmAsyncTask
     //  https://docs.mongodb.com/stitch-sdks/java/4/com/mongodb/stitch/android/core/services/StitchServiceClient.html
@@ -127,21 +129,31 @@ public class RealmFunctions {
 
     private String invoke(String name, String args) {
         // Native calling scheme is actually synchronous
-        // CR: Authentication? Guess we are in a user scope here!?
         Util.checkEmpty(name, "name");
         Util.checkEmpty(args, "args");
         AtomicReference<String> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        RealmApp.OsJNIResultCallback<String> callback = new RealmApp.OsJNIResultCallback<String>(success, error) {
+        OsJNIResultCallback<String> callback = new OsJNIResultCallback<String>(success, error) {
             @Override
             protected String mapSuccess(Object result) {
-                return args;
+                return (String) result;
             }
         };
-        nativeCallFunction(name, args, callback);
+        nativeCallFunction(user.getApp().nativePtr, user.osUser.getNativePtr(), name, args, callback);
         return RealmApp.handleResult(success, error);
    }
 
-   private static native void nativeCallFunction(String name, String args_json, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    // FIXME Ensure that this is the right contract with ObjectServer
+    private String encode(BsonValue bsonValue) {
+       BsonDocument document = new BsonDocument();
+       document.append("value", bsonValue);
+       return document.toJson();
+   }
+   private BsonValue decode(String string) {
+       BsonDocument document = BsonDocument.parse(string);
+       return document.get("value");
+   }
+
+   private static native void nativeCallFunction(long nativeAppPtr, long nativeUserPtr, String name, String args_json, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 
 }

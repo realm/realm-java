@@ -433,7 +433,7 @@ public class RealmUser {
     public synchronized RealmFunctions getFunctions() {
         checkLoggedIn();
         if (functions == null) {
-            functions = new RealmFunctions();
+            functions = new RealmFunctions(this);
         }
         return functions;
     }

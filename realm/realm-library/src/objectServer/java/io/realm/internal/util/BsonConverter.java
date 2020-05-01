@@ -16,6 +16,7 @@
 
 package io.realm.internal.util;
 
+import org.bson.BsonArray;
 import org.bson.BsonBoolean;
 import org.bson.BsonInt32;
 import org.bson.BsonInt64;
@@ -72,12 +73,12 @@ public class BsonConverter {
      *
      * @see #to(Object)
      */
-    public static List<BsonValue> to(Object... value) {
+    public static BsonArray to(Object... value) {
         ArrayList result = new ArrayList();
         for (Object o1 : value) {
             result.add(to(o1));
         }
-        return result;
+        return new BsonArray(result);
     }
 
     /**
