@@ -17,7 +17,7 @@ ENV PATH ${PATH}:${NDK_HOME}
 ENV NDK_CCACHE /usr/bin/ccache
 
 # Keep the packages in alphabetical order to make it easy to avoid duplication
-RUN DEBIAN_FRONTEND=noninteractive dpkg \
+RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get update -qq \
     && apt-get install -y bsdmainutils \
                           build-essential \
