@@ -235,13 +235,15 @@ String startLogCatCollector() {
 }
 
 def stopLogCatCollector(String backgroundPid) {
-  sh "kill ${backgroundPid}"
-  zip([
-          'zipFile': 'logcat.zip',
-          'archive': true,
-          'glob' : 'logcat.txt'
-  ])
-  sh 'rm logcat.txt'
+  if (backgroundPid != null) {
+    sh "kill ${backgroundPid}"
+    zip([
+            'zipFile': 'logcat.zip',
+            'archive': true,
+            'glob' : 'logcat.txt'
+    ])
+    sh 'rm logcat.txt'
+  }
 }
 
 def archiveServerLogs(String mongoDbRealmContainerId, String commandServerContainerId) {
