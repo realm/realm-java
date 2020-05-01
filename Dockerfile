@@ -21,6 +21,7 @@ ENV NDK_CCACHE /usr/bin/ccache
 # Keep the packages in alphabetical order to make it easy to avoid duplication
 RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get update -qq \
+    && apt-get install -y tzdata \
     && apt-get install -y bsdmainutils \
                           build-essential \
                           ccache \
@@ -35,7 +36,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           libz1 \
                           openjdk-8-jdk-headless \
                           s3cmd \
-                          tzdata \
                           unzip \
                           wget \
                           zip \
