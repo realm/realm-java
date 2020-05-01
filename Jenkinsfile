@@ -178,7 +178,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
     try {
       backgroundPid = startLogCatCollector()
       forwardAdbPorts()
-      gradle('realm', "${instrumentationTestTarget}")
+      gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
     } finally {
       stopLogCatCollector(backgroundPid)
       storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
