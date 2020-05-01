@@ -442,7 +442,8 @@ public class RealmUser {
      */
     public RemoteMongoClient getRemoteMongoClient() {
         if (remoteMongoClient == null) {
-            remoteMongoClient = new RemoteMongoClient(app, "serviceName");  // FIXME: serviceName?
+            // FIXME: serviceName?
+            remoteMongoClient = new RemoteMongoClient(this, "serviceName");
         }
         return remoteMongoClient;
     }
