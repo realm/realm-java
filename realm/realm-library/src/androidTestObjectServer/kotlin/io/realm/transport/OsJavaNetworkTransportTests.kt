@@ -87,6 +87,14 @@ class OsJavaNetworkTransportTests {
                             ]
                         }
                     """.trimIndent()
+                } else if (url.endsWith("/location")) {
+                    return Response.httpResponse(200, mapOf(), """
+                        { "deployment_model" : "GLOBAL",
+                          "location": "US-VA", 
+                          "hostname": "http://localhost:9090",
+                          "ws_hostname": "ws://localhost:9090"
+                        }
+                        """.trimIndent())
                 } else {
                     fail("Unexpected request url: $url")
                 }
