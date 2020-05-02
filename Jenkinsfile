@@ -42,9 +42,11 @@ try {
         def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         def useEmulator = false
+        def deviceSerial = ""
         if (!releaseBranches.contains(currentBranch)) {
           abiFilter = "-PbuildTargetABIs=armeabi-v7a"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
+          deviceSerial = "-s emulator-5554"
           useEmulator = true
         }
 
@@ -92,23 +94,17 @@ try {
             // able to share its cache between builds.
             if (useEmulator) {
               // TODO: We should wait until the emulator is online. For now assume it starts fast enough
-              // before the tests will run.
+              // before the tests will run, since the library needs to build first.
               // Emulator support for ARM is limited. The latest images are:
               // system-images;android-24;default;armeabi-v7a
               // system-images;android-24;default;arm64-v8a
               sh '''yes "\n" | avdmanager create avd -n CIEmulator -k "system-images;android-24;default;armeabi-v7a" --force'''
-// Seems to fail?
-//              sh """emulator-check accel
-//                    emulator-check hyper-v
-//                    emulator-info cpu-info
-//              """
               // Required due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
               sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-window -gpu off -noaudio -no-boot-anim &"
-              sh 'adb devices'
               try {
-                runBuild(abiFilter, instrumentationTestTarget)
+                runBuild(abiFilter, instrumentationTestTarget, deviceSerial)
               } finally {
-                sh 'adb -s emulator-5554 emu kill'
+                sh "adb ${deviceSerial} emu kill"
               }
             } else {
               lock("${env.NODE_NAME}-android") {
@@ -154,7 +150,7 @@ try {
 }
 
 // Runs all build steps
-def runBuild(abiFilter, instrumentationTestTarget) {
+def runBuild(abiFilter, instrumentationTestTarget, deviceSerial) {
 
   stage('Build') {
     sh "chmod +x gradlew && ./gradlew assemble javadoc ${abiFilter} --stacktrace"
@@ -197,8 +193,8 @@ def runBuild(abiFilter, instrumentationTestTarget) {
   stage('Run instrumented tests') {
     String backgroundPid
     try {
-      backgroundPid = startLogCatCollector()
-      forwardAdbPorts()
+      backgroundPid = startLogCatCollector(deviceSerial)
+      forwardAdbPorts(deviceSerial)
       gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
     } finally {
       stopLogCatCollector(backgroundPid)
@@ -234,21 +230,21 @@ def runBuild(abiFilter, instrumentationTestTarget) {
   }
 }
 
-def forwardAdbPorts() {
-  sh ''' adb reverse tcp:9080 tcp:9080 && adb reverse tcp:9443 tcp:9443 &&
-      adb reverse tcp:8888 tcp:8888 && adb reverse tcp:9090 tcp:9090
-  '''
+def forwardAdbPorts(deviceSerial) {
+  sh """ adb ${deviceSerial} reverse tcp:9080 tcp:9080 && adb ${deviceSerial} reverse tcp:9443 tcp:9443 &&
+      adb ${deviceSerial} reverse tcp:8888 tcp:8888 && adb ${deviceSerial} reverse tcp:9090 tcp:9090
+  """
 }
 
-String startLogCatCollector() {
+String startLogCatCollector(deviceSerial) {
   // Cancel build quickly if no device is available. The lock acquired already should
   // ensure we have access to a device. If not, it is most likely a bug.
   timeout(time: 1, unit: 'MINUTES') {
     sh 'adb devices'
-    sh '''adb logcat -c
-      adb logcat -v time > "logcat.txt" &
-      echo $! > pid
-    '''
+    sh """adb ${deviceSerial} logcat -c
+      adb ${deviceSerial} logcat -v time > 'logcat.txt' &
+      echo \$! > pid
+    """
     return readFile("pid").trim()
   }
 }
