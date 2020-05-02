@@ -102,7 +102,8 @@ try {
 //                    emulator-check hyper-v
 //                    emulator-info cpu-info
 //              """
-              sh "emulator -avd CIEmulator -no-window -gpu off -noaudio -no-boot-anim &"
+              // Required due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
+              sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-window -gpu off -noaudio -no-boot-anim &"
               sh 'adb devices'
               try {
                 runBuild(abiFilter, instrumentationTestTarget)
