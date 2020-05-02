@@ -93,10 +93,11 @@ try {
               // TODO: We should wait until the emulator is online. For now assume it starts fast enough
               // before the tests will run.
               sh '''yes "\n" | avdmanager create avd -n CIEmulator -k "system-images;android-29;default;x86" --force'''
-              sh """emulator-check accel
-                    emulator-check hyper-v
-                    emulator-info cpu-info
-              """
+// Seems to fail?
+//              sh """emulator-check accel
+//                    emulator-check hyper-v
+//                    emulator-info cpu-info
+//              """
               sh "emulator -avd CIEmulator -force-32bit -no-window -gpu off -noaudio -no-boot-anim &"
               sh 'adb devices'
               try {
