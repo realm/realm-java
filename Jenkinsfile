@@ -35,7 +35,7 @@ try {
         }
 
         // Toggles for PR vs. Master builds.
-        // - For PR's, we favor speed > absolute correctness. So we just build for x86, use an
+        // - For PR's, we favor speed > absolute correctness. So we just build for armeabi-v7a, use an
         //   emulator and run unit tests for the ObjectServer variant.
         // - For branches from which we make releases, we build all architectures and run tests
         //   on an actual device.
@@ -43,7 +43,7 @@ try {
         def instrumentationTestTarget = "connectedAndroidTest"
         def useEmulator = false
         if (!releaseBranches.contains(currentBranch)) {
-          abiFilter = "-PbuildTargetABIs=x86"
+          abiFilter = "-PbuildTargetABIs=armeabi-v7a"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           useEmulator = true
         }
@@ -93,7 +93,10 @@ try {
             if (useEmulator) {
               // TODO: We should wait until the emulator is online. For now assume it starts fast enough
               // before the tests will run.
-              sh '''yes "\n" | avdmanager create avd -n CIEmulator -k "system-images;android-29;default;x86" --force'''
+              // Emulator support for ARM is limited. The latest images are:
+              // system-images;android-24;default;armeabi-v7a
+              // system-images;android-24;default;arm64-v8a
+              sh '''yes "\n" | avdmanager create avd -n CIEmulator -k "system-images;android-24;default;armeabi-v7a" --force'''
 // Seems to fail?
 //              sh """emulator-check accel
 //                    emulator-check hyper-v

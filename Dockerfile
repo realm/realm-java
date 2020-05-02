@@ -14,7 +14,7 @@ ENV ANDROID_HOME /opt/android-sdk-linux
 # Need by cmake
 ENV ANDROID_NDK_HOME /opt/android-ndk
 ENV ANDROID_NDK /opt/android-ndk
-ENV PATH ${PATH}:${ANDROID_HOME}/emulator:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
+ENV PATH ${PATH}:${ANDROID_HOME}/tools${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
 ENV PATH ${PATH}:${NDK_HOME}
 ENV NDK_CCACHE /usr/bin/ccache
 
@@ -68,7 +68,7 @@ RUN yes | sdkmanager \
     'platforms;android-29' \
     'cmake;3.6.4111459' \
     'ndk;21.0.6113669' \
-    'system-images;android-29;default;x86'
+    'system-images;android-24;default;armeabi-v7a'
 
 # Make the SDK universally writable
 RUN chmod -R a+rwX ${ANDROID_HOME}
