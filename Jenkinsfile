@@ -84,6 +84,7 @@ try {
                   "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
                   "-v ${env.HOME}/.android:/tmp/.android " +
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
+                  "-e ANDROID_EMULATOR_FORCE_32BIT=true " +
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
                   "--network container:${mongoDbRealmContainer.id} ") {
 
@@ -98,7 +99,7 @@ try {
 //                    emulator-check hyper-v
 //                    emulator-info cpu-info
 //              """
-              sh "emulator -avd CIEmulator -force-32bit -no-window -gpu off -noaudio -no-boot-anim &"
+              sh "emulator -avd CIEmulator -no-window -gpu off -noaudio -no-boot-anim &"
               sh 'adb devices'
               try {
                 runBuild(abiFilter, instrumentationTestTarget)
