@@ -46,7 +46,7 @@ try {
         if (!releaseBranches.contains(currentBranch)) {
           abiFilter = "-PbuildTargetABIs=armeabi-v7a"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
-          deviceSerial = "-s emulator-5554"
+          deviceSerial = "emulator-5554"
           useEmulator = true
         }
 
@@ -59,12 +59,6 @@ try {
           mdbRealmImage.pull()
         }
         def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
-//        def emulatorImage = null
-//        if (useEmulator) {
-//          // TODO We should maintain our own images so we are sure we control them
-//          // if our requirements change
-//          emulatorImage = docker.image("budtmo/docker-android-x86-8.1")
-//        }
 
         try {
           // Prepare Docker containers used by Instrumentation tests
@@ -75,10 +69,13 @@ try {
           sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
           sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
           sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
-//          if (emulatorImage) {
-//            emulatorContainer = emulatorImage.run("--network container:${mongoDbRealmContainer.id}")
-//          }
 
+          // There is a chance that real devices are attached to the host, so if the emulator is
+          // running we need to make sure that ADB and tests targets the correct device.
+          String restrictDevice = ""
+          if (deviceSerial != null) {
+            restrictDevice = "-e ANDROID_SERIAL=${deviceSerial} "
+          }
           buildEnv.inside("-e HOME=/tmp " +
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
                   "--privileged " +
@@ -86,7 +83,7 @@ try {
                   "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
                   "-v ${env.HOME}/.android:/tmp/.android " +
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
-                  "-e ANDROID_EMULATOR_FORCE_32BIT=true " +
+                  restrictDevice +
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
                   "--network container:${mongoDbRealmContainer.id} ") {
 
@@ -102,9 +99,9 @@ try {
               // Required due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
               sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-window -gpu off -noaudio -no-boot-anim &"
               try {
-                runBuild(abiFilter, instrumentationTestTarget, deviceSerial)
+                runBuild(abiFilter, instrumentationTestTarget)
               } finally {
-                sh "adb ${deviceSerial} emu kill"
+                sh "adb emu kill"
               }
             } else {
               lock("${env.NODE_NAME}-android") {
@@ -150,7 +147,7 @@ try {
 }
 
 // Runs all build steps
-def runBuild(abiFilter, instrumentationTestTarget, deviceSerial) {
+def runBuild(abiFilter, instrumentationTestTarget) {
 
   stage('Build') {
     sh "chmod +x gradlew && ./gradlew assemble javadoc ${abiFilter} --stacktrace"
@@ -193,8 +190,8 @@ def runBuild(abiFilter, instrumentationTestTarget, deviceSerial) {
   stage('Run instrumented tests') {
     String backgroundPid
     try {
-      backgroundPid = startLogCatCollector(deviceSerial)
-      forwardAdbPorts(deviceSerial)
+      backgroundPid = startLogCatCollector()
+      forwardAdbPorts()
       gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
     } finally {
       stopLogCatCollector(backgroundPid)
@@ -230,19 +227,19 @@ def runBuild(abiFilter, instrumentationTestTarget, deviceSerial) {
   }
 }
 
-def forwardAdbPorts(deviceSerial) {
-  sh """ adb ${deviceSerial} reverse tcp:9080 tcp:9080 && adb ${deviceSerial} reverse tcp:9443 tcp:9443 &&
-      adb ${deviceSerial} reverse tcp:8888 tcp:8888 && adb ${deviceSerial} reverse tcp:9090 tcp:9090
+def forwardAdbPorts() {
+  sh """ adb reverse tcp:9080 tcp:9080 && adb reverse tcp:9443 tcp:9443 &&
+      adb reverse tcp:8888 tcp:8888 && adb reverse tcp:9090 tcp:9090
   """
 }
 
-String startLogCatCollector(deviceSerial) {
+String startLogCatCollector() {
   // Cancel build quickly if no device is available. The lock acquired already should
   // ensure we have access to a device. If not, it is most likely a bug.
   timeout(time: 1, unit: 'MINUTES') {
     sh 'adb devices'
-    sh """adb ${deviceSerial} logcat -c
-      adb ${deviceSerial} logcat -v time > 'logcat.txt' &
+    sh """adb logcat -c
+      adb logcat -v time > 'logcat.txt' &
       echo \$! > pid
     """
     return readFile("pid").trim()
