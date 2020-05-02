@@ -18,7 +18,7 @@ def currentBranch = env.CHANGE_BRANCH
 def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'brix'
 try {
   node(nodeName) {
-    timeout(time: 90, unit: 'MINUTES') {
+    timeout(time: 240, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
         stage('SCM') {
