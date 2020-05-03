@@ -21,6 +21,7 @@ ENV NDK_CCACHE /usr/bin/ccache
 # Keep the packages in alphabetical order to make it easy to avoid duplication
 # tzdata needs to be installed first. See https://askubuntu.com/questions/909277/avoiding-user-interaction-with-tzdata-when-installing-certbot-in-a-docker-contai
 # `file` is need by the Android Emulator
+# FIXME: Ask Yavor/Jacek about how to best configure qemu/kvm
 RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get update -qq \
     && apt-get install -y tzdata \
@@ -37,11 +38,14 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           libstdc++6 \
                           libz1 \
                           openjdk-8-jdk-headless \
+                          qemu \
                           s3cmd \
                           unzip \
                           wget \
                           zip \
-    && apt-get clean
+    && apt-get clean \
+    && qemu-system-x86_64 -enable-kvm
+
 
 # Install the Android SDK
 RUN cd /opt && \
@@ -69,7 +73,7 @@ RUN yes | sdkmanager \
     'cmake;3.6.4111459' \
     'ndk;21.0.6113669' \
     'emulator' \
-    'system-images;android-24;default;armeabi-v7a'
+    'system-images;android-29;default;x86'
 
 # Make the SDK universally writable
 RUN chmod -R a+rwX ${ANDROID_HOME}

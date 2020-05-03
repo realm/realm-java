@@ -35,7 +35,7 @@ try {
         }
 
         // Toggles for PR vs. Master builds.
-        // - For PR's, we favor speed > absolute correctness. So we just build for armeabi-v7a, use an
+        // - For PR's, we favor speed > absolute correctness. So we just build for x86, use an
         //   emulator and run unit tests for the ObjectServer variant.
         // - For branches from which we make releases, we build all architectures and run tests
         //   on an actual device.
@@ -44,7 +44,7 @@ try {
         def useEmulator = false
         def deviceSerial = ""
         if (!releaseBranches.contains(currentBranch)) {
-          abiFilter = "-PbuildTargetABIs=armeabi-v7a"
+          abiFilter = "-PbuildTargetABIs=x86"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
           useEmulator = true
