@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.mongodb;
 
-public class RealmMongoDBCollection {
+package io.realm.mongodb.remote.aggregate;
+
+/**
+ * Iterable for aggregate.
+ *
+ * @param <ResultT> The type of the result.
+ */
+// TODO: figure out whether or not we need the parent interface
+//public interface RemoteAggregateIterable<ResultT> extends RemoteMongoIterable<ResultT> {
+public interface RemoteAggregateIterable<ResultT> {
+
 }

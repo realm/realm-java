@@ -24,4 +24,3 @@ GRADLE_BINTRAY_PLUGIN=1.8.4
 
 # Bson dependency version
 BSON_DEPENDENCY_VERSION=3.12.1
-
