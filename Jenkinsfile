@@ -43,8 +43,10 @@ try {
         def instrumentationTestTarget = "connectedAndroidTest"
         def useEmulator = false
         def deviceSerial = ""
+        def testABI = ""
         if (!releaseBranches.contains(currentBranch)) {
-          abiFilter = "-PbuildTargetABIs=x86"
+          testABI = "x86"
+          abiFilter = "-PbuildTargetABIs=${testABI}"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
           useEmulator = true
@@ -95,7 +97,7 @@ try {
               // Emulator support for ARM is limited. The latest images are:
               // system-images;android-24;default;armeabi-v7a
               // system-images;android-24;default;arm64-v8a
-              sh '''yes "\n" | avdmanager create avd -n CIEmulator -k "system-images;android-24;default;armeabi-v7a" --force'''
+              sh """yes '\n' | avdmanager create avd -n CIEmulator -k 'system-images;android-24;default;${testABI}" --force"""
               // Required due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
               sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-window -gpu off -noaudio -no-boot-anim &"
               try {
