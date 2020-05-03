@@ -38,7 +38,8 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           libncurses5 \
                           libstdc++6 \
                           libz1 \
-                          libvirt-bin \
+                          libvirt-clients \
+                          libvirt-daemon-system \
                           openjdk-8-jdk-headless \
                           qemu-kvm \
                           s3cmd \
@@ -48,8 +49,9 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           zip \
     && apt-get clean
 
-# Configure KVM: https://vitux.com/how-to-install-kvm-to-create-and-manage-virtual-machines-in-ubuntu
+# Configure KVM: https://help.ubuntu.com/community/KVM/Installation
 RUN adduser `id -un` libvirt
+RUN adduser `id -un` kvm
 
 # Install the Android SDK
 RUN cd /opt && \
