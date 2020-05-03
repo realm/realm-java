@@ -39,17 +39,17 @@ try {
         //   emulator and run unit tests for the ObjectServer variant.
         // - For branches from which we make releases, we build all architectures and run tests
         //   on an actual device.
+        def useEmulator = false
+        def emulatorImage = ""
         def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
-        def useEmulator = false
         def deviceSerial = ""
-        def testABI = ""
         if (!releaseBranches.contains(currentBranch)) {
-          testABI = "x86"
-          abiFilter = "-PbuildTargetABIs=${testABI}"
+          useEmulator = true
+          emulatorImage = "system-images;android-29;default;x86"
+          abiFilter = "-PbuildTargetABIs=x86"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
-          useEmulator = true
         }
 
         // Prepare Docker images
@@ -97,7 +97,7 @@ try {
               // Emulator support for ARM is limited. The latest images are:
               // system-images;android-24;default;armeabi-v7a
               // system-images;android-24;default;arm64-v8a
-              sh """yes '\n' | avdmanager create avd -n CIEmulator -k 'system-images;android-24;default;${testABI}' --force"""
+              sh """yes '\n' | avdmanager create avd -n CIEmulator -k '${emulatorImage}' --force"""
               // Required due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
               sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-window -gpu off -noaudio -no-boot-anim &"
               try {
