@@ -32,7 +32,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           curl \
                           file \
                           git \
-                          kvm \
                           jq \
                           libc6 \
                           libgcc1 \
