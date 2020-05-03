@@ -50,8 +50,9 @@ RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get clean
 
 # Configure KVM: https://help.ubuntu.com/community/KVM/Installation
-RUN adduser `id -un` libvirt
-RUN adduser `id -un` kvm
+RUN adduser root libvirt
+RUN adduser root kvm
+RUN su root
 
 # Install the Android SDK
 RUN cd /opt && \
