@@ -26,6 +26,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get update -qq \
     && apt-get install -y tzdata \
     && apt-get install -y bsdmainutils \
+                          bridge-utils \
                           build-essential \
                           ccache \
                           curl \
@@ -38,13 +39,18 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           libncurses5 \
                           libstdc++6 \
                           libz1 \
+                          libvirt-bin \
                           openjdk-8-jdk-headless \
-                          qemu \
+                          qemu-kvm \
                           s3cmd \
                           unzip \
+                          virt-manager \
                           wget \
                           zip \
     && apt-get clean
+
+# Configure KVM: https://vitux.com/how-to-install-kvm-to-create-and-manage-virtual-machines-in-ubuntu
+RUN sudo adduser `id -un` libvirtd
 
 # Install the Android SDK
 RUN cd /opt && \
