@@ -49,6 +49,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get clean
 
 # Configure KVM: https://vitux.com/how-to-install-kvm-to-create-and-manage-virtual-machines-in-ubuntu
+RUN addgroup libvirtd
 RUN adduser `id -un` libvirtd
 
 # Install the Android SDK
