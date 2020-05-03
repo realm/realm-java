@@ -43,7 +43,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           unzip \
                           wget \
                           zip \
-    && apt-get clean \
+    && apt-get clean
 
 # https://stackoverflow.com/questions/48422001/how-to-launch-qemu-kvm-from-inside-a-docker-container    
 RUN qemu-system-x86_64
