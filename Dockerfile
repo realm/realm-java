@@ -44,8 +44,15 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           wget \
                           zip \
     && apt-get clean \
-    && qemu-system-x86_64 -enable-kvm
 
+# https://stackoverflow.com/questions/48422001/how-to-launch-qemu-kvm-from-inside-a-docker-container    
+RUN qemu-system-x86_64
+RUN emu-system-x86_64 \
+  -append 'root=/dev/vda console=ttyS0' \
+  -drive file='rootfs.ext2.qcow2,if=virtio,format=qcow2'  \
+  -enable-kvm \
+  -kernel 'bzImage' \
+  -nographic
 
 # Install the Android SDK
 RUN cd /opt && \
