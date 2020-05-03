@@ -38,7 +38,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           libstdc++6 \
                           libz1 \
                           openjdk-8-jdk-headless \
-                          qemu-system-x86_64 \
+                          qemu-x86_64 \
                           s3cmd \
                           unzip \
                           wget \
