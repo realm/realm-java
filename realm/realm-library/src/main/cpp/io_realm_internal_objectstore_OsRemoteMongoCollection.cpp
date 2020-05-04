@@ -34,7 +34,7 @@ using namespace realm::app;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-static std::function<jobject(JNIEnv*, uint64_t)> collection_mapper = [](JNIEnv* env, uint64_t result) {
+static std::function<jobject(JNIEnv*, uint64_t)> collection_mapper_count = [](JNIEnv* env, uint64_t result) {
     return JavaClassGlobalDef::new_long(env, result);
 };
 
@@ -50,15 +50,29 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeGetFinalizerMet
 JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv* env,
                                                                        jclass,
-                                                                       jlong j_collection_ptr,
-                                                                       jstring j_filter,
-                                                                       jlong j_limit,
-                                                                       jobject j_callback) {
+                                                                       jlong,
+                                                                       jstring,
+                                                                       jlong,
+                                                                       jobject) {
     try {
-        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-        JStringAccessor filter(env, j_filter);
-        uint64_t limit = std::uint64_t(j_limit);
-        collection->count(filter, limit, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper));
+        // FIXME: filter becomes BSON at some point
+//        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+//        JStringAccessor filter(env, j_filter);
+//        uint64_t limit = std::uint64_t(j_limit);
+//        collection->count(filter, limit, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeInsertOne(JNIEnv* env,
+                                                                       jclass,
+                                                                       jlong,
+                                                                       jstring,
+                                                                       jobject) {
+    try {
+        // FIXME
+//        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
     }
     CATCH_STD()
 }

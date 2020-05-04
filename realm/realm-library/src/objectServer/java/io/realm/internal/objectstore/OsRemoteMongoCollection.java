@@ -16,6 +16,8 @@
 
 package io.realm.internal.objectstore;
 
+import org.bson.BsonValue;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -25,6 +27,7 @@ import io.realm.internal.NativeObject;
 import io.realm.internal.ResultHandler;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.mongodb.remote.RemoteCountOptions;
+import io.realm.mongodb.remote.RemoteInsertOneResult;
 
 public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
 
@@ -70,6 +73,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
+        // FIXME: change all filters/documents to BSON when the OS part is ready
         if (filter == null && options == null) {
             nativeCount(nativePtr, JSON, 0, callback);
         } else if (filter == null) {
@@ -83,11 +87,32 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
+    public RemoteInsertOneResult insertOne(final DocumentT document) {
+        AtomicReference<RemoteInsertOneResult> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<RemoteInsertOneResult> callback = new OsJNIResultCallback<RemoteInsertOneResult>(success, error) {
+            @Override
+            protected RemoteInsertOneResult mapSuccess(Object result) {
+                BsonValue insertedId = (BsonValue) result;
+                return new RemoteInsertOneResult(insertedId);
+            }
+        };
+
+        // FIXME: change all filters/documents to BSON when the OS part is ready
+        nativeInsertOne(nativePtr, document.toString(), callback);
+
+        return ResultHandler.handleResult(success, error);
+    }
+
     private final static String JSON = "{\"breed\":\"king charles\"}";
 
+    // FIXME: change all filters/documents to BSON when the OS part is ready
     private static native long nativeGetFinalizerMethodPtr();
     private static native void nativeCount(long remoteMongoCollectionPtr,
                                            String filter,
                                            long limit,
                                            OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeInsertOne(long remoteMongoCollectionPtr,
+                                               String filter,
+                                               OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

@@ -303,7 +303,9 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the insert one operation
      */
     public Task<RemoteInsertOneResult> insertOne(final DocumentT document) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osRemoteMongoCollection.insertOne(document)
+        );
     }
 
     /**

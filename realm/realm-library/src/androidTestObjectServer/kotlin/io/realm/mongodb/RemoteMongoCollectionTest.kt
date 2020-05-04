@@ -19,6 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.admin.ServerAdmin
+import io.realm.mongodb.remote.RemoteInsertOneResult
 import io.realm.util.blockingGetResult
 import org.bson.Document
 import org.junit.After
@@ -54,6 +55,11 @@ class RemoteMongoCollectionTest {
     }
 
     @Test
+    fun insertOne() {
+        assertEquals(insertOne(COLLECTION_NAME))
+    }
+
+    @Test
     fun countAllDocumentsWithoutInsert() {
         // count without class before inserting
         with(getCollection(COLLECTION_NAME)) {
@@ -86,8 +92,10 @@ class RemoteMongoCollectionTest {
 
     // FIXME: more to come
 
-    private fun insert() {
-        database
+    private fun insertOne(collectionName: String): RemoteInsertOneResult {
+        return getCollection(collectionName)
+                .insertOne(Document(KEY, VALUE))
+                .blockingGetResult()
     }
 
     private fun getCollection(collectionName: String, javaClass: Class<Document>? = null): RemoteMongoCollection<Document> {
@@ -100,5 +108,7 @@ class RemoteMongoCollectionTest {
     private companion object {
         const val DATABASE_NAME = "DATABASE_NAME"
         const val COLLECTION_NAME = "COLLECTION_NAME"
+        const val KEY = "KEY"
+        const val VALUE = "VALUE"
     }
 }
