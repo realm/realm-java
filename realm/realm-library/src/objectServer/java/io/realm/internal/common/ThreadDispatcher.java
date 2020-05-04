@@ -39,9 +39,12 @@ public class ThreadDispatcher implements Dispatcher {
                 );
     }
 
+
+    @SuppressWarnings("FutureReturnValueIgnored")
     @Override
     public <T> void dispatch(final Callable<T> callable) {
-        executorService.submit(callable).isDone(); // this isDone tricks findBugs.
+        // ignoring the output of this future messes with Findbugs, thus the suppress
+        executorService.submit(callable);
     }
 
     protected <T, U> U dispatch(
@@ -52,15 +55,14 @@ public class ThreadDispatcher implements Dispatcher {
         return callbackAdapter.getAdapter();
     }
 
+    @SuppressWarnings("FutureReturnValueIgnored")
     private <T> void dispatch(final Callable<T> callable, final Callback<T, Exception> callback) {
-        // future is ignored - the compiler will complain if not stored in a variable though
-        Future<?> submit = executorService.submit(() -> {
+        // ignoring the output of this future messes with Findbugs, thus the suppress
+        executorService.submit(() -> {
             try {
-                callback.onComplete(
-                        OperationResult.<T, Exception>successfulResultOf(callable.call())
-                );
+                callback.onComplete(OperationResult.successfulResultOf(callable.call()));
             } catch (final Exception e) {
-                callback.onComplete(OperationResult.<T, Exception>failedResultOf(e));
+                callback.onComplete(OperationResult.failedResultOf(e));
             }
         });
     }
