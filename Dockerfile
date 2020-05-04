@@ -15,6 +15,7 @@ ENV ANDROID_NDK /opt/android-ndk
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
 ENV PATH ${PATH}:${NDK_HOME}
 ENV NDK_CCACHE /usr/bin/ccache
+ENV CCACHE_CPP2 yes
 
 # The 32 bit binaries because aapt requires it
 # `file` is need by the script that creates NDK toolchains
