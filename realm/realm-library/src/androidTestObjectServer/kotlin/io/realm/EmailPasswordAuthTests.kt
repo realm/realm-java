@@ -71,7 +71,6 @@ class EmailPasswordAuthTests {
         if (this::app.isInitialized) {
             app.close()
         }
-        admin.deleteAllUsers()
         RealmLog.setLevel(LogLevel.WARN)
     }
 

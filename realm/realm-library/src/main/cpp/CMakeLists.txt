@@ -228,8 +228,8 @@ if (build_SYNC)
         "object-store/src/results.cpp"
         "object-store/src/impl/results_notifier.cpp"
         "object-store/src/sync/*.cpp"
-        "object-store/src/sync/impl/*.cpp"
-        "object-store/src/util/bson/*.cpp")
+        "object-store/src/util/bson/*.cpp"        
+        "object-store/src/sync/impl/*.cpp")
 endif()
 
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})
