@@ -17,6 +17,7 @@ package io.realm
 
 import io.realm.internal.util.BsonConverter
 import org.bson.*
+import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.Assert.assertEquals
 import org.junit.Ignore
@@ -71,18 +72,32 @@ class BsonTest {
         val i64 = 32L
         val s = "Realm"
         val oid = ObjectId()
+        val d128 = Decimal128(i64)
+        val bin = byteArrayOf(0, 1, 2, 3)
 
         val bi32 = BsonInt32(15)
         val bOid = BsonObjectId(oid)
         val bDoc = BsonDocument()
 
-//        RealmFunctions()
-        val values = BsonConverter.to(b, i32, i64, s, bi32, bOid, bDoc)
-        assertEquals(listOf(BsonBoolean(b), BsonInt32(i32), BsonInt64(i64), BsonString(s), bi32, bOid, bDoc), values)
+        // To BSONValue
+        assertEquals(BsonBoolean(b), BsonConverter.to(b))
+        assertEquals(BsonInt32(i32), BsonConverter.to(i32))
+        assertEquals(BsonInt64(i64), BsonConverter.to(i64))
+        assertEquals(BsonString(s), BsonConverter.to(s))
+        assertEquals(BsonObjectId(oid), BsonConverter.to(oid))
+        assertEquals(BsonDecimal128(d128), BsonConverter.to(d128))
+        assertEquals(BsonBinary(bin), BsonConverter.to(bin))
+
+        assertEquals(bi32, BsonConverter.to(bi32))
+        assertEquals(bOid, BsonConverter.to(bOid))
+        assertEquals(bDoc, BsonConverter.to(bDoc))
+
+        assertEquals(listOf(BsonBoolean(b), BsonInt32(i32), BsonInt64(i64)), BsonConverter.to(b, i32, i64))
 
         val list = listOf<Any>(BsonInt32(i32), BsonInt64(i64), BsonString(s))
         assertEquals(list, BsonConverter.to(list))
 
+        // From BSONValue
         // BsonValue types are just passed as is
         assertEquals(BsonInt32(i32), BsonConverter.from(BsonInt32::class.java, BsonInt32(i32)))
         assertEquals(BsonInt64(i64), BsonConverter.from(BsonInt64::class.java, BsonInt64(i64)))
@@ -105,10 +120,12 @@ class BsonTest {
             BsonConverter.from(Int::class.java, BsonInt64(i64))
         }
         assertEquals(s, BsonConverter.from(String::class.java, BsonString(s)))
+        assertEquals(oid, BsonConverter.from(ObjectId::class.java, BsonObjectId(oid)))
+        assertEquals(d128, BsonConverter.from(Decimal128::class.java, BsonDecimal128(d128)))
+        assertEquals(bin, BsonConverter.from(ByteArray::class.java, BsonBinary(bin)))
 
-        // FIXME Do we actually want to unwrap all of the BsonValues?
-        //assertEquals(oid, BsonConverter.from(ObjectId::class.java, bOid))
-
+        val listValues = listOf<BsonValue>(BsonInt32(i32), BsonInt64(i64))
+        assertEquals(listValues, BsonConverter.from(List::class.java, BsonArray(listValues)))
     }
 
 }

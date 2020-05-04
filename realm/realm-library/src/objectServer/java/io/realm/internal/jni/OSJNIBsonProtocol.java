@@ -29,16 +29,14 @@ import org.bson.json.JsonWriterSettings;
  */
 public class OSJNIBsonProtocol {
 
-    // FIXME Seems OK to reuse across threads
+    private static final String VALUE = "value";
+
     private static JsonWriterSettings writerSettings = JsonWriterSettings.builder()
                 .outputMode(JsonMode.EXTENDED)
                 .build();
 
-    private static final String VALUE = "value";
-
     public static String encode(BsonValue bsonValue) {
-        BsonDocument document = new BsonDocument();
-        document.append(VALUE, bsonValue);
+        BsonDocument document = new BsonDocument(VALUE, bsonValue);
         return document.toJson(writerSettings);
     }
 
