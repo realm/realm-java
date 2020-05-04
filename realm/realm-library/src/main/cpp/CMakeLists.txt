@@ -212,6 +212,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoCollection.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoDatabase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/util_sync.cpp
     )
 endif()
 
