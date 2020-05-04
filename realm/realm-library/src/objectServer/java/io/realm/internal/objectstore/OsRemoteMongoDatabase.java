@@ -16,6 +16,8 @@
 
 package io.realm.internal.objectstore;
 
+import org.bson.Document;
+
 import io.realm.internal.NativeObject;
 
 public class OsRemoteMongoDatabase implements NativeObject {
@@ -28,18 +30,17 @@ public class OsRemoteMongoDatabase implements NativeObject {
         this.nativePtr = nativeDatabasePtr;
     }
 
-    public OsRemoteMongoCollection getCollection(String collectionName) {
-        long nativeCollectionPtr = nativeGetCollection(nativePtr, collectionName);
-        return new OsRemoteMongoCollection(nativeCollectionPtr);
+    public OsRemoteMongoCollection getCollection(final String collectionName) {
+        return getCollection(collectionName, Document.class);
     }
 
-    // FIXME: what about this one?
-//    public <DocumentT> RemoteMongoCollection<DocumentT> getCollection(
-//            final String collectionName,
-//            final Class<DocumentT> documentClass
-//    ) {
-//        throw new RuntimeException("Not implemented");
-//    }
+    public <DocumentT> OsRemoteMongoCollection getCollection(
+            final String collectionName,
+            final Class<DocumentT> documentClass
+    ) {
+        long nativeCollectionPtr = nativeGetCollection(nativePtr, collectionName);
+        return new OsRemoteMongoCollection<>(nativeCollectionPtr, documentClass);
+    }
 
     @Override
     public long getNativePtr() {

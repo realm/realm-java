@@ -78,7 +78,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return the class
      */
     public Class<DocumentT> getDocumentClass() {
-        throw new RuntimeException("Not Implemented");
+        return osRemoteMongoCollection.getDocumentClass();
     }
 
     /**
@@ -87,7 +87,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return the {@link CodecRegistry}
      */
     public CodecRegistry getCodecRegistry() {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -101,7 +101,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public <NewDocumentT> RemoteMongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -112,7 +112,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a new RemoteMongoCollection instance with the different codec registry
      */
     public RemoteMongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -134,7 +134,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<Long> count(final Bson filter) {
         String stringFilter = filter
-                .toBsonDocument(null, null)     // TODO: is this even remotely correct?
+                .toBsonDocument(getDocumentClass(), getCodecRegistry())     // TODO: is this even remotely correct?
                 .toJson();
 
         return dispatcher.dispatchTask(() ->
@@ -151,7 +151,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<Long> count(final Bson filter, final RemoteCountOptions options) {
         String stringFilter = filter
-                .toBsonDocument(null, null)     // TODO: is this even remotely correct?
+                .toBsonDocument(getDocumentClass(), getCodecRegistry())     // TODO: is this even remotely correct?
                 .toJson();
 
         return dispatcher.dispatchTask(() ->
@@ -165,7 +165,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne() {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -176,7 +176,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public <ResultT> Task<ResultT> findOne(final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -186,7 +186,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne(final Bson filter) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -198,7 +198,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public <ResultT> Task<ResultT> findOne(final Bson filter, final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -209,7 +209,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne(final Bson filter, final RemoteFindOptions options) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -225,7 +225,7 @@ public class RemoteMongoCollection<DocumentT> {
             final Bson filter,
             final RemoteFindOptions options,
             final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -234,7 +234,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return the find iterable interface
      */
     RemoteFindIterable<DocumentT> find() {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -245,7 +245,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return the find iterable interface
      */
     <ResultT> RemoteFindIterable<ResultT> find(final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -255,7 +255,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return the find iterable interface
      */
     public RemoteFindIterable<DocumentT> find(final Bson filter) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -267,7 +267,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return the find iterable interface
      */
     public <ResultT> RemoteFindIterable<ResultT> find(final Bson filter, final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
 
@@ -278,7 +278,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return an iterable containing the result of the aggregation operation
      */
     public RemoteAggregateIterable<DocumentT> aggregate(final List<? extends Bson> pipeline) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -292,7 +292,7 @@ public class RemoteMongoCollection<DocumentT> {
     public <ResultT> RemoteAggregateIterable<ResultT> aggregate(
             final List<? extends Bson> pipeline,
             final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -303,7 +303,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the insert one operation
      */
     public Task<RemoteInsertOneResult> insertOne(final DocumentT document) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -313,7 +313,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the insert many operation
      */
     public Task<RemoteInsertManyResult> insertMany(final List<? extends DocumentT> documents) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -325,7 +325,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the remove one operation
      */
     public Task<RemoteDeleteResult> deleteOne(final Bson filter) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -336,7 +336,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the remove many operation
      */
     public Task<RemoteDeleteResult> deleteMany(final Bson filter) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -348,7 +348,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the update one operation
      */
     public Task<RemoteUpdateResult> updateOne(final Bson filter, final Bson update) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -364,7 +364,7 @@ public class RemoteMongoCollection<DocumentT> {
             final Bson filter,
             final Bson update,
             final RemoteUpdateOptions updateOptions) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -376,7 +376,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the update many operation
      */
     public Task<RemoteUpdateResult> updateMany(final Bson filter, final Bson update) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -392,7 +392,7 @@ public class RemoteMongoCollection<DocumentT> {
             final Bson filter,
             final Bson update,
             final RemoteUpdateOptions updateOptions) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -403,7 +403,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndUpdate(final Bson filter, final Bson update) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -418,7 +418,7 @@ public class RemoteMongoCollection<DocumentT> {
     public <ResultT> Task<ResultT> findOneAndUpdate(final Bson filter,
                                                     final Bson update,
                                                     final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -432,7 +432,7 @@ public class RemoteMongoCollection<DocumentT> {
     public Task<DocumentT> findOneAndUpdate(final Bson filter,
                                             final Bson update,
                                             final RemoteFindOneAndModifyOptions options) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -450,7 +450,7 @@ public class RemoteMongoCollection<DocumentT> {
             final Bson update,
             final RemoteFindOneAndModifyOptions options,
             final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -461,7 +461,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndReplace(final Bson filter, final Bson replacement) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -476,7 +476,7 @@ public class RemoteMongoCollection<DocumentT> {
     public <ResultT> Task<ResultT> findOneAndReplace(final Bson filter,
                                                      final Bson replacement,
                                                      final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -490,7 +490,7 @@ public class RemoteMongoCollection<DocumentT> {
     public Task<DocumentT> findOneAndReplace(final Bson filter,
                                              final Bson replacement,
                                              final RemoteFindOneAndModifyOptions options) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -508,7 +508,7 @@ public class RemoteMongoCollection<DocumentT> {
             final Bson replacement,
             final RemoteFindOneAndModifyOptions options,
             final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -518,7 +518,7 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndDelete(final Bson filter) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -531,7 +531,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public <ResultT> Task<ResultT> findOneAndDelete(final Bson filter,
                                                     final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -543,7 +543,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<DocumentT> findOneAndDelete(final Bson filter,
                                             final RemoteFindOneAndModifyOptions options) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**
@@ -559,7 +559,7 @@ public class RemoteMongoCollection<DocumentT> {
             final Bson filter,
             final RemoteFindOneAndModifyOptions options,
             final Class<ResultT> resultClass) {
-        throw new RuntimeException("Not Implemented");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     // FIXME: what about these?

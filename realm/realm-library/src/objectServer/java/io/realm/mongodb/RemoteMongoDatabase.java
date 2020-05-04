@@ -57,21 +57,20 @@ public class RemoteMongoDatabase {
         return new RemoteMongoCollection<>(osRemoteMongoDatabase.getCollection(collectionName));
     }
 
-    // FIXME: what about this one?
-//    /**
-//     * Gets a collection, with a specific default document class.
-//     *
-//     * @param collectionName the name of the collection to return
-//     * @param documentClass  the default class to cast any documents returned from the database into.
-//     * @param <DocumentT>    the type of the class to use instead of {@code Document}.
-//     * @return the collection
-//     */
-//    <DocumentT> RemoteMongoCollection<DocumentT> getCollection(
-//            final String collectionName,
-//            final Class<DocumentT> documentClass
-//    ) {
-//        Util.checkEmpty(collectionName, "collectionName");
-//        Util.checkNull(documentClass, "documentClass");
-//        return osRemoteMongoDatabase.getCollection(collectionName, documentClass);
-//    }
+    /**
+     * Gets a collection, with a specific default document class.
+     *
+     * @param collectionName the name of the collection to return
+     * @param documentClass  the default class to cast any documents returned from the database into.
+     * @param <DocumentT>    the type of the class to use instead of {@code Document}.
+     * @return the collection
+     */
+    <DocumentT> RemoteMongoCollection<DocumentT> getCollection(
+            final String collectionName,
+            final Class<DocumentT> documentClass
+    ) {
+        Util.checkEmpty(collectionName, "collectionName");
+        Util.checkNull(documentClass, "documentClass");
+        return new RemoteMongoCollection<>(osRemoteMongoDatabase.getCollection(collectionName, documentClass));
+    }
 }

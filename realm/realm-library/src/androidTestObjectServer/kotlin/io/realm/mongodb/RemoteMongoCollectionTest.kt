@@ -35,7 +35,6 @@ class RemoteMongoCollectionTest {
     private lateinit var user: RealmUser
     private lateinit var client: RemoteMongoClient
     private lateinit var database: RemoteMongoDatabase
-    private lateinit var collection: RemoteMongoCollection<Document>
 
     @Before
     fun setUp() {
@@ -45,7 +44,6 @@ class RemoteMongoCollectionTest {
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         client = user.remoteMongoClient
         database = client.getDatabase(DATABASE_NAME)
-        collection = database.getCollection(COLLECTION_NAME)
     }
 
     @After
@@ -57,26 +55,47 @@ class RemoteMongoCollectionTest {
 
     @Test
     fun countAllDocumentsWithoutInsert() {
-        val result = collection.count().blockingGetResult()
-        assertEquals(0, result)
-    }
+        // count without class before inserting
+        with(getCollection(COLLECTION_NAME)) {
+            assertEquals(0, this.count().blockingGetResult())
+        }
 
-    @Test
-    fun countAllDocumentsWithInsert() {
-        // TODO:
+        // count with class before inserting
+        // FIXME: check correct class param
+        with(getCollection(COLLECTION_NAME, Document::class.java)) {
+            assertEquals(0, this.count().blockingGetResult())
+        }
+
+        // count without class after inserting
+        with(getCollection(COLLECTION_NAME)) {
+            // FIXME
+//            this.insertOne()
+//            assertEquals(1, this.count().blockingGetResult())
+        }
     }
 
     @Test
     fun countWithFilter() {
-        // TODO:
+        // FIXME:
     }
 
     @Test
     fun countWithFilterAndLimit() {
-        // TODO:
+        // FIXME:
     }
 
-    // TODO: more to come
+    // FIXME: more to come
+
+    private fun insert() {
+        database
+    }
+
+    private fun getCollection(collectionName: String, javaClass: Class<Document>? = null): RemoteMongoCollection<Document> {
+        return when (javaClass) {
+            null -> database.getCollection(collectionName)
+            else -> database.getCollection(collectionName, javaClass)
+        }
+    }
 
     private companion object {
         const val DATABASE_NAME = "DATABASE_NAME"

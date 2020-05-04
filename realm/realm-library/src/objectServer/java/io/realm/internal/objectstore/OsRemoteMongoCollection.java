@@ -26,14 +26,16 @@ import io.realm.internal.ResultHandler;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.mongodb.remote.RemoteCountOptions;
 
-public class OsRemoteMongoCollection implements NativeObject {
+public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
+    private final Class<DocumentT> documentClass;
 
-    public OsRemoteMongoCollection(long nativeCollectionPtr) {
+    public OsRemoteMongoCollection(final long nativeCollectionPtr, final Class<DocumentT> documentClass) {
         this.nativePtr = nativeCollectionPtr;
+        this.documentClass = documentClass;
     }
 
     @Override
@@ -46,15 +48,19 @@ public class OsRemoteMongoCollection implements NativeObject {
         return nativeFinalizerPtr;
     }
 
+    public Class<DocumentT> getDocumentClass() {
+        return documentClass;
+    }
+
     public Long count() {
         return count(null);
     }
 
-    public Long count(@Nullable String filter) {
+    public Long count(@Nullable final String filter) {
         return count(filter, null);
     }
 
-    public Long count(@Nullable String filter, @Nullable RemoteCountOptions options) {
+    public Long count(@Nullable final String filter, @Nullable final RemoteCountOptions options) {
         AtomicReference<Long> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<Long> callback = new OsJNIResultCallback<Long>(success, error) {
