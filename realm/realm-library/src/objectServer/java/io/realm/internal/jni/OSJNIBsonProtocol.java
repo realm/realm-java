@@ -44,7 +44,7 @@ public class OSJNIBsonProtocol {
 
     public static BsonValue decode(String string) {
         BsonDocument document = BsonDocument.parse(string);
-        return document.get("value");
+        return document.get(VALUE);
     }
 
 }
