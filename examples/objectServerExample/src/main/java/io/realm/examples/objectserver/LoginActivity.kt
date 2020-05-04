@@ -17,12 +17,12 @@
 package io.realm.examples.objectserver
 
 import android.app.ProgressDialog
-import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import io.realm.*
 import io.realm.examples.objectserver.databinding.ActivityLoginBinding
 import io.realm.kotlin.syncSession
