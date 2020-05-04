@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm;
 
-import org.bson.BsonValue;
+#include "util.hpp"
+#include "util_sync.hpp"
 
-import io.realm.internal.jni.OSJNIBsonProtocol;
+// Must match OSJNIBsonProtocol.VALUE
+static const std::string VALUE("value");
 
-public class RealmFunctions {
+using namespace realm::bson;
 
-    // FIXME Prelimiry implementation to be able to test passing BsonValues through JNI
-    BsonValue invoke(BsonValue arg) {
-        String response = nativeCallFunction(OSJNIBsonProtocol.encode(arg));
-        return OSJNIBsonProtocol.decode(response);
-    }
-
-    private static native String nativeCallFunction(String arg);
-
+Bson jstring_to_bson(JNIEnv* env, jstring arg) {
+    JStringAccessor args_json(env, arg);
+    BsonDocument document(parse(args_json));
+    return document[VALUE];
 }
+
+jstring bson_to_jstring(JNIEnv* env, Bson bson) {
+    BsonDocument document{{VALUE, bson}};
+    std::stringstream buffer;
+    buffer << document;
+    std::string r = buffer.str();
+    return to_jstring(env, r);
+};
