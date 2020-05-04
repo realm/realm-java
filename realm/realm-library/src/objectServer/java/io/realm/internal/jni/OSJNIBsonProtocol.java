@@ -18,6 +18,8 @@ package io.realm.internal.jni;
 
 import org.bson.BsonDocument;
 import org.bson.BsonValue;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
 
 /**
  * Protocol for passing {@link BsonValue}s to JNI.
@@ -27,12 +29,17 @@ import org.bson.BsonValue;
  */
 public class OSJNIBsonProtocol {
 
+    // FIXME Seems OK to reuse across threads
+    private static JsonWriterSettings writerSettings = JsonWriterSettings.builder()
+                .outputMode(JsonMode.EXTENDED)
+                .build();
+
     private static final String VALUE = "value";
 
     public static String encode(BsonValue bsonValue) {
         BsonDocument document = new BsonDocument();
         document.append(VALUE, bsonValue);
-        return document.toJson();
+        return document.toJson(writerSettings);
     }
 
     public static BsonValue decode(String string) {
