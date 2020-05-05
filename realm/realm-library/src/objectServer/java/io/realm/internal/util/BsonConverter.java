@@ -21,6 +21,7 @@ import org.bson.BsonBinary;
 import org.bson.BsonBoolean;
 import org.bson.BsonDateTime;
 import org.bson.BsonDecimal128;
+import org.bson.BsonDouble;
 import org.bson.BsonInt32;
 import org.bson.BsonInt64;
 import org.bson.BsonObjectId;
@@ -67,6 +68,10 @@ public class BsonConverter {
             return new BsonInt32((Integer) value);
         } else if (value instanceof Long) {
             return new BsonInt64((Long) value);
+        } else if (value instanceof Float) {
+            return new BsonDouble((Float) value);
+        } else if (value instanceof Double) {
+            return new BsonDouble((Double) value);
         } else if (value instanceof Boolean) {
             return new BsonBoolean((Boolean) value);
         } else if (value instanceof String){
@@ -83,8 +88,6 @@ public class BsonConverter {
         }
         // FIXME Missing Realm types
         // Date
-        // Float
-        // Double
         // Object
         // List
         // LinkingObject
@@ -159,9 +162,9 @@ public class BsonConverter {
         switch (bsonType) {
 //            case END_OF_DOCUMENT:
 //                break;
-//            case DOUBLE:
-//                result = value.asDouble().getValue();
-//                break;
+            case DOUBLE:
+                result = value.asDouble().getValue();
+                break;
             case STRING:
                 result = value.asString().getValue();
                 break;

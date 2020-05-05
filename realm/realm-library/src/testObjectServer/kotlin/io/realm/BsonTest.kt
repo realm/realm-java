@@ -70,6 +70,8 @@ class BsonTest {
         val b = true
         val i32 = 32
         val i64 = 32L
+        val f = 1.24f
+        val d = 2.34.toDouble()
         val s = "Realm"
         val oid = ObjectId()
         val d128 = Decimal128(i64)
@@ -83,6 +85,8 @@ class BsonTest {
         assertEquals(BsonBoolean(b), BsonConverter.to(b))
         assertEquals(BsonInt32(i32), BsonConverter.to(i32))
         assertEquals(BsonInt64(i64), BsonConverter.to(i64))
+        assertEquals(BsonDouble(f.toDouble()), BsonConverter.to(f))
+        assertEquals(BsonDouble(d), BsonConverter.to(d))
         assertEquals(BsonString(s), BsonConverter.to(s))
         assertEquals(BsonObjectId(oid), BsonConverter.to(oid))
         assertEquals(BsonDecimal128(d128), BsonConverter.to(d128))
@@ -111,6 +115,7 @@ class BsonTest {
         assertEquals(i32, BsonConverter.from(Integer::class.java, BsonInt32(i32)))
         // assertEquals(i64, BsonConverter.from(Long::class.java, BsonInt64(i64)))
         assertEquals(i64, BsonConverter.from(java.lang.Long::class.java, BsonInt64(i64)))
+        assertEquals(d, BsonConverter.from(java.lang.Double::class.java, BsonDouble(d)))
         // ...not trying to fit wider types event though possible
         // FIXME Would we like to support this
         assertFailsWith<IllegalArgumentException> {
