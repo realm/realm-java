@@ -18,6 +18,9 @@ package io.realm.internal.objectstore;
 
 import org.bson.BsonValue;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -27,6 +30,7 @@ import io.realm.internal.NativeObject;
 import io.realm.internal.ResultHandler;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.mongodb.remote.RemoteCountOptions;
+import io.realm.mongodb.remote.RemoteInsertManyResult;
 import io.realm.mongodb.remote.RemoteInsertOneResult;
 
 public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
@@ -95,6 +99,29 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             protected RemoteInsertOneResult mapSuccess(Object result) {
                 BsonValue insertedId = (BsonValue) result;
                 return new RemoteInsertOneResult(insertedId);
+            }
+        };
+
+        // FIXME: change all filters/documents to BSON when the OS part is ready
+        nativeInsertOne(nativePtr, document.toString(), callback);
+
+        return ResultHandler.handleResult(success, error);
+    }
+
+    public RemoteInsertManyResult insertMany(final List<? extends DocumentT> document) {
+        AtomicReference<RemoteInsertManyResult> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<RemoteInsertManyResult> callback = new OsJNIResultCallback<RemoteInsertManyResult>(success, error) {
+            @Override
+            protected RemoteInsertManyResult mapSuccess(Object result) {
+                BsonValue[] insertedIds = (BsonValue[]) result;
+                Map<Long, BsonValue> insertedIdsMap = new HashMap<>();
+                long i = 0;
+                for (BsonValue value : insertedIds) {
+                    insertedIdsMap.put(i, value);
+                    i++;
+                }
+                return new RemoteInsertManyResult(insertedIdsMap);
             }
         };
 

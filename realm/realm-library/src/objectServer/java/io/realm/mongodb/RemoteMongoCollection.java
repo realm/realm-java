@@ -43,7 +43,7 @@ import io.realm.mongodb.remote.find.RemoteFindIterable;
  * </p><p>
  * Before any access is possible, there must be an active, logged-in user.
  *
- *  @param <DocumentT> The type that this collection will encode documents from and decode documents
+ * @param <DocumentT> The type that this collection will encode documents from and decode documents
  *                    to.
  * @see RemoteMongoDatabase
  */
@@ -315,7 +315,9 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the insert many operation
      */
     public Task<RemoteInsertManyResult> insertMany(final List<? extends DocumentT> documents) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osRemoteMongoCollection.insertMany(documents)
+        );
     }
 
     /**
