@@ -15,9 +15,10 @@ def slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 def currentBranch = env.CHANGE_BRANCH
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen, so
 // we avoid running emulators on already emulated hosts like 'docker' which runs in AWS.
-def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'brix'
+// FIXME: Replace `docker-cph-01` with `android` once all devices are working again
+def nodeName = (releaseBranches.contains(currentBranch)) ? 'docker-cph-01' : 'brix'
 try {
-  node('docker-cph-01') { // FIXME: Only working Slave
+  node(nodeName) {
     timeout(time: 90, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
@@ -87,7 +88,8 @@ try {
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
                   restrictDevice +
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
-                  "--network container:${mongoDbRealmContainer.id} ") {
+                  "--network container:${mongoDbRealmContainer.id} " +
+                  "--user root:kvm") {
 
             // Lock required around all usages of Gradle as it isn't
             // able to share its cache between builds.
