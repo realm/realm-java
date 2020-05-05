@@ -328,7 +328,7 @@ public class TestHelper {
 
     // Returns a random key used by encrypted Realms.
     public static byte[] getRandomKey() {
-        byte[] key = new byte[64];
+        byte[] key = new byte[Realm.ENCRYPTION_KEY_LENGTH];
         RANDOM.nextBytes(key);
         return key;
     }
@@ -342,7 +342,7 @@ public class TestHelper {
 
     // Returns a random key from the given seed. Used by encrypted Realms.
     public static byte[] getRandomKey(long seed) {
-        byte[] key = new byte[64];
+        byte[] key = new byte[Realm.ENCRYPTION_KEY_LENGTH];
         new Random(seed).nextBytes(key);
         return key;
     }

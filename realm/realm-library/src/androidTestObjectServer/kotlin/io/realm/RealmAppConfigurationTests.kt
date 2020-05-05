@@ -20,6 +20,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -30,16 +31,6 @@ import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class RealmAppConfigurationTests {
-
-    // FIXME: Add tests for remaining builder methods
-    //    builder.appName()
-    //    builder.appVersion()
-    //    builder.baseUrl()
-    //    builder.defaultSyncErrorHandler()
-    //    builder.encryptionKey()
-    //    builder.logLevel()
-    //    builder.requestTimeout()
-    //    builder.syncRootDir()
 
     @get:Rule
     val tempFolder = TemporaryFolder()
@@ -65,6 +56,10 @@ class RealmAppConfigurationTests {
                 .authorizationHeaderName("CustomAuth")
                 .build()
         assertEquals("CustomAuth", config2.authorizationHeaderName)
+
+        // FIXME Add network check
+
+        // FIXME Add sync session check
     }
 
     @Test
@@ -86,6 +81,10 @@ class RealmAppConfigurationTests {
         assertEquals(2, headers.size.toLong())
         assertTrue(headers.any { it.key == "header1" && it.value == "val1" })
         assertTrue(headers.any { it.key == "header2" && it.value == "val2" })
+
+        // FIXME Add network check
+
+        // FIXME Add sync session check
     }
 
     @Test
@@ -120,6 +119,8 @@ class RealmAppConfigurationTests {
         val config = RealmAppConfiguration.Builder("app-id").build()
         val expectedDefaultRoot = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "mongodb-realm")
         assertEquals(expectedDefaultRoot, config.syncRootDirectory)
+
+        // FIXME Add check when opening Realm
     }
 
     @Test
@@ -130,6 +131,9 @@ class RealmAppConfigurationTests {
                 .syncRootDirectory(expectedRoot)
                 .build()
         assertEquals(expectedRoot, config.syncRootDirectory)
+
+
+        // FIXME Add check when opening Realm
     }
 
     @Test
@@ -152,4 +156,45 @@ class RealmAppConfigurationTests {
         assertTrue(file.createNewFile())
         assertFailsWith<IllegalArgumentException> { builder.syncRootDirectory(file) }
     }
+
+    // FIXME: Add tests for remaining builder methods
+    //    builder.baseUrl()
+    //    builder.defaultSyncErrorHandler()
+    //    builder.encryptionKey()
+    //    builder.logLevel()
+    //    builder.requestTimeout()
+    //    builder.syncRootDir()
+
+    @Ignore
+    @Test
+    fun appName() {
+        TODO("FIXME: When support has been added in ObjectStore")
+    }
+
+    @Test
+    fun appName_invalidValuesThrows() {
+        TODO()
+    }
+
+    @Ignore
+    @Test
+    fun appVersion() {
+        TODO("FIXME: When support has been added in ObjectStore")
+    }
+
+    @Test
+    fun appVersion_invalidValuesThrows() {
+        TODO()
+    }
+
+    @Test
+    fun baseUrl() {
+        TODO()
+    }
+
+    @Test
+    fun baseUrl_invalidValuesThrows() {
+        TODO()
+    }
+
 }
