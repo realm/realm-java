@@ -27,7 +27,7 @@ import org.bson.json.JsonWriterSettings;
  * For now this just encapsulated the BSON value in a document with key {@value VALUE}. This
  * overcomes the shortcoming of {@code org.bson.JsonWrite} not being able to serialize single values.
  */
-public class OSJNIBsonProtocol {
+public class JniBsonProtocol {
 
     private static final String VALUE = "value";
 

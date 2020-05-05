@@ -17,14 +17,14 @@ package io.realm;
 
 import org.bson.BsonValue;
 
-import io.realm.internal.jni.OSJNIBsonProtocol;
+import io.realm.internal.jni.JniBsonProtocol;
 
 public class RealmFunctions {
 
     // FIXME Prelimiry implementation to be able to test passing BsonValues through JNI
     BsonValue invoke(BsonValue arg) {
-        String response = nativeCallFunction(OSJNIBsonProtocol.encode(arg));
-        return OSJNIBsonProtocol.decode(response);
+        String response = nativeCallFunction(JniBsonProtocol.encode(arg));
+        return JniBsonProtocol.decode(response);
     }
 
     private static native String nativeCallFunction(String arg);
