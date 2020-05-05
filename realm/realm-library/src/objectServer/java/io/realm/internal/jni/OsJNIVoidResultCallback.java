@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.mongodb;
 
-public class RealmMongoDBService {
+package io.realm.internal.jni;
+
+import java.util.concurrent.atomic.AtomicReference;
+
+public class OsJNIVoidResultCallback extends OsJNIResultCallback {
+
+    public OsJNIVoidResultCallback(AtomicReference error) {
+        super(null, error);
+    }
+
+    @Override
+    protected Void mapSuccess(Object result) {
+        return null;
+    }
 }
