@@ -19,16 +19,20 @@ package io.realm
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.internal.util.BsonConverter
 import org.bson.*
+import org.junit.Before
 import org.junit.Test
 import java.util.stream.Collectors
 import kotlin.test.assertEquals
 
 class RealmFunctionsTest {
 
-    @Test
-    operator fun invoke() {
+    @Before
+    fun setup() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+    }
 
+    @Test
+    fun jniBsonOnlyRoundtrip() {
         val functions = RealmFunctions()
         val i32 = 42
         val i64 = 42L

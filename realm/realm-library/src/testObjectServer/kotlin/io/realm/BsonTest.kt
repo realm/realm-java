@@ -20,6 +20,7 @@ import org.bson.*
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertFailsWith
@@ -29,7 +30,7 @@ class BsonTest {
     /**
      * Simple test to verify semantics of org.bson JSON encoding and decoding.
      */
-    @Ignore("Only for Bson API evaluation, not testing Realm functionality")
+    // Only for Bson API evaluation, not testing Realm functionality
     @Test
     fun bsonRoundtrip() {
         val valueInt32   = 42
@@ -81,23 +82,71 @@ class BsonTest {
         val bOid = BsonObjectId(oid)
         val bDoc = BsonDocument()
 
-        // To BSONValue
-        assertEquals(BsonBoolean(b), BsonConverter.to(b))
-        assertEquals(BsonInt32(i32), BsonConverter.to(i32))
-        assertEquals(BsonInt64(i64), BsonConverter.to(i64))
-        assertEquals(BsonDouble(f.toDouble()), BsonConverter.to(f))
-        assertEquals(BsonDouble(d), BsonConverter.to(d))
-        assertEquals(BsonString(s), BsonConverter.to(s))
-        assertEquals(BsonObjectId(oid), BsonConverter.to(oid))
-        assertEquals(BsonDecimal128(d128), BsonConverter.to(d128))
-        assertEquals(BsonBinary(bin), BsonConverter.to(bin))
+        for (type in BsonType.values()) {
+            when (type) {
+                BsonType.DOUBLE -> {
+                    assertEquals(BsonDouble(f.toDouble()), BsonConverter.to(f))
+                    assertEquals(BsonDouble(d), BsonConverter.to(d))
+                    assertEquals(d, BsonConverter.from(java.lang.Double::class.java, BsonDouble(d)))
+                }
+                BsonType.STRING -> {
+                    assertEquals(BsonString(s), BsonConverter.to(s))
+                    assertEquals(s, BsonConverter.from(String::class.java, BsonString(s)))
 
+                }
+                BsonType.ARRAY -> {
+                    assertTrue(BsonConverter.to(b, i32, i64) is BsonArray)
+                    val listValues = listOf<BsonValue>(BsonInt32(i32), BsonInt64(i64))
+                    assertEquals(listValues, BsonConverter.from(List::class.java, BsonArray(listValues)))
+                }
+                BsonType.BINARY -> {
+                    assertEquals(BsonBinary(bin), BsonConverter.to(bin))
+                    assertEquals(bin, BsonConverter.from(ByteArray::class.java, BsonBinary(bin)))
+                }
+                BsonType.OBJECT_ID -> {
+                    assertEquals(BsonObjectId(oid), BsonConverter.to(oid))
+                    assertEquals(oid, BsonConverter.from(ObjectId::class.java, BsonObjectId(oid)))
+                }
+                BsonType.BOOLEAN -> {
+                    assertEquals(BsonBoolean(b), BsonConverter.to(b))
+                    assertEquals(b, BsonConverter.from(java.lang.Boolean::class.java, BsonBoolean(b)))
+                }
+                BsonType.INT32 -> {
+                    assertEquals(BsonInt32(i32), BsonConverter.to(i32))
+                    assertEquals(i32, BsonConverter.from(Integer::class.java, BsonInt32(i32)))
+                }
+                BsonType.INT64 -> {
+                    assertEquals(BsonInt64(i64), BsonConverter.to(i64))
+                    assertEquals(i64, BsonConverter.from(java.lang.Long::class.java, BsonInt64(i64)))
+                }
+                BsonType.DECIMAL128 -> {
+                    assertEquals(BsonDecimal128(d128), BsonConverter.to(d128))
+                    assertEquals(oid, BsonConverter.from(ObjectId::class.java, BsonObjectId(oid)))
+                }
+                BsonType.DOCUMENT,
+                BsonType.UNDEFINED,
+                BsonType.DATE_TIME,
+                BsonType.NULL,
+                BsonType.REGULAR_EXPRESSION,
+                BsonType.SYMBOL,
+                BsonType.DB_POINTER,
+                BsonType.JAVASCRIPT,
+                BsonType.JAVASCRIPT_WITH_SCOPE,
+                BsonType.TIMESTAMP,
+                BsonType.END_OF_DOCUMENT,
+                BsonType.MIN_KEY,
+                BsonType.MAX_KEY -> {
+                    // No conversion is implemented for these types yet
+                }
+            }
+        }
+
+        // To BSONValue
         assertEquals(bi32, BsonConverter.to(bi32))
         assertEquals(bOid, BsonConverter.to(bOid))
         assertEquals(bDoc, BsonConverter.to(bDoc))
 
         assertEquals(listOf(BsonBoolean(b), BsonInt32(i32), BsonInt64(i64)), BsonConverter.to(b, i32, i64))
-
         val list = listOf<Any>(BsonInt32(i32), BsonInt64(i64), BsonString(s))
         assertEquals(list, BsonConverter.to(list))
 
@@ -107,16 +156,12 @@ class BsonTest {
         assertEquals(BsonInt64(i64), BsonConverter.from(BsonInt64::class.java, BsonInt64(i64)))
         assertEquals(BsonString(s),  BsonConverter.from(BsonString::class.java, BsonString(s)))
 
-        // Native types are converted directly from BsonValue to equivalent type
         // FIXME Howto auto box/wrap as Kotlin's primitive types are not assignable
         //  (isAssignablefrom) Java's auto boxed types
-        assertEquals(b, BsonConverter.from(java.lang.Boolean::class.java, BsonBoolean(b)))
         // assertEquals(i32, BsonConverter.from(Int::class.java, BsonInt32(i32)))
         assertEquals(i32, BsonConverter.from(Integer::class.java, BsonInt32(i32)))
-        // assertEquals(i64, BsonConverter.from(Long::class.java, BsonInt64(i64)))
-        assertEquals(i64, BsonConverter.from(java.lang.Long::class.java, BsonInt64(i64)))
-        assertEquals(d, BsonConverter.from(java.lang.Double::class.java, BsonDouble(d)))
-        // ...not trying to fit wider types event though possible
+
+        // Not trying to fit wider types event though possible
         // FIXME Would we like to support this
         assertFailsWith<IllegalArgumentException> {
             BsonConverter.from(java.lang.Long::class.java, BsonInt32(i32))
@@ -124,13 +169,7 @@ class BsonTest {
         assertFailsWith<IllegalArgumentException> {
             BsonConverter.from(Int::class.java, BsonInt64(i64))
         }
-        assertEquals(s, BsonConverter.from(String::class.java, BsonString(s)))
-        assertEquals(oid, BsonConverter.from(ObjectId::class.java, BsonObjectId(oid)))
-        assertEquals(d128, BsonConverter.from(Decimal128::class.java, BsonDecimal128(d128)))
-        assertEquals(bin, BsonConverter.from(ByteArray::class.java, BsonBinary(bin)))
 
-        val listValues = listOf<BsonValue>(BsonInt32(i32), BsonInt64(i64))
-        assertEquals(listValues, BsonConverter.from(List::class.java, BsonArray(listValues)))
     }
 
 }

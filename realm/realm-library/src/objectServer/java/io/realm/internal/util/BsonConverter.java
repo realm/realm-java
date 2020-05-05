@@ -115,27 +115,7 @@ public class BsonConverter {
     }
 
     /**
-     *
-     *
-     * @param clz
-     * @param value
-     * @param <T>
-     * @return
-     *
-     */
-    // FIXME Would we rather return null? Would maybe make it cleaner to use with
-    //  functions.callFunctionTyped("sum", BsonString::class.java, "Realm")?.value
-    //  but would also silently hide if expectations of type is wrong
-    private static <T extends BsonValue> T fromToBson(Class<T> clz, BsonValue value) {
-        if (clz.isInstance(value)) {
-            return (T) value;
-        } else {
-            throw new IllegalArgumentException("Cannot convert " + value + " to " + clz.getName());
-        }
-    }
-
-    /**
-     * Unwrap BSON values for types that has to plain Java type .
+     * Unwrap BSON values for types that just wraps another similar Java type.
      *
      * @param value The BSON value to convert.
      * @param <T> The requested result type of the conversion.
@@ -145,9 +125,6 @@ public class BsonConverter {
      * @throws ClassCastException if the BsonValue cannot be converted to the requested type
      *  parameters.
      */
-    // FIXME Do we want this at all. Or at least review supported types...should we allow
-    //  unwrapping of all BsonValues as in:
-    //    BsonConverter.from(ObjectId::class.java, bsonObjectId)
     public static <T> T from(Class<T> clz, BsonValue value) {
         Object result = null;
 
