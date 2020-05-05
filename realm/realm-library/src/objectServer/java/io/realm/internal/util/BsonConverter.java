@@ -17,13 +17,18 @@
 package io.realm.internal.util;
 
 import org.bson.BsonArray;
+import org.bson.BsonBinary;
 import org.bson.BsonBoolean;
+import org.bson.BsonDecimal128;
+import org.bson.BsonDouble;
 import org.bson.BsonInt32;
 import org.bson.BsonInt64;
+import org.bson.BsonObjectId;
 import org.bson.BsonString;
 import org.bson.BsonType;
 import org.bson.BsonValue;
-import org.bson.conversions.Bson;
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +41,8 @@ public class BsonConverter {
     /**
      * Converts value object to BSON value based on type.
      *
-     * Converts primitive boxed types to the equivalent BSON equivalent value object.
+     * Converts primitive boxed types to the equivalent BSON equivalent value object and {@link List}
+     * of values into {@link BsonArray} of converted values.
      *
      * {@link BsonValue} objects are left as is.
      *
@@ -47,18 +53,42 @@ public class BsonConverter {
      */
     // FIXME Review supported types...any obvious types missing?
     public static BsonValue to(Object value) {
-        // Just leave BsonValues as is
         if (value instanceof BsonValue) {
             return (BsonValue) value;
-        } else if (value instanceof Boolean) {
-            return new BsonBoolean((Boolean) value);
-        } else if (value instanceof Integer) {
+        }
+        // Convert list to BsonArray
+        else if (value instanceof List) {
+            return BsonConverter.to(((List) value).toArray());
+        }
+        // Native types
+        else if (value instanceof Integer) {
             return new BsonInt32((Integer) value);
         } else if (value instanceof Long) {
             return new BsonInt64((Long) value);
+        } else if (value instanceof Float) {
+            return new BsonDouble((Float) value);
+        } else if (value instanceof Double) {
+            return new BsonDouble((Double) value);
+        } else if (value instanceof Boolean) {
+            return new BsonBoolean((Boolean) value);
         } else if (value instanceof String){
             return new BsonString((String) value);
+        } else if (value instanceof byte[]) {
+            return new BsonBinary((byte[]) value);
         }
+        // Bson values
+        else if (value instanceof ObjectId) {
+            return new BsonObjectId((ObjectId) value);
+        }
+        else if (value instanceof Decimal128) {
+            return new BsonDecimal128((Decimal128) value);
+        }
+        // FIXME Missing Realm types
+        // Date
+        // Object
+        // List
+        // LinkingObject
+        // FIXME Missing Bson value
         throw new IllegalArgumentException("Conversion to BSON value not supported for " + value.getClass().getName());
     }
 
@@ -82,27 +112,7 @@ public class BsonConverter {
     }
 
     /**
-     *
-     *
-     * @param clz
-     * @param value
-     * @param <T>
-     * @return
-     *
-     */
-    // FIXME Would we rather return null? Would maybe make it cleaner to use with
-    //  functions.callFunctionTyped("sum", BsonString::class.java, "Realm")?.value
-    //  but would also silently hide if expectations of type is wrong
-    private static <T extends BsonValue> T fromToBson(Class<T> clz, BsonValue value) {
-        if (clz.isInstance(value)) {
-            return (T) value;
-        } else {
-            throw new IllegalArgumentException("Cannot convert " + value + " to " + clz.getName());
-        }
-    }
-
-    /**
-     * Unwrap BSON values for types that has to plain Java type .
+     * Unwrap BSON values for types that just wraps another similar Java type.
      *
      * @param value The BSON value to convert.
      * @param <T> The requested result type of the conversion.
@@ -112,9 +122,6 @@ public class BsonConverter {
      * @throws ClassCastException if the BsonValue cannot be converted to the requested type
      *  parameters.
      */
-    // FIXME Do we want this at all. Or at least review supported types...should we allow
-    //  unwrapping of all BsonValues as in:
-    //    BsonConverter.from(ObjectId::class.java, bsonObjectId)
     public static <T> T from(Class<T> clz, BsonValue value) {
         Object result = null;
 
@@ -137,17 +144,17 @@ public class BsonConverter {
                 break;
 //            case DOCUMENT:
 //                break;
-//            case ARRAY:
-//                break;
-//            case BINARY:
-//                break;
+            case ARRAY:
+                result = value.asArray().getValues();
+                break;
+            case BINARY:
+                result = value.asBinary().getData();
+                break;
 //            case UNDEFINED:
 //                break;
-//            case OBJECT_ID:
-//                 FIXME Do we need this...is so, I guess it should be consistently unwrapping all
-//                  other BsonValue's too
-//                result = value.asObjectId().getValue();
-//                break;
+            case OBJECT_ID:
+                result = value.asObjectId().getValue();
+                break;
             case BOOLEAN:
                 result = value.asBoolean().getValue();
                 break;
@@ -173,9 +180,9 @@ public class BsonConverter {
             case INT64:
                 result = value.asInt64().getValue();
                 break;
-//            case DECIMAL128:
-//                result = value.asDecimal128().getValue();
-//                break;
+            case DECIMAL128:
+                result = value.asDecimal128().getValue();
+                break;
 //            case MIN_KEY:
 //                break;
 //            case MAX_KEY:

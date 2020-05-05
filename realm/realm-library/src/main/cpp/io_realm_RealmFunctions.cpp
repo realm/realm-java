@@ -17,30 +17,16 @@
 #include "io_realm_RealmFunctions.h"
 
 #include "util.hpp"
+#include "util_sync.hpp"
 #include "java_network_transport.hpp"
 #include "object-store/src/sync/app.hpp"
 
 using namespace realm;
 using namespace realm::app;
 
-static const std::string VALUE("value");
-
-static bson::BsonArray arg_mapper(JNIEnv* env, jstring arg) {
-    // FIXME Relies heavily on experimental convention; guard appropriately
-    // FIXME How do we propagate errors from here
-    JStringAccessor args_json(env, arg);
-    bson::BsonDocument document(bson::parse(args_json));
-    return static_cast<bson::BsonArray >(document[VALUE]);
-}
-
 static std::function<jobject(JNIEnv*, Optional<bson::Bson> )> response_mapper = [](JNIEnv* env, Optional<bson::Bson> response) {
     if (response) {
-        // FIXME JNI type conversion
-        bson::BsonDocument document  {{ VALUE, *response }};
-        std::stringstream buffer;
-        buffer << document;
-        std::string r = buffer.str();
-        return to_jstring(env, r);
+        return bson_to_jstring(env, *response);
     } else {
         // FIXME How to raise errors here
         return to_jstring(env, "{}");
@@ -63,7 +49,7 @@ Java_io_realm_RealmFunctions_nativeCallFunction(JNIEnv* env, jclass , jlong j_ap
         };
 
         JStringAccessor name(env, j_name);
-        bson::BsonArray args = arg_mapper(env, j_args_json);
+        bson::BsonArray args(jstring_to_bson(env, j_args_json));
 
         app->call_function(user, name, args, handler);
     }

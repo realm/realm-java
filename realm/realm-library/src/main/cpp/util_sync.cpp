@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.entities
 
-import android.graphics.Color
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
-import io.realm.annotations.RealmField
-import org.bson.types.ObjectId
+#include "util.hpp"
+#include "util_sync.hpp"
 
-// FIXME: This class is just temporary as a smoke test for Sync. Should be removed once all Sync tests have been migrated.
-open class SyncColor: RealmObject() {
-    @PrimaryKey
-    var _id: ObjectId? = ObjectId.get()
-    @RealmField(name = "realm_id")
-    var realmId: String? = null
-    var color: String = Color.RED.toString()
+// Must match OSJNIBsonProtocol.VALUE
+static const std::string VALUE("value");
+
+using namespace realm::bson;
+
+Bson jstring_to_bson(JNIEnv* env, jstring arg) {
+    JStringAccessor args_json(env, arg);
+    BsonDocument document(parse(args_json));
+    return document[VALUE];
 }
+
+jstring bson_to_jstring(JNIEnv* env, Bson bson) {
+    BsonDocument document{{VALUE, bson}};
+    std::stringstream buffer;
+    buffer << document;
+    std::string r = buffer.str();
+    return to_jstring(env, r);
+};

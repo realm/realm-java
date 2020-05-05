@@ -137,7 +137,7 @@ public class OsSharedRealmTests {
     private void changeSchemaByAnotherRealm() {
         OsSharedRealm sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
-        sharedRealm.createTable("NewTable");
+        sharedRealm.createTable("class_NewTable");
         sharedRealm.commitTransaction();
         sharedRealm.close();
     }
@@ -146,12 +146,12 @@ public class OsSharedRealmTests {
     public void registerSchemaChangedCallback_beginTransaction() {
         final AtomicBoolean listenerCalled = new AtomicBoolean(false);
 
-        assertFalse(sharedRealm.hasTable("NewTable"));
+        assertFalse(sharedRealm.hasTable("class_NewTable"));
 
         sharedRealm.registerSchemaChangedCallback(new OsSharedRealm.SchemaChangedCallback() {
             @Override
             public void onSchemaChanged() {
-                assertTrue(sharedRealm.hasTable("NewTable"));
+                assertTrue(sharedRealm.hasTable("class_NewTable"));
                 listenerCalled.set(true);
             }
         });
@@ -164,8 +164,25 @@ public class OsSharedRealmTests {
     public void registerSchemaChangedCallback_refresh() {
         final AtomicBoolean listenerCalled = new AtomicBoolean(false);
 
-        assertFalse(sharedRealm.hasTable("NewTable"));
+        assertFalse(sharedRealm.hasTable("class_NewTable"));
 
+        sharedRealm.registerSchemaChangedCallback(new OsSharedRealm.SchemaChangedCallback() {
+            @Override
+            public void onSchemaChanged() {
+                assertTrue(sharedRealm.hasTable("class_NewTable"));
+                listenerCalled.set(true);
+            }
+        });
+        changeSchemaByAnotherRealm();
+        sharedRealm.refresh();
+        assertTrue(listenerCalled.get());
+    }
+
+    // Test for https://github.com/realm/realm-core/issues/3707
+    @Test
+    public void emitTableInstructionsForCustomClasses() {
+        final AtomicBoolean listenerCalled = new AtomicBoolean(false);
+        assertFalse(sharedRealm.hasTable("NewTable"));
         sharedRealm.registerSchemaChangedCallback(new OsSharedRealm.SchemaChangedCallback() {
             @Override
             public void onSchemaChanged() {
@@ -173,9 +190,19 @@ public class OsSharedRealmTests {
                 listenerCalled.set(true);
             }
         });
-        changeSchemaByAnotherRealm();
+
+        // Change schema using another Realm
+        // Classes not starting with class_ were treated differently by Sync
+        OsSharedRealm bgRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
+        bgRealm.beginTransaction();
+        bgRealm.createTable("NewTable");
+        bgRealm.commitTransaction();
+        bgRealm.close();
+
+        // Refresh existing instance
         sharedRealm.refresh();
-        assertTrue(listenerCalled.get());
+        assertTrue(sharedRealm.hasTable("NewTable"));
+        assertFalse(listenerCalled.get()); // TODO: Change to assertTrue once bug is fixed
     }
 
     @Test

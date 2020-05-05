@@ -89,8 +89,7 @@ class SyncTestUtils {
                             "user_id": "$userIdentifier",
                             "device_id": "000000000000000000000000"
                         }                    
-                    """.trimIndent())
-
+                        """.trimIndent())
                     } else if (url.endsWith("/auth/profile")) {
                         return Response.httpResponse(200, mapOf(), """
                         {
@@ -117,7 +116,15 @@ class SyncTestUtils {
                                 }
                             ]
                         }
-                    """.trimIndent())
+                        """.trimIndent())
+                    } else if (url.endsWith("/location")) {
+                        return Response.httpResponse(200, mapOf(), """
+                        { "deployment_model" : "GLOBAL",
+                          "location": "US-VA", 
+                          "hostname": "http://localhost:9090",
+                          "ws_hostname": "ws://localhost:9090"
+                        }
+                        """.trimIndent())
                     } else {
                         throw IllegalStateException("Unsupported URL: $url")
                     }

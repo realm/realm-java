@@ -109,6 +109,7 @@ if (build_SYNC)
         io.realm.RealmUser
         io.realm.RealmFunctions
         io.realm.RealmSync
+        io.realm.RealmFunctions
         io.realm.SyncSession
         io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
@@ -212,6 +213,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoCollection.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoDatabase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/util_sync.cpp
     )
 endif()
 
@@ -230,8 +232,8 @@ if (build_SYNC)
         "object-store/src/results.cpp"
         "object-store/src/impl/results_notifier.cpp"
         "object-store/src/sync/*.cpp"
-        "object-store/src/sync/impl/*.cpp"
-        "object-store/src/util/bson/*.cpp")
+        "object-store/src/util/bson/*.cpp"        
+        "object-store/src/sync/impl/*.cpp")
 endif()
 
 add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})

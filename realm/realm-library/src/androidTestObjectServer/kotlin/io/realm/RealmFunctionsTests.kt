@@ -30,7 +30,7 @@ import org.junit.runner.RunWith
 import kotlin.test.assertEquals
 
 @RunWith(AndroidJUnit4::class)
-class RealmFunctionTests {
+class RealmFunctionsTests {
     
     private val looperThread = BlockingLooperThread()
     private lateinit var app: TestRealmApp

@@ -15,22 +15,20 @@
  */
 package io.realm;
 
-import org.bson.BsonArray;
-import org.bson.BsonDocument;
 import org.bson.BsonValue;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.Util;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.util.BsonConverter;
 
-// CR: Async execution model. Google Play Task??
 
 /**
- * A <i>Realm functions<i> manager to call MongoDB functions.
+ * A <i>Realm functions<i> manager to call MongoDB Realm functions.
  */
 // TODO Timeout is currently handled uniformly through OkHttpNetworkTransport configured through RealmAppConfig
 public class RealmFunctions {
@@ -39,7 +37,7 @@ public class RealmFunctions {
     private final RealmUser user;
 
     // FIXME Doc
-    public RealmFunctions(RealmUser user) {
+    RealmFunctions(RealmUser user) {
         this.user = user;
     }
 
@@ -62,9 +60,9 @@ public class RealmFunctions {
     // FIXME Application wide invocation
     public BsonValue callFunction(String name, List<?> args) {
         BsonValue bsonArgs = BsonConverter.to(args.toArray());
-        String encodedArgs = encode(bsonArgs);
+        String encodedArgs = JniBsonProtocol.encode(bsonArgs);
         String encodedResponse = invoke(name, encodedArgs);
-        BsonValue response = decode(encodedResponse);
+        BsonValue response = JniBsonProtocol.decode(encodedResponse);
         return response;
     }
 
@@ -141,17 +139,6 @@ public class RealmFunctions {
         };
         nativeCallFunction(user.getApp().nativePtr, user.osUser.getNativePtr(), name, args, callback);
         return RealmApp.handleResult(success, error);
-   }
-
-    // FIXME Ensure that this is the right contract with ObjectServer
-    private String encode(BsonValue bsonValue) {
-       BsonDocument document = new BsonDocument();
-       document.append("value", bsonValue);
-       return document.toJson();
-   }
-   private BsonValue decode(String string) {
-       BsonDocument document = BsonDocument.parse(string);
-       return document.get("value");
    }
 
    private static native void nativeCallFunction(long nativeAppPtr, long nativeUserPtr, String name, String args_json, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);

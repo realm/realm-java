@@ -215,7 +215,11 @@ dependencies {
         exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
     }
     // FIXME: Attempt to find a way to remove this dependency
-    implementation "com.google.android.gms:play-services-tasks:17.0.2"      // added to support mongo client's asynchronous nature without breaking Stitch's API
+    objectServerImplementation "com.google.android.gms:play-services-tasks:17.0.2"      // added to support mongo client's asynchronous nature without breaking Stitch's API
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
