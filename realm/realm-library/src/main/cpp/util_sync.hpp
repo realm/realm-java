@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm;
 
-import org.bson.BsonValue;
+#ifndef REALM_UTIL_SYNC_HPP
+#define REALM_UTIL_SYNC_HPP
 
-import io.realm.internal.jni.JniBsonProtocol;
+#include <jni.h>
+#include <util/bson/bson.hpp>
 
-public class RealmFunctions {
+realm::bson::Bson jstring_to_bson(JNIEnv* env, jstring arg);
+jstring bson_to_jstring(JNIEnv* env, realm::bson::Bson bson);
 
-    // FIXME Prelimiry implementation to be able to test passing BsonValues through JNI
-    BsonValue invoke(BsonValue arg) {
-        String response = nativeCallFunction(JniBsonProtocol.encode(arg));
-        return JniBsonProtocol.decode(response);
-    }
-
-    private static native String nativeCallFunction(String arg);
-
-}
+#endif //REALM_UTIL_SYNC_HPP
