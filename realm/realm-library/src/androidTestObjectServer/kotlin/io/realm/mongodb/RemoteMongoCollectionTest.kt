@@ -24,11 +24,13 @@ import io.realm.util.blockingGetResult
 import org.bson.Document
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertEquals
 
 @RunWith(AndroidJUnit4::class)
+@Ignore("Collections not ready to test yet")
 class RemoteMongoCollectionTest {
 
     private lateinit var app: TestRealmApp
@@ -56,27 +58,24 @@ class RemoteMongoCollectionTest {
 
     @Test
     fun insertOne() {
-        assertEquals(insertOne(COLLECTION_NAME))
+        with(getCollection(COLLECTION_NAME)) {
+            assertEquals(0, this.count().blockingGetResult())
+            insertOne(Document())
+            assertEquals(1, this.count().blockingGetResult())
+            insertOne(Document())
+            assertEquals(2, this.count().blockingGetResult())
+        }
     }
 
     @Test
-    fun countAllDocumentsWithoutInsert() {
-        // count without class before inserting
+    fun countAllDocumentsBeforeInsert() {
         with(getCollection(COLLECTION_NAME)) {
             assertEquals(0, this.count().blockingGetResult())
         }
 
-        // count with class before inserting
-        // FIXME: check correct class param
+        // FIXME: check correct class parameter
         with(getCollection(COLLECTION_NAME, Document::class.java)) {
             assertEquals(0, this.count().blockingGetResult())
-        }
-
-        // count without class after inserting
-        with(getCollection(COLLECTION_NAME)) {
-            // FIXME
-//            this.insertOne()
-//            assertEquals(1, this.count().blockingGetResult())
         }
     }
 
@@ -92,7 +91,7 @@ class RemoteMongoCollectionTest {
 
     // FIXME: more to come
 
-    private fun insertOne(collectionName: String): RemoteInsertOneResult {
+    private fun insertOne(collectionName: String): RemoteInsertOneResult? {
         return getCollection(collectionName)
                 .insertOne(Document(KEY, VALUE))
                 .blockingGetResult()

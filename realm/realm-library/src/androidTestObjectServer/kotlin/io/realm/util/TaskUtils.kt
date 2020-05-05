@@ -17,19 +17,34 @@
 package io.realm.util
 
 import com.google.android.gms.tasks.Task
+import java.lang.Exception
 import java.util.concurrent.CountDownLatch
 
 /**
- * Returns the result of a [Task] in a synchronous way. This operation blocks the thread on which
- * it is called.
+ * Returns the result of a [Task] in a synchronous way or will throw an exception if a failure is
+ * detected. This operation blocks the thread on which it is called.
+ *
+ * @return the [T] result emitted by the task
  */
-fun <T> Task<T>.blockingGetResult(): T {
+fun <T> Task<T>.blockingGetResult(): T? {
     val countDownLatch = CountDownLatch(1)
+    var error: Exception? = null
     var result: T? = null
+
     addOnSuccessListener { successResult ->
         result = successResult
         countDownLatch.countDown()
     }
+    addOnFailureListener { exception ->
+        error = exception
+        countDownLatch.countDown()
+    }
+
     countDownLatch.await()
-    return result!!
+
+    if (error != null) {
+        throw error!!
+    }
+
+    return result
 }
