@@ -18,8 +18,19 @@ package io.realm.internal.jni;
 
 import org.bson.BsonDocument;
 import org.bson.BsonValue;
+import org.bson.codecs.BsonDocumentCodec;
+import org.bson.codecs.Decoder;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.Encoder;
+import org.bson.codecs.EncoderContext;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.json.JsonMode;
+import org.bson.json.JsonReader;
+import org.bson.json.JsonWriter;
 import org.bson.json.JsonWriterSettings;
+
+import java.io.StringReader;
+import java.io.StringWriter;
 
 /**
  * Protocol for passing {@link BsonValue}s to JNI.
@@ -43,6 +54,32 @@ public class JniBsonProtocol {
     public static BsonValue decode(String string) {
         BsonDocument document = BsonDocument.parse(string);
         return document.get(VALUE);
+    }
+
+    public static <T> String encode(T value, CodecRegistry registry) {
+        return encode(value, (Encoder<T>)registry.get(value.getClass()));
+    }
+    private static <T> String encode(T value, Encoder<T> encoder) {
+        StringWriter stringWriter = new StringWriter();
+        JsonWriter jsonWriter = new JsonWriter(stringWriter, writerSettings);
+        jsonWriter.writeStartDocument();
+        jsonWriter.writeName(VALUE);
+        encoder.encode(jsonWriter, value, EncoderContext.builder().build());
+        jsonWriter.writeEndDocument();
+        return stringWriter.toString();
+    }
+
+    public static <T> T decode(String string, Class<T> clz, CodecRegistry registry) {
+        return decode(string, registry.get(clz));
+    }
+    private static <T> T decode(String string, Decoder<T> decoder) {
+        StringReader stringReader = new StringReader(string);
+        JsonReader jsonReader = new JsonReader(stringReader);
+        jsonReader.readStartDocument();
+        jsonReader.readName(VALUE);
+        T value = decoder.decode(jsonReader, DecoderContext.builder().build());
+        jsonReader.readEndDocument();
+        return value;
     }
 
 }

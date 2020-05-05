@@ -16,15 +16,25 @@
 package io.realm;
 
 import org.bson.BsonValue;
+import org.bson.codecs.configuration.CodecRegistry;
 
 import io.realm.internal.jni.JniBsonProtocol;
 
-public class RealmFunctions {
+// FIXME This class is only a placeholder for JNI round trip as  until actual RealmFunctions
+//  implementation supersedes it.
+class RealmFunctions {
 
     // FIXME Prelimiry implementation to be able to test passing BsonValues through JNI
     BsonValue invoke(BsonValue arg) {
         String response = nativeCallFunction(JniBsonProtocol.encode(arg));
         return JniBsonProtocol.decode(response);
+    }
+
+    // FIXME Prelimiry implementation to be able to test passing BsonValues through JNI
+    <T> T invoke(Object arg, Class<T> resultClass, CodecRegistry registry) {
+        String a = JniBsonProtocol.encode(arg, registry);
+        String s = nativeCallFunction(a);
+        return JniBsonProtocol.decode(s, resultClass, registry);
     }
 
     private static native String nativeCallFunction(String arg);
