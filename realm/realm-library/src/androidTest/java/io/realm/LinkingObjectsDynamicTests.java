@@ -291,6 +291,8 @@ public class LinkingObjectsDynamicTests {
             }
         });
 
+        dynamicRealm.refresh();
+
         final DynamicRealmObject target1 = dynamicRealm.where(BacklinksTarget.CLASS_NAME).equalTo(BacklinksTarget.FIELD_ID, 1).findFirst();
         final RealmResults<DynamicRealmObject> target1Sources = target1.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
         assertNotNull(target1Sources);
@@ -350,6 +352,8 @@ public class LinkingObjectsDynamicTests {
             }
         });
 
+        dynamicRealm.refresh();
+
         final DynamicRealmObject cat1 = dynamicRealm.where(Cat.CLASS_NAME).equalTo(Cat.FIELD_NAME, "cat1").findFirst();
         final RealmResults<DynamicRealmObject> cat1Owners = cat1.linkingObjects(Owner.CLASS_NAME, Owner.FIELD_CAT);
         assertNotNull(cat1Owners);
@@ -401,6 +405,8 @@ public class LinkingObjectsDynamicTests {
                 source200.getFieldList().add(target2);
             }
         });
+
+        dynamicRealm.refresh();
 
         final DynamicRealmObject target1 = dynamicRealm.where(AllJavaTypes.CLASS_NAME).equalTo(AllJavaTypes.FIELD_ID, 1L).findFirst();
         final DynamicRealmObject target2 = dynamicRealm.where(AllJavaTypes.CLASS_NAME).equalTo(AllJavaTypes.FIELD_ID, 2L).findFirst();

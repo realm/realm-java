@@ -68,6 +68,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetSharedReal
         SharedRealm shared_realm;
         if (j_version_no == -1 && j_version_index == -1) {
             shared_realm = Realm::get_shared_realm(config);
+            shared_realm->read_group();
         }
         else {
             VersionID version(static_cast<uint_fast64_t>(j_version_no), static_cast<uint_fast32_t>(j_version_index));
