@@ -28,7 +28,7 @@ import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class RealmFunctionsTest {
+class RealmFunctionsTests {
 
     private lateinit var app: TestRealmApp
     private lateinit var functions : RealmFunctions
