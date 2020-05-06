@@ -68,7 +68,7 @@ class RealmFunctionsTests {
         assertEquals(6L, result1a.asInt64().value)
 //        val result1b: BsonInt32 = functions.callFunction("sum", listOf(i32), BsonInt32::class.java)
 //        val result1d: Integer = functions.callFunction("sum", listOf(i32), Integer::class.java)
-        val result1d: Any = functions.callFunction("sum", listOf(i32), java.lang.Long::class.java)
+        val result1d: Any = functions.callFunction("sum", listOf(true, i32), java.lang.Long::class.java)
         val result1e: BsonInt64 = functions.callFunction("sum", listOf(i64), BsonInt64::class.java)
 //        val result1f: String? = functions.callFunction("sum", listOf(s), BsonString::class.java).value
 
