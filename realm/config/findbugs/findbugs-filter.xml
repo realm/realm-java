@@ -42,5 +42,9 @@
     <Match>
         <Class name="io.realm.io_realm_sync_SubscriptionRealmProxy"/>
     </Match>
+    <Match>
+        <Class name="io.realm.internal.common.ThreadDispatcher" />
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" />
+    </Match>
 
 </FindBugsFilter>
