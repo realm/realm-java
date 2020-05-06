@@ -218,6 +218,8 @@ public class OsRealmConfig implements NativeObject {
         String urlPrefix = (String)(syncConfigurationOptions[8]);
         String customAuthorizationHeaderName = (String)(syncConfigurationOptions[9]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[11];
+        String partitionValue = (String) syncConfigurationOptions[12];
+        Object syncService = syncConfigurationOptions[13];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]
@@ -287,8 +289,11 @@ public class OsRealmConfig implements NativeObject {
                     urlPrefix,
                     customAuthorizationHeaderName,
                     customHeaders,
-                    clientResyncMode);
+                    clientResyncMode,
+                    partitionValue,
+                    syncService);
             try {
+                resolvedSyncRealmUrl = syncRealmAuthUrl + urlPrefix.substring(1); // FIXME
                 resolvedRealmURI = new URI(resolvedSyncRealmUrl);
             } catch (URISyntaxException e) {
                 RealmLog.error(e, "Cannot create a URI from the Realm URL address");
@@ -300,8 +305,8 @@ public class OsRealmConfig implements NativeObject {
             if (resolvedRealmURI != null && proxySelector != null) {
                 URI websocketUrl = null;
                 try {
-                    // replace scheme in URI so that a proxy selector won't be confused by 'realm://'
-                    websocketUrl = new URI(resolvedSyncRealmUrl.replaceFirst("realm", "http"));
+                    // replace scheme in URI so that a proxy selector won't be confused by 'ws://' or 'wss://'
+                    websocketUrl = new URI(resolvedSyncRealmUrl.replaceFirst("ws", "http"));
                 } catch (URISyntaxException e) {
                     // we shouldn't ever get here if parsing the resolved url above worked
                     RealmLog.error(e, "Cannot create a URI from the Realm URL address");
@@ -383,7 +388,8 @@ public class OsRealmConfig implements NativeObject {
                                                               String userId, String refreshToken, String accessToken,
                                                               byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
-                                                              String[] customHeaders, byte clientResetMode);
+                                                              String[] customHeaders, byte clientResetMode,
+                                                              String partionKeyValue, Object syncService);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);

@@ -188,6 +188,14 @@ public:
     {
         return JavaClassGlobalDef::new_date(m_env, v);
     }
+    util::Any box(Decimal v) const
+    {
+        return JavaClassGlobalDef::new_decimal128(m_env, v);
+    }
+    util::Any box(ObjectId v) const
+    {
+        return JavaClassGlobalDef::new_object_id(m_env, v);
+    }
     util::Any box(bool v) const
     {
         return _impl::JavaClassGlobalDef::new_boolean(m_env, v);
@@ -220,6 +228,14 @@ public:
     {
         return v ? _impl::JavaClassGlobalDef::new_long(m_env, v.value()) : nullptr;
     }
+    util::Any box(util::Optional<Decimal> v) const
+    {
+        return v ? _impl::JavaClassGlobalDef::new_decimal128(m_env, v.value()) : nullptr;
+    }
+    util::Any box(util::Optional<ObjectId> v) const
+    {
+        return v ? _impl::JavaClassGlobalDef::new_object_id(m_env, v.value()) : nullptr;
+    }
     util::Any box(Obj) const
     {
         REALM_TERMINATE("not supported");
@@ -244,7 +260,7 @@ public:
     // using the provided value. If `update` is true then upsert semantics
     // should be used for this.
     template <typename T>
-    T unbox(util::Any& v, CreatePolicy=CreatePolicy::ForceCreate) const
+    T unbox(util::Any& v, CreatePolicy = CreatePolicy::Skip, ObjKey /*current_row*/ = ObjKey()) const
     {
         return any_cast<T>(v);
     }
@@ -344,35 +360,35 @@ inline JPrimitiveArrayAccessor<jlongArray, jlong>::ElementsHolder::~ElementsHold
 }
 
 template <>
-inline bool JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
+inline bool JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Boolean");
     return any_cast<jboolean>(v) == JNI_TRUE;
 }
 
 template <>
-inline int64_t JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
+inline int64_t JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Long");
     return static_cast<int64_t>(any_cast<jlong>(v));
 }
 
 template <>
-inline double JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
+inline double JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Double");
     return static_cast<double>(any_cast<jdouble>(v));
 }
 
 template <>
-inline float JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
+inline float JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Float");
     return static_cast<float>(any_cast<jfloat>(v));
 }
 
 template <>
-inline StringData JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
+inline StringData JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     if (!v.has_value()) {
         return StringData();
@@ -382,7 +398,7 @@ inline StringData JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 }
 
 template <>
-inline BinaryData JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
+inline BinaryData JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     if (!v.has_value())
         return BinaryData();
@@ -391,43 +407,55 @@ inline BinaryData JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 }
 
 template <>
-inline Timestamp JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
+inline Timestamp JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? from_milliseconds(any_cast<jlong>(v)) : Timestamp();
 }
 
 template <>
-inline Obj JavaAccessorContext::unbox(util::Any&, CreatePolicy) const
+inline Decimal128 JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ?  any_cast<Decimal128&>(v) : Decimal128(realm::null());
+}
+
+template <>
+inline util::Optional<ObjectId> JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ?  util::make_optional(any_cast<ObjectId&>(v)) : util::none;
+}
+
+template <>
+inline Obj JavaAccessorContext::unbox(util::Any&, CreatePolicy, ObjKey) const
 {
     REALM_TERMINATE("not supported");
 }
 
 template <>
-inline util::Optional<bool> JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
+inline util::Optional<bool> JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(any_cast<jboolean>(v) == JNI_TRUE) : util::none;
 }
 
 template <>
-inline util::Optional<int64_t> JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
+inline util::Optional<int64_t> JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(static_cast<int64_t>(any_cast<jlong>(v))) : util::none;
 }
 
 template <>
-inline util::Optional<double> JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
+inline util::Optional<double> JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(any_cast<jdouble>(v)) : util::none;
 }
 
 template <>
-inline util::Optional<float> JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
+inline util::Optional<float> JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(any_cast<jfloat>(v)) : util::none;
 }
 
 template <>
-inline Mixed JavaAccessorContext::unbox(util::Any&, CreatePolicy) const
+inline Mixed JavaAccessorContext::unbox(util::Any&, CreatePolicy, ObjKey) const
 {
     REALM_TERMINATE("not supported");
 }

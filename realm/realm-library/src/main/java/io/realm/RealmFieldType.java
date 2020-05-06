@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.nio.ByteBuffer;
 
 import io.realm.internal.Keep;
@@ -24,16 +27,15 @@ import io.realm.internal.Property;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_BINARY;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_BOOLEAN;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_DATE;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_DECIMAL128;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_DOUBLE;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_FLOAT;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_INTEGER;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_LINKING_OBJECTS;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_LIST;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECT;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECTID;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_STRING;
-import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_DATE;
-import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_MIXED;
-import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UNSUPPORTED_TABLE;
 import static io.realm.RealmFieldTypeConstants.LIST_OFFSET;
 import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
 
@@ -45,17 +47,16 @@ interface RealmFieldTypeConstants {
     int CORE_TYPE_VALUE_BOOLEAN = 1;
     int CORE_TYPE_VALUE_STRING = 2;
     int CORE_TYPE_VALUE_BINARY = 4;
-    int CORE_TYPE_VALUE_UNSUPPORTED_TABLE = 5;
-    int CORE_TYPE_VALUE_UNSUPPORTED_MIXED = 6;
-    int CORE_TYPE_VALUE_UNSUPPORTED_DATE = 7;
     int CORE_TYPE_VALUE_DATE = 8;
     int CORE_TYPE_VALUE_FLOAT = 9;
     int CORE_TYPE_VALUE_DOUBLE = 10;
     int CORE_TYPE_VALUE_OBJECT = 12;
     int CORE_TYPE_VALUE_LIST = 13;
     int CORE_TYPE_VALUE_LINKING_OBJECTS = 14;
+    int CORE_TYPE_VALUE_DECIMAL128 = 11;
+    int CORE_TYPE_VALUE_OBJECTID = 15;
 
-    int MAX_CORE_TYPE_VALUE = CORE_TYPE_VALUE_LINKING_OBJECTS;
+    int MAX_CORE_TYPE_VALUE = CORE_TYPE_VALUE_OBJECTID;
 }
 
 /**
@@ -76,6 +77,8 @@ public enum RealmFieldType {
     FLOAT(CORE_TYPE_VALUE_FLOAT),
     DOUBLE(CORE_TYPE_VALUE_DOUBLE),
     OBJECT(CORE_TYPE_VALUE_OBJECT),
+    DECIMAL128(CORE_TYPE_VALUE_DECIMAL128),
+    OBJECT_ID(CORE_TYPE_VALUE_OBJECTID),
 
     LIST(CORE_TYPE_VALUE_LIST),
     LINKING_OBJECTS(CORE_TYPE_VALUE_LINKING_OBJECTS),
@@ -86,7 +89,9 @@ public enum RealmFieldType {
     BINARY_LIST(CORE_TYPE_VALUE_BINARY + LIST_OFFSET),
     DATE_LIST(CORE_TYPE_VALUE_DATE + LIST_OFFSET),
     FLOAT_LIST(CORE_TYPE_VALUE_FLOAT + LIST_OFFSET),
-    DOUBLE_LIST(CORE_TYPE_VALUE_DOUBLE + LIST_OFFSET);
+    DOUBLE_LIST(CORE_TYPE_VALUE_DOUBLE + LIST_OFFSET),
+    DECIMAL128_LIST(CORE_TYPE_VALUE_DECIMAL128 + LIST_OFFSET),
+    OBJECT_ID_LIST(CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET);
 
     // Primitive array for fast mapping between between native values and their Realm type.
     private static final RealmFieldType[] basicTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
@@ -140,25 +145,23 @@ public enum RealmFieldType {
                 return (obj instanceof Float);
             case CORE_TYPE_VALUE_DOUBLE:
                 return (obj instanceof Double);
+            case CORE_TYPE_VALUE_DECIMAL128:
+                return (obj instanceof Decimal128);
+            case CORE_TYPE_VALUE_OBJECTID:
+                return (obj instanceof ObjectId);
             case CORE_TYPE_VALUE_OBJECT:
                 return false;
             case CORE_TYPE_VALUE_LIST:
-                return false;
             case CORE_TYPE_VALUE_LINKING_OBJECTS:
-                return false;
             case CORE_TYPE_VALUE_INTEGER + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_BOOLEAN + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_STRING + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_BINARY + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_DATE + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_FLOAT + LIST_OFFSET:
-                return false;
             case CORE_TYPE_VALUE_DOUBLE + LIST_OFFSET:
+            case CORE_TYPE_VALUE_DECIMAL128 + LIST_OFFSET:
+            case CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET:
                 return false;
             default:
                 throw new RuntimeException("Unsupported Realm type:  " + this);

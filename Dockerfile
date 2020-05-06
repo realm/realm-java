@@ -15,6 +15,7 @@ ENV ANDROID_NDK /opt/android-ndk
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
 ENV PATH ${PATH}:${NDK_HOME}
 ENV NDK_CCACHE /usr/bin/ccache
+ENV CCACHE_CPP2 yes
 
 # The 32 bit binaries because aapt requires it
 # `file` is need by the script that creates NDK toolchains
@@ -27,6 +28,7 @@ RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386 \
                           curl \
                           file \
                           git \
+                          jq \
                           libc6:i386 \
                           libgcc1:i386 \
                           libncurses5:i386 \
@@ -59,9 +61,9 @@ RUN yes | sdkmanager --licenses
 # Please keep all sections in descending order!
 RUN yes | sdkmanager \
     'platform-tools' \
-    'build-tools;28.0.3' \
+    'build-tools;29.0.2' \
     'extras;android;m2repository' \
-    'platforms;android-27' \
+    'platforms;android-29' \
     'cmake;3.6.4111459' \
     'ndk;21.0.6113669'
 

@@ -18,10 +18,18 @@ package io.realm;
 
 import android.content.Context;
 
+import org.bson.BsonInt32;
+import org.bson.BsonInt64;
+import org.bson.BsonObjectId;
+import org.bson.BsonString;
+import org.bson.BsonValue;
+import org.bson.types.ObjectId;
+
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -29,11 +37,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
@@ -44,23 +53,25 @@ import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
 /**
- * A {@link SyncConfiguration} is used to setup a Realm that can be synchronized between devices using the Realm
- * Object Server.
+ * A {@link SyncConfiguration} is used to setup a Realm Database that can be synchronized between
+ * devices using MongoDB Realm.
  * <p>
- * A valid {@link SyncUser} is required to create a {@link SyncConfiguration}. See {@link SyncCredentials} and
- * {@link SyncUser#logInAsync(SyncCredentials, String, SyncUser.Callback)} for more information on how to get a user object.
+ * A valid {@link RealmUser} is required to create a {@link SyncConfiguration}. See
+ * {@link RealmCredentials} and {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)} for
+ * more information on how to get a user object.
  * <p>
  * A minimal {@link SyncConfiguration} can be found below.
  * <pre>
  * {@code
- * SyncUser user = SyncUser.current();
- * String url = "realm://myinstance.cloud.realm.io/default";
- * SyncConfiguration config = new SyncConfiguration.Builder(user, url).build();
+ * RealmApp app = new RealmApp("app-id");
+ * RealmUser user = app.login(RealmCredentials.anonymous());
+ * SyncConfiguration config = SyncConfiguration.defaultConfiguration(user, "partition-value");
+ * Realm realm = Realm.getInstance(config);
  * }
  * </pre>
  * <p>
- * Synchronized Realms only support additive migrations which can be detected and performed automatically, so
- * the following builder options are not accessible compared to a normal Realm:
+ * Synchronized Realms only support additive migrations which can be detected and performed
+ * automatically, so the following builder options are not accessible compared to a normal Realm:
  *
  * <ul>
  *     <li>{@code deleteRealmIfMigrationNeeded()}</li>
@@ -70,8 +81,8 @@ import io.realm.rx.RxObservableFactory;
  * Synchronized Realms are created by using {@link Realm#getInstance(RealmConfiguration)} and
  * {@link Realm#getDefaultInstance()} like ordinary unsynchronized Realms.
  *
- * @see <a href="https://docs.realm.io/platform/using-synced-realms/syncing-data">The docs</a> for more
- * information about the two types of synchronization.
+ * @see <a href="https://docs.realm.io/platform/using-synced-realms/syncing-data">The docs</a> for
+ * more information about the two types of synchronization.
  */
 public class SyncConfiguration extends RealmConfiguration {
 
@@ -81,7 +92,7 @@ public class SyncConfiguration extends RealmConfiguration {
     static final int MAX_FILE_NAME_LENGTH = 255;
     private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
     private final URI serverUrl;
-    private final SyncUser user;
+    private final RealmUser user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
     private final boolean syncClientValidateSsl;
@@ -93,6 +104,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
     @Nullable private final String syncUrlPrefix;
     private final ClientResyncMode clientResyncMode;
+    private final BsonValue partitionValue;
 
     private SyncConfiguration(File directory,
                               String filename,
@@ -108,7 +120,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               @Nullable Realm.Transaction initialDataTransaction,
                               boolean readOnly,
                               long maxNumberOfActiveVersions,
-                              SyncUser user,
+                              RealmUser user,
                               URI serverUrl,
                               SyncSession.ErrorHandler errorHandler,
                               boolean deleteRealmOnLogout,
@@ -120,7 +132,8 @@ public class SyncConfiguration extends RealmConfiguration {
                               OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
                               CompactOnLaunchCallback compactOnLaunch,
                               @Nullable String syncUrlPrefix,
-                              ClientResyncMode clientResyncMode) {
+                              ClientResyncMode clientResyncMode,
+                              BsonValue partitionValue) {
         super(directory,
                 filename,
                 canonicalPath,
@@ -151,6 +164,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.sessionStopPolicy = sessionStopPolicy;
         this.syncUrlPrefix = syncUrlPrefix;
         this.clientResyncMode = clientResyncMode;
+        this.partitionValue = partitionValue;
     }
 
     /**
@@ -183,6 +197,55 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
+     * FIXME
+     *
+     * @param user
+     * @param partitionValue
+     * @return
+     */
+    @Beta
+    public static SyncConfiguration defaultConfig(RealmUser user, String partitionValue) {
+        return new SyncConfiguration.Builder(user, partitionValue).build();
+    }
+
+    /**
+     * FIXME
+     *
+     * @param user
+     * @param partitionValue
+     * @return
+     */
+    @Beta
+    public static SyncConfiguration defaultConfig(RealmUser user, long partitionValue) {
+        return new SyncConfiguration.Builder(user, partitionValue).build();
+    }
+
+    /**
+     * FIXME
+     *
+     * @param user
+     * @param partitionValue
+     * @return
+     */
+    @Beta
+    public static SyncConfiguration defaultConfig(RealmUser user, int partitionValue) {
+        return new SyncConfiguration.Builder(user, partitionValue).build();
+    }
+
+    /**
+     * FIXME
+     *
+     * @param user
+     * @param partitionValue
+     * @return
+     */
+    @Beta
+    public static SyncConfiguration defaultConfig(RealmUser user, ObjectId partitionValue) {
+        return new SyncConfiguration.Builder(user, partitionValue).build();
+    }
+
+
+    /**
      * Returns a {@link RealmConfiguration} appropriate to open a read-only, non-synced Realm to recover any pending changes.
      * This is useful when trying to open a backup/recovery Realm (after a client reset).
      *
@@ -200,29 +263,17 @@ public class SyncConfiguration extends RealmConfiguration {
         return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE);
     }
 
-    static URI resolveServerUrl(URI serverUrl, String userIdentifier) {
-        try {
-            return new URI(serverUrl.toString().replace("/~/", "/" + userIdentifier + "/"));
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Could not replace '/~/' with a valid user ID.", e);
-        }
-    }
-
     // Extract the full server path, minus the file name
-    private static String getServerPath(URI serverUrl) {
-        String path = serverUrl.getPath();
-        int endIndex = path.lastIndexOf("/");
-        if (endIndex == -1 ) {
-            return path;
-        } else if (endIndex == 0) {
-            return path.substring(1);
-        } else {
-            return path.substring(1, endIndex); // Also strip leading /
-        }
+    private static String getServerPath(RealmUser user, URI serverUrl) {
+        // FIXME Add support for partion key
+        // Current scheme is <rootDir>/<appId>/<userId>/default.realm or
+        // Current scheme is <rootDir>/<appId>/<userId>/<hashedPartionKey>/default.realm
+        return user.getApp().getConfiguration().getAppId() + "/" + user.getId(); // TODO Check that it doesn't contain invalid filesystem chars
     }
 
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
@@ -299,15 +350,14 @@ public class SyncConfiguration extends RealmConfiguration {
      *
      * @return the user.
      */
-    public SyncUser getUser() {
+    public RealmUser getUser() {
         return user;
     }
 
     /**
-     * Returns the fully disambiguated URI for the remote Realm i.e., the {@code /~/} placeholder has been replaced
-     * by the proper user ID.
+     * Returns the server URI for the remote MongoDB Realm the local Realm is synchronizing with.
      *
-     * @return {@link URI} identifying the remote Realm this local Realm is synchronized with.
+     * @return {@link URI} identifying the MongoDB Realm this local Realm is synchronized with.
      */
     public URI getServerUrl() {
         return serverUrl;
@@ -411,8 +461,20 @@ public class SyncConfiguration extends RealmConfiguration {
     /**
      * Returns what happens in case of a Client Resync.
      */
-    public ClientResyncMode getClientResyncMode() {
+    ClientResyncMode getClientResyncMode() {
         return clientResyncMode;
+    }
+
+    /**
+     * Returns the value this Realm is partitioned on. The partition key is a property defined in
+     * MongoDB Realm. All classes with a property with this value will be synchronized to the
+     * Realm.
+     *
+     * @return the value being used by MongoDB Realm to partition the server side MongoDB Database
+     * into Realms that can be synchronized independently.
+     */
+    public BsonValue getPartitionValue() {
+        return partitionValue;
     }
 
     /**
@@ -420,10 +482,6 @@ public class SyncConfiguration extends RealmConfiguration {
      */
     public static final class Builder  {
 
-        private File directory;
-        private boolean overrideDefaultFolder = false;
-        private String fileName;
-        private boolean overrideDefaultLocalFileName = false;
         @Nullable
         private byte[] key;
         private long schemaVersion = 0;
@@ -443,8 +501,8 @@ public class SyncConfiguration extends RealmConfiguration {
         // sync specific
         private boolean deleteRealmOnLogout = false;
         private URI serverUrl;
-        private SyncUser user = null;
-        private SyncSession.ErrorHandler errorHandler = SyncManager.defaultSessionErrorHandler;
+        private RealmUser user = null;
+        private SyncSession.ErrorHandler errorHandler;
         private boolean syncClientValidateSsl = true;
         @Nullable
         private String serverCertificateAssetName;
@@ -456,65 +514,103 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
         private ClientResyncMode clientResyncMode = null;
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
+        private final BsonValue partitionValue;
 
-        Builder(Context context, SyncUser user, String url) {
-            //noinspection ConstantConditions
+        /**
+         * FIXME
+         *
+         * @param user
+         * @param partitionValue
+         */
+        public Builder(RealmUser user, String partitionValue) {
+            this(user, new BsonString(partitionValue));
+        }
+
+        /**
+         * FIXME
+         *
+         * @param user
+         * @param partitionValue
+         */
+        public Builder(RealmUser user, ObjectId partitionValue) {
+            this(user, new BsonObjectId(partitionValue));
+        }
+
+        /**
+         * FIXME
+         *
+         * @param user
+         * @param partitionValue
+         */
+        public Builder(RealmUser user, int partitionValue) {
+            this(user, new BsonInt32(partitionValue));
+        }
+
+        /**
+         * FIXME
+         *
+         * @param user
+         * @param partitionValue
+         */
+        public Builder(RealmUser user, long partitionValue) {
+            this(user, new BsonInt64(partitionValue));
+        }
+
+        /**
+         * Builder used to construct instances of a SyncConfiguration in a fluent manner.
+         *
+         * @param user the user opening the Realm on the server.
+         * @param partitionValue te value this Realm is partitioned on. The partition key is a
+         * property defined in MongoDB Realm. All classes with a property with this value will be
+         * synchronized to the Realm.
+         * @see <a href="FIXME">Link to docs about partions</a>
+         */
+        private Builder(RealmUser user, BsonValue partitionValue) {
+            Context context = BaseRealm.applicationContext;
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
-            this.defaultFolder = new File(context.getFilesDir(), "realm-object-server");
+            Util.checkNull(user, "user");
+            Util.checkNull(partitionValue, "partitionValue");
+            validateAndSet(user);
+            validateAndSet(user.getApp().getConfiguration().getBaseUrl());
+            this.partitionValue = partitionValue;
+            this.defaultFolder = user.getApp().getConfiguration().getSyncRootDirectory();
             if (Realm.getDefaultModule() != null) {
                 this.modules.add(Realm.getDefaultModule());
             }
-
-            validateAndSet(user);
-            validateAndSet(url);
+            this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
         }
 
-        private void validateAndSet(SyncUser user) {
+        private void validateAndSet(RealmUser user) {
             //noinspection ConstantConditions
             if (user == null) {
                 throw new IllegalArgumentException("Non-null `user` required.");
             }
-            if (!user.isValid()) {
+            if (!user.isLoggedIn()) {
                 throw new IllegalArgumentException("User not authenticated or authentication expired.");
             }
             this.user = user;
         }
 
-        private void validateAndSet(String uri) {
-            //noinspection ConstantConditions
-            if (uri == null) {
-                throw new IllegalArgumentException("Non-null 'uri' required.");
-            }
-
+        private void validateAndSet(URL baseUrl ) {
             try {
-                serverUrl = new URI(uri);
+                serverUrl = new URI(baseUrl.toString());
             } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("Invalid URI: " + uri, e);
+                throw new IllegalArgumentException("Invalid URI: " + baseUrl.toString(), e);
             }
 
             try {
                 // Automatically set scheme based on auth server if not set or wrongly set
                 String serverScheme = serverUrl.getScheme();
-                if (serverScheme == null) {
-                    String authProtocol = user.getAuthenticationUrl().getProtocol();
-                    if (authProtocol.equalsIgnoreCase("https")) {
-                        serverScheme = "realms";
-                    } else {
-                        serverScheme = "realm";
-                    }
-                } else if (serverScheme.equalsIgnoreCase("http")) {
-                    serverScheme = "realm";
+                if (serverScheme == null || serverScheme.equalsIgnoreCase("http")) {
+                    serverScheme = "ws";
                 } else if (serverScheme.equalsIgnoreCase("https")) {
-                    serverScheme = "realms";
+                    serverScheme = "wss";
                 }
 
                 // Automatically set host if one wasn't defined
                 String host = serverUrl.getHost();
-                if (host == null) {
-                    host = user.getAuthenticationUrl().getHost();
-                }
 
                 // Convert relative paths to absolute if required
                 String path = serverUrl.getPath();
@@ -531,91 +627,10 @@ public class SyncConfiguration extends RealmConfiguration {
                         serverUrl.getRawFragment());
 
             } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("Invalid URI: " + uri, e);
+                throw new IllegalArgumentException("Invalid URI: " + baseUrl, e);
             }
 
-            // Detect last path segment as it is the default file name
-            String path = serverUrl.getPath();
-            if (path == null) {
-                throw new IllegalArgumentException("Invalid URI: " + uri);
-            }
-
-            String[] pathSegments = path.split("/");
-            for (int i = 1; i < pathSegments.length; i++) {
-                String segment = pathSegments[i];
-                if (segment.equals("~")) {
-                    continue;
-                }
-                if (segment.equals("..") || segment.equals(".")) {
-                    throw new IllegalArgumentException("The URI has an invalid segment: " + segment);
-                }
-                Matcher m = pattern.matcher(segment);
-                if (!m.matches()) {
-                    throw new IllegalArgumentException("The URI must only contain characters 0-9, a-z, A-Z, ., _, and -: " + segment);
-                }
-            }
-
-            this.defaultLocalFileName = pathSegments[pathSegments.length - 1];
-
-            // Validate filename
-            // TODO Lift this restriction on the Object Server
-            if (defaultLocalFileName.endsWith(".realm")
-                    || defaultLocalFileName.endsWith(".realm.lock")
-                    || defaultLocalFileName.endsWith(".realm.management")) {
-                throw new IllegalArgumentException("The URI must not end with '.realm', '.realm.lock' or '.realm.management: " + uri);
-            }
-        }
-
-        /**
-         * Sets the local file name for the Realm.
-         * This will override the default name defined by the Realm URL.
-         *
-         * @param filename name of the local file on disk.
-         * @throws IllegalArgumentException if file name is {@code null} or empty.
-         */
-        public Builder name(String filename) {
-            //noinspection ConstantConditions
-            if (filename == null || filename.isEmpty()) {
-                throw new IllegalArgumentException("A non-empty filename must be provided");
-            }
-            this.fileName = filename;
-            this.overrideDefaultLocalFileName = true;
-            return this;
-        }
-
-        /**
-         * Sets the local root directory where synchronized Realm files can be saved.
-         * <p>
-         * Synchronized Realms will not be saved directly in the provided directory, but instead in a
-         * subfolder that matches the path defined by Realm URI. As Realm server URIs are unique
-         * this means that multiple users can save their Realms on disk without the risk of them overwriting
-         * each other files.
-         * <p>
-         * The default location is {@code context.getFilesDir()}.
-         *
-         * @param directory directory on disk where the Realm file can be saved.
-         * @throws IllegalArgumentException if the directory is not valid.
-         */
-        public Builder directory(File directory) {
-            //noinspection ConstantConditions
-            if (directory == null) {
-                throw new IllegalArgumentException("Non-null 'directory' required.");
-            }
-            if (directory.isFile()) {
-                throw new IllegalArgumentException("'directory' is a file, not a directory: " +
-                        directory.getAbsolutePath() + ".");
-            }
-            if (!directory.exists() && !directory.mkdirs()) {
-                throw new IllegalArgumentException("Could not create the specified directory: " +
-                        directory.getAbsolutePath() + ".");
-            }
-            if (!directory.canWrite()) {
-                throw new IllegalArgumentException("Realm directory is not writable: " +
-                        directory.getAbsolutePath() + ".");
-            }
-            this.directory = directory;
-            overrideDefaultFolder = true;
-            return this;
+            this.defaultLocalFileName = "default.realm";
         }
 
         /**
@@ -803,7 +818,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Sets the error handler used by this configuration. This will override any handler set by calling
-         * {@link SyncManager#setDefaultSessionErrorHandler(SyncSession.ErrorHandler)}.
+         * {@link RealmSync#setDefaultSessionErrorHandler(SyncSession.ErrorHandler)}.
          * <p>
          * Only errors not handled by the defined {@code SyncPolicy} will be reported to this error handler.
          *
@@ -943,10 +958,10 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * The prefix that is prepended to the path in the HTTP request that initiates a sync
-         * connection to the Realm Object Server. The value specified must match the server’s
-         * configuration otherwise the device will not be able to create a connection. If no value
-         * is specified then the default {@code /realm-sync} path is used.
+         * The prefix that is prepended to the path in the WebSocket request that initiates a sync
+         * connection to MongoDB Realm. The value specified must match the server’s configuration
+         * otherwise the device will not be able to create a connection. This value is optional
+         * and should only be set if a specific firewall rule requires it.
          *
          * @param urlPrefix The prefix to append to the sync connection url.
          * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
@@ -954,6 +969,9 @@ public class SyncConfiguration extends RealmConfiguration {
         public SyncConfiguration.Builder urlPrefix(String urlPrefix) {
             if (Util.isEmptyString(urlPrefix)) {
                 throw new IllegalArgumentException("Non-empty 'urlPrefix' required");
+            }
+            if (urlPrefix.endsWith("/")) {
+                urlPrefix = urlPrefix.substring(0, Math.min(0, urlPrefix.length() - 2));
             }
             this.syncUrlPrefix = urlPrefix;
             return this;
@@ -990,6 +1008,8 @@ public class SyncConfiguration extends RealmConfiguration {
         */
 
         /**
+         * TODO: Removed from the public API until MongoDB Realm correctly supports anything byt MANUAL mode again.
+         *
          * Configure the behavior in case of a Client Resync.
          * <p>
          * The default mode is {@link ClientResyncMode#RECOVER_LOCAL_REALM}.
@@ -997,7 +1017,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param mode what should happen when a Client Resync happens
          * @see ClientResyncMode for more information about what a Client Resync is.
          */
-        public Builder clientResyncMode(ClientResyncMode mode) {
+        Builder clientResyncMode(ClientResyncMode mode) {
             //noinspection ConstantConditions
             if (mode == null) {
                 throw new IllegalArgumentException("Non-null 'mode' required.");
@@ -1052,48 +1072,35 @@ public class SyncConfiguration extends RealmConfiguration {
                 }
             }
 
-            // Check if the user has an identifier, if not, it cannot use /~/.
-            if (serverUrl.toString().contains("/~/") && user.getIdentity() == null) {
-                throw new IllegalStateException("The serverUrl contains a /~/, but the user does not have an identity." +
-                        " Most likely it hasn't been authenticated yet or has been created directly from an" +
-                        " access token. Use a path without /~/.");
-            }
-
             // Set the default Client Resync Mode based on the current type of Realm.
             // Eventually RECOVER_LOCAL_REALM should be the default for all types.
+            // FIXME: We should add support back for this.
             if (clientResyncMode == null) {
-                clientResyncMode = ClientResyncMode.RECOVER_LOCAL_REALM;
+                clientResyncMode = ClientResyncMode.MANUAL;
             }
 
             if (rxFactory == null && isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory(true);
             }
 
+            // FIXME: Figure out how to map to on-disk path. Partition key can be up to 16MB in size.
             // Determine location on disk
-            // Use the serverUrl + user to create a unique filepath unless it has been explicitly overridden.
-            // <rootDir>/<userIdentifier>/<serverPath>/<serverFileNameOrOverriddenFileName>
-            URI resolvedServerUrl = resolveServerUrl(serverUrl, user.getIdentity());
-            File rootDir = overrideDefaultFolder ? directory : defaultFolder;
-            String realmPathFromRootDir = user.getIdentity() + "/" + getServerPath(resolvedServerUrl);
-            File realmFileDirectory = new File(rootDir, realmPathFromRootDir);
-
-            String realmFileName = overrideDefaultLocalFileName ? fileName : defaultLocalFileName;
+            // Use the serverUrl + user to create a unique filepath.
+            // The following types of paths can be generated
+            // <rootDir>/<userIdentifier>/default.realm
+            // <rootDir>/<userIdentifier>/<hashedPartionKey>/default.realm
+            URI resolvedServerUrl = serverUrl; // resolveServerUrl(serverUrl, user);
+            syncUrlPrefix = String.format("/api/client/v2.0/app/%s/realm-sync", user.getApp().getConfiguration().getAppId());
+            String realmPathFromRootDir = user.getId() + "/" + getServerPath(user, resolvedServerUrl);
+            File realmFileDirectory = new File(defaultFolder, realmPathFromRootDir);
+            String realmFileName = defaultLocalFileName;
             String fullPathName = realmFileDirectory.getAbsolutePath() + File.pathSeparator + realmFileName;
+
             // full path must not exceed 256 characters (on FAT)
             if (fullPathName.length() > MAX_FULL_PATH_LENGTH) {
-                // path is too long, so we make the file name shorter
-                realmFileName = MD5(realmFileName);
-                fullPathName = realmFileDirectory.getAbsolutePath() + File.pathSeparator + realmFileName;
-                if (fullPathName.length() > MAX_FULL_PATH_LENGTH) {
-                    // use rootDir/userIdentify as directory instead as it is shorter
-                    realmFileDirectory = new File(rootDir, user.getIdentity());
-                    fullPathName = realmFileDirectory.getAbsolutePath() + File.pathSeparator + realmFileName;
-                    if (fullPathName.length() > MAX_FULL_PATH_LENGTH) { // we are out of ideas
-                        throw new IllegalStateException(String.format(Locale.US,
-                                "Full path name must not exceed %d characters: %s",
-                                MAX_FULL_PATH_LENGTH, fullPathName));
-                    }
-                }
+                throw new IllegalStateException(String.format(Locale.US,
+                        "Full path name must not exceed %d characters: %s",
+                        MAX_FULL_PATH_LENGTH, fullPathName));
             }
 
             if (realmFileName.length() > MAX_FILE_NAME_LENGTH) {
@@ -1154,7 +1161,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     sessionStopPolicy,
                     compactOnLaunch,
                     syncUrlPrefix,
-                    clientResyncMode
+                    clientResyncMode,
+                    partitionValue
             );
         }
 

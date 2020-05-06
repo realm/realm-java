@@ -21,21 +21,17 @@ import android.os.Build;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
-import io.realm.ImportFlag;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.internal.android.AndroidCapabilities;
 import io.realm.log.RealmLog;
 
 
@@ -180,4 +176,28 @@ public class Util {
             return set;
         }
     }
+
+    public static void checkEmpty(String argValue, String argName) {
+        if (isEmptyString(argValue)) {
+            throw new IllegalArgumentException("Non-empty '" + argName + "' required.");
+        }
+    }
+
+    public static void checkNull(@Nullable Object argValue, String argName) {
+        if (argValue == null) {
+            throw new IllegalArgumentException("Nonnull '" + argName + "' required.");
+        }
+    }
+
+    public static void checkLooperThread(String errorMessage) {
+        AndroidCapabilities capabilities = new AndroidCapabilities();
+        capabilities.checkCanDeliverNotification(errorMessage);
+    }
+
+    public static void checkNotOnMainThread(String errorMessage) {
+        if (new AndroidCapabilities().isMainThread()) {
+            throw new IllegalStateException(errorMessage);
+        }
+    }
+
 }

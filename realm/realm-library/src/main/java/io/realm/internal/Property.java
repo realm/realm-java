@@ -24,9 +24,11 @@ import io.realm.RealmFieldType;
 import static io.realm.RealmFieldType.BINARY_LIST;
 import static io.realm.RealmFieldType.BOOLEAN_LIST;
 import static io.realm.RealmFieldType.DATE_LIST;
+import static io.realm.RealmFieldType.DECIMAL128_LIST;
 import static io.realm.RealmFieldType.DOUBLE_LIST;
 import static io.realm.RealmFieldType.FLOAT_LIST;
 import static io.realm.RealmFieldType.INTEGER_LIST;
+import static io.realm.RealmFieldType.OBJECT_ID_LIST;
 import static io.realm.RealmFieldType.STRING_LIST;
 
 
@@ -57,6 +59,10 @@ public class Property implements NativeObject {
     public static final int TYPE_OBJECT = 7;
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_LINKING_OBJECTS = 8;
+    @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_DECIMAL128 = 11;
+    @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_OBJECT_ID = 10;
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_REQUIRED = 0;
     @SuppressWarnings("WeakerAccess")
@@ -102,6 +108,12 @@ public class Property implements NativeObject {
             case FLOAT:
                 type = TYPE_FLOAT;
                 break;
+            case DECIMAL128:
+                type = TYPE_DECIMAL128;
+                break;
+            case OBJECT_ID:
+                type = TYPE_OBJECT_ID;
+                break;
             case DOUBLE:
                 type = TYPE_DOUBLE;
                 break;
@@ -123,6 +135,12 @@ public class Property implements NativeObject {
                 break;
             case FLOAT_LIST:
                 type = TYPE_FLOAT | TYPE_ARRAY;
+                break;
+            case DECIMAL128_LIST:
+                type = TYPE_DECIMAL128 | TYPE_ARRAY;
+                break;
+            case OBJECT_ID_LIST:
+                type = TYPE_OBJECT_ID | TYPE_ARRAY;
                 break;
             case DOUBLE_LIST:
                 type = TYPE_DOUBLE | TYPE_ARRAY;
@@ -159,6 +177,10 @@ public class Property implements NativeObject {
                 return RealmFieldType.FLOAT;
             case TYPE_DOUBLE:
                 return RealmFieldType.DOUBLE;
+            case TYPE_DECIMAL128:
+                return RealmFieldType.DECIMAL128;
+            case TYPE_OBJECT_ID:
+                return RealmFieldType.OBJECT_ID;
             //noinspection PointlessBitwiseExpression
             case TYPE_INT | TYPE_ARRAY:
                 return INTEGER_LIST;
@@ -174,6 +196,10 @@ public class Property implements NativeObject {
                 return FLOAT_LIST;
             case TYPE_DOUBLE | TYPE_ARRAY:
                 return DOUBLE_LIST;
+            case TYPE_DECIMAL128 | TYPE_ARRAY:
+                return DECIMAL128_LIST;
+            case TYPE_OBJECT_ID | TYPE_ARRAY:
+                return OBJECT_ID_LIST;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));

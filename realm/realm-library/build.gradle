@@ -47,6 +47,7 @@ android {
         versionName version
         project.archivesBaseName = "realm-android-library"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
         externalNativeBuild {
             cmake {
                 arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}",
@@ -96,11 +97,14 @@ android {
     }
 
     sourceSets {
+        testObjectServer {
+            java.srcDirs += ['src/testObjectServer/kotlin']
+        }
         androidTest {
             java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java', 'src/testUtils/kotlin']
         }
         androidTestObjectServer {
-            java.srcDirs += [/* FIXME 'src/syncIntegrationTest/java', */'src/syncTestUtils/java']
+            java.srcDirs += [/* FIXME 'src/syncIntegrationTest/java', */ 'src/androidTestObjectServer/kotlin', 'src/syncTestUtils/java']
             assets.srcDirs += ['src/syncIntegrationTest/assets/']
         }
     }
@@ -206,14 +210,26 @@ dependencies {
     api "io.realm:realm-annotations:${version}"
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'com.getkeepsafe.relinker:relinker:1.4.0'
+    implementation "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY_VERSION')}"
     implementation('io.reactivex.rxjava2:rxandroid:2.1.1') {
         exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
     }
+    // FIXME: Attempt to find a way to remove this dependency
+    objectServerImplementation "com.google.android.gms:play-services-tasks:17.0.2"      // added to support mongo client's asynchronous nature without breaking Stitch's API
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+
+    // TODO: investigate why we can't use the latest multidex version
+    // check baseDebugAndroidTestRuntimeClasspath and objectServerDebugAndroidTestRuntimeClasspath
+    // tasks as they introduce version 2.0.0 strictly, even when specifying 2.0.1 from here
+    androidTestImplementation "androidx.multidex:multidex:2.0.0"
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
-    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
-
+    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.12.0' // Going above this requires minSDK 21
     kaptAndroidTest project(':realm-annotations-processor')
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
     androidTestImplementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
@@ -224,6 +240,7 @@ dependencies {
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     androidTestImplementation "org.skyscreamer:jsonassert:1.5.0"
+    androidTestImplementation project(':kotlin-extensions')
 
     // specify error prone version to prevent sudden failure
     errorprone 'com.google.errorprone:error_prone_core:2.1.2'
@@ -241,34 +258,35 @@ def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This soft
         'considered at production quality, and should be used with care.</div>'
 
 task javadoc(type: Javadoc) {
-    source android.sourceSets.objectServer.java.srcDirs
-    source android.sourceSets.main.java.srcDirs
-    source "../../realm-annotations/src/main/java"
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    options {
-        title = "Realm ${project.version}"
-        memberLevel = JavadocMemberLevel.PUBLIC
-        docEncoding = 'UTF-8'
-        encoding = 'UTF-8'
-        charSet = 'UTF-8'
-        locale = 'en_US'
-        overview = 'src/overview.html'
-
-        links "https://docs.oracle.com/javase/7/docs/api/"
-        links "http://reactivex.io/RxJava/javadoc/"
-        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
-
-        tags = [betaTag]
-    }
-    exclude '**/internal/**'
-    exclude '**/BuildConfig.java'
-    exclude '**/R.java'
-    doLast {
-        copy {
-            from "src/realm-java-overview.png"
-            into "$buildDir/docs/javadoc"
-        }
-    }
+// FIXME: Disable JavaDoc until API Stabilizes a bit more
+//    source android.sourceSets.objectServer.java.srcDirs
+//    source android.sourceSets.main.java.srcDirs
+//    source "../../realm-annotations/src/main/java"
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//    options {
+//        title = "Realm ${project.version}"
+//        memberLevel = JavadocMemberLevel.PUBLIC
+//        docEncoding = 'UTF-8'
+//        encoding = 'UTF-8'
+//        charSet = 'UTF-8'
+//        locale = 'en_US'
+//        overview = 'src/overview.html'
+//
+//        links "https://docs.oracle.com/javase/7/docs/api/"
+//        links "http://reactivex.io/RxJava/javadoc/"
+//        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
+//
+//        tags = [betaTag]
+//    }
+//    exclude '**/internal/**'
+//    exclude '**/BuildConfig.java'
+//    exclude '**/R.java'
+//    doLast {
+//        copy {
+//            from "src/realm-java-overview.png"
+//            into "$buildDir/docs/javadoc"
+//        }
+//    }
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -575,6 +593,7 @@ if (project.hasProperty('dontCleanJniFiles')) {
 } else {
     task cleanExternalBuildFiles(type: Delete) {
         delete project.file('.externalNativeBuild')
+        delete project.file('.cxx')
         // Clean .so files that were created by old build script (realm/realm-jni/build.gradle).
         delete project.file('src/main/jniLibs')
     }

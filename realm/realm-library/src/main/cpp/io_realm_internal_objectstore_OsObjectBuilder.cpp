@@ -131,6 +131,29 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDecimal128
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong j_low_value, jlong j_high_value)
+{
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        Decimal128 decimal128 = Decimal128(raw);
+        const JavaValue value(decimal128);
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectId
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jstring j_data)
+{
+    try {
+        JStringAccessor data(env, j_data);
+        ObjectId objectId = ObjectId(StringData(data).data());
+        const JavaValue value(objectId);
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObject
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong row_ptr)
@@ -315,6 +338,30 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
 {
     try {
         const JavaValue value(reinterpret_cast<Obj*>(row_ptr));
+        add_list_element(list_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDecimal128ListItem
+        (JNIEnv* env, jclass, jlong list_ptr, jlong j_low_value, jlong j_high_value)
+{
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        Decimal128 decimal128 = Decimal128(raw);
+        const JavaValue value(decimal128);
+        add_list_element(list_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectIdListItem
+        (JNIEnv* env, jclass, jlong list_ptr, jstring j_data)
+{
+    try {
+        JStringAccessor data(env, j_data);
+        ObjectId objectId = ObjectId(StringData(data).data());
+        const JavaValue value(objectId);
         add_list_element(list_ptr, value);
     }
     CATCH_STD()

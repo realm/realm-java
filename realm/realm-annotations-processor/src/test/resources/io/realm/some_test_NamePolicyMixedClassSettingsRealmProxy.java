@@ -288,17 +288,17 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         Table table = realm.getTable(some.test.NamePolicyMixedClassSettings.class);
         long tableNativePtr = table.getNativePtr();
         NamePolicyMixedClassSettingsColumnInfo columnInfo = (NamePolicyMixedClassSettingsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyMixedClassSettings.class);
-        long colKey = OsObject.createRow(table);
-        cache.put(object, colKey);
+        long objKey = OsObject.createRow(table);
+        cache.put(object, objKey);
         String realmGet$firstName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$firstName();
         if (realmGet$firstName != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, colKey, realmGet$firstName, false);
+            Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, objKey, realmGet$firstName, false);
         }
         String realmGet$lastName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$lastName();
         if (realmGet$lastName != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, colKey, realmGet$lastName, false);
+            Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, objKey, realmGet$lastName, false);
         }
-        return colKey;
+        return objKey;
     }
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
@@ -315,15 +315,15 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
-            long colKey = OsObject.createRow(table);
-            cache.put(object, colKey);
+            long objKey = OsObject.createRow(table);
+            cache.put(object, objKey);
             String realmGet$firstName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$firstName();
             if (realmGet$firstName != null) {
-                Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, colKey, realmGet$firstName, false);
+                Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, objKey, realmGet$firstName, false);
             }
             String realmGet$lastName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$lastName();
             if (realmGet$lastName != null) {
-                Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, colKey, realmGet$lastName, false);
+                Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, objKey, realmGet$lastName, false);
             }
         }
     }
@@ -335,21 +335,21 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         Table table = realm.getTable(some.test.NamePolicyMixedClassSettings.class);
         long tableNativePtr = table.getNativePtr();
         NamePolicyMixedClassSettingsColumnInfo columnInfo = (NamePolicyMixedClassSettingsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyMixedClassSettings.class);
-        long colKey = OsObject.createRow(table);
-        cache.put(object, colKey);
+        long objKey = OsObject.createRow(table);
+        cache.put(object, objKey);
         String realmGet$firstName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$firstName();
         if (realmGet$firstName != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, colKey, realmGet$firstName, false);
+            Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, objKey, realmGet$firstName, false);
         } else {
-            Table.nativeSetNull(tableNativePtr, columnInfo.firstNameColKey, colKey, false);
+            Table.nativeSetNull(tableNativePtr, columnInfo.firstNameColKey, objKey, false);
         }
         String realmGet$lastName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$lastName();
         if (realmGet$lastName != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, colKey, realmGet$lastName, false);
+            Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, objKey, realmGet$lastName, false);
         } else {
-            Table.nativeSetNull(tableNativePtr, columnInfo.lastNameColKey, colKey, false);
+            Table.nativeSetNull(tableNativePtr, columnInfo.lastNameColKey, objKey, false);
         }
-        return colKey;
+        return objKey;
     }
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
@@ -366,19 +366,19 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
-            long colKey = OsObject.createRow(table);
-            cache.put(object, colKey);
+            long objKey = OsObject.createRow(table);
+            cache.put(object, objKey);
             String realmGet$firstName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$firstName();
             if (realmGet$firstName != null) {
-                Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, colKey, realmGet$firstName, false);
+                Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, objKey, realmGet$firstName, false);
             } else {
-                Table.nativeSetNull(tableNativePtr, columnInfo.firstNameColKey, colKey, false);
+                Table.nativeSetNull(tableNativePtr, columnInfo.firstNameColKey, objKey, false);
             }
             String realmGet$lastName = ((some_test_NamePolicyMixedClassSettingsRealmProxyInterface) object).realmGet$lastName();
             if (realmGet$lastName != null) {
-                Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, colKey, realmGet$lastName, false);
+                Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, objKey, realmGet$lastName, false);
             } else {
-                Table.nativeSetNull(tableNativePtr, columnInfo.lastNameColKey, colKey, false);
+                Table.nativeSetNull(tableNativePtr, columnInfo.lastNameColKey, objKey, false);
             }
         }
     }
@@ -435,12 +435,12 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
     public int hashCode() {
         String realmName = proxyState.getRealm$realm().getPath();
         String tableName = proxyState.getRow$realm().getTable().getName();
-        long colKey = proxyState.getRow$realm().getObjectKey();
+        long objKey = proxyState.getRow$realm().getObjectKey();
 
         int result = 17;
         result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
         result = 31 * result + ((tableName != null) ? tableName.hashCode() : 0);
-        result = 31 * result + (int) (colKey ^ (colKey >>> 32));
+        result = 31 * result + (int) (objKey ^ (objKey >>> 32));
         return result;
     }
 
