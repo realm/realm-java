@@ -16,9 +16,7 @@
 
 package io.realm.internal.jni;
 
-import org.bson.BsonDocument;
 import org.bson.BsonValue;
-import org.bson.codecs.BsonDocumentCodec;
 import org.bson.codecs.Decoder;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.Encoder;
@@ -49,7 +47,7 @@ public class JniBsonProtocol {
     public static <T> String encode(T value, CodecRegistry registry) {
         return encode(value, (Encoder<T>)registry.get(value.getClass()));
     }
-    private static <T> String encode(T value, Encoder<T> encoder) {
+    public static <T> String encode(T value, Encoder<T> encoder) {
         StringWriter stringWriter = new StringWriter();
         JsonWriter jsonWriter = new JsonWriter(stringWriter, writerSettings);
         jsonWriter.writeStartDocument();
@@ -62,7 +60,7 @@ public class JniBsonProtocol {
     public static <T> T decode(String string, Class<T> clz, CodecRegistry registry) {
         return decode(string, registry.get(clz));
     }
-    private static <T> T decode(String string, Decoder<T> decoder) {
+    public static <T> T decode(String string, Decoder<T> decoder) {
         StringReader stringReader = new StringReader(string);
         JsonReader jsonReader = new JsonReader(stringReader);
         jsonReader.readStartDocument();
