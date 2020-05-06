@@ -46,16 +46,6 @@ public class JniBsonProtocol {
                 .outputMode(JsonMode.EXTENDED)
                 .build();
 
-    public static String encode(BsonValue bsonValue) {
-        BsonDocument document = new BsonDocument(VALUE, bsonValue);
-        return document.toJson(writerSettings);
-    }
-
-    public static BsonValue decode(String string) {
-        BsonDocument document = BsonDocument.parse(string);
-        return document.get(VALUE);
-    }
-
     public static <T> String encode(T value, CodecRegistry registry) {
         return encode(value, (Encoder<T>)registry.get(value.getClass()));
     }
