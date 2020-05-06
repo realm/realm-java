@@ -16,6 +16,7 @@
 package io.realm;
 
 import org.bson.BsonValue;
+import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,7 +25,6 @@ import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
-import io.realm.internal.util.BsonConverter;
 
 
 /**
@@ -35,10 +35,13 @@ public class RealmFunctions {
 
     // FIXME Review memory allocation
     private final RealmUser user;
+    private CodecRegistry defaultCodecRegistry;
+
 
     // FIXME Doc
-    RealmFunctions(RealmUser user) {
+    RealmFunctions(RealmUser user, CodecRegistry codecRegistry) {
         this.user = user;
+        this.defaultCodecRegistry = codecRegistry;
     }
 
     /**
@@ -58,12 +61,10 @@ public class RealmFunctions {
      */
     // FIXME Service?
     // FIXME Application wide invocation
-    public BsonValue callFunction(String name, List<?> args) {
-        BsonValue bsonArgs = BsonConverter.to(args.toArray());
-        String encodedArgs = JniBsonProtocol.encode(bsonArgs);
+    public <T> T callFunction(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry) {
+        String encodedArgs = JniBsonProtocol.encode(args, codecRegistry);
         String encodedResponse = invoke(name, encodedArgs);
-        BsonValue response = JniBsonProtocol.decode(encodedResponse);
-        return response;
+        return JniBsonProtocol.decode(encodedResponse, resultClass, codecRegistry);
     }
 
     /**
@@ -83,14 +84,13 @@ public class RealmFunctions {
      * // FIXME Any other errors that we should expect
      */
     public <T> T callFunction(String name, List<?> args, Class<T> clz) {
-        BsonValue value = callFunction(name, args);
-        return BsonConverter.from(clz, value);
+        return callFunction(name, args, clz, defaultCodecRegistry);
     }
 
     /**
      * Call a Stitch function asynchronously.
-     *
-     * This is the asynchronous equivalent of {@link #callFunction(String, List)}.
+     * <p>
+     * This is the asynchronous equivalent of {@link #callFunction(String, List, Class, CodecRegistry)}.
      *
      * @param name Name of the MongoDB Realm function to call.
      * @param callback The callback to invoke on success
@@ -100,29 +100,26 @@ public class RealmFunctions {
      * // FIXME How are object server errors propagated through the callback mechanism.
      * @throws IllegalStateException if not called on a looper thread.
      *
-     * @see #callFunction(String, List)
+     * @see #callFunction(String, List, Class, CodecRegistry)
      */
     // FIXME Evaluate original asynchronous Stitch API relying on Google Play Tasks. For now just
     //  use a RealmAsyncTask
     //  https://docs.mongodb.com/stitch-sdks/java/4/com/mongodb/stitch/android/core/services/StitchServiceClient.html
     //  <ResultT> Task<ResultT> callFunction​(String name, List<?> args, Long requestTimeout, Class<ResultT> resultClass, CodecRegistry codecRegistry);
-    public RealmAsyncTask callFunctionAsync(String name, List<?> args, RealmApp.Callback<BsonValue> callback) {
+    public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> clz, CodecRegistry codecRegistry, RealmApp.Callback<T> callback) {
         Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
-        return new RealmApp.Request<BsonValue>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
+        return new RealmApp.Request<T>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public BsonValue run() throws ObjectServerError {
-                return callFunction(name, args);
+            public T run() throws ObjectServerError {
+                return callFunction(name, args, clz, codecRegistry);
             }
         }.start();
     }
 
+    // FIXME Doc
     // FIXME Evaluate how type conversion exceptions in async call are acting
     public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> clz, RealmApp.Callback<T> callback) {
-        return callFunctionAsync(
-                name,
-                args,
-                result -> callback.onResult(RealmApp.Result.withResult(BsonConverter.from(clz, result.get())))
-        );
+        return callFunctionAsync(name, args, clz, defaultCodecRegistry, callback);
     }
 
     private String invoke(String name, String args) {

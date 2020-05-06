@@ -19,6 +19,7 @@
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
 #include "util.hpp"
+#include "util_sync.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
 #include "object-store/src/util/bson/bson.hpp"
@@ -56,7 +57,8 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv* e
                                                                        jobject j_callback) {
     try {
         RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-        JStringAccessor filter(env, j_filter);
+        // FIXME Are we sure that it is a BsonDocument?
+        bson::BsonDocument filter(jstring_to_bson(env, j_filter));
         uint64_t limit = std::uint64_t(j_limit);
         collection->count(filter, limit, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper));
     }

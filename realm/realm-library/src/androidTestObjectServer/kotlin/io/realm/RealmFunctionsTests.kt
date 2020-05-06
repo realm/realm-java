@@ -19,10 +19,12 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
-import org.bson.BsonInt32
-import org.bson.BsonInt64
-import org.bson.BsonString
-import org.bson.BsonValue
+import org.bson.*
+import org.bson.codecs.StringCodec
+import org.bson.codecs.configuration.CodecRegistries
+import org.bson.codecs.pojo.PojoCodecProvider
+import org.bson.types.Decimal128
+import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -31,54 +33,129 @@ import kotlin.test.assertEquals
 
 @RunWith(AndroidJUnit4::class)
 class RealmFunctionsTests {
-    
     private val looperThread = BlockingLooperThread()
+
     private lateinit var app: TestRealmApp
+    private lateinit var functions : RealmFunctions
 
     private lateinit var anonUser: RealmUser
     private lateinit var admin: ServerAdmin
 
     @Before
-    fun setUp() {
+    fun setup() {
         app = TestRealmApp()
         admin = ServerAdmin()
         anonUser = app.login(RealmCredentials.anonymous())
+
+        functions = RealmFunctions(anonUser, app.configuration.codecRegistry)
     }
 
     @After
-    fun tearDown() {
-        app.close() 
+    fun teardown() {
+        if (this::app.isInitialized) {
+            app.close()
+        }
     }
 
-    /**
-     * Basic test of Functions invocation.
-     *
-     * The arguments types combinations are not exhausted at this point as the actual conversions
-     * are unit tested in [BsonTest].
-     */
+    // Test of BSON JNI round trip until superseded with actual public api tests are added.
     @Test
-    fun callFunction() = looperThread.runBlocking {
-        val functions = anonUser.functions
-        
-        val i32 = 32
-        val i64 = 32L
-        val s = "Realm"
+    fun jniRoundTripForDefaultCodecRegistry() {
+        val i32 = 42
+        val i64 = 42L
 
-        val result1a: BsonValue = functions.callFunction("sum", listOf(BsonInt32(i32)))
-        assertEquals(6L, result1a.asInt64().value)
-//        val result1b: BsonInt32 = functions.callFunction("sum", listOf(i32), BsonInt32::class.java)
-//        val result1d: Integer = functions.callFunction("sum", listOf(i32), Integer::class.java)
-        val result1d: Any = functions.callFunction("sum", listOf(true, i32), java.lang.Long::class.java)
-        val result1e: BsonInt64 = functions.callFunction("sum", listOf(i64), BsonInt64::class.java)
-//        val result1f: String? = functions.callFunction("sum", listOf(s), BsonString::class.java).value
-
-        // Does not compile as intended
-        // val result1g: BsonString = functions.callFunctionTyped("sum", BsonInt32::class.java, BsonInt32(32))
-
-        val result2: RealmAsyncTask = functions.callFunctionAsync( "sum", listOf(BsonInt32(i32))) { result ->
-            assertEquals(6L, result.get().asInt64().value)
-            looperThread.testComplete()
+        for (type in BsonType.values()) {
+            when (type) {
+                BsonType.DOUBLE -> {
+                    val actual = functions.callFunction("echo", listOf(1.4f), java.lang.Float::class.java).toFloat()
+                    assertEquals(1.4f, actual)
+                    assertEquals(1.4, functions.callFunction("echo", listOf(1.4f), java.lang.Double::class.java).toDouble())
+                    assertTypedEcho(BsonDouble(1.4), BsonDouble::class.java)
+                }
+                BsonType.STRING -> {
+                    assertTypedEcho("Realm", String::class.java)
+                    assertTypedEcho(BsonString("Realm"), BsonString::class.java)
+                }
+                BsonType.ARRAY -> {
+                    // FIXME Fails in C++ parsing when boolean values are added...needs investigation
+                    //  io.realm.exceptions.RealmError: Unrecoverable error. current state '$1' is not of expected state '$2' in /Users/claus.rorbech/proj/realm-java/realm/realm-library/src/main/cpp/io_realm_RealmFunctions.cpp line 32
+                    //val listValues = listOf<Any>(true, i32, i64)
+                    val listValues = listOf<Any>(i32, i64)
+                    assertTypedEcho(listValues, List::class.java)
+                }
+//                BsonType.BINARY -> {
+//                    val value = byteArrayOf(1, 2, 3)
+//                    val actual = functions.callFunction("echo", listOf(value), ByteArray::class.java)
+//                    assertEquals(value.toList(), actual.toList())
+//                    // FIXME Does not seem to preserve type
+//                    // assertTypedEcho(BsonBinary(UUID.randomUUID()), BsonBinary::class.java)
+//                    assertTypedEcho(BsonBinary(byteArrayOf(1,2,3)), BsonBinary::class.java)
+//                }
+                BsonType.OBJECT_ID -> {
+                    assertTypedEcho(ObjectId(), ObjectId::class.java)
+                    assertTypedEcho(BsonObjectId(ObjectId()), BsonObjectId::class.java)
+                }
+                BsonType.BOOLEAN -> {
+                    val value: Boolean = true
+                    val actual: java.lang.Boolean = functions.callFunction("echo", listOf(value), java.lang.Boolean::class.java)
+                    assertEquals(value, actual.booleanValue())
+                    assertTypedEcho(BsonBoolean(true), BsonBoolean::class.java)
+                }
+                BsonType.INT32 -> {
+                    assertTypedEcho(java.lang.Integer(32), Integer::class.java)
+                    assertTypedEcho(BsonInt32(32), BsonInt32::class.java)
+                }
+                BsonType.INT64 -> {
+                    assertTypedEcho(java.lang.Long(32L), java.lang.Long::class.java)
+                    assertTypedEcho(BsonInt64(32), BsonInt64::class.java)
+                }
+                BsonType.DECIMAL128 -> {
+                    assertTypedEcho(Decimal128(32L), Decimal128::class.java)
+                    assertTypedEcho(BsonDecimal128(Decimal128(32L)), BsonDecimal128::class.java)
+                }
+                // TODO
+                BsonType.DOCUMENT,
+                BsonType.UNDEFINED,
+                BsonType.DATE_TIME,
+                BsonType.NULL,
+                BsonType.REGULAR_EXPRESSION,
+                BsonType.SYMBOL,
+                BsonType.DB_POINTER,
+                BsonType.JAVASCRIPT,
+                BsonType.JAVASCRIPT_WITH_SCOPE,
+                BsonType.TIMESTAMP,
+                BsonType.END_OF_DOCUMENT,
+                BsonType.MIN_KEY,
+                BsonType.MAX_KEY -> {
+                    // No conversion is implemented for these types yet
+                }
+            }
         }
+    }
+
+    private fun <T: Any> assertTypedEcho(value: T, returnClass: Class<T>) : T {
+        val actual = functions.callFunction("echo", listOf(value), returnClass)
+        assertEquals(value, actual)
+        return actual
+    }
+
+    // Test of BSON JNI round trip until superseded with actual public api tests are added.
+    data class Dog(var name: String? = null)
+    @Test
+    fun pojoCodecRegistry() {
+        val pojoRegistry = CodecRegistries.fromRegistries(
+                CodecRegistries.fromCodecs(StringCodec()),
+                CodecRegistries.fromProviders(
+                        PojoCodecProvider.builder()
+                                .register(Dog::class.java)
+                                .build()
+                )
+        )
+
+        val input = Dog("PojoFido")
+
+        val actual: Dog = functions.callFunction("echo", listOf(input), Dog::class.java, pojoRegistry)
+
+        assertEquals(input, actual)
     }
 
 }

@@ -52,9 +52,12 @@ JNIEXPORT void JNICALL Java_io_realm_EmailPasswordAuth_nativeCallFunction(JNIEnv
             case io_realm_EmailPasswordAuth_TYPE_SEND_RESET_PASSWORD_EMAIL:
                 client.send_reset_password_email(args[0], JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
-            case io_realm_EmailPasswordAuth_TYPE_CALL_RESET_PASSWORD_FUNCTION:
-                client.call_reset_password_function(args[0], args[1], args[2], JavaNetworkTransport::create_void_callback(env, j_callback));
+            case io_realm_EmailPasswordAuth_TYPE_CALL_RESET_PASSWORD_FUNCTION: {
+                // FIXME Review whether to pass it as BsonArray throug JniBsonProtocol or just embed the string in a BsonArray here
+                bson::BsonArray resetArgs(bson::parse(args[2]));
+                client.call_reset_password_function(args[0], args[1], resetArgs, JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
+            }
             case io_realm_EmailPasswordAuth_TYPE_RESET_PASSWORD:
                 client.reset_password(args[0], args[1], args[2], JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;

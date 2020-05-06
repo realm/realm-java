@@ -17,6 +17,12 @@ package io.realm;
 
 import android.content.Context;
 
+import org.bson.codecs.BsonValueCodecProvider;
+import org.bson.codecs.IterableCodecProvider;
+import org.bson.codecs.ValueCodecProvider;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -49,6 +55,7 @@ public class RealmAppConfiguration {
     private final String authorizationHeaderName;
     private final Map<String, String> customHeaders;
     private final File syncRootDir; // Root directory for storing Sync related files
+    private final CodecRegistry codecRegistry;
 
     private RealmAppConfiguration(String appId,
                                  String appName,
@@ -60,7 +67,8 @@ public class RealmAppConfiguration {
                                  long requestTimeoutMs,
                                  String authorizationHeaderName,
                                  Map<String, String> customHeaders,
-                                 File syncRootdir) {
+                                 File syncRootdir,
+                                 CodecRegistry codecRegistry) {
 
         this.appId = appId;
         this.appName = appName;
@@ -73,6 +81,7 @@ public class RealmAppConfiguration {
         this.authorizationHeaderName = (!Util.isEmptyString(authorizationHeaderName)) ? authorizationHeaderName : "Authorization";
         this.customHeaders = Collections.unmodifiableMap(customHeaders);
         this.syncRootDir = syncRootdir;
+        this.codecRegistry = codecRegistry;
     }
 
     private URL createUrl(String baseUrl) {
@@ -175,10 +184,25 @@ public class RealmAppConfiguration {
         return syncRootDir;
     }
 
+    // FIXME Doc
+    public CodecRegistry getCodecRegistry() { return codecRegistry; }
+
     /**
      * FIXME
      */
     public static class Builder {
+        // Default BSON codec for passing BSON to/from JNI
+        static CodecRegistry DEFAULT_BSON_CODEC_REGISTRY = CodecRegistries.fromRegistries(
+                CodecRegistries.fromProviders(
+                        // For primitive support
+                        new ValueCodecProvider(),
+                        // For BSONValue support
+                        new BsonValueCodecProvider(),
+                        // For list support
+                        new IterableCodecProvider()
+                )
+        );
+
         private String appId;
         private String appName;
         private String appVersion;
@@ -212,6 +236,7 @@ public class RealmAppConfiguration {
         private String autorizationHeaderName;
         private Map<String, String> customHeaders = new HashMap<>();
         private File syncRootDir;
+        private CodecRegistry codecRegistry = DEFAULT_BSON_CODEC_REGISTRY;
 
         /**
          * FIXME
@@ -388,6 +413,14 @@ public class RealmAppConfiguration {
             return this;
         }
 
+        // FIXME Naming: Does it clash with Realm sync concepts and set up wrong expectations?
+        // FIXME Doc
+        public Builder codecRegistry(CodecRegistry codecRegistry) {
+            Util.checkNull(codecRegistry, "codecRegistry");
+            this.codecRegistry = codecRegistry;
+            return this;
+        }
+
         public RealmAppConfiguration build() {
             return new RealmAppConfiguration(appId,
                     appName,
@@ -399,7 +432,8 @@ public class RealmAppConfiguration {
                     requestTimeoutMs,
                     autorizationHeaderName,
                     customHeaders,
-                    syncRootDir);
+                    syncRootDir,
+                    codecRegistry);
         }
     }
 }
