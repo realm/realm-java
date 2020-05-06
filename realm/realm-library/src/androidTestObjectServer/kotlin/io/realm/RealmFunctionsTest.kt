@@ -17,7 +17,6 @@
 package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.internal.jni.JniBsonProtocol
 import io.realm.internal.util.BsonConverter
 import org.bson.*
 import org.bson.codecs.BsonValueCodecProvider
