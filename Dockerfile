@@ -50,11 +50,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           zip \
     && apt-get clean
 
-# Configure KVM: https://help.ubuntu.com/community/KVM/Installation
-RUN adduser root libvirt
-RUN adduser root kvm
-RUN su root
-
 # Install the Android SDK
 RUN cd /opt && \
     wget -q https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip -O android-tools-linux.zip && \

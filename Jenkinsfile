@@ -82,14 +82,14 @@ try {
           buildEnv.inside("-e HOME=/tmp " +
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
                   "--privileged " +
+                  "-v /dev/kvm:/dev/kvm " +
                   "-v /dev/bus/usb:/dev/bus/usb " +
                   "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
                   "-v ${env.HOME}/.android:/tmp/.android " +
                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
                   restrictDevice +
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
-                  "--network container:${mongoDbRealmContainer.id} " +
-                  "--user root:kvm") {
+                  "--network container:${mongoDbRealmContainer.id} ") {
 
             // Lock required around all usages of Gradle as it isn't
             // able to share its cache between builds.
@@ -99,8 +99,7 @@ try {
               // Emulator support for ARM is limited. The latest images are:
               // system-images;android-24;default;armeabi-v7a
               // system-images;android-24;default;arm64-v8a
-              sh 'whoami'
-              sh """yes '\n' | avdmanager create avd -n CIEmulator -k '${emulatorImage}' --force"""
+R             sh """yes '\n' | avdmanager create avd -n CIEmulator -k '${emulatorImage}' --force"""
               // Required due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
               sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-window -gpu off -noaudio -no-boot-anim &"
               try {
