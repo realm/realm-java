@@ -37,7 +37,7 @@ class RealmFunctionsTests {
     fun setup() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestRealmApp()
-        functions = RealmFunctions(app.configuration.codecRegistry)
+        functions = RealmFunctions(app.configuration.defaultCodecRegistry)
     }
 
     @After
@@ -56,8 +56,8 @@ class RealmFunctionsTests {
         for (type in BsonType.values()) {
             when (type) {
                 BsonType.DOUBLE -> {
-                    assertTypedEcho(java.lang.Float(1.4), java.lang.Float::class.java)
-                    assertTypedEcho(java.lang.Double(1.4), java.lang.Double::class.java)
+                    assertEquals(1.4f, functions.invoke(1.4f, java.lang.Float::class.java).toFloat())
+                    assertEquals(1.4, functions.invoke(1.4, java.lang.Double::class.java).toDouble())
                     assertTypedEcho(BsonDouble(1.4), BsonDouble::class.java)
                 }
                 BsonType.STRING -> {
@@ -75,7 +75,9 @@ class RealmFunctionsTests {
                     val value = byteArrayOf(1, 2, 3)
                     val actual = functions.invoke(value, ByteArray::class.java)
                     assertEquals(value.toList(), actual.toList())
-                    // FIXME Does not seem to preserve type
+                    // FIXME C++ Does not seem to preserve subtype
+                    // arg      = "{"value": {"$binary": {"base64": "JmS8oQitTny4IPS2tyjmdA==", "subType": "04"}}}"
+                    // response = "{"value":{"$binary":{"base64":"JmS8oQitTny4IPS2tyjmdA==","subType":"00"}}}"
                     // assertTypedEcho(BsonBinary(UUID.randomUUID()), BsonBinary::class.java)
                     assertTypedEcho(BsonBinary(byteArrayOf(1,2,3)), BsonBinary::class.java)
                 }

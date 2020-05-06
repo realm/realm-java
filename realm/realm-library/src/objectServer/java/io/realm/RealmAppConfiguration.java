@@ -185,7 +185,7 @@ public class RealmAppConfiguration {
     }
 
     // FIXME Doc
-    public CodecRegistry getCodecRegistry() { return codecRegistry; }
+    public CodecRegistry getDefaultCodecRegistry() { return codecRegistry; }
 
     /**
      * FIXME
