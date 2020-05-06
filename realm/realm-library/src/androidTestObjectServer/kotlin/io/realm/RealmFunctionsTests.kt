@@ -92,11 +92,11 @@ class RealmFunctionsTests {
                     assertTypedEcho(BsonBoolean(true), BsonBoolean::class.java)
                 }
                 BsonType.INT32 -> {
-                    assertTypedEcho(java.lang.Integer(32), Integer::class.java)
+                    assertEquals(32, functions.invoke(32, Integer::class.java).toInt())
                     assertTypedEcho(BsonInt32(32), BsonInt32::class.java)
                 }
                 BsonType.INT64 -> {
-                    assertTypedEcho(java.lang.Long(32L), java.lang.Long::class.java)
+                    assertEquals(32L, functions.invoke(32L, java.lang.Long::class.java).toLong())
                     assertTypedEcho(BsonInt64(32), BsonInt64::class.java)
                 }
                 BsonType.DECIMAL128 -> {
