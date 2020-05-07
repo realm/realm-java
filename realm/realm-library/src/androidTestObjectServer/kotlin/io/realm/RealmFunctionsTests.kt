@@ -17,6 +17,7 @@
 package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.internal.util.BsonConverter
 import org.bson.*
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
@@ -26,7 +27,9 @@ import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.lang.Long
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class RealmFunctionsTests {
 
@@ -90,9 +93,11 @@ class RealmFunctionsTests {
                 }
                 BsonType.INT32 -> {
                     assertEquals(32, functions.invoke(32, Integer::class.java).toInt())
+                    assertEquals(32, functions.invoke(32L, Integer::class.java).toInt())
                     assertTypedEcho(BsonInt32(32), BsonInt32::class.java)
                 }
                 BsonType.INT64 -> {
+                    assertEquals(32L, functions.invoke(32, java.lang.Long::class.java).toLong())
                     assertEquals(32L, functions.invoke(32L, java.lang.Long::class.java).toLong())
                     assertTypedEcho(BsonInt64(32), BsonInt64::class.java)
                 }
