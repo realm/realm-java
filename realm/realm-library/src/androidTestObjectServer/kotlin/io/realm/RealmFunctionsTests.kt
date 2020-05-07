@@ -65,10 +65,7 @@ class RealmFunctionsTests {
                     assertTypedEcho(BsonString("Realm"), BsonString::class.java)
                 }
                 BsonType.ARRAY -> {
-                    // FIXME Fails in C++ parsing when boolean values are added...needs investigation
-                    //  io.realm.exceptions.RealmError: Unrecoverable error. current state '$1' is not of expected state '$2' in /Users/claus.rorbech/proj/realm-java/realm/realm-library/src/main/cpp/io_realm_RealmFunctions.cpp line 32
-                    //val listValues = listOf<Any>(true, i32, i64)
-                    val listValues = listOf<Any>(i32, i64)
+                    val listValues = listOf<Any>(true, i32, i64)
                     assertTypedEcho(listValues, List::class.java)
                 }
                 BsonType.BINARY -> {
