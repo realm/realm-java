@@ -17,7 +17,6 @@
 package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.internal.util.BsonConverter
 import org.bson.*
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
@@ -27,9 +26,7 @@ import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.lang.Long
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 class RealmFunctionsTests {
 
