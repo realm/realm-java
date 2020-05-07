@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import org.bson.codecs.configuration.CodecRegistry;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -433,9 +435,13 @@ public class RealmUser {
     public synchronized RealmFunctions getFunctions() {
         checkLoggedIn();
         if (functions == null) {
-            functions = new RealmFunctions(this, app.getConfiguration().getCodecRegistry());
+            functions = new RealmFunctions(this, app.getConfiguration().getDefaultCodecRegistry());
         }
         return functions;
+    }
+
+    public RealmFunctions getFunctions(CodecRegistry codecRegistry) {
+        return new RealmFunctions(this, codecRegistry);
     }
 
     /**

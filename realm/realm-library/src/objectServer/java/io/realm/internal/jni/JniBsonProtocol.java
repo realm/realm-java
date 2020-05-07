@@ -47,6 +47,7 @@ public class JniBsonProtocol {
     public static <T> String encode(T value, CodecRegistry registry) {
         return encode(value, (Encoder<T>)registry.get(value.getClass()));
     }
+
     public static <T> String encode(T value, Encoder<T> encoder) {
         StringWriter stringWriter = new StringWriter();
         JsonWriter jsonWriter = new JsonWriter(stringWriter, writerSettings);
@@ -60,6 +61,7 @@ public class JniBsonProtocol {
     public static <T> T decode(String string, Class<T> clz, CodecRegistry registry) {
         return decode(string, registry.get(clz));
     }
+
     public static <T> T decode(String string, Decoder<T> decoder) {
         StringReader stringReader = new StringReader(string);
         JsonReader jsonReader = new JsonReader(stringReader);

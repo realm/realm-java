@@ -36,7 +36,7 @@ class RealmFunctionsTests {
     private val looperThread = BlockingLooperThread()
 
     private lateinit var app: TestRealmApp
-    private lateinit var functions : RealmFunctions
+    private lateinit var functions: RealmFunctions
 
     private lateinit var anonUser: RealmUser
     private lateinit var admin: ServerAdmin
@@ -47,7 +47,7 @@ class RealmFunctionsTests {
         admin = ServerAdmin()
         anonUser = app.login(RealmCredentials.anonymous())
 
-        functions = RealmFunctions(anonUser, app.configuration.codecRegistry)
+        functions = RealmFunctions(anonUser, app.configuration.defaultCodecRegistry)
     }
 
     @After
@@ -66,8 +66,7 @@ class RealmFunctionsTests {
         for (type in BsonType.values()) {
             when (type) {
                 BsonType.DOUBLE -> {
-                    val actual = functions.callFunction("echo", listOf(1.4f), java.lang.Float::class.java).toFloat()
-                    assertEquals(1.4f, actual)
+                    assertEquals(1.4f, functions.callFunction("echo", listOf(1.4f), java.lang.Float::class.java).toFloat())
                     assertEquals(1.4, functions.callFunction("echo", listOf(1.4f), java.lang.Double::class.java).toDouble())
                     assertTypedEcho(BsonDouble(1.4), BsonDouble::class.java)
                 }
@@ -82,11 +81,14 @@ class RealmFunctionsTests {
                     val listValues = listOf<Any>(i32, i64)
                     assertTypedEcho(listValues, List::class.java)
                 }
+                // FIXME Does not seem to work, typically this has indicated an issue with C++ parser
 //                BsonType.BINARY -> {
 //                    val value = byteArrayOf(1, 2, 3)
 //                    val actual = functions.callFunction("echo", listOf(value), ByteArray::class.java)
 //                    assertEquals(value.toList(), actual.toList())
-//                    // FIXME Does not seem to preserve type
+//                    // FIXME C++ Does not seem to preserve subtype
+//                    // arg      = "{"value": {"$binary": {"base64": "JmS8oQitTny4IPS2tyjmdA==", "subType": "04"}}}"
+//                    // response = "{"value":{"$binary":{"base64":"JmS8oQitTny4IPS2tyjmdA==","subType":"00"}}}"
 //                    // assertTypedEcho(BsonBinary(UUID.randomUUID()), BsonBinary::class.java)
 //                    assertTypedEcho(BsonBinary(byteArrayOf(1,2,3)), BsonBinary::class.java)
 //                }
@@ -101,11 +103,11 @@ class RealmFunctionsTests {
                     assertTypedEcho(BsonBoolean(true), BsonBoolean::class.java)
                 }
                 BsonType.INT32 -> {
-                    assertTypedEcho(java.lang.Integer(32), Integer::class.java)
+                    assertEquals(32, functions.invoke(32, Integer::class.java).toInt())
                     assertTypedEcho(BsonInt32(32), BsonInt32::class.java)
                 }
                 BsonType.INT64 -> {
-                    assertTypedEcho(java.lang.Long(32L), java.lang.Long::class.java)
+                    assertEquals(32L, functions.invoke(32L, java.lang.Long::class.java).toLong())
                     assertTypedEcho(BsonInt64(32), BsonInt64::class.java)
                 }
                 BsonType.DECIMAL128 -> {
@@ -132,13 +134,15 @@ class RealmFunctionsTests {
         }
     }
 
-    private fun <T: Any> assertTypedEcho(value: T, returnClass: Class<T>) : T {
+    private fun <T : Any> assertTypedEcho(value: T, returnClass: Class<T>): T {
         val actual = functions.callFunction("echo", listOf(value), returnClass)
         assertEquals(value, actual)
         return actual
     }
 
     // Test of BSON JNI round trip until superseded with actual public api tests are added.
+    // Tests:
+    // - Local codecRegistry
     data class Dog(var name: String? = null)
     @Test
     fun pojoCodecRegistry() {
