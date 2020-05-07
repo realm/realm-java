@@ -16,7 +16,13 @@
 
 package io.realm.internal.objectstore;
 
+import org.bson.BsonDocument;
+import org.bson.BsonObjectId;
 import org.bson.BsonValue;
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +34,7 @@ import javax.annotation.Nullable;
 import io.realm.ObjectServerError;
 import io.realm.internal.NativeObject;
 import io.realm.internal.ResultHandler;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.mongodb.remote.RemoteCountOptions;
 import io.realm.mongodb.remote.RemoteInsertManyResult;
@@ -39,10 +46,12 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
 
     private final long nativePtr;
     private final Class<DocumentT> documentClass;
+    private final CodecRegistry codecRegistry;
 
-    public OsRemoteMongoCollection(final long nativeCollectionPtr, final Class<DocumentT> documentClass) {
+    public OsRemoteMongoCollection(final long nativeCollectionPtr, final Class<DocumentT> documentClass, final CodecRegistry codecRegistry) {
         this.nativePtr = nativeCollectionPtr;
         this.documentClass = documentClass;
+        this.codecRegistry = codecRegistry;
     }
 
     @Override
@@ -63,11 +72,11 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         return count(null);
     }
 
-    public Long count(@Nullable final String filter) {
+    public Long count(@Nullable final Bson filter) {
         return count(filter, null);
     }
 
-    public Long count(@Nullable final String filter, @Nullable final RemoteCountOptions options) {
+    public Long count(@Nullable final Bson filter, @Nullable final RemoteCountOptions options) {
         AtomicReference<Long> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<Long> callback = new OsJNIResultCallback<Long>(success, error) {
@@ -77,16 +86,13 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        // FIXME: change all filters/documents to BSON when the OS part is ready
-        if (filter == null && options == null) {
-            nativeCount(nativePtr, JSON, 0, callback);
-        } else if (filter == null) {
-            nativeCount(nativePtr, JSON, options.getLimit(), callback);
-        } else if (options == null) {
-            nativeCount(nativePtr, filter, 0, callback);
-        } else {
-            nativeCount(nativePtr, filter, options.getLimit(), callback);
-        }
+        // FIXME: add support for POJOs - default to empty bson for now
+        String filterString = filter == null ?
+                JniBsonProtocol.encode(new BsonDocument()) :
+                JniBsonProtocol.encode(filter.toBsonDocument(documentClass, codecRegistry));
+        int limit = options == null ? 0 : options.getLimit();
+
+        nativeCount(nativePtr, filterString, limit, callback);
 
         return ResultHandler.handleResult(success, error);
     }
@@ -97,13 +103,22 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<RemoteInsertOneResult> callback = new OsJNIResultCallback<RemoteInsertOneResult>(success, error) {
             @Override
             protected RemoteInsertOneResult mapSuccess(Object result) {
-                BsonValue insertedId = (BsonValue) result;
-                return new RemoteInsertOneResult(insertedId);
+                BsonValue bsonObjectId = new BsonObjectId((ObjectId) result);
+                return new RemoteInsertOneResult(bsonObjectId);
             }
         };
 
-        // FIXME: change all filters/documents to BSON when the OS part is ready
-        nativeInsertOne(nativePtr, document.toString(), callback);
+
+        // FIXME: add support for POJOs - default to empty bson for now
+        String jsonDocument;
+        if (document instanceof Document) {
+            BsonDocument bsonDocument = ((Document) document).toBsonDocument(documentClass, codecRegistry);
+            jsonDocument = JniBsonProtocol.encode(bsonDocument);
+        } else {
+            jsonDocument = JniBsonProtocol.encode(new BsonDocument());
+        }
+
+        nativeInsertOne(nativePtr, jsonDocument, callback);
 
         return ResultHandler.handleResult(success, error);
     }
@@ -125,21 +140,17 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        // FIXME: change all filters/documents to BSON when the OS part is ready
         nativeInsertOne(nativePtr, document.toString(), callback);
 
         return ResultHandler.handleResult(success, error);
     }
 
-    private final static String JSON = "{\"breed\":\"king charles\"}";
-
-    // FIXME: change all filters/documents to BSON when the OS part is ready
     private static native long nativeGetFinalizerMethodPtr();
     private static native void nativeCount(long remoteMongoCollectionPtr,
                                            String filter,
                                            long limit,
                                            OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeInsertOne(long remoteMongoCollectionPtr,
-                                               String filter,
+                                               String document,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

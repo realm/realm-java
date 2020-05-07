@@ -48,7 +48,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeCreate(JNIEnv* env,
                                                                     jlong j_app_ptr,
                                                                     jstring j_service_name) {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        std::shared_ptr<App> &app = *reinterpret_cast<std::shared_ptr<App> *>(j_app_ptr);
         JStringAccessor name(env, j_service_name);
         RemoteMongoClient client(app->remote_mongo_client(name));
         return reinterpret_cast<jlong>(new RemoteMongoClient(std::move(client)));

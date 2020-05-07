@@ -17,6 +17,13 @@ package io.realm;
 
 import android.content.Context;
 
+import org.bson.codecs.BsonValueCodecProvider;
+import org.bson.codecs.DocumentCodecProvider;
+import org.bson.codecs.IterableCodecProvider;
+import org.bson.codecs.MapCodecProvider;
+import org.bson.codecs.ValueCodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -33,10 +40,23 @@ import io.realm.internal.Util;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 
+import static java.util.Arrays.asList;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+
 /**
  * FIXME
  */
 public class RealmAppConfiguration {
+
+    // FIXME: temporary codec registry, borrowed from Stitch
+    public static final CodecRegistry DEFAULT_CODEC_REGISTRY =
+            fromProviders(
+                    asList(
+                            new ValueCodecProvider(),
+                            new BsonValueCodecProvider(),
+                            new DocumentCodecProvider(),
+                            new IterableCodecProvider(),
+                            new MapCodecProvider()));
 
     private final String appId;
     private final String appName;

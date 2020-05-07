@@ -17,7 +17,6 @@
 package io.realm.util
 
 import com.google.android.gms.tasks.Task
-import java.lang.Exception
 import java.util.concurrent.CountDownLatch
 
 /**

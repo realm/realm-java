@@ -17,6 +17,7 @@
 package io.realm.internal.objectstore;
 
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
 
 import io.realm.internal.NativeObject;
 
@@ -25,9 +26,11 @@ public class OsRemoteMongoDatabase implements NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
+    private final CodecRegistry codecRegistry;
 
-    public OsRemoteMongoDatabase(long nativeDatabasePtr) {
+    public OsRemoteMongoDatabase(long nativeDatabasePtr, CodecRegistry codecRegistry) {
         this.nativePtr = nativeDatabasePtr;
+        this.codecRegistry = codecRegistry;
     }
 
     public OsRemoteMongoCollection getCollection(final String collectionName) {
@@ -39,7 +42,7 @@ public class OsRemoteMongoDatabase implements NativeObject {
             final Class<DocumentT> documentClass
     ) {
         long nativeCollectionPtr = nativeGetCollection(nativePtr, collectionName);
-        return new OsRemoteMongoCollection<>(nativeCollectionPtr, documentClass);
+        return new OsRemoteMongoCollection<>(nativeCollectionPtr, documentClass, codecRegistry);
     }
 
     @Override

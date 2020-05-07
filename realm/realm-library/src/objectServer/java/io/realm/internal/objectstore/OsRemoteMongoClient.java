@@ -16,6 +16,8 @@
 
 package io.realm.internal.objectstore;
 
+import org.bson.codecs.configuration.CodecRegistry;
+
 import io.realm.RealmUser;
 import io.realm.internal.NativeObject;
 
@@ -29,9 +31,9 @@ public class OsRemoteMongoClient implements NativeObject {
         this.nativePtr = nativeCreate(realmUser.getApp().nativePtr, serviceName);
     }
 
-    public OsRemoteMongoDatabase getRemoteDatabase(String databaseName) {
+    public OsRemoteMongoDatabase getRemoteDatabase(final String databaseName, final CodecRegistry codecRegistry) {
         long nativeDatabasePtr = nativeCreateDatabase(nativePtr, databaseName);
-        return new OsRemoteMongoDatabase(nativeDatabasePtr);
+        return new OsRemoteMongoDatabase(nativeDatabasePtr, codecRegistry);
     }
 
     @Override

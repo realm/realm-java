@@ -17,20 +17,26 @@ package io.realm.mongodb
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.google.android.gms.tasks.Tasks
 import io.realm.*
 import io.realm.admin.ServerAdmin
+import io.realm.entities.Dog
+import io.realm.log.LogLevel
+import io.realm.log.RealmLog
+import io.realm.mongodb.remote.RemoteCountOptions
 import io.realm.mongodb.remote.RemoteInsertOneResult
 import io.realm.util.blockingGetResult
 import org.bson.Document
-import org.junit.After
-import org.junit.Before
-import org.junit.Ignore
-import org.junit.Test
+import org.junit.*
 import org.junit.runner.RunWith
+import java.util.concurrent.ExecutionException
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.fail
 
 @RunWith(AndroidJUnit4::class)
-@Ignore("Collections not ready to test yet")
+//@Ignore("Collections not ready to test yet")
 class RemoteMongoCollectionTest {
 
     private lateinit var app: TestRealmApp
@@ -42,11 +48,12 @@ class RemoteMongoCollectionTest {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+        RealmLog.setLevel(LogLevel.DEBUG)
         admin = ServerAdmin()
         app = TestRealmApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        client = user.remoteMongoClient
-        database = client.getDatabase(DATABASE_NAME)
+        client = user.getRemoteMongoClient(SERVICE_NAME)
+        database = client.getDatabase(DATABASE_NAME, RealmAppConfiguration.DEFAULT_CODEC_REGISTRY)
     }
 
     @After
@@ -57,47 +64,77 @@ class RemoteMongoCollectionTest {
     }
 
     @Test
-    fun insertOne() {
-        with(getCollection(COLLECTION_NAME)) {
+    fun count() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
             assertEquals(0, this.count().blockingGetResult())
-            insertOne(Document())
+
+            val rawDocument = Document(KEY_1, VALUE_1)
+            val document1 = Document(rawDocument)
+            val document2 = Document(rawDocument)
+
+            this.insertOne(document1).blockingGetResult()
             assertEquals(1, this.count().blockingGetResult())
-            insertOne(Document())
+            this.insertOne(document2).blockingGetResult()
             assertEquals(2, this.count().blockingGetResult())
+
+            assertEquals(2, this.count(rawDocument).blockingGetResult())
+            assertEquals(0, this.count(Document("foo", "bar")).blockingGetResult())
+            assertEquals(1, this.count(rawDocument, RemoteCountOptions().limit(1)).blockingGetResult())
+
+//            assertFailsWith(ExecutionException::class) {
+//                this.count(Document("\$who", 1)).blockingGetResult()
+//                fail("Should not reach this!")
+//            }
+
+            try {
+                this.count(Document("\$who", 1)).blockingGetResult()
+                Assert.fail()
+            } catch (ex: ExecutionException) {
+                val kajshdjk = 0
+//                Assert.assertTrue(ex.cause is StitchServiceException)
+//                val svcEx = ex.cause as StitchServiceException
+//                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
+            }
         }
     }
 
-    @Test
-    fun countAllDocumentsBeforeInsert() {
-        with(getCollection(COLLECTION_NAME)) {
-            assertEquals(0, this.count().blockingGetResult())
-        }
+//    @Test
+//    fun insertOne() {
+//        with(getCollectionInternal(COLLECTION_NAME)) {
+//            assertEquals(0, this.count().blockingGetResult())
+//            insertOneInternal(COLLECTION_NAME, Document(KEY_1, VALUE_1)).let { insertOneResult ->
+//                assertNotNull(insertOneResult)
+//                insertOneResult.insertedId
+//            }
+//        }
+//
+//        val insertedOne = insertOneInternal(COLLECTION_NAME, Document(KEY_1, VALUE_1))
+//        assertNotNull(insertedOne)
+//        val docsAfter = getCollectionInternal(COLLECTION_NAME).count().blockingGetResult()
+//        val kasjhd = 0
+//    }
 
-        // FIXME: check correct class parameter
-        with(getCollection(COLLECTION_NAME, Document::class.java)) {
-            assertEquals(0, this.count().blockingGetResult())
-        }
-    }
-
-    @Test
-    fun countWithFilter() {
-        // FIXME:
-    }
-
-    @Test
-    fun countWithFilterAndLimit() {
-        // FIXME:
-    }
+//    @Test
+//    @Ignore("Collections not ready to test yet")
+//    fun countWithFilter() {
+//        // FIXME:
+//    }
+//
+//    @Test
+//    @Ignore("Collections not ready to test yet")
+//    fun countWithFilterAndLimit() {
+//        // FIXME:
+//    }
 
     // FIXME: more to come
 
-    private fun insertOne(collectionName: String): RemoteInsertOneResult? {
-        return getCollection(collectionName)
-                .insertOne(Document(KEY, VALUE))
-                .blockingGetResult()
-    }
+//    private fun insertOneInternal(collectionName: String, document: Document): RemoteInsertOneResult? {
+//        return getCollectionInternal(collectionName)
+//                .insertOne(document)
+//                .blockingGetResult()
+//    }
 
-    private fun getCollection(collectionName: String, javaClass: Class<Document>? = null): RemoteMongoCollection<Document> {
+    private fun getCollectionInternal(collectionName: String, javaClass: Class<Document>? = null): RemoteMongoCollection<Document> {
         return when (javaClass) {
             null -> database.getCollection(collectionName)
             else -> database.getCollection(collectionName, javaClass)
@@ -105,9 +142,11 @@ class RemoteMongoCollectionTest {
     }
 
     private companion object {
-        const val DATABASE_NAME = "DATABASE_NAME"
+        const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
+        const val DATABASE_NAME = "test_data"   // same as above
+
         const val COLLECTION_NAME = "COLLECTION_NAME"
-        const val KEY = "KEY"
-        const val VALUE = "VALUE"
+        const val KEY_1 = "KEY_1"
+        const val VALUE_1 = "VALUE_1"
     }
 }

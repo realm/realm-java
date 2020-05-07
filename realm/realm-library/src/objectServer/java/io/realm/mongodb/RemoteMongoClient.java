@@ -16,6 +16,8 @@
 
 package io.realm.mongodb;
 
+import org.bson.codecs.configuration.CodecRegistry;
+
 import io.realm.RealmUser;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsRemoteMongoClient;
@@ -36,10 +38,11 @@ public class RemoteMongoClient {
      * Gets a {@link RemoteMongoDatabase} instance for the given database name.
      *
      * @param databaseName the name of the database to retrieve
+     * @param codecRegistry the registry used to specify with which classes the database can work
      * @return a {@code RemoteMongoDatabase} representing the specified database
      */
-    public RemoteMongoDatabase getDatabase(final String databaseName) {
+    public RemoteMongoDatabase getDatabase(final String databaseName, final CodecRegistry codecRegistry) {
         Util.checkEmpty(databaseName, "databaseName");
-        return new RemoteMongoDatabase(osRemoteMongoClient.getRemoteDatabase(databaseName), databaseName);
+        return new RemoteMongoDatabase(osRemoteMongoClient.getRemoteDatabase(databaseName, codecRegistry), databaseName);
     }
 }
