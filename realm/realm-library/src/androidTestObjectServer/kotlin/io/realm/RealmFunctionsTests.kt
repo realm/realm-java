@@ -162,4 +162,13 @@ class RealmFunctionsTests {
         assertEquals(input, actual)
     }
 
+    // FIXME Remaining tests
+    //  - Default App codec registry
+    //  - Function specific codec registry
+    //  - Argument codec registry
+    //  - Argument encoder/decoder
+    //  - Codec conversion error
+    //  - Unknown function
+    //  - Unauthorized access
+
 }
