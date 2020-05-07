@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-#ifndef REALM_UTIL_SYNC_HPP
-#define REALM_UTIL_SYNC_HPP
+#ifndef REALM_BSON_UTIL_HPP
+#define REALM_BSON_UTIL_HPP
 
 #include <jni.h>
 #include <util/bson/bson.hpp>
 
-realm::bson::Bson jstring_to_bson(JNIEnv* env, jstring arg);
-jstring bson_to_jstring(JNIEnv* env, realm::bson::Bson bson);
+namespace realm {
+namespace jni_util {
 
-#endif //REALM_UTIL_SYNC_HPP
+// Serializes and wraps bson values passed between java and JNI according to JniBsonProtocol.java
+class JniBsonProtocol {
+public:
+    static realm::bson::Bson string_to_bson(std::string arg);
+    static realm::bson::Bson jstring_to_bson(JNIEnv* env, jstring arg);
+    static std::string bson_to_string(realm::bson::Bson bson);
+    static jstring bson_to_jstring(JNIEnv* env, realm::bson::Bson bson);
+};
+
+} // jni_util
+} // realm
+
+#endif //REALM_BSON_UTIL_HPP
