@@ -413,7 +413,6 @@ public class RealmAppConfiguration {
             return this;
         }
 
-        // FIXME Naming: Does it clash with Realm sync concepts and set up wrong expectations?
         // FIXME Doc
         public Builder codecRegistry(CodecRegistry codecRegistry) {
             Util.checkNull(codecRegistry, "codecRegistry");
