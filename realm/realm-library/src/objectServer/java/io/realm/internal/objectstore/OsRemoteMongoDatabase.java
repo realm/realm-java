@@ -28,7 +28,7 @@ public class OsRemoteMongoDatabase implements NativeObject {
     private final long nativePtr;
     private final CodecRegistry codecRegistry;
 
-    public OsRemoteMongoDatabase(long nativeDatabasePtr, CodecRegistry codecRegistry) {
+    OsRemoteMongoDatabase(long nativeDatabasePtr, CodecRegistry codecRegistry) {
         this.nativePtr = nativeDatabasePtr;
         this.codecRegistry = codecRegistry;
     }

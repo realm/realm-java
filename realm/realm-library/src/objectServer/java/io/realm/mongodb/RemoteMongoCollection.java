@@ -18,32 +18,23 @@ package io.realm.mongodb;
 
 import com.google.android.gms.tasks.Task;
 
-import org.bson.codecs.BsonValueCodecProvider;
-import org.bson.codecs.DocumentCodecProvider;
-import org.bson.codecs.IterableCodecProvider;
-import org.bson.codecs.MapCodecProvider;
-import org.bson.codecs.ValueCodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 
 import java.util.List;
 
 import io.realm.internal.common.TaskDispatcher;
-import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.objectstore.OsRemoteMongoCollection;
 import io.realm.mongodb.remote.RemoteCountOptions;
-import io.realm.mongodb.remote.RemoteFindOneAndModifyOptions;
-import io.realm.mongodb.remote.RemoteUpdateOptions;
 import io.realm.mongodb.remote.RemoteDeleteResult;
+import io.realm.mongodb.remote.RemoteFindOneAndModifyOptions;
 import io.realm.mongodb.remote.RemoteFindOptions;
 import io.realm.mongodb.remote.RemoteInsertManyResult;
 import io.realm.mongodb.remote.RemoteInsertOneResult;
+import io.realm.mongodb.remote.RemoteUpdateOptions;
 import io.realm.mongodb.remote.RemoteUpdateResult;
 import io.realm.mongodb.remote.aggregate.RemoteAggregateIterable;
 import io.realm.mongodb.remote.find.RemoteFindIterable;
-
-import static java.util.Arrays.asList;
-import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 
 /**
  * The RemoteMongoCollection interface provides read and write access to documents.
@@ -75,31 +66,6 @@ public class RemoteMongoCollection<DocumentT> {
     public MongoNamespace getNamespace() {
         throw new RuntimeException("Not Implemented");
     }
-
-    // FIXME: possibly not needed here
-//    /**
-//     * Get the class of documents stored in this collection.
-//     * <p>
-//     * If you used the simple {@link RemoteMongoDatabase#getCollection(String)} to get
-//     * this collection,
-//     * this is {@link org.bson.Document}.
-//     * </p>
-//     *
-//     * @return the class
-//     */
-//    public Class<DocumentT> getDocumentClass() {
-//        return osRemoteMongoCollection.getDocumentClass();
-//    }
-//
-//    /**
-//     * Get the codec registry for the RemoteMongoCollection.
-//     *
-//     * @return the {@link CodecRegistry}
-//     */
-//    public CodecRegistry getCodecRegistry() {
-//        // FIXME: use Claus's codecregistry work when ready
-//        return osRemoteMongoCollection.co;
-//    }
 
     /**
      * Create a new RemoteMongoCollection instance with a different default class to cast any
@@ -345,7 +311,9 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the remove many operation
      */
     public Task<RemoteDeleteResult> deleteMany(final Bson filter) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osRemoteMongoCollection.deleteMany(filter)
+        );
     }
 
     /**

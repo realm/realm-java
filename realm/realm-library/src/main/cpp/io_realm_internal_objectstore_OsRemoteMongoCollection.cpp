@@ -124,3 +124,17 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeDeleteOne(JNIEn
     }
     CATCH_STD()
 }
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeDeleteMany(JNIEnv* env,
+                                                                           jclass,
+                                                                           jlong j_collection_ptr,
+                                                                           jstring j_document,
+                                                                           jobject j_callback) {
+    try {
+        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+        bson::BsonDocument bson_filter(jstring_to_bson(env, j_document));
+        collection->delete_many(bson_filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
+    }
+    CATCH_STD()
+}

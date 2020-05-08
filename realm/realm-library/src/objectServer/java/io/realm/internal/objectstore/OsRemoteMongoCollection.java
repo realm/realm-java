@@ -49,7 +49,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
     private final Class<DocumentT> documentClass;
     private final CodecRegistry codecRegistry;
 
-    public OsRemoteMongoCollection(final long nativeCollectionPtr, final Class<DocumentT> documentClass, final CodecRegistry codecRegistry) {
+    OsRemoteMongoCollection(final long nativeCollectionPtr, final Class<DocumentT> documentClass, final CodecRegistry codecRegistry) {
         this.nativePtr = nativeCollectionPtr;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;
@@ -63,10 +63,6 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
     @Override
     public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
-    }
-
-    public Class<DocumentT> getDocumentClass() {
-        return documentClass;
     }
 
     public Long count() {
@@ -160,7 +156,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    public RemoteDeleteResult deleteOne(Bson filter) {
+    public RemoteDeleteResult deleteOne(final Bson filter) {
         AtomicReference<RemoteDeleteResult> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<RemoteDeleteResult> callback = new OsJNIResultCallback<RemoteDeleteResult>(success, error) {
@@ -177,6 +173,23 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
+    public RemoteDeleteResult deleteMany(final Bson filter) {
+        AtomicReference<RemoteDeleteResult> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<RemoteDeleteResult> callback = new OsJNIResultCallback<RemoteDeleteResult>(success, error) {
+            @Override
+            protected RemoteDeleteResult mapSuccess(Object result) {
+                return new RemoteDeleteResult((Long) result);
+            }
+        };
+
+        String jsonDocument = JniBsonProtocol.encode(filter.toBsonDocument(documentClass, codecRegistry));
+
+        nativeDeleteMany(nativePtr, jsonDocument, callback);
+
+        return ResultHandler.handleResult(success, error);
+    }
+
     private static native long nativeGetFinalizerMethodPtr();
     private static native void nativeCount(long remoteMongoCollectionPtr,
                                            String filter,
@@ -189,6 +202,9 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback,
                                                String... documents);
     private static native void nativeDeleteOne(long remoteMongoCollectionPtr,
+                                               String document,
+                                               OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeDeleteMany(long remoteMongoCollectionPtr,
                                                String document,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

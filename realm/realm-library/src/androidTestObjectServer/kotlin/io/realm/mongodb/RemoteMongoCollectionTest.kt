@@ -22,21 +22,16 @@ import io.realm.admin.ServerAdmin
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.remote.RemoteCountOptions
-import io.realm.mongodb.remote.RemoteDeleteResult
 import io.realm.util.blockingGetResult
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
-//@Ignore("Collections not ready to test yet")
 class RemoteMongoCollectionTest {
 
     private lateinit var app: TestRealmApp
@@ -58,13 +53,17 @@ class RemoteMongoCollectionTest {
 
     @After
     fun tearDown() {
+        // FIXME: probably not the best way to "reset" the state
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            this.deleteMany(Document()).blockingGetResult()
+        }
+
         if (this::app.isInitialized) {
             app.close()
         }
     }
 
     @Test
-    @Ignore
     fun insertMany() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             assertEquals(0, this.count().blockingGetResult())
@@ -90,7 +89,6 @@ class RemoteMongoCollectionTest {
     }
 
     @Test
-    @Ignore
     fun count() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             assertEquals(0, this.count().blockingGetResult())
@@ -132,13 +130,40 @@ class RemoteMongoCollectionTest {
             assertEquals(1, this.deleteOne(doc1).blockingGetResult()!!.deletedCount)
             assertEquals(0, this.count().blockingGetResult())
 
-            // FIXME: how can one delete all collections?
+            val doc1b = Document(rawDoc)
             val doc2 = Document("foo", "bar")
             val doc3 = Document("42", "666")
+            this.insertMany(listOf(doc1, doc1b, doc2, doc3)).blockingGetResult()
+            assertEquals(1, this.deleteOne(rawDoc).blockingGetResult()!!.deletedCount)
+            assertEquals(1, this.deleteOne(Document()).blockingGetResult()!!.deletedCount)
+        }
+    }
+
+    @Test
+    fun deleteMany() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            assertEquals(0, this.count().blockingGetResult())
+
+            val rawDoc = Document(KEY_1, VALUE_1)//.withId()
+            val doc1 = Document(rawDoc)
+
             this.insertOne(doc1).blockingGetResult()
-            this.insertOne(doc2).blockingGetResult()
-            this.insertOne(doc3).blockingGetResult()
-//            this.deleteOne(Document()).blockingGetResult()
+            assertEquals(1, this.count().blockingGetResult())
+            assertEquals(1, this.deleteMany(doc1).blockingGetResult()!!.deletedCount)
+            assertEquals(0, this.count().blockingGetResult())
+
+            val doc1b = Document(rawDoc)
+            val doc2 = Document("foo", "bar")
+            val doc3 = Document("42", "666")
+            this.insertMany(listOf(doc1, doc1b, doc2, doc3)).blockingGetResult()
+            assertEquals(2, this.deleteMany(rawDoc).blockingGetResult()!!.deletedCount)                 // two docs will be deleted
+            assertEquals(2, this.count().blockingGetResult())                                           // two docs still present
+            assertEquals(2, this.deleteMany(Document()).blockingGetResult()!!.deletedCount)             // delete all
+            assertEquals(0, this.count().blockingGetResult())
+
+            this.insertMany(listOf(doc1, doc1b, doc2, doc3)).blockingGetResult()
+            assertEquals(4, this.deleteMany(Document()).blockingGetResult()!!.deletedCount)             // delete all
+            assertEquals(0, this.count().blockingGetResult())
         }
     }
 
@@ -151,7 +176,7 @@ class RemoteMongoCollectionTest {
         }
     }
 
-    // FIXME: investigate crash when parsin BSONs that have this property
+    // FIXME: investigate crash when parsing BSONs that have this property
     private fun Document.withId(objectId: ObjectId? = null): Document {
         return this.apply { this["_id"] = objectId ?: ObjectId() }
     }
