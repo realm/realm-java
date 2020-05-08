@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "java_accessor.hpp"
 #include "util.hpp"
 #include "util_sync.hpp"
 
@@ -21,12 +22,23 @@
 static const std::string VALUE("value");
 
 using namespace realm::bson;
+using namespace realm::_impl;
+
+Bson jstring_to_bson(std::string arg) {
+    BsonDocument document(parse(arg));
+    return document[VALUE];
+}
 
 Bson jstring_to_bson(JNIEnv* env, jstring arg) {
     JStringAccessor args_json(env, arg);
-    BsonDocument document(parse(args_json));
-    return document[VALUE];
+    return jstring_to_bson(args_json);
 }
+
+//Bson jstring_to_bson(JNIEnv* env, jstring arg) {
+//    JStringAccessor args_json(env, arg);
+//    BsonDocument document(parse(args_json));
+//    return document[VALUE];
+//}
 
 jstring bson_to_jstring(JNIEnv* env, Bson bson) {
     BsonDocument document{{VALUE, bson}};
@@ -35,3 +47,13 @@ jstring bson_to_jstring(JNIEnv* env, Bson bson) {
     std::string r = buffer.str();
     return to_jstring(env, r);
 };
+
+BsonArray jobjectarray_to_bsonarray(JObjectArrayAccessor<JStringAccessor, jstring>& documents) {
+    uint32_t size = std::uint32_t(documents.size());
+    BsonArray bson_array(size);
+    for (uint32_t i = 0; i < size; i++) {
+        std::string document = documents[i];
+        bson_array[i] = jstring_to_bson(document);
+    }
+    return bson_array;
+}

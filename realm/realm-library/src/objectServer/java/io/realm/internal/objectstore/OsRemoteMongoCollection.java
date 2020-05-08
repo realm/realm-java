@@ -108,7 +108,6 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-
         // FIXME: add support for POJOs - default to empty bson for now
         String jsonDocument;
         if (document instanceof Document) {
@@ -123,24 +122,38 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    public RemoteInsertManyResult insertMany(final List<? extends DocumentT> document) {
+    public RemoteInsertManyResult insertMany(final List<? extends DocumentT> documents) {
         AtomicReference<RemoteInsertManyResult> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<RemoteInsertManyResult> callback = new OsJNIResultCallback<RemoteInsertManyResult>(success, error) {
             @Override
             protected RemoteInsertManyResult mapSuccess(Object result) {
-                BsonValue[] insertedIds = (BsonValue[]) result;
+                ObjectId[] insertedIds = (ObjectId[]) result;
                 Map<Long, BsonValue> insertedIdsMap = new HashMap<>();
-                long i = 0;
-                for (BsonValue value : insertedIds) {
-                    insertedIdsMap.put(i, value);
-                    i++;
+                for (int i = 0; i < insertedIds.length; i++) {
+                    BsonValue bsonObjectId = new BsonObjectId(insertedIds[i]);
+                    insertedIdsMap.put((long) i, bsonObjectId);
                 }
                 return new RemoteInsertManyResult(insertedIdsMap);
             }
         };
 
-        nativeInsertOne(nativePtr, document.toString(), callback);
+        // FIXME: add support for POJOs - default to empty bson for now
+        String[] documentArray = new String[documents.size()];
+        if (documents.get(0) instanceof Document) {
+            List<Document> documentList = (List<Document>) documents;
+            for (int i = 0; i < documentList.size(); i++) {
+                Document document = documentList.get(i);
+                BsonDocument bsonDocument = document.toBsonDocument(documentClass, codecRegistry);
+                documentArray[i] = JniBsonProtocol.encode(bsonDocument);
+            }
+        } else {
+            for (int i = 0; i < documents.size(); i++) {
+                documentArray[i] = JniBsonProtocol.encode(new BsonDocument());
+            }
+        }
+
+        nativeInsertMany(nativePtr, callback, documentArray);
 
         return ResultHandler.handleResult(success, error);
     }
@@ -153,4 +166,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
     private static native void nativeInsertOne(long remoteMongoCollectionPtr,
                                                String document,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeInsertMany(long remoteMongoCollectionPtr,
+                                               OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback,
+                                               String... documents);
 }

@@ -17,10 +17,19 @@
 #ifndef REALM_UTIL_SYNC_HPP
 #define REALM_UTIL_SYNC_HPP
 
+#include "java_accessor.hpp"
+
 #include <jni.h>
 #include <util/bson/bson.hpp>
 
-realm::bson::Bson jstring_to_bson(JNIEnv* env, jstring arg);
+//using namespace realm;
+//using namespace realm::jni_util;
+using namespace realm::bson;
+using namespace realm::_impl;
+
+Bson jstring_to_bson(std::string arg);
+Bson jstring_to_bson(JNIEnv* env, jstring arg);
 jstring bson_to_jstring(JNIEnv* env, realm::bson::Bson bson);
+BsonArray jobjectarray_to_bsonarray(JObjectArrayAccessor<JStringAccessor, jstring>& documents);
 
 #endif //REALM_UTIL_SYNC_HPP
