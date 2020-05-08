@@ -17,10 +17,7 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.embedded.EmbeddedSimpleChild
-import io.realm.entities.embedded.EmbeddedSimpleListParent
-import io.realm.entities.embedded.EmbeddedTreeNode
-import io.realm.entities.embedded.EmbeddedTreeParent
+import io.realm.entities.embedded.*
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.rule.TestRealmConfigurationFactory
@@ -29,7 +26,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.runner.RunWith
 import java.util.*
-import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 
 /**
@@ -100,6 +96,9 @@ class EmbeddedObjectsTest {
 
     @Test
     fun createObject_treeSchema() {
+        realm.beginTransaction()
+
+
     }
 
     @Test
@@ -116,6 +115,14 @@ class EmbeddedObjectsTest {
 
     @Test
     fun copyToRealm_simpleSingleChild() {
+        realm.executeTransaction {
+            val parent = EmbeddedSimpleParent("parent1")
+            parent.child = EmbeddedSimpleChild("child1")
+            it.copyToRealm(parent)
+        }
+
+        assertEquals(1, realm.where<EmbeddedSimpleParent>().count())
+        assertEquals(1, realm.where<EmbeddedSimpleChild>().count())
     }
 
     @Test
@@ -172,5 +179,36 @@ class EmbeddedObjectsTest {
 
     @Test
     fun realmObjectSchema_isEmbedded() {
+    }
+
+    // Check that deleting a non-embedded parent deletes all embedded children
+    @Test
+    fun deleteParentObject_deletesEmbeddedChildren() {
+
+    }
+
+    // Check that deleting a embedded parent deletes all embedded children
+    @Test
+    fun deleteParentEmbeddedObject_deletesEmbeddedChildren() {
+
+    }
+
+    // Cascade deleting an embedded object will trigger its object listener.
+    @Test
+    fun deleteParent_triggerChildObjectNotifications() {
+
+    }
+
+    // Cascade deleting a parent will trigger the listener on any lists in child embedded
+    // objects
+    @Test
+    fun deleteParent_triggerChildListObjectNotifications() {
+
+    }
+
+    @Test
+    fun results_bulkUpdate() {
+        // What happens if you bulk update a RealmResults. You should not be allowed to use
+        // embedded objects there.
     }
 }

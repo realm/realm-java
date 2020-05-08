@@ -19,8 +19,17 @@ import io.realm.RealmObject
 import io.realm.annotations.RealmClass
 import java.util.*
 
+/**
+ * Embedded object that point to itself. Note, this is only allowed in the schema. The actual
+ * objects are not allowed to have circular references.
+ */
 @RealmClass(embedded = true)
-open class EmbeddedCircularChild : RealmObject() {
+open class EmbeddedCircularChild : RealmObject {
+    constructor() {}
+    constructor(id: String) : super() {
+        this.id = id
+    }
+
     var id = UUID.randomUUID().toString()
     var singleChild: EmbeddedCircularChild? = null
 }

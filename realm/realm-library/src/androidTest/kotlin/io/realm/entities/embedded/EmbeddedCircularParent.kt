@@ -18,7 +18,14 @@ package io.realm.entities.embedded
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 
-open class EmbeddedCircularParent : RealmObject() {
+// Parent pointing to an embedded object that has a circular schema, i.e. objects can point
+// to themselves. Note, this isn't actually allowed at runtime. Only at schema validation time.
+open class EmbeddedCircularParent : RealmObject {
+    constructor() {}
+    constructor(id: String) : super() {
+        this.id = id
+    }
+
     @PrimaryKey
     var id: String? = null
     var singleChild: EmbeddedSimpleChild? = null

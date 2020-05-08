@@ -43,7 +43,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeCreateRe
         JStringAccessor name(env, j_name_str);
         ObjectSchema* object_schema = new ObjectSchema();
         object_schema->name = name;
-        (void) j_embedded; // FIXME
+        object_schema->is_embedded = to_bool(j_embedded);
         return reinterpret_cast<jlong>(object_schema);
     }
     CATCH_STD()
@@ -135,9 +135,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrima
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeIsEmbedded(JNIEnv* env, jclass, jlong native_ptr)
 {
     try {
-        (void) native_ptr;
-        return false; // FIXME
+        auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
+        return to_jbool(object_schema.is_embedded);
     }
     CATCH_STD()
-    return false;
+    return to_jbool(false);
 }

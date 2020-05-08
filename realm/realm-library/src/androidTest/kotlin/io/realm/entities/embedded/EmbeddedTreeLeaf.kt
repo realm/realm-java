@@ -20,8 +20,18 @@ import io.realm.annotations.LinkingObjects
 import io.realm.annotations.RealmClass
 import java.util.*
 
+// Middle-level node in a object-graph that is three-shaped, i.e. no circular references.
+// The tree depth can be described as:
+// - 1 TreeParent
+// - 1 or more TreeNode's. I.e. a TreeNode can be the child of another TreeNode.
+// - 1 or more TreeLeaf objects. TreeLeaf objects are always at the bottom of tree.
 @RealmClass(embedded = true)
-open class EmbeddedTreeLeaf : RealmObject() {
+open class EmbeddedTreeLeaf : RealmObject {
+    constructor() {}
+    constructor(id: String) : super() {
+        this.id = id
+    }
+
     var id = UUID.randomUUID().toString()
 
     @LinkingObjects("leafNode")

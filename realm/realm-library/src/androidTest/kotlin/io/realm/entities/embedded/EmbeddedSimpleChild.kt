@@ -20,6 +20,10 @@ import io.realm.annotations.LinkingObjects
 import io.realm.annotations.RealmClass
 import java.util.*
 
+/**
+ * The embedded object part of a simple object graph. This object can have two parents
+ * [EmbeddedSimpleParent] and [EmbeddedSimpleListParent].
+ */
 @RealmClass(embedded = true)
 open class EmbeddedSimpleChild : RealmObject {
     constructor() {}

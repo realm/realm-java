@@ -18,7 +18,13 @@ package io.realm.entities.embedded
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 
-open class EmbeddedSimpleParent : RealmObject() {
+// Top-level object describing a simple embedded objects structure consisting of only an object reference.
+open class EmbeddedSimpleParent : RealmObject {
+    constructor() {}
+    constructor(id: String) : super() {
+        this.id = id
+    }
+
     @PrimaryKey
     var id: String? = null
     var child: EmbeddedSimpleChild? = null

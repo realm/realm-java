@@ -192,6 +192,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativ
         TableRef table = TBL_REF(table_ref_ptr);
         const auto& schema = shared_realm->schema();
         const ObjectSchema& object_schema = get_schema(schema, table);
+        // FIXME: Figure out how to get parent Obj + property to here
         JavaContext ctx(env, shared_realm, object_schema);
         auto list = *reinterpret_cast<OsObjectData*>(builder_ptr);
         JavaValue values = JavaValue(list);
