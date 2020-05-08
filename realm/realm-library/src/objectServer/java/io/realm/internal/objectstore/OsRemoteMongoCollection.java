@@ -83,7 +83,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        // FIXME: add support for POJOs - default to empty bson for now
+        // no filter means count all
         String filterString = filter == null ?
                 JniBsonProtocol.encode(new BsonDocument()) :
                 JniBsonProtocol.encode(filter.toBsonDocument(documentClass, codecRegistry));

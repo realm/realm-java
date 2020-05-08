@@ -66,7 +66,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeGetFinalizerMet
     return reinterpret_cast<jlong>(&finalize_collection);
 }
 
-void JNICALL
+JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv* env,
                                                                        jclass,
                                                                        jlong j_collection_ptr,
