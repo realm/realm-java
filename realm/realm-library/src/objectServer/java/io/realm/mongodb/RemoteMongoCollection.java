@@ -332,7 +332,9 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the remove one operation
      */
     public Task<RemoteDeleteResult> deleteOne(final Bson filter) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osRemoteMongoCollection.deleteOne(filter)
+        );
     }
 
     /**

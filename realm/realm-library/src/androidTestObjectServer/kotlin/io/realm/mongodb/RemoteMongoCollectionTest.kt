@@ -17,23 +17,23 @@ package io.realm.mongodb
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.google.android.gms.tasks.Tasks
 import io.realm.*
 import io.realm.admin.ServerAdmin
-import io.realm.entities.Dog
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.remote.RemoteCountOptions
-import io.realm.mongodb.remote.RemoteInsertOneResult
+import io.realm.mongodb.remote.RemoteDeleteResult
 import io.realm.util.blockingGetResult
 import org.bson.Document
-import org.junit.*
+import org.bson.types.ObjectId
+import org.junit.After
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.ExecutionException
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
-import kotlin.test.fail
+import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
 //@Ignore("Collections not ready to test yet")
@@ -64,75 +64,85 @@ class RemoteMongoCollectionTest {
     }
 
     @Test
+    @Ignore
+    fun insertMany() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            assertEquals(0, this.count().blockingGetResult())
+
+            // FIXME: see "withId" extension function below!
+            val rawDoc = Document(KEY_1, VALUE_1)
+            val doc1 = Document(rawDoc)
+            val doc2 = Document(rawDoc)
+            val doc3 = Document(rawDoc)
+            val doc4 = Document("foo", "bar")
+            val manyDocuments = listOf(doc1, doc2, doc3, doc4)
+
+            this.insertMany(manyDocuments)
+                    .blockingGetResult()
+                    .let { assertEquals(manyDocuments.size, it!!.insertedIds.size) }
+
+            assertEquals(manyDocuments.size.toLong(), this.count().blockingGetResult())
+            assertEquals(3, this.count(rawDoc).blockingGetResult())
+            assertEquals(2, this.count(rawDoc, RemoteCountOptions().limit(2)).blockingGetResult())
+            assertEquals(1, this.count(Document("foo", "bar")).blockingGetResult())
+            assertEquals(0, this.count(Document("bar", "foo")).blockingGetResult())
+        }
+    }
+
+    @Test
+    @Ignore
     fun count() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             assertEquals(0, this.count().blockingGetResult())
 
-            val rawDocument = Document(KEY_1, VALUE_1)
-            val document1 = Document(rawDocument)
-            val document2 = Document(rawDocument)
+            val rawDoc = Document(KEY_1, VALUE_1)//.withId()
+            val doc1 = Document(rawDoc)
+            val doc2 = Document(rawDoc)
+            val doc3 = Document(rawDoc)
 
-            this.insertOne(document1).blockingGetResult()
+            // FIXME: check feasibility of this assertion, otherwise, just make a plain insert
+//            assertTrue(ObjectId.isValid(this.insertOne(doc1).blockingGetResult()!!.insertedId.toString()))
+            this.insertOne(doc1).blockingGetResult()
             assertEquals(1, this.count().blockingGetResult())
-            this.insertOne(document2).blockingGetResult()
+            this.insertOne(doc2).blockingGetResult()
             assertEquals(2, this.count().blockingGetResult())
 
-            assertEquals(2, this.count(rawDocument).blockingGetResult())
+            assertEquals(2, this.count(rawDoc).blockingGetResult())
             assertEquals(0, this.count(Document("foo", "bar")).blockingGetResult())
-            assertEquals(1, this.count(rawDocument, RemoteCountOptions().limit(1)).blockingGetResult())
+            assertEquals(1, this.count(rawDoc, RemoteCountOptions().limit(1)).blockingGetResult())
 
+            // FIXME: investigate error handling for malformed payloads
 //            assertFailsWith(ExecutionException::class) {
 //                this.count(Document("\$who", 1)).blockingGetResult()
 //                fail("Should not reach this!")
 //            }
-
-            try {
-                this.count(Document("\$who", 1)).blockingGetResult()
-                Assert.fail()
-            } catch (ex: ExecutionException) {
-                val kajshdjk = 0
-//                Assert.assertTrue(ex.cause is StitchServiceException)
-//                val svcEx = ex.cause as StitchServiceException
-//                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
-            }
         }
     }
 
-//    @Test
-//    fun insertOne() {
-//        with(getCollectionInternal(COLLECTION_NAME)) {
-//            assertEquals(0, this.count().blockingGetResult())
-//            insertOneInternal(COLLECTION_NAME, Document(KEY_1, VALUE_1)).let { insertOneResult ->
-//                assertNotNull(insertOneResult)
-//                insertOneResult.insertedId
-//            }
-//        }
-//
-//        val insertedOne = insertOneInternal(COLLECTION_NAME, Document(KEY_1, VALUE_1))
-//        assertNotNull(insertedOne)
-//        val docsAfter = getCollectionInternal(COLLECTION_NAME).count().blockingGetResult()
-//        val kasjhd = 0
-//    }
+    @Test
+    fun deleteOne() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            assertEquals(0, this.count().blockingGetResult())
 
-//    @Test
-//    @Ignore("Collections not ready to test yet")
-//    fun countWithFilter() {
-//        // FIXME:
-//    }
-//
-//    @Test
-//    @Ignore("Collections not ready to test yet")
-//    fun countWithFilterAndLimit() {
-//        // FIXME:
-//    }
+            val rawDoc = Document(KEY_1, VALUE_1)//.withId()
+            val doc1 = Document(rawDoc)
+
+            this.insertOne(doc1).blockingGetResult()
+            assertEquals(1, this.count().blockingGetResult())
+            assertEquals(1, this.deleteOne(doc1).blockingGetResult()!!.deletedCount)
+            assertEquals(0, this.count().blockingGetResult())
+
+            // FIXME: how can one delete all collections?
+            val doc2 = Document("foo", "bar")
+            val doc3 = Document("42", "666")
+            this.insertOne(doc1).blockingGetResult()
+            this.insertOne(doc2).blockingGetResult()
+            this.insertOne(doc3).blockingGetResult()
+//            this.deleteOne(Document()).blockingGetResult()
+        }
+    }
 
     // FIXME: more to come
-
-//    private fun insertOneInternal(collectionName: String, document: Document): RemoteInsertOneResult? {
-//        return getCollectionInternal(collectionName)
-//                .insertOne(document)
-//                .blockingGetResult()
-//    }
 
     private fun getCollectionInternal(collectionName: String, javaClass: Class<Document>? = null): RemoteMongoCollection<Document> {
         return when (javaClass) {
@@ -141,12 +151,17 @@ class RemoteMongoCollectionTest {
         }
     }
 
+    // FIXME: investigate crash when parsin BSONs that have this property
+    private fun Document.withId(objectId: ObjectId? = null): Document {
+        return this.apply { this["_id"] = objectId ?: ObjectId() }
+    }
+
     private companion object {
         const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
         const val DATABASE_NAME = "test_data"   // same as above
 
         const val COLLECTION_NAME = "COLLECTION_NAME"
-        const val KEY_1 = "KEY_1"
-        const val VALUE_1 = "VALUE_1"
+        const val KEY_1 = "KEY"
+        const val VALUE_1 = "666"
     }
 }

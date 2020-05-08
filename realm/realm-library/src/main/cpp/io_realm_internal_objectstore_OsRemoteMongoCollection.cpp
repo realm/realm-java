@@ -51,9 +51,8 @@ static std::function<jobject(JNIEnv*, std::vector<ObjectId>)> collection_mapper_
         return arr;
     }
     for (size_t i = 0; i < object_ids.size(); ++i) {
-        std::string id = object_ids[i].to_string();
-        jstring j_string = to_jstring(env, id);
-        env->SetObjectArrayElement(arr, i, j_string);
+        jobject j_object_id = JavaClassGlobalDef::new_object_id(env, object_ids[i]);
+        env->SetObjectArrayElement(arr, i, j_object_id);
     }
     return arr;
 };
@@ -108,6 +107,20 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeInsertMany(JNIE
         JObjectArrayAccessor<JStringAccessor, jstring> documents(env, j_documents);
         BsonArray bson_array = jobjectarray_to_bsonarray(documents);
         collection->insert_many(bson_array, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_insert_many));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeDeleteOne(JNIEnv* env,
+                                                                           jclass,
+                                                                           jlong j_collection_ptr,
+                                                                           jstring j_document,
+                                                                           jobject j_callback) {
+    try {
+        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+        bson::BsonDocument bson_filter(jstring_to_bson(env, j_document));
+        collection->delete_one(bson_filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
     }
     CATCH_STD()
 }
