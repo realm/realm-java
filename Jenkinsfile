@@ -1,5 +1,7 @@
 #!groovy
 
+@Library('realm-ci') _
+
 import groovy.json.JsonOutput
 
 def buildSuccess = false
