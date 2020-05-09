@@ -104,6 +104,16 @@ class ServerAdmin {
                 .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
                 .patch(RequestBody.create(json, authProviderConfig.toString()))
         executeRequest(request)
+
+        // Verify that auto-confirm was disabled
+        request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
+                .get()
+        val authConfig = JSONObject(executeRequest(request, true))
+        val obj = authProviderConfig.getJSONObject("config")
+        if (obj.getBoolean("autoConfirm") != enabled) {
+            throw IllegalStateException("AutoConfirm was not changed correctly. Should have been ${enabled}, but was: $obj")
+        }
     }
 
     /**
