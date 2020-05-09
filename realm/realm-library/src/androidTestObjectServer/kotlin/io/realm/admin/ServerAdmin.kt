@@ -6,6 +6,7 @@ import okhttp3.*
 import okio.Buffer
 import org.json.JSONArray
 import org.json.JSONObject
+import java.lang.IllegalStateException
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
@@ -128,6 +129,15 @@ class ServerAdmin {
                 }
             }
         }
+
+        // Ensure that all users actually were deleted
+        request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/user_registrations/pending_users")
+                .get()
+        val remainingUsers = JSONArray(executeRequest(request))
+        if (remainingUsers.length() > 0) {
+            throw IllegalStateException("Not all pending users were deleted: $remainingUsers")
+        }
     }
 
     private fun deleteAllRegisteredUsers() {
@@ -141,6 +151,15 @@ class ServerAdmin {
                     .url("$baseUrl/groups/$groupId/apps/$appId/users/${o.getString("_id")}")
                     .delete()
             executeRequest(request)
+        }
+
+        // Ensure that all users actually were deleted
+        request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/users")
+                .get()
+        val remainingUsers = JSONArray(executeRequest(request))
+        if (remainingUsers.length() > 0) {
+            throw IllegalStateException("Not all registered users were deleted: $remainingUsers")
         }
     }
 
