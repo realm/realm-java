@@ -106,14 +106,15 @@ class ServerAdmin {
         executeRequest(request)
 
         // Verify that auto-confirm was disabled
-        request = Request.Builder()
-                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
-                .get()
-        val authConfig = JSONObject(executeRequest(request, true))
-        val obj = authProviderConfig.getJSONObject("config")
-        if (obj.getBoolean("autoConfirm") != enabled) {
-            throw IllegalStateException("AutoConfirm was not changed correctly. Should have been ${enabled}, but was: $obj")
-        }
+        // Disable again. With this enabled it was impossible to reproduce on CI with 5 runs
+//        request = Request.Builder()
+//                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
+//                .get()
+//        val authConfig = JSONObject(executeRequest(request, true))
+//        val obj = authProviderConfig.getJSONObject("config")
+//        if (obj.getBoolean("autoConfirm") != enabled) {
+//            throw IllegalStateException("AutoConfirm was not changed correctly. Should have been ${enabled}, but was: $obj")
+//        }
     }
 
     /**
