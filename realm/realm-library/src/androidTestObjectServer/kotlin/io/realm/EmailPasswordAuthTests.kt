@@ -75,6 +75,20 @@ class EmailPasswordAuthTests {
     }
 
     @Test
+    fun stitchRaceCondition() {
+        val email = "test@10gen.com"
+        val password = "password"
+        val provider = app.emailPasswordAuth
+        for (i in 0..50) {
+            admin.setAutomaticConfirmation(false)
+            provider.registerUser(email, password)
+            provider.resendConfirmationEmail(email)
+            admin.setAutomaticConfirmation(true)
+            admin.deleteAllUsers()
+        }
+    }
+
+    @Test
     fun registerUser() {
         val email = TestHelper.getRandomEmail()
         val password = "password1234"
