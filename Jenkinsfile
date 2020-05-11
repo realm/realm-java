@@ -118,7 +118,7 @@ try {
                 try {
                   backgroundPid = startLogCatCollector()
                   forwardAdbPorts()
-                  gradle('realm', "${instrumentationTestTarget}")
+                  gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
                 } finally {
                   stopLogCatCollector(backgroundPid)
                   storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
@@ -193,22 +193,31 @@ def forwardAdbPorts() {
   '''
 }
 
-def String startLogCatCollector() {
-  sh '''adb logcat -c
-  adb logcat -v time > "logcat.txt" &
-  echo $! > pid
-  '''
-  return readFile("pid").trim()
+String startLogCatCollector() {
+  // Cancel build quickly if no device is available. The lock acquired already should
+  // ensure we have access to a device. If not, it is most likely a more severe problem.
+  timeout(time: 1, unit: 'MINUTES') {
+    sh 'adb devices'
+    sh """adb logcat -c
+      adb logcat -v time > 'logcat.txt' &
+      echo \$! > pid
+    """
+    return readFile("pid").trim()
+  }
 }
 
 def stopLogCatCollector(String backgroundPid) {
-  sh "kill ${backgroundPid}"
-  zip([
-          'zipFile': 'logcat.zip',
-          'archive': true,
-          'glob' : 'logcat.txt'
-  ])
-  sh 'rm logcat.txt'
+  // The pid might not be available if the build was terminated early or stopped due to
+  // a build error.
+  if (backgroundPid != null) {
+    sh "kill ${backgroundPid}"
+    zip([
+            'zipFile': 'logcat.zip',
+            'archive': true,
+            'glob' : 'logcat.txt'
+    ])
+    sh 'rm logcat.txt'
+  }
 }
 
 def archiveServerLogs(String mongoDbRealmContainerId, String commandServerContainerId) {

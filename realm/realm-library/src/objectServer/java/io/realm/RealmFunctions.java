@@ -15,7 +15,6 @@
  */
 package io.realm;
 
-import org.bson.BsonValue;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;

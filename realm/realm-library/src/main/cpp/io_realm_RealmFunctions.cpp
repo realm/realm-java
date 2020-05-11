@@ -17,16 +17,17 @@
 #include "io_realm_RealmFunctions.h"
 
 #include "util.hpp"
-#include "util_sync.hpp"
+#include "jni_util/bson_util.hpp"
 #include "java_network_transport.hpp"
 #include "object-store/src/sync/app.hpp"
 
 using namespace realm;
 using namespace realm::app;
+using namespace realm::jni_util;
 
 static std::function<jobject(JNIEnv*, Optional<bson::Bson> )> response_mapper = [](JNIEnv* env, Optional<bson::Bson> response) {
     if (response) {
-        return bson_to_jstring(env, *response);
+        return JniBsonProtocol::bson_to_jstring(env, *response);
     } else {
         // FIXME How to raise errors here
         return to_jstring(env, "{}");
@@ -49,11 +50,9 @@ Java_io_realm_RealmFunctions_nativeCallFunction(JNIEnv* env, jclass , jlong j_ap
         };
 
         JStringAccessor name(env, j_name);
-        bson::BsonArray args(jstring_to_bson(env, j_args_json));
+        bson::BsonArray args(JniBsonProtocol::jstring_to_bson(env, j_args_json));
 
         app->call_function(user, name, args, handler);
     }
     CATCH_STD()
 }
-
-

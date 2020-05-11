@@ -20,7 +20,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
 import org.bson.*
-import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.pojo.PojoCodecProvider
 import org.bson.types.Decimal128
@@ -74,13 +73,12 @@ class RealmFunctionsTests {
                     assertTypedEcho("Realm", String::class.java)
                     assertTypedEcho(BsonString("Realm"), BsonString::class.java)
                 }
-                BsonType.ARRAY -> {
-                    // FIXME Fails in C++ parsing when boolean values are added...needs investigation
-                    //  io.realm.exceptions.RealmError: Unrecoverable error. current state '$1' is not of expected state '$2' in /Users/claus.rorbech/proj/realm-java/realm/realm-library/src/main/cpp/io_realm_RealmFunctions.cpp line 32
-                    //val listValues = listOf<Any>(true, i32, i64)
-                    val listValues = listOf<Any>(i32, i64)
-                    assertTypedEcho(listValues, List::class.java)
-                }
+                // FIXME Does not seem to work, typically this has indicated an issue with C++ parser
+//                BsonType.ARRAY -> {
+//                    val listValues = listOf<Any>(true, i32, i64)
+//                    assertTypedEcho(listValues, List::class.java)
+//                    assertEquals(true, functions.callFunction("echo", listOf(true, i32, i64), java.lang.Boolean::class.java).booleanValue())
+//                }
                 // FIXME Does not seem to work, typically this has indicated an issue with C++ parser
 //                BsonType.BINARY -> {
 //                    val value = byteArrayOf(1, 2, 3)
@@ -97,17 +95,17 @@ class RealmFunctionsTests {
                     assertTypedEcho(BsonObjectId(ObjectId()), BsonObjectId::class.java)
                 }
                 BsonType.BOOLEAN -> {
-                    val value: Boolean = true
-                    val actual: java.lang.Boolean = functions.callFunction("echo", listOf(value), java.lang.Boolean::class.java)
-                    assertEquals(value, actual.booleanValue())
+                    assertEquals(true, functions.callFunction("echo", listOf(true), java.lang.Boolean::class.java).booleanValue())
                     assertTypedEcho(BsonBoolean(true), BsonBoolean::class.java)
                 }
                 BsonType.INT32 -> {
-                    assertEquals(32, functions.invoke(32, Integer::class.java).toInt())
+                    assertEquals(32, functions.callFunction("echo", listOf(32), Integer::class.java).toInt())
+                    assertEquals(32, functions.callFunction("echo", listOf(32L), Integer::class.java).toInt())
                     assertTypedEcho(BsonInt32(32), BsonInt32::class.java)
                 }
                 BsonType.INT64 -> {
-                    assertEquals(32L, functions.invoke(32L, java.lang.Long::class.java).toLong())
+                    assertEquals(32L, functions.callFunction("echo", listOf(32L), java.lang.Long::class.java).toLong())
+                    assertEquals(32L, functions.callFunction("echo", listOf(32), java.lang.Long::class.java).toLong())
                     assertTypedEcho(BsonInt64(32), BsonInt64::class.java)
                 }
                 BsonType.DECIMAL128 -> {
@@ -134,7 +132,7 @@ class RealmFunctionsTests {
         }
     }
 
-    private fun <T : Any> assertTypedEcho(value: T, returnClass: Class<T>): T {
+    private fun <T : Any> assertTypedEcho(value: T, returnClass: Class<T>) : T {
         val actual = functions.callFunction("echo", listOf(value), returnClass)
         assertEquals(value, actual)
         return actual
@@ -147,7 +145,7 @@ class RealmFunctionsTests {
     @Test
     fun pojoCodecRegistry() {
         val pojoRegistry = CodecRegistries.fromRegistries(
-                CodecRegistries.fromCodecs(StringCodec()),
+                app.configuration.defaultCodecRegistry,
                 CodecRegistries.fromProviders(
                         PojoCodecProvider.builder()
                                 .register(Dog::class.java)

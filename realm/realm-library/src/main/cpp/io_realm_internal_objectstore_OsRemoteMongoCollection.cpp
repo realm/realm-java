@@ -19,9 +19,9 @@
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
 #include "util.hpp"
-#include "util_sync.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
+#include "jni_util/bson_util.hpp"
 #include "object-store/src/util/bson/bson.hpp"
 
 #include <realm/util/optional.hpp>
@@ -29,6 +29,7 @@
 #include <sync/sync_user.hpp>
 #include <sync/remote_mongo_database.hpp>
 #include <sync/remote_mongo_collection.hpp>
+#include <jni_util/bson_util.hpp>
 
 using namespace realm;
 using namespace realm::app;
@@ -57,8 +58,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv* e
                                                                        jobject j_callback) {
     try {
         RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-        // FIXME Are we sure that it is a BsonDocument?
-        bson::BsonDocument filter(jstring_to_bson(env, j_filter));
+        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
         uint64_t limit = std::uint64_t(j_limit);
         collection->count(filter, limit, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper));
     }

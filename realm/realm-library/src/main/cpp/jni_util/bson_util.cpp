@@ -14,24 +14,32 @@
  * limitations under the License.
  */
 
+#include <string>
 #include "util.hpp"
-#include "util_sync.hpp"
+#include "bson_util.hpp"
 
-// Must match OSJNIBsonProtocol.VALUE
+// Must match JniBsonProtocol.VALUE from Java
 static const std::string VALUE("value");
 
 using namespace realm::bson;
+using namespace realm::jni_util;
 
-Bson jstring_to_bson(JNIEnv* env, jstring arg) {
-    JStringAccessor args_json(env, arg);
-    BsonDocument document(parse(args_json));
+Bson JniBsonProtocol::string_to_bson(std::string arg) {
+    BsonDocument document(parse(arg));
     return document[VALUE];
 }
+Bson JniBsonProtocol::jstring_to_bson(JNIEnv* env, jstring arg) {
+    return string_to_bson(JStringAccessor(env, arg));
+}
 
-jstring bson_to_jstring(JNIEnv* env, Bson bson) {
+std::string JniBsonProtocol::bson_to_string(Bson bson) {
     BsonDocument document{{VALUE, bson}};
     std::stringstream buffer;
     buffer << document;
-    std::string r = buffer.str();
+    return buffer.str();
+}
+
+jstring JniBsonProtocol::bson_to_jstring(JNIEnv* env, Bson bson) {
+    std::string r = bson_to_string(bson);
     return to_jstring(env, r);
 };
