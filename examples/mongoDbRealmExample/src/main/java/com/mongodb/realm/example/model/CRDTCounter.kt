@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.examples.objectserver.model
+package com.mongodb.realm.example.model
 
 import io.realm.MutableRealmInteger
 import io.realm.RealmObject

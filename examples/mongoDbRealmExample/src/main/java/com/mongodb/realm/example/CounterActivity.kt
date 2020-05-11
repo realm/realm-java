@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver
+package com.mongodb.realm.example
 
 import android.content.Intent
 import android.graphics.PorterDuff
@@ -26,8 +26,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import io.realm.*
-import io.realm.examples.objectserver.databinding.ActivityCounterBinding
-import io.realm.examples.objectserver.model.CRDTCounter
+import com.mongodb.realm.example.model.CRDTCounter
+import com.mongodb.realm.example.databinding.ActivityCounterBinding
 import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.RealmLog

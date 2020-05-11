@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver
+package com.mongodb.realm.example
 
 import android.app.Application
-import android.util.Log
 
 import io.realm.Realm
 import io.realm.RealmApp
@@ -40,7 +39,7 @@ class MyApplication : Application() {
 
         // Enable more logging in debug mode
         if (BuildConfig.DEBUG) {
-            RealmLog.setLevel(LogLevel.ALL)
+            RealmLog.setLevel(LogLevel.DEBUG)
         }
     }
 }

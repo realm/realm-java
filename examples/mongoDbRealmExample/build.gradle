@@ -21,7 +21,7 @@ android {
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
-        applicationId 'io.realm.examples.objectserver'
+        applicationId 'com.mongodb.realm.example'
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion rootProject.minSdkVersion
         versionCode 1

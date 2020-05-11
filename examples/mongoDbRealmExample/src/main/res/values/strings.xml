@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Object Server Example</string>
+    <string name="app_name">MongoDB Realm Example</string>
     <string name="realm_logo">Realm Logo</string>
     <string name="username">Username</string>
     <string name="password">Password</string>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver
+package com.mongodb.realm.example
 
 import android.app.ProgressDialog
 import android.os.Bundle
@@ -23,9 +23,8 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import com.mongodb.realm.example.databinding.ActivityLoginBinding
 import io.realm.*
-import io.realm.examples.objectserver.databinding.ActivityLoginBinding
-import io.realm.kotlin.syncSession
 import io.realm.log.RealmLog
 
 class LoginActivity : AppCompatActivity() {
