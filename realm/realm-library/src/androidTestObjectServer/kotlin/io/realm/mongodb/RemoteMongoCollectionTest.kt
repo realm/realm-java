@@ -48,7 +48,7 @@ class RemoteMongoCollectionTest {
         app = TestRealmApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         client = user.getRemoteMongoClient(SERVICE_NAME)
-        database = client.getDatabase(DATABASE_NAME, RealmAppConfiguration.DEFAULT_CODEC_REGISTRY)
+        database = client.getDatabase(DATABASE_NAME, app.configuration.defaultCodecRegistry)
     }
 
     @After

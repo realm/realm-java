@@ -442,7 +442,7 @@ public class RealmUser {
      */
     public RemoteMongoClient getRemoteMongoClient(String serviceName) {
         if (remoteMongoClient == null) {
-            remoteMongoClient = new RemoteMongoClient(this, serviceName);
+            remoteMongoClient = new RemoteMongoClient(this, serviceName, app.getConfiguration().getDefaultCodecRegistry());
         }
         return remoteMongoClient;
     }

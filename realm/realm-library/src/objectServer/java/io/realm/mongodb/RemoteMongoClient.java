@@ -28,8 +28,10 @@ import io.realm.internal.objectstore.OsRemoteMongoClient;
 public class RemoteMongoClient {
 
     private OsRemoteMongoClient osRemoteMongoClient;
+    private CodecRegistry codecRegistry;
 
-    public RemoteMongoClient(RealmUser realmUser, String serviceName) {
+    public RemoteMongoClient(final RealmUser realmUser, final String serviceName, final CodecRegistry codecRegistry) {
+        this.codecRegistry = codecRegistry;
         Util.checkEmpty(serviceName, "serviceName");
         osRemoteMongoClient = new OsRemoteMongoClient(realmUser, serviceName);
     }
@@ -38,10 +40,9 @@ public class RemoteMongoClient {
      * Gets a {@link RemoteMongoDatabase} instance for the given database name.
      *
      * @param databaseName the name of the database to retrieve
-     * @param codecRegistry the registry used to specify with which classes the database can work
      * @return a {@code RemoteMongoDatabase} representing the specified database
      */
-    public RemoteMongoDatabase getDatabase(final String databaseName, final CodecRegistry codecRegistry) {
+    public RemoteMongoDatabase getDatabase(final String databaseName) {
         Util.checkEmpty(databaseName, "databaseName");
         return new RemoteMongoDatabase(osRemoteMongoClient.getRemoteDatabase(databaseName, codecRegistry), databaseName);
     }

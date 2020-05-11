@@ -85,8 +85,8 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
 
         // no filter means count all
         String filterString = filter == null ?
-                JniBsonProtocol.encode(new BsonDocument()) :
-                JniBsonProtocol.encode(filter.toBsonDocument(documentClass, codecRegistry));
+                JniBsonProtocol.encode(new BsonDocument(), codecRegistry) :
+                JniBsonProtocol.encode(filter.toBsonDocument(documentClass, codecRegistry), codecRegistry);
         int limit = options == null ? 0 : options.getLimit();
 
         nativeCount(nativePtr, filterString, limit, callback);
@@ -109,9 +109,9 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         String jsonDocument;
         if (document instanceof Document) {
             BsonDocument bsonDocument = ((Document) document).toBsonDocument(documentClass, codecRegistry);
-            jsonDocument = JniBsonProtocol.encode(bsonDocument);
+            jsonDocument = JniBsonProtocol.encode(bsonDocument, codecRegistry);
         } else {
-            jsonDocument = JniBsonProtocol.encode(new BsonDocument());
+            jsonDocument = JniBsonProtocol.encode(new BsonDocument(), codecRegistry);
         }
 
         nativeInsertOne(nativePtr, jsonDocument, callback);
@@ -143,11 +143,11 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             for (int i = 0; i < documentList.size(); i++) {
                 Document document = documentList.get(i);
                 BsonDocument bsonDocument = document.toBsonDocument(documentClass, codecRegistry);
-                documentArray[i] = JniBsonProtocol.encode(bsonDocument);
+                documentArray[i] = JniBsonProtocol.encode(bsonDocument, codecRegistry);
             }
         } else {
             for (int i = 0; i < documents.size(); i++) {
-                documentArray[i] = JniBsonProtocol.encode(new BsonDocument());
+                documentArray[i] = JniBsonProtocol.encode(new BsonDocument(), codecRegistry);
             }
         }
 
@@ -166,7 +166,8 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        String jsonDocument = JniBsonProtocol.encode(filter.toBsonDocument(documentClass, codecRegistry));
+        BsonDocument bsonFilter = filter.toBsonDocument(documentClass, codecRegistry);
+        String jsonDocument = JniBsonProtocol.encode(bsonFilter, codecRegistry);
 
         nativeDeleteOne(nativePtr, jsonDocument, callback);
 
@@ -183,7 +184,8 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        String jsonDocument = JniBsonProtocol.encode(filter.toBsonDocument(documentClass, codecRegistry));
+        BsonDocument bsonFilter = filter.toBsonDocument(documentClass, codecRegistry);
+        String jsonDocument = JniBsonProtocol.encode(bsonFilter, codecRegistry);
 
         nativeDeleteMany(nativePtr, jsonDocument, callback);
 

@@ -15,12 +15,12 @@
  */
 package io.realm;
 
-import org.json.JSONArray;
-
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.ResultHandler;
 import io.realm.internal.Util;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 
@@ -213,15 +213,12 @@ public class EmailPasswordAuth {
     public void callResetPasswordFunction(String email, String newPassword, Object... args) throws ObjectServerError {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(newPassword, "newPassword");
-        JSONArray array = new JSONArray();
-        for (Object arg : args) {
-            array.put((arg != null) ? arg.toString() : null);
-        }
+        String encodedArgs = JniBsonProtocol.encode(Arrays.asList(args), app.getConfiguration().getDefaultCodecRegistry());
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeCallFunction(TYPE_CALL_RESET_PASSWORD_FUNCTION,
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
-                email, newPassword, array.toString());
+                email, newPassword, encodedArgs);
         ResultHandler.handleResult(null, error);
     }
 

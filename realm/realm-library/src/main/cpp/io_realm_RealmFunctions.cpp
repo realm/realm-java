@@ -17,17 +17,18 @@
 #include "io_realm_RealmFunctions.h"
 
 #include "util.hpp"
-#include "util_sync.hpp"
+#include "jni_util/bson_util.hpp"
 
 using namespace realm;
+using namespace realm::jni_util;
 
 // FIXME This is just a basic round trip test for passing bson back and forth. Proper implementation
 //  will come with actual Function implementation.
 JNIEXPORT jstring JNICALL Java_io_realm_RealmFunctions_nativeCallFunction
         (JNIEnv* env, jclass, jstring j_args) {
     try {
-        bson::Bson bson = jstring_to_bson(env, j_args);
-        return bson_to_jstring(env, bson);
+        bson::Bson bson = JniBsonProtocol::jstring_to_bson(env, j_args);
+        return JniBsonProtocol::bson_to_jstring(env, bson);
     }
     CATCH_STD()
     return NULL;

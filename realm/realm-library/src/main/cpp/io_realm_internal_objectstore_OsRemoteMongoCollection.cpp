@@ -19,9 +19,9 @@
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
 #include "util.hpp"
-#include "util_sync.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
+#include "jni_util/bson_util.hpp"
 #include "object-store/src/util/bson/bson.hpp"
 
 #include <realm/util/optional.hpp>
@@ -29,6 +29,7 @@
 #include <sync/sync_user.hpp>
 #include <sync/remote_mongo_database.hpp>
 #include <sync/remote_mongo_collection.hpp>
+#include <jni_util/bson_util.hpp>
 
 using namespace realm;
 using namespace realm::app;
@@ -75,8 +76,8 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv* e
                                                                        jobject j_callback) {
     try {
         RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+        bson::BsonDocument bson_filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
         uint64_t limit = std::uint64_t(j_limit);
-        bson::BsonDocument bson_filter(jstring_to_bson(env, j_filter));
         collection->count(bson_filter, limit, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
     }
     CATCH_STD()
@@ -90,7 +91,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeInsertOne(JNIEn
                                                                            jobject j_callback) {
     try {
         RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-        bson::BsonDocument bson_filter(jstring_to_bson(env, j_document));
+        bson::BsonDocument bson_filter(JniBsonProtocol::jstring_to_bson(env, j_document));
         collection->insert_one(bson_filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_insert_one));
     }
     CATCH_STD()
@@ -103,9 +104,20 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeInsertMany(JNIE
                                                                            jobject j_callback,
                                                                            jobjectArray j_documents) {
     try {
+//        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+//        JObjectArrayAccessor<JStringAccessor, jstring> documents(env, j_documents);
+//        bson::BsonArray bson_array(JniBsonProtocol::jobjectarray_to_bsonarray(env, documents));
+//        collection->insert_many(bson_array, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_insert_many));
         RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
         JObjectArrayAccessor<JStringAccessor, jstring> documents(env, j_documents);
-        BsonArray bson_array = jobjectarray_to_bsonarray(documents);
+
+        uint32_t size = std::uint32_t(documents.size());
+        std::vector<std::string> document_array(size);
+        for (uint32_t i = 0; i < size; i++) {
+            document_array[i] =  documents[i];
+        }
+
+        bson::BsonArray bson_array(JniBsonProtocol::stringarray_to_bsonarray(document_array));
         collection->insert_many(bson_array, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_insert_many));
     }
     CATCH_STD()
@@ -119,7 +131,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeDeleteOne(JNIEn
                                                                            jobject j_callback) {
     try {
         RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-        bson::BsonDocument bson_filter(jstring_to_bson(env, j_document));
+        bson::BsonDocument bson_filter(JniBsonProtocol::jstring_to_bson(env, j_document));
         collection->delete_one(bson_filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
     }
     CATCH_STD()
@@ -133,7 +145,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeDeleteMany(JNIE
                                                                            jobject j_callback) {
     try {
         RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-        bson::BsonDocument bson_filter(jstring_to_bson(env, j_document));
+        bson::BsonDocument bson_filter(JniBsonProtocol::jstring_to_bson(env, j_document));
         collection->delete_many(bson_filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
     }
     CATCH_STD()
