@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver
+package com.mongodb.realm.example
 
 import android.app.ProgressDialog
-import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import io.realm.ErrorCode
-import io.realm.ObjectServerError
-import io.realm.SyncCredentials
-import io.realm.SyncUser
-import io.realm.examples.objectserver.databinding.ActivityLoginBinding
+import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
+import com.mongodb.realm.example.databinding.ActivityLoginBinding
+import io.realm.*
+import io.realm.log.RealmLog
 
 class LoginActivity : AppCompatActivity() {
 
@@ -67,25 +65,28 @@ class LoginActivity : AppCompatActivity() {
         val username = this.username.text.toString()
         val password = this.password.text.toString()
 
-        val creds = SyncCredentials.usernamePassword(username, password, createUser)
-        val callback = object : SyncUser.Callback<SyncUser> {
-            override fun onSuccess(user: SyncUser) {
-                progressDialog.dismiss()
-                onLoginSuccess()
-            }
 
-            override fun onError(error: ObjectServerError) {
+        if (createUser) {
+            APP.emailPasswordAuth.registerUserAsync(username, password) {
                 progressDialog.dismiss()
-                val errorMsg: String = when (error.errorCode) {
-                    ErrorCode.UNKNOWN_ACCOUNT -> getString(R.string.login_error_unknown_account)
-                    ErrorCode.INVALID_CREDENTIALS -> getString(R.string.login_error_invalid_credentials)
-                    else -> error.toString()
+                binding.buttonCreate.isEnabled = true
+                binding.buttonLogin.isEnabled = true
+                if (!it.isSuccess) {
+                    onLoginFailed("Could not register user. Check Logcat")
                 }
-                onLoginFailed(errorMsg)
+            }
+        } else {
+            val creds = RealmCredentials.emailPassword(username, password)
+            APP.loginAsync(creds) {
+                progressDialog.dismiss()
+                if (!it.isSuccess) {
+                    RealmLog.error(it.error.toString())
+                    onLoginFailed(it.error.message ?: "An error occurred. Check Logcat")
+                } else {
+                    onLoginSuccess()
+                }
             }
         }
-
-        SyncUser.logInAsync(creds, BuildConfig.REALM_AUTH_URL, callback)
     }
 
     override fun onBackPressed() {

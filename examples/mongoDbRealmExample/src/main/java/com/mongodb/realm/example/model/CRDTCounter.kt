@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.examples.objectserver.model
+package com.mongodb.realm.example.model
 
 import io.realm.MutableRealmInteger
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
+import io.realm.annotations.RealmField
 import io.realm.annotations.Required
+import org.bson.types.ObjectId
 
 open class CRDTCounter : RealmObject() {
 
     @PrimaryKey
-    var name: String = ""
-
+    @RealmField("_id")
+    var id: ObjectId = ObjectId.get()
     @Required
-    private val counter = MutableRealmInteger.valueOf(0L)
+    private val counter: MutableRealmInteger = MutableRealmInteger.valueOf(0L)
 
     val count: Long
         get() = this.counter.get()!!.toLong()

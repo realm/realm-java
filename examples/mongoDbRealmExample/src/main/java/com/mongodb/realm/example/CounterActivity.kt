@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package io.realm.examples.objectserver
+package com.mongodb.realm.example
 
 import android.content.Intent
-import android.databinding.DataBindingUtil
 import android.graphics.PorterDuff
 import android.os.Bundle
-import android.support.annotation.ColorRes
-import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import io.realm.*
-import io.realm.examples.objectserver.databinding.ActivityCounterBinding
-import io.realm.examples.objectserver.model.CRDTCounter
-import io.realm.kotlin.createObject
+import com.mongodb.realm.example.model.CRDTCounter
+import com.mongodb.realm.example.databinding.ActivityCounterBinding
 import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.RealmLog
@@ -54,20 +52,20 @@ class CounterActivity : AppCompatActivity() {
     private val downloadingChanges = AtomicBoolean(false)
     private val uploadingChanges = AtomicBoolean(false)
 
-    private lateinit var realm: Realm
+    private var realm: Realm? = null
     private lateinit var session: SyncSession
-    private var user: SyncUser? = null
+    private var user: RealmUser? = null
 
     private lateinit var counterView: TextView
     private lateinit var progressBar: MaterialProgressBar
-    private lateinit var counters: RealmResults<CRDTCounter> // Keep strong reference to counter to keep change listeners alive.
+    private lateinit var counter: CRDTCounter // Keep strong reference to counter to keep change listeners alive.
 
-    private val loggedInUser: SyncUser?
+    private val loggedInUser: RealmUser?
         get() {
-            var user: SyncUser? = null
+            var user: RealmUser? = null
 
             try {
-                user = SyncUser.current()
+                user = APP.currentUser()
             } catch (e: IllegalStateException) {
                 RealmLog.warn(e);
             }
@@ -95,30 +93,42 @@ class CounterActivity : AppCompatActivity() {
         val user = user
         if (user != null) {
             // Create a RealmConfiguration for our user
-            val config = user.createConfiguration(BuildConfig.REALM_URL)
-                    .initialData { realm -> realm.createObject<CRDTCounter>(user.identity) }
+            // Use user id as partition value, so each user gets an unique view.
+            // FIXME Right now we are using waitForInitialRemoteData and a more advanced
+            // initialData block due to Sync only supporting ObjectId keys. This should
+            // be changed once natural keys are supported.
+            val config = SyncConfiguration.Builder(user, user.id)
+                    .initialData {
+                        if (it.isEmpty) {
+                            it.insert(CRDTCounter())
+                        }
+                    }
+                    .waitForInitialRemoteData()
                     .build()
 
             // This will automatically sync all changes in the background for as long as the Realm is open
-            realm = Realm.getInstance(config)
+            Realm.getInstanceAsync(config, object: Realm.Callback() {
+                override fun onSuccess(realm: Realm) {
+                    this@CounterActivity.realm = realm
 
-            counterView.text = "-"
-            counters = realm.where<CRDTCounter>().equalTo("name", user.identity).findAllAsync()
-            counters.addChangeListener { counters, _ ->
-                if (counters.isValid && !counters.isEmpty()) {
-                    val counter = counters.first()
-                    counterView.text = String.format(Locale.US, "%d", counter!!.count)
-                } else {
-                    counterView.text = "-"
+                    counter = realm.where<CRDTCounter>().findFirstAsync()
+                    counter.addChangeListener<CRDTCounter> { obj, _ ->
+                        if (obj.isValid) {
+                            counterView.text = String.format(Locale.US, "%d", counter.count)
+                        } else {
+                            counterView.text = "-"
+                        }
+                    }
+
+                    // Setup progress listeners for indeterminate progress bars
+                    session = realm.syncSession
+                    session.run {
+                        addDownloadProgressListener(ProgressMode.INDEFINITELY, downloadListener)
+                        addUploadProgressListener(ProgressMode.INDEFINITELY, uploadListener)
+                    }
                 }
-            }
-
-            // Setup progress listeners for indeterminate progress bars
-            session = realm.syncSession
-            session.run {
-                addDownloadProgressListener(ProgressMode.INDEFINITELY, downloadListener)
-                addUploadProgressListener(ProgressMode.INDEFINITELY, uploadListener)
-            }
+            })
+            counterView.text = "-"
         }
     }
 
@@ -129,7 +139,7 @@ class CounterActivity : AppCompatActivity() {
                 removeProgressListener(downloadListener)
                 removeProgressListener(uploadListener)
             }
-            realm.close()
+            realm?.close()
         }
     }
 
@@ -141,21 +151,23 @@ class CounterActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
-                realm.close()
                 val user = user
-                if (user != null) {
-                    user.logOut()
-                    this.user = loggedInUser
+                user?.logOutAsync {
+                    if (it.isSuccess) {
+                        realm?.close()
+                        this.user = loggedInUser
+                    } else {
+                        RealmLog.error(it.error.toString())
+                    }
                 }
                 true
             }
-
             else -> super.onOptionsItemSelected(item)
         }
     }
 
     private fun updateProgressBar(downloading: Boolean, uploading: Boolean) {
-        @ColorRes val color = when {
+        val color = when {
             downloading && uploading -> R.color.progress_both
             downloading -> R.color.progress_download
             uploading -> R.color.progress_upload
@@ -168,7 +180,7 @@ class CounterActivity : AppCompatActivity() {
     private fun adjustCounter(adjustment: Int) {
         // A synchronized Realm can get written to at any point in time, so doing synchronous writes on the UI
         // thread is HIGHLY discouraged as it might block longer than intended. Use only async transactions.
-        realm.executeTransactionAsync { realm ->
+        realm?.executeTransactionAsync { realm ->
             val counter = realm.where<CRDTCounter>().findFirst()
             counter?.incrementCounter(adjustment.toLong())
         }
