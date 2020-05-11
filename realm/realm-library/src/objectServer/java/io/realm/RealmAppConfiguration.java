@@ -18,7 +18,9 @@ package io.realm;
 import android.content.Context;
 
 import org.bson.codecs.BsonValueCodecProvider;
+import org.bson.codecs.DocumentCodecProvider;
 import org.bson.codecs.IterableCodecProvider;
+import org.bson.codecs.MapCodecProvider;
 import org.bson.codecs.ValueCodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -199,7 +201,10 @@ public class RealmAppConfiguration {
                         // For BSONValue support
                         new BsonValueCodecProvider(),
                         // For list support
-                        new IterableCodecProvider()
+                        new IterableCodecProvider(),
+                        // For Map-style document support
+                        new MapCodecProvider(),
+                        new DocumentCodecProvider()
                 )
         );
 

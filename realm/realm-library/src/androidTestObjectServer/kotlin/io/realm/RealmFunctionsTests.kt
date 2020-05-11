@@ -113,7 +113,14 @@ class RealmFunctionsTests {
                     assertTypedEcho(BsonDecimal128(Decimal128(32L)), BsonDecimal128::class.java)
                 }
                 // TODO
-                BsonType.DOCUMENT,
+                BsonType.DOCUMENT -> {
+                    val map = mapOf("foo" to 5, "bar" to 7)
+                    val document = Document(map)
+                    assertEquals(map, functions.callFunction("echo", listOf(map), Map::class.java))
+                    assertEquals(map, functions.callFunction("echo", listOf(document), Map::class.java))
+                    assertEquals(document, functions.callFunction("echo", listOf(map), Document::class.java))
+                    assertEquals(document, functions.callFunction("echo", listOf(document), Document::class.java))
+                }
                 BsonType.UNDEFINED,
                 BsonType.DATE_TIME,
                 BsonType.NULL,
