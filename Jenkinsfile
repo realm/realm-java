@@ -1,5 +1,7 @@
 #!groovy
 
+@Library('realm-ci') _
+
 import groovy.json.JsonOutput
 
 def buildSuccess = false
@@ -39,26 +41,29 @@ try {
           // Run in debug more for better error reporting
         }
 
-        // Prepare Docker images
-        // FIXME: Had issues moving these into a seperate Stage step. Is this needed?
-        buildEnv = docker.build 'realm-java:snapshot'
-        def props = readProperties file: 'dependencies.list'
-        echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
-        def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
-        docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
-          mdbRealmImage.pull()
-        }
-        def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
-
         try {
-          // Prepare Docker containers used by Instrumentation tests
-          // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
-          sh "docker network create ${dockerNetworkId}"
-          mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
-          mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
-          sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
-          sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
-          sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
+
+          def buildEnv = null
+          stage('Prepare Docker Images') {
+            buildEnv = buildDockerEnv("ci/realm-java:v10", push: env.BRANCH_NAME == 'v10') // TODO Should be renamed to 'master' when merged there.
+            def props = readProperties file: 'dependencies.list'
+            echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
+            def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
+            docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
+              mdbRealmImage.pull()
+            }
+            def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
+
+            // Prepare Docker containers used by Instrumentation tests
+            // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
+            sh "docker network create ${dockerNetworkId}"
+            mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
+            mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
+            sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
+            sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
+            sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
+          }
+
 
           buildEnv.inside("-e HOME=/tmp " +
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
@@ -94,7 +99,6 @@ try {
                   storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
                 }
               }
-
 
               stage('Static code analysis') {
                 try {
@@ -153,10 +157,13 @@ try {
             }
           }
         } finally {
-          archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
-          mongoDbRealmContainer.stop()
-          mongoDbRealmCommandServerContainer.stop()
-          sh "docker network rm ${dockerNetworkId}"
+          // We assume that creating these containers and the docker network can be considered an atomic operation.
+          if (mongoDbRealmContainer != null && mongoDbRealmCommandServerContainer != null) {
+            archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
+            mongoDbRealmContainer.stop()
+            mongoDbRealmCommandServerContainer.stop()
+            sh "docker network rm ${dockerNetworkId}"
+          }
         }
       }
     }
