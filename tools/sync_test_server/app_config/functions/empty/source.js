@@ -1,0 +1,1 @@
+exports = function(arg){};

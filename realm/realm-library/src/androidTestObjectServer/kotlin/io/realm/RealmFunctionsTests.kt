@@ -20,18 +20,34 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
 import org.bson.*
+import org.bson.codecs.StringCodec
+import org.bson.codecs.configuration.CodecConfigurationException
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.pojo.PojoCodecProvider
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.After
+import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.Instant
+import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
 class RealmFunctionsTests {
+
+    companion object {
+        const val FIRST_ARG_FUNCTION = "firstArg"
+    }
+
+    // Pojo class for testing custom encoder/decoder
+    data class Dog(var name: String? = null)
+
     private val looperThread = BlockingLooperThread()
 
     private lateinit var app: TestRealmApp
@@ -40,13 +56,24 @@ class RealmFunctionsTests {
     private lateinit var anonUser: RealmUser
     private lateinit var admin: ServerAdmin
 
+    // Custom registry with support for encoding/decoding Dogs
+    val pojoRegistry by lazy {
+        CodecRegistries.fromRegistries(
+                app.configuration.defaultCodecRegistry,
+                CodecRegistries.fromProviders(
+                        PojoCodecProvider.builder()
+                                .register(Dog::class.java)
+                                .build()
+                )
+        )
+    }
+
     @Before
     fun setup() {
         app = TestRealmApp()
         admin = ServerAdmin()
         anonUser = app.login(RealmCredentials.anonymous())
-
-        functions = RealmFunctions(anonUser, app.configuration.defaultCodecRegistry)
+        functions = anonUser.functions
     }
 
     @After
@@ -56,7 +83,8 @@ class RealmFunctionsTests {
         }
     }
 
-    // Test of BSON JNI round trip until superseded with actual public api tests are added.
+    // Tests
+    // - Default codec factory
     @Test
     fun jniRoundTripForDefaultCodecRegistry() {
         val i32 = 42
@@ -65,24 +93,23 @@ class RealmFunctionsTests {
         for (type in BsonType.values()) {
             when (type) {
                 BsonType.DOUBLE -> {
-                    assertEquals(1.4f, functions.callFunction("echo", listOf(1.4f), java.lang.Float::class.java).toFloat())
-                    assertEquals(1.4, functions.callFunction("echo", listOf(1.4f), java.lang.Double::class.java).toDouble())
-                    assertTypedEcho(BsonDouble(1.4), BsonDouble::class.java)
+                    assertEquals(1.4f, functions.callFunction(FIRST_ARG_FUNCTION, listOf(1.4f), java.lang.Float::class.java).toFloat())
+                    assertEquals(1.4, functions.callFunction(FIRST_ARG_FUNCTION, listOf(1.4f), java.lang.Double::class.java).toDouble())
+                    assertTypeOfFirstArgFunction(BsonDouble(1.4), BsonDouble::class.java)
                 }
                 BsonType.STRING -> {
-                    assertTypedEcho("Realm", String::class.java)
-                    assertTypedEcho(BsonString("Realm"), BsonString::class.java)
+                    assertTypeOfFirstArgFunction("Realm", String::class.java)
+                    assertTypeOfFirstArgFunction(BsonString("Realm"), BsonString::class.java)
                 }
-                // FIXME Does not seem to work, typically this has indicated an issue with C++ parser
-//                BsonType.ARRAY -> {
-//                    val listValues = listOf<Any>(true, i32, i64)
-//                    assertTypedEcho(listValues, List::class.java)
-//                    assertEquals(true, functions.callFunction("echo", listOf(true, i32, i64), java.lang.Boolean::class.java).booleanValue())
-//                }
-                // FIXME Does not seem to work, typically this has indicated an issue with C++ parser
+                BsonType.ARRAY -> {
+                    val listValues = listOf<Any>(true, i32, i64)
+                    assertEquals(listValues[0], functions.callFunction(FIRST_ARG_FUNCTION, listValues, java.lang.Boolean::class.java))
+                }
+                // FIXME Does not seem to work, typically this has indicated an issue with C++
+                //  parser. Probably because of embedding an array in an array, added explicit test
 //                BsonType.BINARY -> {
 //                    val value = byteArrayOf(1, 2, 3)
-//                    val actual = functions.callFunction("echo", listOf(value), ByteArray::class.java)
+//                    val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), ByteArray::class.java)
 //                    assertEquals(value.toList(), actual.toList())
 //                    // FIXME C++ Does not seem to preserve subtype
 //                    // arg      = "{"value": {"$binary": {"base64": "JmS8oQitTny4IPS2tyjmdA==", "subType": "04"}}}"
@@ -91,38 +118,40 @@ class RealmFunctionsTests {
 //                    assertTypedEcho(BsonBinary(byteArrayOf(1,2,3)), BsonBinary::class.java)
 //                }
                 BsonType.OBJECT_ID -> {
-                    assertTypedEcho(ObjectId(), ObjectId::class.java)
-                    assertTypedEcho(BsonObjectId(ObjectId()), BsonObjectId::class.java)
+                    assertTypeOfFirstArgFunction(ObjectId(), ObjectId::class.java)
+                    assertTypeOfFirstArgFunction(BsonObjectId(ObjectId()), BsonObjectId::class.java)
                 }
                 BsonType.BOOLEAN -> {
-                    assertEquals(true, functions.callFunction("echo", listOf(true), java.lang.Boolean::class.java).booleanValue())
-                    assertTypedEcho(BsonBoolean(true), BsonBoolean::class.java)
+                    assertEquals(true, functions.callFunction(FIRST_ARG_FUNCTION, listOf(true), java.lang.Boolean::class.java).booleanValue())
+                    assertTypeOfFirstArgFunction(BsonBoolean(true), BsonBoolean::class.java)
                 }
                 BsonType.INT32 -> {
-                    assertEquals(32, functions.callFunction("echo", listOf(32), Integer::class.java).toInt())
-                    assertEquals(32, functions.callFunction("echo", listOf(32L), Integer::class.java).toInt())
-                    assertTypedEcho(BsonInt32(32), BsonInt32::class.java)
+                    assertEquals(32, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), Integer::class.java).toInt())
+                    assertEquals(32, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32L), Integer::class.java).toInt())
+                    assertTypeOfFirstArgFunction(BsonInt32(32), BsonInt32::class.java)
                 }
                 BsonType.INT64 -> {
-                    assertEquals(32L, functions.callFunction("echo", listOf(32L), java.lang.Long::class.java).toLong())
-                    assertEquals(32L, functions.callFunction("echo", listOf(32), java.lang.Long::class.java).toLong())
-                    assertTypedEcho(BsonInt64(32), BsonInt64::class.java)
+                    assertEquals(32L, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32L), java.lang.Long::class.java).toLong())
+                    assertEquals(32L, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), java.lang.Long::class.java).toLong())
+                    assertTypeOfFirstArgFunction(BsonInt64(32), BsonInt64::class.java)
                 }
                 BsonType.DECIMAL128 -> {
-                    assertTypedEcho(Decimal128(32L), Decimal128::class.java)
-                    assertTypedEcho(BsonDecimal128(Decimal128(32L)), BsonDecimal128::class.java)
+                    assertTypeOfFirstArgFunction(Decimal128(32L), Decimal128::class.java)
+                    assertTypeOfFirstArgFunction(BsonDecimal128(Decimal128(32L)), BsonDecimal128::class.java)
                 }
-                // TODO
                 BsonType.DOCUMENT -> {
                     val map = mapOf("foo" to 5, "bar" to 7)
                     val document = Document(map)
-                    assertEquals(map, functions.callFunction("echo", listOf(map), Map::class.java))
-                    assertEquals(map, functions.callFunction("echo", listOf(document), Map::class.java))
-                    assertEquals(document, functions.callFunction("echo", listOf(map), Document::class.java))
-                    assertEquals(document, functions.callFunction("echo", listOf(document), Document::class.java))
+                    assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Map::class.java))
+                    assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(document), Map::class.java))
+                    assertEquals(document, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Document::class.java))
+                    assertEquals(document, functions.callFunction(FIRST_ARG_FUNCTION, listOf(document), Document::class.java))
+                }
+                BsonType.DATE_TIME -> {
+                    val now = Date(Instant.now().toEpochMilli())
+                    assertEquals(now, functions.callFunction(FIRST_ARG_FUNCTION, listOf(now), Date::class.java))
                 }
                 BsonType.UNDEFINED,
-                BsonType.DATE_TIME,
                 BsonType.NULL,
                 BsonType.REGULAR_EXPRESSION,
                 BsonType.SYMBOL,
@@ -133,47 +162,205 @@ class RealmFunctionsTests {
                 BsonType.END_OF_DOCUMENT,
                 BsonType.MIN_KEY,
                 BsonType.MAX_KEY -> {
-                    // No conversion is implemented for these types yet
+                    // Relying on org.bson codec providers for conversion, so skipping explicit
+                    // tests for these more exotic types
                 }
             }
         }
     }
 
-    private fun <T : Any> assertTypedEcho(value: T, returnClass: Class<T>) : T {
-        val actual = functions.callFunction("echo", listOf(value), returnClass)
+    private fun <T : Any> assertTypeOfFirstArgFunction(value: T, returnClass: Class<T>) : T {
+        val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), returnClass)
         assertEquals(value, actual)
         return actual
     }
 
-    // Test of BSON JNI round trip until superseded with actual public api tests are added.
-    // Tests:
-    // - Local codecRegistry
-    data class Dog(var name: String? = null)
     @Test
-    fun pojoCodecRegistry() {
-        val pojoRegistry = CodecRegistries.fromRegistries(
-                app.configuration.defaultCodecRegistry,
-                CodecRegistries.fromProviders(
-                        PojoCodecProvider.builder()
-                                .register(Dog::class.java)
-                                .build()
-                )
-        )
-
-        val input = Dog("PojoFido")
-
-        val actual: Dog = functions.callFunction("echo", listOf(input), Dog::class.java, pojoRegistry)
-
-        assertEquals(input, actual)
+    fun asyncCallFunction() = looperThread.runBlocking {
+        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(32), Integer::class.java) { result ->
+            if (result.isSuccess) {
+                assertEquals(32, result.get().toInt())
+            } else  {
+                fail()
+            }
+            looperThread.testComplete()
+        }
     }
 
-    // FIXME Remaining tests
-    //  - Default App codec registry
-    //  - Function specific codec registry
-    //  - Argument codec registry
-    //  - Argument encoder/decoder
-    //  - Codec conversion error
-    //  - Unknown function
-    //  - Unauthorized access
+
+    @Test
+    fun codecArgumentFailure() {
+        val input = Dog("PojoFido")
+        assertFailsWith<CodecConfigurationException> {
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java)
+        }
+    }
+
+    @Test
+    fun asyncCodecArgumentFailure() = looperThread.runBlocking {
+        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Integer::class.java) { result ->
+            if (result.isSuccess) {
+                fail()
+            } else  {
+                assertTrue(result.error.exception is CodecConfigurationException)
+            }
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun codecResponseFailure() {
+        assertFailsWith<CodecConfigurationException> {
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), Dog::class.java)
+        }
+    }
+
+    @Test
+    fun asyncCodecResponseFailure() = looperThread.runBlocking {
+        val input = Dog("PojoFido")
+        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Integer::class.java) { result ->
+            if (result.isSuccess) {
+                fail()
+            } else  {
+                assertTrue(result.error.exception is CodecConfigurationException)
+            }
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun localCodecRegistry() {
+        val input = Dog("PojoFido")
+        assertEquals(input, functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java, pojoRegistry))
+    }
+
+    @Test
+    fun asyncLocalCodecRegistry() = looperThread.runBlocking {
+        val input = Dog("PojoFido")
+        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java, pojoRegistry) { result ->
+            if (result.isSuccess) {
+                assertEquals(input, result.get())
+            } else  {
+                fail()
+            }
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun instanceCodecRegistry() {
+        val input = Dog("PojoFido")
+        val functionsWithCodecRegistry = anonUser.getFunctions(pojoRegistry)
+        assertEquals(input, functionsWithCodecRegistry.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java))
+    }
+
+    @Test
+    fun unknownFunction() {
+        assertFailsWith<ObjectServerError> {
+            functions.callFunction("unknown", listOf(32), Dog::class.java)
+        }
+    }
+
+    @Test
+    fun asyncUnknownFunction() = looperThread.runBlocking {
+        val input = Dog("PojoFido")
+        functions.callFunctionAsync("unknown", listOf(input), Dog::class.java, pojoRegistry) { result ->
+            if (result.isSuccess) {
+                fail()
+            } else  {
+                // FIXME How verify exact error. NativeErrorIntValue? Or error message?
+                assertTrue(result.error is ObjectServerError)
+            }
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun asyncNonLoopers() {
+        assertFailsWith<IllegalStateException> {
+            functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(32), Integer::class.java, pojoRegistry) { result ->
+                fail()
+            }
+        }
+    }
+
+    @Test
+    fun callFunction_sum() {
+        val numbers = listOf(1, 2, 3, 4)
+        assertEquals(10, functions.callFunction("sum", numbers, Integer::class.java).toInt())
+    }
+
+    @Test
+    fun callFunction_remoteError() {
+        assertFailsWith<ObjectServerError> {
+            // FIXME Do we need to assert more about the error
+            functions.callFunction("error", emptyList<Any>(), String::class.java)
+        }
+    }
+
+    @Test
+    fun callFunction_null() {
+        assertTrue(functions.callFunction("null", emptyList<Any>(), BsonNull::class.java).isNull)
+    }
+
+    @Test
+    fun callFunction_empty() {
+        assertEquals(BsonType.UNDEFINED, functions.callFunction("empty", emptyList<Any>(), BsonUndefined::class.java).bsonType)
+    }
+
+    // FIXME Do we need to test connectivity issues
+
+    @Test
+    fun defaultCodecRegistry() {
+        // TODO Maybe we should test that setting configuration specific would propagate all the way
+        //  to here, but we do not have infrastructure to easily override TestRealmApp coniguration,
+        //  and actual configuration is verified in RealmAppConfigurationTests
+        assertEquals(app.configuration.defaultCodecRegistry, functions.defaultCodecRegistry)
+    }
+
+    @Test
+    fun customCodecRegistry() {
+        val configCodecRegistry = CodecRegistries.fromCodecs(StringCodec())
+        val customCodecRegistryFunctions = anonUser.getFunctions(configCodecRegistry)
+        assertEquals(configCodecRegistry, customCodecRegistryFunctions.defaultCodecRegistry)
+    }
+
+    @Test
+    // FIXME JNI Parsing crashes
+    @Ignore("JNI parsing crashes tests")
+    fun jniParseErrorArrayOfArrayDifferentTypes() {
+        // Just to show case that the format of the test is as expected
+        val valueOk = listOf(1, 2, 3)
+        assertEquals(valueOk, functions.callFunction(FIRST_ARG_FUNCTION, listOf(valueOk), List::class.java))
+
+        // Actual failing call
+        // {"value": [[{"$numberInt": "1"}, true, {"$numberInt": "3"}]]}
+        val value = listOf(1, true, 3)
+        assertEquals(value, functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), List::class.java))
+    }
+    @Test
+    // FIXME JNI Parsing only returns part of array
+    fun jniParseErrorArrayOfArray() {
+        // {"value": [[{"$numberInt": "2"}, "Realm", {"$numberInt": "3"}]]}
+        val value = listOf(2, "Realm", 3)
+        assertEquals(value, functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), List::class.java))
+    }
+
+    @Test
+    // FIXME JNI Parsing crashes
+    @Ignore("JNI parsing crashes tests")
+    fun jniParseErrorArrayOfDocuments() {
+        val value = listOf(Document(), Document())
+        assertEquals(value[0], functions.callFunction(FIRST_ARG_FUNCTION, value, Document::class.java))
+    }
+
+    @Test
+    @Ignore("JNI parsing crashes tests")
+    fun jniParseErrorArrayOfBinary() {
+        val value = byteArrayOf(1, 2, 3)
+        val listOf = listOf(value)
+        val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf, ByteArray::class.java)
+        assertEquals(value.toList(), actual.toList())
+    }
 
 }

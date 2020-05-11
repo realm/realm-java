@@ -44,7 +44,6 @@ Java_io_realm_RealmFunctions_nativeCallFunction(JNIEnv* env, jclass , jlong j_ap
         std::function<void(Optional<bson::Bson>, Optional<app::AppError>)> callback;
         callback = JavaNetworkTransport::create_result_callback(env, j_callback, response_mapper);
 
-        // FIXME Seems like we need to swap the arguments!??! Maybe align conventions
         auto handler = [callback](Optional<app::AppError> error, Optional<bson::Bson> response) {
             callback(response, error);
         };
