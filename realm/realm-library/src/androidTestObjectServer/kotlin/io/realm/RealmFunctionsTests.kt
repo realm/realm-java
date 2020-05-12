@@ -239,6 +239,26 @@ class RealmFunctionsTests {
     }
 
     @Test
+    fun codecBsonFailure() {
+        assertFailsWith<BSONException> {
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), String::class.java)
+        }
+    }
+
+    @Test
+    fun asyncCodecBsonFailure() = looperThread.runBlocking {
+        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(32), String::class.java) { result ->
+            if (result.isSuccess) {
+                fail()
+            } else  {
+                assertTrue(result.error.exception is BSONException)
+            }
+            looperThread.testComplete()
+        }
+    }
+
+
+    @Test
     fun localCodecRegistry() {
         val input = Dog("PojoFido")
         assertEquals(input, functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java, pojoRegistry))
