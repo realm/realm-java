@@ -25,12 +25,13 @@ using namespace realm;
 using namespace realm::app;
 using namespace realm::jni_util;
 
-static std::function<jobject(JNIEnv*, Optional<bson::Bson> )> response_mapper = [](JNIEnv* env, Optional<bson::Bson> response) {
+static std::function<jobject(JNIEnv*, Optional<bson::Bson> )> success_mapper = [](JNIEnv* env, Optional<bson::Bson> response) {
     if (response) {
         return JniBsonProtocol::bson_to_jstring(env, *response);
     } else {
-        // FIXME How to raise errors here
-        return to_jstring(env, "{}");
+        // We should never reach here, as this is the success mapper and we would not end up here
+        // if we did not received a parsable BSON response
+        throw std::logic_error("Function did not return a result");
     }
 };
 
@@ -41,8 +42,7 @@ Java_io_realm_RealmFunctions_nativeCallFunction(JNIEnv* env, jclass , jlong j_ap
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
 
-        std::function<void(Optional<bson::Bson>, Optional<app::AppError>)> callback;
-        callback = JavaNetworkTransport::create_result_callback(env, j_callback, response_mapper);
+        std::function<void(Optional<bson::Bson>, Optional<app::AppError>)> callback = JavaNetworkTransport::create_result_callback(env, j_callback, success_mapper);
 
         auto handler = [callback](Optional<app::AppError> error, Optional<bson::Bson> response) {
             callback(response, error);

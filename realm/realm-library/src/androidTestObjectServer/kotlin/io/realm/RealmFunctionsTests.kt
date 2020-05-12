@@ -128,7 +128,7 @@ class RealmFunctionsTests {
                     assertTypeOfFirstArgFunction(BsonObjectId(ObjectId()), BsonObjectId::class.java)
                 }
                 BsonType.BOOLEAN -> {
-                    assertEquals(true, functions.callFunction(FIRST_ARG_FUNCTION, listOf(true), java.lang.Boolean::class.java).booleanValue())
+                    assertTrue(functions.callFunction(FIRST_ARG_FUNCTION, listOf(true), java.lang.Boolean::class.java).booleanValue())
                     assertTypeOfFirstArgFunction(BsonBoolean(true), BsonBoolean::class.java)
                 }
                 BsonType.INT32 -> {
@@ -318,7 +318,15 @@ class RealmFunctionsTests {
         assertEquals(BsonType.UNDEFINED, functions.callFunction("empty", emptyList<Any>(), BsonUndefined::class.java).bsonType)
     }
 
-    // FIXME Do we need to test connectivity issues
+    @Test
+    fun getApp() {
+        assertEquals(app, functions.app)
+    }
+
+    @Test
+    fun getUser() {
+        assertEquals(anonUser, functions.user)
+    }
 
     @Test
     fun defaultCodecRegistry() {

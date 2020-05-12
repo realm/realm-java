@@ -81,7 +81,6 @@ try {
                   }
                 } finally {
                   storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-                  storeJunitResults 'realm/realm-library/build/test-results/*/TEST-*.xml'
                   storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
                   storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
                   step([$class: 'LintPublisher'])
