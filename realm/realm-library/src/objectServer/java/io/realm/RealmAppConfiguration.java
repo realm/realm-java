@@ -46,6 +46,31 @@ import io.realm.log.RealmLog;
  */
 public class RealmAppConfiguration {
 
+    /**
+     * Default BSON codec registry for encoding/decoding arguments and results to/from MongoDB Realm backend.
+     *
+     * @see RealmAppConfiguration#getDefaultCodecRegistry()
+     * @see RealmAppConfiguration.Builder#codecRegistry(CodecRegistry)
+     * @see ValueCodecProvider
+     * @see BsonValueCodecProvider
+     * @see IterableCodecProvider
+     * @see MapCodecProvider
+     * @see DocumentCodecProvider
+     */
+    public static CodecRegistry DEFAULT_BSON_CODEC_REGISTRY = CodecRegistries.fromRegistries(
+            CodecRegistries.fromProviders(
+                    // For primitive support
+                    new ValueCodecProvider(),
+                    // For BSONValue support
+                    new BsonValueCodecProvider(),
+                    // For list support
+                    new IterableCodecProvider(),
+                    // For Map-style document support
+                    new MapCodecProvider(),
+                    new DocumentCodecProvider()
+            )
+    );
+
     private final String appId;
     private final String appName;
     private final String appVersion;
@@ -193,20 +218,6 @@ public class RealmAppConfiguration {
      * FIXME
      */
     public static class Builder {
-        // Default BSON codec for passing BSON to/from JNI
-        static CodecRegistry DEFAULT_BSON_CODEC_REGISTRY = CodecRegistries.fromRegistries(
-                CodecRegistries.fromProviders(
-                        // For primitive support
-                        new ValueCodecProvider(),
-                        // For BSONValue support
-                        new BsonValueCodecProvider(),
-                        // For list support
-                        new IterableCodecProvider(),
-                        // For Map-style document support
-                        new MapCodecProvider(),
-                        new DocumentCodecProvider()
-                )
-        );
 
         private String appId;
         private String appName;

@@ -166,9 +166,8 @@ class RealmAppConfigurationTests {
 
     @Test
     fun defaultFunctionsCodecRegistry() {
-        val config: RealmAppConfiguration = RealmAppConfiguration.Builder("app-id")
-                .build()
-        assertEquals(RealmAppConfiguration.Builder.DEFAULT_BSON_CODEC_REGISTRY, config.defaultCodecRegistry)
+        val config: RealmAppConfiguration = RealmAppConfiguration.Builder("app-id").build()
+        assertEquals(RealmAppConfiguration.DEFAULT_BSON_CODEC_REGISTRY, config.defaultCodecRegistry)
     }
 
     @Test
