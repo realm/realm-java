@@ -49,11 +49,11 @@ import io.realm.mongodb.remote.find.RemoteFindIterable;
  */
 public class RemoteMongoCollection<DocumentT> {
 
-    private OsRemoteMongoCollection osRemoteMongoCollection;
+    private OsRemoteMongoCollection<DocumentT> osRemoteMongoCollection;
 
     private TaskDispatcher dispatcher;
 
-    public RemoteMongoCollection(OsRemoteMongoCollection osRemoteMongoCollection) {
+    public RemoteMongoCollection(OsRemoteMongoCollection<DocumentT> osRemoteMongoCollection) {
         this.dispatcher = new TaskDispatcher();
         this.osRemoteMongoCollection = osRemoteMongoCollection;
     }
@@ -134,7 +134,9 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne() {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osRemoteMongoCollection.findOne()
+        );
     }
 
     /**
@@ -145,7 +147,9 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public <ResultT> Task<ResultT> findOne(final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osRemoteMongoCollection.findOne(resultClass)
+        );
     }
 
     /**
@@ -155,7 +159,9 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne(final Bson filter) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osRemoteMongoCollection.findOne(filter)
+        );
     }
 
     /**

@@ -30,6 +30,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 @RunWith(AndroidJUnit4::class)
 class RemoteMongoCollectionTest {
@@ -55,7 +56,7 @@ class RemoteMongoCollectionTest {
     fun tearDown() {
         // FIXME: probably not the best way to "reset" the state
         with(getCollectionInternal(COLLECTION_NAME)) {
-            this.deleteMany(Document()).blockingGetResult()
+            deleteMany(Document()).blockingGetResult()
         }
 
         if (this::app.isInitialized) {
@@ -66,9 +67,8 @@ class RemoteMongoCollectionTest {
     @Test
     fun insertMany() {
         with(getCollectionInternal(COLLECTION_NAME)) {
-            assertEquals(0, this.count().blockingGetResult())
+            assertEquals(0, count().blockingGetResult())
 
-            // FIXME: see "withId" extension function below!
             val rawDoc = Document(KEY_1, VALUE_1)
             val doc1 = Document(rawDoc)
             val doc2 = Document(rawDoc)
@@ -76,38 +76,37 @@ class RemoteMongoCollectionTest {
             val doc4 = Document("foo", "bar")
             val manyDocuments = listOf(doc1, doc2, doc3, doc4)
 
-            this.insertMany(manyDocuments)
+            insertMany(manyDocuments)
                     .blockingGetResult()
                     .let { assertEquals(manyDocuments.size, it!!.insertedIds.size) }
 
-            assertEquals(manyDocuments.size.toLong(), this.count().blockingGetResult())
-            assertEquals(3, this.count(rawDoc).blockingGetResult())
-            assertEquals(2, this.count(rawDoc, RemoteCountOptions().limit(2)).blockingGetResult())
-            assertEquals(1, this.count(Document("foo", "bar")).blockingGetResult())
-            assertEquals(0, this.count(Document("bar", "foo")).blockingGetResult())
+            assertEquals(manyDocuments.size.toLong(), count().blockingGetResult())
+            assertEquals(3, count(rawDoc).blockingGetResult())
+            assertEquals(2, count(rawDoc, RemoteCountOptions().limit(2)).blockingGetResult())
+            assertEquals(1, count(Document("foo", "bar")).blockingGetResult())
+            assertEquals(0, count(Document("bar", "foo")).blockingGetResult())
         }
     }
 
     @Test
     fun count() {
         with(getCollectionInternal(COLLECTION_NAME)) {
-            assertEquals(0, this.count().blockingGetResult())
+            assertEquals(0, count().blockingGetResult())
 
             val rawDoc = Document(KEY_1, VALUE_1)//.withId()
             val doc1 = Document(rawDoc)
             val doc2 = Document(rawDoc)
-            val doc3 = Document(rawDoc)
 
             // FIXME: check feasibility of this assertion, otherwise, just make a plain insert
 //            assertTrue(ObjectId.isValid(this.insertOne(doc1).blockingGetResult()!!.insertedId.toString()))
-            this.insertOne(doc1).blockingGetResult()
-            assertEquals(1, this.count().blockingGetResult())
-            this.insertOne(doc2).blockingGetResult()
-            assertEquals(2, this.count().blockingGetResult())
+            insertOne(doc1).blockingGetResult()
+            assertEquals(1, count().blockingGetResult())
+            insertOne(doc2).blockingGetResult()
+            assertEquals(2, count().blockingGetResult())
 
-            assertEquals(2, this.count(rawDoc).blockingGetResult())
-            assertEquals(0, this.count(Document("foo", "bar")).blockingGetResult())
-            assertEquals(1, this.count(rawDoc, RemoteCountOptions().limit(1)).blockingGetResult())
+            assertEquals(2, count(rawDoc).blockingGetResult())
+            assertEquals(0, count(Document("foo", "bar")).blockingGetResult())
+            assertEquals(1, count(rawDoc, RemoteCountOptions().limit(1)).blockingGetResult())
 
             // FIXME: investigate error handling for malformed payloads
 //            assertFailsWith(ExecutionException::class) {
@@ -120,50 +119,68 @@ class RemoteMongoCollectionTest {
     @Test
     fun deleteOne() {
         with(getCollectionInternal(COLLECTION_NAME)) {
-            assertEquals(0, this.count().blockingGetResult())
+            assertEquals(0, count().blockingGetResult())
 
             val rawDoc = Document(KEY_1, VALUE_1)//.withId()
             val doc1 = Document(rawDoc)
 
-            this.insertOne(doc1).blockingGetResult()
-            assertEquals(1, this.count().blockingGetResult())
-            assertEquals(1, this.deleteOne(doc1).blockingGetResult()!!.deletedCount)
-            assertEquals(0, this.count().blockingGetResult())
+            insertOne(doc1).blockingGetResult()
+            assertEquals(1, count().blockingGetResult())
+            assertEquals(1, deleteOne(doc1).blockingGetResult()!!.deletedCount)
+            assertEquals(0, count().blockingGetResult())
 
             val doc1b = Document(rawDoc)
             val doc2 = Document("foo", "bar")
             val doc3 = Document("42", "666")
-            this.insertMany(listOf(doc1, doc1b, doc2, doc3)).blockingGetResult()
-            assertEquals(1, this.deleteOne(rawDoc).blockingGetResult()!!.deletedCount)
-            assertEquals(1, this.deleteOne(Document()).blockingGetResult()!!.deletedCount)
+            insertMany(listOf(doc1, doc1b, doc2, doc3)).blockingGetResult()
+            assertEquals(1, deleteOne(rawDoc).blockingGetResult()!!.deletedCount)
+            assertEquals(1, deleteOne(Document()).blockingGetResult()!!.deletedCount)
         }
     }
 
     @Test
     fun deleteMany() {
         with(getCollectionInternal(COLLECTION_NAME)) {
-            assertEquals(0, this.count().blockingGetResult())
+            assertEquals(0, count().blockingGetResult())
 
             val rawDoc = Document(KEY_1, VALUE_1)//.withId()
             val doc1 = Document(rawDoc)
 
-            this.insertOne(doc1).blockingGetResult()
-            assertEquals(1, this.count().blockingGetResult())
-            assertEquals(1, this.deleteMany(doc1).blockingGetResult()!!.deletedCount)
-            assertEquals(0, this.count().blockingGetResult())
+            insertOne(doc1).blockingGetResult()
+            assertEquals(1, count().blockingGetResult())
+            assertEquals(1, deleteMany(doc1).blockingGetResult()!!.deletedCount)
+            assertEquals(0, count().blockingGetResult())
 
             val doc1b = Document(rawDoc)
             val doc2 = Document("foo", "bar")
             val doc3 = Document("42", "666")
-            this.insertMany(listOf(doc1, doc1b, doc2, doc3)).blockingGetResult()
-            assertEquals(2, this.deleteMany(rawDoc).blockingGetResult()!!.deletedCount)                 // two docs will be deleted
-            assertEquals(2, this.count().blockingGetResult())                                           // two docs still present
-            assertEquals(2, this.deleteMany(Document()).blockingGetResult()!!.deletedCount)             // delete all
-            assertEquals(0, this.count().blockingGetResult())
+            insertMany(listOf(doc1, doc1b, doc2, doc3)).blockingGetResult()
+            assertEquals(2, deleteMany(rawDoc).blockingGetResult()!!.deletedCount)                 // two docs will be deleted
+            assertEquals(2, count().blockingGetResult())                                           // two docs still present
+            assertEquals(2, deleteMany(Document()).blockingGetResult()!!.deletedCount)             // delete all
+            assertEquals(0, count().blockingGetResult())
 
-            this.insertMany(listOf(doc1, doc1b, doc2, doc3)).blockingGetResult()
-            assertEquals(4, this.deleteMany(Document()).blockingGetResult()!!.deletedCount)             // delete all
-            assertEquals(0, this.count().blockingGetResult())
+            insertMany(listOf(doc1, doc1b, doc2, doc3)).blockingGetResult()
+            assertEquals(4, deleteMany(Document()).blockingGetResult()!!.deletedCount)             // delete all
+            assertEquals(0, count().blockingGetResult())
+        }
+    }
+
+    @Test
+    fun findOne() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            assertEquals(0, count().blockingGetResult())
+
+            val rawDoc = Document(KEY_1, VALUE_1)//.withId()
+            insertOne(Document("foo", "bar")).blockingGetResult()
+            insertOne(rawDoc).blockingGetResult()
+            assertEquals(2, count().blockingGetResult())
+
+            findOne().blockingGetResult().let { findOneResult ->
+                assertNotNull(findOneResult)
+
+                // FIXME: add more assertions
+            }
         }
     }
 
@@ -178,7 +195,7 @@ class RemoteMongoCollectionTest {
 
     // FIXME: investigate crash when parsing BSONs that have this property
     private fun Document.withId(objectId: ObjectId? = null): Document {
-        return this.apply { this["_id"] = objectId ?: ObjectId() }
+        return apply { this["_id"] = objectId ?: ObjectId() }
     }
 
     private companion object {

@@ -15,9 +15,8 @@
  */
 
 #include <string>
-#include "bson_util.hpp"
-#include "java_accessor.hpp"
 #include "util.hpp"
+#include "bson_util.hpp"
 
 // Must match JniBsonProtocol.VALUE from Java
 static const std::string VALUE("value");
@@ -29,6 +28,7 @@ Bson JniBsonProtocol::string_to_bson(std::string arg) {
     BsonDocument document(parse(arg));
     return document[VALUE];
 }
+
 Bson JniBsonProtocol::jstring_to_bson(JNIEnv* env, jstring arg) {
     return string_to_bson(JStringAccessor(env, arg));
 }
@@ -43,24 +43,4 @@ std::string JniBsonProtocol::bson_to_string(Bson bson) {
 jstring JniBsonProtocol::bson_to_jstring(JNIEnv* env, Bson bson) {
     std::string r = bson_to_string(bson);
     return to_jstring(env, r);
-}
-
-BsonArray JniBsonProtocol::stringarray_to_bsonarray(std::vector<std::string> args) {
-    uint32_t size = std::uint32_t(args.size());
-    BsonArray bson_array(size);
-    for (uint32_t i = 0; i < size; i++) {
-        std::string document = args[i];
-        bson_array[i] = string_to_bson(document);
-    }
-    return bson_array;
 };
-
-//BsonArray jobjectarray_to_bsonarray(JNIEnv* env, realm::_impl::JObjectArrayAccessor<JStringAccessor, jstring>& documents) {
-//    uint32_t size = std::uint32_t(documents.size());
-//    BsonArray bson_array(size);
-//    for (uint32_t i = 0; i < size; i++) {
-//        std::string document = documents[i];
-//        bson_array[i] = jstring_to_bson(env, document);
-//    }
-//    return bson_array;
-//};

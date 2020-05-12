@@ -17,9 +17,6 @@
 #ifndef REALM_BSON_UTIL_HPP
 #define REALM_BSON_UTIL_HPP
 
-#include "java_accessor.hpp"
-#include "util.hpp"
-
 #include <jni.h>
 #include <util/bson/bson.hpp>
 
@@ -33,8 +30,6 @@ public:
     static realm::bson::Bson jstring_to_bson(JNIEnv* env, jstring arg);
     static std::string bson_to_string(realm::bson::Bson bson);
     static jstring bson_to_jstring(JNIEnv* env, realm::bson::Bson bson);
-    static realm::bson::BsonArray stringarray_to_bsonarray(std::vector<std::string> args);
-//    static realm::bson::BsonArray jobjectarray_to_bsonarray(JNIEnv* env, _impl::JObjectArrayAccessor<JStringAccessor, jstring>& documents);
 };
 
 } // jni_util

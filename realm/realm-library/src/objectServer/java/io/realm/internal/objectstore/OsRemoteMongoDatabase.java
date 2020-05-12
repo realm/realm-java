@@ -33,11 +33,11 @@ public class OsRemoteMongoDatabase implements NativeObject {
         this.codecRegistry = codecRegistry;
     }
 
-    public OsRemoteMongoCollection getCollection(final String collectionName) {
+    public OsRemoteMongoCollection<Document> getCollection(final String collectionName) {
         return getCollection(collectionName, Document.class);
     }
 
-    public <DocumentT> OsRemoteMongoCollection getCollection(
+    public <DocumentT> OsRemoteMongoCollection<DocumentT> getCollection(
             final String collectionName,
             final Class<DocumentT> documentClass
     ) {

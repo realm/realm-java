@@ -54,7 +54,7 @@ public class RemoteMongoDatabase {
      */
     public RemoteMongoCollection<Document> getCollection(final String collectionName) {
         Util.checkEmpty(collectionName, "collectionName");
-        return new RemoteMongoCollection<>(osRemoteMongoDatabase.getCollection(collectionName));
+        return new RemoteMongoCollection<Document>(osRemoteMongoDatabase.getCollection(collectionName));
     }
 
     /**

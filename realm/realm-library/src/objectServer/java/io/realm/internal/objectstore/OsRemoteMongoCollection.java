@@ -85,11 +85,53 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
 
         // no filter means count all
         String filterString = filter == null ?
-                JniBsonProtocol.encode(new BsonDocument(), codecRegistry) :
-                JniBsonProtocol.encode(filter.toBsonDocument(documentClass, codecRegistry), codecRegistry);
+                JniBsonProtocol.encode(new Document(), codecRegistry) :
+                JniBsonProtocol.encode(filter, codecRegistry);
         int limit = options == null ? 0 : options.getLimit();
 
         nativeCount(nativePtr, filterString, limit, callback);
+
+        return ResultHandler.handleResult(success, error);
+    }
+
+    public DocumentT findOne() {
+        return findOneInternal(null, Document.class);
+    }
+
+    public <ResultT> ResultT findOne(final Class<ResultT> resultClass) {
+        AtomicReference<ResultT> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
+            @Override
+            protected ResultT mapSuccess(Object result) {
+                throw new UnsupportedOperationException("findOne not implemented.");
+            }
+        };
+
+        nativeFindOne(nativePtr, JniBsonProtocol.encode(new Document(), codecRegistry), callback);
+
+        return ResultHandler.handleResult(success, error);
+    }
+
+    public DocumentT findOne(final @Nullable Bson filter) {
+        return findOneInternal(filter, BsonDocument.class);
+    }
+
+    private DocumentT findOneInternal(final @Nullable Bson filter, final Class<?> resultClass) {
+        AtomicReference<DocumentT> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<DocumentT> callback = new OsJNIResultCallback<DocumentT>(success, error) {
+            @Override
+            protected DocumentT mapSuccess(Object result) {
+                Object decodedObject = JniBsonProtocol.decode((String) result, resultClass, codecRegistry);
+                return (DocumentT) decodedObject;
+            }
+        };
+
+        String encodedFilter = filter == null ?
+                JniBsonProtocol.encode(new Document(), codecRegistry) :
+                JniBsonProtocol.encode(filter, codecRegistry);
+        nativeFindOne(nativePtr, encodedFilter, callback);
 
         return ResultHandler.handleResult(success, error);
     }
@@ -105,17 +147,8 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        // FIXME: add support for POJOs - default to empty bson for now
-        String jsonDocument;
-        if (document instanceof Document) {
-            BsonDocument bsonDocument = ((Document) document).toBsonDocument(documentClass, codecRegistry);
-            jsonDocument = JniBsonProtocol.encode(bsonDocument, codecRegistry);
-        } else {
-            jsonDocument = JniBsonProtocol.encode(new BsonDocument(), codecRegistry);
-        }
-
-        nativeInsertOne(nativePtr, jsonDocument, callback);
-
+        String encodedDocument = JniBsonProtocol.encode(document, codecRegistry);
+        nativeInsertOne(nativePtr, encodedDocument, callback);
         return ResultHandler.handleResult(success, error);
     }
 
@@ -136,23 +169,8 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        // FIXME: add support for POJOs - default to empty bson for now
-        String[] documentArray = new String[documents.size()];
-        if (documents.get(0) instanceof Document) {
-            List<Document> documentList = (List<Document>) documents;
-            for (int i = 0; i < documentList.size(); i++) {
-                Document document = documentList.get(i);
-                BsonDocument bsonDocument = document.toBsonDocument(documentClass, codecRegistry);
-                documentArray[i] = JniBsonProtocol.encode(bsonDocument, codecRegistry);
-            }
-        } else {
-            for (int i = 0; i < documents.size(); i++) {
-                documentArray[i] = JniBsonProtocol.encode(new BsonDocument(), codecRegistry);
-            }
-        }
-
-        nativeInsertMany(nativePtr, callback, documentArray);
-
+        String encodedDocumentArray = JniBsonProtocol.encode(documents, codecRegistry);
+        nativeInsertMany(nativePtr, callback, encodedDocumentArray);
         return ResultHandler.handleResult(success, error);
     }
 
@@ -166,11 +184,8 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        BsonDocument bsonFilter = filter.toBsonDocument(documentClass, codecRegistry);
-        String jsonDocument = JniBsonProtocol.encode(bsonFilter, codecRegistry);
-
+        String jsonDocument = JniBsonProtocol.encode(filter, codecRegistry);
         nativeDeleteOne(nativePtr, jsonDocument, callback);
-
         return ResultHandler.handleResult(success, error);
     }
 
@@ -184,11 +199,8 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        BsonDocument bsonFilter = filter.toBsonDocument(documentClass, codecRegistry);
-        String jsonDocument = JniBsonProtocol.encode(bsonFilter, codecRegistry);
-
+        String jsonDocument = JniBsonProtocol.encode(filter, codecRegistry);
         nativeDeleteMany(nativePtr, jsonDocument, callback);
-
         return ResultHandler.handleResult(success, error);
     }
 
@@ -197,12 +209,16 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
                                            String filter,
                                            long limit,
                                            OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeFindOne(long nativePtr,
+                                             String filterString,
+                                             OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeInsertOne(long remoteMongoCollectionPtr,
                                                String document,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeInsertMany(long remoteMongoCollectionPtr,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback,
-                                               String... documents);
+                                               String documents);     // FIXME: it should be a string once the hack is removed
+//                                               String... documents);
     private static native void nativeDeleteOne(long remoteMongoCollectionPtr,
                                                String document,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
