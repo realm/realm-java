@@ -102,8 +102,14 @@ class RealmFunctionsTests {
                     assertTypeOfFirstArgFunction(BsonString("Realm"), BsonString::class.java)
                 }
                 BsonType.ARRAY -> {
-                    val listValues = listOf<Any>(true, i32, i64)
-                    assertEquals(listValues[0], functions.callFunction(FIRST_ARG_FUNCTION, listValues, java.lang.Boolean::class.java))
+                    val values1 = listOf<Any>(true, i32, i64)
+                    assertEquals(values1[0], functions.callFunction(FIRST_ARG_FUNCTION, values1, java.lang.Boolean::class.java))
+
+                    // Previously failing in C++ parsing
+                    val values2 = listOf(1, true, 3)
+                    assertEquals(values2, functions.callFunction(FIRST_ARG_FUNCTION, listOf(values2), List::class.java))
+                    val values3 = listOf(2, "Realm", 3)
+                    assertEquals(values3, functions.callFunction(FIRST_ARG_FUNCTION, listOf(values3), List::class.java))
                 }
                 // FIXME Does not seem to work, typically this has indicated an issue with C++
                 //  parser. Probably because of embedding an array in an array, added explicit test
@@ -146,6 +152,10 @@ class RealmFunctionsTests {
                     assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(document), Map::class.java))
                     assertEquals(document, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Document::class.java))
                     assertEquals(document, functions.callFunction(FIRST_ARG_FUNCTION, listOf(document), Document::class.java))
+
+                    // Previously failing in C++ parser
+                    val documents = listOf(Document(), Document())
+                    assertEquals(documents[0], functions.callFunction(FIRST_ARG_FUNCTION, documents, Document::class.java))
                 }
                 BsonType.DATE_TIME -> {
                     val now = Date(Instant.now().toEpochMilli())
@@ -323,35 +333,6 @@ class RealmFunctionsTests {
         val configCodecRegistry = CodecRegistries.fromCodecs(StringCodec())
         val customCodecRegistryFunctions = anonUser.getFunctions(configCodecRegistry)
         assertEquals(configCodecRegistry, customCodecRegistryFunctions.defaultCodecRegistry)
-    }
-
-    @Test
-    // FIXME JNI Parsing crashes
-    @Ignore("JNI parsing crashes tests")
-    fun jniParseErrorArrayOfArrayDifferentTypes() {
-        // Just to show case that the format of the test is as expected
-        val valueOk = listOf(1, 2, 3)
-        assertEquals(valueOk, functions.callFunction(FIRST_ARG_FUNCTION, listOf(valueOk), List::class.java))
-
-        // Actual failing call
-        // {"value": [[{"$numberInt": "1"}, true, {"$numberInt": "3"}]]}
-        val value = listOf(1, true, 3)
-        assertEquals(value, functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), List::class.java))
-    }
-    @Test
-    // FIXME JNI Parsing only returns part of array
-    fun jniParseErrorArrayOfArray() {
-        // {"value": [[{"$numberInt": "2"}, "Realm", {"$numberInt": "3"}]]}
-        val value = listOf(2, "Realm", 3)
-        assertEquals(value, functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), List::class.java))
-    }
-
-    @Test
-    // FIXME JNI Parsing crashes
-    @Ignore("JNI parsing crashes tests")
-    fun jniParseErrorArrayOfDocuments() {
-        val value = listOf(Document(), Document())
-        assertEquals(value[0], functions.callFunction(FIRST_ARG_FUNCTION, value, Document::class.java))
     }
 
     @Test
