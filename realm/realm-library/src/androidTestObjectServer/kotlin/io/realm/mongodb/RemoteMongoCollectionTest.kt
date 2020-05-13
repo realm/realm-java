@@ -18,7 +18,6 @@ package io.realm.mongodb
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.admin.ServerAdmin
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.remote.RemoteCountOptions
@@ -30,13 +29,12 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @RunWith(AndroidJUnit4::class)
 class RemoteMongoCollectionTest {
 
     private lateinit var app: TestRealmApp
-    private lateinit var admin: ServerAdmin
     private lateinit var user: RealmUser
     private lateinit var client: RemoteMongoClient
     private lateinit var database: RemoteMongoDatabase
@@ -45,7 +43,6 @@ class RemoteMongoCollectionTest {
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.DEBUG)
-        admin = ServerAdmin()
         app = TestRealmApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         client = user.getRemoteMongoClient(SERVICE_NAME)
@@ -95,10 +92,14 @@ class RemoteMongoCollectionTest {
 
             val rawDoc = Document(KEY_1, VALUE_1)//.withId()
             val doc1 = Document(rawDoc)
+//            val doc1withId = Document(rawDoc.withId())
             val doc2 = Document(rawDoc)
 
             // FIXME: check feasibility of this assertion, otherwise, just make a plain insert
-//            assertTrue(ObjectId.isValid(this.insertOne(doc1).blockingGetResult()!!.insertedId.toString()))
+//            insertOne(doc1withId).blockingGetResult().let {
+//                assertTrue(ObjectId.isValid(it!!.insertedId.toString()))
+//                assertEquals(doc1withId["_id"], it.insertedId)
+//            }
             insertOne(doc1).blockingGetResult()
             assertEquals(1, count().blockingGetResult())
             insertOne(doc2).blockingGetResult()
@@ -169,18 +170,53 @@ class RemoteMongoCollectionTest {
     @Test
     fun findOne() {
         with(getCollectionInternal(COLLECTION_NAME)) {
-            assertEquals(0, count().blockingGetResult())
+            val doc1 = Document("hello", "world1")
+            val doc2 = Document("hello", "world2")
+            val doc3 = Document("hello", "world3")
 
-            val rawDoc = Document(KEY_1, VALUE_1)//.withId()
-            insertOne(Document("foo", "bar")).blockingGetResult()
-            insertOne(rawDoc).blockingGetResult()
-            assertEquals(2, count().blockingGetResult())
+            // Test findOne() on empty collection with no filter and no options
+            assertNull(findOne().blockingGetResult())
 
-            findOne().blockingGetResult().let { findOneResult ->
-                assertNotNull(findOneResult)
+            // Insert a document into the collection
+            insertOne(doc1).blockingGetResult()
+            assertEquals(1, count().blockingGetResult())
 
-                // FIXME: add more assertions
-            }
+            // Test findOne() with no filter and no options
+            assertEquals(doc1, findOne().blockingGetResult()!!.withoutId())
+
+            // Test findOne() with filter that does not match any documents and no options
+            assertNull(findOne(Document("hello", "worldDNE")).blockingGetResult())
+
+            // Insert 2 more documents into the collection
+            insertMany(listOf(doc2, doc3)).blockingGetResult()
+            assertEquals(3, count().blockingGetResult())
+
+            // FIXME: add these when all findOne methods are ready and the parser works
+            // test findOne() with projection and sort options
+//            val projection = Document("hello", "1")
+//            projection["_id"] = 0
+//            val options = RemoteFindOptions()
+//                    .limit(2)
+//                    .projection(projection)
+//                    .sort(Document("hello", "1"))
+//            assertEquals(findOne(Document(), options).blockingGetResult(), doc1.withoutId())
+
+            // FIXME: adapt to our framework
+//            val result3 = Tasks.await(coll.findOne(Document(), RemoteFindOptions()
+//                    .limit(2)
+//                    .projection(projection)
+//                    .sort(Document("hello", -1))))
+//            Assert.assertEquals(result3, withoutId(doc3))
+//
+//            // test findOne() properly fails
+//            try {
+//                Tasks.await(coll.findOne(Document("\$who", 1)))
+//                Assert.fail()
+//            } catch (ex: ExecutionException) {
+//                Assert.assertTrue(ex.cause is StitchServiceException)
+//                val svcEx = ex.cause as StitchServiceException
+//                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
+//            }
         }
     }
 
@@ -193,9 +229,12 @@ class RemoteMongoCollectionTest {
         }
     }
 
-    // FIXME: investigate crash when parsing BSONs that have this property
     private fun Document.withId(objectId: ObjectId? = null): Document {
         return apply { this["_id"] = objectId ?: ObjectId() }
+    }
+
+    private fun Document.withoutId(): Document {
+        return apply { remove("_id") }
     }
 
     private companion object {

@@ -16,7 +16,6 @@
 
 package io.realm.internal.objectstore;
 
-import org.bson.BsonDocument;
 import org.bson.BsonObjectId;
 import org.bson.BsonValue;
 import org.bson.Document;
@@ -38,6 +37,7 @@ import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.mongodb.remote.RemoteCountOptions;
 import io.realm.mongodb.remote.RemoteDeleteResult;
+import io.realm.mongodb.remote.RemoteFindOptions;
 import io.realm.mongodb.remote.RemoteInsertManyResult;
 import io.realm.mongodb.remote.RemoteInsertOneResult;
 
@@ -95,7 +95,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
     }
 
     public DocumentT findOne() {
-        return findOneInternal(null, Document.class);
+        return findOne(new Document());
     }
 
     public <ResultT> ResultT findOne(final Class<ResultT> resultClass) {
@@ -104,7 +104,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {
-                throw new UnsupportedOperationException("findOne not implemented.");
+                return (ResultT) findOneSuccessMapper(result, resultClass);
             }
         };
 
@@ -113,18 +113,29 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    public DocumentT findOne(final @Nullable Bson filter) {
-        return findOneInternal(filter, BsonDocument.class);
-    }
-
-    private DocumentT findOneInternal(final @Nullable Bson filter, final Class<?> resultClass) {
+    public DocumentT findOne(final Bson filter) {
         AtomicReference<DocumentT> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<DocumentT> callback = new OsJNIResultCallback<DocumentT>(success, error) {
             @Override
             protected DocumentT mapSuccess(Object result) {
-                Object decodedObject = JniBsonProtocol.decode((String) result, resultClass, codecRegistry);
-                return (DocumentT) decodedObject;
+                return (DocumentT) findOneSuccessMapper(result, Document.class);
+            }
+        };
+
+        String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
+        nativeFindOne(nativePtr, encodedFilter, callback);
+
+        return ResultHandler.handleResult(success, error);
+    }
+
+    public <ResultT> ResultT findOne(final @Nullable Bson filter, final Class<ResultT> resultClass) {
+        AtomicReference<ResultT> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
+            @Override
+            protected ResultT mapSuccess(Object result) {
+                return (ResultT) findOneSuccessMapper(result, resultClass);
             }
         };
 
@@ -132,6 +143,49 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
                 JniBsonProtocol.encode(new Document(), codecRegistry) :
                 JniBsonProtocol.encode(filter, codecRegistry);
         nativeFindOne(nativePtr, encodedFilter, callback);
+
+        return ResultHandler.handleResult(success, error);
+    }
+
+    public DocumentT findOne(@Nullable final Bson filter, final RemoteFindOptions options) {
+        AtomicReference<DocumentT> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<DocumentT> callback = new OsJNIResultCallback<DocumentT>(success, error) {
+            @Override
+            protected DocumentT mapSuccess(Object result) {
+                return (DocumentT) findOneSuccessMapper(result, documentClass);
+            }
+        };
+
+        String encodedFilter = filter == null ?
+                JniBsonProtocol.encode(new Document(), codecRegistry) :
+                JniBsonProtocol.encode(filter, codecRegistry);
+        String projectionString = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
+        String sortString = JniBsonProtocol.encode(options.getSort(), codecRegistry);
+        nativeFindOneWithOptions(nativePtr, encodedFilter, projectionString, sortString, options.getLimit(), callback);
+
+        return ResultHandler.handleResult(success, error);
+    }
+
+    public <ResultT> ResultT findOne(
+            final Bson filter,
+            final RemoteFindOptions options,
+            final Class<ResultT> resultClass) {
+        AtomicReference<ResultT> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
+            @Override
+            protected ResultT mapSuccess(Object result) {
+                return (ResultT) findOneSuccessMapper(result, resultClass);
+            }
+        };
+
+        String encodedFilter = filter == null ?
+                JniBsonProtocol.encode(new Document(), codecRegistry) :
+                JniBsonProtocol.encode(filter, codecRegistry);
+        String projectionString = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
+        String sortString = JniBsonProtocol.encode(options.getSort(), codecRegistry);
+        nativeFindOneWithOptions(nativePtr, encodedFilter, projectionString, sortString, options.getLimit(), callback);
 
         return ResultHandler.handleResult(success, error);
     }
@@ -170,7 +224,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         };
 
         String encodedDocumentArray = JniBsonProtocol.encode(documents, codecRegistry);
-        nativeInsertMany(nativePtr, callback, encodedDocumentArray);
+        nativeInsertMany(nativePtr, encodedDocumentArray, callback);
         return ResultHandler.handleResult(success, error);
     }
 
@@ -204,6 +258,14 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
+    private Object findOneSuccessMapper(@Nullable Object result, Class<?> resultClass) {
+        if (result == null) {
+            return null;
+        } else {
+            return JniBsonProtocol.decode((String) result, resultClass, codecRegistry);
+        }
+    }
+
     private static native long nativeGetFinalizerMethodPtr();
     private static native void nativeCount(long remoteMongoCollectionPtr,
                                            String filter,
@@ -212,17 +274,22 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
     private static native void nativeFindOne(long nativePtr,
                                              String filterString,
                                              OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeFindOneWithOptions(long nativePtr,
+                                                        String filterString,
+                                                        String projectionString,
+                                                        String sortString,
+                                                        long limit,
+                                                        OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeInsertOne(long remoteMongoCollectionPtr,
                                                String document,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeInsertMany(long remoteMongoCollectionPtr,
-                                               OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback,
-                                               String documents);     // FIXME: it should be a string once the hack is removed
-//                                               String... documents);
+                                                String documents,
+                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeDeleteOne(long remoteMongoCollectionPtr,
                                                String document,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeDeleteMany(long remoteMongoCollectionPtr,
-                                               String document,
-                                               OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+                                                String document,
+                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

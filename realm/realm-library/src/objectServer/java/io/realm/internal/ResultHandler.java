@@ -27,9 +27,6 @@ public class ResultHandler {
     // Handle returning the correct result or throw an exception. Must be separated from
     // OsJNIResultCallback due to how the Object Store callbacks work.
     public static <T> T handleResult(@Nullable AtomicReference<T> success, AtomicReference<ObjectServerError> error) {
-        if (success != null && success.get() == null && error.get() == null) {
-            throw new IllegalStateException("Network result callback did not trigger correctly");
-        }
         if (error.get() != null) {
             throw error.get();
         } else {

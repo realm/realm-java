@@ -173,7 +173,9 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public <ResultT> Task<ResultT> findOne(final Bson filter, final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osRemoteMongoCollection.findOne(filter, resultClass)
+        );
     }
 
     /**
@@ -184,7 +186,9 @@ public class RemoteMongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne(final Bson filter, final RemoteFindOptions options) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osRemoteMongoCollection.findOne(filter, options)
+        );
     }
 
     /**
@@ -200,7 +204,9 @@ public class RemoteMongoCollection<DocumentT> {
             final Bson filter,
             final RemoteFindOptions options,
             final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osRemoteMongoCollection.findOne(filter, options, resultClass)
+        );
     }
 
     /**
