@@ -30,26 +30,26 @@ class SchemaTests {
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
 
-    private var config: SyncConfiguration? = null
-    private var app: TestRealmApp? = null
+    private lateinit var config: SyncConfiguration
+    private lateinit var app: TestRealmApp
 
     @Before
     fun setUp() {
         app = TestRealmApp()
-        val user = createTestUser(app!!)
+        val user = createTestUser(app)
         config = configFactory.createSyncConfigurationBuilder(user).build()
     }
 
     @After
     fun tearDown() {
-        if (app != null) {
-            app!!.close()
+        if (this::app.isInitialized) {
+            app.close()
         }
     }
 
     @Test
     fun instance() {
-        val realm = Realm.getInstance(config!!)
+        val realm = Realm.getInstance(config)
         realm.use {
             TestCase.assertFalse(realm.isClosed)
         }
@@ -58,7 +58,7 @@ class SchemaTests {
 
     @Test
     fun createObject() {
-        val realm = Realm.getInstance(config!!)
+        val realm = Realm.getInstance(config)
         realm.beginTransaction()
         Assert.assertTrue(realm.schema.contains("StringOnly"))
         val stringOnly = realm.createObject(StringOnly::class.java)
@@ -71,8 +71,8 @@ class SchemaTests {
     @Test
     fun disallow_removeClass() {
         // Init schema
-        Realm.getInstance(config!!).close()
-        val realm = DynamicRealm.getInstance(config!!)
+        Realm.getInstance(config).close()
+        val realm = DynamicRealm.getInstance(config)
         val className = "StringOnly"
         realm.beginTransaction()
         Assert.assertTrue(realm.schema.contains(className))
@@ -88,7 +88,7 @@ class SchemaTests {
 
     @Test
     fun allow_createClass() {
-        val realm = DynamicRealm.getInstance(config!!)
+        val realm = DynamicRealm.getInstance(config)
         val className = "Dogplace"
         realm.beginTransaction()
         realm.schema.create("Dogplace")
@@ -100,8 +100,8 @@ class SchemaTests {
     @Test
     fun disallow_renameClass() {
         // Init schema
-        Realm.getInstance(config!!).close()
-        DynamicRealm.getInstance(config!!).use { realm ->
+        Realm.getInstance(config).close()
+        DynamicRealm.getInstance(config).use { realm ->
             val existingClass = "StringOnly"
             val newClass = "Dogplace"
             realm.beginTransaction()
@@ -120,8 +120,8 @@ class SchemaTests {
     @Test
     fun disallow_removeField() {
         // Init schema
-        Realm.getInstance(config!!).close()
-        val realm = DynamicRealm.getInstance(config!!)
+        Realm.getInstance(config).close()
+        val realm = DynamicRealm.getInstance(config)
         val className = "StringOnly"
         val fieldName = "chars"
         val objectSchema = realm.schema[className]
@@ -142,9 +142,9 @@ class SchemaTests {
     @Test
     fun allow_addField() {
         // Init schema
-        Realm.getInstance(config!!).close()
+        Realm.getInstance(config).close()
         val className = "StringOnly"
-        val realm = DynamicRealm.getInstance(config!!)
+        val realm = DynamicRealm.getInstance(config)
         val objectSchema = realm.schema[className]
         Assert.assertNotNull(objectSchema)
         realm.beginTransaction()
@@ -158,10 +158,10 @@ class SchemaTests {
     @Test
     fun addPrimaryKey_notAllowed() {
         // Init schema
-        Realm.getInstance(config!!).close()
+        Realm.getInstance(config).close()
         val className = "StringOnly"
         val fieldName = "chars"
-        val realm = DynamicRealm.getInstance(config!!)
+        val realm = DynamicRealm.getInstance(config)
         val objectSchema = realm.schema[className]
         Assert.assertNotNull(objectSchema)
         Assert.assertTrue(objectSchema!!.hasField(fieldName))
@@ -178,10 +178,10 @@ class SchemaTests {
     @Test
     fun addField_withPrimaryKeyModifier_notAllowed() {
         // Init schema
-        Realm.getInstance(config!!).close()
+        Realm.getInstance(config).close()
         val className = "StringOnly"
 
-        DynamicRealm.getInstance(config!!).use {realm ->
+        DynamicRealm.getInstance(config).use { realm ->
             realm.beginTransaction()
             val objectSchema = realm.schema[className]
             Assert.assertNotNull(objectSchema)
@@ -199,7 +199,7 @@ class SchemaTests {
     @Test
     fun fieldNames_stableIdColumnShouldBeHidden() {
         val className = "StringOnly"
-        Realm.getInstance(config!!).use { realm ->
+        Realm.getInstance(config).use { realm ->
             val objectSchema = realm.schema[className]
             Assert.assertNotNull(objectSchema)
             val names = objectSchema!!.fieldNames
