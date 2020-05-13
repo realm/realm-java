@@ -33,7 +33,7 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * The NDK has been upgraded from r10e to r21.
 * The compiler used for C++ code has changed from GCC to Clang.
 * OpenSSL used by Realms encryption layer has been upgraded from 1.0.2k to 1.1.1b.
-* Updated to Object Store commit: 66199adbfffbe153e696309a53d4ec03e32c44e3.
+* Updated to Object Store commit: 820b74e2378f111991877d43068a95d2b7a2e404.
 * Updated to Realm Sync 5.0.3.
 * Updated to Realm Core 6.0.4.
 
