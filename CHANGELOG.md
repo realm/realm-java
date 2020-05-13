@@ -3,6 +3,7 @@
 ### Breaking Changes
 * Removed all references and API's releated to permissions. These are now managed through MongoDB Realm. Read more [here](XXX).
 * Removed Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partionKey()` has been added as a replacement. Read more [here](XXX).  
+* Removed `RealmConfiguration.migration(RealmMigration)`. Specify migrations using `RealmConfigruation.schemeVersion(long, RealmMigration)` instead.
 
 ### Enhancements
 * None.
