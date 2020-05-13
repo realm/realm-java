@@ -57,7 +57,7 @@ public class RealmAppConfiguration {
      * @see MapCodecProvider
      * @see DocumentCodecProvider
      */
-    public static CodecRegistry DEFAULT_BSON_CODEC_REGISTRY = CodecRegistries.fromRegistries(
+    public static final CodecRegistry DEFAULT_BSON_CODEC_REGISTRY = CodecRegistries.fromRegistries(
             CodecRegistries.fromProviders(
                     // For primitive support
                     new ValueCodecProvider(),
