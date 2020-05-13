@@ -372,4 +372,15 @@ class RealmFunctionsTests {
         assertEquals(value.toList(), actual.toList())
     }
 
+    @Test
+    @Ignore("JNI parsing crashes tests")
+    fun jniParseErrorArrayOfDocuments() {
+        val documents = listOf(
+                Document("KEY", "VALUE"),
+                Document("KEY", "VALUE"),
+                Document("KEY", "VALUE")
+        )
+        assertEquals(documents[0], functions.callFunction(FIRST_ARG_FUNCTION, documents, Document::class.java))
+    }
+
 }
