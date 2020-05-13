@@ -76,13 +76,13 @@ class SchemaTests {
 
     @Test
     fun allow_createClass() {
-        val realm = DynamicRealm.getInstance(config)
-        val className = "Dogplace"
-        realm.beginTransaction()
-        realm.schema.create("Dogplace")
-        realm.commitTransaction()
-        assertTrue(realm.schema.contains(className))
-        realm.close()
+        DynamicRealm.getInstance(config).use { realm ->
+            val className = "Dogplace"
+            realm.beginTransaction()
+            realm.schema.create("Dogplace")
+            realm.commitTransaction()
+            assertTrue(realm.schema.contains(className))
+        }
     }
 
     @Test
@@ -90,15 +90,15 @@ class SchemaTests {
         // Init schema
         Realm.getInstance(config).close()
         val className = "StringOnly"
-        val realm = DynamicRealm.getInstance(config)
-        val objectSchema = realm.schema[className]
-        assertNotNull(objectSchema)
-        realm.beginTransaction()
-        objectSchema!!.addField("foo", String::class.java)
-        assertTrue(objectSchema.hasField("foo"))
-        realm.commitTransaction()
-        assertTrue(objectSchema.hasField("foo"))
-        realm.close()
+        DynamicRealm.getInstance(config).use { realm ->
+            val objectSchema = realm.schema[className]
+            assertNotNull(objectSchema)
+            realm.beginTransaction()
+            objectSchema!!.addField("foo", String::class.java)
+            assertTrue(objectSchema.hasField("foo"))
+            realm.commitTransaction()
+            assertTrue(objectSchema.hasField("foo"))
+        }
     }
 
     // Special column "__OID" should be hidden from users.
@@ -129,7 +129,6 @@ class SchemaTests {
     @Test
     fun disallowDestructiveUpdateOfSyncedRealm() {
         for (operation in DestructiveSchemaOperation.values()) {
-
             // Init schema
             Realm.getInstance(config).close()
             val className = "StringOnly"
