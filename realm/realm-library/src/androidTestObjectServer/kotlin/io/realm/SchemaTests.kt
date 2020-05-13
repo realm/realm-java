@@ -18,10 +18,13 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.SyncTestUtils.Companion.createTestUser
 import io.realm.entities.StringOnly
-import junit.framework.Assert
+import junit.framework.Assert.*
 import junit.framework.TestCase
 import org.junit.*
+import org.junit.rules.ErrorCollector
 import org.junit.runner.RunWith
+import java.lang.Exception
+import java.lang.UnsupportedOperationException
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
@@ -29,6 +32,9 @@ import kotlin.test.assertTrue
 class SchemaTests {
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
+
+    @get:Rule
+    val errorCollector = ErrorCollector()
 
     private lateinit var config: SyncConfiguration
     private lateinit var app: TestRealmApp
@@ -53,37 +59,19 @@ class SchemaTests {
         realm.use {
             TestCase.assertFalse(realm.isClosed)
         }
-        Assert.assertTrue(realm.isClosed)
+        assertTrue(realm.isClosed)
     }
 
     @Test
     fun createObject() {
-        val realm = Realm.getInstance(config)
-        realm.beginTransaction()
-        Assert.assertTrue(realm.schema.contains("StringOnly"))
-        val stringOnly = realm.createObject(StringOnly::class.java)
-        stringOnly.chars = "TEST"
-        realm.commitTransaction()
-        Assert.assertEquals(1, realm.where(StringOnly::class.java).count())
-        realm.close()
-    }
-
-    @Test
-    fun disallow_removeClass() {
-        // Init schema
-        Realm.getInstance(config).close()
-        val realm = DynamicRealm.getInstance(config)
-        val className = "StringOnly"
-        realm.beginTransaction()
-        Assert.assertTrue(realm.schema.contains(className))
-        // FIXME Why? We cannot update a sync schema "destructively"? -> Update Doc
-        //  Shouldn't this be UnsupportedOperation to be consistent with ex. addField, etc.
-        assertFailsWith<java.lang.IllegalArgumentException> {
-            realm.schema.remove(className)
+        Realm.getInstance(config).use { realm ->
+            realm.beginTransaction()
+            assertTrue(realm.schema.contains("StringOnly"))
+            val stringOnly = realm.createObject(StringOnly::class.java)
+            stringOnly.chars = "TEST"
+            realm.commitTransaction()
+            assertEquals(1, realm.where(StringOnly::class.java).count())
         }
-        realm.cancelTransaction()
-        Assert.assertTrue(realm.schema.contains(className))
-        realm.close()
     }
 
     @Test
@@ -93,49 +81,7 @@ class SchemaTests {
         realm.beginTransaction()
         realm.schema.create("Dogplace")
         realm.commitTransaction()
-        Assert.assertTrue(realm.schema.contains(className))
-        realm.close()
-    }
-
-    @Test
-    fun disallow_renameClass() {
-        // Init schema
-        Realm.getInstance(config).close()
-        DynamicRealm.getInstance(config).use { realm ->
-            val existingClass = "StringOnly"
-            val newClass = "Dogplace"
-            realm.beginTransaction()
-            assertFailsWith<java.lang.IllegalArgumentException> {
-                // FIXME Why? We cannot update a sync schema "destructively"? -> Update Doc
-                //  Shouldn't this be UnsupportedOperation to be consistent with ex. addField, etc.
-                realm.schema.rename(existingClass, newClass)
-            }
-            Assert.assertFalse(realm.schema.contains(newClass))
-            realm.cancelTransaction()
-            Assert.assertTrue(realm.schema.contains(existingClass))
-            Assert.assertFalse(realm.schema.contains(newClass))
-        }
-    }
-
-    @Test
-    fun disallow_removeField() {
-        // Init schema
-        Realm.getInstance(config).close()
-        val realm = DynamicRealm.getInstance(config)
-        val className = "StringOnly"
-        val fieldName = "chars"
-        val objectSchema = realm.schema[className]
-        Assert.assertNotNull(objectSchema)
-        Assert.assertTrue(objectSchema!!.hasField(fieldName))
-        realm.beginTransaction()
-        assertFailsWith<IllegalArgumentException> {
-            // FIXME Why? We cannot update a sync schema "destructively"? -> Update Doc
-            //  Shouldn't this be UnsupportedOperation to be consistent with ex. addPrimaryKey, etc.
-            objectSchema.removeField(fieldName)
-        }
-        Assert.assertTrue(objectSchema!!.hasField(fieldName))
-        realm.cancelTransaction()
-        Assert.assertTrue(objectSchema!!.hasField(fieldName))
+        assertTrue(realm.schema.contains(className))
         realm.close()
     }
 
@@ -146,53 +92,13 @@ class SchemaTests {
         val className = "StringOnly"
         val realm = DynamicRealm.getInstance(config)
         val objectSchema = realm.schema[className]
-        Assert.assertNotNull(objectSchema)
+        assertNotNull(objectSchema)
         realm.beginTransaction()
         objectSchema!!.addField("foo", String::class.java)
-        Assert.assertTrue(objectSchema.hasField("foo"))
+        assertTrue(objectSchema.hasField("foo"))
         realm.commitTransaction()
-        Assert.assertTrue(objectSchema.hasField("foo"))
+        assertTrue(objectSchema.hasField("foo"))
         realm.close()
-    }
-
-    @Test
-    fun addPrimaryKey_notAllowed() {
-        // Init schema
-        Realm.getInstance(config).close()
-        val className = "StringOnly"
-        val fieldName = "chars"
-        val realm = DynamicRealm.getInstance(config)
-        val objectSchema = realm.schema[className]
-        Assert.assertNotNull(objectSchema)
-        Assert.assertTrue(objectSchema!!.hasField(fieldName))
-        realm.beginTransaction()
-        assertFailsWith<java.lang.UnsupportedOperationException> {
-            objectSchema.addPrimaryKey(fieldName)
-        }
-        Assert.assertTrue(objectSchema!!.hasField(fieldName))
-        realm.cancelTransaction()
-        Assert.assertTrue(objectSchema!!.hasField(fieldName))
-        realm.close()
-    }
-
-    @Test
-    fun addField_withPrimaryKeyModifier_notAllowed() {
-        // Init schema
-        Realm.getInstance(config).close()
-        val className = "StringOnly"
-
-        DynamicRealm.getInstance(config).use { realm ->
-            realm.beginTransaction()
-            val objectSchema = realm.schema[className]
-            Assert.assertNotNull(objectSchema)
-            // FIXME Is this in sync with expectations? Seems to be due to immutable scheme but test
-            //  name indicates something else...or
-            assertFailsWith<java.lang.UnsupportedOperationException> {
-                objectSchema!!.addField("bar", String::class.java, FieldAttribute.PRIMARY_KEY)
-            }
-            Assert.assertNotNull(objectSchema)
-            realm.cancelTransaction()
-        }
     }
 
     // Special column "__OID" should be hidden from users.
@@ -201,10 +107,90 @@ class SchemaTests {
         val className = "StringOnly"
         Realm.getInstance(config).use { realm ->
             val objectSchema = realm.schema[className]
-            Assert.assertNotNull(objectSchema)
+            assertNotNull(objectSchema)
             val names = objectSchema!!.fieldNames
-            Assert.assertEquals(1, names.size)
-            Assert.assertEquals(StringOnly.FIELD_CHARS, names.iterator().next())
+            assertEquals(1, names.size)
+            assertEquals(StringOnly.FIELD_CHARS, names.iterator().next())
+        }
+    }
+
+    enum class DestructiveSchemaOperation {
+        REMOVE_CLASS,
+        RENAME_CLASS,
+        SET_CLASS_NAME,
+        REMOVE_FIELD,
+        RENAME_FIELD,
+        REMOVE_INDEX,
+        REMOVE_PRIMARY_KEY,
+        ADD_PRIMARY_KEY,
+        ADD_FIELD_PRIMARY_KEY,
+    }
+
+    @Test
+    fun disallowDestructiveUpdateOfSyncedRealm() {
+        for (operation in DestructiveSchemaOperation.values()) {
+
+            // Init schema
+            Realm.getInstance(config).close()
+            val className = "StringOnly"
+            val newClassName = "Dogplace"
+            val fieldName = "chars"
+            val newFieldName = "newchars"
+
+            DynamicRealm.getInstance(config).use { realm ->
+                assertTrue(realm.schema.contains(className))
+                val objectSchema = realm.schema[className]!!
+                assertNotNull(objectSchema)
+                assertTrue(objectSchema.hasField(fieldName))
+
+                realm.beginTransaction()
+                errorCollector.assertFailsWith<UnsupportedOperationException> {
+                    when (operation) {
+                        DestructiveSchemaOperation.REMOVE_CLASS ->
+                            realm.schema.remove(className)
+                        DestructiveSchemaOperation.RENAME_CLASS ->
+                            realm.schema.rename(className, newClassName)
+                        DestructiveSchemaOperation.SET_CLASS_NAME ->
+                            objectSchema.setClassName(newClassName)
+                        DestructiveSchemaOperation.REMOVE_FIELD ->
+                            objectSchema.removeField(fieldName)
+                        DestructiveSchemaOperation.RENAME_FIELD ->
+                            objectSchema.renameField(fieldName, newFieldName)
+                        DestructiveSchemaOperation.REMOVE_INDEX ->
+                            objectSchema.removeIndex(fieldName)
+                        DestructiveSchemaOperation.REMOVE_PRIMARY_KEY ->
+                            objectSchema.removePrimaryKey()
+                        DestructiveSchemaOperation.ADD_PRIMARY_KEY ->
+                            objectSchema.addPrimaryKey(fieldName)
+                        DestructiveSchemaOperation.ADD_FIELD_PRIMARY_KEY -> {
+                            objectSchema.addField(newFieldName, String::class.java, FieldAttribute.PRIMARY_KEY)
+                        }
+                    }
+                }
+                // Verify that operation is actually not performed in the transaction
+                assertTrue(realm.schema.contains(className))
+                assertFalse(realm.schema.contains(newClassName))
+                assertTrue(objectSchema.hasField(fieldName))
+                realm.cancelTransaction()
+
+                // Verify that operation is actually not performed after cancelling
+                assertTrue(realm.schema.contains(className))
+                assertFalse(realm.schema.contains(newClassName))
+                assertTrue(objectSchema.hasField(fieldName))
+                assertFalse(objectSchema.hasField(newFieldName))
+                assertNotNull(objectSchema)
+            }
+        }
+    }
+
+}
+
+inline fun <reified T> ErrorCollector.assertFailsWith(block : () -> Unit){
+    try {
+        block()
+    } catch (e : Exception) {
+        if (e !is T) {
+            addError(e)
         }
     }
 }
