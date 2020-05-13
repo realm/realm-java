@@ -3,7 +3,7 @@
 ### Breaking Changes
 * Removed all references and API's releated to permissions. These are now managed through MongoDB Realm. Read more [here](XXX).
 * Removed Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partionKey()` has been added as a replacement. Read more [here](XXX).  
-* Destructive updates of a schema of a synced Realm will now consistently throw an `UnsupportedOperationException` instead of some methods throwing `IllegalArgumentException`. The affected methods are `RealmSchema/MutableRealmSchema.{remove,rename}` and `RealmObjectSchema/MutableRealmObjectSchema.{setClassName,removeField,renameField,removeIndex,removePrimaryKey,addPrimaryKey,addField}` 
+* Destructive updates of a schema of a synced Realm will now consistently throw an `UnsupportedOperationException` instead of some methods throwing `IllegalArgumentException`. The affected methods are `RealmSchema.remove(String)`, `RealmSchema.rename(String, String)`, `RealmObjectSchema.setClassName(String)`, `RealmObjectSchema.removeField(String)`, `RealmObjectSchema.renameField(String, String)`, `RealmObjectSchema.removeIndex(String)`, `RealmObjectSchema.removePrimaryKey()`, `RealmObjectSchema.addPrimaryKey(String)` and `RealmObjectSchema.addField(String, Class<?>, FieldAttribute)` 
 
 ### Enhancements
 * None.
