@@ -79,7 +79,7 @@ class SchemaTests {
         DynamicRealm.getInstance(config).use { realm ->
             val className = "Dogplace"
             realm.beginTransaction()
-            realm.schema.create("Dogplace")
+            realm.schema.create(className)
             realm.commitTransaction()
             assertTrue(realm.schema.contains(className))
         }
