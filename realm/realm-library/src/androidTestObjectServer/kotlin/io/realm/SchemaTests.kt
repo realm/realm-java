@@ -18,6 +18,7 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.SyncTestUtils.Companion.createTestUser
 import io.realm.entities.StringOnly
+import io.realm.util.assertFailsWith
 import junit.framework.Assert.*
 import junit.framework.TestCase
 import org.junit.*
@@ -182,14 +183,4 @@ class SchemaTests {
         }
     }
 
-}
-
-inline fun <reified T> ErrorCollector.assertFailsWith(block : () -> Unit){
-    try {
-        block()
-    } catch (e : Exception) {
-        if (e !is T) {
-            addError(e)
-        }
-    }
 }
