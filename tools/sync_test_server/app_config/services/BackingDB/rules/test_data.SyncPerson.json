@@ -38,8 +38,7 @@
         "required": [
             "firstName",
             "lastName",
-            "age",
-            "dogs"
+            "age"
         ],
         "title": "SyncPerson"
     }
