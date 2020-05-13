@@ -21,12 +21,12 @@ import io.realm.entities.StringOnly
 import io.realm.util.assertFailsWith
 import junit.framework.Assert.*
 import junit.framework.TestCase
-import org.junit.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.ErrorCollector
 import org.junit.runner.RunWith
-import java.lang.Exception
-import java.lang.UnsupportedOperationException
-import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
