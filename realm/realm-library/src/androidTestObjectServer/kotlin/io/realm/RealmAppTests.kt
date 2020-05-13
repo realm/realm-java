@@ -18,6 +18,13 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
+import org.bson.BsonReader
+import org.bson.BsonWriter
+import org.bson.codecs.Codec
+import org.bson.codecs.DecoderContext
+import org.bson.codecs.EncoderContext
+import org.bson.codecs.StringCodec
+import org.bson.codecs.configuration.CodecRegistries
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -244,6 +251,19 @@ class RealmAppTests {
         app.addAuthenticationListener(successListener)
         app.removeAuthenticationListener(failListener)
         app.login(RealmCredentials.anonymous())
+    }
+
+    @Test
+    fun functions_defaultCodecRegistry() {
+        var user = app.login(RealmCredentials.anonymous())
+        assertEquals(app.configuration.defaultCodecRegistry, app.getFunctions(user).defaultCodecRegistry)
+    }
+
+    @Test
+    fun functions_customCodecRegistry() {
+        var user = app.login(RealmCredentials.anonymous())
+        val registry = CodecRegistries.fromCodecs(StringCodec())
+        assertEquals(registry, app.getFunctions(user, registry).defaultCodecRegistry)
     }
 
 }

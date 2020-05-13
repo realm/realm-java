@@ -20,6 +20,8 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
+import org.bson.codecs.configuration.CodecRegistry;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -368,6 +370,25 @@ public class RealmApp {
     public RealmSync getSync() {
         return syncManager;
     }
+
+    /**
+     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions.
+     * <p>
+     * This will use the associated app's default codec registry to encode and decode arguments and
+     * results.
+     */
+    public RealmFunctions getFunctions(RealmUser user) {
+        return new RealmFunctions(user);
+    }
+
+    /**
+     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions with custom
+     * codec registry for encoding and decoding arguments and results.
+     */
+    public RealmFunctions getFunctions(RealmUser user, CodecRegistry codecRegistry) {
+        return new RealmFunctions(user, codecRegistry);
+    }
+
 
     /**
      * Returns the configuration object for this app.

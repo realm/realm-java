@@ -47,6 +47,10 @@ public class RealmFunctions {
 
     private CodecRegistry defaultCodecRegistry;
 
+    RealmFunctions(RealmUser user) {
+        this(user, user.getApp().getConfiguration().getDefaultCodecRegistry());
+    }
+
     RealmFunctions(RealmUser user, CodecRegistry codecRegistry) {
         this.user = user;
         this.defaultCodecRegistry = codecRegistry;

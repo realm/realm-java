@@ -428,18 +428,23 @@ public class RealmUser {
     }
 
     /**
-     * Returns a <i>Realm Functions</i> manager need for invoking MongoDB Stitch Functions.
-     *
-     * FIXME Name of Class and method still TBD.
+     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions.
+     * <p>
+     * This will use the associated app's default codec registry to encode and decode arguments and
+     * results.
      */
     public synchronized RealmFunctions getFunctions() {
         checkLoggedIn();
         if (functions == null) {
-            functions = new RealmFunctions(this, app.getConfiguration().getDefaultCodecRegistry());
+            functions = new RealmFunctions(this);
         }
         return functions;
     }
 
+    /**
+     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions with custom
+     * codec registry for encoding and decoding arguments and results.
+     */
     public RealmFunctions getFunctions(CodecRegistry codecRegistry) {
         return new RealmFunctions(this, codecRegistry);
     }
