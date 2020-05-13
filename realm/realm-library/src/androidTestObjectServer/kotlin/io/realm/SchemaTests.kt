@@ -22,12 +22,14 @@ import junit.framework.Assert
 import junit.framework.TestCase
 import org.junit.*
 import org.junit.runner.RunWith
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
-@Ignore("FIXME: RealmApp refactor")
 @RunWith(AndroidJUnit4::class)
 class SchemaTests {
-    @Rule
+    @get:Rule
     val configFactory = TestSyncConfigurationFactory()
+
     private var config: SyncConfiguration? = null
     private var app: TestRealmApp? = null
 
@@ -45,14 +47,14 @@ class SchemaTests {
         }
     }
 
-    @get:Test
-    val instance: Unit
-        get() {
-            val realm = Realm.getInstance(config!!)
+    @Test
+    fun instance() {
+        val realm = Realm.getInstance(config!!)
+        realm.use {
             TestCase.assertFalse(realm.isClosed)
-            realm.close()
-            Assert.assertTrue(realm.isClosed)
         }
+        Assert.assertTrue(realm.isClosed)
+    }
 
     @Test
     fun createObject() {
@@ -74,14 +76,14 @@ class SchemaTests {
         val className = "StringOnly"
         realm.beginTransaction()
         Assert.assertTrue(realm.schema.contains(className))
-        try {
+        // FIXME Why? We cannot update a sync schema "destructively"? -> Update Doc
+        //  Shouldn't this be UnsupportedOperation to be consistent with ex. addField, etc.
+        assertFailsWith<java.lang.IllegalArgumentException> {
             realm.schema.remove(className)
-            org.junit.Assert.fail()
-        } catch (ignored: IllegalArgumentException) {
-        } finally {
-            realm.cancelTransaction()
-            realm.close()
         }
+        realm.cancelTransaction()
+        Assert.assertTrue(realm.schema.contains(className))
+        realm.close()
     }
 
     @Test
@@ -99,17 +101,19 @@ class SchemaTests {
     fun disallow_renameClass() {
         // Init schema
         Realm.getInstance(config!!).close()
-        val realm = DynamicRealm.getInstance(config!!)
-        val className = "StringOnly"
-        realm.beginTransaction()
-        try {
-            realm.schema.rename(className, "Dogplace")
-            org.junit.Assert.fail()
-        } catch (ignored: IllegalArgumentException) {
-        } finally {
+        DynamicRealm.getInstance(config!!).use { realm ->
+            val existingClass = "StringOnly"
+            val newClass = "Dogplace"
+            realm.beginTransaction()
+            assertFailsWith<java.lang.IllegalArgumentException> {
+                // FIXME Why? We cannot update a sync schema "destructively"? -> Update Doc
+                //  Shouldn't this be UnsupportedOperation to be consistent with ex. addField, etc.
+                realm.schema.rename(existingClass, newClass)
+            }
+            Assert.assertFalse(realm.schema.contains(newClass))
             realm.cancelTransaction()
-            Assert.assertTrue(realm.schema.contains(className))
-            realm.close()
+            Assert.assertTrue(realm.schema.contains(existingClass))
+            Assert.assertFalse(realm.schema.contains(newClass))
         }
     }
 
@@ -124,14 +128,15 @@ class SchemaTests {
         Assert.assertNotNull(objectSchema)
         Assert.assertTrue(objectSchema!!.hasField(fieldName))
         realm.beginTransaction()
-        try {
+        assertFailsWith<IllegalArgumentException> {
+            // FIXME Why? We cannot update a sync schema "destructively"? -> Update Doc
+            //  Shouldn't this be UnsupportedOperation to be consistent with ex. addPrimaryKey, etc.
             objectSchema.removeField(fieldName)
-            org.junit.Assert.fail()
-        } catch (ignored: IllegalArgumentException) {
-        } finally {
-            realm.cancelTransaction()
-            realm.close()
         }
+        Assert.assertTrue(objectSchema!!.hasField(fieldName))
+        realm.cancelTransaction()
+        Assert.assertTrue(objectSchema!!.hasField(fieldName))
+        realm.close()
     }
 
     @Test
@@ -144,6 +149,7 @@ class SchemaTests {
         Assert.assertNotNull(objectSchema)
         realm.beginTransaction()
         objectSchema!!.addField("foo", String::class.java)
+        Assert.assertTrue(objectSchema.hasField("foo"))
         realm.commitTransaction()
         Assert.assertTrue(objectSchema.hasField("foo"))
         realm.close()
@@ -160,14 +166,13 @@ class SchemaTests {
         Assert.assertNotNull(objectSchema)
         Assert.assertTrue(objectSchema!!.hasField(fieldName))
         realm.beginTransaction()
-        try {
+        assertFailsWith<java.lang.UnsupportedOperationException> {
             objectSchema.addPrimaryKey(fieldName)
-            org.junit.Assert.fail()
-        } catch (ignored: UnsupportedOperationException) {
-        } finally {
-            realm.cancelTransaction()
-            realm.close()
         }
+        Assert.assertTrue(objectSchema!!.hasField(fieldName))
+        realm.cancelTransaction()
+        Assert.assertTrue(objectSchema!!.hasField(fieldName))
+        realm.close()
     }
 
     @Test
@@ -175,31 +180,31 @@ class SchemaTests {
         // Init schema
         Realm.getInstance(config!!).close()
         val className = "StringOnly"
-        val realm = DynamicRealm.getInstance(config!!)
-        realm.beginTransaction()
-        val objectSchema = realm.schema[className]
-        Assert.assertNotNull(objectSchema)
-        try {
-            objectSchema!!.addField("bar", String::class.java, FieldAttribute.PRIMARY_KEY)
-            org.junit.Assert.fail()
-        } catch (ignored: UnsupportedOperationException) {
-        } finally {
+
+        DynamicRealm.getInstance(config!!).use {realm ->
+            realm.beginTransaction()
+            val objectSchema = realm.schema[className]
+            Assert.assertNotNull(objectSchema)
+            // FIXME Is this in sync with expectations? Seems to be due to immutable scheme but test
+            //  name indicates something else...or
+            assertFailsWith<java.lang.UnsupportedOperationException> {
+                objectSchema!!.addField("bar", String::class.java, FieldAttribute.PRIMARY_KEY)
+            }
+            Assert.assertNotNull(objectSchema)
             realm.cancelTransaction()
-            realm.close()
         }
     }
 
     // Special column "__OID" should be hidden from users.
-    @get:Test
-    val fieldNames_stableIdColumnShouldBeHidden: Unit
-        get() {
-            val className = "StringOnly"
-            val realm = Realm.getInstance(config!!)
+    @Test
+    fun fieldNames_stableIdColumnShouldBeHidden() {
+        val className = "StringOnly"
+        Realm.getInstance(config!!).use { realm ->
             val objectSchema = realm.schema[className]
             Assert.assertNotNull(objectSchema)
             val names = objectSchema!!.fieldNames
             Assert.assertEquals(1, names.size)
             Assert.assertEquals(StringOnly.FIELD_CHARS, names.iterator().next())
-            realm.close()
         }
+    }
 }
