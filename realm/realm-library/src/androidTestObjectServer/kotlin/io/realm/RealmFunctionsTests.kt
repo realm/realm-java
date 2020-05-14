@@ -38,7 +38,6 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.Instant
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -165,7 +164,7 @@ class RealmFunctionsTests {
                     assertEquals(documents[0], functions.callFunction(FIRST_ARG_FUNCTION, documents, Document::class.java))
                 }
                 BsonType.DATE_TIME -> {
-                    val now = Date(Instant.now().toEpochMilli())
+                    val now = Date(System.currentTimeMillis())
                     assertEquals(now, functions.callFunction(FIRST_ARG_FUNCTION, listOf(now), Date::class.java))
                 }
                 BsonType.UNDEFINED,
