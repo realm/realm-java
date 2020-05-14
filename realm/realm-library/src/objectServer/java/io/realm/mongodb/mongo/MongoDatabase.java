@@ -65,7 +65,7 @@ public class MongoDatabase {
      * @param <DocumentT>    the type of the class to use instead of {@code Document}.
      * @return the collection
      */
-    <DocumentT> MongoCollection<DocumentT> getCollection(
+    public <DocumentT> MongoCollection<DocumentT> getCollection(
             final String collectionName,
             final Class<DocumentT> documentClass
     ) {
