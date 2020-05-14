@@ -79,7 +79,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<Long> callback = new OsJNIResultCallback<Long>(success, error) {
             @Override
             protected Long mapSuccess(Object result) {
-                return (long) result;
+                return (Long) result;
             }
         };
 
