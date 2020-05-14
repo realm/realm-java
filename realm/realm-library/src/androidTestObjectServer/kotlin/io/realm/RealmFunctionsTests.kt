@@ -335,6 +335,18 @@ class RealmFunctionsTests {
         assertEquals(BsonType.UNDEFINED, functions.callFunction("void", emptyList<Any>(), BsonUndefined::class.java).bsonType)
     }
 
+    // Tests that functions that should not execute based on "canevalute"-expression fails.
+    @Test
+    fun callFunction_authorizedOnly() {
+        // Not allow for anonymous user
+        assertFailsWithErrorCode(ErrorCode.FUNCTION_EXECUTION_ERROR) {
+            functions.callFunction("authorizedOnly", listOf(1, 2, 3), Document::class.java)
+        }
+        // User email must match "canevaluate" section of servers "functions/authorizedOnly/config.json"
+        val authorizedUser = app.registerUserAndLogin("authorizeduser@example.org", "asdfasdf")
+        assertNotNull(authorizedUser.functions.callFunction("authorizedOnly", listOf(1,2,3), Document::class.java))
+    }
+
     @Test
     fun getApp() {
         assertEquals(app, functions.app)
