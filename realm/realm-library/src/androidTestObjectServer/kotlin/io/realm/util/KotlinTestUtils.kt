@@ -10,7 +10,7 @@ import org.junit.Assert.fail
 /**
  * Verify that an [ObjectServerError] exception is thrown with a specific [ErrorCode]
  */
-inline fun expectErrorCode(expectedCode: ErrorCode, method: () -> Unit) {
+inline fun assertFailsWithErrorCode(expectedCode: ErrorCode, method: () -> Unit) {
     try {
         method()
         fail()

@@ -19,6 +19,7 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
+import io.realm.util.assertFailsWithErrorCode
 import org.bson.*
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecConfigurationException
@@ -36,6 +37,7 @@ import java.time.Instant
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
@@ -188,33 +190,30 @@ class RealmFunctionsTests {
     @Test
     fun asyncCallFunction() = looperThread.runBlocking {
         functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(32), Integer::class.java) { result ->
-            if (result.isSuccess) {
-                assertEquals(32, result.get().toInt())
-            } else  {
-                fail()
+            try {
+                assertEquals(32, result.orThrow.toInt())
+            } finally {
+                looperThread.testComplete()
             }
-            looperThread.testComplete()
         }
     }
 
 
     @Test
     fun codecArgumentFailure() {
-        val input = Dog("PojoFido")
         assertFailsWith<CodecConfigurationException> {
-            functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java)
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Dog::class.java)
         }
     }
 
     @Test
     fun asyncCodecArgumentFailure() = looperThread.runBlocking {
         functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Integer::class.java) { result ->
-            if (result.isSuccess) {
-                fail()
-            } else  {
+            try {
                 assertTrue(result.error.exception is CodecConfigurationException)
+            } finally {
+                looperThread.testComplete()
             }
-            looperThread.testComplete()
         }
     }
 
@@ -227,14 +226,12 @@ class RealmFunctionsTests {
 
     @Test
     fun asyncCodecResponseFailure() = looperThread.runBlocking {
-        val input = Dog("PojoFido")
         functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Integer::class.java) { result ->
-            if (result.isSuccess) {
-                fail()
-            } else  {
+            try {
                 assertTrue(result.error.exception is CodecConfigurationException)
+            } finally {
+                looperThread.testComplete()
             }
-            looperThread.testComplete()
         }
     }
 
@@ -248,15 +245,13 @@ class RealmFunctionsTests {
     @Test
     fun asyncCodecBsonFailure() = looperThread.runBlocking {
         functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(32), String::class.java) { result ->
-            if (result.isSuccess) {
-                fail()
-            } else  {
+            try {
                 assertTrue(result.error.exception is BSONException)
+            } finally {
+                looperThread.testComplete()
             }
-            looperThread.testComplete()
         }
     }
-
 
     @Test
     fun localCodecRegistry() {
@@ -268,12 +263,11 @@ class RealmFunctionsTests {
     fun asyncLocalCodecRegistry() = looperThread.runBlocking {
         val input = Dog("PojoFido")
         functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java, pojoRegistry) { result ->
-            if (result.isSuccess) {
-                assertEquals(input, result.get())
-            } else  {
-                fail()
+            try {
+                assertEquals(input, result.orThrow)
+            } finally {
+                looperThread.testComplete()
             }
-            looperThread.testComplete()
         }
     }
 
@@ -284,10 +278,11 @@ class RealmFunctionsTests {
         assertEquals(input, functionsWithCodecRegistry.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java))
     }
 
+
     @Test
     fun unknownFunction() {
-        assertFailsWith<ObjectServerError> {
-            functions.callFunction("unknown", listOf(32), Dog::class.java)
+        assertFailsWithErrorCode(ErrorCode.FUNCTION_NOT_FOUND) {
+             functions.callFunction("unknown", listOf(32), Dog::class.java)
         }
     }
 
@@ -295,13 +290,11 @@ class RealmFunctionsTests {
     fun asyncUnknownFunction() = looperThread.runBlocking {
         val input = Dog("PojoFido")
         functions.callFunctionAsync("unknown", listOf(input), Dog::class.java, pojoRegistry) { result ->
-            if (result.isSuccess) {
-                fail()
-            } else  {
-                // FIXME How verify exact error. NativeErrorIntValue? Or error message?
-                assertTrue(result.error is ObjectServerError)
+            try {
+                assertEquals(ErrorCode.FUNCTION_NOT_FOUND, result.error.errorCode)
+            } finally {
+                looperThread.testComplete()
             }
-            looperThread.testComplete()
         }
     }
 
@@ -322,8 +315,7 @@ class RealmFunctionsTests {
 
     @Test
     fun callFunction_remoteError() {
-        assertFailsWith<ObjectServerError> {
-            // FIXME Do we need to assert more about the error
+        assertFailsWithErrorCode(ErrorCode.FUNCTION_EXECUTION_ERROR) {
             functions.callFunction("error", emptyList<Any>(), String::class.java)
         }
     }
@@ -334,8 +326,8 @@ class RealmFunctionsTests {
     }
 
     @Test
-    fun callFunction_empty() {
-        assertEquals(BsonType.UNDEFINED, functions.callFunction("empty", emptyList<Any>(), BsonUndefined::class.java).bsonType)
+    fun callFunction_void() {
+        assertEquals(BsonType.UNDEFINED, functions.callFunction("void", emptyList<Any>(), BsonUndefined::class.java).bsonType)
     }
 
     @Test
@@ -351,7 +343,7 @@ class RealmFunctionsTests {
     @Test
     fun defaultCodecRegistry() {
         // TODO Maybe we should test that setting configuration specific would propagate all the way
-        //  to here, but we do not have infrastructure to easily override TestRealmApp coniguration,
+        //  to here, but we do not have infrastructure to easily override TestRealmApp configuration,
         //  and actual configuration is verified in RealmAppConfigurationTests
         assertEquals(app.configuration.defaultCodecRegistry, functions.defaultCodecRegistry)
     }
