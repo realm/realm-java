@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_internal_objectstore_OsRemoteMongoClient.h"
+#include "io_realm_internal_objectstore_OsMongoClient.h"
 
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
