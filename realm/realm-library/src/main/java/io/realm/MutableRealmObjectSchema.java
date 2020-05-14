@@ -303,9 +303,9 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             if (original_size > Integer.MAX_VALUE) {
                 throw new UnsupportedOperationException("Too many results to iterate: " + original_size);
             }
-            int size = (int) results.size();
+            int size = (int) result.size();
             for (int i = 0; i < size; i++) {
-                DynamicRealmObject obj = new DynamicRealmObject(realm, new CheckedRow(results.getUncheckedRow(i)));
+                DynamicRealmObject obj = new DynamicRealmObject(realm, new CheckedRow(result.getUncheckedRow(i)));
                 if (obj.isValid()) {
                     function.apply(obj);
                 }
