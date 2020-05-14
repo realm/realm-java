@@ -22,6 +22,9 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having too many versions can dramatically increase the filesize of the Realm.
 * `RealmResults.asJSON()` is no longer `@Beta`.
 
+### Fixes
+* If a DynamicRealm and Realm was opened for the same file they would share transaction state by accident. The implication was that writes to a `Realm` would immediately show up in the `DynamicRealm`. This has been fixed, so now it is required to call `refresh()` on the other Realm or wait for normal change listeners to detect the change.
+
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
 * File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
@@ -33,7 +36,7 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * The NDK has been upgraded from r10e to r21.
 * The compiler used for C++ code has changed from GCC to Clang.
 * OpenSSL used by Realms encryption layer has been upgraded from 1.0.2k to 1.1.1b.
-* Updated to Object Store commit: 66199adbfffbe153e696309a53d4ec03e32c44e3.
+* Updated to Object Store commit: 820b74e2378f111991877d43068a95d2b7a2e404.
 * Updated to Realm Sync 5.0.3.
 * Updated to Realm Core 6.0.4.
 

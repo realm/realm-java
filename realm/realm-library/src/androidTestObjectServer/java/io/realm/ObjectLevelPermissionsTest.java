@@ -104,6 +104,7 @@ public class ObjectLevelPermissionsTest {
         RealmPrivileges privileges = realm.getPrivileges();
         assertNoAccess(privileges);
 
+        dynamicRealm.refresh();
         privileges = dynamicRealm.getPrivileges();
         assertNoAccess(privileges);
     }
@@ -127,6 +128,7 @@ public class ObjectLevelPermissionsTest {
         ClassPrivileges privileges = realm.getPrivileges(AllJavaTypes.class);
         assertNoAccess(privileges);
 
+        dynamicRealm.refresh();
         privileges = dynamicRealm.getPrivileges(AllJavaTypes.CLASS_NAME);
         assertNoAccess(privileges);
     }
