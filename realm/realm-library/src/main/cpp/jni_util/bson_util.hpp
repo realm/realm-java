@@ -23,13 +23,17 @@
 namespace realm {
 namespace jni_util {
 
+using namespace realm::bson;
+
 // Serializes and wraps bson values passed between java and JNI according to JniBsonProtocol.java
 class JniBsonProtocol {
 public:
-    static realm::bson::Bson string_to_bson(std::string arg);
-    static realm::bson::Bson jstring_to_bson(JNIEnv* env, jstring arg);
-    static std::string bson_to_string(realm::bson::Bson bson);
-    static jstring bson_to_jstring(JNIEnv* env, realm::bson::Bson bson);
+    static Bson string_to_bson(const std::string arg);
+    static Bson jstring_to_bson(JNIEnv* env, const jstring arg);
+    static const Bson& check(const Bson& bson, const Bson::Type type, const std::string message);
+    static Bson parse_checked(JNIEnv* env, const jstring arg, const Bson::Type type, const std::string message);
+    static std::string bson_to_string(const Bson& bson);
+    static jstring bson_to_jstring(JNIEnv* env, const Bson& bson);
 };
 
 } // jni_util

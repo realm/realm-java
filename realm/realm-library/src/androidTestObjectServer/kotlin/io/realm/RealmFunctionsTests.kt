@@ -21,9 +21,14 @@ import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import org.bson.*
+import org.bson.codecs.Codec
+import org.bson.codecs.DecoderContext
+import org.bson.codecs.EncoderContext
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecConfigurationException
+import org.bson.codecs.configuration.CodecProvider
 import org.bson.codecs.configuration.CodecRegistries
+import org.bson.codecs.configuration.CodecRegistry
 import org.bson.codecs.pojo.PojoCodecProvider
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -353,6 +358,31 @@ class RealmFunctionsTests {
         val configCodecRegistry = CodecRegistries.fromCodecs(StringCodec())
         val customCodecRegistryFunctions = anonUser.getFunctions(configCodecRegistry)
         assertEquals(configCodecRegistry, customCodecRegistryFunctions.defaultCodecRegistry)
+    }
+
+    @Test
+    fun illegalBsonArgument() {
+        // Coded that will generate non-BsonArray from list
+        val faultyListCodec = object : Codec<Iterable<*>> {
+            override fun getEncoderClass(): Class<Iterable<*>> { return Iterable::class.java }
+            override fun encode(writer: BsonWriter, value: Iterable<*>, encoderContext: EncoderContext) {
+                writer.writeString("Not an array")
+            }
+            override fun decode(reader: BsonReader?, decoderContext: DecoderContext?): ArrayList<*> {
+                TODO("Not yet implemented")
+            }
+        }
+        // Codec registry that will use the above faulty codec for lists
+        val faultyCodecRegistry = CodecRegistries.fromProviders(
+                object: CodecProvider {
+                    override fun <T : Any> get(clazz: Class<T>?, registry: CodecRegistry?): Codec<T> {
+                        return faultyListCodec as Codec<T>
+                    }
+                }
+        )
+        assertFailsWith<IllegalArgumentException> {
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf("Realm"), String::class.java, faultyCodecRegistry)
+        }
     }
 
     @Test

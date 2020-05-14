@@ -23,9 +23,10 @@
 
 using namespace realm;
 using namespace realm::app;
+using namespace realm::bson;
 using namespace realm::jni_util;
 
-static std::function<jobject(JNIEnv*, Optional<bson::Bson> )> success_mapper = [](JNIEnv* env, Optional<bson::Bson> response) {
+static std::function<jobject(JNIEnv*, Optional<Bson> )> success_mapper = [](JNIEnv* env, Optional<Bson> response) {
     if (response) {
         return JniBsonProtocol::bson_to_jstring(env, *response);
     } else {
@@ -42,15 +43,14 @@ Java_io_realm_RealmFunctions_nativeCallFunction(JNIEnv* env, jclass , jlong j_ap
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
 
-        std::function<void(Optional<bson::Bson>, Optional<app::AppError>)> callback = JavaNetworkTransport::create_result_callback(env, j_callback, success_mapper);
+        std::function<void(Optional<Bson>, Optional<app::AppError>)> callback = JavaNetworkTransport::create_result_callback(env, j_callback, success_mapper);
 
-        auto handler = [callback](Optional<app::AppError> error, Optional<bson::Bson> response) {
+        auto handler = [callback](Optional<app::AppError> error, Optional<Bson> response) {
             callback(response, error);
         };
 
         JStringAccessor name(env, j_name);
-        bson::BsonArray args(JniBsonProtocol::jstring_to_bson(env, j_args_json));
-
+        BsonArray args(JniBsonProtocol::parse_checked(env, j_args_json, Bson::Type::Array, "BSON argument must be an BsonArray"));
         app->call_function(user, name, args, handler);
     }
     CATCH_STD()
