@@ -31,36 +31,37 @@ import org.junit.*
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.test.fail
 
 @RunWith(AndroidJUnit4::class)
 class SessionTests {
-    private var configuration: SyncConfiguration? = null
-    private var app: TestRealmApp? = null
-    private var user: RealmUser? = null
+    private lateinit var configuration: SyncConfiguration
+    private lateinit var app: TestRealmApp
+    private lateinit var user: RealmUser
 
-    @Rule
+    @get:Rule
     val configFactory = TestSyncConfigurationFactory()
 
-    @Rule
+    @get:Rule
     val looperThread = RunInLooperThread()
 
     @Before
     fun setUp() {
         app = TestRealmApp()
-        user = createTestUser(app!!)
-        configuration = SyncConfiguration.defaultConfig(user!!, "default")
+        user = createTestUser(app)
+        configuration = SyncConfiguration.defaultConfig(user, "default")
     }
 
     @After
     fun tearDown() {
-        if (app != null) {
-            app!!.close()
+        if (this::app.isInitialized) {
+            app.close()
         }
     }
 
     @Test
     fun get_syncValues() {
-        val session = SyncSession(configuration!!)
+        val session = SyncSession(configuration)
         Assert.assertEquals("ws://127.0.0.1:9090/", session.serverUrl.toString())
         Assert.assertEquals(user, session.user)
         Assert.assertEquals(configuration, session.configuration)
@@ -68,9 +69,9 @@ class SessionTests {
 
     @Test
     fun addDownloadProgressListener_nullThrows() {
-        val session = app!!.sync.getOrCreateSession(configuration!!)
+        val session = app.sync.getOrCreateSession(configuration)
         try {
-            session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, null)
+            session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, TestHelper.getNull())
             Assert.fail()
         } catch (ignored: IllegalArgumentException) {
         }
@@ -78,9 +79,9 @@ class SessionTests {
 
     @Test
     fun addUploadProgressListener_nullThrows() {
-        val session = app!!.sync.getOrCreateSession(configuration!!)
+        val session = app.sync.getOrCreateSession(configuration)
         try {
-            session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, null)
+            session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, TestHelper.getNull())
             Assert.fail()
         } catch (ignored: IllegalArgumentException) {
         }
@@ -88,18 +89,19 @@ class SessionTests {
 
     @Test
     fun removeProgressListener() {
-        val realm = Realm.getInstance(configuration!!)
-        val session = app!!.sync.getOrCreateSession(configuration!!)
+        val realm = Realm.getInstance(configuration)
+        val session = app.sync.getOrCreateSession(configuration)
         val listeners = arrayOf(
                 null,
                 ProgressListener { progress: Progress? -> },
                 ProgressListener { progress: Progress? -> }
         )
         session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, listeners[2]!!)
+        session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, TestHelper.allowNull(listeners[2]))
 
         // Check that remove works unconditionally for all input
         for (listener in listeners) {
-            session.removeProgressListener(listener!!)
+            session.removeProgressListener(TestHelper.allowNull(listener))
         }
         realm.close()
     }
@@ -109,7 +111,7 @@ class SessionTests {
     @RunTestInLooperThread
     @Ignore("FIXME: Figure out how to fix this")
     fun errorHandler_clientResetReported() {
-        val user = createTestUser(app!!)
+        val user = createTestUser(app)
         val url = "realm://objectserver.realm.io/default"
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
@@ -140,7 +142,7 @@ class SessionTests {
     @RunTestInLooperThread
     @Ignore("FIXME: Figure out how to fix this")
     fun errorHandler_manualExecuteClientReset() {
-        val user = createTestUser(app!!)
+        val user = createTestUser(app)
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler { session: SyncSession?, error: ObjectServerError ->
@@ -169,7 +171,7 @@ class SessionTests {
         looperThread.addTestRealm(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(app!!.sync.getSession(configuration!!))
+        user.app.sync.simulateClientReset(app.sync.getSession(configuration))
     }
 
     // Check that we can use the backup SyncConfiguration to open the Realm.
@@ -177,7 +179,7 @@ class SessionTests {
     @RunTestInLooperThread
     @Ignore("FIXME: Figure out how to fix this")
     fun errorHandler_useBackupSyncConfigurationForClientReset() {
-        val user = createTestUser(app!!)
+        val user = createTestUser(app)
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .schema(StringOnly::class.java)
@@ -201,7 +203,9 @@ class SessionTests {
                     val backupRealm = Realm.getInstance(backupRealmConfiguration)
                     Assert.assertFalse(backupRealm.isEmpty)
                     Assert.assertEquals(1, backupRealm.where(StringOnly::class.java).count())
-                    Assert.assertEquals("Foo", backupRealm.where(StringOnly::class.java).findAll().first()!!.chars)
+                    backupRealm.where(StringOnly::class.java).findAll().first()?.let { first ->
+                        Assert.assertEquals("Foo", first.chars)
+                    } ?: fail()
                     backupRealm.close()
 
                     // opening a Dynamic Realm should also work
@@ -209,7 +213,9 @@ class SessionTests {
                     dynamicRealm.schema.checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME)
                     val all = dynamicRealm.where(StringOnly.CLASS_NAME).findAll()
                     Assert.assertEquals(1, all.size.toLong())
-                    Assert.assertEquals("Foo", all.first()!!.getString(StringOnly.FIELD_CHARS))
+                    all.first()?.let { first ->
+                        Assert.assertEquals("Foo", first.getString(StringOnly.FIELD_CHARS))
+                    } ?: fail()
                     dynamicRealm.close()
                     looperThread.testComplete()
                 }
@@ -222,7 +228,7 @@ class SessionTests {
         looperThread.addTestRealm(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(app!!.sync.getSession(configuration!!))
+        user.app.sync.simulateClientReset(app.sync.getSession(configuration))
     }
 
     // Check that we can open the backup file without using the provided SyncConfiguration,
@@ -232,7 +238,7 @@ class SessionTests {
     @RunTestInLooperThread
     @Ignore("FIXME: Figure out how to fix this")
     fun errorHandler_useBackupSyncConfigurationAfterClientReset() {
-        val user = createTestUser(app!!)
+        val user = createTestUser(app)
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler { session: SyncSession?, error: ObjectServerError ->
@@ -254,18 +260,19 @@ class SessionTests {
                     // exception since the backup Realm contain only StringOnly table
                     var backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile)
                     try {
-                        Realm.getInstance(backupRealmConfiguration!!)
+                        Realm.getInstance(backupRealmConfiguration)
                         Assert.fail("Expected to throw a Migration required")
                     } catch (expected: RealmMigrationNeededException) {
                     }
 
                     // opening a DynamicRealm will work though
-                    val dynamicRealm = DynamicRealm.getInstance(backupRealmConfiguration!!)
+                    val dynamicRealm = DynamicRealm.getInstance(backupRealmConfiguration)
                     dynamicRealm.schema.checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME)
                     val all = dynamicRealm.where(StringOnly.CLASS_NAME).findAll()
                     Assert.assertEquals(1, all.size.toLong())
-                    Assert.assertEquals("Foo", all.first()!!.getString(StringOnly.FIELD_CHARS))
-
+                    all.first()?.let { first ->
+                        Assert.assertEquals("Foo", first.getString(StringOnly.FIELD_CHARS))
+                    } ?: fail()
                     // make sure we can't write to it (read-only Realm)
                     try {
                         dynamicRealm.beginTransaction()
@@ -285,7 +292,9 @@ class SessionTests {
                     Assert.assertFalse(backupRealm.isEmpty)
                     Assert.assertEquals(1, backupRealm.where(StringOnly::class.java).count())
                     val allSorted = backupRealm.where(StringOnly::class.java).findAll()
-                    Assert.assertEquals("Foo", allSorted[0]!!.chars)
+                    allSorted[0]?.let { allSorted0 ->
+                        Assert.assertEquals("Foo", allSorted0.chars)
+                    } ?: fail()
                     backupRealm.close()
                     looperThread.testComplete()
                 }
@@ -298,7 +307,7 @@ class SessionTests {
         looperThread.addTestRealm(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(app!!.sync.getSession(configuration!!))
+        user.app.sync.simulateClientReset(app.sync.getSession(configuration))
     }
 
     // make sure the backup file Realm is encrypted with the same key as the original synced Realm.
@@ -306,7 +315,7 @@ class SessionTests {
     @RunTestInLooperThread
     @Ignore("FIXME: Figure out how to fix this")
     fun errorHandler_useClientResetEncrypted() {
-        val user = createTestUser(app!!)
+        val user = createTestUser(app)
         val randomKey = TestHelper.getRandomKey()
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
@@ -324,10 +333,12 @@ class SessionTests {
                     var backupRealmConfiguration = handler.backupRealmConfiguration
 
                     // can open encrypted backup Realm
-                    var backupEncryptedRealm = Realm.getInstance(backupRealmConfiguration!!)
+                    var backupEncryptedRealm = Realm.getInstance(backupRealmConfiguration)
                     Assert.assertEquals(1, backupEncryptedRealm.where(StringOnly::class.java).count())
                     var allSorted = backupEncryptedRealm.where(StringOnly::class.java).findAll()
-                    Assert.assertEquals("Foo", allSorted[0]!!.chars)
+                    allSorted[0]?.let { allSorted0 ->
+                        Assert.assertEquals("Foo", allSorted0.chars)
+                    } ?: fail()
                     backupEncryptedRealm.close()
                     val backupFile = handler.backupFile.absolutePath
                     // build a conf to open a DynamicRealm
@@ -335,7 +346,9 @@ class SessionTests {
                     backupEncryptedRealm = Realm.getInstance(backupRealmConfiguration)
                     Assert.assertEquals(1, backupEncryptedRealm.where(StringOnly::class.java).count())
                     allSorted = backupEncryptedRealm.where(StringOnly::class.java).findAll()
-                    Assert.assertEquals("Foo", allSorted[0]!!.chars)
+                    allSorted[0]?.let { allSorted0 ->
+                        Assert.assertEquals("Foo", allSorted0.chars)
+                    }
                     backupEncryptedRealm.close()
 
                     // using wrong key throw
@@ -354,16 +367,16 @@ class SessionTests {
         looperThread.addTestRealm(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(app!!.sync.getSession(configuration!!))
+        user.app.sync.simulateClientReset(app.sync.getSession(configuration))
     }
 
     @Test
     @UiThreadTest
     @Throws(InterruptedException::class)
     fun uploadAllLocalChanges_throwsOnUiThread() {
-        val realm = Realm.getInstance(configuration!!)
+        val realm = Realm.getInstance(configuration)
         try {
-            app!!.sync.getOrCreateSession(configuration!!).uploadAllLocalChanges()
+            app.sync.getOrCreateSession(configuration).uploadAllLocalChanges()
             Assert.fail("Should throw an IllegalStateException on Ui Thread")
         } catch (ignored: IllegalStateException) {
         } finally {
@@ -375,9 +388,9 @@ class SessionTests {
     @UiThreadTest
     @Throws(InterruptedException::class)
     fun uploadAllLocalChanges_withTimeout_throwsOnUiThread() {
-        val realm = Realm.getInstance(configuration!!)
+        val realm = Realm.getInstance(configuration)
         try {
-            app!!.sync.getOrCreateSession(configuration!!).uploadAllLocalChanges(30, TimeUnit.SECONDS)
+            app.sync.getOrCreateSession(configuration).uploadAllLocalChanges(30, TimeUnit.SECONDS)
             Assert.fail("Should throw an IllegalStateException on Ui Thread")
         } catch (ignored: IllegalStateException) {
         } finally {
@@ -388,8 +401,8 @@ class SessionTests {
     @Test
     @Throws(InterruptedException::class)
     fun uploadAllLocalChanges_withTimeout_invalidParametersThrows() {
-        val realm = Realm.getInstance(configuration!!)
-        val session = app!!.sync.getOrCreateSession(configuration!!)
+        val realm = Realm.getInstance(configuration)
+        val session = app.sync.getOrCreateSession(configuration)
         try {
             try {
                 session.uploadAllLocalChanges(-1, TimeUnit.SECONDS)
@@ -397,7 +410,7 @@ class SessionTests {
             } catch (ignored: IllegalArgumentException) {
             }
             try {
-                session.uploadAllLocalChanges(1, null)
+                session.uploadAllLocalChanges(1, TestHelper.getNull())
                 Assert.fail()
             } catch (ignored: IllegalArgumentException) {
             }
@@ -409,8 +422,8 @@ class SessionTests {
     @Test
     @Throws(InterruptedException::class)
     fun uploadAllLocalChanges_returnFalseWhenTimedOut() {
-        val realm = Realm.getInstance(configuration!!)
-        val session = app!!.sync.getSession(configuration!!)
+        val realm = Realm.getInstance(configuration)
+        val session = app.sync.getSession(configuration)
         try {
             Assert.assertFalse(session.uploadAllLocalChanges(100, TimeUnit.MILLISECONDS))
         } finally {
@@ -422,9 +435,9 @@ class SessionTests {
     @UiThreadTest
     @Throws(InterruptedException::class)
     fun downloadAllServerChanges_throwsOnUiThread() {
-        val realm = Realm.getInstance(configuration!!)
+        val realm = Realm.getInstance(configuration)
         try {
-            app!!.sync.getSession(configuration!!).downloadAllServerChanges()
+            app.sync.getSession(configuration).downloadAllServerChanges()
             Assert.fail("Should throw an IllegalStateException on Ui Thread")
         } catch (ignored: IllegalStateException) {
         } finally {
@@ -436,9 +449,9 @@ class SessionTests {
     @UiThreadTest
     @Throws(InterruptedException::class)
     fun downloadAllServerChanges_withTimeout_throwsOnUiThread() {
-        val realm = Realm.getInstance(configuration!!)
+        val realm = Realm.getInstance(configuration)
         try {
-            app!!.sync.getSession(configuration!!).downloadAllServerChanges(30, TimeUnit.SECONDS)
+            app.sync.getSession(configuration).downloadAllServerChanges(30, TimeUnit.SECONDS)
             Assert.fail("Should throw an IllegalStateException on Ui Thread")
         } catch (ignored: IllegalStateException) {
         } finally {
@@ -449,8 +462,8 @@ class SessionTests {
     @Test
     @Throws(InterruptedException::class)
     fun downloadAllServerChanges_withTimeout_invalidParametersThrows() {
-        val realm = Realm.getInstance(configuration!!)
-        val session = app!!.sync.getSession(configuration!!)
+        val realm = Realm.getInstance(configuration)
+        val session = app.sync.getSession(configuration)
         try {
             try {
                 session.downloadAllServerChanges(-1, TimeUnit.SECONDS)
@@ -458,7 +471,7 @@ class SessionTests {
             } catch (ignored: IllegalArgumentException) {
             }
             try {
-                session.downloadAllServerChanges(1, null)
+                session.downloadAllServerChanges(1, TestHelper.getNull())
                 Assert.fail()
             } catch (ignored: IllegalArgumentException) {
             }
@@ -470,8 +483,8 @@ class SessionTests {
     @Test
     @Throws(InterruptedException::class)
     fun downloadAllServerChanges_returnFalseWhenTimedOut() {
-        val realm = Realm.getInstance(configuration!!)
-        val session = app!!.sync.getSession(configuration!!)
+        val realm = Realm.getInstance(configuration)
+        val session = app.sync.getSession(configuration)
         try {
             Assert.assertFalse(session.downloadAllServerChanges(100, TimeUnit.MILLISECONDS))
         } finally {
@@ -483,7 +496,7 @@ class SessionTests {
     @UiThreadTest
     fun unrecognizedErrorCode_errorHandler() {
         val errorHandlerCalled = AtomicBoolean(false)
-        configuration = configFactory.createSyncConfigurationBuilder(user!!)
+        configuration = configFactory.createSyncConfigurationBuilder(user)
                 .errorHandler { session: SyncSession?, error: ObjectServerError ->
                     errorHandlerCalled.set(true)
                     Assert.assertEquals(ErrorCode.UNKNOWN, error.errorCode)
@@ -491,7 +504,7 @@ class SessionTests {
                 }
                 .build()
         val realm = Realm.getInstance(configuration)
-        val session = app!!.sync.getSession(configuration)
+        val session = app.sync.getSession(configuration)
         val testLogger = TestLogger()
         RealmLog.add(testLogger)
         session.notifySessionError("unknown", 3, "Unknown Error")
@@ -502,40 +515,39 @@ class SessionTests {
     }
 
     // Closing the Realm should remove the session
-    @get:Test
-    val sessionThrowsOnNonExistingSession: Unit
-        get() {
-            val realm = Realm.getInstance(configuration!!)
-            val session = app!!.sync.getSession(configuration!!)
-            Assert.assertEquals(configuration, session.configuration)
+    @Test
+    fun getSessionThrowsOnNonExistingSession () {
+        val realm = Realm.getInstance(configuration)
+        val session = app.sync.getSession(configuration)
+        Assert.assertEquals(configuration, session.configuration)
 
-            // Closing the Realm should remove the session
+        // Closing the Realm should remove the session
+        realm.close()
+        try {
+            app.sync.getSession(configuration)
+            Assert.fail("getSession should throw an ISE")
+        } catch (expected: IllegalStateException) {
+            Assert.assertThat(expected.message, CoreMatchers.containsString(
+                    "No SyncSession found using the path : "))
+        }
+    }
+
+
+    @Test
+    fun isConnected_falseForInvalidUser() {
+        val realm = Realm.getInstance(configuration)
+        val session = app.sync.getSession(configuration)
+        try {
+            Assert.assertFalse(session.isConnected)
+        } finally {
             realm.close()
-            try {
-                app!!.sync.getSession(configuration!!)
-                Assert.fail("getSession should throw an ISE")
-            } catch (expected: IllegalStateException) {
-                Assert.assertThat(expected.message, CoreMatchers.containsString(
-                        "No SyncSession found using the path : "))
-            }
         }
-
-    @get:Test
-    val isConnected_falseForInvalidUser: Unit
-        get() {
-            val realm = Realm.getInstance(configuration!!)
-            val session = app!!.sync.getSession(configuration!!)
-            try {
-                Assert.assertFalse(session.isConnected)
-            } finally {
-                realm.close()
-            }
-        }
+    }
 
     @Test
     fun stop_doesNotThrowIfCalledWhenRealmIsClosed() {
-        val realm = Realm.getInstance(configuration!!)
-        val session = app!!.sync.getSession(configuration!!)
+        val realm = Realm.getInstance(configuration)
+        val session = app.sync.getSession(configuration)
         realm.close()
         session.stop()
     }
