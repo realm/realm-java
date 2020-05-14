@@ -84,10 +84,10 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         };
 
         // no filter means count all
-        String filterString = filter == null ?
+        String filterString = (filter == null) ?
                 JniBsonProtocol.encode(new Document(), codecRegistry) :
                 JniBsonProtocol.encode(filter, codecRegistry);
-        int limit = options == null ? 0 : options.getLimit();
+        int limit = (options == null) ? 0 : options.getLimit();
 
         nativeCount(nativePtr, filterString, limit, callback);
 
@@ -180,9 +180,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        String encodedFilter = filter == null ?
-                JniBsonProtocol.encode(new Document(), codecRegistry) :
-                JniBsonProtocol.encode(filter, codecRegistry);
+        String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
         String projectionString = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
         String sortString = JniBsonProtocol.encode(options.getSort(), codecRegistry);
         nativeFindOneWithOptions(nativePtr, encodedFilter, projectionString, sortString, options.getLimit(), callback);
