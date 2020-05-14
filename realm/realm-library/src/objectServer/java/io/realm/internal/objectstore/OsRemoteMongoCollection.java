@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 
 import io.realm.ObjectServerError;
 import io.realm.internal.NativeObject;
-import io.realm.internal.ResultHandler;
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.mongodb.remote.RemoteCountOptions;
@@ -104,7 +104,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {
-                return (ResultT) findOneSuccessMapper(result, resultClass);
+                return findOneSuccessMapper(result, resultClass);
             }
         };
 
@@ -119,7 +119,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<DocumentT> callback = new OsJNIResultCallback<DocumentT>(success, error) {
             @Override
             protected DocumentT mapSuccess(Object result) {
-                return (DocumentT) findOneSuccessMapper(result, Document.class);
+                return findOneSuccessMapper(result, documentClass);
             }
         };
 
@@ -135,7 +135,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {
-                return (ResultT) findOneSuccessMapper(result, resultClass);
+                return findOneSuccessMapper(result, resultClass);
             }
         };
 
@@ -153,7 +153,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<DocumentT> callback = new OsJNIResultCallback<DocumentT>(success, error) {
             @Override
             protected DocumentT mapSuccess(Object result) {
-                return (DocumentT) findOneSuccessMapper(result, documentClass);
+                return findOneSuccessMapper(result, documentClass);
             }
         };
 
@@ -176,7 +176,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {
-                return (ResultT) findOneSuccessMapper(result, resultClass);
+                return findOneSuccessMapper(result, resultClass);
             }
         };
 
@@ -258,7 +258,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    private Object findOneSuccessMapper(@Nullable Object result, Class<?> resultClass) {
+    private <T> T findOneSuccessMapper(@Nullable Object result, Class<T> resultClass) {
         if (result == null) {
             return null;
         } else {

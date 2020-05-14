@@ -18,7 +18,7 @@ package io.realm;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.internal.ResultHandler;
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIVoidResultCallback;

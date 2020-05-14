@@ -80,7 +80,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv* e
                                                                        jlong j_limit,
                                                                        jobject j_callback) {
     try {
-        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
         bson::BsonDocument bson_filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
         uint64_t limit = std::uint64_t(j_limit);
         collection->count(bson_filter, limit, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
@@ -95,7 +95,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeFindOne(JNIEnv*
                                                                          jstring j_document,
                                                                          jobject j_callback) {
     try {
-        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
         bson::BsonDocument bson_filter(JniBsonProtocol::jstring_to_bson(env, j_document));
         collection->find_one(bson_filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
     }
@@ -112,16 +112,12 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeFindOneWithOpti
                                                                          jlong j_limit,
                                                                          jobject j_callback) {
     try {
-        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
         uint64_t limit = std::uint64_t(j_limit);
 
-        // FIXME: remove redundant variables
-        const Bson &pre_bson_filter = JniBsonProtocol::jstring_to_bson(env, j_filter);
-        bson::BsonDocument bson_filter(pre_bson_filter);
-        const Bson &pre_projection = JniBsonProtocol::jstring_to_bson(env, j_projection);
-        bson::BsonDocument projection(pre_projection);
-        const Bson &pre_sort = JniBsonProtocol::jstring_to_bson(env, j_sort);
-        bson::BsonDocument sort(pre_sort);
+        bson::BsonDocument bson_filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
+        bson::BsonDocument projection(JniBsonProtocol::jstring_to_bson(env, j_projection));
+        bson::BsonDocument sort(JniBsonProtocol::jstring_to_bson(env, j_sort));
         RemoteMongoCollection::RemoteFindOptions options = {
                 limit,
                 projection,
@@ -140,7 +136,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeInsertOne(JNIEn
                                                                            jstring j_document,
                                                                            jobject j_callback) {
     try {
-        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
         bson::BsonDocument bson_filter(JniBsonProtocol::jstring_to_bson(env, j_document));
         collection->insert_one(bson_filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_insert_one));
     }
@@ -154,7 +150,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeInsertMany(JNIE
                                                                             jstring j_documents,
                                                                             jobject j_callback) {
     try {
-        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
         BsonArray bson_array(JniBsonProtocol::jstring_to_bson(env, j_documents));
         collection->insert_many(bson_array, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_insert_many));
     }
@@ -168,7 +164,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeDeleteOne(JNIEn
                                                                            jstring j_document,
                                                                            jobject j_callback) {
     try {
-        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
         bson::BsonDocument bson_filter(JniBsonProtocol::jstring_to_bson(env, j_document));
         collection->delete_one(bson_filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
     }
@@ -182,7 +178,7 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeDeleteMany(JNIE
                                                                            jstring j_document,
                                                                            jobject j_callback) {
     try {
-        RemoteMongoCollection* collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
         bson::BsonDocument bson_filter(JniBsonProtocol::jstring_to_bson(env, j_document));
         collection->delete_many(bson_filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
     }

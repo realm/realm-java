@@ -18,8 +18,6 @@ package io.realm.mongodb
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.log.LogLevel
-import io.realm.log.RealmLog
 import io.realm.mongodb.remote.RemoteCountOptions
 import io.realm.util.blockingGetResult
 import org.bson.Document
@@ -29,6 +27,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 
 @RunWith(AndroidJUnit4::class)
@@ -42,7 +42,6 @@ class RemoteMongoCollectionTest {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        RealmLog.setLevel(LogLevel.DEBUG)
         app = TestRealmApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         client = user.getRemoteMongoClient(SERVICE_NAME)
@@ -58,6 +57,25 @@ class RemoteMongoCollectionTest {
 
         if (this::app.isInitialized) {
             app.close()
+        }
+    }
+
+    @Test
+    fun insertOne() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+//            assertEquals(0, count().blockingGetResult())
+//            val doc = Document(mapOf("KEY_1" to "WORLD_1", "KEY_2" to "WORLD_2"))
+//            insertOne(doc).blockingGetResult()
+//            assertEquals(1, count().blockingGetResult())
+
+            val doc = Document("hello", "world")
+            doc["_id"] = ObjectId()
+
+            assertEquals(doc.getObjectId("_id"), insertOne(doc).blockingGetResult()!!.insertedId.asObjectId().value)
+            assertFailsWith(ObjectServerError::class) { insertOne(doc).blockingGetResult() }
+
+            val doc2 = Document("hello", "world")
+            assertNotEquals(doc.getObjectId("_id"), insertOne(doc2).blockingGetResult()!!.insertedId.asObjectId().value)
         }
     }
 
@@ -79,7 +97,6 @@ class RemoteMongoCollectionTest {
 
             assertEquals(manyDocuments.size.toLong(), count().blockingGetResult())
             assertEquals(3, count(rawDoc).blockingGetResult())
-            assertEquals(2, count(rawDoc, RemoteCountOptions().limit(2)).blockingGetResult())
             assertEquals(1, count(Document("foo", "bar")).blockingGetResult())
             assertEquals(0, count(Document("bar", "foo")).blockingGetResult())
         }
@@ -90,46 +107,50 @@ class RemoteMongoCollectionTest {
         with(getCollectionInternal(COLLECTION_NAME)) {
             assertEquals(0, count().blockingGetResult())
 
-            val rawDoc = Document(KEY_1, VALUE_1)//.withId()
+            val rawDoc = Document("hello", "world")
             val doc1 = Document(rawDoc)
-//            val doc1withId = Document(rawDoc.withId())
             val doc2 = Document(rawDoc)
-
-            // FIXME: check feasibility of this assertion, otherwise, just make a plain insert
-//            insertOne(doc1withId).blockingGetResult().let {
-//                assertTrue(ObjectId.isValid(it!!.insertedId.toString()))
-//                assertEquals(doc1withId["_id"], it.insertedId)
-//            }
             insertOne(doc1).blockingGetResult()
             assertEquals(1, count().blockingGetResult())
             insertOne(doc2).blockingGetResult()
             assertEquals(2, count().blockingGetResult())
 
             assertEquals(2, count(rawDoc).blockingGetResult())
-            assertEquals(0, count(Document("foo", "bar")).blockingGetResult())
-            assertEquals(1, count(rawDoc, RemoteCountOptions().limit(1)).blockingGetResult())
+            assertEquals(0, count(Document("hello", "Friend")).blockingGetResult())
+            assertEquals(1,count(rawDoc, RemoteCountOptions().limit(1)).blockingGetResult())
 
-            // FIXME: investigate error handling for malformed payloads
-//            assertFailsWith(ExecutionException::class) {
-//                this.count(Document("\$who", 1)).blockingGetResult()
-//                fail("Should not reach this!")
+//            try {
+//                count(Document("\$who", 1)).blockingGetResult()
+//                Assert.fail()
+//            } catch (ex: ExecutionException) {
+//                // FIXME: add assertion
+//                val a = 0
 //            }
         }
     }
 
     @Test
-    fun deleteOne() {
+    fun deleteOne_singleDocument() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             assertEquals(0, count().blockingGetResult())
 
-            val rawDoc = Document(KEY_1, VALUE_1)//.withId()
+            val rawDoc = Document(KEY_1, VALUE_1)
             val doc1 = Document(rawDoc)
 
             insertOne(doc1).blockingGetResult()
             assertEquals(1, count().blockingGetResult())
             assertEquals(1, deleteOne(doc1).blockingGetResult()!!.deletedCount)
             assertEquals(0, count().blockingGetResult())
+        }
+    }
 
+    @Test
+    fun deleteOne_listOfDocuments() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            assertEquals(0, count().blockingGetResult())
+
+            val rawDoc = Document(KEY_1, VALUE_1)
+            val doc1 = Document(rawDoc)
             val doc1b = Document(rawDoc)
             val doc2 = Document("foo", "bar")
             val doc3 = Document("42", "666")
@@ -140,18 +161,27 @@ class RemoteMongoCollectionTest {
     }
 
     @Test
-    fun deleteMany() {
+    fun deleteMany_singleDocument() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             assertEquals(0, count().blockingGetResult())
 
-            val rawDoc = Document(KEY_1, VALUE_1)//.withId()
+            val rawDoc = Document(KEY_1, VALUE_1)
             val doc1 = Document(rawDoc)
 
             insertOne(doc1).blockingGetResult()
             assertEquals(1, count().blockingGetResult())
             assertEquals(1, deleteMany(doc1).blockingGetResult()!!.deletedCount)
             assertEquals(0, count().blockingGetResult())
+        }
+    }
 
+    @Test
+    fun deleteMany_listOfDocuments() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            assertEquals(0, count().blockingGetResult())
+
+           val rawDoc = Document(KEY_1, VALUE_1)
+            val doc1 = Document(rawDoc)
             val doc1b = Document(rawDoc)
             val doc2 = Document("foo", "bar")
             val doc3 = Document("42", "666")

@@ -33,10 +33,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.internal.Keep;
 import io.realm.internal.KeepMember;
 import io.realm.internal.RealmNotifier;
-import io.realm.internal.ResultHandler;
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
