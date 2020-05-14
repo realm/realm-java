@@ -1,1 +1,2 @@
-7.0.0-beta-SNAPSHOT
+7.0.0-SNAPSHOT
+

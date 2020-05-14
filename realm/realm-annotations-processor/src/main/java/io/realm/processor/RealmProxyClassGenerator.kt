@@ -1629,6 +1629,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Utils.isMutableRealmInteger(field) -> {
                             emitStatement("stringBuilder.append(%s().get())", metadata.getInternalGetter(fieldName))
                         }
+                        Utils.isByteArray(field) -> {
+                            emitStatement("stringBuilder.append(\"binary(\" + %s().length + \")\")", metadata.getInternalGetter(fieldName))
+                        }
                         else -> {
                             if (metadata.isNullable(field)) {
                                 emitStatement("stringBuilder.append(%s() != null ? %s() : \"null\")", metadata.getInternalGetter(fieldName), metadata.getInternalGetter(fieldName))
