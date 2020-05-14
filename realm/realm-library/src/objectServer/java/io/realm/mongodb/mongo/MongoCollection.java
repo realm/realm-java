@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb;
+package io.realm.mongodb.mongo;
 
 import com.google.android.gms.tasks.Task;
 
@@ -24,38 +24,38 @@ import org.bson.conversions.Bson;
 import java.util.List;
 
 import io.realm.internal.common.TaskDispatcher;
-import io.realm.internal.objectstore.OsRemoteMongoCollection;
-import io.realm.mongodb.remote.RemoteCountOptions;
-import io.realm.mongodb.remote.RemoteDeleteResult;
-import io.realm.mongodb.remote.RemoteFindOneAndModifyOptions;
-import io.realm.mongodb.remote.RemoteFindOptions;
-import io.realm.mongodb.remote.RemoteInsertManyResult;
-import io.realm.mongodb.remote.RemoteInsertOneResult;
-import io.realm.mongodb.remote.RemoteUpdateOptions;
-import io.realm.mongodb.remote.RemoteUpdateResult;
-import io.realm.mongodb.remote.aggregate.RemoteAggregateIterable;
-import io.realm.mongodb.remote.find.RemoteFindIterable;
+import io.realm.internal.objectstore.OsMongoCollection;
+import io.realm.mongodb.mongo.iterable.RemoteAggregateIterable;
+import io.realm.mongodb.mongo.iterable.RemoteFindIterable;
+import io.realm.mongodb.mongo.options.RemoteCountOptions;
+import io.realm.mongodb.mongo.options.RemoteFindOneAndModifyOptions;
+import io.realm.mongodb.mongo.options.RemoteFindOptions;
+import io.realm.mongodb.mongo.options.RemoteInsertManyResult;
+import io.realm.mongodb.mongo.options.RemoteUpdateOptions;
+import io.realm.mongodb.mongo.result.RemoteDeleteResult;
+import io.realm.mongodb.mongo.result.RemoteInsertOneResult;
+import io.realm.mongodb.mongo.result.RemoteUpdateResult;
 
 /**
  * The RemoteMongoCollection interface provides read and write access to documents.
  * <p>
- * Use {@link RemoteMongoDatabase#getCollection} to get a collection instance.
+ * Use {@link MongoDatabase#getCollection} to get a collection instance.
  * </p><p>
  * Before any access is possible, there must be an active, logged-in user.
  *
  * @param <DocumentT> The type that this collection will encode documents from and decode documents
  *                    to.
- * @see RemoteMongoDatabase
+ * @see MongoDatabase
  */
-public class RemoteMongoCollection<DocumentT> {
+public class MongoCollection<DocumentT> {
 
-    private OsRemoteMongoCollection<DocumentT> osRemoteMongoCollection;
+    private OsMongoCollection<DocumentT> osMongoCollection;
 
     private TaskDispatcher dispatcher;
 
-    public RemoteMongoCollection(OsRemoteMongoCollection<DocumentT> osRemoteMongoCollection) {
+    MongoCollection(OsMongoCollection<DocumentT> osMongoCollection) {
         this.dispatcher = new TaskDispatcher();
-        this.osRemoteMongoCollection = osRemoteMongoCollection;
+        this.osMongoCollection = osMongoCollection;
     }
 
     /**
@@ -76,7 +76,7 @@ public class RemoteMongoCollection<DocumentT> {
      *                       documents to.
      * @return a new RemoteMongoCollection instance with the different default class
      */
-    public <NewDocumentT> RemoteMongoCollection<NewDocumentT> withDocumentClass(
+    public <NewDocumentT> MongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
         throw new UnsupportedOperationException("Not Implemented");
     }
@@ -88,7 +88,7 @@ public class RemoteMongoCollection<DocumentT> {
      *                      collection.
      * @return a new RemoteMongoCollection instance with the different codec registry
      */
-    public RemoteMongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
+    public MongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -99,7 +99,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<Long> count() {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.count()
+                osMongoCollection.count()
         );
     }
 
@@ -111,7 +111,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<Long> count(final Bson filter) {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.count(filter)
+                osMongoCollection.count(filter)
         );
     }
 
@@ -124,7 +124,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<Long> count(final Bson filter, final RemoteCountOptions options) {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.count(filter, options)
+                osMongoCollection.count(filter, options)
         );
     }
 
@@ -135,7 +135,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<DocumentT> findOne() {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.findOne()
+                osMongoCollection.findOne()
         );
     }
 
@@ -148,7 +148,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public <ResultT> Task<ResultT> findOne(final Class<ResultT> resultClass) {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.findOne(resultClass)
+                osMongoCollection.findOne(resultClass)
         );
     }
 
@@ -160,7 +160,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<DocumentT> findOne(final Bson filter) {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.findOne(filter)
+                osMongoCollection.findOne(filter)
         );
     }
 
@@ -174,7 +174,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public <ResultT> Task<ResultT> findOne(final Bson filter, final Class<ResultT> resultClass) {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.findOne(filter, resultClass)
+                osMongoCollection.findOne(filter, resultClass)
         );
     }
 
@@ -187,7 +187,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<DocumentT> findOne(final Bson filter, final RemoteFindOptions options) {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.findOne(filter, options)
+                osMongoCollection.findOne(filter, options)
         );
     }
 
@@ -205,7 +205,7 @@ public class RemoteMongoCollection<DocumentT> {
             final RemoteFindOptions options,
             final Class<ResultT> resultClass) {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.findOne(filter, options, resultClass)
+                osMongoCollection.findOne(filter, options, resultClass)
         );
     }
 
@@ -285,7 +285,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<RemoteInsertOneResult> insertOne(final DocumentT document) {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.insertOne(document)
+                osMongoCollection.insertOne(document)
         );
     }
 
@@ -297,7 +297,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<RemoteInsertManyResult> insertMany(final List<? extends DocumentT> documents) {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.insertMany(documents)
+                osMongoCollection.insertMany(documents)
         );
     }
 
@@ -311,7 +311,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<RemoteDeleteResult> deleteOne(final Bson filter) {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.deleteOne(filter)
+                osMongoCollection.deleteOne(filter)
         );
     }
 
@@ -324,7 +324,7 @@ public class RemoteMongoCollection<DocumentT> {
      */
     public Task<RemoteDeleteResult> deleteMany(final Bson filter) {
         return dispatcher.dispatchTask(() ->
-                osRemoteMongoCollection.deleteMany(filter)
+                osMongoCollection.deleteMany(filter)
         );
     }
 

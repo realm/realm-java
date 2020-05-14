@@ -35,13 +35,13 @@ import io.realm.internal.NativeObject;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
-import io.realm.mongodb.remote.RemoteCountOptions;
-import io.realm.mongodb.remote.RemoteDeleteResult;
-import io.realm.mongodb.remote.RemoteFindOptions;
-import io.realm.mongodb.remote.RemoteInsertManyResult;
-import io.realm.mongodb.remote.RemoteInsertOneResult;
+import io.realm.mongodb.mongo.options.RemoteCountOptions;
+import io.realm.mongodb.mongo.result.RemoteDeleteResult;
+import io.realm.mongodb.mongo.options.RemoteFindOptions;
+import io.realm.mongodb.mongo.options.RemoteInsertManyResult;
+import io.realm.mongodb.mongo.result.RemoteInsertOneResult;
 
-public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
+public class OsMongoCollection<DocumentT> implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
@@ -49,7 +49,7 @@ public class OsRemoteMongoCollection<DocumentT> implements NativeObject {
     private final Class<DocumentT> documentClass;
     private final CodecRegistry codecRegistry;
 
-    OsRemoteMongoCollection(final long nativeCollectionPtr, final Class<DocumentT> documentClass, final CodecRegistry codecRegistry) {
+    OsMongoCollection(final long nativeCollectionPtr, final Class<DocumentT> documentClass, final CodecRegistry codecRegistry) {
         this.nativePtr = nativeCollectionPtr;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;

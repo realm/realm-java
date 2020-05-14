@@ -16,33 +16,24 @@
 
 package io.realm.internal.objectstore;
 
-import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 
+import io.realm.RealmUser;
 import io.realm.internal.NativeObject;
 
-public class OsRemoteMongoDatabase implements NativeObject {
+public class OsMongoClient implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
-    private final CodecRegistry codecRegistry;
 
-    OsRemoteMongoDatabase(long nativeDatabasePtr, CodecRegistry codecRegistry) {
-        this.nativePtr = nativeDatabasePtr;
-        this.codecRegistry = codecRegistry;
+    public OsMongoClient(RealmUser realmUser, String serviceName) {
+        this.nativePtr = nativeCreate(realmUser.getApp().nativePtr, serviceName);
     }
 
-    public OsRemoteMongoCollection<Document> getCollection(final String collectionName) {
-        return getCollection(collectionName, Document.class);
-    }
-
-    public <DocumentT> OsRemoteMongoCollection<DocumentT> getCollection(
-            final String collectionName,
-            final Class<DocumentT> documentClass
-    ) {
-        long nativeCollectionPtr = nativeGetCollection(nativePtr, collectionName);
-        return new OsRemoteMongoCollection<>(nativeCollectionPtr, documentClass, codecRegistry);
+    public OsMongoDatabase getRemoteDatabase(final String databaseName, final CodecRegistry codecRegistry) {
+        long nativeDatabasePtr = nativeCreateDatabase(nativePtr, databaseName);
+        return new OsMongoDatabase(nativeDatabasePtr, codecRegistry);
     }
 
     @Override
@@ -55,6 +46,7 @@ public class OsRemoteMongoDatabase implements NativeObject {
         return nativeFinalizerPtr;
     }
 
-    private static native long nativeGetCollection(long nativeDatabasePtr, String collectionName);
+    private static native long nativeCreate(long nativeAppPtr, String serviceName);
+    private static native long nativeCreateDatabase(long nativeAppPtr, String databaseName);
     private static native long nativeGetFinalizerMethodPtr();
 }

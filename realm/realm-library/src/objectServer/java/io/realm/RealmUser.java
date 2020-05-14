@@ -29,7 +29,7 @@ import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
-import io.realm.mongodb.RemoteMongoClient;
+import io.realm.mongodb.mongo.MongoClient;
 
 /**
  * FIXME
@@ -39,7 +39,7 @@ public class RealmUser {
     OsSyncUser osUser;
     private final RealmApp app;
     private ApiKeyAuth apiKeyAuthProvider = null;
-    private RemoteMongoClient remoteMongoClient = null;
+    private MongoClient mongoClient = null;
 
     /**
      * FIXME
@@ -440,11 +440,11 @@ public class RealmUser {
     /**
      * FIXME Add support for the MongoDB wrapper. Name of Class and method still TBD.
      */
-    public RemoteMongoClient getRemoteMongoClient(String serviceName) {
-        if (remoteMongoClient == null) {
-            remoteMongoClient = new RemoteMongoClient(this, serviceName, app.getConfiguration().getDefaultCodecRegistry());
+    public MongoClient getRemoteMongoClient(String serviceName) {
+        if (mongoClient == null) {
+            mongoClient = new MongoClient(this, serviceName, app.getConfiguration().getDefaultCodecRegistry());
         }
-        return remoteMongoClient;
+        return mongoClient;
     }
 
     @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")

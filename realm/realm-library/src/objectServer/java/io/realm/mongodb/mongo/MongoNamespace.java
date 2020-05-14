@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb;
+package io.realm.mongodb.mongo;
 
 import org.bson.codecs.pojo.annotations.BsonCreator;
 import org.bson.codecs.pojo.annotations.BsonIgnore;

@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb;
+package io.realm.mongodb.mongo;
 
 import org.bson.Document;
 
 import io.realm.internal.Util;
-import io.realm.internal.objectstore.OsRemoteMongoDatabase;
+import io.realm.internal.objectstore.OsMongoDatabase;
 
 /**
- * The RemoteMongoDatabase provides access to its {@link Document} {@link RemoteMongoCollection}s.
+ * The RemoteMongoDatabase provides access to its {@link Document} {@link MongoCollection}s.
  */
-public class RemoteMongoDatabase {
+public class MongoDatabase {
 
     private String databaseName;
-    private OsRemoteMongoDatabase osRemoteMongoDatabase;
+    private OsMongoDatabase osMongoDatabase;
 
-    RemoteMongoDatabase(OsRemoteMongoDatabase osRemoteMongoDatabase, String databaseName) {
+    MongoDatabase(OsMongoDatabase osMongoDatabase, String databaseName) {
         // we deliver the database name because we don't want to modify the C++ code right now,
         // although ideally it should be done there, i.e. remote_mongo_database.hpp should
         // include the public (Java) API's methods that aren't there yet.
         this.databaseName = databaseName;
-        this.osRemoteMongoDatabase = osRemoteMongoDatabase;
+        this.osMongoDatabase = osMongoDatabase;
     }
 
     /**
@@ -52,9 +52,9 @@ public class RemoteMongoDatabase {
      * @param collectionName the name of the collection to return
      * @return the collection
      */
-    public RemoteMongoCollection<Document> getCollection(final String collectionName) {
+    public MongoCollection<Document> getCollection(final String collectionName) {
         Util.checkEmpty(collectionName, "collectionName");
-        return new RemoteMongoCollection<Document>(osRemoteMongoDatabase.getCollection(collectionName));
+        return new MongoCollection<>(osMongoDatabase.getCollection(collectionName));
     }
 
     /**
@@ -65,12 +65,12 @@ public class RemoteMongoDatabase {
      * @param <DocumentT>    the type of the class to use instead of {@code Document}.
      * @return the collection
      */
-    <DocumentT> RemoteMongoCollection<DocumentT> getCollection(
+    <DocumentT> MongoCollection<DocumentT> getCollection(
             final String collectionName,
             final Class<DocumentT> documentClass
     ) {
         Util.checkEmpty(collectionName, "collectionName");
         Util.checkNull(documentClass, "documentClass");
-        return new RemoteMongoCollection<>(osRemoteMongoDatabase.getCollection(collectionName, documentClass));
+        return new MongoCollection<>(osMongoDatabase.getCollection(collectionName, documentClass));
     }
 }

@@ -74,17 +74,17 @@ static void finalize_collection(jlong ptr) {
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
     return reinterpret_cast<jlong>(&finalize_collection);
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv* env,
-                                                                       jclass,
-                                                                       jlong j_collection_ptr,
-                                                                       jstring j_filter,
-                                                                       jlong j_limit,
-                                                                       jobject j_callback) {
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeCount(JNIEnv* env,
+                                                                 jclass,
+                                                                 jlong j_collection_ptr,
+                                                                 jstring j_filter,
+                                                                 jlong j_limit,
+                                                                 jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
@@ -97,11 +97,11 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeCount(JNIEnv* e
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeFindOne(JNIEnv* env,
-                                                                         jclass,
-                                                                         jlong j_collection_ptr,
-                                                                         jstring j_document,
-                                                                         jobject j_callback) {
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOne(JNIEnv* env,
+                                                                   jclass,
+                                                                   jlong j_collection_ptr,
+                                                                   jstring j_document,
+                                                                   jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
@@ -113,14 +113,14 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeFindOne(JNIEnv*
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeFindOneWithOptions(JNIEnv* env,
-                                                                         jclass,
-                                                                         jlong j_collection_ptr,
-                                                                         jstring j_filter,
-                                                                         jstring j_projection,
-                                                                         jstring j_sort,
-                                                                         jlong j_limit,
-                                                                         jobject j_callback) {
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneWithOptions(JNIEnv* env,
+                                                                              jclass,
+                                                                              jlong j_collection_ptr,
+                                                                              jstring j_filter,
+                                                                              jstring j_projection,
+                                                                              jstring j_sort,
+                                                                              jlong j_limit,
+                                                                              jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
         uint64_t limit = std::uint64_t(j_limit);
@@ -141,11 +141,11 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeFindOneWithOpti
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeInsertOne(JNIEnv* env,
-                                                                           jclass,
-                                                                           jlong j_collection_ptr,
-                                                                           jstring j_document,
-                                                                           jobject j_callback) {
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeInsertOne(JNIEnv* env,
+                                                                     jclass,
+                                                                     jlong j_collection_ptr,
+                                                                     jstring j_document,
+                                                                     jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
@@ -157,11 +157,11 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeInsertOne(JNIEn
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeInsertMany(JNIEnv* env,
-                                                                            jclass,
-                                                                            jlong j_collection_ptr,
-                                                                            jstring j_documents,
-                                                                            jobject j_callback) {
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeInsertMany(JNIEnv* env,
+                                                                      jclass,
+                                                                      jlong j_collection_ptr,
+                                                                      jstring j_documents,
+                                                                      jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
@@ -173,11 +173,11 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeInsertMany(JNIE
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeDeleteOne(JNIEnv* env,
-                                                                           jclass,
-                                                                           jlong j_collection_ptr,
-                                                                           jstring j_document,
-                                                                           jobject j_callback) {
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeDeleteOne(JNIEnv* env,
+                                                                     jclass,
+                                                                     jlong j_collection_ptr,
+                                                                     jstring j_document,
+                                                                     jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
@@ -189,11 +189,11 @@ Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeDeleteOne(JNIEn
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoCollection_nativeDeleteMany(JNIEnv* env,
-                                                                           jclass,
-                                                                           jlong j_collection_ptr,
-                                                                           jstring j_document,
-                                                                           jobject j_callback) {
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeDeleteMany(JNIEnv* env,
+                                                                      jclass,
+                                                                      jlong j_collection_ptr,
+                                                                      jstring j_document,
+                                                                      jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 

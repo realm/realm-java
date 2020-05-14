@@ -18,7 +18,10 @@ package io.realm.mongodb
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.mongodb.remote.RemoteCountOptions
+import io.realm.mongodb.mongo.MongoClient
+import io.realm.mongodb.mongo.MongoCollection
+import io.realm.mongodb.mongo.MongoDatabase
+import io.realm.mongodb.mongo.options.RemoteCountOptions
 import io.realm.util.blockingGetResult
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -32,12 +35,12 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 
 @RunWith(AndroidJUnit4::class)
-class RemoteMongoCollectionTest {
+class MongoCollectionTest {
 
     private lateinit var app: TestRealmApp
     private lateinit var user: RealmUser
-    private lateinit var client: RemoteMongoClient
-    private lateinit var database: RemoteMongoDatabase
+    private lateinit var client: MongoClient
+    private lateinit var database: MongoDatabase
 
     @Before
     fun setUp() {
@@ -252,7 +255,7 @@ class RemoteMongoCollectionTest {
 
     // FIXME: more to come
 
-    private fun getCollectionInternal(collectionName: String, javaClass: Class<Document>? = null): RemoteMongoCollection<Document> {
+    private fun getCollectionInternal(collectionName: String, javaClass: Class<Document>? = null): MongoCollection<Document> {
         return when (javaClass) {
             null -> database.getCollection(collectionName)
             else -> database.getCollection(collectionName, javaClass)
