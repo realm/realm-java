@@ -32,6 +32,12 @@ import org.junit.runner.RunWith
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
+private const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
+private const val DATABASE_NAME = "test_data"   // same as above
+private const val COLLECTION_NAME = "COLLECTION_NAME"
+private const val KEY_1 = "KEY"
+private const val VALUE_1 = "666"
+
 @RunWith(AndroidJUnit4::class)
 class MongoCollectionTest {
 
@@ -45,7 +51,7 @@ class MongoCollectionTest {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestRealmApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        client = user.getRemoteMongoClient(SERVICE_NAME)
+        client = user.getMongoClient(SERVICE_NAME)
         database = client.getDatabase(DATABASE_NAME)
     }
 
@@ -69,6 +75,7 @@ class MongoCollectionTest {
             insertOne(doc).blockingGetResult()
             assertEquals(1, count().blockingGetResult())
 
+            // FIXME: revisit this later
 //            val doc = Document("hello", "world")
 //            doc["_id"] = ObjectId()
 //
@@ -120,6 +127,7 @@ class MongoCollectionTest {
             assertEquals(0, count(Document("hello", "Friend")).blockingGetResult())
             assertEquals(1,count(rawDoc, RemoteCountOptions().limit(1)).blockingGetResult())
 
+            // FIXME: investigate error handling for malformed payloads
 //            try {
 //                count(Document("\$who", 1)).blockingGetResult()
 //                Assert.fail()
@@ -218,6 +226,7 @@ class MongoCollectionTest {
             // Test findOne() with filter that does not match any documents and no options
             assertNull(findOne(Document("hello", "worldDNE")).blockingGetResult())
 
+            // FIXME: revisit this later
 //            // Insert 2 more documents into the collection
 ////            insertMany(listOf(doc2, doc3)).blockingGetResult()    // use insertOne for now
 //            insertOne(doc2).blockingGetResult()
@@ -266,14 +275,5 @@ class MongoCollectionTest {
 
     private fun Document.withoutId(): Document {
         return apply { remove("_id") }
-    }
-
-    private companion object {
-        const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
-        const val DATABASE_NAME = "test_data"   // same as above
-
-        const val COLLECTION_NAME = "COLLECTION_NAME"
-        const val KEY_1 = "KEY"
-        const val VALUE_1 = "666"
     }
 }

@@ -440,7 +440,7 @@ public class RealmUser {
     /**
      * FIXME Add support for the MongoDB wrapper. Name of Class and method still TBD.
      */
-    public MongoClient getRemoteMongoClient(String serviceName) {
+    public MongoClient getMongoClient(String serviceName) {
         if (mongoClient == null) {
             mongoClient = new MongoClient(this, serviceName, app.getConfiguration().getDefaultCodecRegistry());
         }
