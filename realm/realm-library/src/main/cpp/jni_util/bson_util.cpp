@@ -28,6 +28,7 @@ Bson JniBsonProtocol::string_to_bson(std::string arg) {
     BsonDocument document(parse(arg));
     return document[VALUE];
 }
+
 Bson JniBsonProtocol::jstring_to_bson(JNIEnv* env, jstring arg) {
     return string_to_bson(JStringAccessor(env, arg));
 }

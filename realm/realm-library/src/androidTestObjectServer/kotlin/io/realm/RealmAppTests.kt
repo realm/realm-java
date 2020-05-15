@@ -16,6 +16,7 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
 import org.junit.After
@@ -36,6 +37,7 @@ class RealmAppTests {
 
     @Before
     fun setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestRealmApp()
         admin = ServerAdmin()
     }

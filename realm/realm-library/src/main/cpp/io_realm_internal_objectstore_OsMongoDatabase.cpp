@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_internal_objectstore_OsRemoteMongoDatabase.h"
+#include "io_realm_internal_objectstore_OsMongoDatabase.h"
 
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
@@ -38,15 +38,15 @@ static void finalize_database(jlong ptr) {
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoDatabase_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
+Java_io_realm_internal_objectstore_OsMongoDatabase_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
     return reinterpret_cast<jlong>(&finalize_database);
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoDatabase_nativeGetCollection(JNIEnv* env,
-                                                                             jclass,
-                                                                             jlong j_database_ptr,
-                                                                             jstring j_collection_name) {
+Java_io_realm_internal_objectstore_OsMongoDatabase_nativeGetCollection(JNIEnv* env,
+                                                                       jclass,
+                                                                       jlong j_database_ptr,
+                                                                       jstring j_collection_name) {
     try {
         RemoteMongoDatabase* database = reinterpret_cast<RemoteMongoDatabase*>(j_database_ptr);
         JStringAccessor name(env, j_collection_name);

@@ -46,7 +46,6 @@ class TestRealmApp(networkTransport: OsJavaNetworkTransport? = null, customizeCo
 
         // Initializes MongoDB Realm. Clears all local state and fetches the application ID.
         private fun initializeMongoDbRealm(): String {
-            Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
             val transport = OkHttpNetworkTransport()
             val response = transport.sendRequest(
                     "get",

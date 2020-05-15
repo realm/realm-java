@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.remote;
+package io.realm.mongodb.mongo.options;
 
 /**
  * The options to apply when updating documents.
