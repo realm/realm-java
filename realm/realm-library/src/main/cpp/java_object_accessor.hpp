@@ -498,7 +498,7 @@ inline Obj JavaContext::unbox(JavaValue const& v, CreatePolicy policy, ObjKey cu
 {
     if (v.get_type() == JavaValueType::Object) {
         return *v.get_object();
-    } else if (!policy.create) {
+    } else if (policy == CreatePolicy::Skip) {
         return Obj();
     }
     REALM_ASSERT(object_schema);
