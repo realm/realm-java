@@ -114,9 +114,9 @@ if (build_SYNC)
         io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
         io.realm.internal.objectstore.OsJavaNetworkTransport
-        io.realm.internal.objectstore.OsRemoteMongoClient
-        io.realm.internal.objectstore.OsRemoteMongoCollection
-        io.realm.internal.objectstore.OsRemoteMongoDatabase
+        io.realm.internal.objectstore.OsMongoClient
+        io.realm.internal.objectstore.OsMongoCollection
+        io.realm.internal.objectstore.OsMongoDatabase
         io.realm.internal.objectstore.OsSyncUser
     )
 endif()
@@ -209,9 +209,9 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAppCredentials.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoClient.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoCollection.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsRemoteMongoDatabase.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoClient.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoCollection.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoDatabase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/jni_util/bson_util.cpp
     )

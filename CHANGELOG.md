@@ -3,6 +3,7 @@
 ### Breaking Changes
 * Removed all references and API's releated to permissions. These are now managed through MongoDB Realm. Read more [here](XXX).
 * Removed Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partionKey()` has been added as a replacement. Read more [here](XXX).  
+* Destructive updates of a schema of a synced Realm will now consistently throw an `UnsupportedOperationException` instead of some methods throwing `IllegalArgumentException`. The affected methods are `RealmSchema.remove(String)`, `RealmSchema.rename(String, String)`, `RealmObjectSchema.setClassName(String)`, `RealmObjectSchema.removeField(String)`, `RealmObjectSchema.renameField(String, String)`, `RealmObjectSchema.removeIndex(String)`, `RealmObjectSchema.removePrimaryKey()`, `RealmObjectSchema.addPrimaryKey(String)` and `RealmObjectSchema.addField(String, Class<?>, FieldAttribute)` 
 
 ### Enhancements
 * None.
@@ -46,6 +47,10 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * Added `Realm.isFrozen()`, `RealmObject.isFrozen()`, `RealmObject.isFrozen(RealmModel)`, `RealmResults.isFrozen()` and `RealmList.isFrozen()`, which returns whether or not the data is frozen.
 * Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having too many versions can dramatically increase the filesize of the Realm.
 * `RealmResults.asJSON()` is no longer `@Beta`.
+* The default `toString()` for proxy objects now print the length of binary fields. (Issue [#6767](https://github.com/realm/realm-java/pull/6767))
+
+### Fixes
+* If a DynamicRealm and Realm was opened for the same file they would share transaction state by accident. The implication was that writes to a `Realm` would immediately show up in the `DynamicRealm`. This has been fixed, so now it is required to call `refresh()` on the other Realm or wait for normal change listeners to detect the change.
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
@@ -58,9 +63,27 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * The NDK has been upgraded from r10e to r21.
 * The compiler used for C++ code has changed from GCC to Clang.
 * OpenSSL used by Realms encryption layer has been upgraded from 1.0.2k to 1.1.1b.
-* Updated to Object Store commit: 66199adbfffbe153e696309a53d4ec03e32c44e3.
+* Updated to Object Store commit: 820b74e2378f111991877d43068a95d2b7a2e404.
 * Updated to Realm Sync 5.0.3.
 * Updated to Realm Core 6.0.4.
+
+### Credits
+* Thanks to @joxon for better support for binary fields in proxy objects.
+
+
+## 6.1.0(2020-01-17)
+
+### Fixed
+* None.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* None.
+
 
 
 ## 6.1.0(2020-01-17)
