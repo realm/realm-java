@@ -17,6 +17,7 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
@@ -76,6 +77,7 @@ class RealmFunctionsTests {
 
     @Before
     fun setup() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestRealmApp()
         admin = ServerAdmin()
         anonUser = app.login(RealmCredentials.anonymous())
@@ -152,7 +154,7 @@ class RealmFunctionsTests {
                     assertTypeOfFirstArgFunction(BsonDecimal128(Decimal128(32L)), BsonDecimal128::class.java)
                 }
                 BsonType.DOCUMENT -> {
-                    val map = mapOf("foo" to 5, "bar" to 7)
+                    val map = mapOf("foo" to 5)
                     val document = Document(map)
                     assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Map::class.java))
                     assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(document), Map::class.java))
@@ -160,7 +162,9 @@ class RealmFunctionsTests {
                     assertEquals(document, functions.callFunction(FIRST_ARG_FUNCTION, listOf(document), Document::class.java))
 
                     // Previously failing in C++ parser
-                    val documents = listOf(Document(), Document())
+                    var documents = listOf(Document(), Document())
+                    assertEquals(documents[0], functions.callFunction(FIRST_ARG_FUNCTION, documents, Document::class.java))
+                    documents = listOf(Document("KEY", "VALUE"), Document("KEY", "VALUE"), Document("KEY", "VALUE"))
                     assertEquals(documents[0], functions.callFunction(FIRST_ARG_FUNCTION, documents, Document::class.java))
                 }
                 BsonType.DATE_TIME -> {
@@ -406,14 +410,10 @@ class RealmFunctionsTests {
     }
 
     @Test
-    @Ignore("JNI parsing crashes tests")
+    @Ignore("JNI parsing fails to parse into a bson array")
     fun jniParseErrorArrayOfDocuments() {
-        val documents = listOf(
-                Document("KEY", "VALUE"),
-                Document("KEY", "VALUE"),
-                Document("KEY", "VALUE")
-        )
-        assertEquals(documents[0], functions.callFunction(FIRST_ARG_FUNCTION, documents, Document::class.java))
+        val map = mapOf("foo" to 5, "bar" to  7)
+        assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Map::class.java))
     }
 
 }

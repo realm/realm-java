@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 
 /**
@@ -211,7 +212,7 @@ public class RealmFunctions {
             }
         };
         nativeCallFunction(user.getApp().nativePtr, user.osUser.getNativePtr(), name, args, callback);
-        return RealmApp.handleResult(success, error);
+        return ResultHandler.handleResult(success, error);
    }
 
    private static native void nativeCallFunction(long nativeAppPtr, long nativeUserPtr, String name, String args_json, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
