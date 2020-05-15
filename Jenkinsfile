@@ -11,7 +11,7 @@ def dockerNetworkId = UUID.randomUUID().toString()
 def releaseBranches = ['master', 'next-major', 'v10'] // Branches from which we release SNAPSHOT's
 def currentBranch = env.CHANGE_BRANCH
 try {
-  node('docker-cph-01') { // FIXME: Only working Slave
+  node('docker-cph-03') { // FIXME: Only working Slave
     timeout(time: 90, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
@@ -45,7 +45,7 @@ try {
 
           def buildEnv = null
           stage('Prepare Docker Images') {
-            buildEnv = buildDockerEnv("ci/realm-java:v10", push: env.BRANCH_NAME == 'v10') // TODO Should be renamed to 'master' when merged there.
+            buildEnv = buildDockerEnv("ci/realm-java:v10", push: currentBranch == 'v10') // TODO Should be renamed to 'master' when merged there.
             def props = readProperties file: 'dependencies.list'
             echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
             def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
