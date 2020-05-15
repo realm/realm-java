@@ -166,16 +166,16 @@ class SyncConfigurationTests {
         assertNotNull(config.initialDataTransaction)
 
         // open the first time - initialData must be triggered
-        val realm1: Realm = Realm.getInstance(config)
-        val results: RealmResults<StringOnly> = realm1.where<StringOnly>().findAll()
-        assertEquals(1, results.size)
-        assertEquals("TEST 42", results.first()!!.getChars())
-        realm1.close()
+        Realm.getInstance(config).use { realm ->
+            val results: RealmResults<StringOnly> = realm.where<StringOnly>().findAll()
+            assertEquals(1, results.size)
+            assertEquals("TEST 42", results.first()!!.getChars())
+        }
 
         // open the second time - initialData must not be triggered
-        val realm2: Realm = Realm.getInstance(config)
-        assertEquals(1, realm2.where<StringOnly>().count())
-        realm2.close()
+        Realm.getInstance(config).use { realm ->
+            assertEquals(1, realm.where<StringOnly>().count())
+        }
     }
 
     @Test
