@@ -17,20 +17,24 @@ package io.realm
 
 import androidx.test.annotation.UiThreadTest
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.realm.SyncTestUtils.Companion.createTestUser
+import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.TestHelper.TestLogger
 import io.realm.entities.StringOnly
 import io.realm.entities.StringOnlyModule
 import io.realm.exceptions.RealmFileException
 import io.realm.exceptions.RealmMigrationNeededException
 import io.realm.log.RealmLog
-import io.realm.rule.RunInLooperThread
-import io.realm.rule.RunTestInLooperThread
+import io.realm.rule.BlockingLooperThread
+import io.realm.util.ResourceContainer
 import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.*
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 @RunWith(AndroidJUnit4::class)
@@ -42,13 +46,16 @@ class SessionTests {
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
 
-    @get:Rule
-    val looperThread = RunInLooperThread()
+    private val looperThread = BlockingLooperThread()
 
     @Before
     fun setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestRealmApp()
-        user = createTestUser(app)
+        // TODO We could potentially work without a fully functioning user to speed up tests, but
+        //  seems like the old  way of "faking" it, does now work for now, so using a real user.
+        // user = SyncTestUtils.createTestUser(app)
+        user = createNewUser(app)
         configuration = SyncConfiguration.defaultConfig(user, "default")
     }
 
@@ -96,7 +103,7 @@ class SessionTests {
                 ProgressListener { progress: Progress? -> },
                 ProgressListener { progress: Progress? -> }
         )
-        session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, listeners[2]!!)
+        session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, TestHelper.allowNull(listeners[2]))
         session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, TestHelper.allowNull(listeners[2]))
 
         // Check that remove works unconditionally for all input
@@ -108,11 +115,7 @@ class SessionTests {
 
     // Check that a Client Reset is correctly reported.
     @Test
-    @RunTestInLooperThread
-    @Ignore("FIXME: Figure out how to fix this")
-    fun errorHandler_clientResetReported() {
-        val user = createTestUser(app)
-        val url = "realm://objectserver.realm.io/default"
+    fun errorHandler_clientResetReported() = looperThread.runBlocking {
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler { session: SyncSession, error: ObjectServerError ->
@@ -129,8 +132,9 @@ class SessionTests {
                     looperThread.testComplete()
                 }
                 .build()
+
         val realm = Realm.getInstance(config)
-        looperThread.addTestRealm(realm)
+        looperThread.closeAfterTest(realm)
 
         // Trigger error
         val syncService = user.app.sync
@@ -139,10 +143,9 @@ class SessionTests {
 
     // Check that we can manually execute the Client Reset.
     @Test
-    @RunTestInLooperThread
-    @Ignore("FIXME: Figure out how to fix this")
-    fun errorHandler_manualExecuteClientReset() {
-        val user = createTestUser(app)
+    fun errorHandler_manualExecuteClientReset() = looperThread.runBlocking {
+        val resources = ResourceContainer()
+
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler { session: SyncSession?, error: ObjectServerError ->
@@ -158,7 +161,7 @@ class SessionTests {
                     }
 
                     // Execute Client Reset
-                    looperThread.closeTestRealms()
+                    resources.close()
                     handler.executeClientReset()
 
                     // Validate that files have been moved
@@ -168,7 +171,7 @@ class SessionTests {
                 }
                 .build()
         val realm = Realm.getInstance(config)
-        looperThread.addTestRealm(realm)
+        resources.add(realm)
 
         // Trigger error
         user.app.sync.simulateClientReset(app.sync.getSession(configuration))
@@ -176,10 +179,8 @@ class SessionTests {
 
     // Check that we can use the backup SyncConfiguration to open the Realm.
     @Test
-    @RunTestInLooperThread
-    @Ignore("FIXME: Figure out how to fix this")
-    fun errorHandler_useBackupSyncConfigurationForClientReset() {
-        val user = createTestUser(app)
+    fun errorHandler_useBackupSyncConfigurationForClientReset() = looperThread.runBlocking {
+        val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .schema(StringOnly::class.java)
@@ -190,7 +191,7 @@ class SessionTests {
                     }
                     val handler = error as ClientResetRequiredError
                     // Execute Client Reset
-                    looperThread.closeTestRealms()
+                    resources.close()
                     handler.executeClientReset()
 
                     // Validate that files have been moved
@@ -225,7 +226,7 @@ class SessionTests {
         realm.beginTransaction()
         realm.createObject(StringOnly::class.java).chars = "Foo"
         realm.commitTransaction()
-        looperThread.addTestRealm(realm)
+        resources.add(realm)
 
         // Trigger error
         user.app.sync.simulateClientReset(app.sync.getSession(configuration))
@@ -235,10 +236,8 @@ class SessionTests {
     // this might be the case if the user decide to act upon the client reset later (providing s/he
     // persisted the location of the file)
     @Test
-    @RunTestInLooperThread
-    @Ignore("FIXME: Figure out how to fix this")
-    fun errorHandler_useBackupSyncConfigurationAfterClientReset() {
-        val user = createTestUser(app)
+    fun errorHandler_useBackupSyncConfigurationAfterClientReset() = looperThread.runBlocking {
+        val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .errorHandler { session: SyncSession?, error: ObjectServerError ->
@@ -248,7 +247,7 @@ class SessionTests {
                     }
                     val handler = error as ClientResetRequiredError
                     // Execute Client Reset
-                    looperThread.closeTestRealms()
+                    resources.close()
                     handler.executeClientReset()
 
                     // Validate that files have been moved
@@ -304,7 +303,7 @@ class SessionTests {
         realm.beginTransaction()
         realm.createObject(StringOnly::class.java).chars = "Foo"
         realm.commitTransaction()
-        looperThread.addTestRealm(realm)
+        resources.add(realm)
 
         // Trigger error
         user.app.sync.simulateClientReset(app.sync.getSession(configuration))
@@ -312,10 +311,9 @@ class SessionTests {
 
     // make sure the backup file Realm is encrypted with the same key as the original synced Realm.
     @Test
-    @RunTestInLooperThread
-    @Ignore("FIXME: Figure out how to fix this")
-    fun errorHandler_useClientResetEncrypted() {
-        val user = createTestUser(app)
+    fun errorHandler_useClientResetEncrypted() = looperThread.runBlocking {
+        val resources = ResourceContainer()
+
         val randomKey = TestHelper.getRandomKey()
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
@@ -328,7 +326,7 @@ class SessionTests {
                     }
                     val handler = error as ClientResetRequiredError
                     // Execute Client Reset
-                    looperThread.closeTestRealms()
+                    resources.close()
                     handler.executeClientReset()
                     var backupRealmConfiguration = handler.backupRealmConfiguration
 
@@ -364,7 +362,7 @@ class SessionTests {
         realm.beginTransaction()
         realm.createObject(StringOnly::class.java).chars = "Foo"
         realm.commitTransaction()
-        looperThread.addTestRealm(realm)
+        resources.add(realm)
 
         // Trigger error
         user.app.sync.simulateClientReset(app.sync.getSession(configuration))
@@ -486,7 +484,9 @@ class SessionTests {
         val realm = Realm.getInstance(configuration)
         val session = app.sync.getSession(configuration)
         try {
-            Assert.assertFalse(session.downloadAllServerChanges(100, TimeUnit.MILLISECONDS))
+            // FIXME Have to add this to make it pass. Has something changed in initial sync?
+//             assertTrue(session.downloadAllServerChanges(100, TimeUnit.MILLISECONDS))
+            assertFalse(session.downloadAllServerChanges(100, TimeUnit.MILLISECONDS))
         } finally {
             realm.close()
         }
@@ -499,8 +499,8 @@ class SessionTests {
         configuration = configFactory.createSyncConfigurationBuilder(user)
                 .errorHandler { session: SyncSession?, error: ObjectServerError ->
                     errorHandlerCalled.set(true)
-                    Assert.assertEquals(ErrorCode.UNKNOWN, error.errorCode)
-                    Assert.assertEquals(ErrorCode.Category.FATAL, error.category)
+                    assertEquals(ErrorCode.UNKNOWN, error.errorCode)
+                    assertEquals(ErrorCode.Category.FATAL, error.category)
                 }
                 .build()
         val realm = Realm.getInstance(configuration)
@@ -509,25 +509,25 @@ class SessionTests {
         RealmLog.add(testLogger)
         session.notifySessionError("unknown", 3, "Unknown Error")
         RealmLog.remove(testLogger)
-        Assert.assertTrue(errorHandlerCalled.get())
-        Assert.assertEquals("Unknown error code: 'unknown:3'", testLogger.message)
+        assertTrue(errorHandlerCalled.get())
+        assertEquals("Unknown error code: 'unknown:3'", testLogger.message)
         realm.close()
     }
 
     // Closing the Realm should remove the session
     @Test
-    fun getSessionThrowsOnNonExistingSession () {
+    fun getSessionThrowsOnNonExistingSession() {
         val realm = Realm.getInstance(configuration)
         val session = app.sync.getSession(configuration)
-        Assert.assertEquals(configuration, session.configuration)
+        assertEquals(configuration, session.configuration)
 
         // Closing the Realm should remove the session
         realm.close()
         try {
             app.sync.getSession(configuration)
-            Assert.fail("getSession should throw an ISE")
+            fail("getSession should throw an ISE")
         } catch (expected: IllegalStateException) {
-            Assert.assertThat(expected.message, CoreMatchers.containsString(
+            assertThat(expected.message, CoreMatchers.containsString(
                     "No SyncSession found using the path : "))
         }
     }
@@ -538,7 +538,7 @@ class SessionTests {
         val realm = Realm.getInstance(configuration)
         val session = app.sync.getSession(configuration)
         try {
-            Assert.assertFalse(session.isConnected)
+            assertFalse(session.isConnected)
         } finally {
             realm.close()
         }
@@ -551,4 +551,12 @@ class SessionTests {
         realm.close()
         session.stop()
     }
+    
+    private fun createNewUser(app: RealmApp): RealmUser {
+        val email = TestHelper.getRandomEmail()
+        val password = "123456"
+        app.emailPasswordAuth.registerUser(email, password)
+        return app.login(RealmCredentials.emailPassword(email, password))
+    }
+
 }
