@@ -30,8 +30,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 
 @RunWith(AndroidJUnit4::class)
@@ -66,19 +64,19 @@ class MongoCollectionTest {
     @Test
     fun insertOne() {
         with(getCollectionInternal(COLLECTION_NAME)) {
-//            assertEquals(0, count().blockingGetResult())
-//            val doc = Document(mapOf("KEY_1" to "WORLD_1", "KEY_2" to "WORLD_2"))
-//            insertOne(doc).blockingGetResult()
-//            assertEquals(1, count().blockingGetResult())
+            assertEquals(0, count().blockingGetResult())
+            val doc = Document(mapOf("KEY_1" to "WORLD_1", "KEY_2" to "WORLD_2"))
+            insertOne(doc).blockingGetResult()
+            assertEquals(1, count().blockingGetResult())
 
-            val doc = Document("hello", "world")
-            doc["_id"] = ObjectId()
-
-            assertEquals(doc.getObjectId("_id"), insertOne(doc).blockingGetResult()!!.insertedId.asObjectId().value)
-            assertFailsWith(ObjectServerError::class) { insertOne(doc).blockingGetResult() }
-
-            val doc2 = Document("hello", "world")
-            assertNotEquals(doc.getObjectId("_id"), insertOne(doc2).blockingGetResult()!!.insertedId.asObjectId().value)
+//            val doc = Document("hello", "world")
+//            doc["_id"] = ObjectId()
+//
+//            assertEquals(doc.getObjectId("_id"), insertOne(doc).blockingGetResult()!!.insertedId.asObjectId().value)
+//            assertFailsWith(ObjectServerError::class) { insertOne(doc).blockingGetResult() }
+//
+//            val doc2 = Document("hello", "world")
+//            assertNotEquals(doc.getObjectId("_id"), insertOne(doc2).blockingGetResult()!!.insertedId.asObjectId().value)
         }
     }
 
@@ -183,7 +181,7 @@ class MongoCollectionTest {
         with(getCollectionInternal(COLLECTION_NAME)) {
             assertEquals(0, count().blockingGetResult())
 
-           val rawDoc = Document(KEY_1, VALUE_1)
+            val rawDoc = Document(KEY_1, VALUE_1)
             val doc1 = Document(rawDoc)
             val doc1b = Document(rawDoc)
             val doc2 = Document("foo", "bar")
@@ -220,26 +218,26 @@ class MongoCollectionTest {
             // Test findOne() with filter that does not match any documents and no options
             assertNull(findOne(Document("hello", "worldDNE")).blockingGetResult())
 
-            // Insert 2 more documents into the collection
-            insertMany(listOf(doc2, doc3)).blockingGetResult()
-            assertEquals(3, count().blockingGetResult())
-
-            // FIXME: add these when all findOne methods are ready and the parser works
-            // test findOne() with projection and sort options
-//            val projection = Document("hello", "1")
+//            // Insert 2 more documents into the collection
+////            insertMany(listOf(doc2, doc3)).blockingGetResult()    // use insertOne for now
+//            insertOne(doc2).blockingGetResult()
+//            insertOne(doc3).blockingGetResult()
+//            assertEquals(3, count().blockingGetResult())
+//
+//            // test findOne() with projection and sort options
+//            val projection = Document("hello", 1)
 //            projection["_id"] = 0
-//            val options = RemoteFindOptions()
+//            val options1 = RemoteFindOptions()
 //                    .limit(2)
 //                    .projection(projection)
-//                    .sort(Document("hello", "1"))
-//            assertEquals(findOne(Document(), options).blockingGetResult(), doc1.withoutId())
-
-            // FIXME: adapt to our framework
-//            val result3 = Tasks.await(coll.findOne(Document(), RemoteFindOptions()
+//                    .sort(Document("hello", 1))
+//            assertEquals(doc1, findOne(Document(), options1).blockingGetResult()!!.withoutId())
+//
+//            val options2 = RemoteFindOptions()
 //                    .limit(2)
 //                    .projection(projection)
-//                    .sort(Document("hello", -1))))
-//            Assert.assertEquals(result3, withoutId(doc3))
+//                    .sort(Document("hello", -1))
+//            assertEquals(doc3.withoutId(), findOne(Document(), options2).blockingGetResult()!!.withoutId())
 //
 //            // test findOne() properly fails
 //            try {
