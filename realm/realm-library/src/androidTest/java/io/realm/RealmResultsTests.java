@@ -1927,6 +1927,7 @@ public class RealmResultsTests extends CollectionTests {
                 .equalTo("columnString", "alltypes1").findAll();
         assertEquals(1, all.size());
         String json = all.asJSON();
+
         final String expectedJSON = "[\n" +
                 "   {\n" +
                 "      \"_key\":100,\n" +
@@ -1977,6 +1978,32 @@ public class RealmResultsTests extends CollectionTests {
                 "               ],\n" +
                 "               \"cat\":null\n" +
                 "            }\n" +
+                "         }\n" +
+                "      ],\n" +
+                "      \"columnStringList\":[\n" +
+                "         \"Foo\",\n" +
+                "         \"Bar\"\n" +
+                "      ],\n" +
+                "      \"columnBinaryList\":[\n" +
+                "\n" +
+                "      ],\n" +
+                "      \"columnBooleanList\":[\n" +
+                "         false,\n" +
+                "         true\n" +
+                "      ],\n" +
+                "      \"columnLongList\":[\n" +
+                "         1000,\n" +
+                "         2000\n" +
+                "      ],\n" +
+                "      \"columnDoubleList\":[\n" +
+                "         1.1230000000000000e+00,\n" +
+                "         5.3209999999999997e+00\n" +
+                "      ],\n" +
+                "      \"columnFloatList\":[\n" +
+                "         1.2000000e-01,\n" +
+                "         1.3000000e-01\n" +
+                "      ],\n" +
+                "      \"columnDateList\":[\n" +
                 "            \"" + now + "\",\n" +
                 "            \"" + now + "\"\n" +
                 "      ],\n" +
@@ -1994,6 +2021,7 @@ public class RealmResultsTests extends CollectionTests {
                 "      ]\n" +
                 "   }\n" +
                 "]";
+        JSONAssert.assertEquals(expectedJSON, json, false);
     }
 
     @Test
@@ -2039,11 +2067,6 @@ public class RealmResultsTests extends CollectionTests {
                 "            \"otherObject\": null,\n" +
                 "            \"objects\": []\n" +
                 "        },\n" +
-                "                \"object\": {\n" +
-                "                       \"table\": \"class_CyclicType\",\n" +
-                "                       \"key\": 0\n" +
-                "                  },\n" +
-                "                \"otherObject\": null,\n" +
                 "        \"otherObject\": null,\n" +
                 "        \"objects\": []\n" +
                 "    },\n" +
@@ -2064,11 +2087,6 @@ public class RealmResultsTests extends CollectionTests {
                 "            \"otherObject\": null,\n" +
                 "            \"objects\": []\n" +
                 "        },\n" +
-                "                \"object\": {\n" +
-                "                       \"table\": \"class_CyclicType\",\n" +
-                "                       \"key\": 1\n" +
-                "                  },\n" +
-                "                \"otherObject\": null,\n" +
                 "        \"otherObject\": null,\n" +
                 "        \"objects\": []\n" +
                 "    }\n" +
