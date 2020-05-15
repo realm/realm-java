@@ -22,6 +22,7 @@ import io.realm.mongodb.mongo.MongoClient
 import io.realm.mongodb.mongo.MongoCollection
 import io.realm.mongodb.mongo.MongoDatabase
 import io.realm.mongodb.mongo.options.RemoteCountOptions
+import io.realm.mongodb.mongo.options.RemoteUpdateOptions
 import io.realm.util.blockingGetResult
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -30,7 +31,9 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 private const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
 private const val DATABASE_NAME = "test_data"   // same as above
@@ -254,6 +257,39 @@ class MongoCollectionTest {
 //                Assert.fail()
 //            } catch (ex: ExecutionException) {
 //                Assert.assertTrue(ex.cause is StitchServiceException)
+//                val svcEx = ex.cause as StitchServiceException
+//                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
+//            }
+        }
+    }
+
+    @Test
+    fun updateOne() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            val doc1 = Document("hello", "world")
+            val result1 = updateOne(Document(), doc1).blockingGetResult()
+            assertEquals(0, result1!!.matchedCount)
+            assertEquals(0, result1.modifiedCount)
+            assertTrue(result1.upsertedId!!.isNull)
+
+            val options2 = RemoteUpdateOptions().upsert(true)
+            val result2 = updateOne(Document(), doc1, options2).blockingGetResult()
+            assertEquals(0, result2!!.matchedCount)
+            assertEquals(0, result2.modifiedCount)
+            assertFalse(result2.upsertedId!!.isNull)
+//            result = Tasks.await(coll.updateOne(Document(), Document("\$set", Document("woof", "meow"))))
+//            assertEquals(1, result.matchedCount)
+//            assertEquals(1, result.modifiedCount)
+//            assertNull(result.upsertedId)
+//            val expectedDoc = Document("hello", "world")
+//            expectedDoc["woof"] = "meow"
+//            assertEquals(expectedDoc, withoutId(Tasks.await(coll.find(Document()).first())))
+//
+//            try {
+//                Tasks.await(coll.updateOne(Document("\$who", 1), Document()))
+//                fail()
+//            } catch (ex: ExecutionException) {
+//                assertTrue(ex.cause is StitchServiceException)
 //                val svcEx = ex.cause as StitchServiceException
 //                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
 //            }

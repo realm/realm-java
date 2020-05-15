@@ -337,7 +337,9 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the update one operation
      */
     public Task<RemoteUpdateResult> updateOne(final Bson filter, final Bson update) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.updateOne(filter, update)
+        );
     }
 
     /**
