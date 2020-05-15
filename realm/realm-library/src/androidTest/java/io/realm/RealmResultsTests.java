@@ -1927,6 +1927,7 @@ public class RealmResultsTests extends CollectionTests {
                 .equalTo("columnString", "alltypes1").findAll();
         assertEquals(1, all.size());
         String json = all.asJSON();
+
         final String expectedJSON = "[\n" +
                 "   {\n" +
                 "      \"_key\":100,\n" +
@@ -2020,7 +2021,7 @@ public class RealmResultsTests extends CollectionTests {
                 "      ]\n" +
                 "   }\n" +
                 "]";
-        JSONAssert.assertEquals(expectedJSON, json, true);
+        JSONAssert.assertEquals(expectedJSON, json, false);
     }
 
     @Test
