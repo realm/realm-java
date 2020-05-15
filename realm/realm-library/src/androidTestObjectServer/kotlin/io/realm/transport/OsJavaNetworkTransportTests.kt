@@ -16,13 +16,14 @@
 package io.realm.transport
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import org.junit.After
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.*
 
 /**
  * This class is responsible for testing the general network transport layer, i.e. that
@@ -37,6 +38,11 @@ class OsJavaNetworkTransportTests {
 
     private lateinit var app: RealmApp
     private val successHeaders: Map<String, String> = mapOf(Pair("Content-Type", "application/json"))
+
+    @Before
+    fun setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+    }
 
     @After
     fun tearDown() {
