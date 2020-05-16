@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_RealmFunctions.h"
+#include "io_realm_InternalFunctions.h"
 
 #include "util.hpp"
 #include "jni_util/bson_util.hpp"
@@ -37,8 +37,8 @@ static std::function<jobject(JNIEnv*, Optional<Bson> )> success_mapper = [](JNIE
 };
 
 JNIEXPORT void JNICALL
-Java_io_realm_RealmFunctions_nativeCallFunction(JNIEnv* env, jclass , jlong j_app_ptr, jlong j_user_ptr, jstring j_name,
-                                                jstring j_args_json , jobject j_callback) {
+Java_io_realm_InternalFunctions_nativeCallFunction(JNIEnv* env, jclass , jlong j_app_ptr, jlong j_user_ptr, jstring j_name,
+                                                                     jstring j_args_json , jobject j_callback) {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);

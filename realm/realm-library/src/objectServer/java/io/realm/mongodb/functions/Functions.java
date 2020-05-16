@@ -13,47 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm;
+
+package io.realm.mongodb.functions;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.ObjectServerError;
+import io.realm.RealmApp;
+import io.realm.RealmAppConfiguration;
+import io.realm.RealmAsyncTask;
+import io.realm.RealmUser;
 import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
-import io.realm.internal.jni.OsJNIResultCallback;
-import io.realm.internal.network.ResultHandler;
-import io.realm.internal.objectstore.OsJavaNetworkTransport;
 
 /**
- * A <i>Realm functions<i> manager to call MongoDB Realm functions.
+ * A <i>Functions<i> manager to call MongoDB Realm functions.
  * <p>
- * Arguments and results are encoded/decoded with the <i>Realm functions'</i> codec registry either
+ * Arguments and results are encoded/decoded with the <i>Functions'</i> codec registry either
  * inherited from the {@link RealmAppConfiguration#getDefaultCodecRegistry()} or set explicitly
- * when creating the <i>Realm functions</i>-instance through {@link RealmUser#getFunctions(CodecRegistry)}
+ * when creating the <i>Functions</i>-instance through {@link RealmUser#getFunctions(CodecRegistry)}
  * or through the individual calls to {@link #callFunction(String, List, Class, CodecRegistry)}.
  *
  * @see RealmUser#getFunctions()
  * @see RealmUser#getFunctions(CodecRegistry)
+ * @see RealmApp#getFunctions(RealmUser)
+ * @see RealmApp#getFunctions(RealmUser, CodecRegistry)
  * @see RealmAppConfiguration
  * @see CodecRegistry
  */
 // TODO Timeout is currently handled uniformly through OkHttpNetworkTransport configured through RealmAppConfig
 // FIXME Encoder/Decoder specific variants
 // FIXME Service?
-public class RealmFunctions {
-
-    private final RealmUser user;
+public abstract class Functions {
 
     private CodecRegistry defaultCodecRegistry;
 
-    RealmFunctions(RealmUser user) {
-        this(user, user.getApp().getConfiguration().getDefaultCodecRegistry());
-    }
-
-    RealmFunctions(RealmUser user, CodecRegistry codecRegistry) {
-        this.user = user;
+    protected Functions(CodecRegistry codecRegistry) {
         this.defaultCodecRegistry = codecRegistry;
     }
 
@@ -77,9 +74,7 @@ public class RealmFunctions {
      * @see RealmAppConfiguration#getDefaultCodecRegistry()
      */
     public <T> T callFunction(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry) {
-        String encodedArgs = JniBsonProtocol.encode(args, codecRegistry);
-        String encodedResponse = invoke(name, encodedArgs);
-        return JniBsonProtocol.decode(encodedResponse, resultClass, codecRegistry);
+        return invoke(name, args, resultClass, codecRegistry);
     }
 
     /**
@@ -170,7 +165,7 @@ public class RealmFunctions {
     public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> resultClass, RealmApp.Callback<T> callback) {
         return callFunctionAsync(name, args, resultClass, defaultCodecRegistry, callback);
     }
-    
+
     /**
      * Returns the default codec registry used for encoding arguments and decoding results for this
      * <i>Realm functions</i> instance.
@@ -186,35 +181,15 @@ public class RealmFunctions {
      *
      * @return The {@link RealmApp} that this instance in associated with.
      */
-    public RealmApp getApp() {
-        return user.getApp();
-    }
+    public abstract RealmApp getApp();
 
     /**
      * Returns the {@link RealmUser} that this instance in associated with.
      *
      * @return The {@link RealmUser} that this instance in associated with.
      */
-    public RealmUser getUser() {
-        return user;
-    }
+    public abstract RealmUser getUser();
 
-    private String invoke(String name, String args) {
-        // Native calling scheme is actually synchronous
-        Util.checkEmpty(name, "name");
-        Util.checkEmpty(args, "args");
-        AtomicReference<String> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        OsJNIResultCallback<String> callback = new OsJNIResultCallback<String>(success, error) {
-            @Override
-            protected String mapSuccess(Object result) {
-                return (String) result;
-            }
-        };
-        nativeCallFunction(user.getApp().nativePtr, user.osUser.getNativePtr(), name, args, callback);
-        return ResultHandler.handleResult(success, error);
-   }
-
-   private static native void nativeCallFunction(long nativeAppPtr, long nativeUserPtr, String name, String args_json, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    protected abstract <T> T invoke(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry);
 
 }

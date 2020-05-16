@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm
+package io.realm.mongodb.functions
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.*
 import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
@@ -46,7 +47,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
-class RealmFunctionsTests {
+class FunctionsTests {
 
     companion object {
         const val FIRST_ARG_FUNCTION = "firstArg"
@@ -58,7 +59,7 @@ class RealmFunctionsTests {
     private val looperThread = BlockingLooperThread()
 
     private lateinit var app: TestRealmApp
-    private lateinit var functions: RealmFunctions
+    private lateinit var functions: Functions
 
     private lateinit var anonUser: RealmUser
     private lateinit var admin: ServerAdmin
@@ -336,6 +337,14 @@ class RealmFunctionsTests {
     @Test
     fun callFunction_void() {
         assertEquals(BsonType.UNDEFINED, functions.callFunction("void", emptyList<Any>(), BsonUndefined::class.java).bsonType)
+    }
+
+    @Test
+    fun callFunction_afterLogout() {
+        anonUser.logOut()
+        assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(1, 2, 3), Integer::class.java)
+        }
     }
 
     // Tests that functions that should not execute based on "canevalute"-expression fails.

@@ -31,6 +31,7 @@ import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
+import io.realm.mongodb.functions.Functions;
 import io.realm.mongodb.mongo.MongoClient;
 
 /**
@@ -42,7 +43,7 @@ public class RealmUser {
     private final RealmApp app;
     private ApiKeyAuth apiKeyAuthProvider = null;
     private MongoClient mongoClient = null;
-    private RealmFunctions functions = null;
+    private Functions functions = null;
 
     /**
      * FIXME
@@ -432,10 +433,10 @@ public class RealmUser {
      * This will use the associated app's default codec registry to encode and decode arguments and
      * results.
      */
-    public synchronized RealmFunctions getFunctions() {
+    public synchronized Functions getFunctions() {
         checkLoggedIn();
         if (functions == null) {
-            functions = new RealmFunctions(this);
+            functions = new InternalFunctions(this);
         }
         return functions;
     }
@@ -444,8 +445,8 @@ public class RealmUser {
      * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions with custom
      * codec registry for encoding and decoding arguments and results.
      */
-    public RealmFunctions getFunctions(CodecRegistry codecRegistry) {
-        return new RealmFunctions(this, codecRegistry);
+    public Functions getFunctions(CodecRegistry codecRegistry) {
+        return new InternalFunctions(this, codecRegistry);
     }
 
     /**

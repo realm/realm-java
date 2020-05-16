@@ -377,16 +377,16 @@ public class RealmApp {
      * This will use the associated app's default codec registry to encode and decode arguments and
      * results.
      */
-    public RealmFunctions getFunctions(RealmUser user) {
-        return new RealmFunctions(user);
+    public InternalFunctions getFunctions(RealmUser user) {
+        return new InternalFunctions(user);
     }
 
     /**
      * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions with custom
      * codec registry for encoding and decoding arguments and results.
      */
-    public RealmFunctions getFunctions(RealmUser user, CodecRegistry codecRegistry) {
-        return new RealmFunctions(user, codecRegistry);
+    public InternalFunctions getFunctions(RealmUser user, CodecRegistry codecRegistry) {
+        return new InternalFunctions(user, codecRegistry);
     }
 
 
@@ -416,13 +416,17 @@ public class RealmApp {
 
     // Class wrapping requests made against MongoDB Realm. Is also responsible for calling with success/error on the
     // correct thread.
-    static abstract class Request<T> {
+    // FIXME Made public to use in Functions. Consider reworking when RealmApp, RealmUser is moved
+    //  to mongodb package and async MongoDB API's are settled
+    public static abstract class Request<T> {
         @Nullable
         private final RealmApp.Callback<T> callback;
         private final RealmNotifier handler;
         private final ThreadPoolExecutor networkPoolExecutor;
 
-        Request(ThreadPoolExecutor networkPoolExecutor, @Nullable RealmApp.Callback<T> callback) {
+        // FIXME Made public to use in Functions. Consider reworking when RealmApp, RealmUser is moved
+        //  to mongodb package and async MongoDB API's are settled
+        public Request(ThreadPoolExecutor networkPoolExecutor, @Nullable RealmApp.Callback<T> callback) {
             this.callback = callback;
             this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
             this.networkPoolExecutor = networkPoolExecutor;
