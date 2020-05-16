@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.UiThreadTestRule;
 import android.util.Log;
 
@@ -29,10 +28,7 @@ import java.io.IOException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
 import io.realm.internal.sync.permissions.ObjectPermissionsModule;
-import io.realm.log.LogLevel;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.HttpUtils;
-import io.realm.objectserver.utils.UserFactory;
 import io.realm.rule.RunInLooperThread;
 
 
@@ -42,8 +38,6 @@ import io.realm.rule.RunInLooperThread;
  * should be used instead.
  */
 public abstract class BaseIntegrationTest {
-
-    private static int originalLogLevel;
 
     @Rule
     public RunInLooperThread looperThread = new RunInLooperThread();

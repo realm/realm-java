@@ -56,7 +56,7 @@ public class JNITableInsertTest {
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
     }
 
     @After
@@ -101,10 +101,10 @@ public class JNITableInsertTest {
                             assertTrue(true);
                         } else {
                             // Adds column.
-                            t.addColumn(TestHelper.getColumnType(valueJ), valueJ.getClass().getSimpleName());
+                            long colKey = t.addColumn(TestHelper.getColumnType(valueJ), valueJ.getClass().getSimpleName());
                             // Adds value.
                             try {
-                                TestHelper.addRowWithValues(t, valueI);
+                                TestHelper.addRowWithValues(t, new long[]{colKey}, new Object[]{valueI});
                                 fail("No matching type");
                             } catch (IllegalArgumentException ignored) {
                             }

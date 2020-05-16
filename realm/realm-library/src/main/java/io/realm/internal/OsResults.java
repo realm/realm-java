@@ -23,7 +23,6 @@ import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
-import io.realm.MutableRealmInteger;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
@@ -247,17 +246,20 @@ public class OsResults implements NativeObject, ObservableCollection {
     @SuppressWarnings("WeakerAccess")
     public static final byte MODE_TABLE = 1;
     @SuppressWarnings("WeakerAccess")
-    public static final byte MODE_QUERY = 2;
+    public static final byte MODE_LIST = 2;
     @SuppressWarnings("WeakerAccess")
-    public static final byte MODE_LINKVIEW = 3;
+    public static final byte MODE_QUERY = 3;
     @SuppressWarnings("WeakerAccess")
-    public static final byte MODE_TABLEVIEW = 4;
+    public static final byte MODE_LINK_LIST = 4;
+    @SuppressWarnings("WeakerAccess")
+    public static final byte MODE_TABLEVIEW = 5;
 
     public enum Mode {
         EMPTY,          // Backed by nothing (for missing tables)
         TABLE,          // Backed directly by a Table
+        PRIMITIVE_LIST, // List of primitives
         QUERY,          // Backed by a query that has not yet been turned into a TableView
-        LINKVIEW,       // Backed directly by a LinkView
+        LINK_LIST,      // Backed directly by a LinkView
         TABLEVIEW;      // Backed by a TableView created from a Query
 
         static Mode getByValue(byte value) {
@@ -268,8 +270,10 @@ public class OsResults implements NativeObject, ObservableCollection {
                     return TABLE;
                 case MODE_QUERY:
                     return QUERY;
-                case MODE_LINKVIEW:
-                    return LINKVIEW;
+                case MODE_LIST:
+                    return PRIMITIVE_LIST;
+                case MODE_LINK_LIST:
+                    return LINK_LIST;
                 case MODE_TABLEVIEW:
                     return TABLEVIEW;
                 default:
@@ -284,7 +288,7 @@ public class OsResults implements NativeObject, ObservableCollection {
                 realm.getNativePtr(),
                 row.getNativePtr(),
                 srcTable.getNativePtr(),
-                srcTable.getColumnIndex(srcFieldName));
+                srcTable.getColumnKey(srcFieldName));
         return new OsResults(realm, srcTable, backlinksPtr);
     }
 
@@ -296,11 +300,6 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query) {
         return createFromQuery(sharedRealm, query, new DescriptorOrdering());
-    }
-
-    public static OsResults createFromTable(OsSharedRealm sharedRealm, Table table) {
-        long ptr = nativeCreateResultsFromTable(sharedRealm.getNativePtr(), table.getNativePtr());
-        return new OsResults(sharedRealm, table, ptr);
     }
 
     OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
@@ -319,6 +318,14 @@ public class OsResults implements NativeObject, ObservableCollection {
         OsResults osResults = new OsResults(sharedRealm, table, nativeCreateSnapshot(nativePtr));
         osResults.isSnapshot = true;
         return osResults;
+    }
+
+    public OsResults freeze(OsSharedRealm frozenRealm) {
+        OsResults results = new OsResults(frozenRealm, table.freeze(frozenRealm), nativeFreeze(nativePtr, frozenRealm.getNativePtr()));
+        if (isLoaded()) {
+            results.load();
+        }
+        return results;
     }
 
     @Override
@@ -364,8 +371,8 @@ public class OsResults implements NativeObject, ObservableCollection {
         return toJSON(nativePtr, maxDepth);
     }
 
-    public Number aggregateNumber(Aggregate aggregateMethod, long columnIndex) {
-        return (Number) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
+    public Number aggregateNumber(Aggregate aggregateMethod, long columnKey) {
+        return (Number) nativeAggregate(nativePtr, columnKey, aggregateMethod.getValue());
     }
 
     public Date aggregateDate(Aggregate aggregateMethod, long columnIndex) {
@@ -472,7 +479,7 @@ public class OsResults implements NativeObject, ObservableCollection {
     // Helper method for adding specific types of lists.
     private <T> void addTypeSpecificList(String fieldName, RealmList<T> list, AddListTypeDelegate<T> delegate) {
         //noinspection unchecked
-        OsObjectBuilder builder = new OsObjectBuilder(getTable(), 0, Collections.EMPTY_SET);
+        OsObjectBuilder builder = new OsObjectBuilder(getTable(), Collections.EMPTY_SET);
         delegate.addList(builder, list);
         try {
             nativeSetList(nativePtr, fieldName, builder.getNativePtr());
@@ -662,9 +669,9 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long descriptorOrderingPtr);
 
-    private static native long nativeCreateResultsFromTable(long sharedRealmNativePtr, long tablePtr);
-
     private static native long nativeCreateSnapshot(long nativePtr);
+
+    private static native long nativeFreeze(long nativePtr, long frozenRealmNativePtr);
 
     private static native long nativeGetRow(long nativePtr, int index);
 

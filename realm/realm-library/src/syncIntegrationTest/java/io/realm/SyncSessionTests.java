@@ -7,6 +7,7 @@ import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +24,6 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.internal.OsRealmConfig;
-import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.StringOnlyModule;
 import io.realm.objectserver.utils.UserFactory;
@@ -46,7 +46,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
     }
 
     private void getSession(SessionCallback callback) {
-        // Work-around for a race conditions happening when shutting down a Looper test and
+        // Work-around for a race condition happening when shutting down a Looper test and
         // Resetting the SyncManager
         // The problem is the `@After` block which runs as soon as the test method has completed.
         // For integration tests this will attempt to reset the SyncManager which will fail
@@ -313,6 +313,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
         handlerThread.start();
         Looper looper = handlerThread.getLooper();
         Handler handler = new Handler(looper);
+        AtomicReference<RealmResults<StringOnly>> allResults = new AtomicReference<>();// notifier could be GC'ed before it get a chance to trigger the second commit, so declaring it outside the Runnable
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -328,8 +329,7 @@ public class SyncSessionTests extends StandardIntegrationTest {
                         .waitForInitialRemoteData()
                         .build();
                 final Realm adminRealm = Realm.getInstance(adminConfig);
-
-                RealmResults<StringOnly> all = adminRealm.where(StringOnly.class).sort(StringOnly.FIELD_CHARS).findAll();
+                allResults.set(adminRealm.where(StringOnly.class).sort(StringOnly.FIELD_CHARS).findAll());
                 RealmChangeListener<RealmResults<StringOnly>> realmChangeListener = new RealmChangeListener<RealmResults<StringOnly>>() {
                     @Override
                     public void onChange(RealmResults<StringOnly> stringOnlies) {
@@ -341,12 +341,12 @@ public class SyncSessionTests extends StandardIntegrationTest {
                                 // active session reference in Object Store
                                 adminRealm.close();
                                 testCompleted.countDown();
-                                handlerThread.quit();
+                                handlerThread.quitSafely();
                             });
                         }
                     }
                 };
-                all.addChangeListener(realmChangeListener);
+                allResults.get().addChangeListener(realmChangeListener);
 
                 // login again to re-activate the user
                 SyncCredentials credentials = SyncCredentials.usernamePassword(uniqueName, "password", false);

@@ -73,7 +73,7 @@ import static junit.framework.Assert.fail;
 public class TestHelper {
     public static final int VERY_SHORT_WAIT_SECS = 1;
     public static final int SHORT_WAIT_SECS = 10;
-    public static final int STANDARD_WAIT_SECS = 100;
+    public static final int STANDARD_WAIT_SECS = 200;
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
     private static final Random RANDOM = new Random();
@@ -128,8 +128,8 @@ public class TestHelper {
      * with primary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
      * added.
      */
-    public static long addRowWithValues(Table table, Object... values) {
-        long rowIndex = OsObject.createRow(table);
+    public static long addRowWithValues(Table table, long[] columnKeys, Object[] values) {
+        long rowKey = OsObject.createRow(table);
 
         // Checks values types.
         int columns = (int) table.getColumnCount();
@@ -140,10 +140,10 @@ public class TestHelper {
                     String.valueOf(columns) + ").");
         }
         RealmFieldType[] colTypes = new RealmFieldType[columns];
-        for (int columnIndex = 0; columnIndex < columns; columnIndex++) {
-            Object value = values[columnIndex];
-            RealmFieldType colType = table.getColumnType(columnIndex);
-            colTypes[columnIndex] = colType;
+        for (int i = 0; i < columnKeys.length; i++) {
+            Object value = values[i];
+            RealmFieldType colType = table.getColumnType(columnKeys[i]);
+            colTypes[i] = colType;
             if (!colType.isValid(value)) {
                 // String representation of the provided value type.
                 String providedType;
@@ -153,70 +153,70 @@ public class TestHelper {
                     providedType = value.getClass().toString();
                 }
 
-                throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
+                throw new IllegalArgumentException("Invalid argument no " + (i + 1) +
                         ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
             }
         }
 
         // Inserts values.
-        for (long columnIndex = 0; columnIndex < columns; columnIndex++) {
-            Object value = values[(int) columnIndex];
-            switch (colTypes[(int) columnIndex]) {
+        for (int i = 0; i < columnKeys.length; i++) {
+            Object value = values[i];
+            switch (colTypes[i]) {
                 case BOOLEAN:
                     if (value == null) {
-                        table.setNull(columnIndex, rowIndex, false);
+                        table.setNull(columnKeys[i], rowKey, false);
                     } else {
-                        table.setBoolean(columnIndex, rowIndex, (Boolean) value, false);
+                        table.setBoolean(columnKeys[i], rowKey, (Boolean) value, false);
                     }
                     break;
                 case INTEGER:
                     if (value == null) {
-                        table.setNull(columnIndex, rowIndex, false);
+                        table.setNull(columnKeys[i], rowKey, false);
                     } else {
                         long longValue = ((Number) value).longValue();
-                        table.setLong(columnIndex, rowIndex, longValue, false);
+                        table.setLong(columnKeys[i], rowKey, longValue, false);
                     }
                     break;
                 case FLOAT:
                     if (value == null) {
-                        table.setNull(columnIndex, rowIndex, false);
+                        table.setNull(columnKeys[i], rowKey, false);
                     } else {
-                        table.setFloat(columnIndex, rowIndex, (Float) value, false);
+                        table.setFloat(columnKeys[i], rowKey, (Float) value, false);
                     }
                     break;
                 case DOUBLE:
                     if (value == null) {
-                        table.setNull(columnIndex, rowIndex, false);
+                        table.setNull(columnKeys[i], rowKey, false);
                     } else {
-                        table.setDouble(columnIndex, rowIndex, (Double) value, false);
+                        table.setDouble(columnKeys[i], rowKey, (Double) value, false);
                     }
                     break;
                 case STRING:
                     if (value == null) {
-                        table.setNull(columnIndex, rowIndex, false);
+                        table.setNull(columnKeys[i], rowKey, false);
                     } else {
-                        table.setString(columnIndex, rowIndex, (String) value, false);
+                        table.setString(columnKeys[i], rowKey, (String) value, false);
                     }
                     break;
                 case DATE:
                     if (value == null) {
-                        table.setNull(columnIndex, rowIndex, false);
+                        table.setNull(columnKeys[i], rowKey, false);
                     } else {
-                        table.setDate(columnIndex, rowIndex, (Date) value, false);
+                        table.setDate(columnKeys[i], rowKey, (Date) value, false);
                     }
                     break;
                 case BINARY:
                     if (value == null) {
-                        table.setNull(columnIndex, rowIndex, false);
+                        table.setNull(columnKeys[i], rowKey, false);
                     } else {
-                        table.setBinaryByteArray(columnIndex, rowIndex, (byte[]) value, false);
+                        table.setBinaryByteArray(columnKeys[i], rowKey, (byte[]) value, false);
                     }
                     break;
                 default:
-                    throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int) columnIndex]));
+                    throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[i]));
             }
         }
-        return rowIndex;
+        return rowKey;
     }
 
     /**

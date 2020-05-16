@@ -16,8 +16,6 @@
 
 #include "io_realm_SyncManager.h"
 
-#include <realm/group_shared.hpp>
-
 #include <object-store/src/impl/realm_coordinator.hpp>
 #include <sync/sync_manager.hpp>
 #include <sync/sync_session.hpp>
@@ -86,7 +84,6 @@ struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {
 
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReset(JNIEnv* env, jclass)
 {
-    TR_ENTER()
     try {
         SyncManager::shared().reset_for_testing();
     }
@@ -98,7 +95,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeInitializeSyncManager(JNI
                                                                              jstring j_user_agent_binding_info,
                                                                              jstring j_user_agent_application_info)
 {
-    TR_ENTER()
     try {
         JStringAccessor base_file_path(env, j_sync_base_dir); // throws
         JStringAccessor user_agent_binding_info(env, j_user_agent_binding_info); // throws
@@ -125,7 +121,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv*
                                                                          jint err_code, jstring err_message,
                                                                          jboolean is_fatal)
 {
-    TR_ENTER()
     try {
         JStringAccessor path(env, local_realm_path);
         JStringAccessor message(env, err_message);
@@ -143,7 +138,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeSimulateSyncError(JNIEnv*
 
 JNIEXPORT void JNICALL Java_io_realm_SyncManager_nativeReconnect(JNIEnv* env, jclass)
 {
-    TR_ENTER()
     try {
         SyncManager::shared().reconnect();
     }

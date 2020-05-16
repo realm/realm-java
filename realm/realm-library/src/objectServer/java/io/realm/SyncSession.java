@@ -111,7 +111,6 @@ public class SyncSession {
     private static final byte STATE_VALUE_ACTIVE = 1;
     private static final byte STATE_VALUE_DYING = 2;
     private static final byte STATE_VALUE_INACTIVE = 3;
-    private static final byte STATE_VALUE_ERROR = 4;
 
     // List of Java connection change listeners
     private final CopyOnWriteArrayList<ConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
@@ -168,13 +167,7 @@ public class SyncSession {
          * The Realm was closed, but still contains data that needs to be synchronized to the server.
          * The session will attempt to upload all local data before going {@link #INACTIVE}.
          */
-        DYING(STATE_VALUE_DYING),
-
-        /**
-         * DEPRECATED: This is never used. Errors are reported to {@link ErrorHandler} instead.
-         */
-        @Deprecated
-        ERROR(STATE_VALUE_ERROR);
+        DYING(STATE_VALUE_DYING);
 
         final byte value;
 
@@ -601,6 +594,7 @@ public class SyncSession {
      * If the session is already stopped, calling this method will do nothing.
      */
     public synchronized void stop() {
+        close();
         nativeStop(configuration.getPath());
     }
 

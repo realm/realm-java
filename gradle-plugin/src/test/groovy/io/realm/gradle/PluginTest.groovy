@@ -35,6 +35,14 @@ import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
 import static org.junit.Assert.fail
 
+/**
+ * Comment about the order of repositories.
+ * The order of repositories do matter, and might need to change depending on the 
+ * version of the Build Tools being used. See e.g.:
+ * 
+ * https://stackoverflow.com/questions/55278227/android-gradle-build-error-artifacts-for-configuration-classpath/55278968#55278968
+ * https://stackoverflow.com/questions/52968576/could-not-find-aapt2-proto-jar-com-android-tools-buildaapt2-proto0-3-1
+ */
 class PluginTest {
 
     private Project project
@@ -54,6 +62,7 @@ class PluginTest {
         project.buildscript {
             repositories {
                 mavenLocal()
+                mavenCentral()
                 google()
                 jcenter()
             }
@@ -90,6 +99,7 @@ class PluginTest {
         project.buildscript {
             repositories {
                 mavenLocal()
+                mavenCentral()
                 jcenter()
             }
             dependencies {
@@ -111,9 +121,8 @@ class PluginTest {
     void pluginAddsRightRepositories_noRepositorySet() {
         project.buildscript {
             repositories {
-                maven {
-                    url 'https://maven.google.com/'
-                }
+                google()
+                mavenCentral()
                 jcenter()
             }
             dependencies {
@@ -139,8 +148,8 @@ class PluginTest {
 
         project.evaluate()
 
-        assertEquals(2, project.buildscript.repositories.size())
-        assertEquals(4, project.repositories.size()) // The Android plugin adds 3 different local repos
+        assertEquals(3, project.buildscript.repositories.size())
+        assertEquals(4, project.repositories.size())
         assertEquals('jcenter.bintray.com', project.repositories.last().url.host)
     }
 
@@ -148,11 +157,9 @@ class PluginTest {
     void pluginAddsRightRepositories_withRepositoriesSet() {
         project.buildscript {
             repositories {
+                google()
                 mavenCentral()
                 jcenter()
-                maven {
-                    url 'https://maven.google.com/'
-                }
             }
             dependencies {
                 classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
@@ -160,6 +167,54 @@ class PluginTest {
         }
 
         project.repositories {
+            google()
+            mavenCentral()
+        }
+
+        def manifest = project.file("src/main/AndroidManifest.xml")
+        manifest.parentFile.mkdirs()
+        manifest.text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.realm.test"></manifest>'
+
+        project.apply plugin: 'com.android.application'
+        project.apply plugin: 'realm-android'
+
+        project.android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                minSdkVersion 16
+                targetSdkVersion 27
+            }
+        }
+
+        project.evaluate()
+
+        assertEquals(3, project.buildscript.repositories.size())
+        assertEquals('jcenter.bintray.com', project.buildscript.repositories.last().url.host)
+
+        assertEquals(5, project.repositories.size())
+        assertEquals('repo.maven.apache.org', project.repositories.last().url.host)
+    }
+
+    // Test for https://github.com/realm/realm-java/issues/6610
+    @Test
+    void pluginAddsRightRepositories_withFlatDirs() {
+        project.buildscript {
+            repositories {
+                mavenCentral()
+                google()
+                jcenter()
+            }
+            dependencies {
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
+            }
+        }
+
+        project.repositories {
+            flatDir {
+                dirs 'libs'
+            }
+            mavenCentral()
             google()
         }
 
@@ -182,56 +237,9 @@ class PluginTest {
         project.evaluate()
 
         assertEquals(3, project.buildscript.repositories.size())
-        assertEquals('maven.google.com', project.buildscript.repositories.last().url.host)
+        assertEquals('jcenter.bintray.com', project.buildscript.repositories.last().url.host)
 
-        assertEquals(4, project.repositories.size())
-        assertEquals('dl.google.com', project.repositories.last().url.host)
-    }
-
-    // Test for https://github.com/realm/realm-java/issues/6610
-    @Test
-    void pluginAddsRightRepositories_withFlatDirs() {
-        project.buildscript {
-            repositories {
-                jcenter()
-                maven {
-                    url 'https://maven.google.com/'
-                }
-            }
-            dependencies {
-                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
-            }
-        }
-
-        project.repositories {
-            flatDir {
-                dirs 'libs'
-            }
-            google()
-        }
-
-        def manifest = project.file("src/main/AndroidManifest.xml")
-        manifest.parentFile.mkdirs()
-        manifest.text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.realm.test"></manifest>'
-
-        project.apply plugin: 'com.android.application'
-        project.apply plugin: 'realm-android'
-
-        project.android {
-            compileSdkVersion 27
-
-            defaultConfig {
-                minSdkVersion 16
-                targetSdkVersion 27
-            }
-        }
-
-        project.evaluate()
-
-        assertEquals(2, project.buildscript.repositories.size())
-        assertEquals('maven.google.com', project.buildscript.repositories.last().url.host)
-
-        assertEquals(5, project.repositories.size())
+        assertEquals(6, project.repositories.size())
         assertEquals('dl.google.com', project.repositories.last().url.host)
     }
 
@@ -240,9 +248,8 @@ class PluginTest {
     void pluginAddsRightRepositories_withRepositoriesSetAfterPluginIsApplied() {
         project.buildscript {
             repositories {
-                maven {
-                    url 'https://maven.google.com/'
-                }
+                google()
+                mavenCentral()
                 jcenter()
             }
             dependencies {
@@ -272,8 +279,8 @@ class PluginTest {
 
         project.evaluate()
 
-        assertEquals(2, project.buildscript.repositories.size())
-        assertEquals('maven.google.com', project.buildscript.repositories.first().url.host)
+        assertEquals(3, project.buildscript.repositories.size())
+        assertEquals('dl.google.com', project.buildscript.repositories.first().url.host)
 
         assertEquals(4, project.repositories.size())
         assertEquals('dl.google.com', project.repositories.last().url.host)

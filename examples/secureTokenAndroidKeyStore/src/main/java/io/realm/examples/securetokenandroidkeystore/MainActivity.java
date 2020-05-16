@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         SyncUser.logInAsync(credentials, urlAuth, new SyncUser.Callback<SyncUser>() {
             @Override
             public void onSuccess(SyncUser user) {
-                SyncConfiguration secureConfig = new SyncConfiguration.Builder(user, url).build();
+                SyncConfiguration secureConfig = user.createConfiguration(url).build();
                 Realm realm = Realm.getInstance(secureConfig);
                 // ...
             }

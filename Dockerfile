@@ -59,21 +59,19 @@ RUN yes | sdkmanager --licenses
 # Please keep all sections in descending order!
 RUN yes | sdkmanager \
     'platform-tools' \
-    'build-tools;28.0.3' \
+    'build-tools;29.0.2' \
     'extras;android;m2repository' \
-    'platforms;android-27' \
+    'platforms;android-29' \
     'cmake;3.6.4111459'
 
 # Install the NDK
 RUN mkdir /opt/android-ndk-tmp && \
     cd /opt/android-ndk-tmp && \
-    wget -q http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin -O android-ndk.bin && \
-    chmod a+x ./android-ndk.bin && \
-    ./android-ndk.bin && \
-    mv android-ndk-r10e /opt/android-ndk && \
+    wget -q https://dl.google.com/android/repository/android-ndk-r21-linux-x86_64.zip -O android-ndk.zip && \
+    unzip android-ndk.zip && \
+    mv android-ndk-r21 /opt/android-ndk && \
     rm -rf /opt/android-ndk-tmp && \
-    chmod -R a+rX /opt/android-ndk && \
-    echo "Pkg.Desc = Android NDK\nPkg.Revision = 10.0.0" > /opt/android-ndk/source.properties
+    chmod -R a+rX /opt/android-ndk
 
 # Make the SDK universally writable
 RUN chmod -R a+rwX ${ANDROID_HOME}

@@ -5,7 +5,7 @@ import groovy.json.JsonOutput
 def buildSuccess = false
 def rosContainer
 try {
-  node('android') {
+  node('docker-cph-01') {
     timeout(time: 90, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {

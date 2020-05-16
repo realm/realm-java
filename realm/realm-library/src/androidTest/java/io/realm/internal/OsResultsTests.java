@@ -62,6 +62,14 @@ public class OsResultsTests {
     private OsSharedRealm sharedRealm;
     private Table table;
 
+    private long colKey0 = -1;
+    private long colKey1 = -1;
+    private long colKey2 = -1;
+    private long rowKey0 = -1;
+    private long rowKey1 = -1;
+    private long rowKey2 = -1;
+    private long rowKey3 = -1;
+
     @Before
     public void setUp() {
         sharedRealm = getSharedRealm();
@@ -86,7 +94,7 @@ public class OsResultsTests {
     private OsSharedRealm getSharedRealm(RealmConfiguration config) {
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config)
                 .autoUpdateNotification(true);
-        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configBuilder);
+        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configBuilder, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         OsObjectStore.setSchemaVersion(sharedRealm, OsObjectStore.SCHEMA_NOT_VERSIONED);
         sharedRealm.commitTransaction();
@@ -101,31 +109,31 @@ public class OsResultsTests {
         sharedRealm.beginTransaction();
         table = sharedRealm.createTable(Table.getTableNameForClass("test_table"));
         // Specify the column types and names
-        long columnIdx = table.addColumn(RealmFieldType.STRING, "firstName");
-        table.addSearchIndex(columnIdx);
-        table.addColumn(RealmFieldType.STRING, "lastName");
-        table.addColumn(RealmFieldType.INTEGER, "age");
+        colKey0 = table.addColumn(RealmFieldType.STRING, "firstName");
+        table.addSearchIndex(colKey0);
+        colKey1 = table.addColumn(RealmFieldType.STRING, "lastName");
+        colKey2 = table.addColumn(RealmFieldType.INTEGER, "age");
 
         // Add data to the table
-        long row = OsObject.createRow(table);
-        table.setString(0, row, "John", false);
-        table.setString(1, row, "Lee", false);
-        table.setLong(2, row, 4, false);
+        rowKey0 = OsObject.createRow(table);
+        table.setString(colKey0, rowKey0, "John", false);
+        table.setString(colKey1, rowKey0, "Lee", false);
+        table.setLong(colKey2, rowKey0, 4, false);
 
-        row = OsObject.createRow(table);
-        table.setString(0, row, "John", false);
-        table.setString(1, row, "Anderson", false);
-        table.setLong(2, row, 3, false);
+        rowKey1 = OsObject.createRow(table);
+        table.setString(colKey0, rowKey1, "John", false);
+        table.setString(colKey1, rowKey1, "Anderson", false);
+        table.setLong(colKey2, rowKey1, 3, false);
 
-        row = OsObject.createRow(table);
-        table.setString(0, row, "Erik", false);
-        table.setString(1, row, "Lee", false);
-        table.setLong(2, row, 1, false);
+        rowKey2 = OsObject.createRow(table);
+        table.setString(colKey0, rowKey2, "Erik", false);
+        table.setString(colKey1, rowKey2, "Lee", false);
+        table.setLong(colKey2, rowKey2, 1, false);
 
-        row = OsObject.createRow(table);
-        table.setString(0, row, "Henry", false);
-        table.setString(1, row, "Anderson", false);
-        table.setLong(2, row, 1, false);
+        rowKey3 = OsObject.createRow(table);
+        table.setString(colKey0, rowKey3, "Henry", false);
+        table.setString(colKey1, rowKey3, "Anderson", false);
+        table.setLong(colKey2, rowKey3, 1, false);
         sharedRealm.commitTransaction();
     }
 
@@ -158,9 +166,9 @@ public class OsResultsTests {
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), queryDescriptors);
 
         assertEquals(3, osResults.size());
-        assertEquals("John", osResults.getUncheckedRow(0).getString(0));
-        assertEquals("Erik", osResults.getUncheckedRow(1).getString(0));
-        assertEquals("Henry", osResults.getUncheckedRow(2).getString(0));
+        assertEquals("John", osResults.getUncheckedRow(0).getString(colKey0));
+        assertEquals("Erik", osResults.getUncheckedRow(1).getString(colKey0));
+        assertEquals("Henry", osResults.getUncheckedRow(2).getString(colKey0));
     }
 
 
@@ -190,8 +198,8 @@ public class OsResultsTests {
     @Test
     public void where() {
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
-        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo(new long[] {0}, oneNullTable, "John"));
-        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo(new long[] {1}, oneNullTable, "Anderson"));
+        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo(new long[] {colKey0}, oneNullTable, "John"));
+        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo(new long[] {colKey1}, oneNullTable, "Anderson"));
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
@@ -204,8 +212,8 @@ public class OsResultsTests {
 
     @Test
     public void sort() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan(new long[] {2}, oneNullTable, 1));
-        QueryDescriptor sortDescriptor = QueryDescriptor.getTestInstance(table, new long[] {2});
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan(new long[] {colKey2}, oneNullTable, 1));
+        QueryDescriptor sortDescriptor = QueryDescriptor.getTestInstance(table, new long[] {colKey2});
 
         OsResults osResults2 = osResults.sort(sortDescriptor);
 
@@ -214,8 +222,8 @@ public class OsResultsTests {
         assertEquals(2, osResults.size());
         assertEquals(2, osResults2.size());
 
-        assertEquals(3, osResults2.getUncheckedRow(0).getLong(2));
-        assertEquals(4, osResults2.getUncheckedRow(1).getLong(2));
+        assertEquals(3, osResults2.getUncheckedRow(0).getLong(colKey2));
+        assertEquals(4, osResults2.getUncheckedRow(1).getLong(colKey2));
     }
 
     @Test
@@ -238,18 +246,18 @@ public class OsResultsTests {
     @Test
     public void indexOf() {
         DescriptorOrdering queryDescriptors = new DescriptorOrdering();
-        queryDescriptors.appendSort(QueryDescriptor.getTestInstance(table, new long[] {2}));
+        queryDescriptors.appendSort(QueryDescriptor.getTestInstance(table, new long[] {colKey2}));
 
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), queryDescriptors);
-        UncheckedRow row = table.getUncheckedRow(0);
+        UncheckedRow row = table.getUncheckedRow(rowKey0);
         assertEquals(3, osResults.indexOf(row));
     }
 
     @Test
     public void distinct() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan(new long[] {2}, oneNullTable, 4));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan(new long[] {colKey2}, oneNullTable, 4));
 
-        QueryDescriptor distinctDescriptor = QueryDescriptor.getTestInstance(table, new long[] {2});
+        QueryDescriptor distinctDescriptor = QueryDescriptor.getTestInstance(table, new long[] {colKey2});
         OsResults osResults2 = osResults.distinct(distinctDescriptor);
 
         // A new native Results should be created.
@@ -257,8 +265,8 @@ public class OsResultsTests {
         assertEquals(3, osResults.size());
         assertEquals(2, osResults2.size());
 
-        assertEquals(3, osResults2.getUncheckedRow(0).getLong(2));
-        assertEquals(1, osResults2.getUncheckedRow(1).getLong(2));
+        assertEquals(3, osResults2.getUncheckedRow(0).getLong(colKey2));
+        assertEquals(1, osResults2.getUncheckedRow(1).getLong(colKey2));
     }
 
     // 1. Create a results and add listener.
@@ -348,7 +356,6 @@ public class OsResultsTests {
 
         addRowAsync(sharedRealm);
 
-        sharedRealm.waitForChange();
         sharedRealm.refresh();
         TestHelper.awaitOrFail(latch);
     }

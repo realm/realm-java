@@ -256,8 +256,8 @@ public class SyncManagerTests {
         Map<String, String> headers = SyncManager.getCustomRequestHeaders(new URI("http://localhost"));
         assertEquals(2, headers.size());
         Map.Entry<String, String> header = headers.entrySet().iterator().next();
-        assertEquals("header1", header.getKey());
-        assertEquals("val1", header.getValue());
+        String expected = header.getKey().equals("header1") ? "val1" : "val2";
+        assertEquals(expected, header.getValue());
     }
 
     @Test
@@ -290,11 +290,21 @@ public class SyncManagerTests {
         assertEquals(2, outputHeaders.size());
         Iterator<Map.Entry<String, String>> it = outputHeaders.entrySet().iterator();
         Map.Entry<String, String> header1 = it.next();
-        assertEquals("header1", header1.getKey());
-        assertEquals("value1", header1.getValue());
-        Map.Entry<String, String> header2 = it.next();
-        assertEquals("header2", header2.getKey());
-        assertEquals("value2", header2.getValue());
+
+        if (header1.getKey().equals("header1")) {
+            assertEquals("header1", header1.getKey());
+            assertEquals("value1", header1.getValue());
+            Map.Entry<String, String> header2 = it.next();
+            assertEquals("header2", header2.getKey());
+            assertEquals("value2", header2.getValue());
+
+        } else {
+            assertEquals("header2", header1.getKey());
+            assertEquals("value2", header1.getValue());
+            Map.Entry<String, String> header2 = it.next();
+            assertEquals("header1", header2.getKey());
+            assertEquals("value1", header2.getValue());
+        }
     }
 
     @Test

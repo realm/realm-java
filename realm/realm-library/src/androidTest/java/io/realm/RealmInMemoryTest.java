@@ -35,8 +35,8 @@ import io.realm.entities.Dog;
 import io.realm.exceptions.RealmFileException;
 import io.realm.rule.TestRealmConfigurationFactory;
 
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -265,7 +265,7 @@ public class RealmInMemoryTest {
         }
 
         // Refreshes will be ran in the next loop, manually refreshes it here.
-        testRealm.waitForChange();
+        testRealm.refresh();
         assertEquals(1, testRealm.where(Dog.class).count());
 
         // Step 3.

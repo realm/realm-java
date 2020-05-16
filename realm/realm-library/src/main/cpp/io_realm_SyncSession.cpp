@@ -63,7 +63,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeRefreshAccessToken(JN
                                                                               jstring j_access_token,
                                                                               jstring j_sync_realm_url)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -150,7 +149,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
                                                                                      jint callback_id,
                                                                                      jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -159,8 +157,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
             static JavaClass java_sync_session_class(env, "io/realm/SyncSession");
             static JavaMethod java_notify_result_method(env, java_sync_session_class, "notifyAllChangesSent",
                                                         "(ILjava/lang/Long;Ljava/lang/String;)V");
-            JavaGlobalRef java_session_object_ref(env, session_object);
-            session->wait_for_download_completion([java_session_object_ref, callback_id](std::error_code error) {
+            auto obj = env->NewGlobalRef(session_object);
+            session->wait_for_download_completion([obj, callback_id](std::error_code error) {
                 JNIEnv* env = JniUtils::get_env(true);
                 JavaLocalRef<jobject> java_error_code;
                 JavaLocalRef<jstring> java_error_message;
@@ -169,8 +167,9 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
                         JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
                     java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
                 }
-                env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method,
+                env->CallVoidMethod(obj, java_notify_result_method,
                                     callback_id, java_error_code.get(), java_error_message.get());
+                env->DeleteGlobalRef(obj);
             });
             return to_jbool(JNI_TRUE);
         }
@@ -184,7 +183,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForUploadCompleti
                                                                                    jint callback_id,
                                                                                    jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -193,9 +191,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForUploadCompleti
             static JavaClass java_sync_session_class(env, "io/realm/SyncSession");
             static JavaMethod java_notify_result_method(env, java_sync_session_class, "notifyAllChangesSent",
                                                         "(ILjava/lang/Long;Ljava/lang/String;)V");
-            JavaGlobalRef java_session_object_ref(env, session_object);
-
-            session->wait_for_upload_completion([java_session_object_ref, callback_id](std::error_code error) {
+            auto obj = env->NewGlobalRef(session_object);
+            session->wait_for_upload_completion([obj, callback_id] (std::error_code error) {
                 JNIEnv* env = JniUtils::get_env(true);
                 JavaLocalRef<jobject> java_error_code;
                 JavaLocalRef<jstring> java_error_message;
@@ -203,8 +200,9 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForUploadCompleti
                     java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
                     java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
                 }
-                env->CallVoidMethod(java_session_object_ref.get(), java_notify_result_method,
+                env->CallVoidMethod(obj, java_notify_result_method,
                                     callback_id, java_error_code.get(), java_error_message.get());
+                env->DeleteGlobalRef(obj);
             });
             return JNI_TRUE;
         }
@@ -216,7 +214,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForUploadCompleti
 
 JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -240,7 +237,6 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jc
 
 JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetConnectionState(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -328,7 +324,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveConnectionListener(
 
 JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStart(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -346,7 +341,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStart(JNIEnv* env, jclass
 
 JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStop(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
@@ -359,7 +353,6 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStop(JNIEnv* env, jclass,
 
 JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeSetUrlPrefix(JNIEnv* env, jclass, jstring j_local_realm_path, jstring j_url_prefix)
 {
-    TR_ENTER()
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = SyncManager::shared().get_existing_session(local_realm_path);

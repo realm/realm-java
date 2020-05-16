@@ -28,7 +28,6 @@
 #include "object_accessor.hpp"
 #include "object-store/src/property.hpp"
 
-#include <realm/row.hpp>
 #include <realm/util/any.hpp>
 
 using namespace realm::_impl;
@@ -43,7 +42,7 @@ using namespace realm::_impl;
     X(Binary) \
     X(Object) \
     X(List) \
-
+    X(PropertyList) \
 
 namespace realm {
 
@@ -74,8 +73,9 @@ template <> struct JavaValueTypeRepr<JavaValueType::Float>   { using Type = jflo
 template <> struct JavaValueTypeRepr<JavaValueType::Double>  { using Type = jdouble; };
 template <> struct JavaValueTypeRepr<JavaValueType::Date>    { using Type = Timestamp; };
 template <> struct JavaValueTypeRepr<JavaValueType::Binary>  { using Type = OwnedBinaryData; };
-template <> struct JavaValueTypeRepr<JavaValueType::Object>  { using Type = RowExpr*; };
+template <> struct JavaValueTypeRepr<JavaValueType::Object>  { using Type = Obj*; };
 template <> struct JavaValueTypeRepr<JavaValueType::List>    { using Type = std::vector<JavaValue>; };
+template <> struct JavaValueTypeRepr<JavaValueType::PropertyList> { using Type = std::map<ColKey, JavaValue>; };
 
 // Tagged union class representing all the values Java can send to Object Store
 struct JavaValue {
@@ -206,6 +206,12 @@ struct JavaValue {
         return get_as<JavaValueType::List>();
     }
 
+    auto& get_property_list() const noexcept
+    {
+        return get_as<JavaValueType::PropertyList>();
+    }
+
+
     auto& get_date() const noexcept
     {
         return get_as<JavaValueType::Date>();
@@ -268,14 +274,16 @@ struct JavaValue {
             case JavaValueType::Object:
                 ss << "Object[Type: ";
                 ss << get_object()->get_table()->get_name();
-                ss << ", rowIndex: ";
-                ss << get_object()->get_index();
+                ss << ", colKey: ";
+                ss << get_object()->get_key().value;
                 ss << "]";
                 return std::string(ss.str());
             case JavaValueType::List:
                 ss << "List[size: ";
                 ss << get_list().size();
                 ss << "]";
+            case JavaValueType::PropertyList:
+                ss << "PropertyList ";
                 return std::string(ss.str());
             default: REALM_TERMINATE("Invalid type.");
         }
@@ -323,9 +331,9 @@ public:
                                                  Property const& prop,
                                                  size_t /*property_index*/) const
     {
-        const std::vector<JavaValue>& list = dict.get_list();
-        auto property_value = list.at(prop.table_column);
-        return util::make_optional(property_value);
+        const std::map<ColKey, JavaValue>& map = dict.get_property_list();
+        auto it = map.find(prop.column_key);
+        return it == map.end() ? util::none : util::make_optional(it->second);
     }
 
     // Get the default value for the given property in the given object schema,
@@ -393,7 +401,7 @@ public:
     // using the provided value. If `update` is true then upsert semantics
     // should be used for this.
     template<typename T>
-    T unbox(JavaValue const& /*v*/, CreatePolicy = CreatePolicy::Skip, size_t /*current_row*/ = realm::npos) const {
+    T unbox(JavaValue const& /*v*/, CreatePolicy = CreatePolicy::Skip, ObjKey /*current_row*/ = ObjKey()) const {
         throw std::logic_error("Missing template specialization"); // All types should have specialized templates
     }
 
@@ -433,45 +441,44 @@ private:
 };
 
 template <>
-inline bool JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) const
+inline bool JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Boolean");
     return v.get_boolean() == JNI_TRUE;
 }
 
 template <>
-inline int64_t JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) const
+inline int64_t JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Long");
     return static_cast<int64_t>(v.get_int());
 }
 
 template <>
-inline double JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) const
+inline double JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Double");
     return static_cast<double>(v.get_double());
 }
 
 template <>
-inline float JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) const
+inline float JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     check_value_not_null(v, "Float");
     return static_cast<float>(v.get_float());
 }
 
 template <>
-inline StringData JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) const
+inline StringData JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     if (!v.has_value()) {
         return StringData();
     }
-
     return StringData(v.get_string());
 }
 
 template <>
-inline BinaryData JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) const
+inline BinaryData JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     if (!v.has_value()) {
         return BinaryData();
@@ -481,49 +488,49 @@ inline BinaryData JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) c
 }
 
 template <>
-inline Timestamp JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) const
+inline Timestamp JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? v.get_date() : Timestamp();
 }
 
 template <>
-inline RowExpr JavaContext::unbox(JavaValue const& v, CreatePolicy policy, size_t current_row) const
+inline Obj JavaContext::unbox(JavaValue const& v, CreatePolicy policy, ObjKey current_row) const
 {
     if (v.get_type() == JavaValueType::Object) {
         return *v.get_object();
     } else if (policy == CreatePolicy::Skip) {
-        return RowExpr();
+        return Obj();
     }
     REALM_ASSERT(object_schema);
-    return Object::create(const_cast<JavaContext&>(*this), realm, *object_schema, v, policy, current_row).row();
+    return Object::create(const_cast<JavaContext&>(*this), realm, *object_schema, v, policy, current_row).obj();
 }
 
 template <>
-inline util::Optional<bool> JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) const
+inline util::Optional<bool> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(v.get_boolean() == JNI_TRUE) : util::none;
 }
 
 template <>
-inline util::Optional<int64_t> JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) const
+inline util::Optional<int64_t> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(static_cast<int64_t>(v.get_int())) : util::none;
 }
 
 template <>
-inline util::Optional<double> JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) const
+inline util::Optional<double> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(v.get_double()) : util::none;
 }
 
 template <>
-inline util::Optional<float> JavaContext::unbox(JavaValue const& v, CreatePolicy, size_t) const
+inline util::Optional<float> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(v.get_float()) : util::none;
 }
 
 template <>
-inline Mixed JavaContext::unbox(JavaValue const&, CreatePolicy, size_t) const
+inline Mixed JavaContext::unbox(JavaValue const&, CreatePolicy, ObjKey) const
 {
     REALM_TERMINATE("'Mixed' not supported");
 }

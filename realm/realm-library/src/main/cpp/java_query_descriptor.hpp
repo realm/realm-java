@@ -19,6 +19,8 @@
 
 #include <jni.h>
 
+#include "java_accessor.hpp"
+
 namespace realm {
 
 namespace jni_util {
@@ -59,8 +61,7 @@ private:
     JNIEnv* m_env;
     jobject m_sort_desc_obj;
 
-    realm::Table* get_table_ptr() const noexcept;
-    std::vector<std::vector<size_t>> get_column_indices() const noexcept;
+    std::vector<std::vector<ColKey>> get_column_keys() const noexcept;
     std::vector<bool> get_ascendings() const noexcept;
 
     jni_util::JavaClass const& get_sort_desc_class() const noexcept;

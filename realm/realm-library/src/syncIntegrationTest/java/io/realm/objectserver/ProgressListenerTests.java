@@ -18,6 +18,7 @@ package io.realm.objectserver;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,11 +42,11 @@ import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncUser;
 import io.realm.TestHelper;
+import io.realm.TestSyncConfigurationFactory;
 import io.realm.entities.AllTypes;
 import io.realm.log.RealmLog;
 import io.realm.objectserver.utils.Constants;
 import io.realm.objectserver.utils.UserFactory;
-import io.realm.TestSyncConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

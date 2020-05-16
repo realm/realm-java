@@ -20,7 +20,8 @@ import java.util.*
 class KotlinRealmQueryTests {
 
     @Suppress("MemberVisibilityCanPrivate")
-    @get:Rule
+    @Rule
+    @JvmField
     val configFactory = TestRealmConfigurationFactory()
 
     private lateinit var realm: Realm

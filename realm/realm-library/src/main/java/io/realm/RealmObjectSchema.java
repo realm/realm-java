@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
 import io.realm.annotations.Required;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.Table;
@@ -108,6 +107,7 @@ public abstract class RealmObjectSchema {
      * </ul>
      *
      * @return the name of the RealmObject class represented by this schema.
+     * @throws IllegalStateException if this schema defintion is no longer part of the Realm.
      */
     public String getClassName() {
         return table.getClassName();
@@ -223,7 +223,7 @@ public abstract class RealmObjectSchema {
      * @return {@code true} if the field exists, {@code false} otherwise.
      */
     public boolean hasField(String fieldName) {
-        return table.getColumnIndex(fieldName) != Table.NO_MATCH;
+        return table.getColumnKey(fieldName) != Table.NO_MATCH;
     }
 
     /**
@@ -249,7 +249,7 @@ public abstract class RealmObjectSchema {
     public boolean hasIndex(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
-        return table.hasSearchIndex(table.getColumnIndex(fieldName));
+        return table.hasSearchIndex(table.getColumnKey(fieldName));
     }
 
     /**
@@ -327,7 +327,7 @@ public abstract class RealmObjectSchema {
      * @see #setRequired(String, boolean)
      */
     public boolean isRequired(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
+        long columnIndex = getColumnKey(fieldName);
         return !table.isColumnNullable(columnIndex);
     }
 
@@ -340,7 +340,7 @@ public abstract class RealmObjectSchema {
      * @see #setNullable(String, boolean)
      */
     public boolean isNullable(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
+        long columnIndex = getColumnKey(fieldName);
         return table.isColumnNullable(columnIndex);
     }
 
@@ -389,11 +389,8 @@ public abstract class RealmObjectSchema {
     public Set<String> getFieldNames() {
         int columnCount = (int) table.getColumnCount();
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
-        for (int i = 0; i < columnCount; i++) {
-            String name = table.getColumnName(i);
-            if (!OsObject.isObjectIdColumn(name)) {
-                columnNames.add(name);
-            }
+        for (String column : table.getColumnNames()) {
+                columnNames.add(column);
         }
         return columnNames;
     }
@@ -417,8 +414,8 @@ public abstract class RealmObjectSchema {
      * @return the underlying type used by Realm to represent this field.
      */
     public RealmFieldType getFieldType(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        return table.getColumnType(columnIndex);
+        long columnKey = getColumnKey(fieldName);
+        return table.getColumnType(columnKey);
     }
 
     /**
@@ -428,7 +425,7 @@ public abstract class RealmObjectSchema {
      * @param validColumnTypes valid field type for the last field in a linked field
      * @return a FieldDescriptor
      */
-    abstract FieldDescriptor getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes);
+    abstract FieldDescriptor getFieldDescriptors(String fieldDescription, RealmFieldType... validColumnTypes);
 
     RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         long columnIndex = table.addColumn(type, name, (required) ? Table.NOT_NULLABLE : Table.NULLABLE);
@@ -450,12 +447,12 @@ public abstract class RealmObjectSchema {
         return this;
     }
 
-    long getAndCheckFieldIndex(String fieldName) {
-        long index = columnInfo.getColumnIndex(fieldName);
-        if (index < 0) {
+    long getAndCheckFieldColumnKey(String fieldName) {
+        long columnKey = columnInfo.getColumnKey(fieldName);
+        if (columnKey < 0) {
             throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
-        return index;
+        return columnKey;
     }
 
     Table getTable() {
@@ -487,8 +484,8 @@ public abstract class RealmObjectSchema {
      * @return column index or -1 if it doesn't exists.
      */
     //@VisibleForTesting(otherwise = VisibleForTesting.NONE)
-    long getFieldIndex(String fieldName) {
-        return columnInfo.getColumnIndex(fieldName);
+    long getFieldColumnKey(String fieldName) {
+        return columnInfo.getColumnKey(fieldName);
     }
 
     static void checkLegalName(String fieldName) {
@@ -505,21 +502,21 @@ public abstract class RealmObjectSchema {
     }
 
     void checkFieldExists(String fieldName) {
-        if (table.getColumnIndex(fieldName) == Table.NO_MATCH) {
+        if (table.getColumnKey(fieldName) == Table.NO_MATCH) {
             throw new IllegalArgumentException("Field name doesn't exist on object '" + getClassName() + "': " + fieldName);
         }
     }
 
-    long getColumnIndex(String fieldName) {
-        long columnIndex = table.getColumnIndex(fieldName);
-        if (columnIndex == -1) {
+    long getColumnKey(String fieldName) {
+        long columnKey = table.getColumnKey(fieldName);
+        if (columnKey == -1) {
             throw new IllegalArgumentException(
                     String.format(Locale.US,
                             "Field name '%s' does not exist on schema for '%s'",
                             fieldName, getClassName()
                     ));
         }
-        return columnIndex;
+        return columnKey;
     }
 
     static final class DynamicColumnIndices extends ColumnInfo {
@@ -531,8 +528,8 @@ public abstract class RealmObjectSchema {
         }
 
         @Override
-        public long getColumnIndex(String columnName) {
-            return table.getColumnIndex(columnName);
+        public long getColumnKey(String columnName) {
+            return table.getColumnKey(columnName);
         }
 
         @Override

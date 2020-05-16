@@ -716,10 +716,10 @@ public class RealmListTests extends CollectionTests {
     public void toString_managedMode() {
         StringBuilder sb = new StringBuilder("RealmList<Dog>@[");
         for (int i = 0; i < collection.size() - 1; i++) {
-            sb.append(((RealmObjectProxy) (collection.get(i))).realmGet$proxyState().getRow$realm().getIndex());
+            sb.append(((RealmObjectProxy) (collection.get(i))).realmGet$proxyState().getRow$realm().getObjectKey());
             sb.append(",");
         }
-        sb.append(((RealmObjectProxy)collection.get(TEST_SIZE - 1)).realmGet$proxyState().getRow$realm().getIndex());
+        sb.append(((RealmObjectProxy)collection.get(TEST_SIZE - 1)).realmGet$proxyState().getRow$realm().getObjectKey());
         sb.append("]");
 
         assertEquals(sb.toString(), collection.toString());
@@ -784,6 +784,8 @@ public class RealmListTests extends CollectionTests {
                     case DELETE_ALL_FROM_REALM: results.deleteAllFromRealm(); break;
                     case IS_VALID: continue; // Does not throw.
                     case IS_MANAGED: continue; // Does not throw.
+                    case IS_FROZEN: continue; // Does not throw
+                    case FREEZE: results.freeze(); break;
                 }
                 fail(method + " should have thrown an Exception.");
             } catch (IllegalStateException ignored) {

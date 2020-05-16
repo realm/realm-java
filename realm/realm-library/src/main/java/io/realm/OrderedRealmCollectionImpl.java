@@ -21,8 +21,7 @@ import io.realm.internal.UncheckedRow;
 /**
  * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
  */
-abstract class OrderedRealmCollectionImpl<E>
-        extends AbstractList<E> implements OrderedRealmCollection<E> {
+abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements OrderedRealmCollection<E> {
     private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by 'RealmResults' or" +
             " 'OrderedRealmCollectionSnapshot'.";
 
@@ -269,7 +268,7 @@ abstract class OrderedRealmCollectionImpl<E>
     // Sorting
 
     // aux. method used by sort methods
-    private long getColumnIndexForSort(String fieldName) {
+    private long getColumnKeyForSort(String fieldName) {
         //noinspection ConstantConditions
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Non-empty field name required.");
@@ -277,11 +276,11 @@ abstract class OrderedRealmCollectionImpl<E>
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Aggregates on child object fields are not supported: " + fieldName);
         }
-        long columnIndex = osResults.getTable().getColumnIndex(fieldName);
-        if (columnIndex < 0) {
+        long columnKey = osResults.getTable().getColumnKey(fieldName);
+        if (columnKey < 0) {
             throw new IllegalArgumentException(String.format(Locale.US, "Field '%s' does not exist.", fieldName));
         }
-        return columnIndex;
+        return columnKey;
     }
 
     /**
@@ -350,8 +349,8 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public Number min(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
-        return osResults.aggregateNumber(OsResults.Aggregate.MINIMUM, columnIndex);
+        long columnKey = getColumnKeyForSort(fieldName);
+        return osResults.aggregateNumber(OsResults.Aggregate.MINIMUM, columnKey);
     }
 
     /**
@@ -360,7 +359,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public Date minDate(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateDate(OsResults.Aggregate.MINIMUM, columnIndex);
     }
 
@@ -370,7 +369,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public Number max(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateNumber(OsResults.Aggregate.MAXIMUM, columnIndex);
     }
 
@@ -388,7 +387,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Nullable
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateDate(OsResults.Aggregate.MAXIMUM, columnIndex);
     }
 
@@ -399,7 +398,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public Number sum(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateNumber(OsResults.Aggregate.SUM, columnIndex);
     }
 
@@ -409,7 +408,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public double average(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        long columnIndex = getColumnKeyForSort(fieldName);
 
         Number avg = osResults.aggregateNumber(OsResults.Aggregate.AVERAGE, columnIndex);
         return avg.doubleValue();

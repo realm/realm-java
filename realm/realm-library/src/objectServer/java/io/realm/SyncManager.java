@@ -467,7 +467,7 @@ public class SyncManager {
         }
         ArrayList<SyncSession> allSessions = new ArrayList<SyncSession>();
         for (SyncSession syncSession : sessions.values()) {
-            if (syncSession.getState() != SyncSession.State.ERROR && syncSession.getUser().equals(syncUser)) {
+            if (syncSession.getUser().equals(syncUser)) {
                 allSessions.add(syncSession);
             }
         }

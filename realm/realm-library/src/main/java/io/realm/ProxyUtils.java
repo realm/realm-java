@@ -129,7 +129,7 @@ class ProxyUtils {
     }
 
     /**
-     * Called by proxy to create a unmanaged {@link RealmList} according to the given {@link JsonReader}.
+     * Called by proxy to create an unmanaged {@link RealmList} according to the given {@link JsonReader}.
      *
      * @param elementClass the type of the {@link RealmList}.
      * @param jsonReader the JSON stream to be parsed which may contain the data of the list to be set.

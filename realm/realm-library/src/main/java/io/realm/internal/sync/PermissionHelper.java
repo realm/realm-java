@@ -18,6 +18,7 @@ package io.realm.internal.sync;
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.sync.permissions.Permission;
 import io.realm.sync.permissions.Role;
@@ -38,6 +39,9 @@ public class PermissionHelper {
      * @return
      */
     public static Permission findOrCreatePermissionForRole(RealmObject container, RealmList<Permission> permissions, String roleName) {
+        if (Util.isEmptyString(roleName)) {
+            throw new IllegalArgumentException("Non-empty 'roleName' required.");
+        }
         if (!container.isManaged()) {
             throw new IllegalStateException("'findOrCreate()' can only be called on managed objects.");
         }
@@ -49,7 +53,6 @@ public class PermissionHelper {
         // Find existing permission object or create new one
         Permission permission = permissions.where().equalTo("role.name", roleName).findFirst();
         if (permission == null) {
-
             // Find existing role or create new one
             Role role = realm.where(Role.class).equalTo("name", roleName).findFirst();
             if (role == null) {

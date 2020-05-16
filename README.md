@@ -70,29 +70,21 @@ In case you don't want to use the precompiled version, you can build Realm yours
  * The latest stable version of Android Studio. Currently [3.6.2](https://developer.android.com/studio/).
  * Download & install the Android SDK **Build-Tools 28.0.3**, **Android Pie (API 28)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
+ * Install the NDK (currently r21) from the SDK Manager in Android Studio or using the [website](https://developer.android.com/ndk/downloads). If downloaded 
+You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library`.  The download will unzip as the directory `android-ndk-r21`.
 
- * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
-You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
-
- * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/realm-library/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
-
-    ```
-    ndk.dir=/Users/<YOUR_USER>/Library/Android/android-ndk-r10e
+ * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  If you installed it using the SDK Manager, it will automatically be detected. Otherwise, you need to define the variable `ndk.dir` in `realm/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
 
     ```
-
-* You also need a file called `source.properties` to the `android-ndk-r10e` folder with the following content:
-
-    ```
-    Pkg.Desc = Android NDK
-    Pkg.Revision = 10.0.0
-    ```
-
- * Add two environment variables to your profile (presuming you installed the NDK in `~/Library/android-ndk-r10e`):
+    ndk.dir=/Users/<username>/Library/android-sdk/ndk/21.0.6113669
 
     ```
-    export ANDROID_HOME=~/Library/Android/sdk
-    export ANDROID_NDK_HOME=~/Library/Android/android-ndk-r10e
+
+ * Add two environment variables to your profile (presuming you installed the NDK using the SDK Manager):
+
+    ```
+    export ANDROID_HOME=~/Library/android-sdk
+    export ANDROID_NDK_HOME=~/Library/android-sdk/ndk/21.0.6113669
     ```
 
  * If you are launching Android Studio from the macOS Finder, you should also run the following two commands:

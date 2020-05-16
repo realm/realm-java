@@ -185,14 +185,6 @@ public class OsObjectSchemaInfo implements NativeObject {
         return propertyPtr == 0 ? null : new Property(nativeGetPrimaryKeyProperty(nativePtr));
     }
 
-    /**
-     * Returns the maximum table index used by core for this schema.
-     * If this Object has no properties -1 is returned.
-     */
-    public long getMaxColumnIndex() {
-        return nativeGetMaxColumnIndex(nativePtr);
-    }
-
     @Override
     public long getNativePtr() {
         return nativePtr;
@@ -217,7 +209,5 @@ public class OsObjectSchemaInfo implements NativeObject {
 
     // Return nullptr if it doesn't have a primary key.
     private static native long nativeGetPrimaryKeyProperty(long nativePtr);
-
-    private static native long nativeGetMaxColumnIndex(long nativePtr);
 
 }

@@ -1,13 +1,10 @@
 package io.realm.objectserver;
 
-import android.os.SystemClock;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.ObjectServerError;
 import io.realm.Realm;

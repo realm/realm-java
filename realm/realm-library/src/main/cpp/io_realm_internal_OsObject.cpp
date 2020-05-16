@@ -16,11 +16,9 @@
 
 #include "io_realm_internal_OsObject.h"
 
-#include <realm/row.hpp>
 #if REALM_ENABLE_SYNC
 #include <realm/sync/object.hpp>
 #endif
-#include <realm/util/to_string.hpp>
 
 #include <object_schema.hpp>
 #include <object.hpp>
@@ -86,14 +84,14 @@ struct ChangeCallback {
 
         // The local ref of jstring needs to be released to avoid reach the local ref table size limitation.
         std::vector<JavaGlobalRef> field_names;
-        auto table = m_wrapper->m_object.row().get_table();
-        for (size_t i = 0; i < change_set.columns.size(); ++i) {
-            if (change_set.columns[i].empty()) {
+        auto table = m_wrapper->m_object.obj().get_table();
+        for (const auto& col: change_set.columns) {
+            if (col.second.empty()) {
                 continue;
             }
             // FIXME: After full integration of the OS schema, parse the column name from
             // wrapper->m_object.get_object_schema() will be faster.
-            field_names.push_back(JavaGlobalRef(env, to_jstring(env, table->get_column_name(i)), true));
+            field_names.push_back(JavaGlobalRef(env, to_jstring(env, table->get_column_name(ColKey(col.first))), true));
         }
         m_field_names_array = env->NewObjectArray(field_names.size(), JavaClassGlobalDef::java_lang_string(), 0);
         for (size_t i = 0; i < field_names.size(); ++i) {
@@ -160,133 +158,83 @@ private:
 
 static void finalize_object(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<ObjectWrapper*>(ptr);
 }
 
-static inline size_t do_create_row(jlong shared_realm_ptr, jlong table_ptr)
+static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ref_ptr,
+                                                    jlong pk_column_key, jlong pk_value, jboolean is_pk_null)
 {
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
-    shared_realm->verify_in_write();
-#if REALM_ENABLE_SYNC
-    return sync::create_object(shared_realm->read_group(), table);
-#else
-    return table.add_empty_row();
-#endif
-}
-
-static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ptr,
-                                                    jlong pk_column_ndx, jlong pk_value, jboolean is_pk_null)
-{
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
+    TableRef table = TBL_REF(table_ref_ptr);
+    ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
-    if (is_pk_null && !TBL_AND_COL_NULLABLE(env, &table, pk_column_ndx)) {
-        return realm::npos;
+    if (is_pk_null && !COL_NULLABLE(env, table, pk_column_key)) {
+        return Obj();
     }
 
     if (is_pk_null) {
-        if (table.find_first_null(pk_column_ndx) != npos) {
+
+        if (bool(table->find_first_null(col_key))) {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
     else {
-        if (table.find_first_int(pk_column_ndx, pk_value) != npos) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
-                                 format(PK_EXCEPTION_MSG_FORMAT, reinterpret_cast<long long>(pk_value)));
+        if (bool(table->find_first_int(col_key, pk_value))) {
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, pk_value));
         }
     }
 
-    size_t row_ndx;
-#if REALM_ENABLE_SYNC
-    if (is_pk_null) {
-        row_ndx = sync::create_object_with_primary_key(shared_realm->read_group(), table, util::none);
-    }
-    else {
-        row_ndx = sync::create_object_with_primary_key(shared_realm->read_group(), table,
-                                                       util::Optional<int64_t>(pk_value));
-    }
-#else
-    row_ndx = table.add_empty_row();
-
-    if (is_pk_null) {
-        table.set_null_unique(pk_column_ndx, row_ndx);
-    }
-    else {
-        table.set_int_unique(pk_column_ndx, row_ndx, pk_value);
-    }
-#endif
-    return row_ndx;
+    Mixed pk_val = is_pk_null ? Mixed() : Mixed(util::Optional<int64_t>(pk_value));
+    return table->create_object_with_primary_key(pk_val);
 }
 
-static inline size_t do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ptr,
-                                                    jlong pk_column_ndx, jstring pk_value)
+static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ref_ptr,
+                                                    jlong pk_column_key, jstring pk_value)
 {
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
+    TableRef table = TBL_REF(table_ref_ptr);
+    ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
     JStringAccessor str_accessor(env, pk_value); // throws
-    if (!pk_value && !TBL_AND_COL_NULLABLE(env, &table, pk_column_ndx)) {
-        return realm::npos;
+    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) {
+        return Obj();
     }
 
     if (pk_value) {
-        if (table.find_first_string(pk_column_ndx, str_accessor) != npos) {
+        if (bool(table->find_first_string(col_key, str_accessor))) {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
                                  format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
         }
     }
     else {
-        if (table.find_first_null(pk_column_ndx) != npos) {
+        if (bool(table->find_first_null(col_key))) {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
-
-    size_t row_ndx;
-#if REALM_ENABLE_SYNC
-    row_ndx = sync::create_object_with_primary_key(shared_realm->read_group(), table, str_accessor);
-#else
-    row_ndx = table.add_empty_row();
-    if (pk_value) {
-        table.set_string_unique(pk_column_ndx, row_ndx, str_accessor);
-    }
-    else {
-        table.set_string_unique(pk_column_ndx, row_ndx, null{});
-    }
-#endif
-
-    return row_ndx;
+    return table->create_object_with_primary_key(StringData(str_accessor));
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_object);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreate(JNIEnv*, jclass, jlong shared_realm_ptr,
-                                                                     jlong row_ptr)
+                                                                     jlong obj_ptr)
 {
-    TR_ENTER_PTR(row_ptr)
-
     // FIXME: Currently OsObject is only used for object notifications. Since the Object Store's schema has not been
     // fully integrated with realm-java, we pass a dummy ObjectSchema to create Object.
     static const ObjectSchema dummy_object_schema;
-
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    auto& row = *(reinterpret_cast<Row*>(row_ptr));
-    Object object(shared_realm, dummy_object_schema, row); // no throw
+    auto& obj = *(reinterpret_cast<Obj*>(obj_ptr));
+    Object object(shared_realm, dummy_object_schema, obj); // no throw
     auto wrapper = new ObjectWrapper(object);              // no throw
-
     return reinterpret_cast<jlong>(wrapper);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStartListening(JNIEnv* env, jobject instance,
                                                                             jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto wrapper = reinterpret_cast<ObjectWrapper*>(native_ptr);
         if (!wrapper->m_row_object_weak_ref) {
@@ -306,8 +254,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStartListening(JNIE
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStopListening(JNIEnv* env, jobject, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto wrapper = reinterpret_cast<ObjectWrapper*>(native_ptr);
         wrapper->m_notification_token = {};
@@ -315,38 +261,37 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObject_nativeStopListening(JNIEn
     CATCH_STD()
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRow(JNIEnv* env, jclass, jlong shared_realm_ptr,
-                                                                        jlong table_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRow(JNIEnv* env, jclass, jlong table_ref_ptr)
 {
     try {
-        return do_create_row(shared_realm_ptr, table_ptr);
+        TableRef table = TBL_REF(table_ref_ptr);
+        Obj obj = table->create_object();
+        return (jlong)(obj.get_key().value);
     }
     CATCH_STD()
     return -1;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObject(JNIEnv* env, jclass,
-                                                                              jlong shared_realm_ptr, jlong table_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObject(JNIEnv* env, jclass, jlong table_ref_ptr)
 {
     try {
-        size_t row_ndx = do_create_row(shared_realm_ptr, table_ptr);
-        auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
-        return reinterpret_cast<jlong>(new Row(table[row_ndx]));
+        TableRef table = TBL_REF(table_ref_ptr);
+        Obj* obj = new Obj(table->create_object());
+        return reinterpret_cast<jlong>(obj);
     }
     CATCH_STD()
     return 0;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithLongPrimaryKey(
-    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jlong pk_value,
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jlong pk_value,
     jboolean is_pk_null)
 {
     try {
-        auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
-        size_t row_ndx =
-            do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value, is_pk_null);
-        if (row_ndx != realm::npos) {
-            return reinterpret_cast<jlong>(new Row(table[row_ndx]));
+        Obj obj =
+            do_create_row_with_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value, is_pk_null);
+        if (bool(obj)) {
+            return reinterpret_cast<jlong>(new Obj(obj));
         }
     }
     CATCH_STD()
@@ -354,24 +299,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithLongPrimaryKey(
-    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jlong pk_value,
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jlong pk_value,
     jboolean is_pk_null)
 {
     try {
-        return do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value, is_pk_null);
+        Obj obj = do_create_row_with_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value, is_pk_null);
+        return (jlong)(obj.get_key().value);
     }
     CATCH_STD()
     return realm::npos;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithStringPrimaryKey(
-    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jstring pk_value)
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jstring pk_value)
 {
     try {
-        auto& table = *(reinterpret_cast<realm::Table*>(table_ptr));
-        size_t row_ndx = do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value);
-        if (row_ndx != realm::npos) {
-            return reinterpret_cast<jlong>(new Row(table[row_ndx]));
+        Obj obj = do_create_row_with_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value);
+        if (bool(obj)) {
+            return reinterpret_cast<jlong>(new Obj(obj));
         }
     }
     CATCH_STD()
@@ -380,23 +325,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithStringPrimaryKey(
-    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ptr, jlong pk_column_ndx, jstring pk_value)
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jstring pk_value)
 {
     try {
-        return do_create_row_with_primary_key(env, shared_realm_ptr, table_ptr, pk_column_ndx, pk_value);
+        Obj obj = do_create_row_with_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value);
+        return (jlong)(obj.get_key().value);
     }
     CATCH_STD()
-
     return realm::npos;
-}
-
-JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObject_nativeGetObjectIdColumName(JNIEnv* env, jclass)
-{
-// TODO: Remove the macro and get the name from core when core has stable ID support.
-#if REALM_ENABLE_SYNC
-    const char* object_id_column_name = sync::object_id_column_name;
-#else
-    const char* object_id_column_name = "!OID";
-#endif
-    return to_jstring(env, object_id_column_name);
 }

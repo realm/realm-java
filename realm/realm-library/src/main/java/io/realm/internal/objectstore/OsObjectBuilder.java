@@ -160,12 +160,13 @@ public class OsObjectBuilder implements Closeable {
     // If true, fields will not be updated if the same value would be written to it.
     private final boolean ignoreFieldsWithSameValue;
 
-    public OsObjectBuilder(Table table, long maxColumnIndex, Set<ImportFlag> flags) {
+    public OsObjectBuilder(Table table, Set<ImportFlag> flags) {
         OsSharedRealm sharedRealm = table.getSharedRealm();
         this.sharedRealmPtr = sharedRealm.getNativePtr();
         this.table = table;
+        this.table.getColumnNames();
         this.tablePtr = table.getNativePtr();
-        this.builderPtr = nativeCreateBuilder(maxColumnIndex + 1);
+        this.builderPtr = nativeCreateBuilder();
         this.context = sharedRealm.context;
         this.ignoreFieldsWithSameValue = flags.contains(ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
     }
@@ -405,7 +406,7 @@ public class OsObjectBuilder implements Closeable {
         void handleItem(long listPtr, T item);
     }
 
-    private static native long nativeCreateBuilder(long size);
+    private static native long nativeCreateBuilder();
     private static native void nativeDestroyBuilder(long builderPtr);
     private static native long nativeCreateOrUpdate(long sharedRealmPtr,
                                                     long tablePtr,

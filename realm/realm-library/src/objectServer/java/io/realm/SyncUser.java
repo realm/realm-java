@@ -261,7 +261,7 @@ public class SyncUser {
         if (!isValid()) {
             throw new IllegalStateException("Configurations can only be created from valid users");
         }
-        return new SyncConfiguration.Builder(this, uri).partialRealm();
+        return new SyncConfiguration.Builder(Realm.applicationContext, this, uri);
     }
 
     /**
@@ -276,8 +276,7 @@ public class SyncUser {
             throw new IllegalStateException("The default configuration can only be created for users that are logged in.");
         }
         if (defaultConfiguration == null) {
-            defaultConfiguration = new SyncConfiguration.Builder(this, createUrl(this))
-                    .partialRealm()
+            defaultConfiguration = new SyncConfiguration.Builder(Realm.applicationContext, this, createUrl(this))
                     .build();
         }
         return defaultConfiguration;

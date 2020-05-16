@@ -17,10 +17,12 @@ import org.junit.runner.RunWith
 class KotlinRealmModelTests {
 
     @Suppress("MemberVisibilityCanPrivate")
-    @get:Rule
+    @Rule
+    @JvmField
     val configFactory = TestRealmConfigurationFactory()
 
-    @get:Rule
+    @Rule
+    @JvmField
     val looperThread = RunInLooperThread()
 
     private lateinit var realm: Realm

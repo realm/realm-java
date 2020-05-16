@@ -31,7 +31,7 @@ SortDescriptor JavaQueryDescriptor::sort_descriptor() const noexcept
         return SortDescriptor();
     }
 
-    return SortDescriptor(*get_table_ptr(), get_column_indices(), get_ascendings());
+    return SortDescriptor(get_column_keys(), get_ascendings());
 }
 
 DistinctDescriptor JavaQueryDescriptor::distinct_descriptor() const noexcept
@@ -39,34 +39,27 @@ DistinctDescriptor JavaQueryDescriptor::distinct_descriptor() const noexcept
     if (m_sort_desc_obj == nullptr) {
         return DistinctDescriptor();
     }
-    return DistinctDescriptor(*get_table_ptr(), get_column_indices());
+    return DistinctDescriptor(get_column_keys());
 }
 
-Table* JavaQueryDescriptor::get_table_ptr() const noexcept
+std::vector<std::vector<ColKey>> JavaQueryDescriptor::get_column_keys() const noexcept
 {
-    static JavaMethod get_table_ptr_method(m_env, get_sort_desc_class(), "getTablePtr", "()J");
-    jlong table_ptr = m_env->CallLongMethod(m_sort_desc_obj, get_table_ptr_method);
-    return reinterpret_cast<Table*>(table_ptr);
-}
-
-std::vector<std::vector<size_t>> JavaQueryDescriptor::get_column_indices() const noexcept
-{
-    static JavaMethod get_column_indices_method(m_env, get_sort_desc_class(), "getColumnIndices", "()[[J");
+    static JavaMethod get_column_keys_method(m_env, get_sort_desc_class(), "getColumnKeys", "()[[J");
     jobjectArray column_indices =
-        static_cast<jobjectArray>(m_env->CallObjectMethod(m_sort_desc_obj, get_column_indices_method));
+            static_cast<jobjectArray>(m_env->CallObjectMethod(m_sort_desc_obj, get_column_keys_method));
     JObjectArrayAccessor<JLongArrayAccessor, jlongArray> arrays(m_env, column_indices);
     jsize arr_len = arrays.size();
-    std::vector<std::vector<size_t>> indices;
+    std::vector<std::vector<ColKey>> keys;
 
     for (int i = 0; i < arr_len; ++i) {
         auto jni_long_array = arrays[i];
-        std::vector<size_t> col_indices;
+        std::vector<ColKey> col_keys;
         for (int j = 0; j < jni_long_array.size(); ++j) {
-            col_indices.push_back(static_cast<size_t>(jni_long_array[j]));
+            col_keys.push_back(ColKey(jni_long_array[j]));
         }
-        indices.push_back(std::move(col_indices));
+        keys.push_back(std::move(col_keys));
     }
-    return indices;
+    return keys;
 }
 
 std::vector<bool> JavaQueryDescriptor::get_ascendings() const noexcept

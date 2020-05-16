@@ -18,7 +18,7 @@ package io.realm;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
-import io.realm.internal.ManagableObject;
+import io.realm.internal.ManageableObject;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 
@@ -91,7 +91,7 @@ import io.realm.internal.Table;
  * Neither can be GCed until all references to both are unreachable.
  */
 @Beta
-public abstract class MutableRealmInteger implements Comparable<MutableRealmInteger>, ManagableObject {
+public abstract class MutableRealmInteger implements Comparable<MutableRealmInteger>, ManageableObject {
 
     /**
      * Unmanaged Implementation.
@@ -112,6 +112,11 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         @Override
         public boolean isValid() {
             return true;
+        }
+
+        @Override
+        public boolean isFrozen() {
+            return false;
         }
 
         @Override
@@ -158,7 +163,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
 
         @Override
         public final boolean isValid() {
-            return !getRealm().isClosed() && getRow().isAttached();
+            return !getRealm().isClosed() && getRow().isValid();
         }
 
         @Override
@@ -190,12 +195,17 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         public final void increment(long inc) {
             getRealm().checkIfValidAndInTransaction();
             Row row = getRow();
-            row.getTable().incrementLong(getColumnIndex(), row.getIndex(), inc);
+            row.getTable().incrementLong(getColumnIndex(), row.getObjectKey(), inc);
         }
 
         @Override
         public final void decrement(long dec) {
             increment(-dec);
+        }
+
+        @Override
+        public boolean isFrozen() {
+            return getRealm().isFrozen();
         }
 
         private BaseRealm getRealm() {
@@ -209,7 +219,7 @@ public abstract class MutableRealmInteger implements Comparable<MutableRealmInte
         private void setValue(@Nullable Long value, boolean isDefault) {
             Row row = getRow();
             Table table = row.getTable();
-            long rowIndex = row.getIndex();
+            long rowIndex = row.getObjectKey();
             long columnIndex = getColumnIndex();
             if (value == null) {
                 table.setNull(columnIndex, rowIndex, isDefault);

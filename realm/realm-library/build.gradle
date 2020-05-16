@@ -35,7 +35,7 @@ ext.coreDir = file("${project.coreDistributionDir.getAbsolutePath()}/core-${proj
 ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
 // Set to true to enable linking with debug core.
-ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false //FIXME Use 'false' as default until https://github.com/realm/realm-java/issues/5354 is fixed
+ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : true
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -50,12 +50,6 @@ android {
         externalNativeBuild {
             cmake {
                 arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}",
-                        // FIXME:
-                        // This is copied from https://dl.google.com/android/repository/cmake-3.4.2909474-linux-x86_64.zip
-                        // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
-                        // JNI build currently (lack of lto linking support).
-                        // This file should be removed and use the one from Android SDK cmake package when it supports lto.
-                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}",
                         "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
@@ -63,8 +57,8 @@ android {
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
-                    // armeabi is not supported anymore.
-                    abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                    // "armeabi" and "mips" are no longer supported by the NDK
+                    abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
                 }
             }
         }
@@ -210,13 +204,16 @@ dependencies {
     api "io.realm:realm-annotations:${version}"
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'com.getkeepsafe.relinker:relinker:1.4.0'
+    implementation('io.reactivex.rxjava2:rxandroid:2.1.1') {
+        exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
+    }
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
-    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
+    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
 
     kaptAndroidTest project(':realm-annotations-processor')
-    androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
     androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
+    androidTestImplementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test:rules:1.0.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
@@ -477,6 +474,11 @@ task downloadCore() {
     }
 
     def shouldDownloadCore = {
+        if (coreSourcePath) {
+            println "shouldDownloadCore: skipping, using local Core at: ${coreSourcePath}."
+            return false
+        }
+
         if (!project.coreArchiveFile.exists()) {
             return true
         }
@@ -484,7 +486,7 @@ task downloadCore() {
             return true
         }
         if (!isHashCheckingEnabled()) {
-            println "Skipping hash check(empty \'coreSha256Hash\')."
+            println "shouldDownloadCore: skipping hash check(empty \'coreSha256Hash\')."
             return false
         }
 
@@ -791,7 +793,7 @@ def checkNdk(String ndkPath) {
     }
     if (detectedNdkVersion != project.ndkVersion) {
         throw new GradleException("Your NDK version: ${detectedNdkVersion}."
-                + " Realm JNI must be compiled with the version ${project.ndkVersion} of NDK.")
+                + " Realm JNI must be compiled with version ${project.ndkVersion} of the NDK.")
     }
 }
 

@@ -67,13 +67,17 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
-    catch (SharedGroup::BadVersion& e) {
+    catch (DB::BadVersion& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, BadVersion, ss.str());
     }
-    catch (std::invalid_argument& e) {
+    catch (util::invalid_argument& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (const InvalidDatabase& e) {
+        ss << e.what() << " (" << e.get_path() << ") in " << file << " line " << line;
+        ThrowRealmFileException(env, ss.str(), realm::RealmFileException::Kind::AccessError, e.get_path());
     }
     catch (RealmFileException& e) {
         ss << e.what() << " (" << e.underlying() << ") (" << e.path() << ") in " << file << " line " << line;
@@ -148,6 +152,10 @@ void ConvertException(JNIEnv* env, const char* file, int line)
 #endif
     catch (std::logic_error e) {
         ThrowException(env, IllegalState, e.what());
+    }
+    catch (util::runtime_error& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, RuntimeError, ss.str());
     }
     catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -259,20 +267,6 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
         case realm::RealmFileException::Kind::FormatUpgradeRequired:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
             break;
-        case realm::RealmFileException::Kind::IncompatibleSyncedRealm:
-#if REALM_ENABLE_SYNC
-            static JavaClass jincompatible_synced_file_cls(env,
-                                                           "io/realm/exceptions/IncompatibleSyncedFileException");
-            static JavaMethod jicompatible_synced_ctor(env, jincompatible_synced_file_cls, "<init>",
-                                                       "(Ljava/lang/String;Ljava/lang/String;)V");
-            jobject jexception = env->NewObject(jincompatible_synced_file_cls, jicompatible_synced_ctor,
-                                                to_jstring(env, message), to_jstring(env, path));
-            env->Throw(reinterpret_cast<jthrowable>(jexception));
-            env->DeleteLocalRef(jexception);
-            return;
-#else
-            REALM_ASSERT_RELEASE_EX(false, "'IncompatibleSyncedRealm' should not be thrown for non-sync realm.");
-#endif
     }
     jstring jmessage = to_jstring(env, message);
     jstring jpath = to_jstring(env, path);
@@ -281,14 +275,13 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
     env->DeleteLocalRef(exception);
 }
 
-void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx)
+void ThrowNullValueException(JNIEnv* env, const TableRef table, ColKey col_key)
 {
     std::ostringstream ss;
-    ss << "Trying to set a non-nullable field '" << table->get_column_name(col_ndx) << "' in '" << table->get_name()
+    ss << "Trying to set a non-nullable field '" << table->get_column_name(col_key) << "' in '" << table->get_name()
        << "' to null.";
     ThrowException(env, IllegalArgument, ss.str());
 }
-
 //*********************************************************************
 // String handling
 //*********************************************************************
@@ -340,7 +333,7 @@ private:
     {
         size_t size;
         if (int_cast_with_overflow_detect(e->GetStringLength(s), size))
-            throw std::runtime_error("String size overflow");
+            throw util::runtime_error("String size overflow");
         return size;
     }
 };
@@ -416,7 +409,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
     if (str.size() <= stack_buf_size) {
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
         if (retcode != 0) {
-            throw std::runtime_error(string_to_hex("Failure when converting short string to UTF-16", str, in_begin, in_end,
+            throw util::runtime_error(string_to_hex("Failure when converting short string to UTF-16", str, in_begin, in_end,
                                               out_curr, out_end, size_t(0), retcode));
         }
         if (in_begin == in_end) {
@@ -429,11 +422,11 @@ jstring to_jstring(JNIEnv* env, StringData str)
         size_t error_code;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end, error_code);
         if (in_begin2 != in_end) {
-            throw std::runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr,
+            throw util::runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr,
                                               out_end, size, error_code));
         }
         if (int_add_with_overflow_detect(size, stack_buf_size)) {
-            throw std::runtime_error("String size overflow");
+            throw util::runtime_error("String size overflow");
         }
         dyn_buf.reset(new jchar[size]);
         out_curr = copy(out_begin, out_curr, dyn_buf.get());
@@ -441,7 +434,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
         out_end = dyn_buf.get() + size;
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
         if (retcode != 0) {
-            throw std::runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end,
+            throw util::runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end,
                                               out_curr, out_end, size_t(0), retcode));
         }
         REALM_ASSERT(in_begin == in_end);
@@ -450,7 +443,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
 transcode_complete : {
     jsize out_size;
     if (int_cast_with_overflow_detect(out_curr - out_begin, out_size)) {
-        throw std::runtime_error("String size overflow");
+        throw util::runtime_error("String size overflow");
     }
 
     return env->NewString(out_begin, out_size);
@@ -498,11 +491,11 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         char* out_end = m_data.get() + buf_size;
         size_t error_code;
         if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end, error_code)) {
-            throw std::invalid_argument(
+            throw util::invalid_argument(
                 string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         if (in_begin != in_end) {
-            throw std::invalid_argument(
+            throw util::invalid_argument(
                 string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         m_size = out_begin - m_data.get();

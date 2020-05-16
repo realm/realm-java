@@ -330,7 +330,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
     @Test
     public void defaultRealm() throws InterruptedException {
-        SyncCredentials credentials = SyncCredentials.nickname("test", false);
+        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "test", true);
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         SyncConfiguration config = user.getDefaultConfiguration();
         Realm realm = Realm.getInstance(config);
@@ -366,7 +366,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     }
 
     private void runJavaRequestCustomHeadersTest() {
-        SyncCredentials credentials = SyncCredentials.nickname("test", false);
+        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "test", true);
 
         AtomicBoolean headerSet = new AtomicBoolean(false);
         RealmLog.setLevel(LogLevel.ALL);
@@ -420,7 +420,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     }
 
     private void runSyncAuthHeadersAndUrlPrefixTest() {
-        SyncCredentials credentials = SyncCredentials.nickname("test", false);
+        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "test", true);
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.DEFAULT_REALM)
                 .urlPrefix("/foo")

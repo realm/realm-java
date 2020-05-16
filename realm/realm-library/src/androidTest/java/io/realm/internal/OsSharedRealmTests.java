@@ -46,7 +46,7 @@ public class OsSharedRealmTests {
     @Before
     public void setUp() {
         config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
     }
 
     @After
@@ -54,15 +54,6 @@ public class OsSharedRealmTests {
         if (sharedRealm != null) {
             sharedRealm.close();
         }
-    }
-
-    @Test
-    public void getVersionID() {
-        OsSharedRealm.VersionID versionID1 = sharedRealm.getVersionID();
-        sharedRealm.beginTransaction();
-        sharedRealm.commitTransaction();
-        OsSharedRealm.VersionID versionID2 = sharedRealm.getVersionID();
-        assertFalse(versionID1.equals(versionID2));
     }
 
     @Test
@@ -138,7 +129,7 @@ public class OsSharedRealmTests {
 
 
     private void changeSchemaByAnotherRealm() {
-        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(config);
+        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         sharedRealm.createTable("NewTable");
         sharedRealm.commitTransaction();

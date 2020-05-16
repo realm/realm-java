@@ -17,7 +17,6 @@
 package io.realm;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,10 +24,8 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
-import io.realm.internal.util.Pair;
 
 /**
  * Class for interacting with the Realm schema. This makes it possible to inspect, add, delete and change the classes in
@@ -232,12 +229,12 @@ public abstract class RealmSchema {
     }
 
     final ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
-        checkIndices();
+        checkColumnKeys();
         return columnIndices.getColumnInfo(clazz);
     }
 
     protected final ColumnInfo getColumnInfo(String className) {
-        checkIndices();
+        checkColumnKeys();
         return columnIndices.getColumnInfo(className);
     }
 
@@ -249,9 +246,9 @@ public abstract class RealmSchema {
         return dynamicClassToSchema.remove(name);
     }
 
-    private void checkIndices() {
+    private void checkColumnKeys() {
         if (!haveColumnInfo()) {
-            throw new IllegalStateException("Attempt to use column index before set.");
+            throw new IllegalStateException("Attempt to use column key before set.");
         }
     }
 

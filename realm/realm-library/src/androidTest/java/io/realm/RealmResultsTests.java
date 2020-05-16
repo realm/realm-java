@@ -1764,66 +1764,85 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(1, all.size());
         String json = all.asJSON();
         final String expectedJSON = "[\n" +
-                "    {\n" +
-                "        \"_key\":100," +
-                "        \"columnString\": \"alltypes1\",\n" +
-                "        \"columnLong\": 1337,\n" +
-                "        \"columnFloat\": 3.1400001,\n" +
-                "        \"columnDouble\": 0.89122999999999997,\n" +
-                "        \"columnBoolean\": false,\n" +
-                "        \"columnDate\": \"" + now + "\",\n" +
-                "        \"columnBinary\": \"AQID\",\n" +
-                "        \"columnMutableRealmInteger\": 0,\n" +
-                "        \"columnRealmObject\": [\n" +
-                "            {\n" +
-                "                \"_key\": 100,\n" +
-                "                \"name\": \"dog1\",\n" +
-                "                \"age\": 1,\n" +
-                "                \"height\": 1.1,\n" +
-                "                \"weight\": 10.100000381469727,\n" +
-                "                \"hasTail\": true,\n" +
-                "                \"birthday\": \"" + now + "\",\n" +
-                "                \"owner\": null\n" +
+                "   {\n" +
+                "      \"_key\":100,\n" +
+                "      \"columnString\":\"alltypes1\",\n" +
+                "      \"columnLong\":1337,\n" +
+                "      \"columnFloat\":3.1400001e+00,\n" +
+                "      \"columnDouble\":8.9122999999999997e-01,\n" +
+                "      \"columnBoolean\":false,\n" +
+                "      \"columnDate\": \"" + now + "\",\n" +
+                "      \"columnBinary\":\"AQID\",\n" +
+                "      \"columnMutableRealmInteger\":0,\n" +
+                "      \"columnRealmObject\":{\n" +
+                "         \"_key\":100,\n" +
+                "         \"name\":\"dog1\",\n" +
+                "         \"age\":1,\n" +
+                "         \"height\":1.1000000e+00,\n" +
+                "         \"weight\":1.0100000381469727e+01,\n" +
+                "         \"hasTail\":true,\n" +
+                "         \"birthday\": \"" + now + "\",\n" +
+                "         \"owner\":null\n" +
+                "      },\n" +
+                "      \"columnRealmList\":[\n" +
+                "         {\n" +
+                "            \"_key\":101,\n" +
+                "            \"name\":\"dog2\",\n" +
+                "            \"age\":2,\n" +
+                "            \"height\":2.0999999e+00,\n" +
+                "            \"weight\":2.0100000381469727e+01,\n" +
+                "            \"hasTail\":false,\n" +
+                "            \"birthday\": \"" + now + "\",\n" +
+                "            \"owner\":null\n" +
+                "         },\n" +
+                "         {\n" +
+                "            \"_key\":102,\n" +
+                "            \"name\":\"dog3\",\n" +
+                "            \"age\":3,\n" +
+                "            \"height\":3.0999999e+00,\n" +
+                "            \"weight\":3.0100000381469727e+01,\n" +
+                "            \"hasTail\":true,\n" +
+                "            \"birthday\": \"" + now + "\",\n" +
+                "            \"owner\":{\n" +
+                "               \"_key\":0,\n" +
+                "               \"name\":\"Dog owner 1\",\n" +
+                "               \"dogs\":[\n" +
+                "\n" +
+                "               ],\n" +
+                "               \"cat\":null\n" +
                 "            }\n" +
-                "        ],\n" +
-                "        \"columnRealmList\": [\n" +
-                "            {\n" +
-                "                \"_key\": 101,\n" +
-                "                \"name\": \"dog2\",\n" +
-                "                \"age\": 2,\n" +
-                "                \"height\": 2.0999999,\n" +
-                "                \"weight\": 20.100000381469727,\n" +
-                "                \"hasTail\": false,\n" +
-                "                \"birthday\": \"" + now + "\",\n" +
-                "                \"owner\": null\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"_key\": 102,\n" +
-                "                \"name\": \"dog3\",\n" +
-                "                \"age\": 3,\n" +
-                "                \"height\": 3.0999999,\n" +
-                "                \"weight\": 30.100000381469727,\n" +
-                "                \"hasTail\": true,\n" +
-                "                \"birthday\": \"" + now + "\",\n" +
-                "                \"owner\": [\n" +
-                "                    {\n" +
-                "                        \"_key\": 0,\n" +
-                "                        \"name\": \"Dog owner 1\",\n" +
-                "                        \"dogs\": [],\n" +
-                "                        \"cat\": null\n" +
-                "                    }\n" +
-                "                ]\n" +
-                "            }\n" +
-                "        ],\n" +
-                "        \"columnStringList\": [ \"Foo\", \"Bar\" ]," +
-                "        \"columnBinaryList\": [],\n" +
-                "        \"columnBooleanList\": [ false, true ],\n" +
-                "        \"columnLongList\": [ 1000, 2000 ],\n" +
-                "        \"columnDoubleList\": [ 1.123, 5.3209999999999997 ],\n" +
-                "        \"columnFloatList\": [ 0.12, 0.13 ],\n" +
-                "        \"columnDateList\": [ \"" + now + "\", \"" + now + "\"]\n" +
-                "    }\n" +
+                "         }\n" +
+                "      ],\n" +
+                "      \"columnStringList\":[\n" +
+                "         \"Foo\",\n" +
+                "         \"Bar\"\n" +
+                "      ],\n" +
+                "      \"columnBinaryList\":[\n" +
+                "\n" +
+                "      ],\n" +
+                "      \"columnBooleanList\":[\n" +
+                "         false,\n" +
+                "         true\n" +
+                "      ],\n" +
+                "      \"columnLongList\":[\n" +
+                "         1000,\n" +
+                "         2000\n" +
+                "      ],\n" +
+                "      \"columnDoubleList\":[\n" +
+                "         1.1230000000000000e+00,\n" +
+                "         5.3209999999999997e+00\n" +
+                "      ],\n" +
+                "      \"columnFloatList\":[\n" +
+                "         1.2000000e-01,\n" +
+                "         1.3000000e-01\n" +
+                "      ],\n" +
+                "      \"columnDateList\":[\n" +
+                "            \"" + now + "\",\n" +
+                "            \"" + now + "\"\n" +
+                "      ]\n" +
+                "   }\n" +
                 "]";
+
         JSONAssert.assertEquals(expectedJSON, json, false);
     }
 
@@ -1858,20 +1877,18 @@ public class RealmResultsTests extends CollectionTests {
                 "        \"id\": 0,\n" +
                 "        \"name\": \"One\",\n" +
                 "        \"date\": \"" + now + "\",\n" +
-                "        \"object\": [\n" +
-                "            {\n" +
-                "                \"_key\": 1,\n" +
-                "                \"id\": 0,\n" +
-                "                \"name\": \"Two\",\n" +
-                "                \"date\": \"" + now + "\",\n" +
-                "                \"object\": {\n" +
-                "                       \"table\": \"class_CyclicType\",\n" +
-                "                       \"key\": 0\n" +
-                "                  },\n" +
-                "                \"otherObject\": null,\n" +
-                "                \"objects\": []\n" +
-                "            }\n" +
-                "        ],\n" +
+                "        \"object\": {\n" +
+                "            \"_key\": 1,\n" +
+                "            \"id\": 0,\n" +
+                "            \"name\": \"Two\",\n" +
+                "            \"date\": \"" + now + "\",\n" +
+                "            \"object\": {\n" +
+                "                \"table\": \"class_CyclicType\",\n" +
+                "                \"key\": 0\n" +
+                "            },\n" +
+                "            \"otherObject\": null,\n" +
+                "            \"objects\": []\n" +
+                "        },\n" +
                 "        \"otherObject\": null,\n" +
                 "        \"objects\": []\n" +
                 "    },\n" +
@@ -1880,20 +1897,18 @@ public class RealmResultsTests extends CollectionTests {
                 "        \"id\": 0,\n" +
                 "        \"name\": \"Two\",\n" +
                 "        \"date\": \"" + now + "\",\n" +
-                "        \"object\": [\n" +
-                "            {\n" +
-                "                \"_key\": 0,\n" +
-                "                \"id\": 0,\n" +
-                "                \"name\": \"One\",\n" +
-                "                \"date\": \"" + now + "\",\n" +
-                "                \"object\": {\n" +
-                "                       \"table\": \"class_CyclicType\",\n" +
-                "                       \"key\": 1\n" +
-                "                  },\n" +
-                "                \"otherObject\": null,\n" +
-                "                \"objects\": []\n" +
-                "            }\n" +
-                "        ],\n" +
+                "        \"object\": {\n" +
+                "            \"_key\": 0,\n" +
+                "            \"id\": 0,\n" +
+                "            \"name\": \"One\",\n" +
+                "            \"date\": \"" + now + "\",\n" +
+                "            \"object\": {\n" +
+                "                \"table\": \"class_CyclicType\",\n" +
+                "                \"key\": 1\n" +
+                "            },\n" +
+                "            \"otherObject\": null,\n" +
+                "            \"objects\": []\n" +
+                "        },\n" +
                 "        \"otherObject\": null,\n" +
                 "        \"objects\": []\n" +
                 "    }\n" +

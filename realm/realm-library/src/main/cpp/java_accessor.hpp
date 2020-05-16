@@ -220,7 +220,7 @@ public:
     {
         return v ? _impl::JavaClassGlobalDef::new_long(m_env, v.value()) : nullptr;
     }
-    util::Any box(RowExpr) const
+    util::Any box(Obj) const
     {
         REALM_TERMINATE("not supported");
     }
@@ -244,7 +244,7 @@ public:
     // using the provided value. If `update` is true then upsert semantics
     // should be used for this.
     template <typename T>
-    T unbox(util::Any& v, CreatePolicy = CreatePolicy::Skip) const
+    T unbox(util::Any& v, CreatePolicy=CreatePolicy::ForceCreate) const
     {
         return any_cast<T>(v);
     }
@@ -397,7 +397,7 @@ inline Timestamp JavaAccessorContext::unbox(util::Any& v, CreatePolicy) const
 }
 
 template <>
-inline RowExpr JavaAccessorContext::unbox(util::Any&, CreatePolicy) const
+inline Obj JavaAccessorContext::unbox(util::Any&, CreatePolicy) const
 {
     REALM_TERMINATE("not supported");
 }
