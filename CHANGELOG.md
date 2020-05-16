@@ -1,4 +1,4 @@
-## 7.0.0(YYYY-MM-DD)
+## 7.0.0(2020-05-16)
 
 NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. 
 
