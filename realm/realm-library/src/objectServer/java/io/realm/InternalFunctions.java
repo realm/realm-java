@@ -25,6 +25,7 @@ import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.log.RealmLog;
 import io.realm.mongodb.functions.Functions;
 
 
@@ -71,9 +72,11 @@ class InternalFunctions extends Functions {
                 return (String) result;
             }
         };
+        RealmLog.debug(String.format("callFunction: %s(%s)", name, encodedArgs));
         nativeCallFunction(user.getApp().nativePtr, user.osUser.getNativePtr(), name, encodedArgs, callback);
         String encodedResponse = ResultHandler.handleResult(success, error);
 
+        RealmLog.debug(String.format("callFunction: %s(%s) = %s", name, encodedArgs, encodedResponse));
         return JniBsonProtocol.decode(encodedResponse, resultClass, codecRegistry);
    }
 
