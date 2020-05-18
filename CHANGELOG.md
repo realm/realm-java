@@ -1,6 +1,6 @@
 ## 7.0.0(2020-05-16)
 
-NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. 
+NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only Studio 3.11 or later will be able to open the new file format. 
 
 ### Breaking Changes
 * [ObjectServer] Removed deprecated method `SyncConfiguration.Builder.partialRealm()`. Use `SyncConfiguration.Builder.fullSynchronization()` instead.
@@ -28,6 +28,7 @@ NOTE: This version bumps the Realm file format to version 10. Files created with
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
+* Realm Studio: 3.11 or later.
 * File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
