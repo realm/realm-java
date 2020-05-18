@@ -22,6 +22,7 @@ import io.realm.mongodb.mongo.MongoClient
 import io.realm.mongodb.mongo.MongoCollection
 import io.realm.mongodb.mongo.MongoDatabase
 import io.realm.mongodb.mongo.options.CountOptions
+import io.realm.mongodb.mongo.options.FindOneAndModifyOptions
 import io.realm.mongodb.mongo.options.UpdateOptions
 import io.realm.util.blockingGetResult
 import org.bson.Document
@@ -299,7 +300,7 @@ class MongoCollectionTest {
     }
 
     @Test
-    fun testUpdateMany() {
+    fun updateMany() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             val doc1 = Document("hello", "world")
             val result1 = updateMany(Document(), doc1).blockingGetResult()
@@ -330,6 +331,106 @@ class MongoCollectionTest {
 //
 //            try {
 //                Tasks.await(coll.updateMany(Document("\$who", 1), Document()))
+//                fail()
+//            } catch (ex: ExecutionException) {
+//                assertTrue(ex.cause is StitchServiceException)
+//                val svcEx = ex.cause as StitchServiceException
+//                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
+//            }
+        }
+    }
+
+    @Test
+    fun findOneAndUpdate() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            val sampleDoc = Document("hello", "world1")
+            sampleDoc["num"] = "2"
+
+            // Collection should start out empty
+            // This also tests the null return format
+            assertNull(findOneAndUpdate(Document(), Document()).blockingGetResult())
+
+            // Insert a sample Document
+            insertOne(sampleDoc).blockingGetResult()
+            assertEquals(1, count().blockingGetResult())
+
+            // Sample call to findOneAndUpdate() where we get the previous document back
+            val sampleUpdate = Document("\$set", Document("hello", "hellothere"))
+            sampleUpdate["\$inc"] = Document("num", "1")
+            assertEquals(sampleDoc.withoutId(), findOneAndUpdate(Document("hello", "world1"), sampleUpdate).blockingGetResult())
+            assertEquals(1, count().blockingGetResult())
+
+            // Make sure the update took place
+            val expectedDoc = Document("hello", "hellothere")
+            expectedDoc["num"] = "3"
+//            assertEquals(expectedDoc.withoutId(), withoutId(Tasks.await(coll.find().first())))
+            assertEquals(1, count().blockingGetResult())
+
+            // Call findOneAndUpdate() again but get the new document
+            sampleUpdate.remove("\$set")
+            expectedDoc["num"] = "4"
+            val result = findOneAndUpdate(Document("hello", "hellothere"), sampleUpdate, FindOneAndModifyOptions().returnNewDocument(true)).blockingGetResult()
+            assertEquals(expectedDoc.withoutId(), result!!.withoutId())
+            assertEquals(1, count().blockingGetResult())
+
+            // Test null behaviour again with a filter that should not match any documents
+            assertNull(findOneAndUpdate(Document("hello", "zzzzz"), Document()).blockingGetResult())
+            assertEquals(1, count().blockingGetResult())
+
+            val doc1 = Document("hello", "world1")
+            doc1["num"] = "1"
+
+            val doc2 = Document("hello", "world2")
+            doc2["num"] = "2"
+
+            val doc3 = Document("hello", "world3")
+            doc3["num"] = "3"
+
+            // Test the upsert option where it should not actually be invoked
+            val result2 = findOneAndUpdate(Document("hello", "hellothere"), Document("\$set", doc1), FindOneAndModifyOptions().returnNewDocument(true).upsert(true)).blockingGetResult()
+            assertEquals(doc1, result2!!.withoutId())
+            assertEquals(1, count().blockingGetResult())
+//            assertEquals(doc1.withoutId(), withoutId(Tasks.await(coll.find().first())))
+
+            // Test the upsert option where the server should perform upsert and return new document
+            val result3 = findOneAndUpdate(Document("hello", "hellothere"), Document("\$set", doc2), FindOneAndModifyOptions().returnNewDocument(true).upsert(true)).blockingGetResult()
+            assertEquals(doc2, result3!!.withoutId())
+            assertEquals(2, count().blockingGetResult())
+
+            // Test the upsert option where the server should perform upsert and return old document
+            // The old document should be empty
+            val result4 = findOneAndUpdate(Document("hello", "hellothere"), Document("\$set", doc3), FindOneAndModifyOptions().upsert(true)).blockingGetResult()
+            assertNull(result4)
+            assertEquals(3, count().blockingGetResult())
+
+            // Test sort and project
+//            assertEquals(listOf(doc1, doc2, doc3),
+//                    withoutIds(Tasks.await<MutableList<Document>>(coll.find().into(mutableListOf()))))
+
+            val sampleProject = Document("hello", "1")
+//            sampleProject["_id"] = "0"
+
+            val result5 = findOneAndUpdate(Document(), sampleUpdate, FindOneAndModifyOptions().projection(sampleProject).sort(Document("num", "1"))).blockingGetResult()
+            assertEquals(Document("hello", "world1"), result5!!.withoutId())
+            assertEquals(3, count().blockingGetResult())
+
+            val result6 = findOneAndUpdate(Document(), sampleUpdate, FindOneAndModifyOptions().projection(sampleProject).sort(Document("num", "-1"))).blockingGetResult()
+            assertEquals(Document("hello", "world3"), result6!!.withoutId())
+            assertEquals(3, count().blockingGetResult())
+
+            // Test proper failure
+//            try {
+//                Tasks.await(coll.findOneAndUpdate(Document(), Document("\$who", 1)))
+//                fail()
+//            } catch (ex: ExecutionException) {
+//                assertTrue(ex.cause is StitchServiceException)
+//                val svcEx = ex.cause as StitchServiceException
+//                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
+//            }
+//
+//            try {
+//                Tasks.await(coll.findOneAndUpdate(Document(), Document("\$who", 1),
+//                        RemoteFindOneAndModifyOptions().upsert(true)))
 //                fail()
 //            } catch (ex: ExecutionException) {
 //                assertTrue(ex.cause is StitchServiceException)

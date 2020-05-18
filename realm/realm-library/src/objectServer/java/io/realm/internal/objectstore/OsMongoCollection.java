@@ -276,6 +276,31 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return updateInternal(true, filter, update, options);
     }
 
+    public DocumentT findOneAndUpdate(final Bson filter, final Bson update) {
+        return findOneAndUpdate(filter, update, documentClass);
+    }
+
+    public <ResultT> ResultT findOneAndUpdate(final Bson filter, final Bson update, final Class<ResultT> resultClass) {
+        AtomicReference<ResultT> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
+            @Override
+            protected ResultT mapSuccess(Object result) {
+                if (result == null) {
+                    return null;
+                } else {
+                    return JniBsonProtocol.decode((String) result, resultClass, codecRegistry);
+                }
+            }
+        };
+
+        String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
+        String encodedUpdate = JniBsonProtocol.encode(update, codecRegistry);
+        nativeFindOneAndUpdate(nativePtr, encodedFilter, encodedUpdate, callback);
+
+        return ResultHandler.handleResult(success, error);
+    }
+
     private UpdateResult updateInternal(boolean isMany, final Bson filter, final Bson update, @Nullable final UpdateOptions options) {
         AtomicReference<UpdateResult> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
@@ -368,4 +393,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                           String update,
                                                           boolean upsert,
                                                           OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeFindOneAndUpdate(long remoteMongoCollectionPtr,
+                                                      String filter,
+                                                      String update,
+                                                      OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

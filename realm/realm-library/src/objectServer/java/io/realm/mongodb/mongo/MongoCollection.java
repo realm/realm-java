@@ -399,7 +399,9 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndUpdate(final Bson filter, final Bson update) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.findOneAndUpdate(filter, update)
+        );
     }
 
     /**
@@ -414,7 +416,9 @@ public class MongoCollection<DocumentT> {
     public <ResultT> Task<ResultT> findOneAndUpdate(final Bson filter,
                                                     final Bson update,
                                                     final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.findOneAndUpdate(filter, update, resultClass)
+        );
     }
 
     /**

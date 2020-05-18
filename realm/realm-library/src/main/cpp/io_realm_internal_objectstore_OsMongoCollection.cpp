@@ -42,6 +42,7 @@ static std::function<jobject(JNIEnv*, uint64_t)> collection_mapper_count = [](JN
     return JavaClassGlobalDef::new_long(env, result);
 };
 
+// This mapper works for both findOne and findOneAndUpdate/Replace functions
 static std::function<jobject(JNIEnv*, util::Optional<bson::BsonDocument>)> collection_mapper_find_one = [](JNIEnv* env, util::Optional<bson::BsonDocument> document) {
     return document ? JniBsonProtocol::bson_to_jstring(env, *document) : NULL;
 };
@@ -286,6 +287,24 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeUpdateManyWithOptions
         bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
         bson::BsonDocument update(JniBsonProtocol::jstring_to_bson(env, j_update));
         collection->update_many(filter, update, to_bool(j_upsert), JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_update));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndUpdate(JNIEnv *env,
+                                                                            jclass,
+                                                                            jlong j_collection_ptr,
+                                                                            jstring j_filter,
+                                                                            jstring j_update,
+                                                                            jobject j_callback) {
+    try {
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
+        bson::BsonDocument update(JniBsonProtocol::jstring_to_bson(env, j_update));
+        collection->find_one_and_update(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
     }
     CATCH_STD()
 }
