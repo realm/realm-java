@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+#include "io_realm_internal_jni_JniBsonProtocol.h"
+
 #include <string>
+#include <android/log.h>
 #include "util.hpp"
 #include "bson_util.hpp"
 
@@ -55,3 +58,26 @@ jstring JniBsonProtocol::bson_to_jstring(JNIEnv* env, const Bson& bson) {
     std::string r = bson_to_string(bson);
     return to_jstring(env, r);
 };
+
+
+JNIEXPORT jstring JNICALL
+Java_io_realm_internal_jni_JniBsonProtocol_nativeTest(JNIEnv* env, jclass, jstring jinput) {
+    try {
+        JStringAccessor cinput(env, jinput);
+        __android_log_print(ANDROID_LOG_DEBUG, "REALM", "nativeTest input: %s", std::string(cinput).c_str());
+        
+        Bson input = JniBsonProtocol::string_to_bson(cinput);
+
+        std::stringstream buffer;
+        buffer << input;
+        __android_log_print(ANDROID_LOG_DEBUG, "REALM", "nativeTest parsed bson: %s", buffer.str().c_str());
+
+        jstring joutput = JniBsonProtocol::bson_to_jstring(env, input);
+        JStringAccessor output(env, jinput);
+        __android_log_print(ANDROID_LOG_DEBUG, "REALM", "nativeTest output: %s", std::string(output).c_str());
+
+        return joutput;
+    }
+    CATCH_STD()
+    return NULL;
+}
