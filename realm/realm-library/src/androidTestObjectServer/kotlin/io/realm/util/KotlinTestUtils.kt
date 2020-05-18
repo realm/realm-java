@@ -2,9 +2,10 @@ package io.realm.util
 
 import io.realm.ErrorCode
 import io.realm.ObjectServerError
-import org.junit.Assert.assertEquals
-import org.junit.Assert.fail
+import org.hamcrest.Matcher
+import org.junit.Assert.*
 import org.junit.rules.ErrorCollector
+import kotlin.test.assertFailsWith
 
 // Helper methods for improving Kotlin unit tests.
 
@@ -27,5 +28,17 @@ inline fun <reified T> ErrorCollector.assertFailsWith(block : () -> Unit){
         if (e !is T) {
             addError(e)
         }
+    }
+}
+
+inline fun <reified T> assertFailsWithMessage(matcher: Matcher<in String?>, block : () -> Unit){
+    try {
+        block()
+        fail("assertFailsWithMessage completed without expected exception")
+    } catch (e : Exception) {
+        if (e !is T) {
+            throw AssertionError("assertFailsWithMessage did not throw expected exception: " + T::class.java.name)
+        }
+        assertThat(e.message, matcher)
     }
 }

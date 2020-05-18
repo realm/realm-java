@@ -24,12 +24,11 @@ import io.realm.internal.OsObjectSchemaInfo
 import io.realm.internal.OsRealmConfig
 import io.realm.internal.OsSchemaInfo
 import io.realm.internal.OsSharedRealm
+import io.realm.util.assertFailsWithMessage
 import org.hamcrest.CoreMatchers
 import org.junit.*
-import org.junit.rules.ExpectedException
 import org.junit.Assert.*
 import org.junit.runner.RunWith
-import java.util.*
 import kotlin.test.assertFailsWith
 
 /**
@@ -40,9 +39,6 @@ class SyncedRealmMigrationTests {
 
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
-
-    @get:Rule
-    val thrown = ExpectedException.none()
 
     private lateinit var app: TestRealmApp
 
@@ -132,15 +128,14 @@ class SyncedRealmMigrationTests {
                 .addPersistedProperty(PrimaryKeyAsString.FIELD_PRIMARY_KEY, RealmFieldType.STRING, false, true, false)
                 .addPersistedProperty(PrimaryKeyAsString.FIELD_ID, RealmFieldType.INTEGER, true, true, true)
                 .build()
-        val list: MutableList<OsObjectSchemaInfo> = ArrayList()
-        list.add(expectedObjectSchema)
-        val schemaInfo = OsSchemaInfo(list)
+        val schemaInfo = OsSchemaInfo(listOf(expectedObjectSchema))
         val configBuilder = OsRealmConfig.Builder(config).schemaInfo(schemaInfo)
         OsSharedRealm.getInstance(configBuilder, OsSharedRealm.VersionID.LIVE).close()
-        thrown.expectMessage(
-                CoreMatchers.containsString("The following changes cannot be made in additive-only schema mode:"))
-        thrown.expect(IllegalStateException::class.java)
-        Realm.getInstance(config)
+        assertFailsWithMessage<java.lang.IllegalStateException>(
+                CoreMatchers.containsString("The following changes cannot be made in additive-only schema mode:")
+        ) {
+            Realm.getInstance(config).close()
+        }
     }
 
     // Check that indexes are not being added if the schema version is the same
