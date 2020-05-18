@@ -48,9 +48,12 @@ import io.realm.internal.jni.JniBsonProtocol;
 // FIXME Service?
 public abstract class Functions {
 
+    protected RealmUser user;
+
     private CodecRegistry defaultCodecRegistry;
 
-    protected Functions(CodecRegistry codecRegistry) {
+    protected Functions(RealmUser user, CodecRegistry codecRegistry) {
+        this.user = user;
         this.defaultCodecRegistry = codecRegistry;
     }
 
@@ -181,14 +184,18 @@ public abstract class Functions {
      *
      * @return The {@link RealmApp} that this instance in associated with.
      */
-    public abstract RealmApp getApp();
+    public RealmApp getApp() {
+        return user.getApp();
+    }
 
     /**
      * Returns the {@link RealmUser} that this instance in associated with.
      *
      * @return The {@link RealmUser} that this instance in associated with.
      */
-    public abstract RealmUser getUser();
+    public RealmUser getUser() {
+        return user;
+    }
 
     protected abstract <T> T invoke(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry);
 

@@ -436,7 +436,7 @@ public class RealmUser {
     public synchronized Functions getFunctions() {
         checkLoggedIn();
         if (functions == null) {
-            functions = new InternalFunctions(this);
+            functions = new FunctionsImpl(this);
         }
         return functions;
     }
@@ -446,7 +446,7 @@ public class RealmUser {
      * codec registry for encoding and decoding arguments and results.
      */
     public Functions getFunctions(CodecRegistry codecRegistry) {
-        return new InternalFunctions(this, codecRegistry);
+        return new FunctionsImpl(this, codecRegistry);
     }
 
     /**

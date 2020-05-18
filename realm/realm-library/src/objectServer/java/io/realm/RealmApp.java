@@ -47,6 +47,7 @@ import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.functions.Functions;
 
 /**
  * FIXME
@@ -372,21 +373,21 @@ public class RealmApp {
     }
 
     /**
-     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions.
+     * Returns a <i>Functions</i> manager for invoking MongoDB Realm Functions.
      * <p>
      * This will use the associated app's default codec registry to encode and decode arguments and
      * results.
      */
-    public InternalFunctions getFunctions(RealmUser user) {
-        return new InternalFunctions(user);
+    public Functions getFunctions(RealmUser user) {
+        return new FunctionsImpl(user);
     }
 
     /**
-     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions with custom
+     * Returns a <i>Functions</i> manager for invoking MongoDB Realm Functions with custom
      * codec registry for encoding and decoding arguments and results.
      */
-    public InternalFunctions getFunctions(RealmUser user, CodecRegistry codecRegistry) {
-        return new InternalFunctions(user, codecRegistry);
+    public Functions getFunctions(RealmUser user, CodecRegistry codecRegistry) {
+        return new FunctionsImpl(user, codecRegistry);
     }
 
 

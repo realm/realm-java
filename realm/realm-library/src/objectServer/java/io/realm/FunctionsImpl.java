@@ -33,27 +33,14 @@ import io.realm.mongodb.functions.Functions;
  * Internal implementation of Functions invoking the actual OS function in the context of the
  * {@link RealmUser}/{@link RealmApp}.
  */
-class InternalFunctions extends Functions {
+class FunctionsImpl extends Functions {
 
-    private final RealmUser user;
-
-    InternalFunctions(RealmUser user) {
+    FunctionsImpl(RealmUser user) {
         this(user, user.getApp().getConfiguration().getDefaultCodecRegistry());
     }
 
-    InternalFunctions(RealmUser user, CodecRegistry codecRegistry) {
-        super(codecRegistry);
-        this.user = user;
-    }
-
-    @Override
-    public RealmApp getApp() {
-        return user.getApp();
-    }
-
-    @Override
-    public RealmUser getUser() {
-        return user;
+    FunctionsImpl(RealmUser user, CodecRegistry codecRegistry) {
+        super(user, codecRegistry);
     }
 
     // Invokes actual MongoDB Realm Function in the context of the associated user/app.
@@ -72,10 +59,12 @@ class InternalFunctions extends Functions {
                 return (String) result;
             }
         };
+        // FIXME Debug output to debug CI-only issue
         RealmLog.debug(String.format("callFunction: %s(%s)", name, encodedArgs));
         nativeCallFunction(user.getApp().nativePtr, user.osUser.getNativePtr(), name, encodedArgs, callback);
         String encodedResponse = ResultHandler.handleResult(success, error);
 
+        // FIXME Debug output to debug CI-only issue
         RealmLog.debug(String.format("callFunction: %s(%s) = %s", name, encodedArgs, encodedResponse));
         return JniBsonProtocol.decode(encodedResponse, resultClass, codecRegistry);
    }
