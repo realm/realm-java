@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.remote.find;
+package io.realm.mongodb.mongo.iterable;
 
 import org.bson.conversions.Bson;
 

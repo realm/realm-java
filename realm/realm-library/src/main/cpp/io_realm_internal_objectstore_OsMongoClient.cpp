@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_internal_objectstore_OsRemoteMongoClient.h"
+#include "io_realm_internal_objectstore_OsMongoClient.h"
 
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
@@ -38,17 +38,17 @@ static void finalize_client(jlong ptr) {
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
+Java_io_realm_internal_objectstore_OsMongoClient_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
     return reinterpret_cast<jlong>(&finalize_client);
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeCreate(JNIEnv* env,
-                                                                    jclass,
-                                                                    jlong j_app_ptr,
-                                                                    jstring j_service_name) {
+Java_io_realm_internal_objectstore_OsMongoClient_nativeCreate(JNIEnv* env,
+                                                              jclass,
+                                                              jlong j_app_ptr,
+                                                              jstring j_service_name) {
     try {
-        App* app = reinterpret_cast<App*>(j_app_ptr);
+        std::shared_ptr<App> &app = *reinterpret_cast<std::shared_ptr<App> *>(j_app_ptr);
         JStringAccessor name(env, j_service_name);
         RemoteMongoClient client(app->remote_mongo_client(name));
         return reinterpret_cast<jlong>(new RemoteMongoClient(std::move(client)));
@@ -58,10 +58,10 @@ Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeCreate(JNIEnv* env,
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsRemoteMongoClient_nativeCreateDatabase(JNIEnv* env,
-                                                                            jclass,
-                                                                            jlong j_client_ptr,
-                                                                            jstring j_database_name) {
+Java_io_realm_internal_objectstore_OsMongoClient_nativeCreateDatabase(JNIEnv* env,
+                                                                      jclass,
+                                                                      jlong j_client_ptr,
+                                                                      jstring j_database_name) {
     try {
         RemoteMongoClient* client = reinterpret_cast<RemoteMongoClient*>(j_client_ptr);
         JStringAccessor name(env, j_database_name);

@@ -14,32 +14,36 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb;
+package io.realm.mongodb.mongo;
+
+import org.bson.codecs.configuration.CodecRegistry;
 
 import io.realm.RealmUser;
 import io.realm.internal.Util;
-import io.realm.internal.objectstore.OsRemoteMongoClient;
+import io.realm.internal.objectstore.OsMongoClient;
 
 /**
  * The remote MongoClient used for working with data in MongoDB remotely via Realm.
  */
-public class RemoteMongoClient {
+public class MongoClient {
 
-    private OsRemoteMongoClient osRemoteMongoClient;
+    private OsMongoClient osMongoClient;
+    private CodecRegistry codecRegistry;
 
-    public RemoteMongoClient(RealmUser realmUser, String serviceName) {
+    public MongoClient(final RealmUser realmUser, final String serviceName, final CodecRegistry codecRegistry) {
+        this.codecRegistry = codecRegistry;
         Util.checkEmpty(serviceName, "serviceName");
-        osRemoteMongoClient = new OsRemoteMongoClient(realmUser, serviceName);
+        osMongoClient = new OsMongoClient(realmUser, serviceName);
     }
 
     /**
-     * Gets a {@link RemoteMongoDatabase} instance for the given database name.
+     * Gets a {@link MongoDatabase} instance for the given database name.
      *
      * @param databaseName the name of the database to retrieve
      * @return a {@code RemoteMongoDatabase} representing the specified database
      */
-    public RemoteMongoDatabase getDatabase(final String databaseName) {
+    public MongoDatabase getDatabase(final String databaseName) {
         Util.checkEmpty(databaseName, "databaseName");
-        return new RemoteMongoDatabase(osRemoteMongoClient.getRemoteDatabase(databaseName), databaseName);
+        return new MongoDatabase(osMongoClient.getRemoteDatabase(databaseName, codecRegistry), databaseName);
     }
 }

@@ -15,12 +15,10 @@
  */
 package io.realm;
 
-import org.json.JSONArray;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
@@ -68,7 +66,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 email, password);
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -109,7 +107,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 token, tokenId);
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -145,7 +143,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 email);
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -180,7 +178,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 email);
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -221,7 +219,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 email, newPassword, encodedArgs);
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
@@ -265,7 +263,7 @@ public class EmailPasswordAuth {
                 app.nativePtr,
                 new OsJNIVoidResultCallback(error),
                 token, tokenId, newPassword);
-        RealmApp.handleResult(null, error);
+        ResultHandler.handleResult(null, error);
     }
 
     /**
