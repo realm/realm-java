@@ -11,7 +11,7 @@ def dockerNetworkId = UUID.randomUUID().toString()
 def releaseBranches = ['master', 'next-major', 'v10'] // Branches from which we release SNAPSHOT's
 def currentBranch = env.CHANGE_BRANCH
 try {
-  node('android') {
+  node('docker-cph-01') { // FIXME: Only working Slave
     timeout(time: 90, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
