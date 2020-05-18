@@ -30,6 +30,7 @@ import javax.lang.model.element.TypeElement
 import io.realm.annotations.RealmClass
 import io.realm.annotations.RealmModule
 import javax.lang.model.element.Name
+import javax.lang.model.type.TypeMirror
 
 
 /**
@@ -115,6 +116,7 @@ import javax.lang.model.element.Name
 
 inline class QualifiedClassName(val name: String) {
     constructor(name: Name): this(name.toString())
+    constructor(name: TypeMirror) : this(name.toString())
     fun getSimpleName(): SimpleClassName {
         return SimpleClassName(Utils.stripPackage(name))
     }

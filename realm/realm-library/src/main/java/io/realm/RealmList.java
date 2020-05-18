@@ -134,6 +134,10 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         return osListOperator.getOsList();
     }
 
+    long createAndAddEmbeddedObject() {
+        return osListOperator.getOsList().createAndAddEmbeddedObject();
+    }
+
     /**
      * {@inheritDoc}
      */

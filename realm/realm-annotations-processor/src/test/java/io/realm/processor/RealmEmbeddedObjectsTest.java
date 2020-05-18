@@ -22,6 +22,19 @@ public class RealmEmbeddedObjectsTest {
     }
 
     @Test
+    public void compileParentToEmbeddedObjectFile() {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(
+                        JavaFileObjects.forResource("some/test/EmbeddedClassSimpleParent.java"),
+                        JavaFileObjects.forResource("some/test/EmbeddedClass.java")
+                ))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError()
+                .and()
+                .generatesSources(JavaFileObjects.forResource("io/realm/some_test_EmbeddedClassSimpleParentRealmProxy.java"));
+    }
+
+    @Test
     public void compileWithSingleRequiredParent() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(

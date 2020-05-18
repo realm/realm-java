@@ -22,6 +22,7 @@
 
 #include "observable_collection_wrapper.hpp"
 #include "java_accessor.hpp"
+#include "java_object_accessor.hpp"
 #include "java_exception_def.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 #include "util.hpp"
@@ -550,13 +551,18 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsList_nativeGetValue(JNIEnv* e
     return nullptr;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeFreeze(JNIEnv* env, jclass, jlong native_list_ptr, jlong frozen_realm_native_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeCreateAndAddEmbeddedObject(JNIEnv* env, jclass, jlong native_list_ptr)
 {
     try {
-        auto& wrapper = *reinterpret_cast<ListWrapper*>(native_list_ptr);
-        auto frozen_realm = *(reinterpret_cast<SharedRealm*>(frozen_realm_native_ptr));
-        List list = wrapper.collection().freeze(frozen_realm);
-        return reinterpret_cast<jlong>(new ListWrapper(list));
+        List& list = reinterpret_cast<ListWrapper*>(native_list_ptr)->collection();
+        auto& realm = list.get_realm();
+        auto& object_schema = list.get_object_schema();
+        JavaContext ctx(env, realm, object_schema);
+        // Create dummy object. Properties must be added later.
+        // TODO CreatePolicy::Skip is a hack right after the object is inserted and before Schemas
+        //  are validated. Figure out a better approach.
+        list.add(ctx, JavaValue(std::map<ColKey, JavaValue>()), CreatePolicy::Skip);
+        return reinterpret_cast<jlong>(list.get(list.size() - 1).get_key().value);
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);

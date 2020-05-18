@@ -1409,8 +1409,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 canUpdate = false;
             } else {
                 try {
-                    objectContext.set(realm, table.getUncheckedRow(objKey), columnInfo, false, Collections.<String> emptyList());
-                    realmObject = new io.realm.some_test_AllTypesRealmProxy();
+                    realmObject = createProxyObject(realm, table, objKey, columnInfo);
                     cache.put(object, (RealmObjectProxy) realmObject);
                 } finally {
                     objectContext.clear();
@@ -1421,7 +1420,18 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         return (canUpdate) ? update(realm, columnInfo, realmObject, object, cache, flags) : copy(realm, columnInfo, object, update, cache, flags);
     }
 
-    public static some.test.AllTypes copy(Realm realm, AllTypesColumnInfo columnInfo, some.test.AllTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
+    public some.test.AllTypes createProxyObject(BaseRealm realm, Table table, long objKey, AllTypesColumnInfo columnInfo) {
+        objectContext.set(realm, table.getUncheckedRow(objKey), columnInfo, false, Collections.<String> emptyList());
+        BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
+        return new io.realm.some_test_AllTypesRealmProxy();
+    }
+
+    public static some.test.AllTypes copy(Realm realm,
+                                          AllTypesColumnInfo columnInfo,
+                                          some.test.AllTypes newObject,
+                                          boolean update,
+                                          Map<RealmModel,RealmObjectProxy> cache,
+                                          Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.AllTypes) cachedRealmObject;
@@ -2564,27 +2574,32 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         if (columnObjectObj == null) {
             builder.addNull(columnInfo.columnObjectColKey);
         } else {
+            // Embedded objects are created directly instead of using the builder
             some.test.AllTypes cachecolumnObject = (some.test.AllTypes) cache.get(columnObjectObj);
             if (cachecolumnObject != null) {
-                builder.addObject(columnInfo.columnObjectColKey, cachecolumnObject);
-            } else {
-                builder.addObject(columnInfo.columnObjectColKey, some_test_AllTypesRealmProxy.copyOrUpdate(realm, (some_test_AllTypesRealmProxy.AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class), columnObjectObj, true, cache, flags));
+                throw new IllegalArgumentException("Embedded object was already copied to Realm. An embedded object cannot have multiple references: " + cachecolumnObject.toString());
             }
+
+            long objKey = ((RealmObjectProxy) realmObject).realmGet$proxyState().row.createEmbeddedObject(columnInfo.columnObjectColKey);
+            Row row = realm.getTable(some.test.AllTypes.class).getUncheckedRow(objKey);
+            AllTypes proxyObject = newProxyInstance(realm, row);
+            some_test_AllTypesRealmProxy.update(realm, columnInfo, proxyObject, columnObjectObj, cache, flags);
         }
 
         RealmList<some.test.AllTypes> columnRealmListList = realmObjectSource.realmGet$columnRealmList();
         if (columnRealmListList != null) {
-            RealmList<some.test.AllTypes> columnRealmListManagedCopy = new RealmList<some.test.AllTypes>();
+            // Embedded objects are created directly instead of using the builder
+            columnRealmListList.clear()
             for (int i = 0; i < columnRealmListList.size(); i++) {
                 some.test.AllTypes columnRealmListItem = columnRealmListList.get(i);
                 some.test.AllTypes cachecolumnRealmList = (some.test.AllTypes) cache.get(columnRealmListItem);
                 if (cachecolumnRealmList != null) {
-                    columnRealmListManagedCopy.add(cachecolumnRealmList);
-                } else {
-                    columnRealmListManagedCopy.add(some_test_AllTypesRealmProxy.copyOrUpdate(realm, (some_test_AllTypesRealmProxy.AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class), columnRealmListItem, true, cache, flags));
+                    throw new IllegalArgumentException("It isn't possible to add multiple copies of an embedded object to Realm. This object was already added: " + cachecolumnRealmList.toString());
                 }
+                long objKey = columnRealmListList.osList().addNewEmbeddedObject(some.test.AllTypes.class)
+                AllTypes proxyObject = createProxyObject(realm, table, objKeym, columnInfo);
+                some_test_AllTypesRealmProxy.update(realm, columnInfo, proxyObject, columnRealmListItem, cache, flags);
             }
-            builder.addObjectList(columnInfo.columnRealmListColKey, columnRealmListManagedCopy);
         } else {
             builder.addObjectList(columnInfo.columnRealmListColKey, new RealmList<some.test.AllTypes>());
         }

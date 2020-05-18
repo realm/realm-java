@@ -176,8 +176,13 @@ static inline const ObjectSchema& get_schema(const Schema& schema, TableRef tabl
     return *it;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeCreateOrUpdate
-        (JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong builder_ptr, jboolean update_existing, jboolean ignore_same_values)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeCreateOrUpdateTopLevelObject(JNIEnv* env,
+                                                                                                              jclass,
+                                                                                                              jlong shared_realm_ptr,
+                                                                                                              jlong table_ref_ptr,
+                                                                                                              jlong builder_ptr,
+                                                                                                              jboolean update_existing,
+                                                                                                              jboolean ignore_same_values)
 {
     try {
         SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
@@ -192,11 +197,35 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativ
         TableRef table = TBL_REF(table_ref_ptr);
         const auto& schema = shared_realm->schema();
         const ObjectSchema& object_schema = get_schema(schema, table);
-        // FIXME: Figure out how to get parent Obj + property to here
         JavaContext ctx(env, shared_realm, object_schema);
         auto list = *reinterpret_cast<OsObjectData*>(builder_ptr);
         JavaValue values = JavaValue(list);
         Object obj = Object::create(ctx, shared_realm, object_schema, values, policy);
+        return reinterpret_cast<jlong>(new Obj(obj.obj()));
+    }
+    CATCH_STD()
+    return realm::npos;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeUpdateEmbeddedObject(JNIEnv* env,
+                                                                                                      jclass,
+                                                                                                      jlong shared_realm_ptr,
+                                                                                                      jlong table_ref_ptr,
+                                                                                                      jlong builder_ptr,
+                                                                                                      jlong j_obj_key,
+                                                                                                      jboolean ignore_same_values)
+{
+    try {
+        SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        CreatePolicy policy = (ignore_same_values) ? CreatePolicy::UpdateModified : CreatePolicy::UpdateAll;
+        TableRef table = TBL_REF(table_ref_ptr);
+        ObjKey embedded_object_key(j_obj_key);
+        const auto& schema = shared_realm->schema();
+        const ObjectSchema& object_schema = get_schema(schema, table);
+        JavaContext ctx(env, shared_realm, object_schema);
+        auto list = *reinterpret_cast<OsObjectData*>(builder_ptr);
+        JavaValue values = JavaValue(list);
+        Object obj = Object::create(ctx, shared_realm, object_schema, values, policy, embedded_object_key);
         return reinterpret_cast<jlong>(new Obj(obj.obj()));
     }
     CATCH_STD()

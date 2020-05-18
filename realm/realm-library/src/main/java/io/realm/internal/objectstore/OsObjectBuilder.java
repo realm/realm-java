@@ -39,7 +39,8 @@ import io.realm.internal.UncheckedRow;
  * This class is a wrapper around building up object data for calling `Object::create()`
  * <p>
  * Fill the object data by calling the various `addX()` methods, then create a new Object or update
- * an existing one by calling {@link #createNewObject()} or {@link #updateExistingObject()}.
+ * an existing one by calling {@link #createNewObject()}, {@link #updateExistingTopLevelObject()} or.
+ * {@link #updateExistingEmbeddedObject(RealmObjectProxy)}
  * <p>
  * This class assumes it is only being used from within a write transaction. Using it outside one
  * will result in undefined behaviour.
@@ -403,12 +404,29 @@ public class OsObjectBuilder implements Closeable {
 
     /**
      * Updates any existing object if it exists, otherwise creates a new one.
+     * It is only possible to update an object if the primary field is defined, otherwise
+     * it is not possible to lookup existing objec
+     * This requires that the primary key is defined as one of the fields.
      *
      * The builder is automatically closed after calling this method.
      */
-    public void updateExistingObject() {
+    public void updateExistingTopLevelObject() {
         try {
-            nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, true, ignoreFieldsWithSameValue);
+            nativeCreateOrUpdateTopLevelObject(sharedRealmPtr, tablePtr, builderPtr, true, ignoreFieldsWithSameValue);
+        } finally {
+            close();
+        }
+    }
+
+    /**
+     * Updates an existing embedded object.
+     *
+     * The builder is automatically closed after calling this method.
+     */
+    public void updateExistingEmbeddedObject(@Nullable RealmObjectProxy embeddedObject) {
+        try {
+            long objKey = embeddedObject.realmGet$proxyState().getRow$realm().getObjectKey();
+            nativeUpdateEmbeddedObject(sharedRealmPtr, tablePtr, builderPtr, objKey, ignoreFieldsWithSameValue);
         } finally {
             close();
         }
@@ -422,7 +440,7 @@ public class OsObjectBuilder implements Closeable {
     public UncheckedRow createNewObject() {
         UncheckedRow row;
         try {
-            long rowPtr = nativeCreateOrUpdate(sharedRealmPtr, tablePtr, builderPtr, false, false);
+            long rowPtr = nativeCreateOrUpdateTopLevelObject(sharedRealmPtr, tablePtr, builderPtr, false, false);
             row = new UncheckedRow(context, table, rowPtr);
         } finally {
             close();
@@ -451,10 +469,16 @@ public class OsObjectBuilder implements Closeable {
 
     private static native long nativeCreateBuilder();
     private static native void nativeDestroyBuilder(long builderPtr);
-    private static native long nativeCreateOrUpdate(long sharedRealmPtr,
+    private static native long nativeCreateOrUpdateTopLevelObject(long sharedRealmPtr,
                                                     long tablePtr,
                                                     long builderPtr,
                                                     boolean updateExistingObject,
+                                                    boolean ignoreFieldsWithSameValue);
+
+    private static native long nativeUpdateEmbeddedObject(long sharedRealmPtr,
+                                                    long tablePtr,
+                                                    long builderPtr,
+                                                    long objKey,
                                                     boolean ignoreFieldsWithSameValue);
 
     // Add simple properties

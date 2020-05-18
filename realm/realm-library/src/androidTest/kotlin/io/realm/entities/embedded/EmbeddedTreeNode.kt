@@ -32,7 +32,7 @@ open class EmbeddedTreeNode : RealmObject {
         this.id = id
     }
     var id = UUID.randomUUID().toString()
-    var middleNodeæ: EmbeddedTreeNode? = null
+    var middleNode: EmbeddedTreeNode? = null
     var leafNode: EmbeddedTreeLeaf? = null
     var middleNodeList: RealmList<EmbeddedTreeNode> = RealmList()
     var leafNodeList: RealmList<EmbeddedTreeLeaf> = RealmList()

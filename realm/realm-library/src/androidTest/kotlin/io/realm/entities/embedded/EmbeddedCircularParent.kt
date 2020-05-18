@@ -28,5 +28,5 @@ open class EmbeddedCircularParent : RealmObject {
 
     @PrimaryKey
     var id: String? = null
-    var singleChild: EmbeddedSimpleChild? = null
+    var singleChild: EmbeddedCircularChild? = null
 }

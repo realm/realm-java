@@ -153,9 +153,9 @@ public class Realm extends BaseRealm {
         schema = new ImmutableRealmSchema(this,
                 new ColumnIndices(configuration.getSchemaMediator(), sharedRealm.getSchemaInfo()));
         // FIXME: This is to work around the different behaviour between the read only Realms in the Object Store and
-        // in current java implementation. Opening a read only Realm with some missing schemas is allowed by Object
-        // Store and realm-cocoa. In that case, any query based on the missing schema should just return an empty
-        // results. Fix this together with https://github.com/realm/realm-java/issues/2953
+        //  in current java implementation. Opening a read only Realm with some missing schemas is allowed by Object
+        //  Store and realm-cocoa. In that case, any query based on the missing schema should just return an empty
+        //  results. Fix this together with https://github.com/realm/realm-java/issues/2953
         if (configuration.isReadOnly()) {
             RealmProxyMediator mediator = configuration.getSchemaMediator();
             Set<Class<? extends RealmModel>> classes = mediator.getModelClasses();
@@ -1057,6 +1057,7 @@ public class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E copyToRealm(E object, ImportFlag... flags) {
         checkNotNullObject(object);
+
         return copyOrUpdate(object, false, new HashMap<>(), Util.toSet(flags));
     }
 
@@ -1418,9 +1419,6 @@ public class Realm extends BaseRealm {
      */
     public <E extends RealmModel> RealmQuery<E> where(Class<E> clazz) {
         checkIfValid();
-        if (configuration.getSchemaMediator().isEmbedded(clazz)) {
-            throw new IllegalArgumentException("Top-level queries are not allowed for embedded classes.");
-        }
         return RealmQuery.createQuery(this, clazz);
     }
 
@@ -1688,6 +1686,10 @@ public class Realm extends BaseRealm {
         checkIfValid();
         if (!isInTransaction()) {
             throw new IllegalStateException("`copyOrUpdate` can only be called inside a write transaction.");
+
+        }
+        if (configuration.getSchemaMediator().isEmbedded(object.getClass())) {
+            throw new IllegalArgumentException("Embedded objects cannot be copied into Realm by themselves. They need to be attached to a parent object");
         }
         try {
             return configuration.getSchemaMediator().copyOrUpdate(this, object, update, cache, flags);

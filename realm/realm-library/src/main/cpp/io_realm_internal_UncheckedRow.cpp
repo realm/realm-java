@@ -476,3 +476,18 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetObjectId(JNI
     }
     CATCH_STD()
 }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeCreateEmbeddedObject(JNIEnv* env, jobject,
+                                                                                       jlong j_obj_ptr,
+                                                                                       jlong j_column_key)
+{
+    if (!ROW_VALID(env, OBJ(j_obj_ptr))) {
+        return -1;
+    }
+    try {
+        Obj embedded_object = OBJ(j_obj_ptr)->create_and_set_linked_object(ColKey(j_column_key));
+        return reinterpret_cast<jlong>(embedded_object.get_key().value);
+    }
+    CATCH_STD()
+    return -1;
+}

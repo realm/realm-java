@@ -320,6 +320,10 @@ public class OsList implements NativeObject, ObservableCollection {
                 (targetTable != null) ? targetTable.freeze(frozenRealm) : null);
     }
 
+    public long createAndAddEmbeddedObject() {
+        return nativeCreateAndAddEmbeddedObject(nativePtr);
+    }
+
     private static native long nativeGetFinalizerPtr();
 
     // TODO: nativeTablePtr is not necessary. It is used to create FieldDescriptor which should be generated from
@@ -418,4 +422,6 @@ public class OsList implements NativeObject, ObservableCollection {
     private native void nativeStopListening(long nativePtr);
 
     private static native long nativeFreeze(long nativePtr, long sharedRealmNativePtr);
+
+    private static native long nativeCreateAndAddEmbeddedObject(long nativePtr);
 }

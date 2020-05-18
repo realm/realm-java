@@ -26,6 +26,7 @@ import java.util.*
  */
 @RealmClass(embedded = true)
 open class EmbeddedSimpleChild : RealmObject {
+
     constructor() {}
     constructor(id: String) : super() {
         this.id = id
@@ -34,4 +35,9 @@ open class EmbeddedSimpleChild : RealmObject {
     var id = UUID.randomUUID().toString()
     @LinkingObjects("child")
     val parent: EmbeddedSimpleParent? = null
+
+    companion object {
+        const val NAME = "EmbeddedSimpleChild"
+    }
+
 }

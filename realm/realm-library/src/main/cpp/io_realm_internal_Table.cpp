@@ -939,3 +939,23 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFreeze(JNIEnv*, jclas
     TableRef* frozen_table = new TableRef(shared_realm->import_copy_of(table));
     return reinterpret_cast<jlong>(frozen_table);
 }
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsEmbedded(JNIEnv* env, jclass, jlong j_table_ptr)
+{
+    try {
+        TableRef table = TableRef(TBL_REF(j_table_ptr));
+        return to_jbool(table->is_embedded());
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeSetEmbedded(JNIEnv* env, jclass, jlong j_table_ptr, jboolean j_embedded)
+{
+    try {
+        TableRef table = TableRef(TBL_REF(j_table_ptr));
+        return to_jbool(table->set_embedded(to_bool(j_embedded)));
+    }
+    CATCH_STD()
+    return false;
+}
