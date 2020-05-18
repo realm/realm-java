@@ -277,6 +277,7 @@ class MongoCollectionTest {
             assertEquals(0, result2!!.matchedCount)
             assertEquals(0, result2.modifiedCount)
             assertFalse(result2.upsertedId!!.isNull)
+
 //            result = Tasks.await(coll.updateOne(Document(), Document("\$set", Document("woof", "meow"))))
 //            assertEquals(1, result.matchedCount)
 //            assertEquals(1, result.modifiedCount)

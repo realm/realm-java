@@ -30,7 +30,6 @@
 #include <sync/remote_mongo_database.hpp>
 #include <sync/remote_mongo_collection.hpp>
 #include <jni_util/bson_util.hpp>
-#include <search.h>
 
 using namespace realm;
 using namespace realm::app;
@@ -76,10 +75,10 @@ static std::function<jobject(JNIEnv*, RemoteMongoCollection::RemoteUpdateResult)
     Bson upserted_value;
     if (result.upserted_id) {
         upserted_value = new Bson(result.upserted_id.value());
-//    } else {
-//        upserted_value = NULL;
     }
     std::vector<Bson> result_values { matched_count, modified_count, upserted_value };
+
+    // FIXME: maybe not the most efficient way. Suggestions?
     BsonArray bson_array(result_values);
     return JniBsonProtocol::bson_to_jstring(env, bson_array);
 };
@@ -103,7 +102,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeCount(JNIEnv* env,
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
-        // FIXME: add guard agains wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
         bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
         uint64_t limit = std::uint64_t(j_limit);
         collection->count(filter, limit, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
@@ -115,13 +114,13 @@ JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOne(JNIEnv* env,
                                                                    jclass,
                                                                    jlong j_collection_ptr,
-                                                                   jstring j_document,
+                                                                   jstring j_filter,
                                                                    jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
-        // FIXME: add guard agains wrongly encoded strings (e.g. due to using a bogus codec from Java)
-        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_document));
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
         collection->find_one(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
     }
     CATCH_STD()
@@ -140,7 +139,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneWithOptions(JN
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
         uint64_t limit = std::uint64_t(j_limit);
 
-        // FIXME: add guard agains wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
         bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
         bson::BsonDocument projection(JniBsonProtocol::jstring_to_bson(env, j_projection));
         bson::BsonDocument sort(JniBsonProtocol::jstring_to_bson(env, j_sort));
@@ -164,7 +163,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeInsertOne(JNIEnv* env
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
-        // FIXME: add guard agains wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
         bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_document));
         collection->insert_one(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_insert_one));
     }
@@ -180,7 +179,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeInsertMany(JNIEnv* en
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
-        // FIXME: add guard agains wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
         BsonArray bson_array(JniBsonProtocol::jstring_to_bson(env, j_documents));
         collection->insert_many(bson_array, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_insert_many));
     }
@@ -196,7 +195,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeDeleteOne(JNIEnv* env
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
-        // FIXME: add guard agains wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
         bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_document));
         collection->delete_one(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
     }
@@ -212,7 +211,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeDeleteMany(JNIEnv* en
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
-        // FIXME: add guard agains wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
         bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_document));
         collection->delete_many(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
     }
@@ -228,9 +227,30 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeUpdateOne(JNIEnv *env
                                                                      jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
         bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
         bson::BsonDocument update(JniBsonProtocol::jstring_to_bson(env, j_update));
         collection->update_one(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_update));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeUpdateOneWithOptions(JNIEnv *env,
+                                                                                jclass,
+                                                                                jlong j_collection_ptr,
+                                                                                jstring j_filter,
+                                                                                jstring j_update,
+                                                                                jboolean j_upsert,
+                                                                                jobject j_callback) {
+    try {
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
+        bson::BsonDocument update(JniBsonProtocol::jstring_to_bson(env, j_update));
+        collection->update_one(filter, update, to_bool(j_upsert), JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_update));
     }
     CATCH_STD()
 }

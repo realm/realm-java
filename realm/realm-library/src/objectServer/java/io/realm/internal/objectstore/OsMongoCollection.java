@@ -21,7 +21,6 @@ import org.bson.BsonObjectId;
 import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
@@ -40,6 +39,7 @@ import io.realm.internal.network.ResultHandler;
 import io.realm.mongodb.mongo.options.RemoteCountOptions;
 import io.realm.mongodb.mongo.options.RemoteFindOptions;
 import io.realm.mongodb.mongo.options.RemoteInsertManyResult;
+import io.realm.mongodb.mongo.options.RemoteUpdateOptions;
 import io.realm.mongodb.mongo.result.RemoteDeleteResult;
 import io.realm.mongodb.mongo.result.RemoteInsertOneResult;
 import io.realm.mongodb.mongo.result.RemoteUpdateResult;
@@ -260,22 +260,31 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     }
 
     public RemoteUpdateResult updateOne(final Bson filter, final Bson update) {
+        return updateOne(filter, update, null);
+    }
+
+    public RemoteUpdateResult updateOne(final Bson filter, final Bson update, @Nullable final RemoteUpdateOptions options) {
         AtomicReference<RemoteUpdateResult> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<RemoteUpdateResult> callback = new OsJNIResultCallback<RemoteUpdateResult>(success, error) {
             @Override
             protected RemoteUpdateResult mapSuccess(Object result) {
+                // FIXME: see OsMongoCollection.cpp - collection_mapper_update. There surely is a better way to do this
                 BsonArray array = JniBsonProtocol.decode((String) result, BsonArray.class, codecRegistry);
                 long matchedCount = array.get(0).asInt32().getValue();
                 long modifiedCount = array.get(1).asInt32().getValue();
                 return new RemoteUpdateResult(matchedCount, modifiedCount, array.get(2));
-//                return new RemoteUpdateResult((Long) result);
             }
         };
 
         String jsonFilter = JniBsonProtocol.encode(filter, codecRegistry);
         String jsonUpdate = JniBsonProtocol.encode(update, codecRegistry);
-        nativeUpdateOne(nativePtr, jsonFilter, jsonUpdate, callback);
+
+        if (options == null) {
+            nativeUpdateOne(nativePtr, jsonFilter, jsonUpdate, callback);
+        } else {
+            nativeUpdateOneWithOptions(nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
+        }
         return ResultHandler.handleResult(success, error);
     }
 
@@ -317,4 +326,9 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                String filter,
                                                String update,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeUpdateOneWithOptions(long remoteMongoCollectionPtr,
+                                                          String filter,
+                                                          String update,
+                                                          boolean upsert,
+                                                          OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

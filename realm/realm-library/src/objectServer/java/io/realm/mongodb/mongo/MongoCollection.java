@@ -251,7 +251,6 @@ public class MongoCollection<DocumentT> {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
-
     /**
      * Aggregates documents according to the specified aggregation pipeline.
      *
@@ -355,7 +354,9 @@ public class MongoCollection<DocumentT> {
             final Bson filter,
             final Bson update,
             final RemoteUpdateOptions updateOptions) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.updateOne(filter, update, updateOptions)
+        );
     }
 
     /**
