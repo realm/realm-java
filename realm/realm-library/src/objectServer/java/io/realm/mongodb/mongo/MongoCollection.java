@@ -465,7 +465,9 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndReplace(final Bson filter, final Bson replacement) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.findOneAndReplace(filter, replacement)
+        );
     }
 
     /**
@@ -480,7 +482,9 @@ public class MongoCollection<DocumentT> {
     public <ResultT> Task<ResultT> findOneAndReplace(final Bson filter,
                                                      final Bson replacement,
                                                      final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.findOneAndReplace(filter, replacement, resultClass)
+        );
     }
 
     /**
@@ -494,7 +498,9 @@ public class MongoCollection<DocumentT> {
     public Task<DocumentT> findOneAndReplace(final Bson filter,
                                              final Bson replacement,
                                              final FindOneAndModifyOptions options) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.findOneAndReplace(filter, replacement, options)
+        );
     }
 
     /**
@@ -512,7 +518,9 @@ public class MongoCollection<DocumentT> {
             final Bson replacement,
             final FindOneAndModifyOptions options,
             final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.findOneAndReplace(filter, replacement, options, resultClass)
+        );
     }
 
     /**
@@ -522,7 +530,9 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndDelete(final Bson filter) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.findOneAndDelete(filter)
+        );
     }
 
     /**
@@ -535,7 +545,9 @@ public class MongoCollection<DocumentT> {
      */
     public <ResultT> Task<ResultT> findOneAndDelete(final Bson filter,
                                                     final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.findOneAndDelete(filter, resultClass)
+        );
     }
 
     /**
@@ -547,7 +559,9 @@ public class MongoCollection<DocumentT> {
      */
     public Task<DocumentT> findOneAndDelete(final Bson filter,
                                             final FindOneAndModifyOptions options) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.findOneAndDelete(filter, options)
+        );
     }
 
     /**
@@ -559,11 +573,12 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
      */
-    public <ResultT> Task<ResultT> findOneAndDelete(
-            final Bson filter,
-            final FindOneAndModifyOptions options,
-            final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public <ResultT> Task<ResultT> findOneAndDelete(final Bson filter,
+                                                    final FindOneAndModifyOptions options,
+                                                    final Class<ResultT> resultClass) {
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.findOneAndDelete(filter, options, resultClass)
+        );
     }
 
     // FIXME: what about these?

@@ -338,3 +338,95 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndUpdateWithO
     }
     CATCH_STD()
 }
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndReplace(JNIEnv *env,
+                                                                             jclass,
+                                                                             jlong j_collection_ptr,
+                                                                             jstring j_filter,
+                                                                             jstring j_update,
+                                                                             jobject j_callback) {
+    try {
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
+        bson::BsonDocument update(JniBsonProtocol::jstring_to_bson(env, j_update));
+        collection->find_one_and_update(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndReplaceWithOptions(JNIEnv *env,
+                                                                                        jclass,
+                                                                                        jlong j_collection_ptr,
+                                                                                        jstring j_filter,
+                                                                                        jstring j_update,
+                                                                                        jstring j_projection,
+                                                                                        jstring j_sort,
+                                                                                        jboolean j_upsert,
+                                                                                        jboolean j_return_new_document,
+                                                                                        jobject j_callback) {
+    try {
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
+        bson::BsonDocument update(JniBsonProtocol::jstring_to_bson(env, j_update));
+        bson::BsonDocument projection(JniBsonProtocol::jstring_to_bson(env, j_projection));
+        bson::BsonDocument sort(JniBsonProtocol::jstring_to_bson(env, j_sort));
+        RemoteMongoCollection::RemoteFindOneAndModifyOptions options = {
+                projection,
+                sort,
+                to_bool(j_upsert),
+                to_bool(j_return_new_document)
+        };
+        collection->find_one_and_replace(filter, update, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndDelete(JNIEnv *env,
+                                                                            jclass,
+                                                                            jlong j_collection_ptr,
+                                                                            jstring j_filter,
+                                                                            jobject j_callback) {
+    try {
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
+        collection->find_one_and_delete(filter, JavaNetworkTransport::create_void_callback(env, j_callback));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndDeleteWithOptions(JNIEnv *env,
+                                                                                       jclass,
+                                                                                       jlong j_collection_ptr,
+                                                                                       jstring j_filter,
+                                                                                       jstring j_projection,
+                                                                                       jstring j_sort,
+                                                                                       jboolean j_upsert,
+                                                                                       jboolean j_return_new_document,
+                                                                                       jobject j_callback) {
+    try {
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
+        bson::BsonDocument projection(JniBsonProtocol::jstring_to_bson(env, j_projection));
+        bson::BsonDocument sort(JniBsonProtocol::jstring_to_bson(env, j_sort));
+        RemoteMongoCollection::RemoteFindOneAndModifyOptions options = {
+                projection,
+                sort,
+                to_bool(j_upsert),
+                to_bool(j_return_new_document)
+        };
+        collection->find_one_and_delete(filter, options, JavaNetworkTransport::create_void_callback(env, j_callback));
+    }
+    CATCH_STD()
+}
