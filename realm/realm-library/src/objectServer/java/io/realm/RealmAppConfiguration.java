@@ -63,11 +63,10 @@ public class RealmAppConfiguration {
                     new ValueCodecProvider(),
                     // For BSONValue support
                     new BsonValueCodecProvider(),
+                    new DocumentCodecProvider(),
                     // For list support
                     new IterableCodecProvider(),
-                    // For Map-style document support
-                    new MapCodecProvider(),
-                    new DocumentCodecProvider()
+                    new MapCodecProvider()
             )
     );
 
