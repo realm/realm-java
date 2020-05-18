@@ -26,7 +26,12 @@ class ProgressTests {
 
     @Test
     fun getFractionTransferred () {
-        val testData = arrayOf(arrayOf<Any>(0L, 0L, 1.0), arrayOf<Any>(0L, 1L, 0.0), arrayOf<Any>(1L, 1L, 1.0), arrayOf<Any>(1L, 2L, 0.5))
+        val testData = arrayOf(
+                arrayOf<Any>(0L, 0L, 1.0),
+                arrayOf<Any>(0L, 1L, 0.0),
+                arrayOf<Any>(1L, 1L, 1.0),
+                arrayOf<Any>(1L, 2L, 0.5)
+        )
         for (test in testData) {
             val transferredBytes = test[0] as Long
             val transferableBytes = test[1] as Long
