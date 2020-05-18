@@ -194,7 +194,7 @@ public class RealmAppConfiguration {
      */
     public static class Builder {
         // Default BSON codec for passing BSON to/from JNI
-        static CodecRegistry DEFAULT_BSON_CODEC_REGISTRY = CodecRegistries.fromRegistries(
+        public static CodecRegistry DEFAULT_BSON_CODEC_REGISTRY = CodecRegistries.fromRegistries(
                 CodecRegistries.fromProviders(
                         // For primitive support
                         new ValueCodecProvider(),

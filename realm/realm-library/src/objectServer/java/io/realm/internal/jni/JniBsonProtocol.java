@@ -72,4 +72,15 @@ public class JniBsonProtocol {
         return value;
     }
 
+    // Only to enable testing JNI roundtrip
+    static <S, T> T roundtrip(S value, Class<T> clz, CodecRegistry registry) {
+        String bsonInput = encode(value, registry);
+        String bsonOutput = nativeRoundtrip(bsonInput);
+        String y = bsonInput;
+        return decode(bsonOutput, clz, registry);
+    }
+
+    // Only to enable testing JNI roundtrip
+    private static native String nativeRoundtrip(String input);
+
 }
