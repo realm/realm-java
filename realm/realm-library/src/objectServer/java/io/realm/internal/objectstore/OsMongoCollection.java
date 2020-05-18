@@ -38,6 +38,7 @@ import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
 import io.realm.mongodb.mongo.options.CountOptions;
+import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
 import io.realm.mongodb.mongo.options.FindOptions;
 import io.realm.mongodb.mongo.options.InsertManyResult;
 import io.realm.mongodb.mongo.options.UpdateOptions;
@@ -108,7 +109,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {
-                return findOneSuccessMapper(result, resultClass);
+                return findSuccessMapper(result, resultClass);
             }
         };
 
@@ -123,7 +124,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<DocumentT> callback = new OsJNIResultCallback<DocumentT>(success, error) {
             @Override
             protected DocumentT mapSuccess(Object result) {
-                return findOneSuccessMapper(result, documentClass);
+                return findSuccessMapper(result, documentClass);
             }
         };
 
@@ -139,7 +140,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {
-                return findOneSuccessMapper(result, resultClass);
+                return findSuccessMapper(result, resultClass);
             }
         };
 
@@ -157,7 +158,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<DocumentT> callback = new OsJNIResultCallback<DocumentT>(success, error) {
             @Override
             protected DocumentT mapSuccess(Object result) {
-                return findOneSuccessMapper(result, documentClass);
+                return findSuccessMapper(result, documentClass);
             }
         };
 
@@ -180,7 +181,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {
-                return findOneSuccessMapper(result, resultClass);
+                return findSuccessMapper(result, resultClass);
             }
         };
 
@@ -264,7 +265,9 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return updateOne(filter, update, null);
     }
 
-    public UpdateResult updateOne(final Bson filter, final Bson update, @Nullable final UpdateOptions options) {
+    public UpdateResult updateOne(final Bson filter,
+                                  final Bson update,
+                                  @Nullable final UpdateOptions options) {
         return updateInternal(false, filter, update, options);
     }
 
@@ -272,7 +275,9 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return updateMany(filter, update, null);
     }
 
-    public UpdateResult updateMany(final Bson filter, final Bson update, @Nullable final UpdateOptions options) {
+    public UpdateResult updateMany(final Bson filter,
+                                   final Bson update,
+                                   @Nullable final UpdateOptions options) {
         return updateInternal(true, filter, update, options);
     }
 
@@ -280,23 +285,49 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return findOneAndUpdate(filter, update, documentClass);
     }
 
-    public <ResultT> ResultT findOneAndUpdate(final Bson filter, final Bson update, final Class<ResultT> resultClass) {
+    public <ResultT> ResultT findOneAndUpdate(final Bson filter,
+                                              final Bson update,
+                                              final Class<ResultT> resultClass) {
         AtomicReference<ResultT> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {
-                if (result == null) {
-                    return null;
-                } else {
-                    return JniBsonProtocol.decode((String) result, resultClass, codecRegistry);
-                }
+                return findSuccessMapper(result, resultClass);
             }
         };
 
         String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
         String encodedUpdate = JniBsonProtocol.encode(update, codecRegistry);
         nativeFindOneAndUpdate(nativePtr, encodedFilter, encodedUpdate, callback);
+
+        return ResultHandler.handleResult(success, error);
+    }
+
+    public DocumentT findOneAndUpdate(final Bson filter,
+                                      final Bson update,
+                                      final FindOneAndModifyOptions options) {
+        return findOneAndUpdate(filter, update, options, documentClass);
+    }
+
+    public <ResultT> ResultT findOneAndUpdate(final Bson filter,
+                                              final Bson update,
+                                              final FindOneAndModifyOptions options,
+                                              final Class<ResultT> resultClass) {
+        AtomicReference<ResultT> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
+            @Override
+            protected ResultT mapSuccess(Object result) {
+                return findSuccessMapper(result, resultClass);
+            }
+        };
+
+        String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
+        String encodedUpdate = JniBsonProtocol.encode(update, codecRegistry);
+        String encodedProjection = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
+        String encodedSort = JniBsonProtocol.encode(options.getSort(), codecRegistry);
+        nativeFindOneAndUpdateWithOptions(nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
 
         return ResultHandler.handleResult(success, error);
     }
@@ -340,7 +371,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    private <T> T findOneSuccessMapper(@Nullable Object result, Class<T> resultClass) {
+    private <T> T findSuccessMapper(@Nullable Object result, Class<T> resultClass) {
         if (result == null) {
             return null;
         } else {
@@ -397,4 +428,12 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                       String filter,
                                                       String update,
                                                       OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeFindOneAndUpdateWithOptions(long remoteMongoCollectionPtr,
+                                                                 String filter,
+                                                                 String update,
+                                                                 String projection,
+                                                                 String sort,
+                                                                 boolean upsert,
+                                                                 boolean returnNewDocument,
+                                                                 OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }
