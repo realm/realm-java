@@ -16,16 +16,33 @@
 
 package io.realm.internal.objectstore;
 
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
+
 import io.realm.internal.NativeObject;
 
-public class OsRemoteMongoCollection implements NativeObject {
+public class OsMongoDatabase implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
+    private final CodecRegistry codecRegistry;
 
-    OsRemoteMongoCollection(long nativeCollectionPtr) {
-        this.nativePtr = nativeCollectionPtr;
+    OsMongoDatabase(long nativeDatabasePtr, CodecRegistry codecRegistry) {
+        this.nativePtr = nativeDatabasePtr;
+        this.codecRegistry = codecRegistry;
+    }
+
+    public OsMongoCollection<Document> getCollection(final String collectionName) {
+        return getCollection(collectionName, Document.class);
+    }
+
+    public <DocumentT> OsMongoCollection<DocumentT> getCollection(
+            final String collectionName,
+            final Class<DocumentT> documentClass
+    ) {
+        long nativeCollectionPtr = nativeGetCollection(nativePtr, collectionName);
+        return new OsMongoCollection<>(nativeCollectionPtr, documentClass, codecRegistry);
     }
 
     @Override
@@ -38,12 +55,6 @@ public class OsRemoteMongoCollection implements NativeObject {
         return nativeFinalizerPtr;
     }
 
-    public void count(String filter) {
-        throw new UnsupportedOperationException("Not Implemented");
-    }
-
+    private static native long nativeGetCollection(long nativeDatabasePtr, String collectionName);
     private static native long nativeGetFinalizerMethodPtr();
-    private static native void nativeCount(long remoteMongoCollectionPtr,
-                                           OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback,
-                                           String filter);
 }
