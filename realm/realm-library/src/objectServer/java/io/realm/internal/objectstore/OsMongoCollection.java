@@ -17,6 +17,7 @@
 package io.realm.internal.objectstore;
 
 import org.bson.BsonArray;
+import org.bson.BsonNull;
 import org.bson.BsonObjectId;
 import org.bson.BsonValue;
 import org.bson.Document;
@@ -36,13 +37,13 @@ import io.realm.internal.NativeObject;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
-import io.realm.mongodb.mongo.options.RemoteCountOptions;
-import io.realm.mongodb.mongo.options.RemoteFindOptions;
-import io.realm.mongodb.mongo.options.RemoteInsertManyResult;
-import io.realm.mongodb.mongo.options.RemoteUpdateOptions;
-import io.realm.mongodb.mongo.result.RemoteDeleteResult;
-import io.realm.mongodb.mongo.result.RemoteInsertOneResult;
-import io.realm.mongodb.mongo.result.RemoteUpdateResult;
+import io.realm.mongodb.mongo.options.CountOptions;
+import io.realm.mongodb.mongo.options.FindOptions;
+import io.realm.mongodb.mongo.options.InsertManyResult;
+import io.realm.mongodb.mongo.options.UpdateOptions;
+import io.realm.mongodb.mongo.result.DeleteResult;
+import io.realm.mongodb.mongo.result.InsertOneResult;
+import io.realm.mongodb.mongo.result.UpdateResult;
 
 public class OsMongoCollection<DocumentT> implements NativeObject {
 
@@ -76,7 +77,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return count(filter, null);
     }
 
-    public Long count(@Nullable final Bson filter, @Nullable final RemoteCountOptions options) {
+    public Long count(@Nullable final Bson filter, @Nullable final CountOptions options) {
         AtomicReference<Long> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<Long> callback = new OsJNIResultCallback<Long>(success, error) {
@@ -150,7 +151,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    public DocumentT findOne(@Nullable final Bson filter, final RemoteFindOptions options) {
+    public DocumentT findOne(@Nullable final Bson filter, final FindOptions options) {
         AtomicReference<DocumentT> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<DocumentT> callback = new OsJNIResultCallback<DocumentT>(success, error) {
@@ -172,7 +173,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public <ResultT> ResultT findOne(
             final Bson filter,
-            final RemoteFindOptions options,
+            final FindOptions options,
             final Class<ResultT> resultClass) {
         AtomicReference<ResultT> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
@@ -191,14 +192,14 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    public RemoteInsertOneResult insertOne(final DocumentT document) {
-        AtomicReference<RemoteInsertOneResult> success = new AtomicReference<>(null);
+    public InsertOneResult insertOne(final DocumentT document) {
+        AtomicReference<InsertOneResult> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        OsJNIResultCallback<RemoteInsertOneResult> callback = new OsJNIResultCallback<RemoteInsertOneResult>(success, error) {
+        OsJNIResultCallback<InsertOneResult> callback = new OsJNIResultCallback<InsertOneResult>(success, error) {
             @Override
-            protected RemoteInsertOneResult mapSuccess(Object result) {
+            protected InsertOneResult mapSuccess(Object result) {
                 BsonValue bsonObjectId = new BsonObjectId((ObjectId) result);
-                return new RemoteInsertOneResult(bsonObjectId);
+                return new InsertOneResult(bsonObjectId);
             }
         };
 
@@ -207,12 +208,12 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    public RemoteInsertManyResult insertMany(final List<? extends DocumentT> documents) {
-        AtomicReference<RemoteInsertManyResult> success = new AtomicReference<>(null);
+    public InsertManyResult insertMany(final List<? extends DocumentT> documents) {
+        AtomicReference<InsertManyResult> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        OsJNIResultCallback<RemoteInsertManyResult> callback = new OsJNIResultCallback<RemoteInsertManyResult>(success, error) {
+        OsJNIResultCallback<InsertManyResult> callback = new OsJNIResultCallback<InsertManyResult>(success, error) {
             @Override
-            protected RemoteInsertManyResult mapSuccess(Object result) {
+            protected InsertManyResult mapSuccess(Object result) {
                 Object[] objects = (Object[]) result;
                 Map<Long, BsonValue> insertedIdsMap = new HashMap<>();
                 for (int i = 0; i < objects.length; i++) {
@@ -220,7 +221,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                     BsonValue bsonObjectId = new BsonObjectId(objectId);
                     insertedIdsMap.put((long) i, bsonObjectId);
                 }
-                return new RemoteInsertManyResult(insertedIdsMap);
+                return new InsertManyResult(insertedIdsMap);
             }
         };
 
@@ -229,13 +230,13 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    public RemoteDeleteResult deleteOne(final Bson filter) {
-        AtomicReference<RemoteDeleteResult> success = new AtomicReference<>(null);
+    public DeleteResult deleteOne(final Bson filter) {
+        AtomicReference<DeleteResult> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        OsJNIResultCallback<RemoteDeleteResult> callback = new OsJNIResultCallback<RemoteDeleteResult>(success, error) {
+        OsJNIResultCallback<DeleteResult> callback = new OsJNIResultCallback<DeleteResult>(success, error) {
             @Override
-            protected RemoteDeleteResult mapSuccess(Object result) {
-                return new RemoteDeleteResult((Long) result);
+            protected DeleteResult mapSuccess(Object result) {
+                return new DeleteResult((Long) result);
             }
         };
 
@@ -244,13 +245,13 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    public RemoteDeleteResult deleteMany(final Bson filter) {
-        AtomicReference<RemoteDeleteResult> success = new AtomicReference<>(null);
+    public DeleteResult deleteMany(final Bson filter) {
+        AtomicReference<DeleteResult> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        OsJNIResultCallback<RemoteDeleteResult> callback = new OsJNIResultCallback<RemoteDeleteResult>(success, error) {
+        OsJNIResultCallback<DeleteResult> callback = new OsJNIResultCallback<DeleteResult>(success, error) {
             @Override
-            protected RemoteDeleteResult mapSuccess(Object result) {
-                return new RemoteDeleteResult((Long) result);
+            protected DeleteResult mapSuccess(Object result) {
+                return new DeleteResult((Long) result);
             }
         };
 
@@ -259,21 +260,39 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    public RemoteUpdateResult updateOne(final Bson filter, final Bson update) {
+    public UpdateResult updateOne(final Bson filter, final Bson update) {
         return updateOne(filter, update, null);
     }
 
-    public RemoteUpdateResult updateOne(final Bson filter, final Bson update, @Nullable final RemoteUpdateOptions options) {
-        AtomicReference<RemoteUpdateResult> success = new AtomicReference<>(null);
+    public UpdateResult updateOne(final Bson filter, final Bson update, @Nullable final UpdateOptions options) {
+        return updateInternal(false, filter, update, options);
+    }
+
+    public UpdateResult updateMany(final Bson filter, final Bson update) {
+        return updateMany(filter, update, null);
+    }
+
+    public UpdateResult updateMany(final Bson filter, final Bson update, @Nullable final UpdateOptions options) {
+        return updateInternal(true, filter, update, options);
+    }
+
+    private UpdateResult updateInternal(boolean isMany, final Bson filter, final Bson update, @Nullable final UpdateOptions options) {
+        AtomicReference<UpdateResult> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        OsJNIResultCallback<RemoteUpdateResult> callback = new OsJNIResultCallback<RemoteUpdateResult>(success, error) {
+        OsJNIResultCallback<UpdateResult> callback = new OsJNIResultCallback<UpdateResult>(success, error) {
             @Override
-            protected RemoteUpdateResult mapSuccess(Object result) {
+            protected UpdateResult mapSuccess(Object result) {
                 // FIXME: see OsMongoCollection.cpp - collection_mapper_update. There surely is a better way to do this
                 BsonArray array = JniBsonProtocol.decode((String) result, BsonArray.class, codecRegistry);
                 long matchedCount = array.get(0).asInt32().getValue();
                 long modifiedCount = array.get(1).asInt32().getValue();
-                return new RemoteUpdateResult(matchedCount, modifiedCount, array.get(2));
+
+                // FIXME: this seems ugly, but Stitch allows retuning null for upsertedId
+                BsonValue upsertedId = array.get(2);
+                if (upsertedId instanceof BsonNull) {
+                    upsertedId = null;
+                }
+                return new UpdateResult(matchedCount, modifiedCount, upsertedId);
             }
         };
 
@@ -281,9 +300,17 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         String jsonUpdate = JniBsonProtocol.encode(update, codecRegistry);
 
         if (options == null) {
-            nativeUpdateOne(nativePtr, jsonFilter, jsonUpdate, callback);
+            if (isMany) {
+                nativeUpdateMany(nativePtr, jsonFilter, jsonUpdate, callback);
+            } else {
+                nativeUpdateOne(nativePtr, jsonFilter, jsonUpdate, callback);
+            }
         } else {
-            nativeUpdateOneWithOptions(nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
+            if (isMany) {
+                nativeUpdateManyWithOptions(nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
+            } else {
+                nativeUpdateOneWithOptions(nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
+            }
         }
         return ResultHandler.handleResult(success, error);
     }
@@ -322,11 +349,21 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private static native void nativeDeleteMany(long remoteMongoCollectionPtr,
                                                 String document,
                                                 OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    // FIXME: these update functions are in essence the same - explore simplifying them or keep them verbose?
     private static native void nativeUpdateOne(long remoteMongoCollectionPtr,
                                                String filter,
                                                String update,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeUpdateOneWithOptions(long remoteMongoCollectionPtr,
+                                                          String filter,
+                                                          String update,
+                                                          boolean upsert,
+                                                          OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeUpdateMany(long remoteMongoCollectionPtr,
+                                               String filter,
+                                               String update,
+                                               OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeUpdateManyWithOptions(long remoteMongoCollectionPtr,
                                                           String filter,
                                                           String update,
                                                           boolean upsert,

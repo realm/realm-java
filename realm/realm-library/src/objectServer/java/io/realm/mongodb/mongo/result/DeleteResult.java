@@ -14,15 +14,30 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.mongo.iterable;
+package io.realm.mongodb.mongo.result;
 
 /**
- * Iterable for aggregate.
- *
- * @param <ResultT> The type of the result.
+ * The result of a delete operation.
  */
-// TODO: figure out whether or not we need the parent interface
-//public interface RemoteAggregateIterable<ResultT> extends RemoteMongoIterable<ResultT> {
-public interface RemoteAggregateIterable<ResultT> {
+public class DeleteResult {
 
+    private final long deletedCount;
+
+    /**
+     * Constructs a result.
+     *
+     * @param deletedCount the number of documents deleted.
+     */
+    public DeleteResult(final long deletedCount) {
+        this.deletedCount = deletedCount;
+    }
+
+    /**
+     * Gets the number of documents deleted.
+     *
+     * @return the number of documents deleted
+     */
+    public long getDeletedCount() {
+        return deletedCount;
+    }
 }

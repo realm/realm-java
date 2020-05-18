@@ -14,32 +14,15 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.mongo.result;
-
-import org.bson.BsonValue;
+package io.realm.mongodb.mongo.iterable;
 
 /**
- * The result of an insert one operation.
+ * Iterable for aggregate.
+ *
+ * @param <ResultT> The type of the result.
  */
-public class RemoteInsertOneResult {
+// TODO: figure out whether or not we need the parent interface
+//public interface RemoteAggregateIterable<ResultT> extends RemoteMongoIterable<ResultT> {
+public interface AggregateIterable<ResultT> {
 
-    private final BsonValue insertedId;
-
-    /**
-     * Constructs a result.
-     *
-     * @param insertedId the _id of the inserted document.
-     */
-    public RemoteInsertOneResult(final BsonValue insertedId) {
-        this.insertedId = insertedId;
-    }
-
-    /**
-     * Returns the _id of the inserted document.
-     *
-     * @return the _id of the inserted document.
-     */
-    public BsonValue getInsertedId() {
-        return insertedId;
-    }
 }

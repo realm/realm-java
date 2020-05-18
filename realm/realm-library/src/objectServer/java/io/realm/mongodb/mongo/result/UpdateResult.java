@@ -23,7 +23,7 @@ import org.bson.BsonValue;
 /**
  * The result of an update operation.
  */
-public class RemoteUpdateResult {
+public class UpdateResult {
 
     private final long matchedCount;
     private final long modifiedCount;
@@ -37,7 +37,7 @@ public class RemoteUpdateResult {
      * @param upsertedId    the _id of the inserted document if the replace resulted in an inserted
      *                      document, otherwise null.
      */
-    public RemoteUpdateResult(
+    public UpdateResult(
             final long matchedCount,
             final long modifiedCount,
             final BsonValue upsertedId

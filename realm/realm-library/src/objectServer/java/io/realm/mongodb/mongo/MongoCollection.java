@@ -25,16 +25,16 @@ import java.util.List;
 
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsMongoCollection;
-import io.realm.mongodb.mongo.iterable.RemoteAggregateIterable;
-import io.realm.mongodb.mongo.iterable.RemoteFindIterable;
-import io.realm.mongodb.mongo.options.RemoteCountOptions;
-import io.realm.mongodb.mongo.options.RemoteFindOneAndModifyOptions;
-import io.realm.mongodb.mongo.options.RemoteFindOptions;
-import io.realm.mongodb.mongo.options.RemoteInsertManyResult;
-import io.realm.mongodb.mongo.options.RemoteUpdateOptions;
-import io.realm.mongodb.mongo.result.RemoteDeleteResult;
-import io.realm.mongodb.mongo.result.RemoteInsertOneResult;
-import io.realm.mongodb.mongo.result.RemoteUpdateResult;
+import io.realm.mongodb.mongo.iterable.AggregateIterable;
+import io.realm.mongodb.mongo.iterable.FindIterable;
+import io.realm.mongodb.mongo.options.CountOptions;
+import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
+import io.realm.mongodb.mongo.options.FindOptions;
+import io.realm.mongodb.mongo.options.InsertManyResult;
+import io.realm.mongodb.mongo.options.UpdateOptions;
+import io.realm.mongodb.mongo.result.DeleteResult;
+import io.realm.mongodb.mongo.result.InsertOneResult;
+import io.realm.mongodb.mongo.result.UpdateResult;
 
 /**
  * The RemoteMongoCollection interface provides read and write access to documents.
@@ -122,7 +122,7 @@ public class MongoCollection<DocumentT> {
      * @param options the options describing the count
      * @return a task containing the number of documents in the collection
      */
-    public Task<Long> count(final Bson filter, final RemoteCountOptions options) {
+    public Task<Long> count(final Bson filter, final CountOptions options) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.count(filter, options)
         );
@@ -185,7 +185,7 @@ public class MongoCollection<DocumentT> {
      * @param options A RemoteFindOptions struct
      * @return a task containing the result of the find one operation
      */
-    public Task<DocumentT> findOne(final Bson filter, final RemoteFindOptions options) {
+    public Task<DocumentT> findOne(final Bson filter, final FindOptions options) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.findOne(filter, options)
         );
@@ -202,7 +202,7 @@ public class MongoCollection<DocumentT> {
      */
     public <ResultT> Task<ResultT> findOne(
             final Bson filter,
-            final RemoteFindOptions options,
+            final FindOptions options,
             final Class<ResultT> resultClass) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.findOne(filter, options, resultClass)
@@ -214,7 +214,7 @@ public class MongoCollection<DocumentT> {
      *
      * @return the find iterable interface
      */
-    RemoteFindIterable<DocumentT> find() {
+    FindIterable<DocumentT> find() {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -225,7 +225,7 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return the find iterable interface
      */
-    <ResultT> RemoteFindIterable<ResultT> find(final Class<ResultT> resultClass) {
+    <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -235,7 +235,7 @@ public class MongoCollection<DocumentT> {
      * @param filter the query filter
      * @return the find iterable interface
      */
-    public RemoteFindIterable<DocumentT> find(final Bson filter) {
+    public FindIterable<DocumentT> find(final Bson filter) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -247,7 +247,7 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return the find iterable interface
      */
-    public <ResultT> RemoteFindIterable<ResultT> find(final Bson filter, final Class<ResultT> resultClass) {
+    public <ResultT> FindIterable<ResultT> find(final Bson filter, final Class<ResultT> resultClass) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -257,7 +257,7 @@ public class MongoCollection<DocumentT> {
      * @param pipeline the aggregation pipeline
      * @return an iterable containing the result of the aggregation operation
      */
-    public RemoteAggregateIterable<DocumentT> aggregate(final List<? extends Bson> pipeline) {
+    public AggregateIterable<DocumentT> aggregate(final List<? extends Bson> pipeline) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -269,7 +269,7 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return an iterable containing the result of the aggregation operation
      */
-    public <ResultT> RemoteAggregateIterable<ResultT> aggregate(
+    public <ResultT> AggregateIterable<ResultT> aggregate(
             final List<? extends Bson> pipeline,
             final Class<ResultT> resultClass) {
         throw new UnsupportedOperationException("Not Implemented");
@@ -282,7 +282,7 @@ public class MongoCollection<DocumentT> {
      * @param document the document to insert
      * @return a task containing the result of the insert one operation
      */
-    public Task<RemoteInsertOneResult> insertOne(final DocumentT document) {
+    public Task<InsertOneResult> insertOne(final DocumentT document) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.insertOne(document)
         );
@@ -294,7 +294,7 @@ public class MongoCollection<DocumentT> {
      * @param documents the documents to insert
      * @return a task containing the result of the insert many operation
      */
-    public Task<RemoteInsertManyResult> insertMany(final List<? extends DocumentT> documents) {
+    public Task<InsertManyResult> insertMany(final List<? extends DocumentT> documents) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.insertMany(documents)
         );
@@ -308,7 +308,7 @@ public class MongoCollection<DocumentT> {
      * @param filter the query filter to apply the the delete operation
      * @return a task containing the result of the remove one operation
      */
-    public Task<RemoteDeleteResult> deleteOne(final Bson filter) {
+    public Task<DeleteResult> deleteOne(final Bson filter) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.deleteOne(filter)
         );
@@ -321,7 +321,7 @@ public class MongoCollection<DocumentT> {
      * @param filter the query filter to apply the the delete operation
      * @return a task containing the result of the remove many operation
      */
-    public Task<RemoteDeleteResult> deleteMany(final Bson filter) {
+    public Task<DeleteResult> deleteMany(final Bson filter) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.deleteMany(filter)
         );
@@ -335,7 +335,7 @@ public class MongoCollection<DocumentT> {
      *               apply must include only update operators.
      * @return a task containing the result of the update one operation
      */
-    public Task<RemoteUpdateResult> updateOne(final Bson filter, final Bson update) {
+    public Task<UpdateResult> updateOne(final Bson filter, final Bson update) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.updateOne(filter, update)
         );
@@ -350,10 +350,10 @@ public class MongoCollection<DocumentT> {
      * @param updateOptions the options to apply to the update operation
      * @return a task containing the result of the update one operation
      */
-    public Task<RemoteUpdateResult> updateOne(
+    public Task<UpdateResult> updateOne(
             final Bson filter,
             final Bson update,
-            final RemoteUpdateOptions updateOptions) {
+            final UpdateOptions updateOptions) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.updateOne(filter, update, updateOptions)
         );
@@ -367,8 +367,10 @@ public class MongoCollection<DocumentT> {
      *               apply must include only update operators.
      * @return a task containing the result of the update many operation
      */
-    public Task<RemoteUpdateResult> updateMany(final Bson filter, final Bson update) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public Task<UpdateResult> updateMany(final Bson filter, final Bson update) {
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.updateMany(filter, update)
+        );
     }
 
     /**
@@ -380,11 +382,13 @@ public class MongoCollection<DocumentT> {
      * @param updateOptions the options to apply to the update operation
      * @return a task containing the result of the update many operation
      */
-    public Task<RemoteUpdateResult> updateMany(
+    public Task<UpdateResult> updateMany(
             final Bson filter,
             final Bson update,
-            final RemoteUpdateOptions updateOptions) {
-        throw new UnsupportedOperationException("Not Implemented");
+            final UpdateOptions updateOptions) {
+        return dispatcher.dispatchTask(() ->
+                osMongoCollection.updateMany(filter, update, updateOptions)
+        );
     }
 
     /**
@@ -423,7 +427,7 @@ public class MongoCollection<DocumentT> {
      */
     public Task<DocumentT> findOneAndUpdate(final Bson filter,
                                             final Bson update,
-                                            final RemoteFindOneAndModifyOptions options) {
+                                            final FindOneAndModifyOptions options) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -440,7 +444,7 @@ public class MongoCollection<DocumentT> {
     public <ResultT> Task<ResultT> findOneAndUpdate(
             final Bson filter,
             final Bson update,
-            final RemoteFindOneAndModifyOptions options,
+            final FindOneAndModifyOptions options,
             final Class<ResultT> resultClass) {
         throw new UnsupportedOperationException("Not Implemented");
     }
@@ -481,7 +485,7 @@ public class MongoCollection<DocumentT> {
      */
     public Task<DocumentT> findOneAndReplace(final Bson filter,
                                              final Bson replacement,
-                                             final RemoteFindOneAndModifyOptions options) {
+                                             final FindOneAndModifyOptions options) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -498,7 +502,7 @@ public class MongoCollection<DocumentT> {
     public <ResultT> Task<ResultT> findOneAndReplace(
             final Bson filter,
             final Bson replacement,
-            final RemoteFindOneAndModifyOptions options,
+            final FindOneAndModifyOptions options,
             final Class<ResultT> resultClass) {
         throw new UnsupportedOperationException("Not Implemented");
     }
@@ -534,7 +538,7 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndDelete(final Bson filter,
-                                            final RemoteFindOneAndModifyOptions options) {
+                                            final FindOneAndModifyOptions options) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -549,7 +553,7 @@ public class MongoCollection<DocumentT> {
      */
     public <ResultT> Task<ResultT> findOneAndDelete(
             final Bson filter,
-            final RemoteFindOneAndModifyOptions options,
+            final FindOneAndModifyOptions options,
             final Class<ResultT> resultClass) {
         throw new UnsupportedOperationException("Not Implemented");
     }
