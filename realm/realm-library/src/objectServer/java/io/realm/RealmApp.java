@@ -33,9 +33,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.internal.Keep;
 import io.realm.internal.KeepMember;
 import io.realm.internal.RealmNotifier;
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
@@ -267,7 +267,7 @@ public class RealmApp {
                 return new RealmUser(nativePtr, RealmApp.this);
             }
         });
-        RealmUser user = handleResult(success, error);
+        RealmUser user = ResultHandler.handleResult(success, error);
         notifyUserLoggedIn(user);
         return user;
     }
@@ -391,23 +391,6 @@ public class RealmApp {
     @KeepMember // Called from JNI
     OsJavaNetworkTransport getNetworkTransport() {
         return networkTransport;
-    }
-
-    // Handle returning the correct result or throw an exception. Must be separated from
-    // OsJNIResultCallback due to how the Object Store callbacks work.
-    static <T> T handleResult(@Nullable AtomicReference<T> success, AtomicReference<ObjectServerError> error) {
-        if (success != null && success.get() == null && error.get() == null) {
-            throw new IllegalStateException("Network result callback did not trigger correctly");
-        }
-        if (error.get() != null) {
-            throw error.get();
-        } else {
-            if (success != null) {
-                return success.get();
-            } else {
-                return null;
-            }
-        }
     }
 
     // Class wrapping requests made against MongoDB Realm. Is also responsible for calling with success/error on the
