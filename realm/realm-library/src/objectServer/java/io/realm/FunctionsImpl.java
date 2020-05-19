@@ -25,9 +25,7 @@ import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
-import io.realm.log.RealmLog;
 import io.realm.mongodb.functions.Functions;
-
 
 /**
  * Internal implementation of Functions invoking the actual OS function in the context of the
@@ -59,13 +57,8 @@ class FunctionsImpl extends Functions {
                 return (String) result;
             }
         };
-        // FIXME Debug output to debug CI-only issue
-        RealmLog.debug(String.format("callFunction: %s(%s)", name, encodedArgs));
         nativeCallFunction(user.getApp().nativePtr, user.osUser.getNativePtr(), name, encodedArgs, callback);
         String encodedResponse = ResultHandler.handleResult(success, error);
-
-        // FIXME Debug output to debug CI-only issue
-        RealmLog.debug(String.format("callFunction: %s(%s) = %s", name, encodedArgs, encodedResponse));
         return JniBsonProtocol.decode(encodedResponse, resultClass, codecRegistry);
    }
 

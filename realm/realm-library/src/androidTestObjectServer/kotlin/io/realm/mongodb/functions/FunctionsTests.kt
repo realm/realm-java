@@ -20,8 +20,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.admin.ServerAdmin
-import io.realm.log.LogLevel
-import io.realm.log.RealmLog
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import org.bson.*
@@ -81,7 +79,6 @@ class FunctionsTests {
     @Before
     fun setup() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        RealmLog.setLevel(LogLevel.TRACE)
         app = TestRealmApp()
         admin = ServerAdmin()
         anonUser = app.login(RealmCredentials.anonymous())
@@ -93,7 +90,6 @@ class FunctionsTests {
         if (this::app.isInitialized) {
             app.close()
         }
-        RealmLog.setLevel(LogLevel.TRACE)
     }
 
     // Tests

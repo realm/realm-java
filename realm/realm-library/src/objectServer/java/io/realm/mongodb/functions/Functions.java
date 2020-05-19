@@ -43,9 +43,6 @@ import io.realm.internal.jni.JniBsonProtocol;
  * @see RealmAppConfiguration
  * @see CodecRegistry
  */
-// TODO Timeout is currently handled uniformly through OkHttpNetworkTransport configured through RealmAppConfig
-// FIXME Encoder/Decoder specific variants
-// FIXME Service?
 public abstract class Functions {
 
     protected RealmUser user;
@@ -127,10 +124,6 @@ public abstract class Functions {
      * @see #callFunctionAsync(String, List, Class, CodecRegistry, RealmApp.Callback)
      * @see RealmAppConfiguration#getDefaultCodecRegistry()
      */
-    // FIXME Evaluate original asynchronous Stitch API relying on Google Play Tasks. For now just
-    //  use a RealmAsyncTask
-    //  https://docs.mongodb.com/stitch-sdks/java/4/com/mongodb/stitch/android/core/services/StitchServiceClient.html
-    //  <ResultT> Task<ResultT> callFunction​(String name, List<?> args, Long requestTimeout, Class<ResultT> resultClass, CodecRegistry codecRegistry);
     public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry, RealmApp.Callback<T> callback) {
         Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
         return new RealmApp.Request<T>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {

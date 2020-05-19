@@ -30,7 +30,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
 
-@Ignore("FIXME Trying to bypass sync test to see if this is blocking CI")
+@Ignore("FIXME Disabled until dev mode is not causing this to hang")
 @RunWith(AndroidJUnit4::class)
 class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaining Java tests have been moved
 
