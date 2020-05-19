@@ -198,7 +198,7 @@ class JniBsonProtocolTests {
                         fail()
                 }
             } catch (e: Exception) {
-                collector.addError(e)
+                collector.addError(AssertionError("BSON roundtrip failing for: $type"))
             }
         }
         // Verify that all types can be embedded in a list
