@@ -439,9 +439,8 @@ class SessionTests {
     fun downloadAllServerChanges_returnFalseWhenTimedOut() {
         Realm.getInstance(configuration).use { realm ->
             val session = realm.syncSession
-            // FIXME Have to add this to make it pass. Has something changed in initial sync?
-            // assertTrue(session.downloadAllServerChanges(100, TimeUnit.MILLISECONDS))
-            assertFalse(session.downloadAllServerChanges(100, TimeUnit.MILLISECONDS))
+            // We never assume to be able to download changes with one 1ms
+            assertFalse(session.downloadAllServerChanges(1, TimeUnit.MILLISECONDS))
         }
     }
 
