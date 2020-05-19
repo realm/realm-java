@@ -108,7 +108,7 @@ if (build_SYNC)
         io.realm.RealmApp
         io.realm.RealmUser
         io.realm.RealmSync
-        io.realm.RealmFunctions
+        io.realm.FunctionsImpl
         io.realm.SyncSession
         io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
@@ -199,7 +199,7 @@ if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmApp.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmUser.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmFunctions.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_FunctionsImpl.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuth.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ApiKeyAuth.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ClientResetRequiredError.cpp
