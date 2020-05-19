@@ -117,7 +117,6 @@ if (build_SYNC)
         io.realm.internal.objectstore.OsMongoCollection
         io.realm.internal.objectstore.OsMongoDatabase
         io.realm.internal.objectstore.OsSyncUser
-        io.realm.internal.jni.JniBsonProtocol
     )
 endif()
 create_javah(TARGET jni_headers

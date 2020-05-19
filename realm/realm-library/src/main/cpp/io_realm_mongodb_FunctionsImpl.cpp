@@ -58,13 +58,8 @@ Java_io_realm_FunctionsImpl_nativeCallFunction(JNIEnv* env, jclass , jlong j_app
 
         JStringAccessor name(env, j_name);
         BsonArray args(JniBsonProtocol::parse_checked(env, j_args_json, Bson::Type::Array, "BSON argument must be an BsonArray"));
-
-        // FIXME
-        __android_log_print(ANDROID_LOG_DEBUG, "REALM", "nativeCallFunction arg: %s", std::string(JStringAccessor(env, j_args_json)).c_str());
-        std::stringstream buffer;
-        buffer << args;
-        __android_log_print(ANDROID_LOG_DEBUG, "REALM", "nativeCallFunction parsed arg: %s", buffer.str().c_str());
-
+        std::string result(JniBsonProtocol::bson_to_string(args));
+        __android_log_print(ANDROID_LOG_DEBUG, "REALM", "call args: %s", result.c_str());
         app->call_function(user, name, args, handler);
     }
     CATCH_STD()
