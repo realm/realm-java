@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import org.bson.codecs.configuration.CodecRegistry;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -29,6 +31,7 @@ import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
+import io.realm.mongodb.functions.Functions;
 import io.realm.mongodb.mongo.MongoClient;
 
 /**
@@ -40,6 +43,7 @@ public class RealmUser {
     private final RealmApp app;
     private ApiKeyAuth apiKeyAuthProvider = null;
     private MongoClient mongoClient = null;
+    private Functions functions = null;
 
     /**
      * FIXME
@@ -424,10 +428,25 @@ public class RealmUser {
     }
 
     /**
-     * FIXME Add support for functions. Name of Class and method still TBD.
+     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions.
+     * <p>
+     * This will use the associated app's default codec registry to encode and decode arguments and
+     * results.
      */
-    public RealmFunctions getFunctions() {
-        return null;
+    public synchronized Functions getFunctions() {
+        checkLoggedIn();
+        if (functions == null) {
+            functions = new FunctionsImpl(this);
+        }
+        return functions;
+    }
+
+    /**
+     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions with custom
+     * codec registry for encoding and decoding arguments and results.
+     */
+    public Functions getFunctions(CodecRegistry codecRegistry) {
+        return new FunctionsImpl(this, codecRegistry);
     }
 
     /**
