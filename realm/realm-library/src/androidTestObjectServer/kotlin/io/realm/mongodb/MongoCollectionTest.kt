@@ -18,6 +18,7 @@ package io.realm.mongodb
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
+import io.realm.internal.common.TaskDispatcher
 import io.realm.mongodb.mongo.MongoClient
 import io.realm.mongodb.mongo.MongoCollection
 import io.realm.mongodb.mongo.MongoDatabase
@@ -440,6 +441,18 @@ class MongoCollectionTest {
 //                val svcEx = ex.cause as StitchServiceException
 //                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
 //            }
+        }
+    }
+
+    @Test
+    fun find() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            TaskDispatcher().dispatchTask {
+                insertOne(Document("hello", "world")).blockingGetResult()
+                insertOne(Document("hello2", "world2")).blockingGetResult()
+                find()
+                val kajshdkjha = 0
+            }.blockingGetResult()
         }
     }
 

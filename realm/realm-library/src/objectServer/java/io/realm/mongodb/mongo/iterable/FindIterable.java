@@ -18,16 +18,22 @@ package io.realm.mongodb.mongo.iterable;
 
 import org.bson.conversions.Bson;
 
+import java.util.Iterator;
+
 import javax.annotation.Nullable;
+
+import io.realm.internal.common.TaskDispatcher;
 
 /**
  * Iterable for find.
  *
  * @param <ResultT> The type of the result.
  */
-// TODO: figure out whether or not we need the parent interface
-//public interface RemoteFindIterable<ResultT> extends RemoteMongoIterable<ResultT> {
-public class FindIterable<ResultT> {
+public class FindIterable<ResultT> extends MongoIterable<ResultT> {
+
+    FindIterable(TaskDispatcher dispatcher, Iterator<ResultT> documents) {
+        super(dispatcher, documents);
+    }
 
     /**
      * Sets the query filter to apply to the query.

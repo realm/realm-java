@@ -78,8 +78,12 @@ static std::function<jobject(JNIEnv*, RemoteMongoCollection::RemoteUpdateResult)
         upserted_value = new Bson(result.upserted_id.value());
     }
     // FIXME: maybe not the most efficient way. Suggestions?
-    std::vector<Bson> result_values { matched_count, modified_count, upserted_value };
+    BsonArray result_values { matched_count, modified_count, upserted_value };
     return JniBsonProtocol::bson_to_jstring(env, result_values);
+};
+
+static std::function<jobject(JNIEnv*, util::Optional<bson::BsonArray>)> collection_mapper_find = [](JNIEnv* env, util::Optional<bson::BsonArray> array) {
+    return array ? JniBsonProtocol::bson_to_jstring(env, *array) : NULL;
 };
 
 static void finalize_collection(jlong ptr) {
@@ -427,6 +431,22 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndDeleteWithO
                 to_bool(j_return_new_document)
         };
         collection->find_one_and_delete(filter, options, JavaNetworkTransport::create_void_callback(env, j_callback));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeFind(JNIEnv *env,
+                                                                jclass,
+                                                                jlong j_collection_ptr,
+                                                                jstring j_filter,
+                                                                jobject j_callback) {
+    try {
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
+        collection->find(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find));
     }
     CATCH_STD()
 }

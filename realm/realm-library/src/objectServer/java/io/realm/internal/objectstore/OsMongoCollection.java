@@ -17,6 +17,7 @@
 package io.realm.internal.objectstore;
 
 import org.bson.BsonArray;
+import org.bson.BsonDocument;
 import org.bson.BsonNull;
 import org.bson.BsonObjectId;
 import org.bson.BsonValue;
@@ -37,6 +38,7 @@ import io.realm.internal.NativeObject;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
+import io.realm.mongodb.mongo.iterable.FindIterable;
 import io.realm.mongodb.mongo.options.CountOptions;
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
 import io.realm.mongodb.mongo.options.FindOptions;
@@ -98,6 +100,93 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
         return ResultHandler.handleResult(success, error);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private static native void nativeFind(long remoteMongoCollectionPtr,
+                                          String filter,
+                                          OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
+//    private static native void nativeFindWithOptions(long remoteMongoCollectionPtr,
+//                                                     String filter,
+//                                                     String projection,
+//                                                     String sort,
+//                                                     long limit,
+//                                                     OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
+    public FindIterable<DocumentT> find() {
+        return find(new Document());
+    }
+
+    public <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass) {
+        return find(new Document(), resultClass);
+    }
+
+    public FindIterable<DocumentT> find(final Bson filter) {
+        return find(filter, documentClass);
+    }
+
+    public <ResultT> FindIterable<ResultT> find(final Bson filter, final Class<ResultT> resultClass) {
+        AtomicReference<FindIterable<ResultT>> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<FindIterable<ResultT>> callback = new OsJNIResultCallback<FindIterable<ResultT>>(success, error) {
+            @Override
+            protected FindIterable<ResultT> mapSuccess(Object result) {
+                BsonArray array = JniBsonProtocol.decode((String) result, BsonArray.class, codecRegistry);
+                return null;
+            }
+        };
+
+        String filterString = JniBsonProtocol.encode(filter, codecRegistry);
+
+        nativeFind(nativePtr, filterString, callback);
+
+        return ResultHandler.handleResult(success, error);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public DocumentT findOne() {
         return findOne(new Document());

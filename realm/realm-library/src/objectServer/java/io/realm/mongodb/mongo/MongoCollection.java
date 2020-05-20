@@ -214,8 +214,8 @@ public class MongoCollection<DocumentT> {
      *
      * @return the find iterable interface
      */
-    FindIterable<DocumentT> find() {
-        throw new UnsupportedOperationException("Not Implemented");
+    public FindIterable<DocumentT> find() {
+        return osMongoCollection.find();
     }
 
     /**
@@ -225,8 +225,8 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return the find iterable interface
      */
-    <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass) {
+        return osMongoCollection.find(resultClass);
     }
 
     /**
@@ -236,7 +236,7 @@ public class MongoCollection<DocumentT> {
      * @return the find iterable interface
      */
     public FindIterable<DocumentT> find(final Bson filter) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return osMongoCollection.find(filter);
     }
 
     /**
@@ -248,7 +248,7 @@ public class MongoCollection<DocumentT> {
      * @return the find iterable interface
      */
     public <ResultT> FindIterable<ResultT> find(final Bson filter, final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return osMongoCollection.find(filter, resultClass);
     }
 
     /**
