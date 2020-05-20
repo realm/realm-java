@@ -100,21 +100,20 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             } else {
                 throw new IllegalArgumentException("Unsupported type: " + val);
             }
+            int i = 0;
             Object[] configObj = new Object[SYNC_CONFIG_OPTIONS];
-            configObj[0] = rosUserIdentity;
-            configObj[1] = rosServerUrl;
-            configObj[2] = syncRealmAuthUrl;
-            configObj[3] = syncUserRefreshToken;
-            configObj[4] = syncUserAccessToken;
-            configObj[5] = syncConfig.syncClientValidateSsl();
-            configObj[6] = syncConfig.getServerCertificateFilePath();
-            configObj[7] = sessionStopPolicy;
-            configObj[8] = urlPrefix;
-            configObj[9] = customAuthorizationHeaderName;
-            configObj[10] = customHeaders;
-            configObj[11] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
-            configObj[12] = partitionValue;
-            configObj[13] = app.getSync();
+            configObj[i++] = rosUserIdentity;
+            configObj[i++] = rosServerUrl;
+            configObj[i++] = syncRealmAuthUrl;
+            configObj[i++] = syncUserRefreshToken;
+            configObj[i++] = syncUserAccessToken;
+            configObj[i++] = sessionStopPolicy;
+            configObj[i++] = urlPrefix;
+            configObj[i++] = customAuthorizationHeaderName;
+            configObj[i++] = customHeaders;
+            configObj[i++] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
+            configObj[i++] = partitionValue;
+            configObj[i++] = app.getSync();
             return configObj;
         } else {
             return new Object[SYNC_CONFIG_OPTIONS];
@@ -131,26 +130,6 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             SyncConfiguration syncConfig = (SyncConfiguration) config.getRealmConfiguration();
             RealmApp app = syncConfig.getUser().getApp();
             app.getSync().getOrCreateSession(syncConfig);
-        }
-    }
-
-    @Override
-    public String getSyncServerCertificateAssetName(RealmConfiguration configuration) {
-        if (configuration instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            return syncConfig.getServerCertificateAssetName();
-        } else {
-            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
-        }
-    }
-
-    @Override
-    public String getSyncServerCertificateFilePath(RealmConfiguration configuration) {
-        if (configuration instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            return syncConfig.getServerCertificateFilePath();
-        } else {
-            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
         }
     }
 
