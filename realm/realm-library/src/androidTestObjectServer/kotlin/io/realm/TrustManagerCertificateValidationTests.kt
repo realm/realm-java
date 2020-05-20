@@ -25,6 +25,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@Ignore("Only applicable for self hosted server; not currently supported")
 @RunWith(AndroidJUnit4::class)
 class TrustManagerCertificateValidationTests {
 
