@@ -297,7 +297,7 @@ class RealmUserTests {
         user.logOut()
 
         val sameUserNewLogin = app.login(RealmCredentials.emailPassword(user.email!!, "123456"))
-        // Verify that two equal users also returns same hashit is not same object but uses underlying OSSyncUser equality on identity
+        // Verify that two equal users also returns same hashCode
         assertFalse(user === sameUserNewLogin)
         assertEquals(user.hashCode(), sameUserNewLogin.hashCode())
     }
