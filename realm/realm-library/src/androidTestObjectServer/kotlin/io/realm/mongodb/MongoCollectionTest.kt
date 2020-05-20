@@ -18,7 +18,6 @@ package io.realm.mongodb
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.internal.common.TaskDispatcher
 import io.realm.mongodb.mongo.MongoClient
 import io.realm.mongodb.mongo.MongoCollection
 import io.realm.mongodb.mongo.MongoDatabase
@@ -33,10 +32,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.*
 
 private const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
 private const val DATABASE_NAME = "test_data"   // same as above
@@ -345,6 +341,7 @@ class MongoCollectionTest {
 
     @Test
     @Ignore
+    // FIXME: revisit when parser is fully operational
     fun findOneAndUpdate() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             val sampleDoc = Document("hello", "world1")
@@ -447,12 +444,10 @@ class MongoCollectionTest {
     @Test
     fun find() {
         with(getCollectionInternal(COLLECTION_NAME)) {
-            TaskDispatcher().dispatchTask {
-                insertOne(Document("hello", "world")).blockingGetResult()
-                insertOne(Document("hello2", "world2")).blockingGetResult()
-                find()
-                val kajshdkjha = 0
-            }.blockingGetResult()
+            // FIXME: fix find implementation - ignore this code for code review
+            val iter = find().blockingGetResult()
+            assertFalse(iter!!.iterator().hasNext())
+            assertFailsWith<NoSuchElementException> { iter.first() }
         }
     }
 

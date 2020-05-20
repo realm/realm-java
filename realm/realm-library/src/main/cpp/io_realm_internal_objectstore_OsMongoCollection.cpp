@@ -450,3 +450,30 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFind(JNIEnv *env,
     }
     CATCH_STD()
 }
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindWithOptions(JNIEnv *env,
+                                                                           jclass,
+                                                                           jlong j_collection_ptr,
+                                                                           jstring j_filter,
+                                                                           jstring j_projection,
+                                                                           jstring j_sort,
+                                                                           jlong j_limit,
+                                                                           jobject j_callback) {
+    try {
+        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+
+        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
+        uint64_t limit = std::uint64_t(j_limit);
+        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
+        bson::BsonDocument projection(JniBsonProtocol::jstring_to_bson(env, j_projection));
+        bson::BsonDocument sort(JniBsonProtocol::jstring_to_bson(env, j_sort));
+        RemoteMongoCollection::RemoteFindOptions options = {
+                limit,
+                projection,
+                sort
+        };
+        collection->find(filter, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find));
+    }
+    CATCH_STD()
+}
