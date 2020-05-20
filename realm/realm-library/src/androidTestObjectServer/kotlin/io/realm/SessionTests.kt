@@ -27,6 +27,7 @@ import io.realm.kotlin.syncSession
 import io.realm.log.RealmLog
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.ResourceContainer
+import io.realm.util.assertFailsWithMessage
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.*
@@ -475,11 +476,11 @@ class SessionTests {
             assertEquals(configuration, session.configuration)
         // Exiting the scope closes the Realm and should remove the session
         }
-        try {
+        assertFailsWithMessage<IllegalStateException>(
+                CoreMatchers.containsString( "No SyncSession found using the path : ")
+        ) {
             app.sync.getSession(configuration)
             fail("getSession should throw an ISE")
-        } catch (expected: IllegalStateException) {
-            assertThat(expected.message, CoreMatchers.containsString( "No SyncSession found using the path : "))
         }
     }
 
