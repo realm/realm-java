@@ -30,7 +30,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
 
-//@Ignore("FIXME Disabled until dev mode is not causing this to hang")
 @RunWith(AndroidJUnit4::class)
 class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaining Java tests have been moved
 
@@ -147,7 +146,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
                 val dog = SyncDog()
                 dog.name = "Fido $i"
                 it.insert(dog)
-                person.dogs.add(dog.id)
+                person.dogs.add(dog)
             }
             realm.insert(person)
         }
