@@ -25,6 +25,7 @@ import java.util.List;
 
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsMongoCollection;
+import io.realm.mongodb.mongo.iterable.MongoFindIterable;
 import io.realm.mongodb.mongo.options.CountOptions;
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
 import io.realm.mongodb.mongo.options.FindOptions;
@@ -49,10 +50,9 @@ public class MongoCollection<DocumentT> {
 
     private OsMongoCollection<DocumentT> osMongoCollection;
 
-    private TaskDispatcher dispatcher;
+    private TaskDispatcher dispatcher = new TaskDispatcher();
 
-    MongoCollection(OsMongoCollection<DocumentT> osMongoCollection) {
-        this.dispatcher = new TaskDispatcher();
+    MongoCollection(final OsMongoCollection<DocumentT> osMongoCollection) {
         this.osMongoCollection = osMongoCollection;
     }
 
@@ -198,10 +198,9 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the result of the find one operation
      */
-    public <ResultT> Task<ResultT> findOne(
-            final Bson filter,
-            final FindOptions options,
-            final Class<ResultT> resultClass) {
+    public <ResultT> Task<ResultT> findOne(final Bson filter,
+                                           final FindOptions options,
+                                           final Class<ResultT> resultClass) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.findOne(filter, options, resultClass)
         );
@@ -212,18 +211,13 @@ public class MongoCollection<DocumentT> {
      *
      * @return the find iterable interface
      */
-    // FIXME: fix find implementation - ignore this code for code review
-    public Task<Iterable<DocumentT>> find() {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find()
-        );
+    public MongoFindIterable<DocumentT> find() {
+        return new MongoFindIterable<>(dispatcher, osMongoCollection.find());
     }
 
-    // FIXME: fix find implementation - ignore this code for code review
-    public Task<Iterable<DocumentT>> find(final FindOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(options)
-        );
+    // FIXME: javadoc
+    public MongoFindIterable<DocumentT> find(final FindOptions options) {
+        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(options));
     }
 
     /**
@@ -233,18 +227,14 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return the find iterable interface
      */
-    // FIXME: fix find implementation - ignore this code for code review
-    public <ResultT> Task<Iterable<ResultT>> find(final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(resultClass)
-        );
+    public <ResultT> MongoFindIterable<ResultT> find(final Class<ResultT> resultClass) {
+        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(resultClass));
     }
 
-    // FIXME: fix find implementation - ignore this code for code review
-    public <ResultT> Task<Iterable<ResultT>> find(final Class<ResultT> resultClass, final FindOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(resultClass, options)
-        );
+    // FIXME: javadoc
+    public <ResultT> MongoFindIterable<ResultT> find(final Class<ResultT> resultClass,
+                                                     final FindOptions options) {
+        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(resultClass, options));
     }
 
     /**
@@ -253,18 +243,13 @@ public class MongoCollection<DocumentT> {
      * @param filter the query filter
      * @return the find iterable interface
      */
-    // FIXME: fix find implementation - ignore this code for code review
-    public Task<Iterable<DocumentT>> find(final Bson filter) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(filter)
-        );
+    public MongoFindIterable<DocumentT> find(final Bson filter) {
+        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(filter));
     }
 
-    // FIXME: fix find implementation - ignore this code for code review
-    public Task<Iterable<DocumentT>> find(final Bson filter, final FindOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(filter, options)
-        );
+    // FIXME: javadoc
+    public MongoFindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
+        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(filter, options));
     }
 
     /**
@@ -275,20 +260,17 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return the find iterable interface
      */
-    // FIXME: fix find implementation - ignore this code for code review
-    public <ResultT> Task<Iterable<ResultT>> find(final Bson filter, final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(filter, resultClass)
-        );
+    public <ResultT> MongoFindIterable<ResultT> find(final Bson filter,
+                                                     final Class<ResultT> resultClass) {
+        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(filter, resultClass));
     }
 
-    // FIXME: fix find implementation - ignore this code for code review
-    public <ResultT> Task<Iterable<ResultT>> find(final Bson filter,
-                                        final Class<ResultT> resultClass,
-                                        final FindOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(filter, resultClass, options)
-        );
+    // FIXME: javadoc
+    public <ResultT> MongoFindIterable<ResultT> find(final Bson filter,
+                                                     final Class<ResultT> resultClass,
+                                                     final FindOptions options) {
+        return new MongoFindIterable<>(dispatcher,
+                osMongoCollection.find(filter, resultClass, options));
     }
 
     /**
@@ -297,6 +279,7 @@ public class MongoCollection<DocumentT> {
      * @param pipeline the aggregation pipeline
      * @return an iterable containing the result of the aggregation operation
      */
+    // FIXME: this one should also use an iterable
     public Task<DocumentT> aggregate(final List<? extends Bson> pipeline) {
         throw new UnsupportedOperationException("Not Implemented");
     }
@@ -309,9 +292,9 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return an iterable containing the result of the aggregation operation
      */
-    public <ResultT> Task<ResultT> aggregate(
-            final List<? extends Bson> pipeline,
-            final Class<ResultT> resultClass) {
+    // FIXME: this one should also use an iterable
+    public <ResultT> Task<ResultT> aggregate(final List<? extends Bson> pipeline,
+                                             final Class<ResultT> resultClass) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -487,11 +470,10 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
      */
-    public <ResultT> Task<ResultT> findOneAndUpdate(
-            final Bson filter,
-            final Bson update,
-            final FindOneAndModifyOptions options,
-            final Class<ResultT> resultClass) {
+    public <ResultT> Task<ResultT> findOneAndUpdate(final Bson filter,
+                                                    final Bson update,
+                                                    final FindOneAndModifyOptions options,
+                                                    final Class<ResultT> resultClass) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.findOneAndUpdate(filter, update, options, resultClass)
         );
@@ -553,11 +535,10 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
      */
-    public <ResultT> Task<ResultT> findOneAndReplace(
-            final Bson filter,
-            final Bson replacement,
-            final FindOneAndModifyOptions options,
-            final Class<ResultT> resultClass) {
+    public <ResultT> Task<ResultT> findOneAndReplace(final Bson filter,
+                                                     final Bson replacement,
+                                                     final FindOneAndModifyOptions options,
+                                                     final Class<ResultT> resultClass) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.findOneAndReplace(filter, replacement, options, resultClass)
         );

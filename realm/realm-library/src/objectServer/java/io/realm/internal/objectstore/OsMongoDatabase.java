@@ -37,10 +37,8 @@ public class OsMongoDatabase implements NativeObject {
         return getCollection(collectionName, Document.class);
     }
 
-    public <DocumentT> OsMongoCollection<DocumentT> getCollection(
-            final String collectionName,
-            final Class<DocumentT> documentClass
-    ) {
+    public <DocumentT> OsMongoCollection<DocumentT> getCollection(final String collectionName,
+                                                                  final Class<DocumentT> documentClass) {
         long nativeCollectionPtr = nativeGetCollection(nativePtr, collectionName);
         return new OsMongoCollection<>(nativeCollectionPtr, documentClass, codecRegistry);
     }

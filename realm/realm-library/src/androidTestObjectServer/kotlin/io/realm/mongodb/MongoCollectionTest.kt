@@ -446,9 +446,10 @@ class MongoCollectionTest {
     fun find() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             // FIXME: fix find implementation - ignore this code for code review
-            val iter = find().blockingGetResult()!!
-            assertFalse(iter.iterator().hasNext())
-            assertFailsWith<NoSuchElementException> { iter.first() }
+            val find = find()
+            val iter = find.iterator()
+            assertFalse(iter.blockingGetResult()!!.hasNext().blockingGetResult()!!)
+            assertNull(find.first().blockingGetResult())
         }
     }
 

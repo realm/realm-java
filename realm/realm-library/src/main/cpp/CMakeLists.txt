@@ -116,6 +116,7 @@ if (build_SYNC)
         io.realm.internal.objectstore.OsMongoClient
         io.realm.internal.objectstore.OsMongoCollection
         io.realm.internal.objectstore.OsMongoDatabase
+        io.realm.internal.objectstore.OsMongoFindIterable
         io.realm.internal.objectstore.OsSyncUser
     )
 endif()
@@ -211,6 +212,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoClient.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoCollection.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoDatabase.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoFindIterable.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/jni_util/bson_util.cpp
     )

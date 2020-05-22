@@ -25,8 +25,6 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +54,9 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private final Class<DocumentT> documentClass;
     private final CodecRegistry codecRegistry;
 
-    OsMongoCollection(final long nativeCollectionPtr, final Class<DocumentT> documentClass, final CodecRegistry codecRegistry) {
+    OsMongoCollection(final long nativeCollectionPtr,
+                      final Class<DocumentT> documentClass,
+                      final CodecRegistry codecRegistry) {
         this.nativePtr = nativeCollectionPtr;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;
@@ -101,60 +101,38 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    public Collection<DocumentT> find() {
+    public OsMongoFindIterable<DocumentT> find() {
         return find(new Document());
     }
 
-    public Collection<DocumentT> find(final FindOptions options) {
+    public OsMongoFindIterable<DocumentT> find(final FindOptions options) {
         return find(new Document(), options);
     }
 
-    public <ResultT> Collection<ResultT> find(final Class<ResultT> resultClass) {
+    public <ResultT> OsMongoFindIterable<ResultT> find(final Class<ResultT> resultClass) {
         return find(new Document(), resultClass);
     }
 
-    public <ResultT> Collection<ResultT> find(final Class<ResultT> resultClass, final FindOptions options) {
+    public <ResultT> OsMongoFindIterable<ResultT> find(final Class<ResultT> resultClass, final FindOptions options) {
         return find(new Document(), resultClass, options);
     }
 
-    public Collection<DocumentT> find(final Bson filter) {
+    public OsMongoFindIterable<DocumentT> find(final Bson filter) {
         return find(filter, documentClass);
     }
 
-    public Collection<DocumentT> find(final Bson filter, final FindOptions options) {
+    public OsMongoFindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
         return find(filter, documentClass, options);
     }
 
-    public <ResultT> Collection<ResultT> find(final Bson filter, final Class<ResultT> resultClass) {
+    public <ResultT> OsMongoFindIterable<ResultT> find(final Bson filter, final Class<ResultT> resultClass) {
         return find(filter, resultClass, null);
     }
 
-    // FIXME: fix find implementation - ignore this code for code review
-    public <ResultT> Collection<ResultT> find(final Bson filter,
-                                              final Class<ResultT> resultClass,
-                                              @Nullable final FindOptions options) {
-        AtomicReference<Collection<ResultT>> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        OsJNIResultCallback<Collection<ResultT>> callback = new OsJNIResultCallback<Collection<ResultT>>(success, error) {
-            @Override
-            @SuppressWarnings("unchecked")
-            protected Collection<ResultT> mapSuccess(Object result) {
-                return JniBsonProtocol.decode((String) result, Collection.class, codecRegistry);
-            }
-        };
-
-        String filterString = JniBsonProtocol.encode(filter, codecRegistry);
-
-        if (options == null) {
-            nativeFind(nativePtr, filterString, callback);
-        } else {
-            String projectionString = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
-            String sortString = JniBsonProtocol.encode(options.getSort(), codecRegistry);
-
-            nativeFindWithOptions(nativePtr, filterString, projectionString, sortString, options.getLimit(), callback);
-        }
-
-        return ResultHandler.handleResult(success, error);
+    public <ResultT> OsMongoFindIterable<ResultT> find(final Bson filter,
+                                                 final Class<ResultT> resultClass,
+                                                 @Nullable final FindOptions options) {
+        return new OsMongoFindIterable<>(this, codecRegistry, resultClass, filter, options);
     }
 
     public DocumentT findOne() {
@@ -301,18 +279,18 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public <ResultT> ResultT findOneAndDelete(final Bson filter,
                                               final Class<ResultT> resultClass) {
-        return findOneAndDeleteInternal(filter, null, resultClass);
+        return findOneAndInternal(FindOneAndType.DELETE, filter, null, null, resultClass);
     }
 
     public DocumentT findOneAndDelete(final Bson filter,
                                       final FindOneAndModifyOptions options) {
-        return findOneAndDeleteInternal(filter, options, documentClass);
+        return findOneAndInternal(FindOneAndType.DELETE, filter, null, options, documentClass);
     }
 
     public <ResultT> ResultT findOneAndDelete(final Bson filter,
-                                      final FindOneAndModifyOptions options,
-                                      final Class<ResultT> resultClass) {
-        return findOneAndDeleteInternal(filter, options, resultClass);
+                                              final FindOneAndModifyOptions options,
+                                              final Class<ResultT> resultClass) {
+        return findOneAndInternal(FindOneAndType.DELETE, filter, null, options, resultClass);
     }
 
     private UpdateResult updateInternal(UpdateType type, final Bson filter, final Bson update, @Nullable final UpdateOptions options) {
@@ -384,17 +362,11 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    private  <ResultT> ResultT findOneAndDeleteInternal(final Bson filter,
-                                                        @Nullable final FindOneAndModifyOptions options,
-                                                        final Class<ResultT> resultClass) {
-        return findOneAndInternal(FindOneAndType.DELETE, filter, new Document(), options, resultClass);
-    }
-
-    private  <ResultT> ResultT findOneAndInternal(final FindOneAndType type,
-                                                  final Bson filter,
-                                                  final Bson update,
-                                                  @Nullable final FindOneAndModifyOptions options,
-                                                  final Class<ResultT> resultClass) {
+    private <ResultT> ResultT findOneAndInternal(final FindOneAndType type,
+                                                 final Bson filter,
+                                                 @Nullable final Bson update,
+                                                 @Nullable final FindOneAndModifyOptions options,
+                                                 final Class<ResultT> resultClass) {
         AtomicReference<ResultT> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
@@ -518,14 +490,14 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                           boolean upsert,
                                                           OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeUpdateMany(long remoteMongoCollectionPtr,
-                                               String filter,
-                                               String update,
-                                               OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+                                                String filter,
+                                                String update,
+                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeUpdateManyWithOptions(long remoteMongoCollectionPtr,
-                                                          String filter,
-                                                          String update,
-                                                          boolean upsert,
-                                                          OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+                                                           String filter,
+                                                           String update,
+                                                           boolean upsert,
+                                                           OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeFindOneAndUpdate(long remoteMongoCollectionPtr,
                                                       String filter,
                                                       String update,
@@ -551,22 +523,13 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                                   boolean returnNewDocument,
                                                                   OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeFindOneAndDelete(long remoteMongoCollectionPtr,
-                                                       String filter,
-                                                       OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+                                                      String filter,
+                                                      OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeFindOneAndDeleteWithOptions(long remoteMongoCollectionPtr,
-                                                                  String filter,
-                                                                  String projection,
-                                                                  String sort,
-                                                                  boolean upsert,
-                                                                  boolean returnNewDocument,
-                                                                  OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFind(long remoteMongoCollectionPtr,
-                                          String filter,
-                                          OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindWithOptions(long remoteMongoCollectionPtr,
-                                                     String filter,
-                                                     String projection,
-                                                     String sort,
-                                                     long limit,
-                                                     OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+                                                                 String filter,
+                                                                 String projection,
+                                                                 String sort,
+                                                                 boolean upsert,
+                                                                 boolean returnNewDocument,
+                                                                 OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }
