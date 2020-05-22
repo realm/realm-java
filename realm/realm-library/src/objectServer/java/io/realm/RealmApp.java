@@ -124,7 +124,10 @@ public class RealmApp {
                 config.getRequestTimeoutMs(),
                 syncDir,
                 userAgentBindingInfo,
-                appDefinedUserAgent);
+                appDefinedUserAgent,
+                "android",
+                Integer.toString(android.os.Build.VERSION.SDK_INT),
+                io.realm.BuildConfig.VERSION_NAME);
     }
 
     private String getSyncBaseDirectory() {
@@ -598,7 +601,10 @@ public class RealmApp {
                                      long requestTimeoutMs,
                                      String syncDirPath,
                                      String bindingUserInfo,
-                                     String appUserInfo);
+                                     String appUserInfo,
+                                     String platform,
+                                     String platformVersion,
+                                     String sdkVersion);
     private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     @Nullable
     private static native Long nativeCurrentUser(long nativePtr);
