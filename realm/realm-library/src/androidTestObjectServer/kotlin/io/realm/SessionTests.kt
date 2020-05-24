@@ -484,15 +484,6 @@ class SessionTests {
         }
     }
 
-
-    @Test
-    fun isConnected_falseForInvalidUser() {
-        Realm.getInstance(configuration).use { realm ->
-            val session = realm.syncSession
-            assertFalse(session.isConnected)
-        }
-    }
-
     @Test
     fun stop_doesNotThrowIfCalledWhenRealmIsClosed() {
         val realm = Realm.getInstance(configuration)
