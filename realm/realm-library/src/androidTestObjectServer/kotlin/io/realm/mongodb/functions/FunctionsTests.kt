@@ -23,10 +23,7 @@ import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import org.bson.*
-import org.bson.codecs.Codec
-import org.bson.codecs.DecoderContext
-import org.bson.codecs.EncoderContext
-import org.bson.codecs.StringCodec
+import org.bson.codecs.*
 import org.bson.codecs.configuration.CodecConfigurationException
 import org.bson.codecs.configuration.CodecProvider
 import org.bson.codecs.configuration.CodecRegistries
@@ -286,11 +283,40 @@ class FunctionsTests {
         assertEquals(input, functionsWithCodecRegistry.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java))
     }
 
+    @Test
+    fun resultDecoder() {
+        val input = "Realm"
+        val customResult = "Decoded realm"
+        val decoder = object: Decoder<String> {
+            override fun decode(reader: BsonReader, decoderContext: DecoderContext): String {
+                reader.readString()
+                return customResult
+            }
+        }
+        assertEquals(customResult, functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), decoder))
+    }
+
+    @Test
+    fun asyncResultDecoder() = looperThread.runBlocking {
+        val input = "Realm"
+        val customResult = "Decoded realm"
+        val decoder = Decoder<String> { reader, decoderContext ->
+            reader.readString()
+            customResult
+        }
+        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(input), decoder, RealmApp.Callback<String> { result ->
+            try {
+                assertEquals(customResult, result.orThrow)
+            } finally {
+                looperThread.testComplete()
+            }
+        })
+    }
 
     @Test
     fun unknownFunction() {
         assertFailsWithErrorCode(ErrorCode.FUNCTION_NOT_FOUND) {
-             functions.callFunction("unknown", listOf(32), Dog::class.java)
+             functions.callFunction("unknown", listOf(32), String::class.java)
         }
     }
 

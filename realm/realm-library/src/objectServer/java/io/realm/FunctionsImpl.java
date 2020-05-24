@@ -15,6 +15,7 @@
  */
 package io.realm;
 
+import org.bson.codecs.Decoder;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
@@ -43,7 +44,7 @@ class FunctionsImpl extends Functions {
 
     // Invokes actual MongoDB Realm Function in the context of the associated user/app.
     @Override
-    public <T> T invoke(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry) {
+    public <T> T invoke(String name, List<?> args, CodecRegistry codecRegistry, Decoder<T> resultDecoder) {
         Util.checkEmpty(name, "name");
 
         String encodedArgs = JniBsonProtocol.encode(args, codecRegistry);
@@ -59,7 +60,7 @@ class FunctionsImpl extends Functions {
         };
         nativeCallFunction(user.getApp().nativePtr, user.osUser.getNativePtr(), name, encodedArgs, callback);
         String encodedResponse = ResultHandler.handleResult(success, error);
-        return JniBsonProtocol.decode(encodedResponse, resultClass, codecRegistry);
+        return JniBsonProtocol.decode(encodedResponse, resultDecoder);
    }
 
    private static native void nativeCallFunction(long nativeAppPtr, long nativeUserPtr, String name, String args_json, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
