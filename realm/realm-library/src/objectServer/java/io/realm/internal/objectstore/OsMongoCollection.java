@@ -303,18 +303,18 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public <ResultT> ResultT findOneAndDelete(final Bson filter,
                                               final Class<ResultT> resultClass) {
-        return findOneAndInternal(FindOneAndType.DELETE, filter, null, null, resultClass);
+        return findOneAndDeleteInternal(filter, null, resultClass);
     }
 
     public DocumentT findOneAndDelete(final Bson filter,
                                       final FindOneAndModifyOptions options) {
-        return findOneAndInternal(FindOneAndType.DELETE, filter, null, options, documentClass);
+        return findOneAndDeleteInternal(filter, options, documentClass);
     }
 
     public <ResultT> ResultT findOneAndDelete(final Bson filter,
                                       final FindOneAndModifyOptions options,
                                       final Class<ResultT> resultClass) {
-        return findOneAndInternal(FindOneAndType.DELETE, filter, null, options, resultClass);
+        return findOneAndDeleteInternal(filter, options, resultClass);
     }
 
     private UpdateResult updateInternal(UpdateType type, final Bson filter, final Bson update, @Nullable final UpdateOptions options) {
@@ -386,9 +386,15 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
+    private  <ResultT> ResultT findOneAndDeleteInternal(final Bson filter,
+                                                        @Nullable final FindOneAndModifyOptions options,
+                                                        final Class<ResultT> resultClass) {
+        return findOneAndInternal(FindOneAndType.DELETE, filter, new Document(), options, resultClass);
+    }
+
     private  <ResultT> ResultT findOneAndInternal(final FindOneAndType type,
                                                   final Bson filter,
-                                                  @Nullable final Bson update,
+                                                  final Bson update,
                                                   @Nullable final FindOneAndModifyOptions options,
                                                   final Class<ResultT> resultClass) {
         AtomicReference<ResultT> success = new AtomicReference<>(null);
