@@ -17,7 +17,6 @@
 package io.realm.internal.objectstore;
 
 import org.bson.BsonArray;
-import org.bson.BsonDocument;
 import org.bson.BsonNull;
 import org.bson.BsonObjectId;
 import org.bson.BsonValue;
@@ -29,7 +28,6 @@ import org.bson.types.ObjectId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -133,15 +131,15 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     // FIXME: fix find implementation - ignore this code for code review
     public <ResultT> Collection<ResultT> find(final Bson filter,
-                                  final Class<ResultT> resultClass,
-                                  @Nullable final FindOptions options) {
+                                              final Class<ResultT> resultClass,
+                                              @Nullable final FindOptions options) {
         AtomicReference<Collection<ResultT>> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<Collection<ResultT>> callback = new OsJNIResultCallback<Collection<ResultT>>(success, error) {
             @Override
+            @SuppressWarnings("unchecked")
             protected Collection<ResultT> mapSuccess(Object result) {
-                BsonArray array = JniBsonProtocol.decode((String) result, BsonArray.class, codecRegistry);
-                return JniBsonProtocol.decodeArray(array, resultClass, codecRegistry);
+                return JniBsonProtocol.decode((String) result, Collection.class, codecRegistry);
             }
         };
 

@@ -73,12 +73,11 @@ class MongoCollectionTest {
     fun insertOne() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             assertEquals(0, count().blockingGetResult())
-//            val doc1 = Document(mapOf("hello_1" to 1, "hello_2" to 2))
             val doc1 = Document(mapOf("hello_1" to "1", "hello_2" to "2"))
             insertOne(doc1).blockingGetResult()
             assertEquals(1, count().blockingGetResult())
 
-            // FIXME: revisit this later
+            // FIXME: revisit when parser is fully operational
 //            val doc2 = Document("hello", "world")
 //            doc2["_id"] = ObjectId()
 //
@@ -229,7 +228,7 @@ class MongoCollectionTest {
             // Test findOne() with filter that does not match any documents and no options
             assertNull(findOne(Document("hello", "worldDNE")).blockingGetResult())
 
-            // FIXME: revisit this later
+            // FIXME: revisit when parser is fully operational
             // Insert 2 more documents into the collection
 //            insertMany(listOf(doc2, doc3)).blockingGetResult()    // use insertOne for now
             insertOne(doc2).blockingGetResult()
@@ -267,22 +266,23 @@ class MongoCollectionTest {
     fun updateOne() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             val doc1 = Document("hello", "world")
-            val result1 = updateOne(Document(), doc1).blockingGetResult()
-            assertEquals(0, result1!!.matchedCount)
+            val result1 = updateOne(Document(), doc1).blockingGetResult()!!
+            assertEquals(0, result1.matchedCount)
             assertEquals(0, result1.modifiedCount)
             assertNull(result1.upsertedId)
 
             val options2 = UpdateOptions().upsert(true)
-            val result2 = updateOne(Document(), doc1, options2).blockingGetResult()
-            assertEquals(0, result2!!.matchedCount)
+            val result2 = updateOne(Document(), doc1, options2).blockingGetResult()!!
+            assertEquals(0, result2.matchedCount)
             assertEquals(0, result2.modifiedCount)
             assertFalse(result2.upsertedId!!.isNull)
 
-            val result3 = updateOne(Document(), Document("\$set", Document("woof", "meow"))).blockingGetResult()
-            assertEquals(1, result3!!.matchedCount)
+            val result3 = updateOne(Document(), Document("\$set", Document("woof", "meow"))).blockingGetResult()!!
+            assertEquals(1, result3.matchedCount)
             assertEquals(1, result3.modifiedCount)
             assertNull(result3.upsertedId)
 
+            // FIXME: revisit when parser is fully operational
 //            val expectedDoc = Document("hello", "world")
 //            expectedDoc["woof"] = "meow"
 //            assertEquals(expectedDoc, withoutId(Tasks.await(coll.find(Document()).first())))
@@ -302,27 +302,28 @@ class MongoCollectionTest {
     fun updateMany() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             val doc1 = Document("hello", "world")
-            val result1 = updateMany(Document(), doc1).blockingGetResult()
-            assertEquals(0, result1!!.matchedCount)
+            val result1 = updateMany(Document(), doc1).blockingGetResult()!!
+            assertEquals(0, result1.matchedCount)
             assertEquals(0, result1.modifiedCount)
             assertNull(result1.upsertedId)
 
             val options2 = UpdateOptions().upsert(true)
-            val result2 = updateMany(Document(), doc1, options2).blockingGetResult()
-            assertEquals(0, result2!!.matchedCount)
+            val result2 = updateMany(Document(), doc1, options2).blockingGetResult()!!
+            assertEquals(0, result2.matchedCount)
             assertEquals(0, result2.modifiedCount)
             assertNotNull(result2.upsertedId)
 
-            val result3 = updateMany(Document(), Document("\$set", Document("woof", "meow"))).blockingGetResult()
-            assertEquals(1, result3!!.matchedCount)
+            val result3 = updateMany(Document(), Document("\$set", Document("woof", "meow"))).blockingGetResult()!!
+            assertEquals(1, result3.matchedCount)
             assertEquals(1, result3.modifiedCount)
             assertNull(result3.upsertedId)
 
             insertOne(Document()).blockingGetResult()
-            val result4 = updateMany(Document(), Document("\$set", Document("woof", "meow"))).blockingGetResult()
-            assertEquals(2, result4!!.matchedCount)
+            val result4 = updateMany(Document(), Document("\$set", Document("woof", "meow"))).blockingGetResult()!!
+            assertEquals(2, result4.matchedCount)
             assertEquals(2, result4.modifiedCount)
 
+            // FIXME: revisit when parser is fully operational
 //            val expectedDoc1 = Document("hello", "world")
 //            expectedDoc1["woof"] = "meow"
 //            val expectedDoc2 = Document("woof", "meow")
@@ -445,8 +446,8 @@ class MongoCollectionTest {
     fun find() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             // FIXME: fix find implementation - ignore this code for code review
-            val iter = find().blockingGetResult()
-            assertFalse(iter!!.iterator().hasNext())
+            val iter = find().blockingGetResult()!!
+            assertFalse(iter.iterator().hasNext())
             assertFailsWith<NoSuchElementException> { iter.first() }
         }
     }

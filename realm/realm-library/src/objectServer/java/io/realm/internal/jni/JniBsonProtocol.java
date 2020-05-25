@@ -16,7 +16,6 @@
 
 package io.realm.internal.jni;
 
-import org.bson.BsonArray;
 import org.bson.BsonValue;
 import org.bson.codecs.Decoder;
 import org.bson.codecs.DecoderContext;
@@ -30,8 +29,6 @@ import org.bson.json.JsonWriterSettings;
 
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * Protocol for passing {@link BsonValue}s to JNI.
@@ -73,15 +70,5 @@ public class JniBsonProtocol {
         T value = decoder.decode(jsonReader, DecoderContext.builder().build());
         jsonReader.readEndDocument();
         return value;
-    }
-
-    public static <T> Collection<T> decodeArray(BsonArray array, Class<T> clz, CodecRegistry registry) {
-        Collection<T> resultList = new ArrayList<>();
-        for (BsonValue value : array.getValues()) {
-            String encodedDocument = JniBsonProtocol.encode(value.asDocument(), registry);
-            T decodedValue = JniBsonProtocol.decode(encodedDocument, clz, registry);
-            resultList.add(decodedValue);
-        }
-        return resultList;
     }
 }
