@@ -228,3 +228,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
     CATCH_STD();
     return nullptr;
 }
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetDeviceId(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        std::string device_id = user->device_id();
+        return to_jstring(env, device_id);
+    }
+    CATCH_STD();
+    return nullptr;
+}

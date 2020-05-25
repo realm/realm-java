@@ -99,6 +99,10 @@ public class OsSyncUser implements NativeObject {
         return identities;
     }
 
+    public String getDeviceId() {
+        return nativeGetDeviceId(nativePtr);
+    }
+
     /**
      * @return {@link #STATE_LOGGED_IN}, {@link #STATE_LOGGED_OUT} or {@link #STATE_REMOVED}
      */
@@ -145,4 +149,5 @@ public class OsSyncUser implements NativeObject {
     private static native byte nativeGetState(long nativePtr);
     private static native void nativeSetState(long nativePtr, byte state);
     private static native String nativeGetProviderType(long nativePtr);
+    private static native String nativeGetDeviceId(long nativePtr);
 }
