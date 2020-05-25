@@ -212,19 +212,20 @@ public class OsRealmConfig implements NativeObject {
         String syncRealmAuthUrl = (String) syncConfigurationOptions[2];
         String syncRefreshToken = (String) syncConfigurationOptions[3];
         String syncAccessToken = (String) syncConfigurationOptions[4];
-        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncConfigurationOptions[5]));
-        String syncSslTrustCertificatePath = (String) syncConfigurationOptions[6];
-        Byte sessionStopPolicy = (Byte) syncConfigurationOptions[7];
-        String urlPrefix = (String)(syncConfigurationOptions[8]);
-        String customAuthorizationHeaderName = (String)(syncConfigurationOptions[9]);
-        Byte clientResyncMode = (Byte) syncConfigurationOptions[11];
-        String partitionValue = (String) syncConfigurationOptions[12];
-        Object syncService = syncConfigurationOptions[13];
+        String deviceId = (String) syncConfigurationOptions[5];
+        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncConfigurationOptions[6]));
+        String syncSslTrustCertificatePath = (String) syncConfigurationOptions[7];
+        Byte sessionStopPolicy = (Byte) syncConfigurationOptions[8];
+        String urlPrefix = (String)(syncConfigurationOptions[9]);
+        String customAuthorizationHeaderName = (String)(syncConfigurationOptions[10]);
+        Byte clientResyncMode = (Byte) syncConfigurationOptions[12];
+        String partitionValue = (String) syncConfigurationOptions[13];
+        Object syncService = syncConfigurationOptions[14];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]
         //noinspection unchecked
-        Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[10]);
+        Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[11]);
         String[] customHeaders = new String[customHeadersMap != null ? customHeadersMap.size() * 2 : 0];
         if (customHeadersMap != null) {
             int i = 0;
@@ -285,6 +286,7 @@ public class OsRealmConfig implements NativeObject {
                     syncUserIdentifier,
                     syncRefreshToken,
                     syncAccessToken,
+                    deviceId,
                     sessionStopPolicy,
                     urlPrefix,
                     customAuthorizationHeaderName,
@@ -386,7 +388,7 @@ public class OsRealmConfig implements NativeObject {
 
     private static native String nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl, String authUrl,
                                                               String userId, String refreshToken, String accessToken,
-                                                              byte sessionStopPolicy, String urlPrefix,
+                                                              String deviceId, byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
                                                               String[] customHeaders, byte clientResetMode,
                                                               String partionKeyValue, Object syncService);
