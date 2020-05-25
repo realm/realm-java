@@ -275,6 +275,12 @@ class RealmUserTests {
     }
 
     @Test
+    fun getDeviceId() {
+        // TODO No reason to integration test this. Use a stubbed response instead.
+        val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        assertTrue(user.deviceId.isNotEmpty() && user.deviceId.length == 24) // Server returns a UUID
+    }
+    @Test
     fun equals() {
         // TODO Could be that we could use a fake user
         val user: RealmUser = app.registerUserAndLogin("user1@example.com", "123456")
