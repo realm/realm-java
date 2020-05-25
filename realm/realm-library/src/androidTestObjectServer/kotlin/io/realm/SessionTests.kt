@@ -29,10 +29,11 @@ import io.realm.rule.BlockingLooperThread
 import io.realm.util.ResourceContainer
 import io.realm.util.assertFailsWithMessage
 import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert.assertThat
-import org.junit.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.IllegalArgumentException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.*
@@ -257,7 +258,6 @@ class SessionTests {
                     var backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile)
                     assertFailsWith<RealmMigrationNeededException> {
                         Realm.getInstance(backupRealmConfiguration)
-                        fail("Expected to throw a Migration required")
                     }
 
                     // opening a DynamicRealm will work though
@@ -269,13 +269,11 @@ class SessionTests {
                         // make sure we can't write to it (read-only Realm)
                         assertFailsWith<java.lang.IllegalStateException> {
                             dynamicRealm.beginTransaction()
-                            fail("Can't perform transactions on read-only Realms")
                         }
                     }
 
                     assertFailsWith<IllegalArgumentException> {
                         SyncConfiguration.forRecovery(backupFile, null, StringOnly::class.java)
-                        fail("Expected to throw java.lang.Class is not a RealmModule")
                     }
 
                     // specifying the module will allow to open the typed Realm
@@ -341,7 +339,6 @@ class SessionTests {
                     // using wrong key throw
                     assertFailsWith<RealmFileException> {
                         Realm.getInstance(SyncConfiguration.forRecovery(backupFile, TestHelper.getRandomKey(), StringOnlyModule()))
-                        fail("Expected to throw when using wrong encryption key")
                     }
                     looperThread.testComplete()
                 }
@@ -363,7 +360,6 @@ class SessionTests {
         Realm.getInstance(configuration).use { realm ->
             assertFailsWith<java.lang.IllegalStateException> {
                 realm.syncSession.uploadAllLocalChanges()
-                fail("Should throw an IllegalStateException on Ui Thread")
             }
         }
     }
@@ -374,7 +370,6 @@ class SessionTests {
         Realm.getInstance(configuration).use { realm ->
             assertFailsWith<IllegalStateException> {
                 realm.syncSession.uploadAllLocalChanges(30, TimeUnit.SECONDS)
-                fail("Should throw an IllegalStateException on Ui Thread")
             }
         }
     }
@@ -406,7 +401,6 @@ class SessionTests {
         Realm.getInstance(configuration).use {realm ->
             assertFailsWith<IllegalStateException> {
                 realm.syncSession.downloadAllServerChanges()
-                fail("Should throw an IllegalStateException on Ui Thread")
             }
         }
     }
@@ -417,7 +411,6 @@ class SessionTests {
         Realm.getInstance(configuration).use { realm ->
             assertFailsWith<IllegalStateException> {
                 realm.syncSession.downloadAllServerChanges(30, TimeUnit.SECONDS)
-                fail("Should throw an IllegalStateException on Ui Thread")
             }
         }
     }
@@ -428,7 +421,6 @@ class SessionTests {
             val session = realm.syncSession
             assertFailsWith<IllegalArgumentException> {
                 session.downloadAllServerChanges(-1, TimeUnit.SECONDS)
-                fail()
             }
             assertFailsWith<IllegalArgumentException> {
                 session.downloadAllServerChanges(1, TestHelper.getNull())
@@ -480,7 +472,6 @@ class SessionTests {
                 CoreMatchers.containsString( "No SyncSession found using the path : ")
         ) {
             app.sync.getSession(configuration)
-            fail("getSession should throw an ISE")
         }
     }
 
