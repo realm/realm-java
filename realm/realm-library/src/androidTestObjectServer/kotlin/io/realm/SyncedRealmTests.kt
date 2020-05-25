@@ -48,34 +48,6 @@ class SyncedRealmTests {
         }
     }
 
-    // Test for https://github.com/realm/realm-java/issues/6619
-    @Test
-    @Ignore("Only relates to query based sync, will be going to be removed anyway")
-    @Throws(IOException::class)
-    fun testUpgradingOptionalSubscriptionFields() {
-        val user = createTestUser(app)
-
-        // Put an older Realm at the location where Realm would otherwise create a new empty one.
-        // This way, Realm will upgrade this file instead.
-        // We don't need to synchronize data with the server, so any errors due to missing
-        // server side files are ignored.
-        // The file was created using Realm Java 5.10.0
-        val config = configFactory.createSyncConfigurationBuilder(user).build()
-        val realmDir = config.realmDirectory
-        val oldRealmFile = File(realmDir, "optionalsubscriptionfields")
-        assertFalse(oldRealmFile.exists())
-        configFactory.copyFileFromAssets(InstrumentationRegistry.getInstrumentation().targetContext.applicationContext, "optionalsubscriptionfields.realm", oldRealmFile)
-        assertTrue(oldRealmFile.exists())
-
-        // Opening the Realm should not throw a schema mismatch
-        Realm.getInstance(config).use { realm ->
-            // Verify that createdAt/updatedAt are still optional even though the Java model class
-            // says they should be required.
-            val realmObjectSchema = realm.getSchema()["__ResultSets"]!!
-            assertTrue(realmObjectSchema.isNullable("updated_at"))
-        }
-    }
-
     @Test
     @Ignore("Flaky, seems like Realm.compactRealm(config) sometimes returns false")
     fun compactRealm_populatedRealm() {
