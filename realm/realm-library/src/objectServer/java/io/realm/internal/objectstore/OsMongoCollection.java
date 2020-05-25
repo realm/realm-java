@@ -16,6 +16,8 @@
 
 package io.realm.internal.objectstore;
 
+import androidx.annotation.IntDef;
+
 import org.bson.BsonArray;
 import org.bson.BsonNull;
 import org.bson.BsonObjectId;
@@ -25,6 +27,8 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,10 +52,22 @@ import io.realm.mongodb.mongo.result.UpdateResult;
 
 public class OsMongoCollection<DocumentT> implements NativeObject {
 
-    private static final int UPDATE_ONE = 1;
-    private static final int UPDATE_ONE_WITH_OPTIONS = 2;
-    private static final int UPDATE_MANY = 3;
-    private static final int UPDATE_MANY_WITH_OPTIONS = 4;
+    private static final int DELETE_ONE = 1;
+    private static final int DELETE_MANY = 2;
+    private static final int UPDATE_ONE = 3;
+    private static final int UPDATE_ONE_WITH_OPTIONS = 4;
+    private static final int UPDATE_MANY = 5;
+    private static final int UPDATE_MANY_WITH_OPTIONS = 6;
+    private static final int FIND_ONE_AND_UPDATE = 7;
+    private static final int FIND_ONE_AND_UPDATE_WITH_OPTIONS = 8;
+    private static final int FIND_ONE_AND_REPLACE = 9;
+    private static final int FIND_ONE_AND_REPLACE_WITH_OPTIONS = 10;
+    private static final int FIND_ONE_AND_DELETE = 11;
+    private static final int FIND_ONE_AND_DELETE_WITH_OPTIONS = 12;
+    private static final int FIND_ONE = 13;
+    private static final int FIND_ONE_WITH_OPTIONS = 14;
+
+    private static final String EMPTY_STRING = "";
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
@@ -78,14 +94,18 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     }
 
     public Long count() {
-        return count(null);
+        return countInternal(new Document(), null);
     }
 
-    public Long count(@Nullable final Bson filter) {
-        return count(filter, null);
+    public Long count(final Bson filter) {
+        return countInternal(filter, null);
     }
 
-    public Long count(@Nullable final Bson filter, @Nullable final CountOptions options) {
+    public Long count(final Bson filter, final CountOptions options) {
+        return countInternal(filter, options);
+    }
+
+    private Long countInternal(final Bson filter, @Nullable final CountOptions options) {
         AtomicReference<Long> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<Long> callback = new OsJNIResultCallback<Long>(success, error) {
@@ -95,10 +115,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        // no filter means count all
-        String filterString = (filter == null) ?
-                JniBsonProtocol.encode(new Document(), codecRegistry) :
-                JniBsonProtocol.encode(filter, codecRegistry);
+        String filterString = JniBsonProtocol.encode(filter, codecRegistry);
         int limit = (options == null) ? 0 : options.getLimit();
 
         nativeCount(nativePtr, filterString, limit, callback);
@@ -106,65 +123,111 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     public OsMongoFindIterable<DocumentT> find() {
-        return find(new Document());
+        return findInternal(new Document(), documentClass, null);
     }
 
     public OsMongoFindIterable<DocumentT> find(final FindOptions options) {
-        return find(new Document(), options);
+        return findInternal(new Document(), documentClass, options);
     }
 
     public <ResultT> OsMongoFindIterable<ResultT> find(final Class<ResultT> resultClass) {
-        return find(new Document(), resultClass);
+        return findInternal(new Document(), resultClass, null);
     }
 
     public <ResultT> OsMongoFindIterable<ResultT> find(final Class<ResultT> resultClass, final FindOptions options) {
-        return find(new Document(), resultClass, options);
+        return findInternal(new Document(), resultClass, options);
     }
 
     public OsMongoFindIterable<DocumentT> find(final Bson filter) {
-        return find(filter, documentClass);
+        return findInternal(filter, documentClass, null);
     }
 
     public OsMongoFindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
-        return find(filter, documentClass, options);
+        return findInternal(filter, documentClass, options);
     }
 
-    public <ResultT> OsMongoFindIterable<ResultT> find(final Bson filter, final Class<ResultT> resultClass) {
-        return find(filter, resultClass, null);
+    public <ResultT> OsMongoFindIterable<ResultT> find(final Bson filter,
+                                                       final Class<ResultT> resultClass) {
+        return findInternal(filter, resultClass, null);
     }
 
     public <ResultT> OsMongoFindIterable<ResultT> find(final Bson filter,
                                                        final Class<ResultT> resultClass,
-                                                       @Nullable final FindOptions options) {
+                                                       final FindOptions options) {
+        return findInternal(filter, resultClass, options);
+    }
+
+    private <ResultT> OsMongoFindIterable<ResultT> findInternal(final Bson filter,
+                                                                final Class<ResultT> resultClass,
+                                                                @Nullable final FindOptions options) {
         return new OsMongoFindIterable<>(this, codecRegistry, resultClass, filter, options);
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     public DocumentT findOne() {
-        return findOne(new Document());
+        return findOneInternal(FIND_ONE, new Document(), null, documentClass);
     }
 
     public <ResultT> ResultT findOne(final Class<ResultT> resultClass) {
-        return findOne(null, resultClass);
+        return findOneInternal(FIND_ONE, new Document(), null, resultClass);
     }
 
     public DocumentT findOne(final Bson filter) {
-        return findOne(filter, documentClass);
+        return findOneInternal(FIND_ONE, filter, null, documentClass);
     }
 
-    public <ResultT> ResultT findOne(final @Nullable Bson filter, final Class<ResultT> resultClass) {
-        return findOneInternal(filter, null, resultClass);
+    public <ResultT> ResultT findOne(final Bson filter, final Class<ResultT> resultClass) {
+        return findOneInternal(FIND_ONE, filter, null, resultClass);
     }
 
-    public DocumentT findOne(@Nullable final Bson filter, final FindOptions options) {
-        return findOne(filter, options, documentClass);
+    public DocumentT findOne(final Bson filter, final FindOptions options) {
+        return findOneInternal(FIND_ONE_WITH_OPTIONS, filter, options, documentClass);
     }
 
-    public <ResultT> ResultT findOne(@Nullable final Bson filter,
+    public <ResultT> ResultT findOne(final Bson filter,
                                      final FindOptions options,
                                      final Class<ResultT> resultClass) {
-        return findOneInternal(filter, options, resultClass);
+        return findOneInternal(FIND_ONE_WITH_OPTIONS, filter, options, resultClass);
     }
+
+    private <ResultT> ResultT findOneInternal(@FindOneType final int findOneType,
+                                              final Bson filter,
+                                              @Nullable final FindOptions options,
+                                              final Class<ResultT> resultClass) {
+        AtomicReference<ResultT> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
+            @Override
+            protected ResultT mapSuccess(Object result) {
+                return findSuccessMapper(result, resultClass);
+            }
+        };
+
+        String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
+
+        switch (findOneType) {
+            case FIND_ONE:
+                nativeFindOne(FIND_ONE, nativePtr, encodedFilter, EMPTY_STRING, EMPTY_STRING, 0, callback);
+                break;
+            case FIND_ONE_WITH_OPTIONS:
+                if (options == null) {
+                    throw new IllegalStateException("FindOptions must not be null.");
+                }
+                String projectionString = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
+                String sortString = JniBsonProtocol.encode(options.getSort(), codecRegistry);
+
+                nativeFindOne(FIND_ONE_WITH_OPTIONS, nativePtr, encodedFilter, projectionString, sortString, options.getLimit(), callback);
+                break;
+        }
+
+        return ResultHandler.handleResult(success, error);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public InsertOneResult insertOne(final DocumentT document) {
         AtomicReference<InsertOneResult> success = new AtomicReference<>(null);
@@ -181,6 +244,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         nativeInsertOne(nativePtr, encodedDocument, callback);
         return ResultHandler.handleResult(success, error);
     }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public InsertManyResult insertMany(final List<? extends DocumentT> documents) {
         AtomicReference<InsertManyResult> success = new AtomicReference<>(null);
@@ -204,101 +269,64 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     public DeleteResult deleteOne(final Bson filter) {
-        return deleteInternal(DeleteType.ONE, filter);
+        return deleteInternal(DELETE_ONE, filter);
     }
 
     public DeleteResult deleteMany(final Bson filter) {
-        return deleteInternal(DeleteType.MANY, filter);
+        return deleteInternal(DELETE_MANY, filter);
     }
 
+    private DeleteResult deleteInternal(@DeleteType final int type, final Bson filter) {
+        AtomicReference<DeleteResult> success = new AtomicReference<>(null);
+        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        OsJNIResultCallback<DeleteResult> callback = new OsJNIResultCallback<DeleteResult>(success, error) {
+            @Override
+            protected DeleteResult mapSuccess(Object result) {
+                return new DeleteResult((Long) result);
+            }
+        };
+
+        String jsonDocument = JniBsonProtocol.encode(filter, codecRegistry);
+        switch (type) {
+            case DELETE_ONE:
+                nativeDelete(DELETE_ONE, nativePtr, jsonDocument, callback);
+                break;
+            case DELETE_MANY:
+                nativeDelete(DELETE_MANY, nativePtr, jsonDocument, callback);
+                break;
+        }
+        return ResultHandler.handleResult(success, error);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     public UpdateResult updateOne(final Bson filter, final Bson update) {
-        return updateOne(filter, update, null);
+        return updateInternal(UPDATE_ONE, filter, update, null);
     }
 
     public UpdateResult updateOne(final Bson filter,
                                   final Bson update,
                                   @Nullable final UpdateOptions options) {
-        return updateInternal(UpdateType.ONE, filter, update, options);
+        return updateInternal(UPDATE_ONE_WITH_OPTIONS, filter, update, options);
     }
 
     public UpdateResult updateMany(final Bson filter, final Bson update) {
-        return updateMany(filter, update, null);
+        return updateInternal(UPDATE_MANY, filter, update, null);
     }
 
     public UpdateResult updateMany(final Bson filter,
                                    final Bson update,
                                    @Nullable final UpdateOptions options) {
-        return updateInternal(UpdateType.MANY, filter, update, options);
+        return updateInternal(UPDATE_MANY_WITH_OPTIONS, filter, update, options);
     }
 
-    public DocumentT findOneAndUpdate(final Bson filter, final Bson update) {
-        return findOneAndUpdate(filter, update, documentClass);
-    }
-
-    public <ResultT> ResultT findOneAndUpdate(final Bson filter,
-                                              final Bson update,
-                                              final Class<ResultT> resultClass) {
-        return findOneAndInternal(FindOneAndType.UPDATE, filter, update, null, resultClass);
-    }
-
-    public DocumentT findOneAndUpdate(final Bson filter,
-                                      final Bson update,
-                                      final FindOneAndModifyOptions options) {
-        return findOneAndUpdate(filter, update, options, documentClass);
-    }
-
-    public <ResultT> ResultT findOneAndUpdate(final Bson filter,
-                                              final Bson update,
-                                              final FindOneAndModifyOptions options,
-                                              final Class<ResultT> resultClass) {
-        return findOneAndInternal(FindOneAndType.UPDATE, filter, update, options, resultClass);
-    }
-
-    public DocumentT findOneAndReplace(final Bson filter, final Bson replacement) {
-        return findOneAndReplace(filter, replacement, documentClass);
-    }
-
-    public <ResultT> ResultT findOneAndReplace(final Bson filter,
-                                               final Bson update,
-                                               final Class<ResultT> resultClass) {
-        return findOneAndInternal(FindOneAndType.REPLACE, filter, update, null, resultClass);
-    }
-
-    public DocumentT findOneAndReplace(final Bson filter,
-                                       final Bson update,
-                                       final FindOneAndModifyOptions options) {
-        return findOneAndReplace(filter, update, options, documentClass);
-    }
-
-    public <ResultT> ResultT findOneAndReplace(final Bson filter,
-                                               final Bson update,
-                                               final FindOneAndModifyOptions options,
-                                               final Class<ResultT> resultClass) {
-        return findOneAndInternal(FindOneAndType.REPLACE, filter, update, options, resultClass);
-    }
-
-    public DocumentT findOneAndDelete(final Bson filter) {
-        return findOneAndDelete(filter, documentClass);
-    }
-
-    public <ResultT> ResultT findOneAndDelete(final Bson filter,
-                                              final Class<ResultT> resultClass) {
-        return findOneAndInternal(FindOneAndType.DELETE, filter, null, null, resultClass);
-    }
-
-    public DocumentT findOneAndDelete(final Bson filter,
-                                      final FindOneAndModifyOptions options) {
-        return findOneAndInternal(FindOneAndType.DELETE, filter, null, options, documentClass);
-    }
-
-    public <ResultT> ResultT findOneAndDelete(final Bson filter,
-                                              final FindOneAndModifyOptions options,
-                                              final Class<ResultT> resultClass) {
-        return findOneAndInternal(FindOneAndType.DELETE, filter, null, options, resultClass);
-    }
-
-    private UpdateResult updateInternal(UpdateType type, final Bson filter, final Bson update, @Nullable final UpdateOptions options) {
+    private UpdateResult updateInternal(@UpdateType final int type,
+                                        final Bson filter,
+                                        final Bson update,
+                                        @Nullable final UpdateOptions options) {
         AtomicReference<UpdateResult> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<UpdateResult> callback = new OsJNIResultCallback<UpdateResult>(success, error) {
@@ -322,56 +350,98 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         String jsonUpdate = JniBsonProtocol.encode(update, codecRegistry);
 
         switch (type) {
-            case ONE:
-                if (options == null) {
-                    nativeUpdate(UPDATE_ONE, nativePtr, jsonFilter, jsonUpdate, false, callback);
-                } else {
-                    nativeUpdate(UPDATE_ONE_WITH_OPTIONS, nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
-                }
+            case UPDATE_ONE:
+            case UPDATE_MANY:
+                nativeUpdate(type, nativePtr, jsonFilter, jsonUpdate, false, callback);
                 break;
-            case MANY:
+            case UPDATE_ONE_WITH_OPTIONS:
+            case UPDATE_MANY_WITH_OPTIONS:
                 if (options == null) {
-                    nativeUpdate(UPDATE_MANY, nativePtr, jsonFilter, jsonUpdate, false, callback);
-                } else {
-                    nativeUpdate(UPDATE_MANY_WITH_OPTIONS, nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
+                    throw new IllegalStateException("UpdateOptions must not be null.");
                 }
+                nativeUpdate(type, nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
                 break;
         }
         return ResultHandler.handleResult(success, error);
     }
 
-    private <ResultT> ResultT findOneInternal(@Nullable final Bson filter,
-                                              @Nullable final FindOptions options,
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public DocumentT findOneAndUpdate(final Bson filter, final Bson update) {
+        return findOneAndOperationInternal(FIND_ONE_AND_UPDATE, filter, update, null, documentClass);
+    }
+
+    public <ResultT> ResultT findOneAndUpdate(final Bson filter,
+                                              final Bson update,
                                               final Class<ResultT> resultClass) {
-        AtomicReference<ResultT> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
-            @Override
-            protected ResultT mapSuccess(Object result) {
-                return findSuccessMapper(result, resultClass);
-            }
-        };
-
-        String encodedFilter = (filter == null) ?
-                JniBsonProtocol.encode(new Document(), codecRegistry) :
-                JniBsonProtocol.encode(filter, codecRegistry);
-        if (options == null) {
-            nativeFindOne(nativePtr, encodedFilter, callback);
-        } else {
-            String projectionString = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
-            String sortString = JniBsonProtocol.encode(options.getSort(), codecRegistry);
-
-            nativeFindOneWithOptions(nativePtr, encodedFilter, projectionString, sortString, options.getLimit(), callback);
-        }
-
-        return ResultHandler.handleResult(success, error);
+        return findOneAndOperationInternal(FIND_ONE_AND_UPDATE, filter, update, null, resultClass);
     }
 
-    private <ResultT> ResultT findOneAndInternal(final FindOneAndType type,
-                                                 final Bson filter,
-                                                 @Nullable final Bson update,
-                                                 @Nullable final FindOneAndModifyOptions options,
-                                                 final Class<ResultT> resultClass) {
+    public DocumentT findOneAndUpdate(final Bson filter,
+                                      final Bson update,
+                                      final FindOneAndModifyOptions options) {
+        return findOneAndOperationInternal(FIND_ONE_AND_UPDATE_WITH_OPTIONS, filter, update, options, documentClass);
+    }
+
+    public <ResultT> ResultT findOneAndUpdate(final Bson filter,
+                                              final Bson update,
+                                              final FindOneAndModifyOptions options,
+                                              final Class<ResultT> resultClass) {
+        return findOneAndOperationInternal(FIND_ONE_AND_UPDATE, filter, update, options, resultClass);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public DocumentT findOneAndReplace(final Bson filter, final Bson replacement) {
+        return findOneAndOperationInternal(FIND_ONE_AND_REPLACE, filter, replacement, null, documentClass);
+    }
+
+    public <ResultT> ResultT findOneAndReplace(final Bson filter,
+                                               final Bson replacement,
+                                               final Class<ResultT> resultClass) {
+        return findOneAndOperationInternal(FIND_ONE_AND_REPLACE, filter, replacement, null, resultClass);
+    }
+
+    public DocumentT findOneAndReplace(final Bson filter,
+                                       final Bson replacement,
+                                       final FindOneAndModifyOptions options) {
+        return findOneAndOperationInternal(FIND_ONE_AND_REPLACE_WITH_OPTIONS, filter, replacement, options, documentClass);
+    }
+
+    public <ResultT> ResultT findOneAndReplace(final Bson filter,
+                                               final Bson replacement,
+                                               final FindOneAndModifyOptions options,
+                                               final Class<ResultT> resultClass) {
+        return findOneAndOperationInternal(FIND_ONE_AND_REPLACE, filter, replacement, options, resultClass);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public DocumentT findOneAndDelete(final Bson filter) {
+        return findOneAndOperationInternal(FIND_ONE_AND_DELETE, filter, null, null, documentClass);
+    }
+
+    public <ResultT> ResultT findOneAndDelete(final Bson filter,
+                                              final Class<ResultT> resultClass) {
+        return findOneAndOperationInternal(FIND_ONE_AND_DELETE, filter, null, null, resultClass);
+    }
+
+    public DocumentT findOneAndDelete(final Bson filter,
+                                      final FindOneAndModifyOptions options) {
+        return findOneAndOperationInternal(FIND_ONE_AND_DELETE_WITH_OPTIONS, filter, null, options, documentClass);
+    }
+
+    public <ResultT> ResultT findOneAndDelete(final Bson filter,
+                                              final FindOneAndModifyOptions options,
+                                              final Class<ResultT> resultClass) {
+        return findOneAndOperationInternal(FIND_ONE_AND_DELETE_WITH_OPTIONS, filter, null, options, resultClass);
+    }
+
+    private <ResultT> ResultT findOneAndOperationInternal(@FindOneAndOperationType final int type,
+                                                          final Bson filter,
+                                                          @Nullable final Bson update,
+                                                          @Nullable final FindOneAndModifyOptions options,
+                                                          final Class<ResultT> resultClass) {
         AtomicReference<ResultT> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
@@ -390,54 +460,41 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             encodedSort = JniBsonProtocol.encode(options.getSort(), codecRegistry);
         }
 
+        // FIXME: add assertion for options
         switch (type) {
-            case UPDATE:
-                if (options == null) {
-                    nativeFindOneAndUpdate(nativePtr, encodedFilter, encodedUpdate, callback);
-                } else {
-                    nativeFindOneAndUpdateWithOptions(nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
-                }
+            case FIND_ONE_AND_UPDATE:
+                nativeFindOneAndUpdate(type, nativePtr, encodedFilter, encodedUpdate, EMPTY_STRING, EMPTY_STRING, false, false, callback);
                 break;
-            case REPLACE:
+            case FIND_ONE_AND_UPDATE_WITH_OPTIONS:
                 if (options == null) {
-                    nativeFindOneAndReplace(nativePtr, encodedFilter, encodedUpdate, callback);
-                } else {
-                    nativeFindOneAndReplaceWithOptions(nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
+                    throw new IllegalStateException("FindOneAndModifyOptions must not be null");
                 }
+                nativeFindOneAndUpdate(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
                 break;
-            case DELETE:
+            case FIND_ONE_AND_REPLACE:
+                nativeFindOneAndReplace(type, nativePtr, encodedFilter, encodedUpdate, EMPTY_STRING, EMPTY_STRING, false, false,callback);
+                break;
+            case FIND_ONE_AND_REPLACE_WITH_OPTIONS:
                 if (options == null) {
-                    nativeFindOneAndDelete(nativePtr, encodedFilter, callback);
-                } else {
-                    nativeFindOneAndDeleteWithOptions(nativePtr, encodedFilter, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
+                    throw new IllegalStateException("FindOneAndModifyOptions must not be null");
                 }
+                nativeFindOneAndReplace(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
+                break;
+            case FIND_ONE_AND_DELETE:
+                nativeFindOneAndDelete(type, nativePtr, encodedFilter, EMPTY_STRING, EMPTY_STRING, false, false, callback);
+                break;
+            case FIND_ONE_AND_DELETE_WITH_OPTIONS:
+                if (options == null) {
+                    throw new IllegalStateException("FindOneAndModifyOptions must not be null");
+                }
+                nativeFindOneAndDelete(type, nativePtr, encodedFilter, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
                 break;
         }
 
         return ResultHandler.handleResult(success, error);
     }
 
-    private DeleteResult deleteInternal(final DeleteType type, final Bson filter) {
-        AtomicReference<DeleteResult> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        OsJNIResultCallback<DeleteResult> callback = new OsJNIResultCallback<DeleteResult>(success, error) {
-            @Override
-            protected DeleteResult mapSuccess(Object result) {
-                return new DeleteResult((Long) result);
-            }
-        };
-
-        String jsonDocument = JniBsonProtocol.encode(filter, codecRegistry);
-        switch (type) {
-            case ONE:
-                nativeDeleteOne(nativePtr, jsonDocument, callback);
-                break;
-            case MANY:
-                nativeDeleteMany(nativePtr, jsonDocument, callback);
-                break;
-        }
-        return ResultHandler.handleResult(success, error);
-    }
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private <T> T findSuccessMapper(@Nullable Object result, Class<T> resultClass) {
         if (result == null) {
@@ -447,16 +504,24 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         }
     }
 
-    private enum UpdateType {
-        ONE, MANY
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({UPDATE_ONE, UPDATE_ONE_WITH_OPTIONS, UPDATE_MANY, UPDATE_MANY_WITH_OPTIONS})
+    @interface UpdateType {
     }
 
-    private enum DeleteType {
-        ONE, MANY
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({DELETE_ONE, DELETE_MANY})
+    @interface DeleteType {
     }
 
-    private enum FindOneAndType {
-        UPDATE, REPLACE, DELETE
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({FIND_ONE, FIND_ONE_WITH_OPTIONS})
+    @interface FindOneType {
+    }
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({FIND_ONE_AND_UPDATE, FIND_ONE_AND_UPDATE_WITH_OPTIONS, FIND_ONE_AND_REPLACE, FIND_ONE_AND_REPLACE_WITH_OPTIONS, FIND_ONE_AND_DELETE, FIND_ONE_AND_DELETE_WITH_OPTIONS})
+    @interface FindOneAndOperationType {
     }
 
     private static native long nativeGetFinalizerMethodPtr();
@@ -464,65 +529,53 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                            String filter,
                                            long limit,
                                            OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOne(long nativePtr,
+    private static native void nativeFindOne(@FindOneType int findOneType,
+                                             long nativePtr,
                                              String filter,
+                                             String projection,
+                                             String sort,
+                                             long limit,
                                              OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOneWithOptions(long nativePtr,
-                                                        String filter,
-                                                        String projection,
-                                                        String sort,
-                                                        long limit,
-                                                        OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeInsertOne(long remoteMongoCollectionPtr,
                                                String document,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeInsertMany(long remoteMongoCollectionPtr,
                                                 String documents,
                                                 OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeDeleteOne(long remoteMongoCollectionPtr,
-                                               String document,
-                                               OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeDeleteMany(long remoteMongoCollectionPtr,
-                                                String document,
-                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeUpdate(int updateType,
+    private static native void nativeDelete(@DeleteType int deleteType,
+                                            long remoteMongoCollectionPtr,
+                                            String document,
+                                            OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeUpdate(@UpdateType int updateType,
                                             long remoteMongoCollectionPtr,
                                             String filter,
                                             String update,
                                             boolean upsert,
                                             OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOneAndUpdate(long remoteMongoCollectionPtr,
+    private static native void nativeFindOneAndUpdate(@FindOneAndOperationType int findOneAndUpdateType,
+                                                      long remoteMongoCollectionPtr,
                                                       String filter,
                                                       String update,
+                                                      String projection,
+                                                      String sort,
+                                                      boolean upsert,
+                                                      boolean returnNewDocument,
                                                       OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOneAndUpdateWithOptions(long remoteMongoCollectionPtr,
-                                                                 String filter,
-                                                                 String update,
-                                                                 String projection,
-                                                                 String sort,
-                                                                 boolean upsert,
-                                                                 boolean returnNewDocument,
-                                                                 OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOneAndReplace(long remoteMongoCollectionPtr,
+    private static native void nativeFindOneAndReplace(@FindOneAndOperationType int findOneAndReplaceType,
+                                                       long remoteMongoCollectionPtr,
                                                        String filter,
                                                        String update,
+                                                       String projection,
+                                                       String sort,
+                                                       boolean upsert,
+                                                       boolean returnNewDocument,
                                                        OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOneAndReplaceWithOptions(long remoteMongoCollectionPtr,
-                                                                  String filter,
-                                                                  String update,
-                                                                  String projection,
-                                                                  String sort,
-                                                                  boolean upsert,
-                                                                  boolean returnNewDocument,
-                                                                  OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOneAndDelete(long remoteMongoCollectionPtr,
+    private static native void nativeFindOneAndDelete(@FindOneAndOperationType int findOneAndDeleteType,
+                                                      long remoteMongoCollectionPtr,
                                                       String filter,
+                                                      String projection,
+                                                      String sort,
+                                                      boolean upsert,
+                                                      boolean returnNewDocument,
                                                       OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOneAndDeleteWithOptions(long remoteMongoCollectionPtr,
-                                                                 String filter,
-                                                                 String projection,
-                                                                 String sort,
-                                                                 boolean upsert,
-                                                                 boolean returnNewDocument,
-                                                                 OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }
