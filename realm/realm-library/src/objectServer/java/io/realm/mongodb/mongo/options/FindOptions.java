@@ -23,7 +23,7 @@ import org.bson.conversions.Bson;
 /**
  * The options to apply to a find operation (also commonly referred to as a query).
  */
-public class RemoteFindOptions {
+public class FindOptions {
     private int limit;
     private Bson projection;
     private Bson sort;
@@ -31,7 +31,7 @@ public class RemoteFindOptions {
     /**
      * Construct a new instance.
      */
-    public RemoteFindOptions() {
+    public FindOptions() {
     }
 
     /**
@@ -49,7 +49,7 @@ public class RemoteFindOptions {
      * @param limit the limit, which may be null
      * @return this
      */
-    public RemoteFindOptions limit(final int limit) {
+    public FindOptions limit(final int limit) {
         this.limit = limit;
         return this;
     }
@@ -70,7 +70,7 @@ public class RemoteFindOptions {
      * @param projection the project document, which may be null.
      * @return this
      */
-    public RemoteFindOptions projection(@Nullable final Bson projection) {
+    public FindOptions projection(@Nullable final Bson projection) {
         this.projection = projection;
         return this;
     }
@@ -92,7 +92,7 @@ public class RemoteFindOptions {
      * @param sort the sort criteria, which may be null.
      * @return this
      */
-    public RemoteFindOptions sort(@Nullable final Bson sort) {
+    public FindOptions sort(@Nullable final Bson sort) {
         this.sort = sort;
         return this;
     }

@@ -19,7 +19,7 @@ package io.realm.mongodb.mongo.options;
 /**
  * The options to apply when updating documents.
  */
-public class RemoteUpdateOptions {
+public class UpdateOptions {
     private boolean upsert;
 
     /**
@@ -39,7 +39,7 @@ public class RemoteUpdateOptions {
      *               filter.
      * @return this
      */
-    public RemoteUpdateOptions upsert(final boolean upsert) {
+    public UpdateOptions upsert(final boolean upsert) {
         this.upsert = upsert;
         return this;
     }

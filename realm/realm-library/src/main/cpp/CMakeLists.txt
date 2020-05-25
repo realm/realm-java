@@ -208,9 +208,9 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAppCredentials.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoClient.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoCollection.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoDatabase.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoClient.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoCollection.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoDatabase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/jni_util/bson_util.cpp
     )

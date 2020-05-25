@@ -24,7 +24,7 @@ import org.bson.conversions.Bson;
  * The options to apply to a findOneAndUpdate, findOneAndReplace, or findOneAndDelete operation
  * (also commonly referred to as findOneAndModify operations).
  */
-public class RemoteFindOneAndModifyOptions {
+public class FindOneAndModifyOptions {
     private Bson projection;
     private Bson sort;
     private boolean upsert;
@@ -46,7 +46,7 @@ public class RemoteFindOneAndModifyOptions {
      * @param projection the project document, which may be null.
      * @return this
      */
-    public RemoteFindOneAndModifyOptions projection(@Nullable final Bson projection) {
+    public FindOneAndModifyOptions projection(@Nullable final Bson projection) {
         this.projection = projection;
         return this;
     }
@@ -68,7 +68,7 @@ public class RemoteFindOneAndModifyOptions {
      * @param sort the sort criteria, which may be null.
      * @return this
      */
-    public RemoteFindOneAndModifyOptions sort(@Nullable final Bson sort) {
+    public FindOneAndModifyOptions sort(@Nullable final Bson sort) {
         this.sort = sort;
         return this;
     }
@@ -91,7 +91,7 @@ public class RemoteFindOneAndModifyOptions {
      *               filter.
      * @return this
      */
-    public RemoteFindOneAndModifyOptions upsert(final boolean upsert) {
+    public FindOneAndModifyOptions upsert(final boolean upsert) {
         this.upsert = upsert;
         return this;
     }
@@ -117,7 +117,7 @@ public class RemoteFindOneAndModifyOptions {
      * @param returnNewDocument true if findOneAndModify operations should return the updated document
      * @return this
      */
-    public RemoteFindOneAndModifyOptions returnNewDocument(final boolean returnNewDocument) {
+    public FindOneAndModifyOptions returnNewDocument(final boolean returnNewDocument) {
         this.returnNewDocument = returnNewDocument;
         return this;
     }
