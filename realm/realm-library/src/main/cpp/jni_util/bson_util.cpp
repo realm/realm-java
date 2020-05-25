@@ -24,22 +24,34 @@ static const std::string VALUE("value");
 using namespace realm::bson;
 using namespace realm::jni_util;
 
-Bson JniBsonProtocol::string_to_bson(std::string arg) {
+Bson JniBsonProtocol::string_to_bson(const std::string arg) {
     BsonDocument document(parse(arg));
     return document[VALUE];
 }
-Bson JniBsonProtocol::jstring_to_bson(JNIEnv* env, jstring arg) {
+
+Bson JniBsonProtocol::jstring_to_bson(JNIEnv* env, const jstring arg) {
     return string_to_bson(JStringAccessor(env, arg));
 }
 
-std::string JniBsonProtocol::bson_to_string(Bson bson) {
+const Bson& JniBsonProtocol::check(const realm::bson::Bson& bson, const realm::bson::Bson::Type type, const std::string message) {
+    if (bson.type() != type) {
+        throw realm::util::invalid_argument(message);
+    }
+    return bson;
+}
+
+Bson JniBsonProtocol::parse_checked(JNIEnv* env, const jstring arg, const Bson::Type type, const std::string message) {
+    return JniBsonProtocol::check(JniBsonProtocol::jstring_to_bson(env, arg), type, message);
+}
+
+std::string JniBsonProtocol::bson_to_string(const Bson& bson) {
     BsonDocument document{{VALUE, bson}};
     std::stringstream buffer;
     buffer << document;
     return buffer.str();
 }
 
-jstring JniBsonProtocol::bson_to_jstring(JNIEnv* env, Bson bson) {
+jstring JniBsonProtocol::bson_to_jstring(JNIEnv* env, const Bson& bson) {
     std::string r = bson_to_string(bson);
     return to_jstring(env, r);
 };
