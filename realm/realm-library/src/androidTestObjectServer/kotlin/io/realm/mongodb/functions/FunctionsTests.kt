@@ -51,7 +51,7 @@ class FunctionsTests {
     }
 
     // Pojo class for testing custom encoder/decoder
-    data class Dog(var name: String? = null)
+    private data class Dog(var name: String? = null)
 
     private val looperThread = BlockingLooperThread()
 
@@ -62,7 +62,7 @@ class FunctionsTests {
     private lateinit var admin: ServerAdmin
 
     // Custom registry with support for encoding/decoding Dogs
-    val pojoRegistry by lazy {
+    private val pojoRegistry by lazy {
         CodecRegistries.fromRegistries(
                 app.configuration.defaultCodecRegistry,
                 CodecRegistries.fromProviders(
@@ -71,6 +71,13 @@ class FunctionsTests {
                                 .build()
                 )
         )
+    }
+    // Custom string decoder returning hardcoded value
+    private class CustomStringDecoder(val value: String) : Decoder<String> {
+        override fun decode(reader: BsonReader, decoderContext: DecoderContext): String {
+            reader.readString()
+            return value
+        }
     }
 
     @Before
@@ -286,27 +293,17 @@ class FunctionsTests {
     @Test
     fun resultDecoder() {
         val input = "Realm"
-        val customResult = "Decoded realm"
-        val decoder = object: Decoder<String> {
-            override fun decode(reader: BsonReader, decoderContext: DecoderContext): String {
-                reader.readString()
-                return customResult
-            }
-        }
-        assertEquals(customResult, functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), decoder))
+        val output = "Custom Realm"
+        assertEquals(output, functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), CustomStringDecoder(output)))
     }
 
     @Test
     fun asyncResultDecoder() = looperThread.runBlocking {
         val input = "Realm"
-        val customResult = "Decoded realm"
-        val decoder = Decoder<String> { reader, decoderContext ->
-            reader.readString()
-            customResult
-        }
-        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(input), decoder, RealmApp.Callback<String> { result ->
+        val output = "Custom Realm"
+        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(input), CustomStringDecoder(output), RealmApp.Callback<String> { result ->
             try {
-                assertEquals(customResult, result.orThrow)
+                assertEquals(output, result.orThrow)
             } finally {
                 looperThread.testComplete()
             }
