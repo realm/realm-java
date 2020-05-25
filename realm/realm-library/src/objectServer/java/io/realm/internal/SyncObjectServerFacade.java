@@ -81,6 +81,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String syncRealmAuthUrl = user.getApp().getConfiguration().getBaseUrl().toString();
             String syncUserRefreshToken = user.getRefreshToken();
             String syncUserAccessToken = user.getAccessToken();
+            String deviceId = user.getDeviceId();
             byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
             String urlPrefix = syncConfig.getUrlPrefix();
             String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
@@ -106,15 +107,16 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             configObj[2] = syncRealmAuthUrl;
             configObj[3] = syncUserRefreshToken;
             configObj[4] = syncUserAccessToken;
-            configObj[5] = syncConfig.syncClientValidateSsl();
-            configObj[6] = syncConfig.getServerCertificateFilePath();
-            configObj[7] = sessionStopPolicy;
-            configObj[8] = urlPrefix;
-            configObj[9] = customAuthorizationHeaderName;
-            configObj[10] = customHeaders;
-            configObj[11] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
-            configObj[12] = partitionValue;
-            configObj[13] = app.getSync();
+            configObj[5] = deviceId;
+            configObj[6] = syncConfig.syncClientValidateSsl();
+            configObj[7] = syncConfig.getServerCertificateFilePath();
+            configObj[8] = sessionStopPolicy;
+            configObj[9] = urlPrefix;
+            configObj[10] = customAuthorizationHeaderName;
+            configObj[11] = customHeaders;
+            configObj[12] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
+            configObj[13] = partitionValue;
+            configObj[14] = app.getSync();
             return configObj;
         } else {
             return new Object[SYNC_CONFIG_OPTIONS];

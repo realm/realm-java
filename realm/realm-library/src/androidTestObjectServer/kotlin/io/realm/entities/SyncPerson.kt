@@ -28,7 +28,7 @@ open class SyncPerson(
         @RealmField(name = "_id")
         var id: ObjectId? = ObjectId(),
         var age: Long = 0,
-        var dogs: RealmList<ObjectId> = RealmList(),
+        var dogs: RealmList<SyncDog> = RealmList(),
         var firstName: String = "",
         var lastName: String = ""
         // This field is not required by clients

@@ -208,6 +208,15 @@ public class RealmUser {
 
 
     /**
+     * Returns a unique identifier for the device the user logged in to.
+     *
+     * @return a unique device identifier for the user.
+     */
+    public String getDeviceId() {
+        return osUser.getDeviceId();
+    }
+
+    /**
      * Returns the {@link RealmApp} this user is associated with.
      *
      * @return the {@link RealmApp} this user is associated with.
