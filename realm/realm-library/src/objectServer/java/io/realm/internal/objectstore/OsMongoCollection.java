@@ -48,6 +48,11 @@ import io.realm.mongodb.mongo.result.UpdateResult;
 
 public class OsMongoCollection<DocumentT> implements NativeObject {
 
+    private static final int UPDATE_ONE = 1;
+    private static final int UPDATE_ONE_WITH_OPTIONS = 2;
+    private static final int UPDATE_MANY = 3;
+    private static final int UPDATE_MANY_WITH_OPTIONS = 4;
+
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
@@ -130,8 +135,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     }
 
     public <ResultT> OsMongoFindIterable<ResultT> find(final Bson filter,
-                                                 final Class<ResultT> resultClass,
-                                                 @Nullable final FindOptions options) {
+                                                       final Class<ResultT> resultClass,
+                                                       @Nullable final FindOptions options) {
         return new OsMongoFindIterable<>(this, codecRegistry, resultClass, filter, options);
     }
 
@@ -319,16 +324,16 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         switch (type) {
             case ONE:
                 if (options == null) {
-                    nativeUpdateOne(nativePtr, jsonFilter, jsonUpdate, callback);
+                    nativeUpdate(UPDATE_ONE, nativePtr, jsonFilter, jsonUpdate, false, callback);
                 } else {
-                    nativeUpdateOneWithOptions(nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
+                    nativeUpdate(UPDATE_ONE_WITH_OPTIONS, nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
                 }
                 break;
             case MANY:
                 if (options == null) {
-                    nativeUpdateMany(nativePtr, jsonFilter, jsonUpdate, callback);
+                    nativeUpdate(UPDATE_MANY, nativePtr, jsonFilter, jsonUpdate, false, callback);
                 } else {
-                    nativeUpdateManyWithOptions(nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
+                    nativeUpdate(UPDATE_MANY_WITH_OPTIONS, nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
                 }
                 break;
         }
@@ -480,24 +485,12 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private static native void nativeDeleteMany(long remoteMongoCollectionPtr,
                                                 String document,
                                                 OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeUpdateOne(long remoteMongoCollectionPtr,
-                                               String filter,
-                                               String update,
-                                               OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeUpdateOneWithOptions(long remoteMongoCollectionPtr,
-                                                          String filter,
-                                                          String update,
-                                                          boolean upsert,
-                                                          OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeUpdateMany(long remoteMongoCollectionPtr,
-                                                String filter,
-                                                String update,
-                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeUpdateManyWithOptions(long remoteMongoCollectionPtr,
-                                                           String filter,
-                                                           String update,
-                                                           boolean upsert,
-                                                           OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeUpdate(int updateType,
+                                            long remoteMongoCollectionPtr,
+                                            String filter,
+                                            String update,
+                                            boolean upsert,
+                                            OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeFindOneAndUpdate(long remoteMongoCollectionPtr,
                                                       String filter,
                                                       String update,
