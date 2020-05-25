@@ -7,7 +7,6 @@ import org.hamcrest.Matcher
 import org.junit.Assert.*
 import org.junit.rules.ErrorCollector
 import java.io.Closeable
-import kotlin.test.assertFailsWith
 
 // Helper methods for improving Kotlin unit tests.
 
