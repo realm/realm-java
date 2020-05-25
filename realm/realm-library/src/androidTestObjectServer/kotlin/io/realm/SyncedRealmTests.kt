@@ -135,7 +135,6 @@ class SyncedRealmTests {
 
     // Smoke test for sync
     // Insert objects with links between them
-    @Ignore("Crashes server currently")
     @Test
     fun roundTripObjectsWithLists() {
         // User 1 creates an object an uploads it to MongoDB Realm
@@ -150,7 +149,6 @@ class SyncedRealmTests {
                 for (i in 0..9) {
                     val dog = SyncDog()
                     dog.name = "Fido $i"
-                    it.insert(dog)
                     person.dogs.add(dog)
                 }
                 realm.insert(person)
