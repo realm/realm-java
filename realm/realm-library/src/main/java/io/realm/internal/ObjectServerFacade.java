@@ -30,7 +30,7 @@ import io.realm.exceptions.RealmException;
  */
 public class ObjectServerFacade {
 
-    final static int SYNC_CONFIG_OPTIONS = 12;
+    public final static int SYNC_CONFIG_OPTIONS = 13;
 
     private final static ObjectServerFacade nonSyncFacade = new ObjectServerFacade();
     private static ObjectServerFacade syncFacade = null;

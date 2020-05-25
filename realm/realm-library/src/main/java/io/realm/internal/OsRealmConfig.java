@@ -213,6 +213,7 @@ public class OsRealmConfig implements NativeObject {
         String syncRealmAuthUrl = (String) syncConfigurationOptions[j++];
         String syncRefreshToken = (String) syncConfigurationOptions[j++];
         String syncAccessToken = (String) syncConfigurationOptions[j++];
+        String deviceId = (String) syncConfigurationOptions[j++];
         Byte sessionStopPolicy = (Byte) syncConfigurationOptions[j++];
         String urlPrefix = (String)(syncConfigurationOptions[j++]);
         String customAuthorizationHeaderName = (String)(syncConfigurationOptions[j++]);
@@ -284,6 +285,7 @@ public class OsRealmConfig implements NativeObject {
                     syncUserIdentifier,
                     syncRefreshToken,
                     syncAccessToken,
+                    deviceId,
                     sessionStopPolicy,
                     urlPrefix,
                     customAuthorizationHeaderName,
@@ -384,7 +386,7 @@ public class OsRealmConfig implements NativeObject {
 
     private static native String nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl, String authUrl,
                                                               String userId, String refreshToken, String accessToken,
-                                                              byte sessionStopPolicy, String urlPrefix,
+                                                              String deviceId, byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
                                                               String[] customHeaders, byte clientResetMode,
                                                               String partionKeyValue, Object syncService);

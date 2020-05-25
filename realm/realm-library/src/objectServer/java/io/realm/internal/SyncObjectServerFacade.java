@@ -81,6 +81,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String syncRealmAuthUrl = user.getApp().getConfiguration().getBaseUrl().toString();
             String syncUserRefreshToken = user.getRefreshToken();
             String syncUserAccessToken = user.getAccessToken();
+            String deviceId = user.getDeviceId();
             byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
             String urlPrefix = syncConfig.getUrlPrefix();
             String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
@@ -107,6 +108,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             configObj[i++] = syncRealmAuthUrl;
             configObj[i++] = syncUserRefreshToken;
             configObj[i++] = syncUserAccessToken;
+            configObj[i++] = deviceId;
             configObj[i++] = sessionStopPolicy;
             configObj[i++] = urlPrefix;
             configObj[i++] = customAuthorizationHeaderName;
