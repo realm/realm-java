@@ -71,5 +71,4 @@ public class JniBsonProtocol {
         jsonReader.readEndDocument();
         return value;
     }
-
 }

@@ -23,7 +23,7 @@ import org.bson.BsonValue;
 /**
  * The result of an insert many operation.
  */
-public class RemoteInsertManyResult {
+public class InsertManyResult {
 
     private final Map<Long, BsonValue> insertedIds;
 
@@ -33,7 +33,7 @@ public class RemoteInsertManyResult {
      * @param insertedIds the _ids of the inserted documents arranged by the index of the document
      *                    from the operation and its corresponding id.
      */
-    public RemoteInsertManyResult(final Map<Long, BsonValue> insertedIds) {
+    public InsertManyResult(final Map<Long, BsonValue> insertedIds) {
         this.insertedIds = insertedIds;
     }
 

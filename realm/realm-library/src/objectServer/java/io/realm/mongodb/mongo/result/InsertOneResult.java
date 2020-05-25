@@ -16,28 +16,30 @@
 
 package io.realm.mongodb.mongo.result;
 
-/**
- * The result of a delete operation.
- */
-public class RemoteDeleteResult {
+import org.bson.BsonValue;
 
-    private final long deletedCount;
+/**
+ * The result of an insert one operation.
+ */
+public class InsertOneResult {
+
+    private final BsonValue insertedId;
 
     /**
      * Constructs a result.
      *
-     * @param deletedCount the number of documents deleted.
+     * @param insertedId the _id of the inserted document.
      */
-    public RemoteDeleteResult(final long deletedCount) {
-        this.deletedCount = deletedCount;
+    public InsertOneResult(final BsonValue insertedId) {
+        this.insertedId = insertedId;
     }
 
     /**
-     * Gets the number of documents deleted.
+     * Returns the _id of the inserted document.
      *
-     * @return the number of documents deleted
+     * @return the _id of the inserted document.
      */
-    public long getDeletedCount() {
-        return deletedCount;
+    public BsonValue getInsertedId() {
+        return insertedId;
     }
 }

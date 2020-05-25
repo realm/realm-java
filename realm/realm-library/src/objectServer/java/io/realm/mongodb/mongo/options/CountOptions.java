@@ -19,7 +19,7 @@ package io.realm.mongodb.mongo.options;
 /**
  * The options for a count operation.
  */
-public class RemoteCountOptions {
+public class CountOptions {
     private int limit;
 
     /**
@@ -37,7 +37,7 @@ public class RemoteCountOptions {
      * @param limit the limit
      * @return this
      */
-    public RemoteCountOptions limit(final int limit) {
+    public CountOptions limit(final int limit) {
         this.limit = limit;
         return this;
     }
