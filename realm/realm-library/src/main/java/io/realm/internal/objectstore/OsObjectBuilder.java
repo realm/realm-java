@@ -423,7 +423,7 @@ public class OsObjectBuilder implements Closeable {
      *
      * The builder is automatically closed after calling this method.
      */
-    public void updateExistingEmbeddedObject(@Nullable RealmObjectProxy embeddedObject) {
+    public void updateExistingEmbeddedObject(RealmObjectProxy embeddedObject) {
         try {
             long objKey = embeddedObject.realmGet$proxyState().getRow$realm().getObjectKey();
             nativeUpdateEmbeddedObject(sharedRealmPtr, tablePtr, builderPtr, objKey, ignoreFieldsWithSameValue);
