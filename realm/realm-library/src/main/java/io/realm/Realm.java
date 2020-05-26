@@ -47,6 +47,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
+import io.realm.annotations.RealmClass;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -62,6 +63,7 @@ import io.realm.internal.RealmCore;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
@@ -961,7 +963,7 @@ public class Realm extends BaseRealm {
         checkIfValid();
         RealmProxyMediator mediator = configuration.getSchemaMediator();
         if (mediator.isEmbedded(clazz)) {
-            throw new IllegalArgumentException("Top-level queries are not allowed on embedded classes: " + mediator.getSimpleClassName(clazz));
+            throw new IllegalArgumentException("This class is marked embedded. Use `createEmbeddedObject(class, parent, property)` instead:  " + mediator.getSimpleClassName(clazz));
         }
         return createObjectInternal(clazz, true, Collections.<String>emptyList());
     }
@@ -1010,7 +1012,61 @@ public class Realm extends BaseRealm {
      */
     public <E extends RealmModel> E createObject(Class<E> clazz, @Nullable Object primaryKeyValue) {
         checkIfValid();
+        RealmProxyMediator mediator = configuration.getSchemaMediator();
+        if (mediator.isEmbedded(clazz)) {
+            throw new IllegalArgumentException("This class is marked embedded. Use `createEmbeddedObject(class, parent, property)` instead:  " + mediator.getSimpleClassName(clazz));
+        }
         return createObjectInternal(clazz, primaryKeyValue, true, Collections.<String>emptyList());
+    }
+
+    /**
+     * Instantiates and adds a new embedded object to the Realm.
+     * <p>
+     * This method should only be used to created objects of types marked as embedded.
+     *
+     * @param clazz the Class of the object to create. It must be marked with {@code \@RealmClass(embedded = true)}.
+     * @param parent The parent object which should a reference to the embedded object. If the parent property is a list
+     * the embedded object will be added to the end of that list.
+     * @param parentProperty the property in the parent class which holds the reference.
+     * @return the newly created embedded object.
+     * @throws IllegalArgumentException if {@code clazz} is not an embedded class or if the property
+     * in the parent class cannot hold objects of the appropriate type.
+     * @see RealmClass#embedded()
+     */
+    public <E extends RealmModel> E createEmbeddedObject(Class<E> clazz, RealmModel parentObject, String parentProperty) {
+        checkIfValid();
+        Util.checkNull(parentObject, "parentObject");
+        Util.checkEmpty(parentProperty, "parentProperty");
+        if (!RealmObject.isManaged(parentObject) || !RealmObject.isValid(parentObject)) {
+            throw new IllegalArgumentException("Only valid, managed objects can be a parent to an embedded object.");
+        }
+        RealmObjectProxy proxy = (RealmObjectProxy) parentObject;
+        long parentPropertyColKey = schema.getSchemaForClass(parentObject.getClass()).getColumnKey(parentProperty);
+        RealmFieldType parentPropertyType = schema.getSchemaForClass(parentObject.getClass()).getFieldType(parentProperty);
+        Row embeddedObject;
+        switch(parentPropertyType) {
+            case OBJECT: {
+                // FIXME: Check type of link
+                long objKey = proxy.realmGet$proxyState().getRow$realm().createEmbeddedObject(parentPropertyColKey);
+                embeddedObject = getTable(clazz).getUncheckedRow(objKey);
+                break;
+            }
+            case LIST: {
+                // FIXME: Check type of link
+                long objKey = proxy.realmGet$proxyState().getRow$realm().getModelList(parentPropertyColKey).createAndAddEmbeddedObject();
+                embeddedObject = getTable(clazz).getUncheckedRow(objKey);
+                break;
+            }
+            default:
+                throw new IllegalArgumentException("Parent property is not a reference to embedded objects of the appropriate type: " + parentPropertyType);
+        }
+
+        //noinspection unchecked
+        return (E) configuration.getSchemaMediator().newInstance(clazz,
+                this,
+                embeddedObject,
+                schema.getColumnInfo(clazz),
+                true, Collections.EMPTY_LIST);
     }
 
     /**
@@ -1034,7 +1090,6 @@ public class Realm extends BaseRealm {
             List<String> excludeFields) {
         Table table = schema.getTable(clazz);
 
-        // FIXME Add support for embedded parent
         return configuration.getSchemaMediator().newInstance(clazz, this,
                 OsObject.createWithPrimaryKey(table, primaryKeyValue),
                 schema.getColumnInfo(clazz),

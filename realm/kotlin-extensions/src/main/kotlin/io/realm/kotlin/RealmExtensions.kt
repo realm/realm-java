@@ -75,6 +75,13 @@ inline fun <reified T : RealmModel> Realm.createObject(primaryKeyValue: Any?): T
 }
 
 /**
+ * FIXME
+ */
+inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: RealmModel, parentProperty: String): T {
+    return this.createEmbeddedObject(T::class.java, parentObject, parentProperty)
+}
+
+/**
 TODO: Figure out if we should include this is or not. Using this makes it possible to do
 
 inline fun <T> Realm.callTransaction(crossinline action: Realm.() -> T): T {

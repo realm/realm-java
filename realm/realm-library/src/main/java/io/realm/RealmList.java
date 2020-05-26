@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -41,6 +42,9 @@ import io.realm.internal.OsList;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.Table;
+import io.realm.internal.Util;
 import io.realm.rx.CollectionChange;
 
 
@@ -1521,8 +1525,17 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
 
     @Override
     public void appendValue(Object value) {
-        final RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.addRow(proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+        RealmModel unmanagedObject = (RealmModel) value;
+        if (isEmbedded((RealmModel) value)) {
+            if (value instanceof DynamicRealmObject) {
+                throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
+            }
+            long objKey = osList.createAndAddEmbeddedObject();
+            updateEmbeddedObject(unmanagedObject, objKey);
+        } else {
+            final RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
+            osList.addRow(proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+        }
     }
 
     @Override
@@ -1534,9 +1547,26 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     public void insertValue(int index, Object value) {
         // need to check in advance to avoid unnecessary copy of unmanaged object into Realm.
         checkInsertIndex(index);
+        RealmModel unmanagedObject = (RealmModel) value;
+        if (isEmbedded(unmanagedObject)) {
+            if (value instanceof DynamicRealmObject) {
+                throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
+            }
+            long objKey = osList.createAndAddEmbeddedObject(index);
+            updateEmbeddedObject(unmanagedObject, objKey);
+        } else {
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
+            osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+        }
+    }
 
-        RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+    private boolean isEmbedded(RealmModel value) {
+        if (realm instanceof Realm) {
+            return realm.getSchema().getSchemaForClass(value.getClass()).isEmbedded();
+        } else {
+            String objectType = ((DynamicRealmObject) value).getType();
+            return realm.getSchema().getSchemaForClass(objectType).isEmbedded();
+        }
     }
 
     @Override
@@ -1546,8 +1576,17 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
 
     @Override
     protected void setValue(int index, Object value) {
-        RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+        RealmModel unmanagedObject = (RealmModel) value;
+        if (isEmbedded(unmanagedObject)) {
+            if (value instanceof DynamicRealmObject) {
+                throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
+            }
+            long objKey = osList.createAndSetEmbeddedObject(index);
+            updateEmbeddedObject(unmanagedObject, objKey);
+        } else {
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
+            osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+        }
     }
 
     // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
@@ -1598,6 +1637,15 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
             return realm.copyToRealm(object);
         }
     }
+
+    private void updateEmbeddedObject(RealmModel unmanagedObject, long objKey) {
+        RealmProxyMediator schemaMediator = realm.getConfiguration().getSchemaMediator();
+        Class<? extends RealmModel> modelClass = Util.getOriginalModelClass(unmanagedObject.getClass());
+        Table table = ((Realm) realm).getTable(modelClass);
+        RealmModel managedObject = schemaMediator.newInstance(modelClass, realm, table.getUncheckedRow(objKey), realm.getSchema().getColumnInfo(modelClass), true, Collections.EMPTY_LIST);
+        schemaMediator.updateEmbeddedObject((Realm) realm, unmanagedObject, managedObject, new HashMap<>(), Collections.EMPTY_SET);
+    }
+
 }
 
 /**

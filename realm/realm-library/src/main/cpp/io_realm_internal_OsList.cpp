@@ -551,7 +551,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsList_nativeGetValue(JNIEnv* e
     return nullptr;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeCreateAndAddEmbeddedObject(JNIEnv* env, jclass, jlong native_list_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeCreateAndAddEmbeddedObject(JNIEnv* env, jclass, jlong native_list_ptr, jlong j_index)
 {
     try {
         List& list = reinterpret_cast<ListWrapper*>(native_list_ptr)->collection();
@@ -561,10 +561,29 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeCreateAndAddEmbedded
         // Create dummy object. Properties must be added later.
         // TODO CreatePolicy::Skip is a hack right after the object is inserted and before Schemas
         //  are validated. Figure out a better approach.
-        list.add(ctx, JavaValue(std::map<ColKey, JavaValue>()), CreatePolicy::Skip);
-        return reinterpret_cast<jlong>(list.get(list.size() - 1).get_key().value);
+        auto array_index = static_cast<size_t>(j_index);
+        list.insert(ctx, array_index, JavaValue(std::map<ColKey, JavaValue>()), CreatePolicy::Skip);
+        return reinterpret_cast<jlong>(list.get(array_index).get_key().value);
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
 
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeCreateAndSetEmbeddedObject(JNIEnv* env, jclass, jlong native_list_ptr, jlong j_index)
+{
+    try {
+        List& list = reinterpret_cast<ListWrapper*>(native_list_ptr)->collection();
+        auto& realm = list.get_realm();
+        auto& object_schema = list.get_object_schema();
+        JavaContext ctx(env, realm, object_schema);
+        size_t array_index = static_cast<size_t>(j_index);
+        // Create dummy object. Properties must be added later.
+        // TODO CreatePolicy::Skip is a hack right after the object is inserted and before Schemas
+        //  are validated. Figure out a better approach.
+        list.set(ctx, array_index, JavaValue(std::map<ColKey, JavaValue>()), CreatePolicy::Skip);
+        return reinterpret_cast<jlong>(list.get(list.size() - 1).get_key().value);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}

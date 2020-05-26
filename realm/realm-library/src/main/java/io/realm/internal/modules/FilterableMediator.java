@@ -169,6 +169,12 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
+    public <E extends RealmModel> void updateEmbeddedObject(Realm realm, E unmanagedObject, E managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
+        checkSchemaHasClass(Util.getOriginalModelClass(managedObject.getClass()));
+        originalMediator.updateEmbeddedObject(realm, unmanagedObject, managedObject, cache, flags);
+    }
+
+    @Override
     public boolean transformerApplied() {
         //noinspection SimplifiableIfStatement
         if (originalMediator == null) {

@@ -106,6 +106,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             emitInsertOrUpdateListMethod(writer)
             emitCreateDetachedCopyMethod(writer)
             emitUpdateMethod(writer)
+            emitUpdateEmbeddedObjectMethod(writer)
             emitToStringMethod(writer)
             emitRealmObjectProxyImplementation(writer)
             emitHashcodeMethod(writer)
@@ -368,15 +369,26 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             // Getter - End
 
             // Setter - Start
+            val fieldType = QualifiedClassName(field.asType())
+            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+            val linkedQualifiedClassName: QualifiedClassName = Utils.getFieldTypeQualifiedName(field)
+            val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
             emitAnnotation("Override")
             beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
+                emitStatement("Realm realm = (Realm) proxyState.getRealm\$realm()")
                 emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field)) {
                     // check excludeFields
                     beginControlFlow("if (proxyState.getExcludeFields\$realm().contains(\"%1\$s\"))", field.simpleName.toString())
                         emitStatement("return")
                     endControlFlow()
                     beginControlFlow("if (value != null && !RealmObject.isManaged(value))")
-                        emitStatement("value = ((Realm) proxyState.getRealm\$realm()).copyToRealm(value)")
+                        if (fieldTypeMetaData.embedded) {
+                            emitStatement("%1\$s proxyObject = realm.createEmbeddedObject(%1\$s.class, this, \"%2\$s\")", linkedQualifiedClassName, fieldName)
+                            emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, Collections.EMPTY_MAP, Collections.EMPTY_SET)", linkedProxyClass)
+                            emitStatement("value = proxyObject")
+                        } else {
+                            emitStatement("value = realm.copyToRealm(value)")
+                        }
                     endControlFlow()
 
                     // set value as default value
@@ -395,8 +407,18 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("proxyState.getRow\$realm().nullifyLink(%s)", fieldColKeyVariableReference(field))
                     emitStatement("return")
                 endControlFlow()
-                emitStatement("proxyState.checkValidObject(value)")
-                emitStatement("proxyState.getRow\$realm().setLink(%s, ((RealmObjectProxy) value).realmGet\$proxyState().getRow\$realm().getObjectKey())", fieldColKeyVariableReference(field))
+
+                if (fieldTypeMetaData.embedded) {
+                    beginControlFlow("if (RealmObject.isManaged(value))")
+                        emitStatement("proxyState.checkValidObject(value)")
+                    endControlFlow()
+                    emitStatement("%1\$s proxyObject = realm.createEmbeddedObject(%1\$s.class, this, \"%2\$s\")", linkedQualifiedClassName, fieldName)
+                    emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, Collections.EMPTY_MAP, Collections.EMPTY_SET)", linkedProxyClass)
+
+                } else {
+                    emitStatement("proxyState.checkValidObject(value)")
+                    emitStatement("proxyState.getRow\$realm().setLink(%s, ((RealmObjectProxy) value).realmGet\$proxyState().getRow\$realm().getObjectKey())", fieldColKeyVariableReference(field))
+                }
             endMethod()
             // Setter - End
         }
@@ -1504,8 +1526,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                             emitStatement("linkedObject = %s.newProxyInstance(realm, linkedObjectRow)", linkedProxyClass)
                                             emitStatement("cache.put(%sObj, (RealmObjectProxy) linkedObject)", fieldName)
                                         endControlFlow()
-                                        emitStatement("%s.update(realm, (%s) realm.getSchema().getColumnInfo(%s.class), linkedObject, %sObj, cache, flags)", linkedProxyClass, columnInfoClassName(field), linkedQualifiedClassName, fieldName)
-                                    endControlFlow()
+                                        emitStatement("%s.updateEmbeddedObject(realm, %sObj, linkedObject, cache, flags)", linkedProxyClass, fieldName)
+                                   endControlFlow()
                                 } else {
                                     beginControlFlow("if (cache%s != null)", fieldName)
                                         emitStatement("realmObjectCopy.%s(cache%s)", setter, fieldName)
@@ -1640,8 +1662,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     }
    
     @Throws(IOException::class)
-    private fun
-            emitUpdateMethod(writer: JavaWriter) {
+    private fun emitUpdateMethod(writer: JavaWriter) {
         if (!metadata.hasPrimaryKey() && !metadata.embedded) {
             return
         }
@@ -1690,7 +1711,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("Row row = realm.getTable(%s.class).getUncheckedRow(objKey)", Utils.getFieldTypeQualifiedName(field))
                                 emitStatement("%s proxyObject = %s.newProxyInstance(realm, row)", fieldType, Utils.getProxyClassSimpleName(field))
                                 emitStatement("cache.put(%sObj, (RealmObjectProxy) proxyObject)", fieldName)
-                                emitStatement("%s.update(realm, (%s) realm.getSchema().getColumnInfo(%s.class), proxyObject, %sObj, cache, flags)", Utils.getProxyClassSimpleName(field), columnInfoClassName(field), Utils.getFieldTypeQualifiedName(field), fieldName)
+                                emitStatement("%s.updateEmbeddedObject(realm, %sObj, proxyObject, cache, flags)", Utils.getProxyClassSimpleName(field), fieldName)
                             } else {
                                 // Non-embedded classes are updating using normal recursive bottom-up approach
                                 emitStatement("%s cache%s = (%s) cache.get(%sObj)", fieldType, fieldName, fieldType, fieldName)
@@ -1760,6 +1781,26 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("builder.updateExistingTopLevelObject()")
                 }
                 emitStatement("return realmObject")
+            endMethod()
+            emitEmptyLine()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun emitUpdateEmbeddedObjectMethod(writer: JavaWriter) {
+        writer.apply {
+            beginMethod("void", "updateEmbeddedObject", EnumSet.of(Modifier.STATIC, Modifier.PUBLIC),
+                    "Realm", "realm", // Argument type & argument name
+                    qualifiedJavaClassName.toString(), "unmanagedObject",
+                    qualifiedJavaClassName.toString(), "managedObject",
+                    "Map<RealmModel, RealmObjectProxy>", "cache",
+                    "Set<ImportFlag>", "flags"
+            )
+            if (metadata.embedded) {
+                emitStatement("update(realm, (%s) realm.getSchema().getColumnInfo(%s.class), managedObject, unmanagedObject, cache, flags)", Utils.getSimpleColumnInfoClassName(metadata.qualifiedClassName), metadata.qualifiedClassName)
+            } else {
+                emitStatement("throw new IllegalStateException(\"This class is not marked embedded: %s\")", qualifiedJavaClassName)
+            }
             endMethod()
             emitEmptyLine()
         }

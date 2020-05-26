@@ -171,6 +171,12 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
+    public <E extends RealmModel> void updateEmbeddedObject(Realm realm, E unmanagedObject, E managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
+        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(managedObject.getClass()));
+        mediator.updateEmbeddedObject(realm, unmanagedObject, managedObject, cache, flags);
+    }
+
+    @Override
     public boolean transformerApplied() {
         for (Map.Entry<Class<? extends RealmModel>, RealmProxyMediator> entry : mediators.entrySet()) {
             if (!entry.getValue().transformerApplied()) {

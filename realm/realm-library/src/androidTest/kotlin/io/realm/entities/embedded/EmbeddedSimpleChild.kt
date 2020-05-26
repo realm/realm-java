@@ -34,7 +34,7 @@ open class EmbeddedSimpleChild : RealmObject {
 
     var id = UUID.randomUUID().toString()
     @LinkingObjects("child")
-    val parent: EmbeddedSimpleParent? = null
+    val parent = EmbeddedSimpleParent()
 
     companion object {
         const val NAME = "EmbeddedSimpleChild"
