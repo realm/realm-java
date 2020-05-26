@@ -17,17 +17,18 @@
 package io.realm.mongodb.functions;
 
 import org.bson.codecs.Decoder;
+import org.bson.codecs.configuration.CodecConfigurationException;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
 
+import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.RealmApp;
 import io.realm.RealmAppConfiguration;
 import io.realm.RealmAsyncTask;
 import io.realm.RealmUser;
 import io.realm.internal.Util;
-import io.realm.internal.jni.JniBsonProtocol;
 
 /**
  * A <i>Functions<i> manager to call MongoDB Realm functions.
@@ -63,19 +64,16 @@ public abstract class Functions {
      * @param args Arguments to the Stitch function.
      * @param resultClass  The type that the functions result should be converted to.
      * @param codecRegistry Codec registry to use for argument encoding and result decoding.
-     * @param <T> The type that the response will be decoded as using the {@code codecRegistry}.
+     * @param <ResultT> The type that the response will be decoded as using the {@code codecRegistry}.
      * @return Result of the Stitch function.
      *
      * @throws ObjectServerError if the request failed in some way.
-     * @throws org.bson.codecs.configuration.CodecConfigurationException if the {@code codecRegistry}
-     * does not provide codecs for the argument or {@code resultClass}.
-     * @throws org.bson.BSONException is an error occurred during BSON processing.
      *
      * @see #callFunctionAsync(String, List, Class, CodecRegistry, RealmApp.Callback)
      * @see RealmAppConfiguration#getDefaultCodecRegistry()
      */
-    public <T> T callFunction(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry) {
-        return callFunction(name, args, codecRegistry, codecRegistry.get(resultClass));
+    public <ResultT> ResultT callFunction(String name, List<?> args, Class<ResultT> resultClass, CodecRegistry codecRegistry) {
+        return invoke(name, args, codecRegistry, decoder(codecRegistry, resultClass));
     }
 
     /**
@@ -85,19 +83,16 @@ public abstract class Functions {
      * @param name Name of the Stitch function to call.
      * @param args Arguments to the Stitch function.
      * @param resultClass  The type that the functions result should be converted to.
-     * @param <T> The type that the response will be decoded as using the default codec registry.
+     * @param <ResultT> The type that the response will be decoded as using the default codec registry.
      * @return Result of the Stitch function.
      *
      * @throws ObjectServerError if the request failed in some way.
-     * @throws org.bson.codecs.configuration.CodecConfigurationException if the {@code codecRegistry}
-     * does not provide codecs for the argument or {@code resultClass}.
-     * @throws org.bson.BSONException is an error occurred during BSON processing.
      *
      * @see #callFunction(String, List, Class, CodecRegistry)
      * @see RealmAppConfiguration#getDefaultCodecRegistry()
      */
-    public <T> T callFunction(String name, List<?> args, Class<T> resultClass) {
-        return callFunction(name, args, defaultCodecRegistry, defaultCodecRegistry.get(resultClass));
+    public <ResultT> ResultT callFunction(String name, List<?> args, Class<ResultT> resultClass) {
+        return callFunction(name, args, resultClass, defaultCodecRegistry);
     }
 
     /**
@@ -108,23 +103,16 @@ public abstract class Functions {
      * @param name Name of the Stitch function to call.
      * @param args Arguments to the Stitch function.
      * @param resultDecoder The decoder used to decode the result.
-     * @param <T> The type that the response will be decoded as using the {@code resultDecoder}
+     * @param <ResultT> The type that the response will be decoded as using the {@code resultDecoder}
      * @return Result of the Stitch function.
      *
      * @throws ObjectServerError if the request failed in some way.
-     * @throws org.bson.codecs.configuration.CodecConfigurationException if the {@code codecRegistry}
-     * does not provide codecs for the argument or {@code resultClass}.
-     * @throws org.bson.BSONException is an error occurred during BSON processing.
      *
      * @see #callFunction(String, List, Class, CodecRegistry)
      * @see RealmAppConfiguration#getDefaultCodecRegistry()
      */
-    public <T> T callFunction(String name, List<?> args, Decoder<T> resultDecoder) {
-        return callFunction(name, args, defaultCodecRegistry, resultDecoder);
-    }
-
-    <T> T callFunction(String name, List<?> args, CodecRegistry codecRegistry, Decoder<T> resultDecoder) {
-        return invoke(name, args, codecRegistry, resultDecoder);
+    public <ResultT> ResultT callFunction(String name, List<?> args, Decoder<ResultT> resultDecoder) {
+        return invoke(name, args, defaultCodecRegistry, resultDecoder);
     }
 
     /**
@@ -137,12 +125,7 @@ public abstract class Functions {
      * @param args Arguments to the Stitch function.
      * @param resultClass  The type that the functions result should be converted to.
      * @param codecRegistry Codec registry to use for argument encoding and result decoding.
-     * @param callback The callback that will receive the result of the request. If the request
-     *                 failed in some way, the codec registry failed to provide codecs for the
-     *                 arguments or {@code resultClass}, or an error occurres during BSON processing
-     *                 the result will indicate the error as a {@link ObjectServerError},
-     *                 {@link org.bson.codecs.configuration.CodecConfigurationException}
-     *                 or {@link ObjectServerError} respectively.
+     * @param callback The callback that will receive the result or any errors from the request.
      * @param <T> The type that the response will be decoded as using the default codec registry.
      * @return Result of the Stitch function.
      *
@@ -153,7 +136,13 @@ public abstract class Functions {
      * @see RealmAppConfiguration#getDefaultCodecRegistry()
      */
     public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry, RealmApp.Callback<T> callback) {
-        return callFunctionAsync(name, args, codecRegistry, codecRegistry.get(resultClass), callback);
+        Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
+        return new RealmApp.Request<T>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public T run() throws ObjectServerError {
+                return invoke(name, args, codecRegistry, decoder(codecRegistry, resultClass));
+            }
+        }.start();
     }
 
     /**
@@ -165,12 +154,7 @@ public abstract class Functions {
      * @param name Name of the Stitch function to call.
      * @param args Arguments to the Stitch function.
      * @param resultClass  The type that the functions result should be converted to.
-     * @param callback The callback that will receive the result of the request. If the request
-     *                 failed in some way, the codec registry failed to provide codecs for the
-     *                 arguments or {@code resultClass}, or an error occurres during BSON processing
-     *                 the result will indicate the error as a {@link ObjectServerError},
-     *                 {@link org.bson.codecs.configuration.CodecConfigurationException}
-     *                 or {@link ObjectServerError} respectively.
+     * @param callback The callback that will receive the result or any errors from the request.
      * @param <T> The type that the response will be decoded as using the default codec registry.
      * @return Result of the Stitch function.
      *
@@ -181,7 +165,7 @@ public abstract class Functions {
      * @see RealmAppConfiguration#getDefaultCodecRegistry()
      */
     public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> resultClass, RealmApp.Callback<T> callback) {
-        return callFunctionAsync(name, args, defaultCodecRegistry, defaultCodecRegistry.get(resultClass), callback);
+        return callFunctionAsync(name, args, resultClass, defaultCodecRegistry, callback);
     }
 
     /**
@@ -192,12 +176,7 @@ public abstract class Functions {
      * @param name Name of the Stitch function to call.
      * @param args Arguments to the Stitch function.
      * @param resultDecoder The decoder used to decode the result.
-     * @param callback The callback that will receive the result of the request. If the request
-     *                 failed in some way, the codec registry failed to provide codecs for the
-     *                 arguments or {@code resultClass}, or an error occurres during BSON processing
-     *                 the result will indicate the error as a {@link ObjectServerError},
-     *                 {@link org.bson.codecs.configuration.CodecConfigurationException}
-     *                 or {@link ObjectServerError} respectively.
+     * @param callback The callback that will receive the result or any errors from the request.
      * @param <T> The type that the response will be decoded as using the {@code resultDecoder}
      * @return Result of the Stitch function.
      *
@@ -208,15 +187,11 @@ public abstract class Functions {
      * @see RealmAppConfiguration#getDefaultCodecRegistry()
      */
     public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Decoder<T> resultDecoder, RealmApp.Callback<T> callback) {
-        return callFunctionAsync(name, args, defaultCodecRegistry, resultDecoder, callback);
-    }
-
-    <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, CodecRegistry codecRegistry, Decoder<T> resultDecoder, RealmApp.Callback<T> callback) {
         Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
         return new RealmApp.Request<T>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public T run() throws ObjectServerError {
-                return callFunction(name, args, codecRegistry, resultDecoder);
+                return invoke(name, args, defaultCodecRegistry, resultDecoder);
             }
         }.start();
     }
@@ -250,5 +225,13 @@ public abstract class Functions {
     }
 
     protected abstract <T> T invoke(String name, List<?> args, CodecRegistry codecRegistry, Decoder<T> resultDecoder);
+
+    private static <T> Decoder<T> decoder(CodecRegistry codecRegistry, Class<T> clz) {
+        try {
+            return codecRegistry.get(clz);
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve decoder for " + clz.getName(), e);
+        }
+    }
 
 }

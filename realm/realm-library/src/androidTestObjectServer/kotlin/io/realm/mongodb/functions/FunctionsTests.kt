@@ -37,6 +37,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.RuntimeException
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -79,6 +80,21 @@ class FunctionsTests {
             return value
         }
     }
+    // Custom codec that throws an exception when encoding/decoding integers
+    private val faultyIntegerCodec =  object: Codec<Integer> {
+        override fun decode(reader: BsonReader, decoderContext: DecoderContext): Integer {
+            throw RuntimeException("Simulated error")
+        }
+        override fun getEncoderClass(): Class<Integer> { return Integer::class.java }
+        override fun encode(writer: BsonWriter?, value: Integer?, encoderContext: EncoderContext?) {
+            throw RuntimeException("Simulated error")
+        }
+    }
+    // Custom registry that throws an exception when encoding/decoding integers
+    private val faultyIntegerRegistry = CodecRegistries.fromRegistries(
+            CodecRegistries.fromProviders(IterableCodecProvider()),
+            CodecRegistries.fromCodecs(StringCodec(), faultyIntegerCodec)
+    )
 
     @Before
     fun setup() {
@@ -124,9 +140,9 @@ class FunctionsTests {
                     val values3 = listOf(2, "Realm", 3)
                     assertEquals(values3, functions.callFunction(FIRST_ARG_FUNCTION, listOf(values3), List::class.java))
                 }
-                // FIXME Does not seem to work, typically this has indicated an issue with C++
-                //  parser. Probably because of embedding an array in an array, added explicit test
-//                BsonType.BINARY -> {
+                BsonType.BINARY -> {
+                    // FIXME Does not seem to work, typically this has indicated an issue with C++
+                    //  parser. Probably because of embedding an array in an array, added explicit test
 //                    val value = byteArrayOf(1, 2, 3)
 //                    val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), ByteArray::class.java)
 //                    assertEquals(value.toList(), actual.toList())
@@ -135,7 +151,7 @@ class FunctionsTests {
 //                    // response = "{"value":{"$binary":{"base64":"JmS8oQitTny4IPS2tyjmdA==","subType":"00"}}}"
 //                    // assertTypedEcho(BsonBinary(UUID.randomUUID()), BsonBinary::class.java)
 //                    assertTypedEcho(BsonBinary(byteArrayOf(1,2,3)), BsonBinary::class.java)
-//                }
+                }
                 BsonType.OBJECT_ID -> {
                     assertTypeOfFirstArgFunction(ObjectId(), ObjectId::class.java)
                     assertTypeOfFirstArgFunction(BsonObjectId(ObjectId()), BsonObjectId::class.java)
@@ -189,6 +205,9 @@ class FunctionsTests {
                     // Relying on org.bson codec providers for conversion, so skipping explicit
                     // tests for these more exotic types
                 }
+                else -> {
+                    fail()
+                }
             }
         }
     }
@@ -213,7 +232,7 @@ class FunctionsTests {
 
     @Test
     fun codecArgumentFailure() {
-        assertFailsWith<CodecConfigurationException> {
+        assertFailsWithErrorCode(ErrorCode.BSON_CODEC_NOT_FOUND) {
             functions.callFunction(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Dog::class.java)
         }
     }
@@ -222,6 +241,7 @@ class FunctionsTests {
     fun asyncCodecArgumentFailure() = looperThread.runBlocking {
         functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Integer::class.java) { result ->
             try {
+                assertEquals(ErrorCode.BSON_CODEC_NOT_FOUND, result.error.errorCode)
                 assertTrue(result.error.exception is CodecConfigurationException)
             } finally {
                 looperThread.testComplete()
@@ -231,7 +251,7 @@ class FunctionsTests {
 
     @Test
     fun codecResponseFailure() {
-        assertFailsWith<CodecConfigurationException> {
+        assertFailsWithErrorCode(ErrorCode.BSON_CODEC_NOT_FOUND) {
             functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), Dog::class.java)
         }
     }
@@ -240,6 +260,7 @@ class FunctionsTests {
     fun asyncCodecResponseFailure() = looperThread.runBlocking {
         functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Integer::class.java) { result ->
             try {
+                assertEquals(ErrorCode.BSON_CODEC_NOT_FOUND, result.error.errorCode)
                 assertTrue(result.error.exception is CodecConfigurationException)
             } finally {
                 looperThread.testComplete()
@@ -248,16 +269,35 @@ class FunctionsTests {
     }
 
     @Test
-    fun codecBsonFailure() {
-        assertFailsWith<BSONException> {
+    fun codecBsonEncodingFailure() {
+        assertFailsWithErrorCode(ErrorCode.BSON_ENCODING) {
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), String::class.java, faultyIntegerRegistry)
+        }
+    }
+
+    @Test
+    fun asyncCodecBsonEncodingFailure() = looperThread.runBlocking {
+        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(32), String::class.java, faultyIntegerRegistry) { result ->
+            try {
+                assertEquals(ErrorCode.BSON_ENCODING, result.error.errorCode)
+            } finally {
+                looperThread.testComplete()
+            }
+        }
+    }
+
+    @Test
+    fun codecBsonDecodingFailure() {
+        assertFailsWithErrorCode(ErrorCode.BSON_DECODING) {
             functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), String::class.java)
         }
     }
 
     @Test
-    fun asyncCodecBsonFailure() = looperThread.runBlocking {
+    fun asyncCodecBsonDecodingFailure() = looperThread.runBlocking {
         functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(32), String::class.java) { result ->
             try {
+                assertEquals(ErrorCode.BSON_DECODING, result.error.errorCode)
                 assertTrue(result.error.exception is BSONException)
             } finally {
                 looperThread.testComplete()
@@ -422,6 +462,7 @@ class FunctionsTests {
         val faultyCodecRegistry = CodecRegistries.fromProviders(
                 object: CodecProvider {
                     override fun <T : Any> get(clazz: Class<T>?, registry: CodecRegistry?): Codec<T> {
+                        @Suppress("UNCHECKED_CAST")
                         return faultyListCodec as Codec<T>
                     }
                 }
