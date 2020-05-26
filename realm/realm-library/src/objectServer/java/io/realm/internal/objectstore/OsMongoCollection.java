@@ -16,8 +16,6 @@
 
 package io.realm.internal.objectstore;
 
-import androidx.annotation.IntDef;
-
 import org.bson.BsonArray;
 import org.bson.BsonNull;
 import org.bson.BsonObjectId;
@@ -27,8 +25,6 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +68,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private final long nativePtr;
     private final Class<DocumentT> documentClass;
     private final CodecRegistry codecRegistry;
-    private final String emptyDocument;
+    private final String encodedEmptyDocument;
 
     OsMongoCollection(final long nativeCollectionPtr,
                       final Class<DocumentT> documentClass,
@@ -80,7 +76,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         this.nativePtr = nativeCollectionPtr;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;
-        this.emptyDocument = JniBsonProtocol.encode(new Document(), codecRegistry);
+        this.encodedEmptyDocument = JniBsonProtocol.encode(new Document(), codecRegistry);
     }
 
     @Override
@@ -163,7 +159,13 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private <ResultT> OsFindIterable<ResultT> findInternal(final Bson filter,
                                                            final Class<ResultT> resultClass,
                                                            @Nullable final FindOptions options) {
-        return new OsFindIterable<>(this, codecRegistry, resultClass, filter, options);
+        OsFindIterable<ResultT> osFindIterable = new OsFindIterable<>(this, codecRegistry, resultClass, filter);
+        if (options != null) {
+            osFindIterable.filter(filter);
+            osFindIterable.limit(options.getLimit());
+            osFindIterable.projection(options.getProjection());
+        }
+        return osFindIterable;
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -208,8 +210,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         };
 
         String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
-        String projectionString = emptyDocument;
-        String sortString = emptyDocument;
+        String projectionString = encodedEmptyDocument;
+        String sortString = encodedEmptyDocument;
 
         switch (findOneType) {
             case FIND_ONE:
@@ -334,13 +336,11 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<UpdateResult> callback = new OsJNIResultCallback<UpdateResult>(success, error) {
             @Override
             protected UpdateResult mapSuccess(Object result) {
-                // FIXME: see OsMongoCollection.cpp - collection_mapper_update. There surely is a better way to do this
                 BsonArray array = JniBsonProtocol.decode((String) result, BsonArray.class, codecRegistry);
                 long matchedCount = array.get(0).asInt32().getValue();
                 long modifiedCount = array.get(1).asInt32().getValue();
-
-                // FIXME: this seems ugly, but Stitch allows retuning null for upsertedId
                 BsonValue upsertedId = array.get(2);
+
                 if (upsertedId instanceof BsonNull) {
                     upsertedId = null;
                 }
@@ -455,8 +455,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
         String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
         String encodedUpdate = JniBsonProtocol.encode(update, codecRegistry);
-        String encodedProjection = emptyDocument;
-        String encodedSort = emptyDocument;
+        String encodedProjection = encodedEmptyDocument;
+        String encodedSort = encodedEmptyDocument;
         if (options != null) {
             if (options.getProjection() != null) {
                 encodedProjection = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
@@ -508,26 +508,6 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             return JniBsonProtocol.decode((String) result, resultClass, codecRegistry);
         }
     }
-
-//    @Retention(RetentionPolicy.SOURCE)
-//    @IntDef({UPDATE_ONE, UPDATE_ONE_WITH_OPTIONS, UPDATE_MANY, UPDATE_MANY_WITH_OPTIONS})
-//    @interface UpdateType {
-//    }
-//
-//    @Retention(RetentionPolicy.SOURCE)
-//    @IntDef({DELETE_ONE, DELETE_MANY})
-//    @interface DeleteType {
-//    }
-//
-//    @Retention(RetentionPolicy.SOURCE)
-//    @IntDef({FIND_ONE, FIND_ONE_WITH_OPTIONS})
-//    @interface FindOneType {
-//    }
-//
-//    @Retention(RetentionPolicy.SOURCE)
-//    @IntDef({FIND_ONE_AND_UPDATE, FIND_ONE_AND_UPDATE_WITH_OPTIONS, FIND_ONE_AND_REPLACE, FIND_ONE_AND_REPLACE_WITH_OPTIONS, FIND_ONE_AND_DELETE, FIND_ONE_AND_DELETE_WITH_OPTIONS})
-//    @interface FindOneAndOperationType {
-//    }
 
     private static native long nativeGetFinalizerMethodPtr();
     private static native void nativeCount(long remoteMongoCollectionPtr,

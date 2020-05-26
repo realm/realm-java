@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_internal_objectstore_OsMongoFindIterable.h"
+#include "io_realm_internal_objectstore_OsFindIterable.h"
 
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
@@ -44,42 +44,34 @@ static std::function<jobject(JNIEnv*, util::Optional<bson::BsonArray>)> collecti
 JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsFindIterable_nativeFind(JNIEnv *env,
                                                              jclass,
+                                                             jint j_find_type,
                                                              jlong j_collection_ptr,
                                                              jstring j_filter,
+                                                             jstring j_projection,
+                                                             jstring j_sort,
+                                                             jlong j_limit,
                                                              jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
-        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
-        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
-        collection->find(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find));
-    }
-    CATCH_STD()
-}
+        bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
 
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsFindIterable_nativeFindWithOptions(JNIEnv *env,
-                                                                        jclass,
-                                                                        jlong j_collection_ptr,
-                                                                        jstring j_filter,
-                                                                        jstring j_projection,
-                                                                        jstring j_sort,
-                                                                        jlong j_limit,
-                                                                        jobject j_callback) {
-    try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-
-        // FIXME: add guard against wrongly encoded strings (e.g. due to using a bogus codec from Java)
-        uint64_t limit = std::uint64_t(j_limit);
-        bson::BsonDocument filter(JniBsonProtocol::jstring_to_bson(env, j_filter));
-        bson::BsonDocument projection(JniBsonProtocol::jstring_to_bson(env, j_projection));
-        bson::BsonDocument sort(JniBsonProtocol::jstring_to_bson(env, j_sort));
-        RemoteMongoCollection::RemoteFindOptions options = {
-                limit,
-                projection,
-                sort
-        };
-        collection->find(filter, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find));
+        switch (j_find_type) {
+            case io_realm_internal_objectstore_OsFindIterable_FIND:
+                collection->find(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find));
+                break;
+            case io_realm_internal_objectstore_OsFindIterable_FIND_WITH_OPTIONS:
+                uint64_t limit = std::uint64_t(j_limit);
+                bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
+                bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
+                RemoteMongoCollection::RemoteFindOptions options = {
+                        limit,
+                        projection,
+                        sort
+                };
+                collection->find(filter, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find));
+                break;
+        }
     }
     CATCH_STD()
 }

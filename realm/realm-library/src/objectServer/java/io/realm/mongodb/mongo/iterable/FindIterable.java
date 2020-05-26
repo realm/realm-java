@@ -16,10 +16,15 @@
 
 package io.realm.mongodb.mongo.iterable;
 
+import org.bson.conversions.Bson;
+
 import java.util.Collection;
+
+import javax.annotation.Nullable;
 
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsFindIterable;
+import io.realm.mongodb.mongo.options.FindOptions;
 
 /**
  * FIXME
@@ -28,11 +33,13 @@ import io.realm.internal.objectstore.OsFindIterable;
 public class FindIterable<ResultT> extends MongoIterable<ResultT> {
 
     private final OsFindIterable<ResultT> osFindIterable;
+    private final FindOptions findOptions;
 
     public FindIterable(final TaskDispatcher dispatcher,
                         final OsFindIterable<ResultT> osFindIterable) {
         super(dispatcher);
         this.osFindIterable = osFindIterable;
+        this.findOptions = new FindOptions();
     }
 
     @Override
@@ -43,5 +50,49 @@ public class FindIterable<ResultT> extends MongoIterable<ResultT> {
     @Override
     ResultT getFirst() {
         return osFindIterable.first();
+    }
+
+    /**
+     * Sets the query filter to apply to the query.
+     *
+     * @param filter the filter, which may be null.
+     * @return this
+     */
+    public FindIterable<ResultT> filter(@Nullable final Bson filter) {
+        osFindIterable.filter(filter);
+        return this;
+    }
+
+    /**
+     * Sets the limit to apply.
+     *
+     * @param limit the limit, which may be 0
+     * @return this
+     */
+    public FindIterable<ResultT> limit(final int limit) {
+        osFindIterable.limit(limit);
+        return this;
+    }
+
+    /**
+     * Sets a document describing the fields to return for all matching documents.
+     *
+     * @param projection the project document, which may be null.
+     * @return this
+     */
+    public FindIterable<ResultT> projection(@Nullable final Bson projection) {
+        osFindIterable.projection(projection);
+        return this;
+    }
+
+    /**
+     * Sets the sort criteria to apply to the query.
+     *
+     * @param sort the sort criteria, which may be null.
+     * @return this
+     */
+    public FindIterable<ResultT> sort(@Nullable final Bson sort) {
+        osFindIterable.sort(sort);
+        return this;
     }
 }

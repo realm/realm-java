@@ -18,6 +18,7 @@ package io.realm.mongodb.mongo.options;
 
 import javax.annotation.Nullable;
 
+import org.bson.Document;
 import org.bson.conversions.Bson;
 
 /**
@@ -32,6 +33,8 @@ public class FindOptions {
      * Construct a new instance.
      */
     public FindOptions() {
+        this.projection = new Document();
+        this.sort = new Document();
     }
 
     /**
